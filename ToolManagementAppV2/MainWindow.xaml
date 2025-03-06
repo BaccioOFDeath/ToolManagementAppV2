@@ -265,6 +265,10 @@
                                 <xctk:WatermarkTextBox x:Name="UserNameInput" Watermark="User Name" Margin="5" />
                                 <CheckBox x:Name="IsAdminCheckbox" Content="Is Admin" Margin="5" />
                                 <Button Content="Upload Photo" Click="UploadUserPhotoButton_Click" Margin="5" />
+                                <!-- New controls for password change -->
+                                <xctk:WatermarkTextBox x:Name="NewPasswordInput" Watermark="New Password" Margin="5" />
+                                <xctk:WatermarkTextBox x:Name="ConfirmPasswordInput" Watermark="Confirm Password" Margin="5" />
+                                <Button Content="Change Password" Click="ChangePasswordButton_Click" Margin="5" />
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                     <Button Content="Add" Click="AddUserButton_Click" Margin="5" />
                                     <Button Content="Update" Click="UpdateUserButton_Click" Margin="5" />
@@ -289,6 +293,7 @@
                         </ListView>
                     </Grid>
                 </TabItem>
+
 
                 <!-- Settings Tab -->
                 <TabItem Header="Settings">

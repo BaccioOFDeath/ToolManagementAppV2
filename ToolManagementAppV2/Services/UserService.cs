@@ -1,4 +1,5 @@
-﻿using System;
+﻿// File: Services/UserService.cs
+using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
@@ -16,7 +17,6 @@ namespace ToolManagementAppV2.Services
             _dbService = dbService;
         }
 
-        // Retrieve all users from the database
         public List<User> GetAllUsers()
         {
             var users = new List<User>();
@@ -33,40 +33,37 @@ namespace ToolManagementAppV2.Services
                 {
                     UserID = Convert.ToInt32(reader["UserID"]),
                     UserName = reader["UserName"].ToString(),
+                    Password = reader["Password"].ToString(),
                     UserPhotoPath = reader["UserPhotoPath"].ToString(),
-                    IsAdmin = reader["IsAdmin"].ToString() == "1"
+                    IsAdmin = Convert.ToInt32(reader["IsAdmin"]) == 1
                 };
 
-                // Load the bitmap image from the photo path
                 if (!string.IsNullOrEmpty(user.UserPhotoPath) && File.Exists(user.UserPhotoPath))
                 {
                     user.PhotoBitmap = new BitmapImage(new Uri(user.UserPhotoPath));
                 }
-
                 users.Add(user);
             }
 
             return users;
         }
 
-
-        // Add a new user to the database
         public void AddUser(User user)
         {
             using var connection = new SQLiteConnection(_dbService.ConnectionString);
             connection.Open();
 
             var query = @"
-            INSERT INTO Users (UserName, UserPhotoPath, IsAdmin)
-            VALUES (@UserName, @UserPhotoPath, @IsAdmin)";
+            INSERT INTO Users (UserName, Password, UserPhotoPath, IsAdmin)
+            VALUES (@UserName, @Password, @UserPhotoPath, @IsAdmin)";
             using var command = new SQLiteCommand(query, connection);
             command.Parameters.AddWithValue("@UserName", user.UserName);
+            command.Parameters.AddWithValue("@Password", user.Password ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@UserPhotoPath", user.UserPhotoPath ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("@IsAdmin", user.IsAdmin ? 1 : 0); // SQLite uses 1/0 for booleans
+            command.Parameters.AddWithValue("@IsAdmin", user.IsAdmin ? 1 : 0);
             command.ExecuteNonQuery();
         }
 
-        // Update an existing user's information
         public void UpdateUser(User user)
         {
             using var connection = new SQLiteConnection(_dbService.ConnectionString);
@@ -74,17 +71,17 @@ namespace ToolManagementAppV2.Services
 
             var query = @"
             UPDATE Users 
-            SET UserName = @UserName, UserPhotoPath = @UserPhotoPath, IsAdmin = @IsAdmin
+            SET UserName = @UserName, Password = @Password, UserPhotoPath = @UserPhotoPath, IsAdmin = @IsAdmin
             WHERE UserID = @UserID";
             using var command = new SQLiteCommand(query, connection);
             command.Parameters.AddWithValue("@UserID", user.UserID);
             command.Parameters.AddWithValue("@UserName", user.UserName);
+            command.Parameters.AddWithValue("@Password", user.Password ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@UserPhotoPath", user.UserPhotoPath ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@IsAdmin", user.IsAdmin ? 1 : 0);
             command.ExecuteNonQuery();
         }
 
-        // Delete a user from the database
         public void DeleteUser(int userID)
         {
             using var connection = new SQLiteConnection(_dbService.ConnectionString);
@@ -101,7 +98,7 @@ namespace ToolManagementAppV2.Services
             using var connection = new SQLiteConnection(_dbService.ConnectionString);
             connection.Open();
 
-            var query = "SELECT * FROM Users LIMIT 1"; // Update this query based on your logic
+            var query = "SELECT * FROM Users LIMIT 1";
             using var command = new SQLiteCommand(query, connection);
             using var reader = command.ExecuteReader();
 
@@ -111,93 +108,73 @@ namespace ToolManagementAppV2.Services
                 {
                     UserID = Convert.ToInt32(reader["UserID"]),
                     UserName = reader["UserName"].ToString(),
-                    UserPhotoPath = reader["UserPhotoPath"].ToString(),
-                    IsAdmin = reader["IsAdmin"].ToString() == "1"
-                };
-            }
-
-            return null; // Return null if no user is found
-        }
-
-        public User GetUserByName(string userName)
-        {
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-            var query = "SELECT * FROM Users WHERE UserName = @UserName";
-            using var command = new SQLiteCommand(query, connection);
-            command.Parameters.AddWithValue("@UserName", userName);
-            using var reader = command.ExecuteReader();
-            if (reader.Read())
-            {
-                return new User
-                {
-                    UserID = Convert.ToInt32(reader["UserID"]),
-                    UserName = reader["UserName"].ToString(),
+                    Password = reader["Password"].ToString(),
                     UserPhotoPath = reader["UserPhotoPath"].ToString(),
                     IsAdmin = Convert.ToInt32(reader["IsAdmin"]) == 1
                 };
             }
             return null;
+        }
+
+        public User AuthenticateUser(string userName, string password)
+        {
+            using var connection = new SQLiteConnection(_dbService.ConnectionString);
+            connection.Open();
+
+            var query = "SELECT * FROM Users WHERE UserName = @UserName AND Password = @Password";
+            using var command = new SQLiteCommand(query, connection);
+            command.Parameters.AddWithValue("@UserName", userName);
+            command.Parameters.AddWithValue("@Password", password);
+            using var reader = command.ExecuteReader();
+
+            if (reader.Read())
+            {
+                return new User
+                {
+                    UserID = Convert.ToInt32(reader["UserID"]),
+                    UserName = reader["UserName"].ToString(),
+                    Password = reader["Password"].ToString(),
+                    UserPhotoPath = reader["UserPhotoPath"].ToString(),
+                    IsAdmin = Convert.ToInt32(reader["IsAdmin"]) == 1
+                };
+            }
+            return null;
+        }
+
+        public void ChangeUserPassword(int userID, string newPassword)
+        {
+            using var connection = new SQLiteConnection(_dbService.ConnectionString);
+            connection.Open();
+
+            var query = "UPDATE Users SET Password = @Password WHERE UserID = @UserID";
+            using var command = new SQLiteCommand(query, connection);
+            command.Parameters.AddWithValue("@Password", newPassword);
+            command.Parameters.AddWithValue("@UserID", userID);
+            command.ExecuteNonQuery();
         }
 
         public User GetUserByID(int userID)
         {
             using var connection = new SQLiteConnection(_dbService.ConnectionString);
             connection.Open();
+
             var query = "SELECT * FROM Users WHERE UserID = @UserID";
             using var command = new SQLiteCommand(query, connection);
             command.Parameters.AddWithValue("@UserID", userID);
             using var reader = command.ExecuteReader();
+
             if (reader.Read())
             {
                 return new User
                 {
                     UserID = Convert.ToInt32(reader["UserID"]),
                     UserName = reader["UserName"].ToString(),
+                    Password = reader["Password"].ToString(),
                     UserPhotoPath = reader["UserPhotoPath"].ToString(),
                     IsAdmin = Convert.ToInt32(reader["IsAdmin"]) == 1
                 };
             }
             return null;
         }
-
-        public List<Rental> GetRentalsForCustomer(int customerID)
-        {
-            var rentals = new List<Rental>();
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-            var query = "SELECT * FROM Rentals WHERE CustomerID = @CustomerID ORDER BY RentalDate DESC";
-            using var command = new SQLiteCommand(query, connection);
-            command.Parameters.AddWithValue("@CustomerID", customerID);
-            using var reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                rentals.Add(new Rental
-                {
-                    RentalID = Convert.ToInt32(reader["RentalID"]),
-                    ToolID = Convert.ToInt32(reader["ToolID"]),
-                    CustomerID = Convert.ToInt32(reader["CustomerID"]),
-                    RentalDate = Convert.ToDateTime(reader["RentalDate"]),
-                    DueDate = Convert.ToDateTime(reader["DueDate"]),
-                    ReturnDate = reader["ReturnDate"] is DBNull ? null : Convert.ToDateTime(reader["ReturnDate"]),
-                    Status = reader["Status"].ToString()
-                });
-            }
-            return rentals;
-        }
-
-        public void ExtendRental(int rentalID, DateTime newDueDate)
-        {
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-            var query = "UPDATE Rentals SET DueDate = @NewDueDate WHERE RentalID = @RentalID AND Status = 'Rented'";
-            using var command = new SQLiteCommand(query, connection);
-            command.Parameters.AddWithValue("@NewDueDate", newDueDate);
-            command.Parameters.AddWithValue("@RentalID", rentalID);
-            int rowsAffected = command.ExecuteNonQuery();
-            if (rowsAffected == 0)
-                throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
-        }
-
     }
 }

@@ -688,5 +688,32 @@ namespace ToolManagementAppV2
             }
         }
 
+        private void ChangePasswordButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (UserList.SelectedItem is Models.User selectedUser)
+            {
+                string newPassword = NewPasswordInput.Text;
+                string confirmPassword = ConfirmPasswordInput.Text;
+                if (string.IsNullOrEmpty(newPassword) || newPassword != confirmPassword)
+                {
+                    MessageBox.Show("Passwords do not match or are empty.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                try
+                {
+                    _userService.ChangeUserPassword(selectedUser.UserID, newPassword);
+                    MessageBox.Show("Password changed successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error changing password: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select a user to change the password.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
     }
 }

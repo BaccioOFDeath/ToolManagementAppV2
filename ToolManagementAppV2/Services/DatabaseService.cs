@@ -13,6 +13,7 @@ namespace ToolManagementAppV2.Services
             ConnectionString = $"Data Source={dbPath};Version=3;";
             InitializeDatabase();
             UpdateDatabaseSchema();
+            UpdateUserSchema();
         }
 
         private void InitializeDatabase()
@@ -113,6 +114,32 @@ namespace ToolManagementAppV2.Services
             if (!columnExists)
             {
                 using var command = new SQLiteCommand("ALTER TABLE Tools ADD COLUMN ToolImagePath TEXT", connection);
+                command.ExecuteNonQuery();
+            }
+        }
+
+        private void UpdateUserSchema()
+        {
+            using var connection = new SQLiteConnection(ConnectionString);
+            connection.Open();
+
+            bool passwordColumnExists = false;
+            using (var command = new SQLiteCommand("PRAGMA table_info(Users)", connection))
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    if (reader["name"].ToString().Equals("Password", StringComparison.OrdinalIgnoreCase))
+                    {
+                        passwordColumnExists = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!passwordColumnExists)
+            {
+                using var command = new SQLiteCommand("ALTER TABLE Users ADD COLUMN Password TEXT", connection);
                 command.ExecuteNonQuery();
             }
         }
