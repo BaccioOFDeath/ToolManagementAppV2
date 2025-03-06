@@ -150,20 +150,42 @@ namespace ToolManagementAppV2
             MessageBox.Show("Print Search Results Button Clicked!");
         }
 
+        // In MainWindow.xaml.cs – Update LogoutButton_Click to handle case when no current user exists
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
         {
             var currentUser = _userService.GetCurrentUser();
+            if (currentUser == null)
+            {
+                MessageBox.Show("No user is currently logged in.", "Logout", MessageBoxButton.OK, MessageBoxImage.Warning);
+                // Optionally, open the login screen or shutdown the app
+                LoginWindow login = new LoginWindow();
+                bool? loginResult = login.ShowDialog();
+                if (loginResult == true)
+                {
+                    Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
+                    MainWindow newMainWindow = new MainWindow();
+                    Application.Current.MainWindow = newMainWindow;
+                    newMainWindow.Show();
+                }
+                else
+                {
+                    Application.Current.Shutdown();
+                }
+                this.Close();
+                return;
+            }
+
             if (MessageBox.Show("Do you really want to logout?", "Logout", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 _activityLogService.LogAction(currentUser.UserID, currentUser.UserName, "User logged out");
 
-                // Prevent shutdown when the current window closes
+                // Prevent shutdown when closing the current window
                 Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
                 // Hide the main window so it doesn't appear behind the login screen
                 this.Hide();
 
-                LoginWindow login = new LoginWindow();
-                bool? loginResult = login.ShowDialog();
+                LoginWindow loginWindow = new LoginWindow();
+                bool? loginResult = loginWindow.ShowDialog();
 
                 if (loginResult == true)
                 {
@@ -180,6 +202,7 @@ namespace ToolManagementAppV2
                 this.Close();
             }
         }
+
 
 
         private void ToolsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
