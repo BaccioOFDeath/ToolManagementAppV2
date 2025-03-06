@@ -9,6 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\DefaultLogo.png" />
+    <None Remove="Resources\DefaultToolImage.png" />
+    <None Remove="Resources\DefaultUserPhoto.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Assets\" />
     <Folder Include="Views\" />
   </ItemGroup>
@@ -21,16 +27,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\DefaultLogo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\DefaultToolImage.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\DefaultUserPhoto.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="default-placeholder.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="DefaultLogo.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="DefaultToolImage.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="DefaultUserPhoto.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="UserDefaultPlaceholder.png">

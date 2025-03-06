@@ -22,7 +22,8 @@
         <!-- Header with Logo and Title -->
         <Border DockPanel.Dock="Top" Background="#DDD" Padding="10">
             <DockPanel>
-                <Image x:Name="HeaderIcon" Source="{Binding CurrentUserPhoto}" Width="50" Height="50" />
+                <!-- Bind HeaderLogo property; if no logo is set, it returns the default logo -->
+                <Image x:Name="HeaderIcon" Source="{Binding HeaderLogo}" Width="50" Height="50" />
                 <TextBlock Text="Tool Inventory Management" FontWeight="Bold" FontSize="20" Margin="10" VerticalAlignment="Center" />
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
                     <Image Source="{Binding CurrentUserPhoto}" Width="50" Height="50" Margin="0,0,10,0" />
@@ -33,6 +34,7 @@
                 </StackPanel>
             </DockPanel>
         </Border>
+
 
         <!-- Main Content Area -->
         <Grid DockPanel.Dock="Top">

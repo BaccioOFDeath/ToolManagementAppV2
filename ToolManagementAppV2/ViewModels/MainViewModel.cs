@@ -149,26 +149,35 @@ namespace ToolManagementAppV2.ViewModels
         {
             if (string.IsNullOrEmpty(photoPath) || !System.IO.File.Exists(photoPath))
             {
-                // Attempt to load a default user photo from the app directory.
-                var defaultPhotoPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DefaultUserPhoto.png");
-                if (System.IO.File.Exists(defaultPhotoPath))
-                {
-                    return new BitmapImage(new Uri(defaultPhotoPath, System.UriKind.Absolute))
-                    {
-                        CacheOption = BitmapCacheOption.OnLoad
-                    };
-                }
-                else
-                {
-                    MessageBox.Show("DefaultUserPhoto.png not found in the application directory.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return null;
-                }
+                // Use pack URI to load default user photo from Resources.
+                var defaultPhotoUri = new Uri("pack://application:,,,/Resources/DefaultUserPhoto.png", UriKind.Absolute);
+                return new BitmapImage(defaultPhotoUri) { CacheOption = BitmapCacheOption.OnLoad };
             }
-
-            return new BitmapImage(new Uri(photoPath, System.UriKind.Absolute))
-            {
-                CacheOption = BitmapCacheOption.OnLoad
-            };
+            return new BitmapImage(new Uri(photoPath, UriKind.Absolute)) { CacheOption = BitmapCacheOption.OnLoad };
         }
+
+        private BitmapImage _headerLogo;
+        public BitmapImage HeaderLogo
+        {
+            get
+            {
+                if (_headerLogo == null)
+                {
+                    // Retrieve a company logo setting if available; otherwise, use the default logo.
+                    string logoPath = _settingsService.GetSetting("CompanyLogoPath");
+                    if (string.IsNullOrEmpty(logoPath) || !System.IO.File.Exists(logoPath))
+                    {
+                        _headerLogo = new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultLogo.png", UriKind.Absolute));
+                    }
+                    else
+                    {
+                        _headerLogo = new BitmapImage(new Uri(logoPath, UriKind.Absolute));
+                    }
+                }
+                return _headerLogo;
+            }
+            set => SetProperty(ref _headerLogo, value);
+        }
+
     }
 }
