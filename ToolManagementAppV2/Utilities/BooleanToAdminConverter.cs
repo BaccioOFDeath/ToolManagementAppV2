@@ -1,15 +1,17 @@
-﻿// File: Utilities/CheckOutStatusConverter.cs
+﻿// File: Utilities/BooleanToAdminConverter.cs
 using System;
 using System.Globalization;
 using System.Windows.Data;
 
 namespace ToolManagementAppV2.Utilities
 {
-    public class CheckOutStatusConverter : IValueConverter
+    public class BooleanToAdminConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return (value is bool isCheckedOut && isCheckedOut) ? "Check In" : "Check Out";
+            if (value is bool isAdmin && isAdmin)
+                return "Admin";
+            return string.Empty;
         }
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {

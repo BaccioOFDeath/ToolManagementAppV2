@@ -51,21 +51,39 @@ namespace ToolManagementAppV2
             }
 
             DataContext = new MainViewModel(_toolService, _userService, _settingsService);
+
+            // Get current user from App properties and restrict tabs if not admin
+            var currentUser = App.Current.Properties["CurrentUser"] as User;
+            if (currentUser != null && !currentUser.IsAdmin)
+            {
+                // Remove tabs that non-admin users should not access.
+                // For example: "Tool Management", "Users", "Settings", "Import/Export"
+                var tabsToRemove = new[] { "Tool Management", "Users", "Settings", "Import/Export" };
+                var itemsToRemove = MyTabControl.Items.Cast<TabItem>()
+                                      .Where(ti => tabsToRemove.Contains(ti.Header.ToString()))
+                                      .ToList();
+                foreach (var tab in itemsToRemove)
+                    MyTabControl.Items.Remove(tab);
+            }
         }
 
+        // In MainWindow.xaml.cs – Update the CheckOutButton_Click handler to use the current user from App.Current.Properties
         private void CheckOutButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button button && button.CommandParameter is string toolId)
             {
-                var currentUser = _userService.GetCurrentUser();
-                string userName = currentUser != null ? currentUser.UserName : "Unknown";
+                var currentUser = App.Current.Properties["CurrentUser"] as User;
+                if (currentUser == null)
+                {
+                    MessageBox.Show("No current user found. Please log in again.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                string userName = currentUser.UserName;
                 _toolService.ToggleToolCheckOutStatus(toolId, userName);
-                _activityLogService.LogAction(currentUser.UserID, userName, $"Toggled check out status for Tool ID: {toolId}");
+                _activityLogService.LogAction(currentUser.UserID, userName, $"Toggled checkout status for Tool ID: {toolId}");
                 RefreshToolList();
             }
         }
-
-
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
@@ -174,8 +192,6 @@ namespace ToolManagementAppV2
                 this.Close();
                 return;
             }
-
-            if (MessageBox.Show("Do you really want to logout?", "Logout", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 _activityLogService.LogAction(currentUser.UserID, currentUser.UserName, "User logged out");
 

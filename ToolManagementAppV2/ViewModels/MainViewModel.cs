@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
@@ -33,6 +34,7 @@ namespace ToolManagementAppV2.ViewModels
         // Observable Collections
         public ObservableCollection<Tool> Tools { get; } = new();
         public ObservableCollection<Tool> SearchResults { get; } = new();
+        public ObservableCollection<Tool> CheckedOutTools { get; } = new();
         public ObservableCollection<User> Users { get; } = new();
 
         // Tool Management
@@ -61,6 +63,7 @@ namespace ToolManagementAppV2.ViewModels
 
             // Load Initial Data
             LoadTools();
+            LoadCheckedOutTools();
             LoadUsers();
             LoadCurrentUser();
         }
@@ -68,20 +71,32 @@ namespace ToolManagementAppV2.ViewModels
         private void LoadTools()
         {
             Tools.Clear();
-            foreach (var tool in _toolService.GetAllTools())
+            var allTools = _toolService.GetAllTools();
+            foreach (var tool in allTools)
                 Tools.Add(tool);
+        }
+
+        private void LoadCheckedOutTools()
+        {
+            CheckedOutTools.Clear();
+            var allTools = _toolService.GetAllTools();
+            var checkedOut = allTools.Where(t => t.IsCheckedOut);
+            foreach (var tool in checkedOut)
+                CheckedOutTools.Add(tool);
         }
 
         private void SearchTools()
         {
             SearchResults.Clear();
-            foreach (var tool in _toolService.SearchTools(SearchTerm))
+            var results = _toolService.SearchTools(SearchTerm);
+            foreach (var tool in results)
                 SearchResults.Add(tool);
         }
 
         private void AddTool()
         {
-            var newTool = new Tool { ToolID = "NewID", Description = "New Description" }; // Replace with actual input
+            // Example: Replace with proper input values
+            var newTool = new Tool { ToolID = "NewID", Description = "New Description" };
             _toolService.AddTool(newTool);
             LoadTools();
         }
@@ -107,35 +122,38 @@ namespace ToolManagementAppV2.ViewModels
         private void LoadUsers()
         {
             Users.Clear();
-            foreach (var user in _userService.GetAllUsers())
+            var usersList = _userService.GetAllUsers();
+            foreach (var user in usersList)
                 Users.Add(user);
         }
 
         private void LoadCurrentUser()
         {
-            var currentUser = _userService.GetCurrentUser();
-
-            if (currentUser != null)
+            // Retrieve current user from App.Current.Properties if available.
+            if (Application.Current.Properties.Contains("CurrentUser"))
             {
-                CurrentUserName = currentUser.UserName;
-                CurrentUserPhoto = LoadPhotoBitmap(currentUser.UserPhotoPath);
+                var currentUser = Application.Current.Properties["CurrentUser"] as User;
+                if (currentUser != null)
+                {
+                    CurrentUserName = currentUser.UserName;
+                    CurrentUserPhoto = LoadPhotoBitmap(currentUser.UserPhotoPath);
+                    return;
+                }
             }
-            else
-            {
-                CurrentUserName = "Guest";
-                CurrentUserPhoto = LoadPhotoBitmap(null); // Default avatar
-            }
+            // Default to Guest if not found.
+            CurrentUserName = "Guest";
+            CurrentUserPhoto = LoadPhotoBitmap(null);
         }
 
         private BitmapImage LoadPhotoBitmap(string photoPath)
         {
             if (string.IsNullOrEmpty(photoPath) || !System.IO.File.Exists(photoPath))
             {
-                // Use a relative path to load the default photo from the app directory
+                // Attempt to load a default user photo from the app directory.
                 var defaultPhotoPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DefaultUserPhoto.png");
                 if (System.IO.File.Exists(defaultPhotoPath))
                 {
-                    return new BitmapImage(new Uri(defaultPhotoPath, UriKind.Absolute))
+                    return new BitmapImage(new Uri(defaultPhotoPath, System.UriKind.Absolute))
                     {
                         CacheOption = BitmapCacheOption.OnLoad
                     };
@@ -143,16 +161,14 @@ namespace ToolManagementAppV2.ViewModels
                 else
                 {
                     MessageBox.Show("DefaultUserPhoto.png not found in the application directory.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return null; // Handle gracefully if the default image is missing
+                    return null;
                 }
             }
 
-            return new BitmapImage(new Uri(photoPath, UriKind.Absolute))
+            return new BitmapImage(new Uri(photoPath, System.UriKind.Absolute))
             {
                 CacheOption = BitmapCacheOption.OnLoad
             };
         }
-
-
     }
 }

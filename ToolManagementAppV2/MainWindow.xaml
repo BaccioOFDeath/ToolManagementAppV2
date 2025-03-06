@@ -96,24 +96,28 @@
                             </ListView.View>
                         </ListView>
                         <Button Content="Choose Profile Picture" Click="ChooseUserProfilePicButton_Click" Width="150" Height="20" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.RowSpan="2" />
+                        <!-- In MainWindow.xaml, update the Checked Out Tools ListView -->
                         <ListView x:Name="CheckedOutToolsList" ItemsSource="{Binding CheckedOutTools}" Margin="10" Grid.Row="2">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Header="Action" Width="80">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Button Content="{Binding IsCheckedOut, Converter={StaticResource CheckOutStatusConverter}}" Click="CheckOutButton_Click" CommandParameter="{Binding ToolID}" />
+                                                <Button Content="{Binding IsCheckedOut, Converter={StaticResource CheckOutStatusConverter}}" 
+                                Click="CheckOutButton_Click" 
+                                CommandParameter="{Binding ToolID}" />
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
                                     <GridViewColumn Header="Tool ID" DisplayMemberBinding="{Binding ToolID}" Width="60" />
                                     <GridViewColumn Header="Description" DisplayMemberBinding="{Binding Description}" Width="380" />
-                                    <GridViewColumn Header="Checked Out By" DisplayMemberBinding="{Binding CheckedOutByName}" Width="150" />
+                                    <GridViewColumn Header="Checked Out By" DisplayMemberBinding="{Binding CheckedOutBy}" Width="150" />
                                     <GridViewColumn Header="Checked Out Time" DisplayMemberBinding="{Binding CheckedOutTime, StringFormat='{}{0:G}'}" Width="150" />
                                     <GridViewColumn Header="Location" DisplayMemberBinding="{Binding Location}" Width="100" />
                                 </GridView>
                             </ListView.View>
                         </ListView>
+
                     </Grid>
                 </TabItem>
 

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Windows;
+﻿using System.Windows;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Services;
 
@@ -34,33 +32,70 @@ namespace ToolManagementAppV2
                 _userService.AddUser(defaultUser);
                 users = _userService.GetAllUsers();
             }
-            UserComboBox.ItemsSource = users;
-            UserComboBox.DisplayMemberPath = "UserName";
-            if (users.Any())
-                UserComboBox.SelectedIndex = 0;
+            UsersListBox.ItemsSource = users;
         }
 
-
-        private void LoginButton_Click(object sender, RoutedEventArgs e)
+        // LoginWindow.xaml.cs – Updated UserButton_Click to treat an empty admin password as default "admin"
+        private void UserButton_Click(object sender, RoutedEventArgs e)
         {
-            if (UserComboBox.SelectedItem is User selectedUser)
+            if (sender is FrameworkElement fe && fe.Tag is User selectedUser)
             {
-                string enteredPassword = PasswordBox.Password;
-                if (string.IsNullOrEmpty(selectedUser.Password) || selectedUser.Password == enteredPassword)
+                // For admin users, always require a password.
+                // If an admin's password is empty, treat it as "admin" and update the record.
+                if (selectedUser.IsAdmin && string.IsNullOrEmpty(selectedUser.Password))
                 {
-                    // Set DialogResult to true and close the dialog
+                    selectedUser.Password = "admin";
+                    _userService.ChangeUserPassword(selectedUser.UserID, "admin");
+                }
+
+                // Determine if a password prompt is required:
+                // Admin users must always enter a password.
+                // Non-admin users require a password only if one is set.
+                bool requirePassword = selectedUser.IsAdmin || (!selectedUser.IsAdmin && !string.IsNullOrEmpty(selectedUser.Password));
+                if (!requirePassword)
+                {
+                    App.Current.Properties["CurrentUser"] = selectedUser;
                     this.DialogResult = true;
                     this.Close();
                 }
                 else
                 {
-                    MessageBox.Show("Incorrect password.", "Login Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                    PasswordPromptWindow prompt = new PasswordPromptWindow
+                    {
+                        SelectedUser = selectedUser,
+                        // Set the ValidatePassword delegate to authenticate using the user service.
+                        ValidatePassword = (pwd) => _userService.AuthenticateUser(selectedUser.UserName, pwd) != null
+                    };
+
+                    bool? result = prompt.ShowDialog();
+                    if (result == true)
+                    {
+                        if (prompt.IsPasswordResetRequested)
+                        {
+                            // After a reset, the admin's password is now "admin".
+                            var user = _userService.AuthenticateUser(selectedUser.UserName, "admin");
+                            if (user != null)
+                            {
+                                App.Current.Properties["CurrentUser"] = user;
+                                this.DialogResult = true;
+                                this.Close();
+                            }
+                        }
+                        else
+                        {
+                            var user = _userService.AuthenticateUser(selectedUser.UserName, prompt.EnteredPassword);
+                            if (user != null)
+                            {
+                                App.Current.Properties["CurrentUser"] = user;
+                                this.DialogResult = true;
+                                this.Close();
+                            }
+                        }
+                    }
                 }
             }
-            else
-            {
-                MessageBox.Show("Please select a user.", "Login Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
         }
+
     }
 }
+
