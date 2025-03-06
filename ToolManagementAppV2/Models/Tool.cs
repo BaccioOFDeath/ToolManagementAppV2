@@ -21,5 +21,6 @@ namespace ToolManagementAppV2.Models
         public bool IsCheckedOut { get; set; }
         public string CheckedOutBy { get; set; }
         public DateTime? CheckedOutTime { get; set; }
+        public string ToolImagePath { get; set; }
     }
 }

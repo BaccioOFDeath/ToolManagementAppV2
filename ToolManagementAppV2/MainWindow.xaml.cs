@@ -2,10 +2,15 @@
 using System.Data.SQLite;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Services;
 using ToolManagementAppV2.ViewModels;
+using System.Printing;
+using System.Windows.Documents;
+using System.Windows.Media;
 
 namespace ToolManagementAppV2
 {
@@ -16,28 +21,28 @@ namespace ToolManagementAppV2
         private readonly ToolService _toolService;
         private readonly UserService _userService;
         private readonly SettingsService _settingsService;
+        private readonly DatabaseService _databaseService;
+        private readonly ActivityLogService _activityLogService;
 
         public MainWindow()
         {
             InitializeComponent();
 
             var dbPath = "tool_inventory.db";
-            var databaseService = new DatabaseService(dbPath);
-            _toolService = new ToolService(databaseService);
-            _customerService = new CustomerService(databaseService);
-            _rentalService = new RentalService(databaseService);
-            _userService = new UserService(databaseService);
-            _settingsService = new SettingsService(databaseService);
+            _databaseService = new DatabaseService(dbPath);
+            _toolService = new ToolService(_databaseService);
+            _customerService = new CustomerService(_databaseService);
+            _rentalService = new RentalService(_databaseService);
+            _userService = new UserService(_databaseService);
+            _settingsService = new SettingsService(_databaseService);
+            _activityLogService = new ActivityLogService(_databaseService);
 
             try
             {
-                // Load essential data
                 RefreshToolList();
                 RefreshUserList();
                 RefreshCustomerList();
                 RefreshRentalList();
-
-                // Load settings
                 LoadSettings();
             }
             catch (Exception ex)
@@ -45,9 +50,21 @@ namespace ToolManagementAppV2
                 MessageBox.Show($"Error initializing data: {ex.Message}", "Initialization Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
-            // Set up the ViewModel with all required services
             DataContext = new MainViewModel(_toolService, _userService, _settingsService);
         }
+
+        private void CheckOutButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.CommandParameter is string toolId)
+            {
+                var currentUser = _userService.GetCurrentUser();
+                string userName = currentUser != null ? currentUser.UserName : "Unknown";
+                _toolService.ToggleToolCheckOutStatus(toolId, userName);
+                _activityLogService.LogAction(currentUser.UserID, userName, $"Toggled check out status for Tool ID: {toolId}");
+                RefreshToolList();
+            }
+        }
+
 
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
@@ -98,23 +115,51 @@ namespace ToolManagementAppV2
 
         private void ChangeToolImage_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Change Tool Image Button Clicked!");
+            if (ToolsList.SelectedItem is Tool selectedTool)
+            {
+                var openFileDialog = new Microsoft.Win32.OpenFileDialog
+                {
+                    Filter = "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg",
+                    Title = "Select Tool Image"
+                };
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    string selectedImagePath = openFileDialog.FileName;
+                    string imagesFolder = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+                    if (!System.IO.Directory.Exists(imagesFolder))
+                    {
+                        System.IO.Directory.CreateDirectory(imagesFolder);
+                    }
+                    string fileName = System.IO.Path.GetFileName(selectedImagePath);
+                    string destinationPath = System.IO.Path.Combine(imagesFolder, fileName);
+                    System.IO.File.Copy(selectedImagePath, destinationPath, true);
+                    _toolService.UpdateToolImage(selectedTool.ToolID, destinationPath);
+                    MessageBox.Show("Tool image updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    RefreshToolList();
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select a tool first.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
+
 
         private void PrintSearchResults_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Print Search Results Button Clicked!");
         }
 
-        private void PrintMyCheckedOutTools_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Print My Checked-Out Tools Button Clicked!");
-        }
-
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Logout Button Clicked!");
+            var currentUser = _userService.GetCurrentUser();
+            if (MessageBox.Show("Do you really want to logout?", "Logout", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                _activityLogService.LogAction(currentUser.UserID, currentUser.UserName, "User logged out");
+                Application.Current.Shutdown();
+            }
         }
+
 
         private void ToolsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -134,14 +179,6 @@ namespace ToolManagementAppV2
         private void ChooseUserProfilePicButton_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Choose Profile Picture Button Clicked!");
-        }
-
-        private void CheckOutButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button button && button.CommandParameter is string toolId)
-            {
-                MessageBox.Show($"CheckOut/CheckIn Button Clicked for Tool ID: {toolId}");
-            }
         }
 
         private void AddCustomerButton_Click(object sender, RoutedEventArgs e)
@@ -199,9 +236,20 @@ namespace ToolManagementAppV2
         {
             if (ToolsList.SelectedItem is Tool selectedTool && CustomerList.SelectedItem is Customer selectedCustomer)
             {
-                _rentalService.RentTool(selectedTool.ToolID, selectedCustomer.CustomerID, DateTime.Now, DateTime.Now.AddDays(7));
-                RefreshRentalList();
-                RefreshToolList();
+                try
+                {
+                    DateTime now = DateTime.Now;
+                    DateTime due = now.AddDays(7);
+                    _rentalService.RentTool(selectedTool.ToolID, selectedCustomer.CustomerID, now, due);
+                    var currentUser = _userService.GetCurrentUser();
+                    _activityLogService.LogAction(currentUser.UserID, currentUser.UserName, $"Rented tool {selectedTool.ToolID} to customer {selectedCustomer.CustomerID}");
+                    RefreshRentalList();
+                    RefreshToolList();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error renting tool: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
@@ -209,11 +257,22 @@ namespace ToolManagementAppV2
         {
             if (RentalsList.SelectedItem is Rental rental)
             {
-                _rentalService.ReturnTool(rental.RentalID, DateTime.Now);
-                RefreshRentalList();
-                RefreshToolList();
+                try
+                {
+                    DateTime returnTime = DateTime.Now;
+                    _rentalService.ReturnTool(rental.RentalID, returnTime);
+                    var currentUser = _userService.GetCurrentUser();
+                    _activityLogService.LogAction(currentUser.UserID, currentUser.UserName, $"Returned tool for rental {rental.RentalID}");
+                    RefreshRentalList();
+                    RefreshToolList();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error returning tool: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
+
 
         private void AddUserButton_Click(object sender, RoutedEventArgs e)
         {
@@ -473,5 +532,161 @@ namespace ToolManagementAppV2
                 MessageBox.Show($"Failed to load settings: {ex.Message}", "Settings Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
+
+        private void LoadOverdueRentals_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var overdueRentals = _rentalService.GetOverdueRentals();
+                var message = string.Join(Environment.NewLine, overdueRentals.Select(r =>
+                    $"RentalID: {r.RentalID}, ToolID: {r.ToolID}, Due: {r.DueDate:yyyy-MM-dd}"));
+                MessageBox.Show(message, "Overdue Rentals");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading overdue rentals: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ExtendRentalButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                int rentalID = int.Parse(RentalIDInput.Text);
+                DateTime newDueDate = DateTime.Parse(NewDueDateInput.Text);
+                _rentalService.ExtendRental(rentalID, newDueDate);
+                MessageBox.Show("Rental extended successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                RefreshRentalList();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error extending rental: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void PrintRentalReceipt_Click(object sender, RoutedEventArgs e)
+        {
+            if (RentalsList.SelectedItem is Rental selectedRental)
+            {
+                FlowDocument receiptDoc = new FlowDocument
+                {
+                    FontFamily = new FontFamily("Segoe UI"),
+                    FontSize = 12
+                };
+
+                // Header
+                Paragraph header = new Paragraph(new Run("Rental Receipt"))
+                {
+                    FontSize = 16,
+                    FontWeight = FontWeights.Bold,
+                    TextAlignment = TextAlignment.Center
+                };
+                receiptDoc.Blocks.Add(header);
+
+                // Rental Details
+                Paragraph details = new Paragraph();
+                details.Inlines.Add(new Run($"Rental ID: {selectedRental.RentalID}\n"));
+                details.Inlines.Add(new Run($"Tool ID: {selectedRental.ToolID}\n"));
+                details.Inlines.Add(new Run($"Customer ID: {selectedRental.CustomerID}\n"));
+                details.Inlines.Add(new Run($"Rental Date: {selectedRental.RentalDate:yyyy-MM-dd}\n"));
+                details.Inlines.Add(new Run($"Due Date: {selectedRental.DueDate:yyyy-MM-dd}\n"));
+                if (selectedRental.ReturnDate.HasValue)
+                {
+                    details.Inlines.Add(new Run($"Return Date: {selectedRental.ReturnDate.Value:yyyy-MM-dd}\n"));
+                }
+                receiptDoc.Blocks.Add(details);
+
+                PrintDialog printDlg = new PrintDialog();
+                if (printDlg.ShowDialog() == true)
+                {
+                    IDocumentPaginatorSource idpSource = receiptDoc;
+                    printDlg.PrintDocument(idpSource.DocumentPaginator, "Rental Receipt");
+                }
+            }
+            else
+            {
+                MessageBox.Show("No rental selected.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private void BackupDatabaseButton_Click(object sender, RoutedEventArgs e)
+        {
+            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "SQLite Database (*.db)|*.db",
+                Title = "Select Backup Location",
+                FileName = "tool_inventory_backup.db"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    _databaseService.BackupDatabase(saveFileDialog.FileName);
+                    MessageBox.Show("Database backup completed successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error backing up database: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void PrintMyCheckedOutTools_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var currentUser = _userService.GetCurrentUser();
+                if (currentUser == null)
+                {
+                    MessageBox.Show("No user logged in.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                var myTools = _toolService.GetToolsCheckedOutBy(currentUser.UserName);
+                if (myTools.Count == 0)
+                {
+                    MessageBox.Show("You have no checked out tools.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+                string message = string.Join(Environment.NewLine, myTools.Select(t => $"Tool ID: {t.ToolID}, Name: {t.Name}"));
+                MessageBox.Show(message, "My Checked Out Tools");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error retrieving checked out tools: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void RefreshLogsButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var logs = _activityLogService.GetRecentLogs(100);
+                ActivityLogsList.ItemsSource = logs;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error retrieving logs: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void PurgeLogsButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("Are you sure you want to purge logs older than 30 days?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    DateTime threshold = DateTime.Now.AddDays(-30);
+                    _activityLogService.PurgeOldLogs(threshold);
+                    MessageBox.Show("Old logs purged successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    RefreshLogsButton_Click(sender, e);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error purging logs: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
     }
 }

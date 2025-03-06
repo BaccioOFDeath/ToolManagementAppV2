@@ -7,15 +7,15 @@
         Height="650"
         Width="1600"
         WindowStartupLocation="CenterScreen">
-
     <DockPanel Margin="10">
-        <!-- Resource Dictionary for Converters and DataTemplates -->
+        <!-- Global Resources -->
         <DockPanel.Resources>
             <local:CheckOutStatusConverter x:Key="CheckOutStatusConverter"/>
+            <local:NullToDefaultImageConverter x:Key="NullToDefaultImageConverter"/>
             <DataTemplate x:Key="CheckOutButtonTemplate">
                 <Button Content="{Binding IsCheckedOut, Converter={StaticResource CheckOutStatusConverter}}"
-                        Click="CheckOutButton_Click"
-                        CommandParameter="{Binding ToolID}" />
+                Click="CheckOutButton_Click"
+                CommandParameter="{Binding ToolID}" />
             </DataTemplate>
         </DockPanel.Resources>
 
@@ -23,15 +23,9 @@
         <Border DockPanel.Dock="Top" Background="#DDD" Padding="10">
             <DockPanel>
                 <Image x:Name="HeaderIcon" Source="{Binding CurrentUserPhoto}" Width="50" Height="50" />
-                <!-- App Title -->
                 <TextBlock Text="Tool Inventory Management" FontWeight="Bold" FontSize="20" Margin="10" VerticalAlignment="Center" />
-
-                <!-- Current User Section -->
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
-                    <!-- User Photo -->
                     <Image Source="{Binding CurrentUserPhoto}" Width="50" Height="50" Margin="0,0,10,0" />
-
-                    <!-- User Info -->
                     <StackPanel Orientation="Vertical">
                         <TextBlock Text="{Binding CurrentUserName}" FontWeight="Bold" Margin="0,0,0,5" />
                         <Button Content="Logout" Click="LogoutButton_Click" Width="80" />
@@ -40,8 +34,6 @@
             </DockPanel>
         </Border>
 
-
-
         <!-- Main Content Area -->
         <Grid DockPanel.Dock="Top">
             <Grid.RowDefinitions>
@@ -49,7 +41,6 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!-- Tab Control -->
             <TabControl x:Name="MyTabControl" Margin="5" Grid.Row="0">
                 <!-- Search Tools Tab -->
                 <TabItem Header="Search Tools">
@@ -69,21 +60,35 @@
                                 <GridView>
                                     <GridViewColumn Header="Action" Width="80">
                                         <GridViewColumn.CellTemplate>
-                                            <StaticResource ResourceKey="CheckOutButtonTemplate" />
+                                            <StaticResource ResourceKey="CheckOutButtonTemplate"/>
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
-                                    <GridViewColumn Header="ID" DisplayMemberBinding="{Binding ToolID}" Width="60" />
-                                    <GridViewColumn Header="Location" DisplayMemberBinding="{Binding Location}" Width="70" />
-                                    <GridViewColumn Header="Part Number" DisplayMemberBinding="{Binding PartNumber}" Width="100" />
-                                    <GridViewColumn Header="Brand" DisplayMemberBinding="{Binding Brand}" Width="100" />
-                                    <GridViewColumn Header="Description" DisplayMemberBinding="{Binding Description}" Width="380" />
-                                    <GridViewColumn Header="On Hand" DisplayMemberBinding="{Binding OnHand}" Width="60" />
-                                    <GridViewColumn Header="Supplier" DisplayMemberBinding="{Binding Supplier}" Width="100" />
-                                    <GridViewColumn Header="Purchased" DisplayMemberBinding="{Binding Purchased}" Width="80" />
-                                    <GridViewColumn Header="Notes">
+                                    <GridViewColumn Header="ID" DisplayMemberBinding="{Binding ToolID}" Width="60"/>
+                                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="120"/>
+                                    <GridViewColumn Header="Location" DisplayMemberBinding="{Binding Location}" Width="70"/>
+                                    <GridViewColumn Header="Part Number" DisplayMemberBinding="{Binding PartNumber}" Width="100"/>
+                                    <GridViewColumn Header="Brand" DisplayMemberBinding="{Binding Brand}" Width="100"/>
+                                    <GridViewColumn Header="Description" DisplayMemberBinding="{Binding Description}" Width="380"/>
+                                    <GridViewColumn Header="Quantity" DisplayMemberBinding="{Binding QuantityOnHand}" Width="60"/>
+                                    <GridViewColumn Header="Supplier" DisplayMemberBinding="{Binding Supplier}" Width="100"/>
+                                    <GridViewColumn Header="Purchased Date" Width="80">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding Notes}" TextWrapping="Wrap" Width="800" />
+                                                <TextBlock Text="{Binding PurchasedDate, StringFormat='{}{0:yyyy-MM-dd}'}"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Header="Notes" Width="200">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Notes}" TextWrapping="Wrap"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Header="Image" Width="100">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}}" Height="50" Width="50" Stretch="Uniform"/>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
@@ -119,8 +124,6 @@
                             <ColumnDefinition Width="350" />
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
-
-                        <!-- Tool Details Input Section -->
                         <GroupBox Grid.Column="0" Header="Tool Details" Margin="5">
                             <StackPanel>
                                 <xctk:WatermarkTextBox x:Name="ToolIDInput" Watermark="Tool ID (Required)" Margin="0,5" />
@@ -132,7 +135,6 @@
                                 <xctk:WatermarkTextBox x:Name="SupplierInput" Watermark="Supplier" Margin="0,5" />
                                 <xctk:WatermarkTextBox x:Name="PurchasedInput" Watermark="Purchased Date (yyyy-MM-dd)" Margin="0,5" />
                                 <xctk:WatermarkTextBox x:Name="NotesInput" Watermark="Notes" TextWrapping="Wrap" Margin="0,5" Height="60" AcceptsReturn="True" />
-
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                     <Button Content="Add" Click="AddButton_Click" Margin="5" />
                                     <Button Content="Update" Click="UpdateButton_Click" Margin="5" />
@@ -141,9 +143,10 @@
                                 </StackPanel>
                             </StackPanel>
                         </GroupBox>
-
-                        <!-- Tools List -->
                         <ListView x:Name="ToolsList" Grid.Column="1" ItemsSource="{Binding Tools}" SelectionChanged="ToolsList_SelectionChanged" Margin="5">
+                            <ListView.Resources>
+                                <!-- Reuse the converter defined in DockPanel.Resources -->
+                            </ListView.Resources>
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Header="ID" DisplayMemberBinding="{Binding ToolID}" Width="60" />
@@ -152,11 +155,24 @@
                                     <GridViewColumn Header="Location" DisplayMemberBinding="{Binding Location}" Width="100" />
                                     <GridViewColumn Header="Quantity" DisplayMemberBinding="{Binding QuantityOnHand}" Width="80" />
                                     <GridViewColumn Header="Supplier" DisplayMemberBinding="{Binding Supplier}" Width="100" />
-                                    <GridViewColumn Header="Purchased" DisplayMemberBinding="{Binding PurchasedDate}" Width="120" />
+                                    <GridViewColumn Header="Purchased" Width="120">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding PurchasedDate, StringFormat='{}{0:yyyy-MM-dd}'}"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
                                     <GridViewColumn Header="Notes">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
                                                 <TextBlock Text="{Binding Notes}" TextWrapping="Wrap" Width="400" />
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Header="Image" Width="100">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}}" Height="50" Width="50" Stretch="Uniform"/>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
@@ -165,7 +181,6 @@
                         </ListView>
                     </Grid>
                 </TabItem>
-
 
                 <!-- Customers Management Tab -->
                 <TabItem Header="Customers">
@@ -206,17 +221,24 @@
                 <TabItem Header="Rentals">
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <StackPanel Orientation="Horizontal" Margin="10">
+                        <StackPanel Orientation="Horizontal" Margin="10" Grid.Row="0">
                             <xctk:WatermarkTextBox x:Name="ToolIDForRentalInput" Watermark="Tool ID" Margin="5" Width="200" />
                             <xctk:WatermarkTextBox x:Name="CustomerIDForRentalInput" Watermark="Customer ID" Margin="5" Width="200" />
                             <xctk:WatermarkTextBox x:Name="DueDateInput" Watermark="Due Date (YYYY-MM-DD)" Margin="5" Width="200" />
                             <Button Content="Rent Tool" Click="RentToolButton_Click" Margin="5" />
                             <Button Content="Return Tool" Click="ReturnToolButton_Click" Margin="5" />
                         </StackPanel>
-                        <ListView x:Name="RentalsList" ItemsSource="{Binding Rentals}" Grid.Row="1" Margin="10">
+                        <StackPanel Orientation="Horizontal" Margin="10" Grid.Row="1">
+                            <xctk:WatermarkTextBox x:Name="RentalIDInput" Watermark="Rental ID" Margin="5" Width="100" />
+                            <xctk:WatermarkTextBox x:Name="NewDueDateInput" Watermark="New Due Date (YYYY-MM-DD)" Margin="5" Width="200" />
+                            <Button Content="Extend Rental" Click="ExtendRentalButton_Click" Margin="5" />
+                            <Button Content="Load Overdue Rentals" Click="LoadOverdueRentals_Click" Margin="5" />
+                        </StackPanel>
+                        <ListView x:Name="RentalsList" ItemsSource="{Binding Rentals}" Grid.Row="2" Margin="10">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Header="Rental ID" DisplayMemberBinding="{Binding RentalID}" Width="100" />
@@ -231,7 +253,7 @@
                     </Grid>
                 </TabItem>
 
-                <!-- New Users Management Tab -->
+                <!-- Users Management Tab -->
                 <TabItem Header="Users">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -268,30 +290,22 @@
                     </Grid>
                 </TabItem>
 
-
-                <!-- New Settings Tab -->
+                <!-- Settings Tab -->
                 <TabItem Header="Settings">
                     <StackPanel Orientation="Vertical" Margin="10">
                         <TextBlock Text="Application Settings" FontWeight="Bold" FontSize="16" Margin="5" />
-
-                        <!-- Rental Duration Setting -->
                         <StackPanel Orientation="Horizontal" Margin="5">
                             <TextBlock Text="Default Rental Duration (days):" VerticalAlignment="Center" Width="200" />
                             <xctk:WatermarkTextBox x:Name="RentalDurationInput" Watermark="7" Width="100" Margin="5" />
                         </StackPanel>
-
-                        <!-- Logo Upload Section -->
                         <TextBlock Text="Company Logo:" FontWeight="Bold" Margin="5" />
                         <Image x:Name="LogoPreview" Width="150" Height="150" Margin="5" Stretch="Uniform" HorizontalAlignment="Left"/>
                         <Button Content="Upload Logo" Click="UploadLogoButton_Click" Margin="5" HorizontalAlignment="Left" />
-
-                        <!-- Save Settings -->
                         <Button Content="Save Settings" Click="SaveSettingsButton_Click" Margin="5" HorizontalAlignment="Left" />
                     </StackPanel>
                 </TabItem>
 
-
-                <!-- New Import/Export Tab -->
+                <!-- Import/Export Tab -->
                 <TabItem Header="Import/Export">
                     <StackPanel Margin="10">
                         <TextBlock Text="Import Tools" FontWeight="Bold" FontSize="16" Margin="5" />
@@ -302,6 +316,33 @@
                         <Button Content="Export to CSV" Click="ExportCsvButton_Click" Margin="5" />
                     </StackPanel>
                 </TabItem>
+
+                <TabItem Header="Activity Logs">
+                    <Grid>
+                        <StackPanel Orientation="Horizontal" Margin="10">
+                            <Button Content="Refresh Logs" Click="RefreshLogsButton_Click" Margin="5" />
+                            <Button Content="Purge Logs" Click="PurgeLogsButton_Click" Margin="5" />
+                        </StackPanel>
+                        <ListView x:Name="ActivityLogsList" Margin="10" VerticalAlignment="Stretch">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Header="Log ID" DisplayMemberBinding="{Binding LogID}" Width="80" />
+                                    <GridViewColumn Header="User ID" DisplayMemberBinding="{Binding UserID}" Width="80" />
+                                    <GridViewColumn Header="User Name" DisplayMemberBinding="{Binding UserName}" Width="150" />
+                                    <GridViewColumn Header="Action" DisplayMemberBinding="{Binding Action}" Width="400" />
+                                    <GridViewColumn Header="Timestamp" Width="150">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </Grid>
+                </TabItem>
+
             </TabControl>
 
             <!-- Status Bar -->
@@ -311,4 +352,3 @@
         </Grid>
     </DockPanel>
 </Window>
-

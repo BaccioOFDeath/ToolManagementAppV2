@@ -118,5 +118,86 @@ namespace ToolManagementAppV2.Services
 
             return null; // Return null if no user is found
         }
+
+        public User GetUserByName(string userName)
+        {
+            using var connection = new SQLiteConnection(_dbService.ConnectionString);
+            connection.Open();
+            var query = "SELECT * FROM Users WHERE UserName = @UserName";
+            using var command = new SQLiteCommand(query, connection);
+            command.Parameters.AddWithValue("@UserName", userName);
+            using var reader = command.ExecuteReader();
+            if (reader.Read())
+            {
+                return new User
+                {
+                    UserID = Convert.ToInt32(reader["UserID"]),
+                    UserName = reader["UserName"].ToString(),
+                    UserPhotoPath = reader["UserPhotoPath"].ToString(),
+                    IsAdmin = Convert.ToInt32(reader["IsAdmin"]) == 1
+                };
+            }
+            return null;
+        }
+
+        public User GetUserByID(int userID)
+        {
+            using var connection = new SQLiteConnection(_dbService.ConnectionString);
+            connection.Open();
+            var query = "SELECT * FROM Users WHERE UserID = @UserID";
+            using var command = new SQLiteCommand(query, connection);
+            command.Parameters.AddWithValue("@UserID", userID);
+            using var reader = command.ExecuteReader();
+            if (reader.Read())
+            {
+                return new User
+                {
+                    UserID = Convert.ToInt32(reader["UserID"]),
+                    UserName = reader["UserName"].ToString(),
+                    UserPhotoPath = reader["UserPhotoPath"].ToString(),
+                    IsAdmin = Convert.ToInt32(reader["IsAdmin"]) == 1
+                };
+            }
+            return null;
+        }
+
+        public List<Rental> GetRentalsForCustomer(int customerID)
+        {
+            var rentals = new List<Rental>();
+            using var connection = new SQLiteConnection(_dbService.ConnectionString);
+            connection.Open();
+            var query = "SELECT * FROM Rentals WHERE CustomerID = @CustomerID ORDER BY RentalDate DESC";
+            using var command = new SQLiteCommand(query, connection);
+            command.Parameters.AddWithValue("@CustomerID", customerID);
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                rentals.Add(new Rental
+                {
+                    RentalID = Convert.ToInt32(reader["RentalID"]),
+                    ToolID = Convert.ToInt32(reader["ToolID"]),
+                    CustomerID = Convert.ToInt32(reader["CustomerID"]),
+                    RentalDate = Convert.ToDateTime(reader["RentalDate"]),
+                    DueDate = Convert.ToDateTime(reader["DueDate"]),
+                    ReturnDate = reader["ReturnDate"] is DBNull ? null : Convert.ToDateTime(reader["ReturnDate"]),
+                    Status = reader["Status"].ToString()
+                });
+            }
+            return rentals;
+        }
+
+        public void ExtendRental(int rentalID, DateTime newDueDate)
+        {
+            using var connection = new SQLiteConnection(_dbService.ConnectionString);
+            connection.Open();
+            var query = "UPDATE Rentals SET DueDate = @NewDueDate WHERE RentalID = @RentalID AND Status = 'Rented'";
+            using var command = new SQLiteCommand(query, connection);
+            command.Parameters.AddWithValue("@NewDueDate", newDueDate);
+            command.Parameters.AddWithValue("@RentalID", rentalID);
+            int rowsAffected = command.ExecuteNonQuery();
+            if (rowsAffected == 0)
+                throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
+        }
+
     }
 }

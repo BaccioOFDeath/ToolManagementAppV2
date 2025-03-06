@@ -204,5 +204,111 @@ namespace ToolManagementAppV2.Services
             }
         }
 
+        public void ToggleToolCheckOutStatus(string toolID, string currentUser)
+        {
+            using var connection = new SQLiteConnection(_dbService.ConnectionString);
+            connection.Open();
+
+            var selectQuery = "SELECT IsCheckedOut FROM Tools WHERE ToolID = @ToolID";
+            bool currentStatus = false;
+            using (var selectCommand = new SQLiteCommand(selectQuery, connection))
+            {
+                selectCommand.Parameters.AddWithValue("@ToolID", toolID);
+                var result = selectCommand.ExecuteScalar();
+                if (result != null && result != DBNull.Value)
+                {
+                    currentStatus = Convert.ToBoolean(result);
+                }
+            }
+
+            bool newStatus = !currentStatus;
+            DateTime? newCheckedOutTime = newStatus ? DateTime.Now : (DateTime?)null;
+            string newCheckedOutBy = newStatus ? currentUser : null;
+
+            var updateQuery = "UPDATE Tools SET IsCheckedOut = @IsCheckedOut, CheckedOutBy = @CheckedOutBy, CheckedOutTime = @CheckedOutTime WHERE ToolID = @ToolID";
+            using (var updateCommand = new SQLiteCommand(updateQuery, connection))
+            {
+                updateCommand.Parameters.AddWithValue("@IsCheckedOut", newStatus ? 1 : 0);
+                updateCommand.Parameters.AddWithValue("@CheckedOutBy", newCheckedOutBy ?? (object)DBNull.Value);
+                updateCommand.Parameters.AddWithValue("@CheckedOutTime", newCheckedOutTime ?? (object)DBNull.Value);
+                updateCommand.Parameters.AddWithValue("@ToolID", toolID);
+                updateCommand.ExecuteNonQuery();
+            }
+        }
+
+        public Tool GetToolByID(string toolID)
+        {
+            using var connection = new SQLiteConnection(_dbService.ConnectionString);
+            connection.Open();
+            var query = "SELECT * FROM Tools WHERE ToolID = @ToolID";
+            using var command = new SQLiteCommand(query, connection);
+            command.Parameters.AddWithValue("@ToolID", toolID);
+            using var reader = command.ExecuteReader();
+            if (reader.Read())
+            {
+                return new Tool
+                {
+                    ToolID = reader["ToolID"].ToString(),
+                    Name = reader["Name"].ToString(),
+                    Description = reader["Description"].ToString(),
+                    Location = reader["Location"].ToString(),
+                    Brand = reader["Brand"].ToString(),
+                    PartNumber = reader["PartNumber"].ToString(),
+                    Supplier = reader["Supplier"].ToString(),
+                    PurchasedDate = reader["PurchasedDate"] is DBNull ? null : Convert.ToDateTime(reader["PurchasedDate"]),
+                    Notes = reader["Notes"].ToString(),
+                    IsCheckedOut = reader["IsCheckedOut"].ToString() == "1",
+                    CheckedOutBy = reader["CheckedOutBy"].ToString(),
+                    CheckedOutTime = reader["CheckedOutTime"] is DBNull ? null : Convert.ToDateTime(reader["CheckedOutTime"])
+                };
+            }
+            return null;
+        }
+
+        public void UpdateToolImage(string toolID, string imagePath)
+        {
+            using var connection = new SQLiteConnection(_dbService.ConnectionString);
+            connection.Open();
+            var query = "UPDATE Tools SET ToolImagePath = @ImagePath WHERE ToolID = @ToolID";
+            using var command = new SQLiteCommand(query, connection);
+            command.Parameters.AddWithValue("@ImagePath", imagePath);
+            command.Parameters.AddWithValue("@ToolID", toolID);
+            command.ExecuteNonQuery();
+        }
+
+        // In ToolService.cs
+        public List<Tool> GetToolsCheckedOutBy(string userName)
+        {
+            var tools = new List<Tool>();
+            using var connection = new SQLiteConnection(_dbService.ConnectionString);
+            connection.Open();
+            var query = "SELECT * FROM Tools WHERE CheckedOutBy = @UserName AND IsCheckedOut = 1";
+            using var command = new SQLiteCommand(query, connection);
+            command.Parameters.AddWithValue("@UserName", userName);
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                tools.Add(new Tool
+                {
+                    ToolID = reader["ToolID"].ToString(),
+                    Name = reader["Name"].ToString(),
+                    PartNumber = reader["PartNumber"].ToString(),
+                    Description = reader["Description"].ToString(),
+                    Brand = reader["Brand"].ToString(),
+                    Location = reader["Location"].ToString(),
+                    QuantityOnHand = Convert.ToInt32(reader["AvailableQuantity"]),
+                    Supplier = reader["Supplier"].ToString(),
+                    PurchasedDate = reader["PurchasedDate"] is DBNull ? (DateTime?)null : Convert.ToDateTime(reader["PurchasedDate"]),
+                    Notes = reader["Notes"].ToString(),
+                    IsCheckedOut = reader["IsCheckedOut"].ToString() == "1",
+                    CheckedOutBy = reader["CheckedOutBy"].ToString(),
+                    CheckedOutTime = reader["CheckedOutTime"] is DBNull ? (DateTime?)null : Convert.ToDateTime(reader["CheckedOutTime"]),
+                    ToolImagePath = reader["ToolImagePath"]?.ToString()
+                });
+            }
+            return tools;
+        }
+
+
     }
 }

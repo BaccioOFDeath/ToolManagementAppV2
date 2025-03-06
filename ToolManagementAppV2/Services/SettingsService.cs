@@ -55,5 +55,44 @@ namespace ToolManagementAppV2.Services
 
             return settings;
         }
+
+        public void UpdateSettings(Dictionary<string, string> settings)
+        {
+            using var connection = new SQLiteConnection(_dbService.ConnectionString);
+            connection.Open();
+            using var transaction = connection.BeginTransaction();
+            try
+            {
+                foreach (var kv in settings)
+                {
+                    var query = @"
+                INSERT INTO Settings (Key, Value) 
+                VALUES (@Key, @Value)
+                ON CONFLICT(Key) DO UPDATE SET Value = @Value";
+                    using var command = new SQLiteCommand(query, connection, transaction);
+                    command.Parameters.AddWithValue("@Key", kv.Key);
+                    command.Parameters.AddWithValue("@Value", kv.Value);
+                    command.ExecuteNonQuery();
+                }
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        public void DeleteSetting(string key)
+        {
+            using var connection = new SQLiteConnection(_dbService.ConnectionString);
+            connection.Open();
+            var query = "DELETE FROM Settings WHERE Key = @Key";
+            using var command = new SQLiteCommand(query, connection);
+            command.Parameters.AddWithValue("@Key", key);
+            command.ExecuteNonQuery();
+        }
+
+
     }
 }

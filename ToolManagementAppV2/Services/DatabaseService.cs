@@ -1,4 +1,6 @@
 ﻿using System.Data.SQLite;
+using System.IO;
+using System.Linq;
 
 namespace ToolManagementAppV2.Services
 {
@@ -10,6 +12,7 @@ namespace ToolManagementAppV2.Services
         {
             ConnectionString = $"Data Source={dbPath};Version=3;";
             InitializeDatabase();
+            UpdateDatabaseSchema();
         }
 
         private void InitializeDatabase()
@@ -86,6 +89,46 @@ namespace ToolManagementAppV2.Services
 
             using var command = new SQLiteCommand(createTables, connection);
             command.ExecuteNonQuery();
+        }
+
+        private void UpdateDatabaseSchema()
+        {
+            using var connection = new SQLiteConnection(ConnectionString);
+            connection.Open();
+
+            bool columnExists = false;
+            using (var command = new SQLiteCommand("PRAGMA table_info(Tools)", connection))
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    if (reader["name"].ToString().Equals("ToolImagePath", StringComparison.OrdinalIgnoreCase))
+                    {
+                        columnExists = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!columnExists)
+            {
+                using var command = new SQLiteCommand("ALTER TABLE Tools ADD COLUMN ToolImagePath TEXT", connection);
+                command.ExecuteNonQuery();
+            }
+        }
+
+        public void BackupDatabase(string backupFilePath)
+        {
+            var dataSourcePart = ConnectionString.Split(';').FirstOrDefault(s => s.StartsWith("Data Source="));
+            if (dataSourcePart != null)
+            {
+                string dbFilePath = dataSourcePart.Replace("Data Source=", "").Trim();
+                File.Copy(dbFilePath, backupFilePath, true);
+            }
+            else
+            {
+                throw new InvalidOperationException("Database file path could not be determined.");
+            }
         }
     }
 }
