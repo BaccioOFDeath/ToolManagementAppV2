@@ -156,7 +156,28 @@ namespace ToolManagementAppV2
             if (MessageBox.Show("Do you really want to logout?", "Logout", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 _activityLogService.LogAction(currentUser.UserID, currentUser.UserName, "User logged out");
-                Application.Current.Shutdown();
+
+                // Prevent shutdown when the current window closes
+                Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+                // Hide the main window so it doesn't appear behind the login screen
+                this.Hide();
+
+                LoginWindow login = new LoginWindow();
+                bool? loginResult = login.ShowDialog();
+
+                if (loginResult == true)
+                {
+                    // Switch shutdown mode back and open a new MainWindow
+                    Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
+                    MainWindow newMainWindow = new MainWindow();
+                    Application.Current.MainWindow = newMainWindow;
+                    newMainWindow.Show();
+                }
+                else
+                {
+                    Application.Current.Shutdown();
+                }
+                this.Close();
             }
         }
 

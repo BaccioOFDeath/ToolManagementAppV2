@@ -1,5 +1,4 @@
-﻿// LoginWindow.xaml.cs
-using System;
+﻿using System;
 using System.Linq;
 using System.Windows;
 using ToolManagementAppV2.Models;
@@ -35,8 +34,8 @@ namespace ToolManagementAppV2
                 string enteredPassword = PasswordBox.Password;
                 if (string.IsNullOrEmpty(selectedUser.Password) || selectedUser.Password == enteredPassword)
                 {
-                    MainWindow mainWindow = new MainWindow();
-                    mainWindow.Show();
+                    // Set DialogResult to true and close the dialog
+                    this.DialogResult = true;
                     this.Close();
                 }
                 else
