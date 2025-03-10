@@ -118,31 +118,63 @@ namespace ToolManagementAppV2.Services
             }
         }
 
+        // Update the UpdateUserSchema method in DatabaseService.cs to include the new columns
         private void UpdateUserSchema()
         {
             using var connection = new SQLiteConnection(ConnectionString);
             connection.Open();
 
             bool passwordColumnExists = false;
+            bool emailColumnExists = false;
+            bool phoneColumnExists = false;
+            bool addressColumnExists = false;
+            bool roleColumnExists = false;
+
             using (var command = new SQLiteCommand("PRAGMA table_info(Users)", connection))
             using (var reader = command.ExecuteReader())
             {
                 while (reader.Read())
                 {
-                    if (reader["name"].ToString().Equals("Password", StringComparison.OrdinalIgnoreCase))
-                    {
+                    string columnName = reader["name"].ToString();
+                    if (columnName.Equals("Password", StringComparison.OrdinalIgnoreCase))
                         passwordColumnExists = true;
-                        break;
-                    }
+                    else if (columnName.Equals("Email", StringComparison.OrdinalIgnoreCase))
+                        emailColumnExists = true;
+                    else if (columnName.Equals("Phone", StringComparison.OrdinalIgnoreCase))
+                        phoneColumnExists = true;
+                    else if (columnName.Equals("Address", StringComparison.OrdinalIgnoreCase))
+                        addressColumnExists = true;
+                    else if (columnName.Equals("Role", StringComparison.OrdinalIgnoreCase))
+                        roleColumnExists = true;
                 }
             }
-
             if (!passwordColumnExists)
             {
                 using var command = new SQLiteCommand("ALTER TABLE Users ADD COLUMN Password TEXT", connection);
                 command.ExecuteNonQuery();
             }
+            if (!emailColumnExists)
+            {
+                using var command = new SQLiteCommand("ALTER TABLE Users ADD COLUMN Email TEXT", connection);
+                command.ExecuteNonQuery();
+            }
+            if (!phoneColumnExists)
+            {
+                using var command = new SQLiteCommand("ALTER TABLE Users ADD COLUMN Phone TEXT", connection);
+                command.ExecuteNonQuery();
+            }
+            if (!addressColumnExists)
+            {
+                using var command = new SQLiteCommand("ALTER TABLE Users ADD COLUMN Address TEXT", connection);
+                command.ExecuteNonQuery();
+            }
+            if (!roleColumnExists)
+            {
+                using var command = new SQLiteCommand("ALTER TABLE Users ADD COLUMN Role TEXT", connection);
+                command.ExecuteNonQuery();
+            }
         }
+
 
         public void BackupDatabase(string backupFilePath)
         {

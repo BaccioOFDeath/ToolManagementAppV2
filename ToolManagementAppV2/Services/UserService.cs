@@ -1,4 +1,4 @@
-﻿// File: Services/UserService.cs
+﻿// Revised UserService.cs (no password hashing)
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
@@ -11,7 +11,6 @@ namespace ToolManagementAppV2.Services
     public class UserService
     {
         private readonly DatabaseService _dbService;
-
         public UserService(DatabaseService dbService)
         {
             _dbService = dbService;
@@ -22,11 +21,9 @@ namespace ToolManagementAppV2.Services
             var users = new List<User>();
             using var connection = new SQLiteConnection(_dbService.ConnectionString);
             connection.Open();
-
             var query = "SELECT * FROM Users";
             using var command = new SQLiteCommand(query, connection);
             using var reader = command.ExecuteReader();
-
             while (reader.Read())
             {
                 var user = new User
@@ -35,38 +32,43 @@ namespace ToolManagementAppV2.Services
                     UserName = reader["UserName"].ToString(),
                     Password = reader["Password"].ToString(),
                     UserPhotoPath = reader["UserPhotoPath"].ToString(),
-                    IsAdmin = Convert.ToInt32(reader["IsAdmin"]) == 1
+                    IsAdmin = Convert.ToInt32(reader["IsAdmin"]) == 1,
+                    Email = reader["Email"]?.ToString(),
+                    Phone = reader["Phone"]?.ToString(),
+                    Address = reader["Address"]?.ToString(),
+                    Role = reader["Role"]?.ToString()
                 };
-
                 if (!string.IsNullOrEmpty(user.UserPhotoPath) && File.Exists(user.UserPhotoPath))
-                {
                     user.PhotoBitmap = new BitmapImage(new Uri(user.UserPhotoPath));
-                }
                 users.Add(user);
             }
-
             return users;
         }
 
-        // File: Services/UserService.cs – Updated methods using password hashing
-
-        // Add/Update a user with hashed password
         public void AddUser(User user)
         {
             using var connection = new SQLiteConnection(_dbService.ConnectionString);
             connection.Open();
             var query = @"
-        INSERT INTO Users (UserName, Password, UserPhotoPath, IsAdmin)
-        VALUES (@UserName, @Password, @UserPhotoPath, @IsAdmin)";
+        INSERT INTO Users (UserName, Password, UserPhotoPath, IsAdmin, Email, Phone, Address, Role)
+        VALUES (@UserName, @Password, @UserPhotoPath, @IsAdmin, @Email, @Phone, @Address, @Role)";
             using var command = new SQLiteCommand(query, connection);
             command.Parameters.AddWithValue("@UserName", user.UserName);
-            // Hash password if provided
-            string hashedPassword = string.IsNullOrEmpty(user.Password) ? string.Empty : Utilities.SecurityHelper.ComputeSha256Hash(user.Password);
-            command.Parameters.AddWithValue("@Password", hashedPassword);
+            command.Parameters.AddWithValue("@Password", string.IsNullOrEmpty(user.Password) ? "" : user.Password);
             command.Parameters.AddWithValue("@UserPhotoPath", user.UserPhotoPath ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@IsAdmin", user.IsAdmin ? 1 : 0);
+            command.Parameters.AddWithValue("@Email", user.Email ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Phone", user.Phone ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Address", user.Address ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Role", user.Role ?? (object)DBNull.Value);
             command.ExecuteNonQuery();
+            using var cmdId = new SQLiteCommand("SELECT last_insert_rowid()", connection);
+            var result = cmdId.ExecuteScalar();
+            if (result != null && long.TryParse(result.ToString(), out long newId))
+                user.UserID = (int)newId;
         }
+
+
 
         public void UpdateUser(User user)
         {
@@ -74,20 +76,22 @@ namespace ToolManagementAppV2.Services
             connection.Open();
             var query = @"
         UPDATE Users 
-        SET UserName = @UserName, Password = @Password, UserPhotoPath = @UserPhotoPath, IsAdmin = @IsAdmin
+        SET UserName = @UserName, Password = @Password, UserPhotoPath = @UserPhotoPath, IsAdmin = @IsAdmin,
+            Email = @Email, Phone = @Phone, Address = @Address, Role = @Role
         WHERE UserID = @UserID";
             using var command = new SQLiteCommand(query, connection);
             command.Parameters.AddWithValue("@UserID", user.UserID);
             command.Parameters.AddWithValue("@UserName", user.UserName);
-            // If password is provided, hash it; if blank, retain as empty string
-            string hashedPassword = string.IsNullOrEmpty(user.Password) ? string.Empty : Utilities.SecurityHelper.ComputeSha256Hash(user.Password);
-            command.Parameters.AddWithValue("@Password", hashedPassword);
+            command.Parameters.AddWithValue("@Password", string.IsNullOrEmpty(user.Password) ? "" : user.Password);
             command.Parameters.AddWithValue("@UserPhotoPath", user.UserPhotoPath ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@IsAdmin", user.IsAdmin ? 1 : 0);
+            command.Parameters.AddWithValue("@Email", user.Email ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Phone", user.Phone ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Address", user.Address ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Role", user.Role ?? (object)DBNull.Value);
             command.ExecuteNonQuery();
         }
 
-        // Authenticate user by comparing hashed passwords
         public User AuthenticateUser(string userName, string password)
         {
             using var connection = new SQLiteConnection(_dbService.ConnectionString);
@@ -98,15 +102,14 @@ namespace ToolManagementAppV2.Services
             using var reader = command.ExecuteReader();
             if (reader.Read())
             {
-                string storedHash = reader["Password"].ToString();
-                string enteredHash = Utilities.SecurityHelper.ComputeSha256Hash(password);
-                if (storedHash == enteredHash)
+                string storedPassword = reader["Password"].ToString();
+                if (storedPassword == password)
                 {
                     return new User
                     {
                         UserID = Convert.ToInt32(reader["UserID"]),
                         UserName = reader["UserName"].ToString(),
-                        Password = storedHash,
+                        Password = storedPassword,
                         UserPhotoPath = reader["UserPhotoPath"].ToString(),
                         IsAdmin = Convert.ToInt32(reader["IsAdmin"]) == 1
                     };
@@ -121,18 +124,15 @@ namespace ToolManagementAppV2.Services
             connection.Open();
             var query = "UPDATE Users SET Password = @Password WHERE UserID = @UserID";
             using var command = new SQLiteCommand(query, connection);
-            string hashedPassword = Utilities.SecurityHelper.ComputeSha256Hash(newPassword);
-            command.Parameters.AddWithValue("@Password", hashedPassword);
+            command.Parameters.AddWithValue("@Password", newPassword);
             command.Parameters.AddWithValue("@UserID", userID);
             command.ExecuteNonQuery();
         }
-
 
         public void DeleteUser(int userID)
         {
             using var connection = new SQLiteConnection(_dbService.ConnectionString);
             connection.Open();
-
             var query = "DELETE FROM Users WHERE UserID = @UserID";
             using var command = new SQLiteCommand(query, connection);
             command.Parameters.AddWithValue("@UserID", userID);
@@ -143,11 +143,9 @@ namespace ToolManagementAppV2.Services
         {
             using var connection = new SQLiteConnection(_dbService.ConnectionString);
             connection.Open();
-
             var query = "SELECT * FROM Users LIMIT 1";
             using var command = new SQLiteCommand(query, connection);
             using var reader = command.ExecuteReader();
-
             if (reader.Read())
             {
                 return new User
@@ -166,12 +164,10 @@ namespace ToolManagementAppV2.Services
         {
             using var connection = new SQLiteConnection(_dbService.ConnectionString);
             connection.Open();
-
             var query = "SELECT * FROM Users WHERE UserID = @UserID";
             using var command = new SQLiteCommand(query, connection);
             command.Parameters.AddWithValue("@UserID", userID);
             using var reader = command.ExecuteReader();
-
             if (reader.Read())
             {
                 return new User

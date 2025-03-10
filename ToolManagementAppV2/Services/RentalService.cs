@@ -252,6 +252,29 @@ namespace ToolManagementAppV2.Services
                 throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
         }
 
+        public List<Rental> GetAllRentals()
+        {
+            var rentals = new List<Rental>();
+            using var connection = new SQLiteConnection(_dbService.ConnectionString);
+            connection.Open();
+            var query = "SELECT * FROM Rentals";
+            using var command = new SQLiteCommand(query, connection);
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                rentals.Add(new Rental
+                {
+                    RentalID = Convert.ToInt32(reader["RentalID"]),
+                    ToolID = Convert.ToInt32(reader["ToolID"]),
+                    CustomerID = Convert.ToInt32(reader["CustomerID"]),
+                    RentalDate = Convert.ToDateTime(reader["RentalDate"]),
+                    DueDate = Convert.ToDateTime(reader["DueDate"]),
+                    ReturnDate = reader["ReturnDate"] is DBNull ? (DateTime?)null : Convert.ToDateTime(reader["ReturnDate"]),
+                    Status = reader["Status"].ToString()
+                });
+            }
+            return rentals;
+        }
 
     }
 }

@@ -1,5 +1,4 @@
-﻿// File: Utilities/SecurityHelper.cs
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 
 namespace ToolManagementAppV2.Utilities
@@ -13,7 +12,9 @@ namespace ToolManagementAppV2.Utilities
                 byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
                 StringBuilder builder = new StringBuilder();
                 foreach (byte b in bytes)
-                    builder.Append(b.ToString("x2"));
+                {
+                    builder.Append(b.ToString("x2")); // lowercase hex
+                }
                 return builder.ToString();
             }
         }

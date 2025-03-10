@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:local="clr-namespace:ToolManagementAppV2.Utilities"
+        xmlns:av="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="av"
         x:Class="ToolManagementAppV2.MainWindow"
         Title="Tool Inventory Management"
         Height="650"
@@ -12,6 +13,8 @@
         <DockPanel.Resources>
             <local:CheckOutStatusConverter x:Key="CheckOutStatusConverter"/>
             <local:NullToDefaultImageConverter x:Key="NullToDefaultImageConverter"/>
+            <local:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+            <local:NonEmptyStringToBoolConverter x:Key="NonEmptyStringToBoolConverter"/>
             <DataTemplate x:Key="CheckOutButtonTemplate">
                 <Button Content="{Binding IsCheckedOut, Converter={StaticResource CheckOutStatusConverter}}"
                 Click="CheckOutButton_Click"
@@ -60,11 +63,7 @@
                         <ListView x:Name="SearchResultsList" ItemsSource="{Binding SearchResults}" Margin="10" Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Auto">
                             <ListView.View>
                                 <GridView>
-                                    <GridViewColumn Header="Action" Width="80">
-                                        <GridViewColumn.CellTemplate>
-                                            <StaticResource ResourceKey="CheckOutButtonTemplate"/>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
+                                    <GridViewColumn Header="Action" Width="80" CellTemplate="{StaticResource CheckOutButtonTemplate}"/>
                                     <GridViewColumn Header="ID" DisplayMemberBinding="{Binding ToolID}" Width="60"/>
                                     <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="120"/>
                                     <GridViewColumn Header="Location" DisplayMemberBinding="{Binding Location}" Width="70"/>
@@ -76,7 +75,7 @@
                                     <GridViewColumn Header="Purchased Date" Width="80">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding PurchasedDate, StringFormat='{}{0:yyyy-MM-dd}'}"/>
+                                                <TextBlock Text="{Binding PurchasedDate, StringFormat=\{0:yyyy-MM-dd\}}"/>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
@@ -114,7 +113,7 @@
                                     <GridViewColumn Header="Tool ID" DisplayMemberBinding="{Binding ToolID}" Width="60" />
                                     <GridViewColumn Header="Description" DisplayMemberBinding="{Binding Description}" Width="380" />
                                     <GridViewColumn Header="Checked Out By" DisplayMemberBinding="{Binding CheckedOutBy}" Width="150" />
-                                    <GridViewColumn Header="Checked Out Time" DisplayMemberBinding="{Binding CheckedOutTime, StringFormat='{}{0:G}'}" Width="150" />
+                                    <GridViewColumn Header="Checked Out Time" DisplayMemberBinding="{Binding CheckedOutTime, StringFormat=\{0:G\}}" Width="150" />
                                     <GridViewColumn Header="Location" DisplayMemberBinding="{Binding Location}" Width="100" />
                                 </GridView>
                             </ListView.View>
@@ -150,9 +149,6 @@
                             </StackPanel>
                         </GroupBox>
                         <ListView x:Name="ToolsList" Grid.Column="1" ItemsSource="{Binding Tools}" SelectionChanged="ToolsList_SelectionChanged" Margin="5">
-                            <ListView.Resources>
-                                <!-- Reuse the converter defined in DockPanel.Resources -->
-                            </ListView.Resources>
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Header="ID" DisplayMemberBinding="{Binding ToolID}" Width="60" />
@@ -164,7 +160,7 @@
                                     <GridViewColumn Header="Purchased" Width="120">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding PurchasedDate, StringFormat='{}{0:yyyy-MM-dd}'}"/>
+                                                <TextBlock Text="{Binding PurchasedDate, StringFormat=\{0:yyyy-MM-dd\}}"/>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
@@ -250,9 +246,9 @@
                                     <GridViewColumn Header="Rental ID" DisplayMemberBinding="{Binding RentalID}" Width="100" />
                                     <GridViewColumn Header="Tool ID" DisplayMemberBinding="{Binding ToolID}" Width="100" />
                                     <GridViewColumn Header="Customer ID" DisplayMemberBinding="{Binding CustomerID}" Width="100" />
-                                    <GridViewColumn Header="Rental Date" DisplayMemberBinding="{Binding RentalDate, StringFormat='{}{0:yyyy-MM-dd}'}" Width="150" />
-                                    <GridViewColumn Header="Due Date" DisplayMemberBinding="{Binding DueDate, StringFormat='{}{0:yyyy-MM-dd}'}" Width="150" />
-                                    <GridViewColumn Header="Return Date" DisplayMemberBinding="{Binding ReturnDate, StringFormat='{}{0:yyyy-MM-dd}'}" Width="150" />
+                                    <GridViewColumn Header="Rental Date" DisplayMemberBinding="{Binding RentalDate, StringFormat=\{0:yyyy-MM-dd\}}" Width="150" />
+                                    <GridViewColumn Header="Due Date" DisplayMemberBinding="{Binding DueDate, StringFormat=\{0:yyyy-MM-dd\}}" Width="150" />
+                                    <GridViewColumn Header="Return Date" DisplayMemberBinding="{Binding ReturnDate, StringFormat=\{0:yyyy-MM-dd\}}" Width="150" />
                                 </GridView>
                             </ListView.View>
                         </ListView>
@@ -261,42 +257,74 @@
 
                 <!-- Users Management Tab -->
                 <TabItem Header="Users">
-                    <Grid>
+                    <Grid Margin="5">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="350" />
-                            <ColumnDefinition />
+                            <ColumnDefinition Width="250"/>
+                            <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <GroupBox Header="User Details" Grid.Column="0" Margin="5">
-                            <StackPanel>
-                                <xctk:WatermarkTextBox x:Name="UserNameInput" Watermark="User Name" Margin="5" />
-                                <CheckBox x:Name="IsAdminCheckbox" Content="Is Admin" Margin="5" />
-                                <Button Content="Upload Photo" Click="UploadUserPhotoButton_Click" Margin="5" />
-                                <!-- New controls for password change -->
-                                <xctk:WatermarkTextBox x:Name="NewPasswordInput" Watermark="New Password" Margin="5" />
-                                <xctk:WatermarkTextBox x:Name="ConfirmPasswordInput" Watermark="Confirm Password" Margin="5" />
-                                <Button Content="Change Password" Click="ChangePasswordButton_Click" Margin="5" />
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <Button Content="Add" Click="AddUserButton_Click" Margin="5" />
-                                    <Button Content="Update" Click="UpdateUserButton_Click" Margin="5" />
-                                    <Button Content="Delete" Click="DeleteUserButton_Click" Margin="5" />
-                                </StackPanel>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Users" FontSize="16" FontWeight="Bold" Margin="5"/>
+                            <ListView x:Name="UserList" ItemsSource="{Binding Users}" 
+          SelectedItem="{Binding SelectedUser, Mode=TwoWay}" Margin="5">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="Name" DisplayMemberBinding="{Binding UserName}" Width="160"/>
+                                        <GridViewColumn Header="Admin" Width="70">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <CheckBox IsChecked="{Binding IsAdmin}" IsEnabled="False" HorizontalAlignment="Center"/>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </StackPanel>
+                        <!-- Right Panel: User Details -->
+                        <StackPanel Grid.Column="1" Margin="10" VerticalAlignment="Top">
+                            <TextBlock Text="User Details" FontSize="16" FontWeight="Bold" Margin="5"/>
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <Border Width="100" Height="100" BorderBrush="Gray" BorderThickness="1">
+                                    <Image Source="{Binding SelectedUser.PhotoBitmap, ConverterParameter=User, Converter={StaticResource NullToDefaultImageConverter}}" 
+                 Stretch="UniformToFill"/>
+                                </Border>
+                                <Button Content="Change Photo" Click="UploadUserPhotoButton_Click" Margin="10,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
-                        </GroupBox>
-                        <ListView x:Name="UserList" Grid.Column="1" ItemsSource="{Binding Users}" Margin="5">
-                            <ListView.View>
-                                <GridView>
-                                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding UserName}" Width="150" />
-                                    <GridViewColumn Header="Is Admin" DisplayMemberBinding="{Binding IsAdmin}" Width="100" />
-                                    <GridViewColumn Header="Photo">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <Image Source="{Binding PhotoBitmap}" Width="50" Height="50" />
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                </GridView>
-                            </ListView.View>
-                        </ListView>
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="User Name:" Width="100" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding SelectedUser.UserName, Mode=TwoWay}" Width="200"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="Password:" Width="100" VerticalAlignment="Center"/>
+                                <PasswordBox x:Name="PasswordBox" Width="200" PasswordChanged="PasswordBox_PasswordChanged"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="Email:" Width="100" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding SelectedUser.Email, Mode=TwoWay}" Width="200"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="Phone:" Width="100" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding SelectedUser.Phone, Mode=TwoWay}" Width="200"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="Address:" Width="100" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding SelectedUser.Address, Mode=TwoWay}" Width="200"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="Role:" Width="100" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding SelectedUser.Role, Mode=TwoWay}" Width="200"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="Is Admin:" Width="100" VerticalAlignment="Center"/>
+                                <CheckBox IsChecked="{Binding SelectedUser.IsAdmin, Mode=TwoWay}" 
+              IsEnabled="{Binding UserPassword, Converter={StaticResource NonEmptyStringToBoolConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="10">
+                                <Button Content="New User" Click="NewUserButton_Click" Width="100" Margin="5"/>
+                                <Button Content="Delete User" Click="DeleteUserButton_Click" Width="100" Margin="5"/>
+                                <Button Content="Save" Click="SaveUserButton_Click" Width="100" Margin="5"/>
+                            </StackPanel>
+                        </StackPanel>
                     </Grid>
                 </TabItem>
 
@@ -344,7 +372,7 @@
                                     <GridViewColumn Header="Timestamp" Width="150">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"/>
+                                                <TextBlock Text="{Binding Timestamp, StringFormat=\{0:yyyy-MM-dd HH:mm:ss\}}"/>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
@@ -353,6 +381,25 @@
                         </ListView>
                     </Grid>
                 </TabItem>
+                <TabItem Header="Reports">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="10">
+                            <TextBlock Text="Generate and Print Reports" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+                            <WrapPanel Orientation="Horizontal">
+                                <Button Content="Print Inventory Report" Click="PrintInventoryReport_Click" Margin="5" Width="200"/>
+                                <Button Content="Print Active Rentals Report" Click="PrintActiveRentalsReport_Click" Margin="5" Width="200"/>
+                                <Button Content="Print Full Rental History" Click="PrintFullRentalReport_Click" Margin="5" Width="200"/>
+                            </WrapPanel>
+                            <WrapPanel Orientation="Horizontal">
+                                <Button Content="Print Activity Log Report" Click="PrintActivityLogReport_Click" Margin="5" Width="200"/>
+                                <Button Content="Print Customer Report" Click="PrintCustomerReport_Click" Margin="5" Width="200"/>
+                                <Button Content="Print User Report" Click="PrintUserReport_Click" Margin="5" Width="200"/>
+                            </WrapPanel>
+                            <Button Content="Print Summary Report" Click="PrintSummaryReport_Click" Margin="5" Width="200"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
 
             </TabControl>
 

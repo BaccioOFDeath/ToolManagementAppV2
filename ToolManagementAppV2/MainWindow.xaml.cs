@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Data.SQLite;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -8,14 +8,12 @@ using System.Windows.Media.Imaging;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Services;
 using ToolManagementAppV2.ViewModels;
-using System.Printing;
-using System.Windows.Documents;
-using System.Windows.Media;
 
 namespace ToolManagementAppV2
 {
     public partial class MainWindow : Window
     {
+        private readonly ReportService _reportService;
         private readonly CustomerService _customerService;
         private readonly RentalService _rentalService;
         private readonly ToolService _toolService;
@@ -36,6 +34,7 @@ namespace ToolManagementAppV2
             _userService = new UserService(_databaseService);
             _settingsService = new SettingsService(_databaseService);
             _activityLogService = new ActivityLogService(_databaseService);
+            _reportService = new ReportService(_toolService, _rentalService, _activityLogService, _customerService, _userService);
 
             try
             {
@@ -52,12 +51,10 @@ namespace ToolManagementAppV2
 
             DataContext = new MainViewModel(_toolService, _userService, _settingsService);
 
-            // Get current user from App properties and restrict tabs if not admin
+            // Restrict tabs if current user is not admin
             var currentUser = App.Current.Properties["CurrentUser"] as User;
             if (currentUser != null && !currentUser.IsAdmin)
             {
-                // Remove tabs that non-admin users should not access.
-                // For example: "Tool Management", "Users", "Settings", "Import/Export"
                 var tabsToRemove = new[] { "Tool Management", "Users", "Settings", "Import/Export" };
                 var itemsToRemove = MyTabControl.Items.Cast<TabItem>()
                                       .Where(ti => tabsToRemove.Contains(ti.Header.ToString()))
@@ -67,7 +64,67 @@ namespace ToolManagementAppV2
             }
         }
 
-        // In MainWindow.xaml.cs – Update the CheckOutButton_Click handler to use the current user from App.Current.Properties
+        #region Printing Methods
+        private void PrintInventoryReport_Click(object sender, RoutedEventArgs e)
+        {
+            FlowDocument report = _reportService.GenerateInventoryReport();
+            PrintReport(report, "Inventory Report");
+        }
+
+        private void PrintRentalReport_Click(object sender, RoutedEventArgs e)
+        {
+            FlowDocument report = _reportService.GenerateRentalReport(false);
+            PrintReport(report, "Rental Report");
+        }
+
+        private void PrintActiveRentalsReport_Click(object sender, RoutedEventArgs e)
+        {
+            FlowDocument report = _reportService.GenerateRentalReport(true);
+            PrintReport(report, "Active Rentals Report");
+        }
+
+        private void PrintActivityLogReport_Click(object sender, RoutedEventArgs e)
+        {
+            FlowDocument report = _reportService.GenerateActivityLogReport();
+            PrintReport(report, "Activity Log Report");
+        }
+
+        private void PrintCustomerReport_Click(object sender, RoutedEventArgs e)
+        {
+            FlowDocument report = _reportService.GenerateCustomerReport();
+            PrintReport(report, "Customer Report");
+        }
+
+        private void PrintUserReport_Click(object sender, RoutedEventArgs e)
+        {
+            FlowDocument report = _reportService.GenerateUserReport();
+            PrintReport(report, "User Report");
+        }
+
+        private void PrintSummaryReport_Click(object sender, RoutedEventArgs e)
+        {
+            FlowDocument report = _reportService.GenerateSummaryReport();
+            PrintReport(report, "Summary Report");
+        }
+
+        private void PrintFullRentalReport_Click(object sender, RoutedEventArgs e)
+        {
+            FlowDocument report = _reportService.GenerateRentalReport(false);
+            PrintReport(report, "Full Rental History Report");
+        }
+
+        private void PrintReport(FlowDocument report, string title)
+        {
+            PrintDialog printDlg = new PrintDialog();
+            if (printDlg.ShowDialog() == true)
+            {
+                IDocumentPaginatorSource idpSource = report;
+                printDlg.PrintDocument(idpSource.DocumentPaginator, title);
+            }
+        }
+        #endregion
+
+        #region Tool Management Methods
         private void CheckOutButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button button && button.CommandParameter is string toolId)
@@ -78,9 +135,8 @@ namespace ToolManagementAppV2
                     MessageBox.Show("No current user found. Please log in again.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
-                string userName = currentUser.UserName;
-                _toolService.ToggleToolCheckOutStatus(toolId, userName);
-                _activityLogService.LogAction(currentUser.UserID, userName, $"Toggled checkout status for Tool ID: {toolId}");
+                _toolService.ToggleToolCheckOutStatus(toolId, currentUser.UserName);
+                _activityLogService.LogAction(currentUser.UserID, currentUser.UserName, $"Toggled checkout status for Tool ID: {toolId}");
                 RefreshToolList();
             }
         }
@@ -89,21 +145,20 @@ namespace ToolManagementAppV2
         {
             var newTool = new Tool
             {
-                Name = ToolNameInput.Text, // Use the Name input
+                Name = ToolNameInput.Text,
                 ToolID = ToolIDInput.Text,
                 PartNumber = PartNumberInput.Text,
                 Brand = BrandInput.Text,
                 Location = LocationInput.Text,
                 QuantityOnHand = int.Parse(QuantityInput.Text),
                 Supplier = SupplierInput.Text,
-                PurchasedDate = DateTime.TryParse(PurchasedInput.Text, out var date) ? date : null,
+                PurchasedDate = DateTime.TryParse(PurchasedInput.Text, out var date) ? date : (DateTime?)null,
                 Notes = NotesInput.Text
             };
 
             _toolService.AddTool(newTool);
             RefreshToolList();
         }
-
 
         private void UpdateButton_Click(object sender, RoutedEventArgs e)
         {
@@ -114,7 +169,7 @@ namespace ToolManagementAppV2
                 selectedTool.Location = LocationInput.Text;
                 selectedTool.QuantityOnHand = int.Parse(QuantityInput.Text);
                 selectedTool.Supplier = SupplierInput.Text;
-                selectedTool.PurchasedDate = !string.IsNullOrEmpty(PurchasedInput.Text) && DateTime.TryParse(PurchasedInput.Text, out var date) ? date : null;
+                selectedTool.PurchasedDate = !string.IsNullOrEmpty(PurchasedInput.Text) && DateTime.TryParse(PurchasedInput.Text, out var date) ? date : (DateTime?)null;
                 selectedTool.Notes = NotesInput.Text;
 
                 _toolService.UpdateTool(selectedTool);
@@ -145,9 +200,7 @@ namespace ToolManagementAppV2
                     string selectedImagePath = openFileDialog.FileName;
                     string imagesFolder = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
                     if (!System.IO.Directory.Exists(imagesFolder))
-                    {
                         System.IO.Directory.CreateDirectory(imagesFolder);
-                    }
                     string fileName = System.IO.Path.GetFileName(selectedImagePath);
                     string destinationPath = System.IO.Path.Combine(imagesFolder, fileName);
                     System.IO.File.Copy(selectedImagePath, destinationPath, true);
@@ -161,65 +214,6 @@ namespace ToolManagementAppV2
                 MessageBox.Show("Please select a tool first.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
-
-
-        private void PrintSearchResults_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Print Search Results Button Clicked!");
-        }
-
-        // In MainWindow.xaml.cs – Update LogoutButton_Click to handle case when no current user exists
-        private void LogoutButton_Click(object sender, RoutedEventArgs e)
-        {
-            var currentUser = _userService.GetCurrentUser();
-            if (currentUser == null)
-            {
-                MessageBox.Show("No user is currently logged in.", "Logout", MessageBoxButton.OK, MessageBoxImage.Warning);
-                // Optionally, open the login screen or shutdown the app
-                LoginWindow login = new LoginWindow();
-                bool? loginResult = login.ShowDialog();
-                if (loginResult == true)
-                {
-                    Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
-                    MainWindow newMainWindow = new MainWindow();
-                    Application.Current.MainWindow = newMainWindow;
-                    newMainWindow.Show();
-                }
-                else
-                {
-                    Application.Current.Shutdown();
-                }
-                this.Close();
-                return;
-            }
-            {
-                _activityLogService.LogAction(currentUser.UserID, currentUser.UserName, "User logged out");
-
-                // Prevent shutdown when closing the current window
-                Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-                // Hide the main window so it doesn't appear behind the login screen
-                this.Hide();
-
-                LoginWindow loginWindow = new LoginWindow();
-                bool? loginResult = loginWindow.ShowDialog();
-
-                if (loginResult == true)
-                {
-                    // Switch shutdown mode back and open a new MainWindow
-                    Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
-                    MainWindow newMainWindow = new MainWindow();
-                    Application.Current.MainWindow = newMainWindow;
-                    newMainWindow.Show();
-                }
-                else
-                {
-                    Application.Current.Shutdown();
-                }
-                this.Close();
-            }
-        }
-
-
 
         private void ToolsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -235,12 +229,9 @@ namespace ToolManagementAppV2
                 NotesInput.Text = selectedTool.Notes;
             }
         }
+        #endregion
 
-        private void ChooseUserProfilePicButton_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Choose Profile Picture Button Clicked!");
-        }
-
+        #region Customer & Rental Management Methods
         private void AddCustomerButton_Click(object sender, RoutedEventArgs e)
         {
             var customer = new Customer
@@ -332,45 +323,207 @@ namespace ToolManagementAppV2
                 }
             }
         }
+        #endregion
 
+        #region User Management Event Handlers
 
-        private void AddUserButton_Click(object sender, RoutedEventArgs e)
+        private void NewUserButton_Click(object sender, RoutedEventArgs e)
         {
-            var newUser = new User
+            if (DataContext is MainViewModel vm)
             {
-                UserName = UserNameInput.Text,
-                IsAdmin = IsAdminCheckbox.IsChecked == true,
-                UserPhotoPath = _selectedUserPhotoPath // Path saved during photo upload
-            };
-
-            _userService.AddUser(newUser);
-            RefreshUserList();
-            ClearUserInputFields(); // Optionally clear input fields after adding
-            MessageBox.Show("User added successfully!");
+                var newUser = new User
+                {
+                    UserName = "New User",
+                    Password = "newpassword",
+                    IsAdmin = false,
+                    Email = string.Empty,
+                    Phone = string.Empty,
+                    Address = string.Empty,
+                    Role = string.Empty
+                };
+                _userService.AddUser(newUser);
+                vm.LoadUsers();            // reload the Users collection in the view model
+                RefreshUserList();         // force the ListView to refresh its ItemsSource
+                vm.SelectedUser = vm.Users.FirstOrDefault(u => u.UserID == newUser.UserID) ?? vm.Users.First();
+            }
         }
 
-
-
-        private void UpdateUserButton_Click(object sender, RoutedEventArgs e)
+        private void SaveUserButton_Click(object sender, RoutedEventArgs e)
         {
-            if (UserList.SelectedItem is User user)
+            if (DataContext is MainViewModel vm && vm.SelectedUser != null)
             {
-                user.UserName = UserNameInput.Text;
-                user.IsAdmin = IsAdminCheckbox.IsChecked ?? false;
-                _userService.UpdateUser(user);
-                RefreshUserList();
+                if (vm.SelectedUser.UserID > 0)
+                    _userService.UpdateUser(vm.SelectedUser);
+                else
+                    _userService.AddUser(vm.SelectedUser);
+                int savedId = vm.SelectedUser.UserID;
+                vm.LoadUsers();
+                vm.SelectedUser = vm.Users.FirstOrDefault(u => u.UserID == savedId) ?? vm.Users.First();
+
+                // If the updated user is the currently logged-in user, update the header properties.
+                var currentUser = App.Current.Properties["CurrentUser"] as User;
+                if (currentUser != null && currentUser.UserID == vm.SelectedUser.UserID)
+                {
+                    currentUser.UserName = vm.SelectedUser.UserName;
+                    vm.CurrentUserName = vm.SelectedUser.UserName;
+                    // Optionally update CurrentUserPhoto if changed:
+                    vm.CurrentUserPhoto = vm.SelectedUser.PhotoBitmap;
+                    App.Current.Properties["CurrentUser"] = vm.SelectedUser;
+                }
+
+                MessageBox.Show("User saved successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
         private void DeleteUserButton_Click(object sender, RoutedEventArgs e)
         {
-            if (UserList.SelectedItem is User user)
+            if (DataContext is MainViewModel vm && vm.SelectedUser != null)
             {
-                _userService.DeleteUser(user.UserID);
+                var currentUser = App.Current.Properties["CurrentUser"] as User;
+                if (currentUser != null && currentUser.UserID == vm.SelectedUser.UserID)
+                {
+                    MessageBox.Show("You cannot delete your own account.", "Deletion Not Allowed", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                _userService.DeleteUser(vm.SelectedUser.UserID);
+                vm.LoadUsers();
                 RefreshUserList();
+                vm.SelectedUser = vm.Users.FirstOrDefault();
             }
         }
 
+        private void UploadUserPhotoButton_Click(object sender, RoutedEventArgs e)
+        {
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg"
+            };
+            if (openFileDialog.ShowDialog() == true)
+            {
+                if (DataContext is MainViewModel vm && vm.SelectedUser != null)
+                {
+                    try
+                    {
+                        int selId = vm.SelectedUser.UserID;
+                        string selectedPhotoPath = openFileDialog.FileName;
+                        string userPhotosFolder = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UserPhotos");
+                        if (!System.IO.Directory.Exists(userPhotosFolder))
+                            System.IO.Directory.CreateDirectory(userPhotosFolder);
+                        string newFileName = $"{Guid.NewGuid()}{System.IO.Path.GetExtension(selectedPhotoPath)}";
+                        string destinationPath = System.IO.Path.Combine(userPhotosFolder, newFileName);
+                        System.IO.File.Copy(selectedPhotoPath, destinationPath, true);
+
+                        vm.SelectedUser.UserPhotoPath = destinationPath;
+                        vm.SelectedUser.PhotoBitmap = new BitmapImage(new Uri(destinationPath, UriKind.Absolute));
+                        _userService.UpdateUser(vm.SelectedUser);
+
+                        // If current user is being updated, update the global property as well.
+                        var currentUser = App.Current.Properties["CurrentUser"] as User;
+                        if (currentUser != null && currentUser.UserID == vm.SelectedUser.UserID)
+                        {
+                            App.Current.Properties["CurrentUser"] = vm.SelectedUser;
+                            vm.LoadCurrentUser();
+                        }
+                        vm.LoadUsers();
+                        vm.SelectedUser = vm.Users.FirstOrDefault(u => u.UserID == selId);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error updating photo: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is MainViewModel vm && vm.SelectedUser != null)
+            {
+                string pwd = ((PasswordBox)sender).Password;
+                vm.UserPassword = pwd;
+                vm.SelectedUser.Password = pwd;
+            }
+        }
+
+        private void RefreshUserList()
+        {
+            try
+            {
+                // Get updated users from the DB
+                var users = _userService.GetAllUsers();
+                // Refresh photo bitmaps if necessary
+                foreach (var user in users)
+                {
+                    if (!string.IsNullOrEmpty(user.UserPhotoPath) && System.IO.File.Exists(user.UserPhotoPath))
+                    {
+                        user.PhotoBitmap = new BitmapImage(new Uri(user.UserPhotoPath, UriKind.Absolute))
+                        {
+                            CacheOption = BitmapCacheOption.OnLoad
+                        };
+                    }
+                }
+                // Assign the refreshed list to the ListView's ItemsSource.
+                UserList.ItemsSource = users;
+                UserList.Items.Refresh();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading users: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void LogoutButton_Click(object sender, RoutedEventArgs e)
+        {
+            var currentUser = _userService.GetCurrentUser();
+            if (currentUser == null)
+            {
+                MessageBox.Show("No user is currently logged in.", "Logout", MessageBoxButton.OK, MessageBoxImage.Warning);
+                // Optionally, open the login screen or shutdown the app
+                LoginWindow login = new LoginWindow();
+                bool? loginResult = login.ShowDialog();
+                if (loginResult == true)
+                {
+                    Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
+                    MainWindow newMainWindow = new MainWindow();
+                    Application.Current.MainWindow = newMainWindow;
+                    newMainWindow.Show();
+                }
+                else
+                {
+                    Application.Current.Shutdown();
+                }
+                this.Close();
+                return;
+            }
+            {
+                _activityLogService.LogAction(currentUser.UserID, currentUser.UserName, "User logged out");
+
+                // Prevent shutdown when closing the current window
+                Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+                // Hide the main window so it doesn't appear behind the login screen
+                this.Hide();
+
+                LoginWindow loginWindow = new LoginWindow();
+                bool? loginResult = loginWindow.ShowDialog();
+
+                if (loginResult == true)
+                {
+                    // Switch shutdown mode back and open a new MainWindow
+                    Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
+                    MainWindow newMainWindow = new MainWindow();
+                    Application.Current.MainWindow = newMainWindow;
+                    newMainWindow.Show();
+                }
+                else
+                {
+                    Application.Current.Shutdown();
+                }
+                this.Close();
+            }
+        }
+        #endregion
+
+        #region Settings, Import/Export, and Logs
         private void SaveSettingsButton_Click(object sender, RoutedEventArgs e)
         {
             if (int.TryParse(RentalDurationInput.Text, out var rentalDuration))
@@ -401,7 +554,6 @@ namespace ToolManagementAppV2
             }
         }
 
-
         private void SelectCsvFileButton_Click(object sender, RoutedEventArgs e)
         {
             var openFileDialog = new Microsoft.Win32.OpenFileDialog
@@ -431,47 +583,6 @@ namespace ToolManagementAppV2
             MessageBox.Show("Tools exported successfully!");
         }
 
-        private string _selectedUserPhotoPath; // To store the selected photo path temporarily
-
-        private void UploadUserPhotoButton_Click(object sender, RoutedEventArgs e)
-        {
-            var openFileDialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg",
-                Title = "Select User Photo"
-            };
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                _selectedUserPhotoPath = openFileDialog.FileName;
-
-                // Update preview in the Users tab
-                var userPhotoImage = new BitmapImage(new Uri(_selectedUserPhotoPath));
-            }
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         private void RefreshToolList()
         {
             try
@@ -483,30 +594,6 @@ namespace ToolManagementAppV2
                 MessageBox.Show($"Error loading tools: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
-        private void RefreshUserList()
-        {
-            try
-            {
-                var users = _userService.GetAllUsers();
-                foreach (var user in users)
-                {
-                    if (!string.IsNullOrEmpty(user.UserPhotoPath) && System.IO.File.Exists(user.UserPhotoPath))
-                    {
-                        user.PhotoBitmap = new BitmapImage(new Uri(user.UserPhotoPath))
-                        {
-                            CacheOption = BitmapCacheOption.OnLoad
-                        };
-                    }
-                }
-                UserList.ItemsSource = users;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error loading users: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
 
         private void RefreshCustomerList()
         {
@@ -537,13 +624,9 @@ namespace ToolManagementAppV2
             try
             {
                 if (!string.IsNullOrEmpty(SearchInput.Text))
-                {
                     SearchResultsList.ItemsSource = _toolService.SearchTools(SearchInput.Text);
-                }
                 else
-                {
-                    SearchResultsList.ItemsSource = null; // Clear search results if input is empty
-                }
+                    SearchResultsList.ItemsSource = null;
             }
             catch (Exception ex)
             {
@@ -566,16 +649,6 @@ namespace ToolManagementAppV2
             }
         }
 
-
-
-        private void ClearUserInputFields()
-        {
-            UserNameInput.Text = string.Empty;
-            IsAdminCheckbox.IsChecked = false;
-            _selectedUserPhotoPath = null; // Clear selected photo path
-        }
-
-
         private void LoadSettings()
         {
             try
@@ -583,7 +656,7 @@ namespace ToolManagementAppV2
                 var companyLogoPath = _settingsService.GetSetting("CompanyLogoPath");
                 if (!string.IsNullOrEmpty(companyLogoPath))
                 {
-                    LogoPreview.Source = new System.Windows.Media.Imaging.BitmapImage(new Uri(companyLogoPath));
+                    LogoPreview.Source = new BitmapImage(new Uri(companyLogoPath));
                     HeaderIcon.Source = LogoPreview.Source;
                 }
             }
@@ -634,7 +707,6 @@ namespace ToolManagementAppV2
                     FontSize = 12
                 };
 
-                // Header
                 Paragraph header = new Paragraph(new Run("Rental Receipt"))
                 {
                     FontSize = 16,
@@ -643,7 +715,6 @@ namespace ToolManagementAppV2
                 };
                 receiptDoc.Blocks.Add(header);
 
-                // Rental Details
                 Paragraph details = new Paragraph();
                 details.Inlines.Add(new Run($"Rental ID: {selectedRental.RentalID}\n"));
                 details.Inlines.Add(new Run($"Tool ID: {selectedRental.ToolID}\n"));
@@ -651,9 +722,7 @@ namespace ToolManagementAppV2
                 details.Inlines.Add(new Run($"Rental Date: {selectedRental.RentalDate:yyyy-MM-dd}\n"));
                 details.Inlines.Add(new Run($"Due Date: {selectedRental.DueDate:yyyy-MM-dd}\n"));
                 if (selectedRental.ReturnDate.HasValue)
-                {
                     details.Inlines.Add(new Run($"Return Date: {selectedRental.ReturnDate.Value:yyyy-MM-dd}\n"));
-                }
                 receiptDoc.Blocks.Add(details);
 
                 PrintDialog printDlg = new PrintDialog();
@@ -748,32 +817,47 @@ namespace ToolManagementAppV2
             }
         }
 
+        // If needed, the ChangePasswordButton_Click is retained for legacy use.
         private void ChangePasswordButton_Click(object sender, RoutedEventArgs e)
         {
-            if (UserList.SelectedItem is Models.User selectedUser)
-            {
-                string newPassword = NewPasswordInput.Text;
-                string confirmPassword = ConfirmPasswordInput.Text;
-                if (string.IsNullOrEmpty(newPassword) || newPassword != confirmPassword)
-                {
-                    MessageBox.Show("Passwords do not match or are empty.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-                try
-                {
-                    _userService.ChangeUserPassword(selectedUser.UserID, newPassword);
-                    MessageBox.Show("Password changed successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error changing password: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-            else
+            var vm = DataContext as MainViewModel;
+            if (vm?.SelectedUser == null)
             {
                 MessageBox.Show("Please select a user to change the password.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            if (string.IsNullOrEmpty(vm.NewPassword) || vm.NewPassword != vm.ConfirmPassword)
+            {
+                MessageBox.Show("Passwords do not match or are empty.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            try
+            {
+                _userService.ChangeUserPassword(vm.SelectedUser.UserID, vm.NewPassword);
+                MessageBox.Show("Password changed successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                vm.NewPassword = string.Empty;
+                vm.ConfirmPassword = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error changing password: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
+        #endregion
+
+        #region Missing Event Handlers
+        private void ChooseUserProfilePicButton_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Change profile picture functionality not implemented.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        
+        private void PrintSearchResults_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Print search results functionality not implemented.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        #endregion
     }
 }
