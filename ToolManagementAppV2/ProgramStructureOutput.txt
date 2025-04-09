@@ -1,0 +1,1199 @@
+Program Structure Visualization
+==============================
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models
+-----------------------------------------------------------------------------------------------------
+  File: ActivityLog.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\ActivityLog.cs
+    Class: ActivityLog
+      Visibility: public
+      Property: public int LogID
+      Property: public int UserID
+      Property: public string UserName
+      Property: public string Action
+      Property: public DateTime Timestamp
+
+  File: Customer.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\Customer.cs
+    Class: Customer
+      Visibility: public
+      Property: public int CustomerID
+      Property: public string Name
+      Property: public string Contact
+      Property: public string Email
+      Property: public string Phone
+      Property: public string Address
+
+  File: Rental.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\Rental.cs
+    Class: Rental
+      Visibility: public
+      Property: public int RentalID
+      Property: public int ToolID
+      Property: public int CustomerID
+      Property: public DateTime RentalDate
+      Property: public DateTime DueDate
+
+  File: Tool.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\Tool.cs
+    Class: Tool
+      Visibility: public
+      Property: public string ToolID
+      Property: public string Name
+      Property: public string PartNumber
+      Property: public string Description
+      Property: public string Brand
+      Property: public string Location
+      Property: public int QuantityOnHand
+      Property: public string Supplier
+      Property: public string Notes
+      Property: public bool IsCheckedOut
+      Property: public string CheckedOutBy
+      Property: public string ToolImagePath
+
+  File: User.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\User.cs
+    Class: ObservableObject
+      Visibility: public
+      Property: public int UserID
+      Property: public string UserName
+      Property: public string Password
+      Property: public string UserPhotoPath
+      Property: public bool IsAdmin
+      Property: public BitmapImage PhotoBitmap
+      Property: public string Email
+      Property: public string Phone
+      Property: public string Address
+      Property: public string Role
+
+
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services
+-------------------------------------------------------------------------------------------------------
+  File: ActivityLogService.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\ActivityLogService.cs
+    Class: ActivityLogService
+      Visibility: public
+      Field: var query =
+      Field: var logs =
+      Field: var query =
+      Field: var query =
+      Method: private public ActivityLogService(DatabaseService dbService)
+      Method: public void LogAction(int userID, string userName, string action)
+      Method: public List<ActivityLog> GetRecentLogs(int count = 50)
+      Method: public void PurgeOldLogs(DateTime threshold)
+
+  File: CustomerService.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\CustomerService.cs
+    Class: CustomerService
+      Visibility: public
+      Field: var customers =
+      Field: var query =
+      Method: private public CustomerService(DatabaseService dbService)
+      Method: public List<Customer> GetAllCustomers()
+      Method: public void AddCustomer(Customer customer)
+      Method: public void UpdateCustomer(Customer customer)
+
+  File: DatabaseService.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\DatabaseService.cs
+    Class: DatabaseService
+      Visibility: public
+      Property: public string ConnectionString
+      Method: private public DatabaseService(string dbPath)
+      Method: private void InitializeDatabase()
+
+  File: RentalService.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\RentalService.cs
+    Class: RentalService
+      Visibility: public
+      Method: private public RentalService(DatabaseService dbService)
+      Method: public void RentTool(string toolID, int customerID, DateTime rentalDate, DateTime dueDate)
+
+  File: ReportService.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\ReportService.cs
+    Class: ReportService
+      Visibility: public
+      Field: var tools =
+      Field: var rentals =
+      Field: string reportTitle =
+      Field: var logs =
+      Field: var customers =
+      Field: var users =
+      Field: var totalTools =
+      Field: var totalRentals =
+      Field: var totalActiveRentals =
+      Field: var totalCustomers =
+      Field: var totalUsers =
+      Field: Paragraph summary =
+      Method: private public ReportService(ToolService toolService, RentalService rentalService, ActivityLogService activityLogService, CustomerService customerService, UserService userService)
+      Method: public FlowDocument GenerateInventoryReport()
+      Method: public FlowDocument GenerateRentalReport(bool activeOnly = true)
+      Method: public FlowDocument GenerateActivityLogReport()
+      Method: public FlowDocument GenerateCustomerReport()
+      Method: public FlowDocument GenerateUserReport()
+      Method: public FlowDocument GenerateSummaryReport()
+
+  File: SettingsService.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\SettingsService.cs
+    Class: SettingsService
+      Visibility: public
+      Field: var query =
+      Field: var settings =
+      Field: var query =
+      Field: var query =
+      Method: private public SettingsService(DatabaseService dbService)
+      Method: public void SaveSetting(string key, string value)
+      Method: private ON CONFLICT(Key)
+      Method: public string GetSetting(string key)
+      Method: public void UpdateSettings(Dictionary<string, string> settings)
+      Method: private ON CONFLICT(Key)
+      Method: public void DeleteSetting(string key)
+
+  File: ToolService.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\ToolService.cs
+    Class: ToolService
+      Visibility: public
+      Field: var tools =
+      Field: var query =
+      Method: private public ToolService(DatabaseService dbService)
+      Method: public List<Tool> GetAllTools()
+      Method: public void AddTool(Tool tool)
+      Method: public void UpdateTool(Tool tool)
+
+  File: UserService.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\UserService.cs
+    Class: UserService
+      Visibility: public
+      Field: var users =
+      Field: var query =
+      Field: var result =
+      Method: private public UserService(DatabaseService dbService)
+      Method: public List<User> GetAllUsers()
+      Method: public void AddUser(User user)
+      Method: public void UpdateUser(User user)
+
+
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities
+--------------------------------------------------------------------------------------------------------
+  File: BooleanToAdminConverter.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\BooleanToAdminConverter.cs
+    Class: IValueConverter
+      Visibility: public
+      Method: public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+      Method: public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+
+  File: CheckOutStatusConverter.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\CheckOutStatusConverter.cs
+    Class: IValueConverter
+      Visibility: public
+      Method: public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+      Method: public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+
+  File: InverseBooleanConverter.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\InverseBooleanConverter.cs
+    Class: IValueConverter
+      Visibility: public
+      Method: public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+      Method: public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+
+  File: NonEmptyStringToBoolConverter.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\NonEmptyStringToBoolConverter.cs
+    Class: IValueConverter
+      Visibility: public
+      Method: public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+      Method: public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+
+  File: NullToDefaultImageConverter.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\NullToDefaultImageConverter.cs
+    Class: IValueConverter
+      Visibility: public
+      Field: string path =
+      Field: string defaultFile =
+      Field: string param =
+      Field: var resourceUri =
+      Method: public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+      Method: private else if(param.Equals("Logo", StringComparison.OrdinalIgnoreCase))
+      Method: public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+
+
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels
+---------------------------------------------------------------------------------------------------------
+  File: MainViewModel.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\MainViewModel.cs
+    Class: ObservableObject
+      Visibility: public
+      Field: public string CurrentUserName
+      Field: public BitmapImage CurrentUserPhoto
+      Field: public User SelectedUser
+      Field: public string NewPassword
+      Field: public string ConfirmPassword
+      Field: public BitmapImage HeaderLogo
+      Field: string logoPath =
+      Field: public bool IsLastAdmin
+      Field: var allTools =
+      Field: var allTools =
+      Field: var checkedOut =
+      Field: var results =
+      Field: var newTool =
+      Field: var usersList =
+      Field: var currentUser =
+      Field: var defaultPhotoUri =
+      Field: public string UserPassword
+      Property: public Tool SelectedTool
+      Property: public string SearchTerm
+      Property: public ICommand SearchCommand
+      Property: public ICommand AddToolCommand
+      Property: public ICommand UpdateToolCommand
+      Property: public ICommand DeleteToolCommand
+      Property: public ICommand LoadUsersCommand
+      Method: private public MainViewModel(ToolService toolService, UserService userService, SettingsService settingsService)
+      Method: private void LoadTools()
+      Method: private void LoadCheckedOutTools()
+      Method: private void SearchTools()
+      Method: private void AddTool()
+      Method: private void UpdateTool()
+      Method: private void DeleteTool()
+      Method: public void LoadUsers()
+      Method: public void LoadCurrentUser()
+      Method: private BitmapImage LoadPhotoBitmap(string photoPath)
+      Method: public void ClearUserInputFields()
+
+
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2
+----------------------------------------------------------------------------------------------
+  File: App.xaml
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\App.xaml
+    XAML Element: Application
+
+  File: LoginWindow.xaml
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\LoginWindow.xaml
+    XAML Element: Window
+    XAML Element: local
+      Attribute: x:Key="NullToDefaultImageConverter"
+    XAML Element: local
+      Attribute: x:Key="BooleanToAdminConverter"
+    XAML Element: DockPanel
+    XAML Element: Border
+      Attribute: DockPanel.Dock="Top"
+      Attribute: Background="#DDD"
+      Attribute: Padding="10"
+    XAML Element: DockPanel
+    XAML Element: Image
+      Attribute: Source="pack://application:,,,/Resources/DefaultLogo.png"
+      Attribute: Width="50"
+      Attribute: Height="50"
+    XAML Element: TextBlock
+      Attribute: Text="Tool
+      Attribute: FontWeight="Bold"
+      Attribute: FontSize="20"
+      Attribute: Margin="10"
+      Attribute: VerticalAlignment="Center"
+    XAML Element: StackPanel
+      Attribute: HorizontalAlignment="Center"
+      Attribute: VerticalAlignment="Center"
+      Attribute: Margin="10"
+    XAML Element: TextBlock
+      Attribute: Text="Select
+      Attribute: FontSize="16"
+      Attribute: FontWeight="SemiBold"
+      Attribute: Margin="0,10,0,10"
+      Attribute: HorizontalAlignment="Center"
+    XAML Element: ListBox
+      Attribute: x:Name="UsersListBox"
+      Attribute: BorderThickness="0"
+      Attribute: Background="Transparent"
+    XAML Element: ListBox
+    XAML Element: ItemsPanelTemplate
+    XAML Element: WrapPanel
+      Attribute: Orientation="Horizontal"
+      Attribute: HorizontalAlignment="Center"
+    XAML Element: ListBox
+    XAML Element: DataTemplate
+    XAML Element: StackPanel
+      Attribute: Margin="10"
+      Attribute: Width="100"
+    XAML Element: Button
+      Attribute: Click="UserButton_Click"
+      Attribute: Tag="{Binding}"
+      Attribute: BorderThickness="0"
+      Attribute: Background="Transparent"
+    XAML Element: StackPanel
+    XAML Element: TextBlock
+      Attribute: Text="{Binding
+      Attribute: HorizontalAlignment="Center"
+      Attribute: Margin="0,5,0,0"
+      Attribute: FontWeight="SemiBold"
+    XAML Element: TextBlock
+      Attribute: Text="{Binding
+      Attribute: Converter={StaticResource
+      Attribute: HorizontalAlignment="Center"
+      Attribute: FontSize="10"
+      Attribute: Foreground="Red"
+
+  File: MainWindow.xaml
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\MainWindow.xaml
+    XAML Element: DockPanel
+      Attribute: Margin="10"
+    XAML Element: DockPanel
+    XAML Element: local
+      Attribute: x:Key="CheckOutStatusConverter"
+    XAML Element: local
+      Attribute: x:Key="NullToDefaultImageConverter"
+    XAML Element: local
+      Attribute: x:Key="InverseBooleanConverter"
+    XAML Element: local
+      Attribute: x:Key="NonEmptyStringToBoolConverter"
+    XAML Element: DataTemplate
+      Attribute: x:Key="CheckOutButtonTemplate"
+    XAML Element: Border
+      Attribute: DockPanel.Dock="Top"
+      Attribute: Background="#DDD"
+      Attribute: Padding="10"
+    XAML Element: DockPanel
+    XAML Element: Image
+      Attribute: x:Name="HeaderIcon"
+      Attribute: Source="{Binding
+      Attribute: Width="50"
+      Attribute: Height="50"
+    XAML Element: TextBlock
+      Attribute: Text="Tool
+      Attribute: FontWeight="Bold"
+      Attribute: FontSize="20"
+      Attribute: Margin="10"
+      Attribute: VerticalAlignment="Center"
+    XAML Element: StackPanel
+      Attribute: DockPanel.Dock="Right"
+      Attribute: Orientation="Horizontal"
+      Attribute: HorizontalAlignment="Right"
+      Attribute: Margin="5"
+    XAML Element: Image
+      Attribute: Source="{Binding
+      Attribute: Width="50"
+      Attribute: Height="50"
+      Attribute: Margin="0,0,10,0"
+    XAML Element: StackPanel
+      Attribute: Orientation="Vertical"
+    XAML Element: TextBlock
+      Attribute: Text="{Binding
+      Attribute: FontWeight="Bold"
+      Attribute: Margin="0,0,0,5"
+    XAML Element: Button
+      Attribute: Content="Logout"
+      Attribute: Click="LogoutButton_Click"
+      Attribute: Width="80"
+    XAML Element: Grid
+      Attribute: DockPanel.Dock="Top"
+    XAML Element: Grid
+    XAML Element: RowDefinition
+      Attribute: Height="*"
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: TabControl
+      Attribute: x:Name="MyTabControl"
+      Attribute: Margin="5"
+      Attribute: Grid.Row="0"
+    XAML Element: TabItem
+      Attribute: Header="Search
+    XAML Element: Grid
+      Attribute: Margin="5"
+    XAML Element: Grid
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: RowDefinition
+      Attribute: Height="*"
+    XAML Element: RowDefinition
+      Attribute: Height="150"
+    XAML Element: xctk
+      Attribute: x:Name="SearchInput"
+      Attribute: Width="300"
+      Attribute: Margin="10,0"
+      Attribute: Watermark="Search
+      Attribute: TextChanged="SearchInput_TextChanged"
+    XAML Element: StackPanel
+      Attribute: Orientation="Horizontal"
+    XAML Element: Button
+      Attribute: Content="Print
+      Attribute: Click="PrintSearchResults_Click"
+      Attribute: Height="20"
+      Attribute: Width="160"
+      Attribute: Margin="10,0"
+    XAML Element: Button
+      Attribute: Content="Print
+      Attribute: Click="PrintMyCheckedOutTools_Click"
+      Attribute: Height="20"
+      Attribute: Width="160"
+      Attribute: Margin="10,0"
+    XAML Element: ListView
+      Attribute: x:Name="SearchResultsList"
+      Attribute: ItemsSource="{Binding
+      Attribute: Margin="10"
+      Attribute: Grid.Row="1"
+      Attribute: ScrollViewer.VerticalScrollBarVisibility="Auto"
+    XAML Element: ListView
+    XAML Element: GridView
+    XAML Element: GridViewColumn
+      Attribute: Header="Action"
+      Attribute: Width="80"
+      Attribute: CellTemplate="{StaticResource
+    XAML Element: GridViewColumn
+      Attribute: Header="ID"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="60"
+    XAML Element: GridViewColumn
+      Attribute: Header="Name"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="120"
+    XAML Element: GridViewColumn
+      Attribute: Header="Location"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="70"
+    XAML Element: GridViewColumn
+      Attribute: Header="Part
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="100"
+    XAML Element: GridViewColumn
+      Attribute: Header="Brand"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="100"
+    XAML Element: GridViewColumn
+      Attribute: Header="Description"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="380"
+    XAML Element: GridViewColumn
+      Attribute: Header="Quantity"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="60"
+    XAML Element: GridViewColumn
+      Attribute: Header="Supplier"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="100"
+    XAML Element: GridViewColumn
+      Attribute: Header="Purchased
+      Attribute: Width="80"
+    XAML Element: GridViewColumn
+    XAML Element: DataTemplate
+    XAML Element: TextBlock
+      Attribute: Text="{Binding
+      Attribute: StringFormat=\{0:yyyy-MM-dd\}}"
+    XAML Element: GridViewColumn
+      Attribute: Header="Notes"
+      Attribute: Width="200"
+    XAML Element: GridViewColumn
+    XAML Element: DataTemplate
+    XAML Element: TextBlock
+      Attribute: Text="{Binding
+      Attribute: TextWrapping="Wrap"
+    XAML Element: GridViewColumn
+      Attribute: Header="Image"
+      Attribute: Width="100"
+    XAML Element: GridViewColumn
+    XAML Element: DataTemplate
+    XAML Element: Image
+      Attribute: Source="{Binding
+      Attribute: Converter={StaticResource
+      Attribute: Height="50"
+      Attribute: Width="50"
+      Attribute: Stretch="Uniform"
+    XAML Element: Button
+      Attribute: Content="Choose
+      Attribute: Click="ChooseUserProfilePicButton_Click"
+      Attribute: Width="150"
+      Attribute: Height="20"
+      Attribute: HorizontalAlignment="Right"
+      Attribute: VerticalAlignment="Top"
+      Attribute: Grid.RowSpan="2"
+    XAML Element: ListView
+      Attribute: x:Name="CheckedOutToolsList"
+      Attribute: ItemsSource="{Binding
+      Attribute: Margin="10"
+      Attribute: Grid.Row="2"
+    XAML Element: ListView
+    XAML Element: GridView
+    XAML Element: GridViewColumn
+      Attribute: Header="Action"
+      Attribute: Width="80"
+    XAML Element: GridViewColumn
+    XAML Element: DataTemplate
+    XAML Element: GridViewColumn
+      Attribute: Header="Tool
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="60"
+    XAML Element: GridViewColumn
+      Attribute: Header="Description"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="380"
+    XAML Element: GridViewColumn
+      Attribute: Header="Checked
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="150"
+    XAML Element: GridViewColumn
+      Attribute: Header="Checked
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: StringFormat=\{0:G\}}"
+      Attribute: Width="150"
+    XAML Element: GridViewColumn
+      Attribute: Header="Location"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="100"
+    XAML Element: TabItem
+      Attribute: Header="Tool
+    XAML Element: Grid
+    XAML Element: Grid
+    XAML Element: ColumnDefinition
+      Attribute: Width="350"
+    XAML Element: ColumnDefinition
+    XAML Element: GroupBox
+      Attribute: Grid.Column="0"
+      Attribute: Header="Tool
+      Attribute: Margin="5"
+    XAML Element: StackPanel
+    XAML Element: xctk
+      Attribute: x:Name="ToolIDInput"
+      Attribute: Watermark="Tool
+      Attribute: Margin="0,5"
+    XAML Element: xctk
+      Attribute: x:Name="PartNumberInput"
+      Attribute: Watermark="Part
+      Attribute: Margin="0,5"
+    XAML Element: xctk
+      Attribute: x:Name="ToolNameInput"
+      Attribute: Watermark="Tool
+      Attribute: Margin="0,5"
+    XAML Element: xctk
+      Attribute: x:Name="BrandInput"
+      Attribute: Watermark="Brand"
+      Attribute: Margin="0,5"
+    XAML Element: xctk
+      Attribute: x:Name="LocationInput"
+      Attribute: Watermark="Location"
+      Attribute: Margin="0,5"
+    XAML Element: xctk
+      Attribute: x:Name="QuantityInput"
+      Attribute: Watermark="Quantity
+      Attribute: Margin="0,5"
+    XAML Element: xctk
+      Attribute: x:Name="SupplierInput"
+      Attribute: Watermark="Supplier"
+      Attribute: Margin="0,5"
+    XAML Element: xctk
+      Attribute: x:Name="PurchasedInput"
+      Attribute: Watermark="Purchased
+      Attribute: Margin="0,5"
+    XAML Element: xctk
+      Attribute: x:Name="NotesInput"
+      Attribute: Watermark="Notes"
+      Attribute: TextWrapping="Wrap"
+      Attribute: Margin="0,5"
+      Attribute: Height="60"
+      Attribute: AcceptsReturn="True"
+    XAML Element: StackPanel
+      Attribute: Orientation="Horizontal"
+      Attribute: HorizontalAlignment="Center"
+    XAML Element: Button
+      Attribute: Content="Add"
+      Attribute: Click="AddButton_Click"
+      Attribute: Margin="5"
+    XAML Element: Button
+      Attribute: Content="Update"
+      Attribute: Click="UpdateButton_Click"
+      Attribute: Margin="5"
+    XAML Element: Button
+      Attribute: Content="Delete"
+      Attribute: Click="DeleteButton_Click"
+      Attribute: Margin="5"
+    XAML Element: Button
+      Attribute: Content="Add/Change
+      Attribute: Click="ChangeToolImage_Click"
+      Attribute: Margin="5"
+    XAML Element: ListView
+      Attribute: x:Name="ToolsList"
+      Attribute: Grid.Column="1"
+      Attribute: ItemsSource="{Binding
+      Attribute: SelectionChanged="ToolsList_SelectionChanged"
+      Attribute: Margin="5"
+    XAML Element: ListView
+    XAML Element: GridView
+    XAML Element: GridViewColumn
+      Attribute: Header="ID"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="60"
+    XAML Element: GridViewColumn
+      Attribute: Header="Part
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="100"
+    XAML Element: GridViewColumn
+      Attribute: Header="Brand"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="100"
+    XAML Element: GridViewColumn
+      Attribute: Header="Location"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="100"
+    XAML Element: GridViewColumn
+      Attribute: Header="Quantity"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="80"
+    XAML Element: GridViewColumn
+      Attribute: Header="Supplier"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="100"
+    XAML Element: GridViewColumn
+      Attribute: Header="Purchased"
+      Attribute: Width="120"
+    XAML Element: GridViewColumn
+    XAML Element: DataTemplate
+    XAML Element: TextBlock
+      Attribute: Text="{Binding
+      Attribute: StringFormat=\{0:yyyy-MM-dd\}}"
+    XAML Element: GridViewColumn
+      Attribute: Header="Notes"
+    XAML Element: GridViewColumn
+    XAML Element: DataTemplate
+    XAML Element: TextBlock
+      Attribute: Text="{Binding
+      Attribute: TextWrapping="Wrap"
+      Attribute: Width="400"
+    XAML Element: GridViewColumn
+      Attribute: Header="Image"
+      Attribute: Width="100"
+    XAML Element: GridViewColumn
+    XAML Element: DataTemplate
+    XAML Element: Image
+      Attribute: Source="{Binding
+      Attribute: Converter={StaticResource
+      Attribute: Height="50"
+      Attribute: Width="50"
+      Attribute: Stretch="Uniform"
+    XAML Element: TabItem
+      Attribute: Header="Customers"
+    XAML Element: Grid
+    XAML Element: Grid
+    XAML Element: ColumnDefinition
+      Attribute: Width="350"
+    XAML Element: ColumnDefinition
+    XAML Element: GroupBox
+      Attribute: Header="Customer
+      Attribute: Grid.Column="0"
+      Attribute: Margin="5"
+    XAML Element: StackPanel
+    XAML Element: xctk
+      Attribute: x:Name="CustomerNameInput"
+      Attribute: Watermark="Name"
+      Attribute: Margin="5"
+    XAML Element: xctk
+      Attribute: x:Name="CustomerEmailInput"
+      Attribute: Watermark="Email"
+      Attribute: Margin="5"
+    XAML Element: xctk
+      Attribute: x:Name="CustomerContactInput"
+      Attribute: Watermark="Customer
+      Attribute: Margin="5"
+    XAML Element: xctk
+      Attribute: x:Name="CustomerPhoneInput"
+      Attribute: Watermark="Phone"
+      Attribute: Margin="5"
+    XAML Element: xctk
+      Attribute: x:Name="CustomerAddressInput"
+      Attribute: Watermark="Address"
+      Attribute: Margin="5"
+    XAML Element: StackPanel
+      Attribute: Orientation="Horizontal"
+      Attribute: HorizontalAlignment="Center"
+    XAML Element: Button
+      Attribute: Content="Add"
+      Attribute: Click="AddCustomerButton_Click"
+      Attribute: Margin="5"
+    XAML Element: Button
+      Attribute: Content="Update"
+      Attribute: Click="UpdateCustomerButton_Click"
+      Attribute: Margin="5"
+    XAML Element: Button
+      Attribute: Content="Delete"
+      Attribute: Click="DeleteCustomerButton_Click"
+      Attribute: Margin="5"
+    XAML Element: ListView
+      Attribute: x:Name="CustomerList"
+      Attribute: Grid.Column="1"
+      Attribute: ItemsSource="{Binding
+      Attribute: Margin="5"
+    XAML Element: ListView
+    XAML Element: GridView
+    XAML Element: GridViewColumn
+      Attribute: Header="Name"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="150"
+    XAML Element: GridViewColumn
+      Attribute: Header="Email"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="200"
+    XAML Element: GridViewColumn
+      Attribute: Header="Contact"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="200"
+    XAML Element: GridViewColumn
+      Attribute: Header="Phone"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="120"
+    XAML Element: GridViewColumn
+      Attribute: Header="Address"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="250"
+    XAML Element: TabItem
+      Attribute: Header="Rentals"
+    XAML Element: Grid
+    XAML Element: Grid
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: RowDefinition
+      Attribute: Height="*"
+    XAML Element: StackPanel
+      Attribute: Orientation="Horizontal"
+      Attribute: Margin="10"
+      Attribute: Grid.Row="0"
+    XAML Element: xctk
+      Attribute: x:Name="ToolIDForRentalInput"
+      Attribute: Watermark="Tool
+      Attribute: Margin="5"
+      Attribute: Width="200"
+    XAML Element: xctk
+      Attribute: x:Name="CustomerIDForRentalInput"
+      Attribute: Watermark="Customer
+      Attribute: Margin="5"
+      Attribute: Width="200"
+    XAML Element: xctk
+      Attribute: x:Name="DueDateInput"
+      Attribute: Watermark="Due
+      Attribute: Margin="5"
+      Attribute: Width="200"
+    XAML Element: Button
+      Attribute: Content="Rent
+      Attribute: Click="RentToolButton_Click"
+      Attribute: Margin="5"
+    XAML Element: Button
+      Attribute: Content="Return
+      Attribute: Click="ReturnToolButton_Click"
+      Attribute: Margin="5"
+    XAML Element: StackPanel
+      Attribute: Orientation="Horizontal"
+      Attribute: Margin="10"
+      Attribute: Grid.Row="1"
+    XAML Element: xctk
+      Attribute: x:Name="RentalIDInput"
+      Attribute: Watermark="Rental
+      Attribute: Margin="5"
+      Attribute: Width="100"
+    XAML Element: xctk
+      Attribute: x:Name="NewDueDateInput"
+      Attribute: Watermark="New
+      Attribute: Margin="5"
+      Attribute: Width="200"
+    XAML Element: Button
+      Attribute: Content="Extend
+      Attribute: Click="ExtendRentalButton_Click"
+      Attribute: Margin="5"
+    XAML Element: Button
+      Attribute: Content="Load
+      Attribute: Click="LoadOverdueRentals_Click"
+      Attribute: Margin="5"
+    XAML Element: ListView
+      Attribute: x:Name="RentalsList"
+      Attribute: ItemsSource="{Binding
+      Attribute: Grid.Row="2"
+      Attribute: Margin="10"
+    XAML Element: ListView
+    XAML Element: GridView
+    XAML Element: GridViewColumn
+      Attribute: Header="Rental
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="100"
+    XAML Element: GridViewColumn
+      Attribute: Header="Tool
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="100"
+    XAML Element: GridViewColumn
+      Attribute: Header="Customer
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="100"
+    XAML Element: GridViewColumn
+      Attribute: Header="Rental
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: StringFormat=\{0:yyyy-MM-dd\}}"
+      Attribute: Width="150"
+    XAML Element: GridViewColumn
+      Attribute: Header="Due
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: StringFormat=\{0:yyyy-MM-dd\}}"
+      Attribute: Width="150"
+    XAML Element: GridViewColumn
+      Attribute: Header="Return
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: StringFormat=\{0:yyyy-MM-dd\}}"
+      Attribute: Width="150"
+    XAML Element: TabItem
+      Attribute: Header="Users"
+    XAML Element: Grid
+      Attribute: Margin="5"
+    XAML Element: Grid
+    XAML Element: ColumnDefinition
+      Attribute: Width="250"
+    XAML Element: ColumnDefinition
+      Attribute: Width="*"
+    XAML Element: StackPanel
+      Attribute: Grid.Column="0"
+    XAML Element: TextBlock
+      Attribute: Text="Users"
+      Attribute: FontSize="16"
+      Attribute: FontWeight="Bold"
+      Attribute: Margin="5"
+    XAML Element: ListView
+    XAML Element: GridView
+    XAML Element: GridViewColumn
+      Attribute: Header="Name"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="160"
+    XAML Element: GridViewColumn
+      Attribute: Header="Admin"
+      Attribute: Width="70"
+    XAML Element: GridViewColumn
+    XAML Element: DataTemplate
+    XAML Element: CheckBox
+      Attribute: IsChecked="{Binding
+      Attribute: IsEnabled="False"
+      Attribute: HorizontalAlignment="Center"
+    XAML Element: StackPanel
+      Attribute: Grid.Column="1"
+      Attribute: Margin="10"
+      Attribute: VerticalAlignment="Top"
+    XAML Element: TextBlock
+      Attribute: Text="User
+      Attribute: FontSize="16"
+      Attribute: FontWeight="Bold"
+      Attribute: Margin="5"
+    XAML Element: StackPanel
+      Attribute: Orientation="Horizontal"
+      Attribute: Margin="5"
+    XAML Element: Border
+      Attribute: Width="100"
+      Attribute: Height="100"
+      Attribute: BorderBrush="Gray"
+      Attribute: BorderThickness="1"
+    XAML Element: Button
+      Attribute: Content="Change
+      Attribute: Click="UploadUserPhotoButton_Click"
+      Attribute: Margin="10,0,0,0"
+      Attribute: VerticalAlignment="Center"
+    XAML Element: StackPanel
+      Attribute: Orientation="Horizontal"
+      Attribute: Margin="5"
+    XAML Element: TextBlock
+      Attribute: Text="User
+      Attribute: Width="100"
+      Attribute: VerticalAlignment="Center"
+    XAML Element: TextBox
+      Attribute: Text="{Binding
+      Attribute: Mode=TwoWay}"
+      Attribute: Width="200"
+    XAML Element: StackPanel
+      Attribute: Orientation="Horizontal"
+      Attribute: Margin="5"
+    XAML Element: TextBlock
+      Attribute: Text="Password:"
+      Attribute: Width="100"
+      Attribute: VerticalAlignment="Center"
+    XAML Element: PasswordBox
+      Attribute: x:Name="PasswordBox"
+      Attribute: Width="200"
+      Attribute: PasswordChanged="PasswordBox_PasswordChanged"
+    XAML Element: StackPanel
+      Attribute: Orientation="Horizontal"
+      Attribute: Margin="5"
+    XAML Element: TextBlock
+      Attribute: Text="Email:"
+      Attribute: Width="100"
+      Attribute: VerticalAlignment="Center"
+    XAML Element: TextBox
+      Attribute: Text="{Binding
+      Attribute: Mode=TwoWay}"
+      Attribute: Width="200"
+    XAML Element: StackPanel
+      Attribute: Orientation="Horizontal"
+      Attribute: Margin="5"
+    XAML Element: TextBlock
+      Attribute: Text="Phone:"
+      Attribute: Width="100"
+      Attribute: VerticalAlignment="Center"
+    XAML Element: TextBox
+      Attribute: Text="{Binding
+      Attribute: Mode=TwoWay}"
+      Attribute: Width="200"
+    XAML Element: StackPanel
+      Attribute: Orientation="Horizontal"
+      Attribute: Margin="5"
+    XAML Element: TextBlock
+      Attribute: Text="Address:"
+      Attribute: Width="100"
+      Attribute: VerticalAlignment="Center"
+    XAML Element: TextBox
+      Attribute: Text="{Binding
+      Attribute: Mode=TwoWay}"
+      Attribute: Width="200"
+    XAML Element: StackPanel
+      Attribute: Orientation="Horizontal"
+      Attribute: Margin="5"
+    XAML Element: TextBlock
+      Attribute: Text="Role:"
+      Attribute: Width="100"
+      Attribute: VerticalAlignment="Center"
+    XAML Element: TextBox
+      Attribute: Text="{Binding
+      Attribute: Mode=TwoWay}"
+      Attribute: Width="200"
+    XAML Element: StackPanel
+      Attribute: Orientation="Horizontal"
+      Attribute: Margin="5"
+    XAML Element: TextBlock
+      Attribute: Text="Is
+      Attribute: Width="100"
+      Attribute: VerticalAlignment="Center"
+    XAML Element: StackPanel
+      Attribute: Orientation="Horizontal"
+      Attribute: HorizontalAlignment="Left"
+      Attribute: Margin="10"
+    XAML Element: Button
+      Attribute: Content="New
+      Attribute: Click="NewUserButton_Click"
+      Attribute: Width="100"
+      Attribute: Margin="5"
+    XAML Element: Button
+      Attribute: Content="Delete
+      Attribute: Click="DeleteUserButton_Click"
+      Attribute: Width="100"
+      Attribute: Margin="5"
+    XAML Element: Button
+      Attribute: Content="Save"
+      Attribute: Click="SaveUserButton_Click"
+      Attribute: Width="100"
+      Attribute: Margin="5"
+    XAML Element: TabItem
+      Attribute: Header="Settings"
+    XAML Element: StackPanel
+      Attribute: Orientation="Vertical"
+      Attribute: Margin="10"
+    XAML Element: TextBlock
+      Attribute: Text="Application
+      Attribute: FontWeight="Bold"
+      Attribute: FontSize="16"
+      Attribute: Margin="5"
+    XAML Element: StackPanel
+      Attribute: Orientation="Horizontal"
+      Attribute: Margin="5"
+    XAML Element: TextBlock
+      Attribute: Text="Default
+      Attribute: VerticalAlignment="Center"
+      Attribute: Width="200"
+    XAML Element: xctk
+      Attribute: x:Name="RentalDurationInput"
+      Attribute: Watermark="7"
+      Attribute: Width="100"
+      Attribute: Margin="5"
+    XAML Element: TextBlock
+      Attribute: Text="Company
+      Attribute: FontWeight="Bold"
+      Attribute: Margin="5"
+    XAML Element: Image
+      Attribute: x:Name="LogoPreview"
+      Attribute: Width="150"
+      Attribute: Height="150"
+      Attribute: Margin="5"
+      Attribute: Stretch="Uniform"
+      Attribute: HorizontalAlignment="Left"
+    XAML Element: Button
+      Attribute: Content="Upload
+      Attribute: Click="UploadLogoButton_Click"
+      Attribute: Margin="5"
+      Attribute: HorizontalAlignment="Left"
+    XAML Element: Button
+      Attribute: Content="Save
+      Attribute: Click="SaveSettingsButton_Click"
+      Attribute: Margin="5"
+      Attribute: HorizontalAlignment="Left"
+    XAML Element: TabItem
+      Attribute: Header="Import/Export"
+    XAML Element: StackPanel
+      Attribute: Margin="10"
+    XAML Element: TextBlock
+      Attribute: Text="Import
+      Attribute: FontWeight="Bold"
+      Attribute: FontSize="16"
+      Attribute: Margin="5"
+    XAML Element: Button
+      Attribute: Content="Select
+      Attribute: Click="SelectCsvFileButton_Click"
+      Attribute: Margin="5"
+    XAML Element: TextBlock
+      Attribute: x:Name="SelectedCsvFile"
+      Attribute: Text="No
+      Attribute: Margin="5"
+    XAML Element: Button
+      Attribute: Content="Import"
+      Attribute: Click="ImportCsvButton_Click"
+      Attribute: Margin="5"
+    XAML Element: TextBlock
+      Attribute: Text="Export
+      Attribute: FontWeight="Bold"
+      Attribute: FontSize="16"
+      Attribute: Margin="5"
+    XAML Element: Button
+      Attribute: Content="Export
+      Attribute: Click="ExportCsvButton_Click"
+      Attribute: Margin="5"
+    XAML Element: TabItem
+      Attribute: Header="Activity
+    XAML Element: Grid
+    XAML Element: StackPanel
+      Attribute: Orientation="Horizontal"
+      Attribute: Margin="10"
+    XAML Element: Button
+      Attribute: Content="Refresh
+      Attribute: Click="RefreshLogsButton_Click"
+      Attribute: Margin="5"
+    XAML Element: Button
+      Attribute: Content="Purge
+      Attribute: Click="PurgeLogsButton_Click"
+      Attribute: Margin="5"
+    XAML Element: ListView
+      Attribute: x:Name="ActivityLogsList"
+      Attribute: Margin="10"
+      Attribute: VerticalAlignment="Stretch"
+    XAML Element: ListView
+    XAML Element: GridView
+    XAML Element: GridViewColumn
+      Attribute: Header="Log
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="80"
+    XAML Element: GridViewColumn
+      Attribute: Header="User
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="80"
+    XAML Element: GridViewColumn
+      Attribute: Header="User
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="150"
+    XAML Element: GridViewColumn
+      Attribute: Header="Action"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="400"
+    XAML Element: GridViewColumn
+      Attribute: Header="Timestamp"
+      Attribute: Width="150"
+    XAML Element: GridViewColumn
+    XAML Element: DataTemplate
+    XAML Element: TextBlock
+      Attribute: Text="{Binding
+      Attribute: StringFormat=\{0:yyyy-MM-dd
+    XAML Element: TabItem
+      Attribute: Header="Reports"
+    XAML Element: ScrollViewer
+      Attribute: VerticalScrollBarVisibility="Auto"
+    XAML Element: StackPanel
+      Attribute: Margin="10"
+    XAML Element: TextBlock
+      Attribute: Text="Generate
+      Attribute: FontWeight="Bold"
+      Attribute: FontSize="16"
+      Attribute: Margin="0,0,0,10"
+    XAML Element: WrapPanel
+      Attribute: Orientation="Horizontal"
+    XAML Element: Button
+      Attribute: Content="Print
+      Attribute: Click="PrintInventoryReport_Click"
+      Attribute: Margin="5"
+      Attribute: Width="200"
+    XAML Element: Button
+      Attribute: Content="Print
+      Attribute: Click="PrintActiveRentalsReport_Click"
+      Attribute: Margin="5"
+      Attribute: Width="200"
+    XAML Element: Button
+      Attribute: Content="Print
+      Attribute: Click="PrintFullRentalReport_Click"
+      Attribute: Margin="5"
+      Attribute: Width="200"
+    XAML Element: WrapPanel
+      Attribute: Orientation="Horizontal"
+    XAML Element: Button
+      Attribute: Content="Print
+      Attribute: Click="PrintActivityLogReport_Click"
+      Attribute: Margin="5"
+      Attribute: Width="200"
+    XAML Element: Button
+      Attribute: Content="Print
+      Attribute: Click="PrintCustomerReport_Click"
+      Attribute: Margin="5"
+      Attribute: Width="200"
+    XAML Element: Button
+      Attribute: Content="Print
+      Attribute: Click="PrintUserReport_Click"
+      Attribute: Margin="5"
+      Attribute: Width="200"
+    XAML Element: Button
+      Attribute: Content="Print
+      Attribute: Click="PrintSummaryReport_Click"
+      Attribute: Margin="5"
+      Attribute: Width="200"
+    XAML Element: StatusBar
+      Attribute: Grid.Row="1"
+      Attribute: Height="25"
+      Attribute: Background="LightGray"
+    XAML Element: StatusBarItem
+      Attribute: Content="Ready"
+
+  File: PasswordPromptWindow.xaml
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\PasswordPromptWindow.xaml
+    XAML Element: Grid
+      Attribute: Margin="20"
+    XAML Element: Grid
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: TextBlock
+      Attribute: Text="Enter
+      Attribute: FontSize="14"
+      Attribute: FontWeight="Bold"
+      Attribute: Grid.Row="0"
+      Attribute: Margin="0,0,0,10"
+    XAML Element: PasswordBox
+      Attribute: x:Name="PasswordBox"
+      Attribute: Grid.Row="1"
+      Attribute: Height="30"
+      Attribute: FontSize="14"
+    XAML Element: TextBlock
+      Attribute: x:Name="ErrorTextBlock"
+      Attribute: Grid.Row="2"
+      Attribute: Foreground="Red"
+      Attribute: FontSize="12"
+      Attribute: Visibility="Collapsed"
+      Attribute: Margin="0,5,0,5"
+    XAML Element: StackPanel
+      Attribute: Grid.Row="3"
+      Attribute: Orientation="Horizontal"
+      Attribute: HorizontalAlignment="Right"
+    XAML Element: Button
+      Attribute: Content="OK"
+      Attribute: Width="75"
+      Attribute: Margin="5"
+      Attribute: Click="OK_Click"
+    XAML Element: Button
+      Attribute: Content="Cancel"
+      Attribute: Width="75"
+      Attribute: Margin="5"
+      Attribute: Click="Cancel_Click"
+
+
