@@ -1,4 +1,7 @@
-﻿using System.Windows;
+﻿using System;
+using System.IO;
+using System.Windows;
+using System.Windows.Media.Imaging;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Services;
 
@@ -7,11 +10,21 @@ namespace ToolManagementAppV2
     public partial class LoginWindow : Window
     {
         private readonly UserService _userService;
+
         public LoginWindow()
         {
             InitializeComponent();
+
             var dbPath = "tool_inventory.db";
             var databaseService = new DatabaseService(dbPath);
+            var settingsService = new SettingsService(databaseService);
+
+            var logoPath = settingsService.GetSetting("CompanyLogoPath");
+            var logoUri = !string.IsNullOrEmpty(logoPath) && File.Exists(logoPath)
+                ? new Uri(logoPath, UriKind.Absolute)
+                : new Uri("pack://application:,,,/Resources/DefaultLogo.png", UriKind.Absolute);
+            LoginLogo.Source = new BitmapImage(logoUri);
+
             _userService = new UserService(databaseService);
             LoadUsers();
         }
@@ -21,8 +34,9 @@ namespace ToolManagementAppV2
             var users = _userService.GetAllUsers();
             if (users.Count == 0)
             {
-                MessageBox.Show("No users exist. A default admin account will be created (username: admin, password: admin).",
-                                "Setup", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+                    "No users exist. A default admin account will be created (username: admin, password: admin).",
+                    "Setup", MessageBoxButton.OK, MessageBoxImage.Information);
                 var defaultUser = new User
                 {
                     UserName = "admin",

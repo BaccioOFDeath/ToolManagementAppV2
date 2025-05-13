@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -394,45 +395,8 @@ namespace ToolManagementAppV2
 
         private void UploadUserPhotoButton_Click(object sender, RoutedEventArgs e)
         {
-            var openFileDialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg"
-            };
-            if (openFileDialog.ShowDialog() == true)
-            {
-                if (DataContext is MainViewModel vm && vm.SelectedUser != null)
-                {
-                    try
-                    {
-                        int selId = vm.SelectedUser.UserID;
-                        string selectedPhotoPath = openFileDialog.FileName;
-                        string userPhotosFolder = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UserPhotos");
-                        if (!System.IO.Directory.Exists(userPhotosFolder))
-                            System.IO.Directory.CreateDirectory(userPhotosFolder);
-                        string newFileName = $"{Guid.NewGuid()}{System.IO.Path.GetExtension(selectedPhotoPath)}";
-                        string destinationPath = System.IO.Path.Combine(userPhotosFolder, newFileName);
-                        System.IO.File.Copy(selectedPhotoPath, destinationPath, true);
-
-                        vm.SelectedUser.UserPhotoPath = destinationPath;
-                        vm.SelectedUser.PhotoBitmap = new BitmapImage(new Uri(destinationPath, UriKind.Absolute));
-                        _userService.UpdateUser(vm.SelectedUser);
-
-                        // If current user is being updated, update the global property as well.
-                        var currentUser = App.Current.Properties["CurrentUser"] as User;
-                        if (currentUser != null && currentUser.UserID == vm.SelectedUser.UserID)
-                        {
-                            App.Current.Properties["CurrentUser"] = vm.SelectedUser;
-                            vm.LoadCurrentUser();
-                        }
-                        vm.LoadUsers();
-                        vm.SelectedUser = vm.Users.FirstOrDefault(u => u.UserID == selId);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error updating photo: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                }
-            }
+            if (DataContext is MainViewModel vm && vm.SelectedUser != null)
+                UploadPhotoForUser(vm.SelectedUser);
         }
 
         private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
@@ -846,18 +810,97 @@ namespace ToolManagementAppV2
 
         #endregion
 
-        #region Missing Event Handlers
+        private void UploadPhotoForUser(User user)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg"
+            };
+            if (dlg.ShowDialog() != true) return;
+
+            var src = dlg.FileName;
+            var photosFolder = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UserPhotos");
+            System.IO.Directory.CreateDirectory(photosFolder);
+            var dest = System.IO.Path.Combine(photosFolder, $"{Guid.NewGuid()}{System.IO.Path.GetExtension(src)}");
+            System.IO.File.Copy(src, dest, true);
+
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.UriSource = new Uri(dest, UriKind.Absolute);
+            bitmap.EndInit();
+
+            user.UserPhotoPath = dest;
+            user.PhotoBitmap = bitmap;
+            _userService.UpdateUser(user);
+
+            if (App.Current.Properties["CurrentUser"] is User curr && curr.UserID == user.UserID)
+            {
+                curr.UserPhotoPath = dest;
+                curr.PhotoBitmap = bitmap;
+                if (DataContext is MainViewModel vm)
+                    vm.CurrentUserPhoto = bitmap;
+            }
+        }
+
+       
+
         private void ChooseUserProfilePicButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Change profile picture functionality not implemented.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (App.Current.Properties["CurrentUser"] is User curr)
+                UploadPhotoForUser(curr);
         }
 
-        
+
         private void PrintSearchResults_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Print search results functionality not implemented.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            var items = SearchResultsList.ItemsSource?.Cast<object>().ToList();
+            if (items == null || items.Count == 0)
+            {
+                MessageBox.Show("No search results to print.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            var doc = new FlowDocument { PagePadding = new Thickness(20) };
+            var table = new Table { CellSpacing = 0 };
+            doc.Blocks.Add(table);
+
+            if (SearchResultsList.View is GridView gv)
+            {
+                foreach (var _ in gv.Columns)
+                    table.Columns.Add(new TableColumn());
+
+                var rg = new TableRowGroup();
+                table.RowGroups.Add(rg);
+
+                var headerRow = new TableRow();
+                rg.Rows.Add(headerRow);
+                foreach (var col in gv.Columns)
+                {
+                    headerRow.Cells.Add(new TableCell(new Paragraph(new Run(col.Header?.ToString() ?? "")))
+                    { FontWeight = FontWeights.Bold, Padding = new Thickness(4) });
+                }
+
+                foreach (var item in items)
+                {
+                    var row = new TableRow();
+                    rg.Rows.Add(row);
+                    foreach (var col in gv.Columns.OfType<GridViewColumn>())
+                    {
+                        string text = "";
+                        if (col.DisplayMemberBinding is Binding bnd)
+                        {
+                            var prop = item.GetType().GetProperty(bnd.Path.Path);
+                            text = prop?.GetValue(item)?.ToString() ?? "";
+                        }
+                        row.Cells.Add(new TableCell(new Paragraph(new Run(text))) { Padding = new Thickness(4) });
+                    }
+                }
+
+                var pd = new PrintDialog();
+                if (pd.ShowDialog() == true)
+                    pd.PrintDocument(((IDocumentPaginatorSource)doc).DocumentPaginator, "Search Results");
+            }
         }
 
-        #endregion
     }
 }
