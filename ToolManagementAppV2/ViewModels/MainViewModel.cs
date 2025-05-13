@@ -1,8 +1,10 @@
 ﻿// File: ViewModels/MainViewModel.cs
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -18,7 +20,38 @@ namespace ToolManagementAppV2.ViewModels
         private readonly UserService _userService;
         private readonly SettingsService _settingsService;
 
-        // Properties for Current User
+        public ICommand SearchCommand { get; }
+        public ICommand AddToolCommand { get; }
+        public ICommand UpdateToolCommand { get; }
+        public ICommand DeleteToolCommand { get; }
+        public ICommand LoadUsersCommand { get; }
+
+        public ICommand ChooseProfilePicCommand { get; }
+        public ICommand UploadUserPhotoCommand { get; }
+
+        public ObservableCollection<Tool> Tools { get; } = new();
+        public ObservableCollection<Tool> SearchResults { get; } = new();
+        public ObservableCollection<Tool> CheckedOutTools { get; } = new();
+        public ObservableCollection<User> Users { get; } = new();
+
+        private Tool _selectedTool;
+        public Tool SelectedTool
+        {
+            get => _selectedTool;
+            set => SetProperty(ref _selectedTool, value);
+        }
+
+        private User _selectedUser;
+        public User SelectedUser
+        {
+            get => _selectedUser;
+            set
+            {
+                SetProperty(ref _selectedUser, value);
+                OnPropertyChanged(nameof(IsLastAdmin));
+            }
+        }
+
         private string _currentUserName;
         public string CurrentUserName
         {
@@ -33,51 +66,6 @@ namespace ToolManagementAppV2.ViewModels
             set => SetProperty(ref _currentUserPhoto, value);
         }
 
-        // Observable Collections
-        public ObservableCollection<Tool> Tools { get; } = new();
-        public ObservableCollection<Tool> SearchResults { get; } = new();
-        public ObservableCollection<Tool> CheckedOutTools { get; } = new();
-        public ObservableCollection<User> Users { get; } = new ObservableCollection<User>();
-
-        // Selected items (for master/detail)
-        public Tool SelectedTool { get; set; }
-
-        private User _selectedUser;
-        public User SelectedUser
-        {
-            get => _selectedUser;
-            set
-            {
-                SetProperty(ref _selectedUser, value);
-                OnPropertyChanged(nameof(IsLastAdmin));
-            }
-        }
-
-        // New properties for password change
-        private string _newPassword;
-        public string NewPassword
-        {
-            get => _newPassword;
-            set => SetProperty(ref _newPassword, value);
-        }
-        private string _confirmPassword;
-        public string ConfirmPassword
-        {
-            get => _confirmPassword;
-            set => SetProperty(ref _confirmPassword, value);
-        }
-
-        // Tool Management
-        public string SearchTerm { get; set; }
-
-        // Commands (omitted for brevity)
-        public ICommand SearchCommand { get; }
-        public ICommand AddToolCommand { get; }
-        public ICommand UpdateToolCommand { get; }
-        public ICommand DeleteToolCommand { get; }
-        public ICommand LoadUsersCommand { get; }
-
-        // Header Logo property
         private BitmapImage _headerLogo;
         public BitmapImage HeaderLogo
         {
@@ -85,43 +73,64 @@ namespace ToolManagementAppV2.ViewModels
             {
                 if (_headerLogo == null)
                 {
-                    string logoPath = _settingsService.GetSetting("CompanyLogoPath");
-                    if (string.IsNullOrEmpty(logoPath) || !System.IO.File.Exists(logoPath))
-                    {
-                        _headerLogo = new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultLogo.png", UriKind.Absolute));
-                    }
-                    else
-                    {
-                        _headerLogo = new BitmapImage(new Uri(logoPath, UriKind.Absolute));
-                    }
+                    var path = _settingsService.GetSetting("CompanyLogoPath");
+                    _headerLogo = new BitmapImage(new Uri(
+                        string.IsNullOrEmpty(path) || !File.Exists(path)
+                            ? "pack://application:,,,/Resources/DefaultLogo.png"
+                            : path,
+                        UriKind.Absolute));
                 }
                 return _headerLogo;
             }
             set => SetProperty(ref _headerLogo, value);
         }
 
-        public bool IsLastAdmin
+        // password/change properties
+        private string _userPassword;
+        public string UserPassword
         {
-            get
-            {
-                if (SelectedUser == null)
-                    return false;
-                if (!SelectedUser.IsAdmin)
-                    return false;
-                return Users.Count(u => u.IsAdmin) == 1;
-            }
+            get => _userPassword;
+            set => SetProperty(ref _userPassword, value);
         }
 
-        public MainViewModel(ToolService toolService, UserService userService, SettingsService settingsService)
+        private string _newPassword;
+        public string NewPassword
+        {
+            get => _newPassword;
+            set => SetProperty(ref _newPassword, value);
+        }
+
+        private string _confirmPassword;
+        public string ConfirmPassword
+        {
+            get => _confirmPassword;
+            set => SetProperty(ref _confirmPassword, value);
+        }
+
+        public string SearchTerm { get; set; }
+
+        public bool IsLastAdmin =>
+            SelectedUser != null &&
+            SelectedUser.IsAdmin &&
+            Users.Count(u => u.IsAdmin) == 1;
+
+        public MainViewModel(
+            ToolService toolService,
+            UserService userService,
+            SettingsService settingsService)
         {
             _toolService = toolService;
             _userService = userService;
             _settingsService = settingsService;
+
             SearchCommand = new RelayCommand(SearchTools);
             AddToolCommand = new RelayCommand(AddTool);
             UpdateToolCommand = new RelayCommand(UpdateTool);
             DeleteToolCommand = new RelayCommand(DeleteTool);
             LoadUsersCommand = new RelayCommand(LoadUsers);
+
+            ChooseProfilePicCommand = new RelayCommand(ChooseProfilePic);
+            UploadUserPhotoCommand = new RelayCommand(UploadSelectedUserPhoto);
 
             LoadTools();
             LoadCheckedOutTools();
@@ -129,35 +138,51 @@ namespace ToolManagementAppV2.ViewModels
             LoadCurrentUser();
         }
 
+        public void LoadUsers()
+        {
+            Users.Clear();
+            foreach (var u in _userService.GetAllUsers())
+                Users.Add(u);
+            SelectedUser = null;
+            OnPropertyChanged(nameof(IsLastAdmin));
+        }
+
+        public void LoadCurrentUser()
+        {
+            if (Application.Current.Properties["CurrentUser"] is User curr)
+            {
+                CurrentUserName = curr.UserName;
+                CurrentUserPhoto = File.Exists(curr.UserPhotoPath)
+                    ? new BitmapImage(new Uri(curr.UserPhotoPath, UriKind.Absolute))
+                    : new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultUserPhoto.png", UriKind.Absolute));
+            }
+        }
+
         private void LoadTools()
         {
             Tools.Clear();
-            var allTools = _toolService.GetAllTools();
-            foreach (var tool in allTools)
-                Tools.Add(tool);
+            foreach (var t in _toolService.GetAllTools())
+                Tools.Add(t);
         }
 
         private void LoadCheckedOutTools()
         {
             CheckedOutTools.Clear();
-            var allTools = _toolService.GetAllTools();
-            var checkedOut = allTools.Where(t => t.IsCheckedOut);
-            foreach (var tool in checkedOut)
-                CheckedOutTools.Add(tool);
+            foreach (var t in _toolService.GetAllTools().Where(t => t.IsCheckedOut))
+                CheckedOutTools.Add(t);
         }
 
         private void SearchTools()
         {
             SearchResults.Clear();
-            var results = _toolService.SearchTools(SearchTerm);
-            foreach (var tool in results)
-                SearchResults.Add(tool);
+            foreach (var t in _toolService.SearchTools(SearchTerm))
+                SearchResults.Add(t);
         }
 
         private void AddTool()
         {
-            var newTool = new Tool { ToolID = "NewID", Description = "New Description" };
-            _toolService.AddTool(newTool);
+            var nt = new Tool { ToolID = "NewID", Description = "New Description" };
+            _toolService.AddTool(nt);
             LoadTools();
         }
 
@@ -179,66 +204,48 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        public void LoadUsers()
+        private void ChooseProfilePic()
         {
-            Users.Clear();
-            var usersList = _userService.GetAllUsers();
-            foreach (var user in usersList)
+            if (Application.Current.Properties["CurrentUser"] is User cu)
+                UploadPhotoForUser(cu);
+        }
+
+        private void UploadSelectedUserPhoto()
+        {
+            if (SelectedUser != null)
+                UploadPhotoForUser(SelectedUser);
+        }
+
+        private void UploadPhotoForUser(User u)
+        {
+            var dlg = new OpenFileDialog { Filter = "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg" };
+            if (dlg.ShowDialog() != true) return;
+
+            var src = dlg.FileName;
+            var folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UserPhotos");
+            Directory.CreateDirectory(folder);
+            var dest = Path.Combine(folder, $"{Guid.NewGuid()}{Path.GetExtension(src)}");
+            File.Copy(src, dest, true);
+
+            var bmp = new BitmapImage();
+            bmp.BeginInit();
+            bmp.CacheOption = BitmapCacheOption.OnLoad;
+            bmp.UriSource = new Uri(dest, UriKind.Absolute);
+            bmp.EndInit();
+
+            u.UserPhotoPath = dest;
+            u.PhotoBitmap = bmp;
+            _userService.UpdateUser(u);
+
+            if (Application.Current.Properties["CurrentUser"] is User cu && cu.UserID == u.UserID)
             {
-                if (!string.IsNullOrEmpty(user.UserPhotoPath) && System.IO.File.Exists(user.UserPhotoPath))
-                {
-                    user.PhotoBitmap = new BitmapImage(new Uri(user.UserPhotoPath, UriKind.Absolute))
-                    {
-                        CacheOption = BitmapCacheOption.OnLoad
-                    };
-                }
-                Users.Add(user);
+                cu.UserPhotoPath = dest;
+                cu.PhotoBitmap = bmp;
+                CurrentUserPhoto = bmp;
+                CurrentUserName = cu.UserName;
             }
-            // Do not auto-select a user; user details remain empty until one is selected.
-            SelectedUser = null;
-            OnPropertyChanged(nameof(Users));
-            OnPropertyChanged(nameof(SelectedUser));
-            OnPropertyChanged(nameof(IsLastAdmin));
-        }
 
-        public void LoadCurrentUser()
-        {
-            if (Application.Current.Properties.Contains("CurrentUser"))
-            {
-                var currentUser = Application.Current.Properties["CurrentUser"] as User;
-                if (currentUser != null)
-                {
-                    CurrentUserName = currentUser.UserName;
-                    CurrentUserPhoto = LoadPhotoBitmap(currentUser.UserPhotoPath);
-                    return;
-                }
-            }
-            CurrentUserName = "Guest";
-            CurrentUserPhoto = LoadPhotoBitmap(null);
-        }
-
-        private BitmapImage LoadPhotoBitmap(string photoPath)
-        {
-            if (string.IsNullOrEmpty(photoPath) || !System.IO.File.Exists(photoPath))
-            {
-                var defaultPhotoUri = new Uri("pack://application:,,,/Resources/DefaultUserPhoto.png", UriKind.Absolute);
-                return new BitmapImage(defaultPhotoUri) { CacheOption = BitmapCacheOption.OnLoad };
-            }
-            return new BitmapImage(new Uri(photoPath, UriKind.Absolute)) { CacheOption = BitmapCacheOption.OnLoad };
-        }
-
-        public void ClearUserInputFields()
-        {
-            SelectedUser = new User();
-            NewPassword = string.Empty;
-            ConfirmPassword = string.Empty;
-        }
-
-        private string _userPassword;
-        public string UserPassword
-        {
-            get => _userPassword;
-            set => SetProperty(ref _userPassword, value);
+            LoadUsers();
         }
     }
 }
