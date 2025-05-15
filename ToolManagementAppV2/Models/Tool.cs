@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using System;
 
 namespace ToolManagementAppV2.Models
 {
@@ -15,6 +12,7 @@ namespace ToolManagementAppV2.Models
         public string Brand { get; set; }
         public string Location { get; set; }
         public int QuantityOnHand { get; set; }
+        public int RentedQuantity { get; set; }
         public string Supplier { get; set; }
         public DateTime? PurchasedDate { get; set; }
         public string Notes { get; set; }
@@ -22,5 +20,9 @@ namespace ToolManagementAppV2.Models
         public string CheckedOutBy { get; set; }
         public DateTime? CheckedOutTime { get; set; }
         public string ToolImagePath { get; set; }
+
+        // For XAML bindings
+        public int OnHand => QuantityOnHand;
+        public string Purchased => PurchasedDate?.ToString("yyyy-MM-dd") ?? "";
     }
 }
