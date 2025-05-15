@@ -18,22 +18,14 @@ namespace ToolManagementAppV2.ViewModels
     {
         private readonly ToolService _toolService;
         private readonly UserService _userService;
+        private readonly CustomerService _customerService;
+        private readonly RentalService _rentalService;
         private readonly SettingsService _settingsService;
 
-        public ICommand SearchCommand { get; }
-        public ICommand AddToolCommand { get; }
-        public ICommand UpdateToolCommand { get; }
-        public ICommand DeleteToolCommand { get; }
-        public ICommand LoadUsersCommand { get; }
-
-        public ICommand ChooseProfilePicCommand { get; }
-        public ICommand UploadUserPhotoCommand { get; }
-
+        // Tools
         public ObservableCollection<Tool> Tools { get; } = new();
         public ObservableCollection<Tool> SearchResults { get; } = new();
         public ObservableCollection<Tool> CheckedOutTools { get; } = new();
-        public ObservableCollection<User> Users { get; } = new();
-
         private Tool _selectedTool;
         public Tool SelectedTool
         {
@@ -41,6 +33,8 @@ namespace ToolManagementAppV2.ViewModels
             set => SetProperty(ref _selectedTool, value);
         }
 
+        // Users
+        public ObservableCollection<User> Users { get; } = new();
         private User _selectedUser;
         public User SelectedUser
         {
@@ -52,6 +46,33 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
+        // Customers
+        public ObservableCollection<Customer> Customers { get; } = new();
+        private Customer _selectedCustomer;
+        public Customer SelectedCustomer
+        {
+            get => _selectedCustomer;
+            set => SetProperty(ref _selectedCustomer, value);
+        }
+        private string _newCustomerName, _newCustomerEmail, _newCustomerContact, _newCustomerPhone, _newCustomerAddress;
+        public string NewCustomerName { get => _newCustomerName; set => SetProperty(ref _newCustomerName, value); }
+        public string NewCustomerEmail { get => _newCustomerEmail; set => SetProperty(ref _newCustomerEmail, value); }
+        public string NewCustomerContact { get => _newCustomerContact; set => SetProperty(ref _newCustomerContact, value); }
+        public string NewCustomerPhone { get => _newCustomerPhone; set => SetProperty(ref _newCustomerPhone, value); }
+        public string NewCustomerAddress { get => _newCustomerAddress; set => SetProperty(ref _newCustomerAddress, value); }
+
+        // Rentals
+        public ObservableCollection<Rental> ActiveRentals { get; } = new();
+        public ObservableCollection<Rental> OverdueRentals { get; } = new();
+        private Rental _selectedRental;
+        public Rental SelectedRental
+        {
+            get => _selectedRental;
+            set => SetProperty(ref _selectedRental, value);
+        }
+        public DateTime NewDueDate { get; set; } = DateTime.Today.AddDays(7);
+
+        // Header / Current User
         private string _currentUserName;
         public string CurrentUserName
         {
@@ -74,18 +95,43 @@ namespace ToolManagementAppV2.ViewModels
                 if (_headerLogo == null)
                 {
                     var path = _settingsService.GetSetting("CompanyLogoPath");
-                    _headerLogo = new BitmapImage(new Uri(
-                        string.IsNullOrEmpty(path) || !File.Exists(path)
-                            ? "pack://application:,,,/Resources/DefaultLogo.png"
-                            : path,
-                        UriKind.Absolute));
+                    var uri = string.IsNullOrEmpty(path) || !File.Exists(path)
+                        ? new Uri("pack://application:,,,/Resources/DefaultLogo.png", UriKind.Absolute)
+                        : new Uri(path, UriKind.Absolute);
+                    _headerLogo = new BitmapImage(uri);
                 }
                 return _headerLogo;
             }
-            set => SetProperty(ref _headerLogo, value);
         }
 
-        // password/change properties
+        // Search term
+        public string SearchTerm { get; set; }
+
+        // Helpers
+        public bool IsLastAdmin =>
+            SelectedUser != null &&
+            SelectedUser.IsAdmin &&
+            Users.Count(u => u.IsAdmin) == 1;
+
+        // Commands
+        public ICommand SearchCommand { get; }
+        public ICommand AddToolCommand { get; }
+        public ICommand UpdateToolCommand { get; }
+        public ICommand DeleteToolCommand { get; }
+        public ICommand LoadUsersCommand { get; }
+        public ICommand ChooseProfilePicCommand { get; }
+        public ICommand UploadUserPhotoCommand { get; }
+
+        public ICommand LoadCustomersCommand { get; }
+        public ICommand AddCustomerCommand { get; }
+        public ICommand UpdateCustomerCommand { get; }
+        public ICommand DeleteCustomerCommand { get; }
+
+        public ICommand LoadActiveRentalsCommand { get; }
+        public ICommand LoadOverdueRentalsCommand { get; }
+        public ICommand ReturnToolCommand { get; }
+        public ICommand ExtendRentalCommand { get; }
+
         private string _userPassword;
         public string UserPassword
         {
@@ -107,57 +153,56 @@ namespace ToolManagementAppV2.ViewModels
             set => SetProperty(ref _confirmPassword, value);
         }
 
-        public string SearchTerm { get; set; }
 
-        public bool IsLastAdmin =>
-            SelectedUser != null &&
-            SelectedUser.IsAdmin &&
-            Users.Count(u => u.IsAdmin) == 1;
 
         public MainViewModel(
             ToolService toolService,
             UserService userService,
+            CustomerService customerService,
+            RentalService rentalService,
             SettingsService settingsService)
         {
             _toolService = toolService;
             _userService = userService;
+            _customerService = customerService;
+            _rentalService = rentalService;
             _settingsService = settingsService;
+        
 
-            SearchCommand = new RelayCommand(SearchTools);
+        // Tool commands
+        SearchCommand = new RelayCommand(SearchTools);
             AddToolCommand = new RelayCommand(AddTool);
             UpdateToolCommand = new RelayCommand(UpdateTool);
             DeleteToolCommand = new RelayCommand(DeleteTool);
-            LoadUsersCommand = new RelayCommand(LoadUsers);
 
+            // User commands
+            LoadUsersCommand = new RelayCommand(LoadUsers);
             ChooseProfilePicCommand = new RelayCommand(ChooseProfilePic);
             UploadUserPhotoCommand = new RelayCommand(UploadSelectedUserPhoto);
 
+            // Customer commands
+            LoadCustomersCommand = new RelayCommand(LoadCustomers);
+            AddCustomerCommand = new RelayCommand(AddCustomer);
+            UpdateCustomerCommand = new RelayCommand(UpdateCustomer, () => SelectedCustomer != null);
+            DeleteCustomerCommand = new RelayCommand(DeleteCustomer, () => SelectedCustomer != null);
+
+            // Rental commands
+            LoadActiveRentalsCommand = new RelayCommand(LoadActiveRentals);
+            LoadOverdueRentalsCommand = new RelayCommand(LoadOverdueRentals);
+            ReturnToolCommand = new RelayCommand(ReturnSelectedRental, () => SelectedRental != null);
+            ExtendRentalCommand = new RelayCommand(ExtendSelectedRental, () => SelectedRental != null);
+
+            // initial load
             LoadTools();
             LoadCheckedOutTools();
             LoadUsers();
             LoadCurrentUser();
+            LoadCustomers();
+            LoadActiveRentals();
+            LoadOverdueRentals();
         }
 
-        public void LoadUsers()
-        {
-            Users.Clear();
-            foreach (var u in _userService.GetAllUsers())
-                Users.Add(u);
-            SelectedUser = null;
-            OnPropertyChanged(nameof(IsLastAdmin));
-        }
-
-        public void LoadCurrentUser()
-        {
-            if (Application.Current.Properties["CurrentUser"] is User curr)
-            {
-                CurrentUserName = curr.UserName;
-                CurrentUserPhoto = File.Exists(curr.UserPhotoPath)
-                    ? new BitmapImage(new Uri(curr.UserPhotoPath, UriKind.Absolute))
-                    : new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultUserPhoto.png", UriKind.Absolute));
-            }
-        }
-
+        // Tool methods
         private void LoadTools()
         {
             Tools.Clear();
@@ -188,19 +233,35 @@ namespace ToolManagementAppV2.ViewModels
 
         private void UpdateTool()
         {
-            if (SelectedTool != null)
-            {
-                _toolService.UpdateTool(SelectedTool);
-                LoadTools();
-            }
+            if (SelectedTool == null) return;
+            _toolService.UpdateTool(SelectedTool);
+            LoadTools();
         }
 
         private void DeleteTool()
         {
-            if (SelectedTool != null)
+            if (SelectedTool == null) return;
+            _toolService.DeleteTool(SelectedTool.ToolID);
+            LoadTools();
+        }
+
+        // User methods
+        public void LoadUsers()
+        {
+            Users.Clear();
+            foreach (var u in _userService.GetAllUsers())
+                Users.Add(u);
+            SelectedUser = null;
+        }
+
+        private void LoadCurrentUser()
+        {
+            if (Application.Current.Properties["CurrentUser"] is User curr)
             {
-                _toolService.DeleteTool(SelectedTool.ToolID);
-                LoadTools();
+                CurrentUserName = curr.UserName;
+                CurrentUserPhoto = File.Exists(curr.UserPhotoPath)
+                    ? new BitmapImage(new Uri(curr.UserPhotoPath, UriKind.Absolute))
+                    : new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultUserPhoto.png", UriKind.Absolute));
             }
         }
 
@@ -246,6 +307,75 @@ namespace ToolManagementAppV2.ViewModels
             }
 
             LoadUsers();
+        }
+
+        // Customer methods
+        private void LoadCustomers()
+        {
+            Customers.Clear();
+            foreach (var c in _customerService.GetAllCustomers())
+                Customers.Add(c);
+            SelectedCustomer = null;
+        }
+
+        private void AddCustomer()
+        {
+            var c = new Customer
+            {
+                Name = NewCustomerName,
+                Email = NewCustomerEmail,
+                Contact = NewCustomerContact,
+                Phone = NewCustomerPhone,
+                Address = NewCustomerAddress
+            };
+            _customerService.AddCustomer(c);
+            LoadCustomers();
+        }
+
+        private void UpdateCustomer()
+        {
+            if (SelectedCustomer == null) return;
+            _customerService.UpdateCustomer(SelectedCustomer);
+            LoadCustomers();
+        }
+
+        private void DeleteCustomer()
+        {
+            if (SelectedCustomer == null) return;
+            _customerService.DeleteCustomer(SelectedCustomer.CustomerID);
+            LoadCustomers();
+        }
+
+        // Rental methods
+        private void LoadActiveRentals()
+        {
+            ActiveRentals.Clear();
+            foreach (var r in _rentalService.GetActiveRentals())
+                ActiveRentals.Add(r);
+            SelectedRental = null;
+        }
+
+        private void LoadOverdueRentals()
+        {
+            OverdueRentals.Clear();
+            foreach (var r in _rentalService.GetOverdueRentals())
+                OverdueRentals.Add(r);
+        }
+
+        private void ReturnSelectedRental()
+        {
+            if (SelectedRental == null) return;
+            _rentalService.ReturnTool(SelectedRental.RentalID, DateTime.Now);
+            LoadActiveRentals();
+            LoadOverdueRentals();
+        }
+
+        private void ExtendSelectedRental()
+        {
+            if (SelectedRental == null) return;
+            _rentalService.ExtendRental(SelectedRental.RentalID, NewDueDate);
+            LoadActiveRentals();
+            LoadOverdueRentals();
         }
     }
 }

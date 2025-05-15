@@ -51,7 +51,10 @@ using System.Windows;
 
 File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\LoginWindow.xaml.cs
 --------------------------------------------------
+using System;
+using System.IO;
 using System.Windows;
+using System.Windows.Media.Imaging;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Services;
 
@@ -60,11 +63,21 @@ namespace ToolManagementAppV2
     public partial class LoginWindow : Window
     {
         private readonly UserService _userService;
+
         public LoginWindow()
         {
             InitializeComponent();
+
             var dbPath = "tool_inventory.db";
             var databaseService = new DatabaseService(dbPath);
+            var settingsService = new SettingsService(databaseService);
+
+            var logoPath = settingsService.GetSetting("CompanyLogoPath");
+            var logoUri = !string.IsNullOrEmpty(logoPath) && File.Exists(logoPath)
+                ? new Uri(logoPath, UriKind.Absolute)
+                : new Uri("pack://application:,,,/Resources/DefaultLogo.png", UriKind.Absolute);
+            LoginLogo.Source = new BitmapImage(logoUri);
+
             _userService = new UserService(databaseService);
             LoadUsers();
         }
@@ -74,8 +87,9 @@ namespace ToolManagementAppV2
             var users = _userService.GetAllUsers();
             if (users.Count == 0)
             {
-                MessageBox.Show("No users exist. A default admin account will be created (username: admin, password: admin).",
-                                "Setup", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+                    "No users exist. A default admin account will be created (username: admin, password: admin).",
+                    "Setup", MessageBoxButton.OK, MessageBoxImage.Information);
                 var defaultUser = new User
                 {
                     UserName = "admin",
@@ -156,6 +170,7 @@ using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -548,45 +563,8 @@ namespace ToolManagementAppV2
 
         private void UploadUserPhotoButton_Click(object sender, RoutedEventArgs e)
         {
-            var openFileDialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg"
-            };
-            if (openFileDialog.ShowDialog() == true)
-            {
-                if (DataContext is MainViewModel vm && vm.SelectedUser != null)
-                {
-                    try
-                    {
-                        int selId = vm.SelectedUser.UserID;
-                        string selectedPhotoPath = openFileDialog.FileName;
-                        string userPhotosFolder = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UserPhotos");
-                        if (!System.IO.Directory.Exists(userPhotosFolder))
-                            System.IO.Directory.CreateDirectory(userPhotosFolder);
-                        string newFileName = $"{Guid.NewGuid()}{System.IO.Path.GetExtension(selectedPhotoPath)}";
-                        string destinationPath = System.IO.Path.Combine(userPhotosFolder, newFileName);
-                        System.IO.File.Copy(selectedPhotoPath, destinationPath, true);
-
-                        vm.SelectedUser.UserPhotoPath = destinationPath;
-                        vm.SelectedUser.PhotoBitmap = new BitmapImage(new Uri(destinationPath, UriKind.Absolute));
-                        _userService.UpdateUser(vm.SelectedUser);
-
-                        // If current user is being updated, update the global property as well.
-                        var currentUser = App.Current.Properties["CurrentUser"] as User;
-                        if (currentUser != null && currentUser.UserID == vm.SelectedUser.UserID)
-                        {
-                            App.Current.Properties["CurrentUser"] = vm.SelectedUser;
-                            vm.LoadCurrentUser();
-                        }
-                        vm.LoadUsers();
-                        vm.SelectedUser = vm.Users.FirstOrDefault(u => u.UserID == selId);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error updating photo: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                }
-            }
+            if (DataContext is MainViewModel vm && vm.SelectedUser != null)
+                UploadPhotoForUser(vm.SelectedUser);
         }
 
         private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
@@ -1000,19 +978,98 @@ namespace ToolManagementAppV2
 
         #endregion
 
-        #region Missing Event Handlers
+        private void UploadPhotoForUser(User user)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg"
+            };
+            if (dlg.ShowDialog() != true) return;
+
+            var src = dlg.FileName;
+            var photosFolder = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UserPhotos");
+            System.IO.Directory.CreateDirectory(photosFolder);
+            var dest = System.IO.Path.Combine(photosFolder, $"{Guid.NewGuid()}{System.IO.Path.GetExtension(src)}");
+            System.IO.File.Copy(src, dest, true);
+
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.UriSource = new Uri(dest, UriKind.Absolute);
+            bitmap.EndInit();
+
+            user.UserPhotoPath = dest;
+            user.PhotoBitmap = bitmap;
+            _userService.UpdateUser(user);
+
+            if (App.Current.Properties["CurrentUser"] is User curr && curr.UserID == user.UserID)
+            {
+                curr.UserPhotoPath = dest;
+                curr.PhotoBitmap = bitmap;
+                if (DataContext is MainViewModel vm)
+                    vm.CurrentUserPhoto = bitmap;
+            }
+        }
+
+       
+
         private void ChooseUserProfilePicButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Change profile picture functionality not implemented.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (App.Current.Properties["CurrentUser"] is User curr)
+                UploadPhotoForUser(curr);
         }
 
-        
+
         private void PrintSearchResults_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Print search results functionality not implemented.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            var items = SearchResultsList.ItemsSource?.Cast<object>().ToList();
+            if (items == null || items.Count == 0)
+            {
+                MessageBox.Show("No search results to print.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            var doc = new FlowDocument { PagePadding = new Thickness(20) };
+            var table = new Table { CellSpacing = 0 };
+            doc.Blocks.Add(table);
+
+            if (SearchResultsList.View is GridView gv)
+            {
+                foreach (var _ in gv.Columns)
+                    table.Columns.Add(new TableColumn());
+
+                var rg = new TableRowGroup();
+                table.RowGroups.Add(rg);
+
+                var headerRow = new TableRow();
+                rg.Rows.Add(headerRow);
+                foreach (var col in gv.Columns)
+                {
+                    headerRow.Cells.Add(new TableCell(new Paragraph(new Run(col.Header?.ToString() ?? "")))
+                    { FontWeight = FontWeights.Bold, Padding = new Thickness(4) });
+                }
+
+                foreach (var item in items)
+                {
+                    var row = new TableRow();
+                    rg.Rows.Add(row);
+                    foreach (var col in gv.Columns.OfType<GridViewColumn>())
+                    {
+                        string text = "";
+                        if (col.DisplayMemberBinding is Binding bnd)
+                        {
+                            var prop = item.GetType().GetProperty(bnd.Path.Path);
+                            text = prop?.GetValue(item)?.ToString() ?? "";
+                        }
+                        row.Cells.Add(new TableCell(new Paragraph(new Run(text))) { Padding = new Thickness(4) });
+                    }
+                }
+
+                var pd = new PrintDialog();
+                if (pd.ShowDialog() == true)
+                    pd.PrintDocument(((IDocumentPaginatorSource)doc).DocumentPaginator, "Search Results");
+            }
         }
 
-        #endregion
     }
 }
 
@@ -2971,8 +3028,10 @@ File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolMan
 // File: ViewModels/MainViewModel.cs
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -2988,7 +3047,38 @@ namespace ToolManagementAppV2.ViewModels
         private readonly UserService _userService;
         private readonly SettingsService _settingsService;
 
-        // Properties for Current User
+        public ICommand SearchCommand { get; }
+        public ICommand AddToolCommand { get; }
+        public ICommand UpdateToolCommand { get; }
+        public ICommand DeleteToolCommand { get; }
+        public ICommand LoadUsersCommand { get; }
+
+        public ICommand ChooseProfilePicCommand { get; }
+        public ICommand UploadUserPhotoCommand { get; }
+
+        public ObservableCollection<Tool> Tools { get; } = new();
+        public ObservableCollection<Tool> SearchResults { get; } = new();
+        public ObservableCollection<Tool> CheckedOutTools { get; } = new();
+        public ObservableCollection<User> Users { get; } = new();
+
+        private Tool _selectedTool;
+        public Tool SelectedTool
+        {
+            get => _selectedTool;
+            set => SetProperty(ref _selectedTool, value);
+        }
+
+        private User _selectedUser;
+        public User SelectedUser
+        {
+            get => _selectedUser;
+            set
+            {
+                SetProperty(ref _selectedUser, value);
+                OnPropertyChanged(nameof(IsLastAdmin));
+            }
+        }
+
         private string _currentUserName;
         public string CurrentUserName
         {
@@ -3003,51 +3093,6 @@ namespace ToolManagementAppV2.ViewModels
             set => SetProperty(ref _currentUserPhoto, value);
         }
 
-        // Observable Collections
-        public ObservableCollection<Tool> Tools { get; } = new();
-        public ObservableCollection<Tool> SearchResults { get; } = new();
-        public ObservableCollection<Tool> CheckedOutTools { get; } = new();
-        public ObservableCollection<User> Users { get; } = new ObservableCollection<User>();
-
-        // Selected items (for master/detail)
-        public Tool SelectedTool { get; set; }
-
-        private User _selectedUser;
-        public User SelectedUser
-        {
-            get => _selectedUser;
-            set
-            {
-                SetProperty(ref _selectedUser, value);
-                OnPropertyChanged(nameof(IsLastAdmin));
-            }
-        }
-
-        // New properties for password change
-        private string _newPassword;
-        public string NewPassword
-        {
-            get => _newPassword;
-            set => SetProperty(ref _newPassword, value);
-        }
-        private string _confirmPassword;
-        public string ConfirmPassword
-        {
-            get => _confirmPassword;
-            set => SetProperty(ref _confirmPassword, value);
-        }
-
-        // Tool Management
-        public string SearchTerm { get; set; }
-
-        // Commands (omitted for brevity)
-        public ICommand SearchCommand { get; }
-        public ICommand AddToolCommand { get; }
-        public ICommand UpdateToolCommand { get; }
-        public ICommand DeleteToolCommand { get; }
-        public ICommand LoadUsersCommand { get; }
-
-        // Header Logo property
         private BitmapImage _headerLogo;
         public BitmapImage HeaderLogo
         {
@@ -3055,43 +3100,64 @@ namespace ToolManagementAppV2.ViewModels
             {
                 if (_headerLogo == null)
                 {
-                    string logoPath = _settingsService.GetSetting("CompanyLogoPath");
-                    if (string.IsNullOrEmpty(logoPath) || !System.IO.File.Exists(logoPath))
-                    {
-                        _headerLogo = new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultLogo.png", UriKind.Absolute));
-                    }
-                    else
-                    {
-                        _headerLogo = new BitmapImage(new Uri(logoPath, UriKind.Absolute));
-                    }
+                    var path = _settingsService.GetSetting("CompanyLogoPath");
+                    _headerLogo = new BitmapImage(new Uri(
+                        string.IsNullOrEmpty(path) || !File.Exists(path)
+                            ? "pack://application:,,,/Resources/DefaultLogo.png"
+                            : path,
+                        UriKind.Absolute));
                 }
                 return _headerLogo;
             }
             set => SetProperty(ref _headerLogo, value);
         }
 
-        public bool IsLastAdmin
+        // password/change properties
+        private string _userPassword;
+        public string UserPassword
         {
-            get
-            {
-                if (SelectedUser == null)
-                    return false;
-                if (!SelectedUser.IsAdmin)
-                    return false;
-                return Users.Count(u => u.IsAdmin) == 1;
-            }
+            get => _userPassword;
+            set => SetProperty(ref _userPassword, value);
         }
 
-        public MainViewModel(ToolService toolService, UserService userService, SettingsService settingsService)
+        private string _newPassword;
+        public string NewPassword
+        {
+            get => _newPassword;
+            set => SetProperty(ref _newPassword, value);
+        }
+
+        private string _confirmPassword;
+        public string ConfirmPassword
+        {
+            get => _confirmPassword;
+            set => SetProperty(ref _confirmPassword, value);
+        }
+
+        public string SearchTerm { get; set; }
+
+        public bool IsLastAdmin =>
+            SelectedUser != null &&
+            SelectedUser.IsAdmin &&
+            Users.Count(u => u.IsAdmin) == 1;
+
+        public MainViewModel(
+            ToolService toolService,
+            UserService userService,
+            SettingsService settingsService)
         {
             _toolService = toolService;
             _userService = userService;
             _settingsService = settingsService;
+
             SearchCommand = new RelayCommand(SearchTools);
             AddToolCommand = new RelayCommand(AddTool);
             UpdateToolCommand = new RelayCommand(UpdateTool);
             DeleteToolCommand = new RelayCommand(DeleteTool);
             LoadUsersCommand = new RelayCommand(LoadUsers);
+
+            ChooseProfilePicCommand = new RelayCommand(ChooseProfilePic);
+            UploadUserPhotoCommand = new RelayCommand(UploadSelectedUserPhoto);
 
             LoadTools();
             LoadCheckedOutTools();
@@ -3099,35 +3165,51 @@ namespace ToolManagementAppV2.ViewModels
             LoadCurrentUser();
         }
 
+        public void LoadUsers()
+        {
+            Users.Clear();
+            foreach (var u in _userService.GetAllUsers())
+                Users.Add(u);
+            SelectedUser = null;
+            OnPropertyChanged(nameof(IsLastAdmin));
+        }
+
+        public void LoadCurrentUser()
+        {
+            if (Application.Current.Properties["CurrentUser"] is User curr)
+            {
+                CurrentUserName = curr.UserName;
+                CurrentUserPhoto = File.Exists(curr.UserPhotoPath)
+                    ? new BitmapImage(new Uri(curr.UserPhotoPath, UriKind.Absolute))
+                    : new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultUserPhoto.png", UriKind.Absolute));
+            }
+        }
+
         private void LoadTools()
         {
             Tools.Clear();
-            var allTools = _toolService.GetAllTools();
-            foreach (var tool in allTools)
-                Tools.Add(tool);
+            foreach (var t in _toolService.GetAllTools())
+                Tools.Add(t);
         }
 
         private void LoadCheckedOutTools()
         {
             CheckedOutTools.Clear();
-            var allTools = _toolService.GetAllTools();
-            var checkedOut = allTools.Where(t => t.IsCheckedOut);
-            foreach (var tool in checkedOut)
-                CheckedOutTools.Add(tool);
+            foreach (var t in _toolService.GetAllTools().Where(t => t.IsCheckedOut))
+                CheckedOutTools.Add(t);
         }
 
         private void SearchTools()
         {
             SearchResults.Clear();
-            var results = _toolService.SearchTools(SearchTerm);
-            foreach (var tool in results)
-                SearchResults.Add(tool);
+            foreach (var t in _toolService.SearchTools(SearchTerm))
+                SearchResults.Add(t);
         }
 
         private void AddTool()
         {
-            var newTool = new Tool { ToolID = "NewID", Description = "New Description" };
-            _toolService.AddTool(newTool);
+            var nt = new Tool { ToolID = "NewID", Description = "New Description" };
+            _toolService.AddTool(nt);
             LoadTools();
         }
 
@@ -3149,66 +3231,48 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        public void LoadUsers()
+        private void ChooseProfilePic()
         {
-            Users.Clear();
-            var usersList = _userService.GetAllUsers();
-            foreach (var user in usersList)
+            if (Application.Current.Properties["CurrentUser"] is User cu)
+                UploadPhotoForUser(cu);
+        }
+
+        private void UploadSelectedUserPhoto()
+        {
+            if (SelectedUser != null)
+                UploadPhotoForUser(SelectedUser);
+        }
+
+        private void UploadPhotoForUser(User u)
+        {
+            var dlg = new OpenFileDialog { Filter = "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg" };
+            if (dlg.ShowDialog() != true) return;
+
+            var src = dlg.FileName;
+            var folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UserPhotos");
+            Directory.CreateDirectory(folder);
+            var dest = Path.Combine(folder, $"{Guid.NewGuid()}{Path.GetExtension(src)}");
+            File.Copy(src, dest, true);
+
+            var bmp = new BitmapImage();
+            bmp.BeginInit();
+            bmp.CacheOption = BitmapCacheOption.OnLoad;
+            bmp.UriSource = new Uri(dest, UriKind.Absolute);
+            bmp.EndInit();
+
+            u.UserPhotoPath = dest;
+            u.PhotoBitmap = bmp;
+            _userService.UpdateUser(u);
+
+            if (Application.Current.Properties["CurrentUser"] is User cu && cu.UserID == u.UserID)
             {
-                if (!string.IsNullOrEmpty(user.UserPhotoPath) && System.IO.File.Exists(user.UserPhotoPath))
-                {
-                    user.PhotoBitmap = new BitmapImage(new Uri(user.UserPhotoPath, UriKind.Absolute))
-                    {
-                        CacheOption = BitmapCacheOption.OnLoad
-                    };
-                }
-                Users.Add(user);
+                cu.UserPhotoPath = dest;
+                cu.PhotoBitmap = bmp;
+                CurrentUserPhoto = bmp;
+                CurrentUserName = cu.UserName;
             }
-            // Do not auto-select a user; user details remain empty until one is selected.
-            SelectedUser = null;
-            OnPropertyChanged(nameof(Users));
-            OnPropertyChanged(nameof(SelectedUser));
-            OnPropertyChanged(nameof(IsLastAdmin));
-        }
 
-        public void LoadCurrentUser()
-        {
-            if (Application.Current.Properties.Contains("CurrentUser"))
-            {
-                var currentUser = Application.Current.Properties["CurrentUser"] as User;
-                if (currentUser != null)
-                {
-                    CurrentUserName = currentUser.UserName;
-                    CurrentUserPhoto = LoadPhotoBitmap(currentUser.UserPhotoPath);
-                    return;
-                }
-            }
-            CurrentUserName = "Guest";
-            CurrentUserPhoto = LoadPhotoBitmap(null);
-        }
-
-        private BitmapImage LoadPhotoBitmap(string photoPath)
-        {
-            if (string.IsNullOrEmpty(photoPath) || !System.IO.File.Exists(photoPath))
-            {
-                var defaultPhotoUri = new Uri("pack://application:,,,/Resources/DefaultUserPhoto.png", UriKind.Absolute);
-                return new BitmapImage(defaultPhotoUri) { CacheOption = BitmapCacheOption.OnLoad };
-            }
-            return new BitmapImage(new Uri(photoPath, UriKind.Absolute)) { CacheOption = BitmapCacheOption.OnLoad };
-        }
-
-        public void ClearUserInputFields()
-        {
-            SelectedUser = new User();
-            NewPassword = string.Empty;
-            ConfirmPassword = string.Empty;
-        }
-
-        private string _userPassword;
-        public string UserPassword
-        {
-            get => _userPassword;
-            set => SetProperty(ref _userPassword, value);
+            LoadUsers();
         }
     }
 }
@@ -3474,7 +3538,7 @@ namespace XamlGeneratedNamespace {
 
 File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\LoginWindow.g.cs
 --------------------------------------------------
-#pragma checksum "..\..\..\LoginWindow.xaml" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "221C6BD12A567C1382201D6EC602A821B41E91FB"
+#pragma checksum "..\..\..\LoginWindow.xaml" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "B30F5AC86F9E0B043FC1DE4AD3E9FD1BCDAC7332"
 //------------------------------------------------------------------------------
 // <auto-generated>
 //     This code was generated by a tool.
@@ -3518,7 +3582,7 @@ namespace ToolManagementAppV2 {
     public partial class LoginWindow : System.Windows.Window, System.Windows.Markup.IComponentConnector, System.Windows.Markup.IStyleConnector {
         
         
-        #line 13 "..\..\..\LoginWindow.xaml"
+        #line 16 "..\..\..\LoginWindow.xaml"
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields")]
         internal System.Windows.Controls.Image LoginLogo;
         
@@ -3526,7 +3590,7 @@ namespace ToolManagementAppV2 {
         #line hidden
         
         
-        #line 19 "..\..\..\LoginWindow.xaml"
+        #line 24 "..\..\..\LoginWindow.xaml"
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields")]
         internal System.Windows.Controls.ListBox UsersListBox;
         
@@ -3584,7 +3648,7 @@ namespace ToolManagementAppV2 {
             {
             case 3:
             
-            #line 28 "..\..\..\LoginWindow.xaml"
+            #line 33 "..\..\..\LoginWindow.xaml"
             ((System.Windows.Controls.Button)(target)).Click += new System.Windows.RoutedEventHandler(this.UserButton_Click);
             
             #line default
@@ -3599,8 +3663,7 @@ namespace ToolManagementAppV2 {
 
 File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\LoginWindow.g.i.cs
 --------------------------------------------------
-// Updated by XamlIntelliSenseFileGenerator 13/05/2025 11:29:29 am
-#pragma checksum "..\..\..\LoginWindow.xaml" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "221C6BD12A567C1382201D6EC602A821B41E91FB"
+#pragma checksum "..\..\..\LoginWindow.xaml" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "B30F5AC86F9E0B043FC1DE4AD3E9FD1BCDAC7332"
 //------------------------------------------------------------------------------
 // <auto-generated>
 //     This code was generated by a tool.
@@ -3635,88 +3698,87 @@ using System.Windows.Shell;
 using ToolManagementAppV2.Utilities;
 
 
-namespace ToolManagementAppV2
-{
-
-
+namespace ToolManagementAppV2 {
+    
+    
     /// <summary>
     /// LoginWindow
     /// </summary>
-    public partial class LoginWindow : System.Windows.Window, System.Windows.Markup.IComponentConnector, System.Windows.Markup.IStyleConnector
-    {
-
-#line default
-#line hidden
-
-
-#line 19 "..\..\..\LoginWindow.xaml"
+    public partial class LoginWindow : System.Windows.Window, System.Windows.Markup.IComponentConnector, System.Windows.Markup.IStyleConnector {
+        
+        
+        #line 16 "..\..\..\LoginWindow.xaml"
+        [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields")]
+        internal System.Windows.Controls.Image LoginLogo;
+        
+        #line default
+        #line hidden
+        
+        
+        #line 24 "..\..\..\LoginWindow.xaml"
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields")]
         internal System.Windows.Controls.ListBox UsersListBox;
-
-#line default
-#line hidden
-
+        
+        #line default
+        #line hidden
+        
         private bool _contentLoaded;
-
+        
         /// <summary>
         /// InitializeComponent
         /// </summary>
         [System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("PresentationBuildTasks", "9.0.0.0")]
-        public void InitializeComponent()
-        {
-            if (_contentLoaded)
-            {
+        public void InitializeComponent() {
+            if (_contentLoaded) {
                 return;
             }
             _contentLoaded = true;
             System.Uri resourceLocater = new System.Uri("/ToolManagementAppV2;component/loginwindow.xaml", System.UriKind.Relative);
-
-#line 1 "..\..\..\LoginWindow.xaml"
+            
+            #line 1 "..\..\..\LoginWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
-
-#line default
-#line hidden
+            
+            #line default
+            #line hidden
         }
-
+        
         [System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("PresentationBuildTasks", "9.0.0.0")]
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes")]
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
-        void System.Windows.Markup.IComponentConnector.Connect(int connectionId, object target)
-        {
+        void System.Windows.Markup.IComponentConnector.Connect(int connectionId, object target) {
             switch (connectionId)
             {
-                case 1:
-                    this.LoginLogo = ((System.Windows.Controls.Image)(target));
-                    return;
-                case 2:
-                    this.UsersListBox = ((System.Windows.Controls.ListBox)(target));
-                    return;
+            case 1:
+            this.LoginLogo = ((System.Windows.Controls.Image)(target));
+            return;
+            case 2:
+            this.UsersListBox = ((System.Windows.Controls.ListBox)(target));
+            return;
             }
             this._contentLoaded = true;
         }
-
+        
         [System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [System.CodeDom.Compiler.GeneratedCodeAttribute("PresentationBuildTasks", "9.0.0.0")]
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes")]
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
-        void System.Windows.Markup.IStyleConnector.Connect(int connectionId, object target)
-        {
+        void System.Windows.Markup.IStyleConnector.Connect(int connectionId, object target) {
             switch (connectionId)
             {
-                case 3:
-
-#line 28 "..\..\..\LoginWindow.xaml"
-                    ((System.Windows.Controls.Button)(target)).Click += new System.Windows.RoutedEventHandler(this.UserButton_Click);
-
-#line default
-#line hidden
-                    break;
+            case 3:
+            
+            #line 33 "..\..\..\LoginWindow.xaml"
+            ((System.Windows.Controls.Button)(target)).Click += new System.Windows.RoutedEventHandler(this.UserButton_Click);
+            
+            #line default
+            #line hidden
+            break;
             }
         }
     }
@@ -5562,7 +5624,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ToolManagementAppV2")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fa005206e196457a896445bd8b2e9d9bf291b8c4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0a0a6785e86aaa603e316dc6b679e3394dc066b5")]
 [assembly: System.Reflection.AssemblyProductAttribute("ToolManagementAppV2")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ToolManagementAppV2")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
@@ -5574,6 +5636,45 @@ using System.Reflection;
 
 
 File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2.GlobalUsings.g.cs
+--------------------------------------------------
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.Linq;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+
+File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2_5o1z03uf_wpftmp.AssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fd26502bba73449c61fca87693bb0daa612b13ba")]
+[assembly: System.Reflection.AssemblyProductAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyTitleAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+[assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows7.0")]
+[assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Windows7.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+
+File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2_5o1z03uf_wpftmp.GlobalUsings.g.cs
 --------------------------------------------------
 // <auto-generated/>
 global using global::System;
@@ -5661,6 +5762,84 @@ global using global::System.Threading;
 global using global::System.Threading.Tasks;
 
 
+File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2_kc53nwzk_wpftmp.AssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fd26502bba73449c61fca87693bb0daa612b13ba")]
+[assembly: System.Reflection.AssemblyProductAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyTitleAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+[assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows7.0")]
+[assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Windows7.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+
+File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2_kc53nwzk_wpftmp.GlobalUsings.g.cs
+--------------------------------------------------
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.Linq;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+
+File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2_oecnze4o_wpftmp.AssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0a0a6785e86aaa603e316dc6b679e3394dc066b5")]
+[assembly: System.Reflection.AssemblyProductAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyTitleAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+[assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows7.0")]
+[assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Windows7.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+
+File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2_oecnze4o_wpftmp.GlobalUsings.g.cs
+--------------------------------------------------
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.Linq;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+
 File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2_q3lzx1tq_wpftmp.AssemblyInfo.cs
 --------------------------------------------------
 //------------------------------------------------------------------------------
@@ -5700,6 +5879,240 @@ global using global::System.Threading;
 global using global::System.Threading.Tasks;
 
 
+File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2_qkmgk4t2_wpftmp.AssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0a0a6785e86aaa603e316dc6b679e3394dc066b5")]
+[assembly: System.Reflection.AssemblyProductAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyTitleAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+[assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows7.0")]
+[assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Windows7.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+
+File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2_qkmgk4t2_wpftmp.GlobalUsings.g.cs
+--------------------------------------------------
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.Linq;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+
+File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2_r3ja22ne_wpftmp.AssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fd26502bba73449c61fca87693bb0daa612b13ba")]
+[assembly: System.Reflection.AssemblyProductAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyTitleAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+[assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows7.0")]
+[assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Windows7.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+
+File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2_r3ja22ne_wpftmp.GlobalUsings.g.cs
+--------------------------------------------------
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.Linq;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+
+File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2_rdhodd20_wpftmp.AssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fd26502bba73449c61fca87693bb0daa612b13ba")]
+[assembly: System.Reflection.AssemblyProductAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyTitleAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+[assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows7.0")]
+[assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Windows7.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+
+File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2_rdhodd20_wpftmp.GlobalUsings.g.cs
+--------------------------------------------------
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.Linq;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+
+File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2_roszi4tm_wpftmp.AssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fd26502bba73449c61fca87693bb0daa612b13ba")]
+[assembly: System.Reflection.AssemblyProductAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyTitleAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+[assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows7.0")]
+[assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Windows7.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+
+File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2_roszi4tm_wpftmp.GlobalUsings.g.cs
+--------------------------------------------------
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.Linq;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+
+File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2_tqka2cty_wpftmp.AssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fd26502bba73449c61fca87693bb0daa612b13ba")]
+[assembly: System.Reflection.AssemblyProductAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyTitleAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+[assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows7.0")]
+[assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Windows7.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+
+File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2_tqka2cty_wpftmp.GlobalUsings.g.cs
+--------------------------------------------------
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.Linq;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+
+File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2_xztygcyt_wpftmp.AssemblyInfo.cs
+--------------------------------------------------
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fd26502bba73449c61fca87693bb0daa612b13ba")]
+[assembly: System.Reflection.AssemblyProductAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyTitleAttribute("ToolManagementAppV2")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+[assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows7.0")]
+[assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Windows7.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+
+File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\ToolManagementAppV2_xztygcyt_wpftmp.GlobalUsings.g.cs
+--------------------------------------------------
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.Linq;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+
 File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\App.xaml
 --------------------------------------------------
 <Application x:Class="ToolManagementAppV2.App"
@@ -5716,7 +6129,8 @@ File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolMan
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:ToolManagementAppV2.Utilities"
-        Title="Tool Inventory Management - Login" Height="500" Width="600" WindowStartupLocation="CenterScreen" Background="White">
+        Title="Tool Inventory Management - Login"
+        Height="500" Width="600" WindowStartupLocation="CenterScreen" Background="White">
     <Window.Resources>
         <local:NullToDefaultImageConverter x:Key="NullToDefaultImageConverter"/>
         <local:BooleanToAdminConverter x:Key="BooleanToAdminConverter"/>
@@ -5725,8 +6139,8 @@ File: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolMan
         <!-- Header -->
         <Border DockPanel.Dock="Top" Background="#DDD" Padding="10">
             <DockPanel>
-                <!-- Logo via pack URI -->
-                <Image Source="pack://application:,,,/Resources/DefaultLogo.png" Width="50" Height="50" />
+                <!-- bind to LoginLogo set in code-behind -->
+                <Image x:Name="LoginLogo" Width="50" Height="50" />
                 <TextBlock Text="Tool Inventory Management" FontWeight="Bold" FontSize="20" Margin="10" VerticalAlignment="Center"/>
             </DockPanel>
         </Border>

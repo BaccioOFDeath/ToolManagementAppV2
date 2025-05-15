@@ -220,41 +220,40 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
   Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\MainViewModel.cs
     Class: ObservableObject
       Visibility: public
+      Field: public Tool SelectedTool
+      Field: public User SelectedUser
       Field: public string CurrentUserName
       Field: public BitmapImage CurrentUserPhoto
-      Field: public User SelectedUser
+      Field: public BitmapImage HeaderLogo
+      Field: var path =
+      Field: public string UserPassword
       Field: public string NewPassword
       Field: public string ConfirmPassword
-      Field: public BitmapImage HeaderLogo
-      Field: string logoPath =
-      Field: public bool IsLastAdmin
-      Field: var allTools =
-      Field: var allTools =
-      Field: var checkedOut =
-      Field: var results =
-      Field: var newTool =
-      Field: var usersList =
-      Field: var currentUser =
-      Field: var defaultPhotoUri =
-      Field: public string UserPassword
-      Property: public Tool SelectedTool
-      Property: public string SearchTerm
+      Field: var nt =
+      Field: var dlg =
+      Field: var src =
+      Field: var folder =
+      Field: var dest =
+      Field: var bmp =
       Property: public ICommand SearchCommand
       Property: public ICommand AddToolCommand
       Property: public ICommand UpdateToolCommand
       Property: public ICommand DeleteToolCommand
       Property: public ICommand LoadUsersCommand
-      Method: private public MainViewModel(ToolService toolService, UserService userService, SettingsService settingsService)
+      Property: public ICommand ChooseProfilePicCommand
+      Property: public ICommand UploadUserPhotoCommand
+      Property: public string SearchTerm
+      Method: public void LoadUsers()
+      Method: public void LoadCurrentUser()
       Method: private void LoadTools()
       Method: private void LoadCheckedOutTools()
       Method: private void SearchTools()
       Method: private void AddTool()
       Method: private void UpdateTool()
       Method: private void DeleteTool()
-      Method: public void LoadUsers()
-      Method: public void LoadCurrentUser()
-      Method: private BitmapImage LoadPhotoBitmap(string photoPath)
-      Method: public void ClearUserInputFields()
+      Method: private void ChooseProfilePic()
+      Method: private void UploadSelectedUserPhoto()
+      Method: private void UploadPhotoForUser(User u)
 
 
 Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2
@@ -277,7 +276,7 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Attribute: Padding="10"
     XAML Element: DockPanel
     XAML Element: Image
-      Attribute: Source="pack://application:,,,/Resources/DefaultLogo.png"
+      Attribute: x:Name="LoginLogo"
       Attribute: Width="50"
       Attribute: Height="50"
     XAML Element: TextBlock

@@ -50,7 +50,13 @@ namespace ToolManagementAppV2
                 MessageBox.Show($"Error initializing data: {ex.Message}", "Initialization Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
-            DataContext = new MainViewModel(_toolService, _userService, _settingsService);
+            DataContext = new MainViewModel(
+                _toolService,
+                _userService,
+                _customerService,
+                _rentalService,
+                _settingsService
+            );
 
             // Restrict tabs if current user is not admin
             var currentUser = App.Current.Properties["CurrentUser"] as User;
