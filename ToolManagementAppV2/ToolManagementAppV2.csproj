@@ -9,6 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Views\NewFolder\**" />
+    <EmbeddedResource Remove="Views\NewFolder\**" />
+    <None Remove="Views\NewFolder\**" />
+    <Page Remove="Views\NewFolder\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Resources\DefaultLogo.png" />
     <None Remove="Resources\DefaultToolImage.png" />
     <None Remove="Resources\DefaultUserPhoto.png" />
@@ -16,7 +23,6 @@
 
   <ItemGroup>
     <Folder Include="Assets\" />
-    <Folder Include="Views\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Data.SQLite;
+using System.IO;
 using ToolManagementAppV2.Models;
 
 namespace ToolManagementAppV2.Services
@@ -12,6 +13,56 @@ namespace ToolManagementAppV2.Services
         {
             _dbService = dbService;
         }
+
+        public void ImportCustomersFromCsv(string filePath, IDictionary<string, string> map)
+        {
+            var lines = File.ReadAllLines(filePath);
+            if (lines.Length < 2) return;
+            var headers = lines[0].Split(',').Select(h => h.Trim()).ToArray();
+            var idx = map.ToDictionary(
+                kv => kv.Key,
+                kv => Array.IndexOf(headers, kv.Value.Trim()),
+                StringComparer.OrdinalIgnoreCase
+            );
+
+            foreach (var line in lines.Skip(1))
+            {
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                var cols = line.Split(',');
+                string get(string prop)
+                    => idx[prop] >= 0 && idx[prop] < cols.Length
+                        ? cols[idx[prop]].Trim()
+                        : "";
+
+                var c = new Customer
+                {
+                    Name = get("Name"),
+                    Email = get("Email"),
+                    Contact = get("Contact"),
+                    Phone = get("Phone"),
+                    Address = get("Address")
+                };
+                AddCustomer(c);
+            }
+        }
+
+        public void ExportCustomersToCsv(string filePath)
+        {
+            var all = GetAllCustomers();
+            using var writer = new StreamWriter(filePath);
+            writer.WriteLine("Name,Email,Contact,Phone,Address");
+            foreach (var c in all)
+            {
+                writer.WriteLine(string.Join(",",
+                    c.Name,
+                    c.Email,
+                    c.Contact,
+                    c.Phone,
+                    c.Address
+                ));
+            }
+        }
+
 
         public List<Customer> GetAllCustomers()
         {

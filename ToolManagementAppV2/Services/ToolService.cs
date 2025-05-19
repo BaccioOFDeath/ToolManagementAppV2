@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
 using System.Linq;
+using System.Text;
 using ToolManagementAppV2.Models;
 
 namespace ToolManagementAppV2.Services
@@ -81,17 +82,40 @@ namespace ToolManagementAppV2.Services
             return null;
         }
 
-        public List<Tool> SearchTools(string searchTerm)
+        public List<Tool> SearchTools(string searchText)
         {
             var tools = new List<Tool>();
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-            var query = @"
-                SELECT * FROM Tools
-                WHERE ToolID LIKE @s OR Name LIKE @s OR Description LIKE @s 
-                   OR Brand LIKE @s OR Location LIKE @s OR PartNumber LIKE @s";
-            using var cmd = new SQLiteCommand(query, connection);
-            cmd.Parameters.AddWithValue("@s", $"%{searchTerm}%");
+            var terms = searchText
+                .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            var sb = new StringBuilder("SELECT * FROM Tools");
+            if (terms.Length > 0)
+            {
+                sb.Append(" WHERE ");
+                for (int i = 0; i < terms.Length; i++)
+                {
+                    var p = $"@p{i}";
+                    sb.Append("(")
+                      .Append("ToolID LIKE ").Append(p)
+                      .Append(" OR Name LIKE ").Append(p)
+                      .Append(" OR Description LIKE ").Append(p)
+                      .Append(" OR Brand LIKE ").Append(p)
+                      .Append(" OR PartNumber LIKE ").Append(p)
+                      .Append(" OR Supplier LIKE ").Append(p)
+                      .Append(" OR Location LIKE ").Append(p)
+                      .Append(" OR Notes LIKE ").Append(p)
+                      .Append(")");
+                    if (i < terms.Length - 1)
+                        sb.Append(" AND ");
+                }
+            }
+
+            using var conn = new SQLiteConnection(_dbService.ConnectionString);
+            conn.Open();
+            using var cmd = new SQLiteCommand(sb.ToString(), conn);
+            for (int i = 0; i < terms.Length; i++)
+                cmd.Parameters.AddWithValue($"@p{i}", $"%{terms[i]}%");
+
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
@@ -114,9 +138,10 @@ namespace ToolManagementAppV2.Services
                     ToolImagePath = reader["ToolImagePath"]?.ToString()
                 });
             }
+
             return tools;
         }
-
+    
         public void AddTool(Tool tool)
         {
             using var connection = new SQLiteConnection(_dbService.ConnectionString);
@@ -331,6 +356,46 @@ namespace ToolManagementAppV2.Services
                     reader["IsCheckedOut"]
                 };
                 wr.WriteLine(string.Join(",", vals));
+            }
+        }
+
+        public void ImportToolsFromCsv(string filePath, IDictionary<string, string> map)
+        {
+            var lines = File.ReadAllLines(filePath);
+            if (lines.Length < 2) return;
+            var headers = lines[0].Split(',').Select(h => h.Trim()).ToArray();
+            var idx = map.ToDictionary(kv => kv.Key,
+                                      kv => System.Array.IndexOf(headers, kv.Value));
+
+            using var conn = new SQLiteConnection(_dbService.ConnectionString);
+            conn.Open();
+            foreach (var line in lines.Skip(1))
+            {
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                var cols = line.Split(',');
+
+                string get(string prop)
+                    => idx[prop] >= 0 && idx[prop] < cols.Length
+                        ? cols[idx[prop]].Trim()
+                        : "";
+
+                DateTime? pd = DateTime.TryParse(get("PurchasedDate"), out var d) ? d : (DateTime?)null;
+                int aq = int.TryParse(get("AvailableQuantity"), out var q) ? q : 0;
+
+                var tool = new Tool
+                {
+                    Name = get("Name"),
+                    Description = get("Description"),
+                    Location = get("Location"),
+                    Brand = get("Brand"),
+                    PartNumber = get("PartNumber"),
+                    Supplier = get("Supplier"),
+                    PurchasedDate = pd,
+                    Notes = get("Notes"),
+                    QuantityOnHand = aq
+                };
+
+                AddTool(tool);
             }
         }
     }

@@ -11,6 +11,9 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Services;
+using ToolManagementAppV2.Views;
+using Microsoft.Win32;
+using System.IO;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -117,6 +120,8 @@ namespace ToolManagementAppV2.ViewModels
         public ICommand SearchCommand { get; }
         public ICommand AddToolCommand { get; }
         public ICommand UpdateToolCommand { get; }
+        public ICommand ImportToolsCommand { get; }
+        public ICommand ExportToolsCommand { get; }
         public ICommand DeleteToolCommand { get; }
         public ICommand LoadUsersCommand { get; }
         public ICommand ChooseProfilePicCommand { get; }
@@ -125,6 +130,8 @@ namespace ToolManagementAppV2.ViewModels
         public ICommand LoadCustomersCommand { get; }
         public ICommand AddCustomerCommand { get; }
         public ICommand UpdateCustomerCommand { get; }
+        public ICommand ImportCustomersCommand { get; }
+        public ICommand ExportCustomersCommand { get; }
         public ICommand DeleteCustomerCommand { get; }
 
         public ICommand LoadActiveRentalsCommand { get; }
@@ -173,6 +180,8 @@ namespace ToolManagementAppV2.ViewModels
         SearchCommand = new RelayCommand(SearchTools);
             AddToolCommand = new RelayCommand(AddTool);
             UpdateToolCommand = new RelayCommand(UpdateTool);
+            ImportToolsCommand = new RelayCommand(ImportTools);
+            ExportToolsCommand = new RelayCommand(ExportTools);
             DeleteToolCommand = new RelayCommand(DeleteTool);
 
             // User commands
@@ -184,6 +193,9 @@ namespace ToolManagementAppV2.ViewModels
             LoadCustomersCommand = new RelayCommand(LoadCustomers);
             AddCustomerCommand = new RelayCommand(AddCustomer);
             UpdateCustomerCommand = new RelayCommand(UpdateCustomer, () => SelectedCustomer != null);
+            ImportToolsCommand = new RelayCommand(ImportTools);
+            ImportCustomersCommand = new RelayCommand(ImportCustomers);
+            ExportCustomersCommand = new RelayCommand(ExportCustomers);
             DeleteCustomerCommand = new RelayCommand(DeleteCustomer, () => SelectedCustomer != null);
 
             // Rental commands
@@ -220,8 +232,11 @@ namespace ToolManagementAppV2.ViewModels
         private void SearchTools()
         {
             SearchResults.Clear();
-            foreach (var t in _toolService.SearchTools(SearchTerm))
-                SearchResults.Add(t);
+            var results = string.IsNullOrWhiteSpace(SearchTerm)
+                ? _toolService.GetAllTools()
+                : _toolService.SearchTools(SearchTerm);
+            foreach (var tool in results)
+                SearchResults.Add(tool);
         }
 
         private void AddTool()
@@ -237,6 +252,71 @@ namespace ToolManagementAppV2.ViewModels
             _toolService.UpdateTool(SelectedTool);
             LoadTools();
         }
+
+        private void ImportTools()
+        {
+            var dlg = new OpenFileDialog { Filter = "CSV Files|*.csv" };
+            if (dlg.ShowDialog() != true) return;
+
+            var lines = File.ReadAllLines(dlg.FileName);
+            if (lines.Length < 2)
+            {
+                MessageBox.Show("CSV has no data rows.", "Import Tools", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var headers = lines[0].Split(',').Select(h => h.Trim());
+            var toolFields = new[] { "Name","Description","Location","Brand","PartNumber",
+                              "Supplier","PurchasedDate","Notes","AvailableQuantity" };
+            var mapWin = new ImportMappingWindow(headers, toolFields);
+            if (mapWin.ShowDialog() != true) return;
+
+            var map = mapWin.VM.Mappings.ToDictionary(m => m.PropertyName, m => m.SelectedColumn);
+            _toolService.ImportToolsFromCsv(dlg.FileName, map);
+            LoadTools();
+            MessageBox.Show($"{lines.Skip(1).Count()} tools imported successfully.", "Import Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+
+        private void ExportTools()
+        {
+            var dlg = new SaveFileDialog { Filter = "CSV Files|*.csv", FileName = "tools_export.csv" };
+            if (dlg.ShowDialog() != true) return;
+            _toolService.ExportToolsToCsv(dlg.FileName);
+            MessageBox.Show("Tools exported successfully.", "Export Tools", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void ImportCustomers()
+        {
+            var dlg = new OpenFileDialog { Filter = "CSV Files|*.csv" };
+            if (dlg.ShowDialog() != true) return;
+
+            var lines = File.ReadAllLines(dlg.FileName);
+            if (lines.Length < 2)
+            {
+                MessageBox.Show("CSV has no data rows.", "Import Customers", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var headers = lines[0].Split(',').Select(h => h.Trim());
+            var customerFields = new[] { "Name", "Email", "Contact", "Phone", "Address" };
+            var mapWin = new ImportMappingWindow(headers, customerFields);
+            if (mapWin.ShowDialog() != true) return;
+
+            var map = mapWin.VM.Mappings.ToDictionary(m => m.PropertyName, m => m.SelectedColumn);
+            _customerService.ImportCustomersFromCsv(dlg.FileName, map);
+            LoadCustomers();
+            MessageBox.Show($"{lines.Skip(1).Count()} customers imported successfully.", "Import Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void ExportCustomers()
+        {
+            var dlg = new SaveFileDialog { Filter = "CSV Files|*.csv", FileName = "customers_export.csv" };
+            if (dlg.ShowDialog() != true) return;
+            _customerService.ExportCustomersToCsv(dlg.FileName);
+            MessageBox.Show("Customers exported successfully.", "Export Customers", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
 
         private void DeleteTool()
         {
@@ -310,12 +390,11 @@ namespace ToolManagementAppV2.ViewModels
         }
 
         // Customer methods
-        private void LoadCustomers()
+        public void LoadCustomers()
         {
             Customers.Clear();
             foreach (var c in _customerService.GetAllCustomers())
                 Customers.Add(c);
-            SelectedCustomer = null;
         }
 
         private void AddCustomer()

@@ -344,17 +344,33 @@
                     </StackPanel>
                 </TabItem>
 
-                <!-- Import/Export Tab -->
+                <!-- In MainWindow.xaml, update Import/Export Tab to include Customers -->
                 <TabItem Header="Import/Export">
                     <StackPanel Margin="10">
-                        <TextBlock Text="Import Tools" FontWeight="Bold" FontSize="16" Margin="5" />
-                        <Button Content="Select CSV File" Click="SelectCsvFileButton_Click" Margin="5" />
-                        <TextBlock x:Name="SelectedCsvFile" Text="No file selected" Margin="5" />
-                        <Button Content="Import" Click="ImportCsvButton_Click" Margin="5" />
-                        <TextBlock Text="Export Tools" FontWeight="Bold" FontSize="16" Margin="5" />
-                        <Button Content="Export to CSV" Click="ExportCsvButton_Click" Margin="5" />
+                        <TextBlock Text="Import / Export" FontWeight="Bold" FontSize="16" Margin="5"/>
+
+                        <TextBlock Text="Tools" FontWeight="Bold" Margin="5,10,5,5"/>
+                        <WrapPanel>
+                            <Button Content="Import Tools"
+              Command="{Binding ImportToolsCommand}"
+              Width="150" Margin="5"/>
+                            <Button Content="Export Tools"
+              Command="{Binding ExportToolsCommand}"
+              Width="150" Margin="5"/>
+                        </WrapPanel>
+
+                        <TextBlock Text="Customers" FontWeight="Bold" Margin="5,20,5,5"/>
+                        <WrapPanel>
+                            <Button Content="Import Customers"
+              Command="{Binding ImportCustomersCommand}"
+              Width="150" Margin="5"/>
+                            <Button Content="Export Customers"
+              Command="{Binding ExportCustomersCommand}"
+              Width="150" Margin="5"/>
+                        </WrapPanel>
                     </StackPanel>
                 </TabItem>
+
 
                 <TabItem Header="Activity Logs">
                     <Grid>

@@ -1,0 +1,112 @@
+TOOL_NUMBER,PART_NUMBER,SUPPLIER,DESCRIPTION,BRAND,ONHAND,PURCHASE_DATE,LOCATION,OEM,KEYWORDS,HIRED_OUT
+?,?,?,Universial Transmission Dipstick,?,1,?,A6,,,FALSE
+?,?,?,Ear stethoscope,?,1,?,A6,,doctors listening noises noise listen hearing ,FALSE
+T1,B1021,T&E Tools,VANOS Camshaft Locking Plates,T&E Tools,1,?,C3,303-1017 / 116451 / 116450 / 116452 / 303 1017 / 3031017 / 116 451 / 116 450 / 116 452 DM11-B1021,M62 m60 4.4L,TRUE
+T10,ETN62N73,All Euro,BMW Timing Kit,Endeavour,1,?,D2,,N62 | N73 3.6L | 4.0L | 4.4L | 4.8L V8 engine V12,FALSE
+T11,CP101825,?,Engine Timing Tool,?,1,?,C2,,M40 M42 M50 M60 M62 M70 M62TU v8 bmw,FALSE
+T12,HCB-H1188,All Euro,Valve Spring Pliers,HCB,1,?,A5,114270,N20/N51/N52/N52K/N52T/N55 bmw remover installer install compressor INTERMEDIATE VALVETRONIC LEVER TOOL et1188h,FALSE
+T120,JTC-4915,All Euro,BMW Mini Timing Tool,JTC,1,?,B5,,n12 n14  BMW MINI COOPER 1.4 1.6 16V,TRUE
+T121,JTC-4281,All Euro,TIMING TOOL SET FOR BMW (N13 N18),JTC,1,?,C3,117440 / 119340/ 496709/ 119590,BMW N13 N18 engine dismantle and assemble intake and exhaust ,FALSE
+T122,304703,Repco,Toledo Timing Tool Kit - MINI ,TOLEDO,1,?,C4,,w10 w11 r50 r53,FALSE
+T123,AST5020,T&E Tools,Engine Timing Tool Set,AST,1,?,B4,,n12 n14 n16 r55 r60 r58 r56 r57 r61 r59,FALSE
+T13,H.C.B-A1605,All Euro,Fuel Injector Removal/Installer,HCB,1,?,D4,,N20/N47/N54/N55/N57/N63 bmw engine,FALSE
+T14,H.C.B-B1294,All Euro,Ball Joint Puller,HCB,1,?,D5,,BMW BALL JOINT PULLER (24 mm &27mm & 31 mm & 36mm) splitter split Cone splitting tool with four forks,FALSE
+T142,?,All Euro,Pneumatic Air Portable Pressure Brake,?,1,?,Oil Room,,fluid Clutch Bleeder Bleeding Kit Adaptors,FALSE
+T15,H.C.B-C1421,All Euro,DIESEL ENGINE TIMING TOOL,HCB,1,?,D4,,BMW (2.0 N47/ 3.0 N57),FALSE
+T150,FUELGAUGE,Repco,Fuel Gauge Assortments,?,1,?,C2,,FUEL,FALSE
+T151,H.C.B-A2150,Repco,Coolant Pressure Tester,HCB,3,?,D1,3 BOXES,UNIVERSAL RADIATOR PRESSURE TESTER KIT cooling system,FALSE
+T152,JTC-4647,Repco,Camshaft pulley Puller,JTC,1,?,C3,,Camshaft puller pulley wheel audi vw,FALSE
+T153,JTC-4776,All Euro,FLOW METER COMMON RAIL SET,JTC,1,?,E4,,Common Rail diesel injector bleed off tester test uni,FALSE
+T154,301939,Repco,Toledo Snap Ring Plier Set,TOLEDO,1,?,C5,,OTHER clamp circlip,FALSE
+T155,RRT1061G,Repco,Oil Drain Repair Set,Repco,1,?,D5,,ENGINE universial bmw mini audi vw skoda mercedes alloy sump,FALSE
+T156,?,Sulco,Clyinder Leakage Tester,T&E Tools,1,?,C3,,Leak compression engine,FALSE
+T157,4115,Sulco,Spring Compressor Tool - Universal,T&E Tools,1,?,C1,,ENGINE remove and install valve springs with the cylinder head,FALSE
+T158,7204,Sulco,Brake Pipe Double Flaring Tool ,T&E Tools,1,?,B4,,BRAKES,FALSE
+T159,?,Repco,Wheel Bearing Puller,?,1,?,C2,,WHEELS,FALSE
+T16,HCB-A1331,All Euro,Pulley Holder Tool,HCB,1,?,A4,,engine M60 / M62 V8 HOLD CRANKSHAFT AND REMOVE CENTRAL BOLT,FALSE
+T160,H.C.B-A1038,All Euro,Assorted Puller Tools,HCB,1,?,E3,,BMW (E30/E36/E46) BUSH EXTRACTOR/ INSTALLER,FALSE
+T161,?,?,Oil Pressure Tester,?,1,?,E5,,gauge,FALSE
+T163,RTT3500-46A,Repco,Radio Removal Tool Kit,Repco,1,?,B5,,OTHER vw audi bmw skoda mercedes ,FALSE
+T164,SFT001,Repco,Belt Fitting Tool,Gates,1,?,B3,,ENGINE Stretch Fit Belt pulley BMW,FALSE
+T165,ITC45,?,Laser Heat Gun,RayTek,1,?,B3,,?,FALSE
+T167,?,?,Random Puller Asortments,?,1,?,E3,,,FALSE
+T168,95-0003C,Repco,Smoke Tester Attachments,Smoke Pro,1,?,A6,,OTHER,FALSE
+T169,9596,Repco,Hole Saw Kit,Journeyman's,1,?,B1,,OTHER,FALSE
+T17,H.C.B-B1262,All Euro,Engine Timing Tool Set,HCB,1,?,E5,,BMW (M41/M51/M47TU/M47T2/M57TU/M57T2) DIESEL TIMING TOOL SET,FALSE
+T170,7059,Sulco,Mightyvac Vacuum tester,T&E Tools,1,?,E4,,vac gauge,FALSE
+T171,?,?,Lock nut set - Misc,?,1,?,B1,,WHEELS,FALSE
+T172,?,?,Lock nut set - BMW,?,1,?,B1,,WHEELS,FALSE
+T173,?,?,Lock nut set - Misc,?,1,?,B1,,WHEELS,FALSE
+T174,?,?,Lock nut set - Misc,?,1,?,B1,,WHEELS,FALSE
+T175,?,?,Lock nut set - Misc,?,1,?,B1,,WHEELS,FALSE
+T177,?,Repco,Brake Piston Push Back Tool,Pro-Max,1,?,E4,,BRAKES,FALSE
+T179,ET1201,All Euro,Injector Pump / Shaft Cleaning Set,Endeavour,1,?,D5,VAS6811,ENGINE Removes carbon deposits which is important when replacing injectors fuel injector shaft  injector pump cleaning,FALSE
+T18,H.C.B-I1188,All Euro,Engine Timing Tool Set,HCB,1,?,D3,,BMW (N51/N52/N52K/N53/N54/N55) TIMING TOOLS,FALSE
+T180,98804,Sulco,"3/4"" T70 T80 T90 T100 Torx-r Impact Sockets",T&E Tools,1,?,B4,,OTHER T70 T80 T90 T100 Torx-r Impact Sockets,FALSE
+T181,ET6498,All Euro,Strut Nut Remover Tool,Endeavour,1,?,B1,,SUSPENSION vw mercedes strut groove ,FALSE
+T182,CL337,T&E Tools,Piston Ring Service Set 9pc,T&E Tools,1,?,E5,,ENGINE piston ring compressor groove cleaner expander,FALSE
+T183,OILFILTERTOOL,Repco,Oil Filter Cap Removal Tools,Repco,1,?,E5,,ENGINE,FALSE
+T184,FD-404M,Repco,Metric Stud Extraction Tool,Repco,1,?,B3,,OTHER  Puller undo remover,FALSE
+T185,?,Bunnings,Dremal,Ozito,1,?,D4,,OTHER cuting cut grind grinding,FALSE
+T186,6266,Sulco,Cam Locking Tool - Universal,T&E Tools,1,?,B1,,ENGINE timing camshaft,FALSE
+T187,DWE4151-XE,Bunnings,Grinder - Cable Type,DeWalt,1,?,A2,,lead shield yellow,FALSE
+T188,WFB-1600,?,Air Powered Body Saw,Repco,1,?,B3,,OTHER,FALSE
+T189,?,?,Slide Hammer - Old Blue,T&E Tools,1,?,A2,,OTHER,FALSE
+T19,H.C.B-B1568,All Euro,Rear Diff Bush Removal/Installer,HCB,1,?,D3,,BMW (F01/F02/F04/F06/F07/F10-F13/F18)DIFFERENTIAL REAR BUSH REMOVAL / INSTALLATION TOOL KIT,FALSE
+T190,Homemade,Repco,Trailer Light Boad,Navra,1,?,A1,,TRAILER led,FALSE
+T191,MPCPTHG,Repco,Heat Gun 2000w,Mech Pro,1,?,A2,,OTHER hot hair dryer ,FALSE
+T192,?,?,Brake Pressure Tester Atachments,?,1,?,D3,,adapter adapters ,FALSE
+T193,?,Napa,Timing Light,OPTILUX,1,?,A3,,ENGINE,FALSE
+T194,55800,All Euro,A/C Gas Leak Detector,MASTERCOOL,1,?,B5,,AIRCON ac ,FALSE
+T195,MPBW115,Repco,Tourqe Wrench - 2-24 Nm,Mech Pro,1,?,B2,,OTHER mini small,FALSE
+T196,MV400,Petrojet,Autel MaxiVideo Camera,Autel,1,?,C5,,CAMERA bore scope,FALSE
+T197,ET2210,All Euro,Diesel Injector Seat Cutter Kit,Endeavour,1,?,C4,,ENGINE,FALSE
+T198,6474,Sulco,Straight Edge,T&E Tools,1,?,B3,,OTHER,FALSE
+T199,ET4090-ADAP,All Euro,Transmission Filler kit,Endeavour,1,?,C3,,set kit trans adapter adapters,FALSE
+T2,JTC-4619A,JTC,Camshaft Alignment Tool,JTC,1,?,E4,,TIMING engine timing n52 n51 n53 n54,FALSE
+T20,ET6064,All Euro,Wheel Lock Removal Kit,Endeavour,1,?,C1,,OTHER BMW slide hammer locknut,FALSE
+T200,J4298,T&E Tools,O2 Sensor/Switch Sockets,T&E Tools,1,?,B4,,OTHER remover installer install,FALSE
+T201,RST179,Repco,Compression Tester - Universal,Repco,1,?,B4,,ENGINE,FALSE
+T202,H.C.B-E1168,All Euro,Ball Joint Remover/Installer,HCB,1,?,E5,,Mercedes-Benz BALL-JOINT REMOVER/ INSTALLER W163/W164/W211/W220/W230,FALSE
+T203,?,Repco,Diesel Compression Tester,Repco,1,?,C1,,ENGINE,FALSE
+T204,B2111,Sulco,Fuel Tank Lid Remover 60-195mm 2 Way,T&E Tools,1,?,B2,,OTHER Fuel Tank Pump Nut Removal Tool,FALSE
+T205,?,Repco,Dial Indicator,Wayco,1,?,B2,,ENGINE DTI TOP DEAD CENTRE,FALSE
+T21,H.C.B-D1253,All Euro,Axle Shaft Removal Kit,HCB,1,?,D2,,BMW OUTPUT SHAFT EXTRACTOR/ INSTALLER KIT drive shaft half shaft,FALSE
+T22,JTC-4221,All Euro,Trans Mount Removal/Installer,JTC,1,?,E3,,DRIVETRAIN  E83 E53 E70 E71,FALSE
+T265,H.C.B-A1517,All Euro,Engine Timing Tool Set,HCB,1,?,D2,,BMW(N20/N26)TIMING TOOLS SET,FALSE
+T266,DEPTHGAUGE,All Euro,Depth Gauge,Insize,1,?,B2,,OTHER measure measuring vw dsg,FALSE
+T267,H.C.B-D1293,All Euro,TIMING CHAINS RIVETING TOOL,HCB,1,?,C4,,Mercedes-Benz TIMING CHAINS RIVETING TOOL KIT-SINGLE ROW AND DOUBLE ROW,FALSE
+T268,H.C.B-D1095,All Euro,UNIVERSAL HUB PULLER SET ,HCB,1,?,E1,,Slide Hammer Kit 10KG BENZ BMW AUDI VW,FALSE
+T269,PORTAPOWER,ToolShed,Service Jack (Porta-Power) 4 Ton,HCB,1,?,E3,,Hydraulic,FALSE
+T270,AT4118,Repco,Engine Timing Tool Set,FRANKLIN,1,?,C3,,TIMING n40 n45 n45t b16 b16ac bmw,FALSE
+T3,H.C.B-C1156,All Euro,Camshaft Carrier kit,HCB,1,?,D1,,BMW (N42/N46/N46T) CAMSHAFT CARRIER BRACKET REMOVAL / INSTALLTION TOOL KIT,FALSE
+T30,H.C.B-D1506,All Euro,VAG 1.8/2.0 TSI/TFSI (EA888) ENGINE TIMING TOOL KIT,HCB,1,?,D4,T10355 T10368 T40196 T40267 T40271 T10352 T10352/1 T10352/2 T10354 T10265 T10060A T10340,VAG 1.8/2.0 TSI/TFSI (EA888) BYT  BZB  CABA  CABB  CABD  CADA  CAEA  CAEB  CAWA,FALSE
+T301,AST4800,All Euro,Engine Timing Tool Set,AST,1,?,D5,,TIMING n46 n42 bmw,FALSE
+T302,8220,Bunnings,Dremel - Battery Operated,Dremel,1,?,C5,,OTHER,FALSE
+T303,12276,Sulco,Coolant Vacuum Bleeder,T&E Tools,1,?,C4,,bleed antifreeze,FALSE
+T306,AST6005,All Euro,Cylinder Head Bolt Socket Set,AST,1,?,B4,,ENGINE long reach m14 m12 m10 e12 tx60 bmw audi ve skoda mercedes,FALSE
+T31,JTC-4768A,All Euro,Engine Timing DTI Tube,JTC,1,?,C3,,TIMING 1.6fsi 1.4fsi 1.4 1.6 audi vw skoda vag gauge top dead centre center,FALSE
+T32,H.C.B-B1235,All Euro,AUDI CAMSHAFT ADJUSTMENT GAUGE SET (3.0L  V6  PETROL ENGINE) ,HCB,1,?,D4,,ASB  AVK  BBJ engine,FALSE
+T33,H.C.B-A2201,All Euro,VW  AUDI (A4/A6/A8/A11) GAS / DIESEL ENGINE TIMING TOOL KIT ,HCB,1,?,C1,,TIMING AUDI A4  A6  A8  A11 engine GAS / DIESEL ENGINE TIMING TOOL KIT,FALSE
+T34,H.C.B-A1522,All Euro,VW /AUDI (2.4 / 3.0 / 3.2 / 4.2 / 5.0 /5.2) CAMSHAFT TIMING TOOL SET ,HCB,1,?,D3,A1522 ,TIMING,FALSE
+T4,H.C.B-A1153,All Euro,Rear Susp Bush Extractor/Installer,HCB,1,?,D3,Missing Rod Use T19 Rod,SUSPENSION BMW 4e6 e85 rear suspension tool,FALSE
+T400,RST175,Repco,Pilot Bearing Puller,Repco,1,?,A3,,spigot bush,FALSE
+T401,JTC-4804,All Euro,#1Mini cooper serpentine belt tool kit,JTC,1,?,A5,,w11 bmw,FALSE
+T402,JTC-4803,All Euro,#2 Mini cooper serpentine belt tool kit,JTC,1,?,A5,,r50 r53,FALSE
+T404,ET1622,All Euro,VAG Injection Pump / Timing Kit 2.7L | 3.0L | 4.2L - V6 | V8 Diesel,Endeavour,1,?,A1,,,FALSE
+T405,?,?,Straight Edge - Silver Flat Ruller,?,1,?,B3,,A4 | A5 | A6 | A8 | Q7 | Allroad vw audi,FALSE
+T465,400053710,All Euro,LuK Mounting Tool Set clutch / flywheel,,1,07-05-23,A1,,Transmission with single plate SAC axial and radial support hand grip for installation and removal of module audi clutch flywheel tool,FALSE
+T5,H.C.B-A1121,All Euro,Engine Timing Tool Set,HCB,1,?,B5,,TIMING m52tu m54 m56 bmw doubble vanos,FALSE
+T500,?,?,Lost and Found,?,1,?,E1,,missing parts kit from ,FALSE
+T6,H.C.B-A1070,All Euro,Bush removal/Install Tool,HCB,2,?,B4,,bmw SUSPENSION e34 e38 e39 e52 e53 e60 e61 e63 e66 e65 e67 e70 Rear Carrier Bush / Ball Joint Tool,FALSE
+T60,AST5145,T&E Tools,Engine Timing Tool Set,AST,1,?,C5,,TIMING 1.0 1.2 1.4 tfsi Engine Setting / Locking Kit belt cambelt  tsi,FALSE
+T61,JTC-4931,All Euro,Diesel Engine Timing Tool - VW,JTC,1,?,D4,,ENGINE vw timing BAC BLK BPD AXD AXE BLJ BPC and AYH vw audi,FALSE
+T62,RTT1017,Repco,Airbag Removal Tool Set,Repco,1,?,C3,,AIRBAG uni universial remove,FALSE
+T63,ET1514A,All Euro,Rear Main Seal Installer,Endeavour,1,?,B4,T10134,ENGINE oil install  EA111 EA211 petrol VAG 1.6 1.9 2.0 TDI vw audi,FALSE
+T64,HCB-A1164,All Euro,Cam Alignment Tool,HCB,1,?,B2,,ENGINE 1.4 16v  Twin Camshaft Alignment Tool vw audi skoda,FALSE
+T65,ET0017A,All Euro,Injector Chamber Seal Tool,Endeavour,1,?,D5,,ENGINE injector puller kit cleaner cleaning vw audi fuel,FALSE
+T66,ET0704,All Euro,VAG Brake Servo Release Kit,Endeavour,1,?,A5,T10159 | T10060A | T10189 | T40136,BRAKES vw audi skoda,FALSE
+T76,8100D,?,Soldering Iron,Weller,1,?,C4,,solder heat,FALSE
+T8,E1376B,All Euro,Valve Spring Tool - Univeral,HCB,1,?,D3,83300496671 117110,Valvetronic Tool - Intermediate Lever Spring Tool ASSENMACHER TOOLS ENGINE N52 N55 BMW,FALSE
+T81,ET3976,All Euro,Press Bearing Bush Removal Kit,Endeavour,1,?,By Press,,press tool sleave Universal,FALSE
+T9,ET0095,All Euro,Valve Stem Seal Kit,Endeavour,1,?,D1,,ENGINE n62 n62tu bmw removal remover install,FALSE

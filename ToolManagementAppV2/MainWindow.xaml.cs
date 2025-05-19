@@ -524,40 +524,12 @@ namespace ToolManagementAppV2
             }
         }
 
-        private void SelectCsvFileButton_Click(object sender, RoutedEventArgs e)
-        {
-            var openFileDialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "CSV Files|*.csv"
-            };
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                SelectedCsvFile.Text = openFileDialog.FileName;
-            }
-        }
-
-        private void ImportCsvButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (!string.IsNullOrEmpty(SelectedCsvFile.Text))
-            {
-                _toolService.ImportToolsFromCsv(SelectedCsvFile.Text);
-                RefreshToolList();
-                MessageBox.Show("Tools imported successfully!");
-            }
-        }
-
-        private void ExportCsvButton_Click(object sender, RoutedEventArgs e)
-        {
-            _toolService.ExportToolsToCsv("tools_export.csv");
-            MessageBox.Show("Tools exported successfully!");
-        }
-
         private void RefreshToolList()
         {
             try
             {
                 ToolsList.ItemsSource = _toolService.GetAllTools();
+                SearchResultsList.ItemsSource = _toolService.GetAllTools();
             }
             catch (Exception ex)
             {
@@ -593,10 +565,11 @@ namespace ToolManagementAppV2
         {
             try
             {
-                if (!string.IsNullOrEmpty(SearchInput.Text))
-                    SearchResultsList.ItemsSource = _toolService.SearchTools(SearchInput.Text);
+                var txt = SearchInput.Text;
+                if (string.IsNullOrWhiteSpace(txt))
+                    SearchResultsList.ItemsSource = _toolService.GetAllTools();
                 else
-                    SearchResultsList.ItemsSource = null;
+                    SearchResultsList.ItemsSource = _toolService.SearchTools(txt);
             }
             catch (Exception ex)
             {
