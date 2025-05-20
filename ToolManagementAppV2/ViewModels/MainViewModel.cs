@@ -12,8 +12,6 @@ using System.Windows.Media.Imaging;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Services;
 using ToolManagementAppV2.Views;
-using Microsoft.Win32;
-using System.IO;
 
 namespace ToolManagementAppV2.ViewModels
 {

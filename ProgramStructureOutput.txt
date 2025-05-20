@@ -37,6 +37,8 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
   Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\Tool.cs
     Class: Tool
       Visibility: public
+      Field: public int OnHand
+      Field: public string Purchased
       Property: public string ToolID
       Property: public string Name
       Property: public string PartNumber
@@ -44,6 +46,7 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Property: public string Brand
       Property: public string Location
       Property: public int QuantityOnHand
+      Property: public int RentedQuantity
       Property: public string Supplier
       Property: public string Notes
       Property: public bool IsCheckedOut
@@ -85,9 +88,16 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
   Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\CustomerService.cs
     Class: CustomerService
       Visibility: public
+      Field: var lines =
+      Field: var headers =
+      Field: var cols =
+      Field: var all =
       Field: var customers =
       Field: var query =
       Method: private public CustomerService(DatabaseService dbService)
+      Method: public void ImportCustomersFromCsv(string filePath, IDictionary<string, string> map)
+      Method: private string get(string prop)
+      Method: public void ExportCustomersToCsv(string filePath)
       Method: public List<Customer> GetAllCustomers()
       Method: public void AddCustomer(Customer customer)
       Method: public void UpdateCustomer(Customer customer)
@@ -153,10 +163,43 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Visibility: public
       Field: var tools =
       Field: var query =
+      Field: var query =
+      Field: var tools =
+      Field: var sb =
+      Field: var p =
+      Field: WHERE ToolID =
+      Field: WHERE ToolID =
+      Field: var query =
+      Field: var select =
+      Field: bool isOut =
+      Field: bool newStatus =
+      Field: string by =
+      Field: WHERE ToolID =
+      Field: var tools =
+      Field: var query =
+      Field: var query =
+      Field: var lines =
+      Field: var c =
+      Field: var query =
+      Field: var lines =
+      Field: var headers =
+      Field: var cols =
+      Field: int aq =
       Method: private public ToolService(DatabaseService dbService)
       Method: public List<Tool> GetAllTools()
+      Method: public Tool GetToolByID(string toolID)
+      Method: public List<Tool> SearchTools(string searchText)
       Method: public void AddTool(Tool tool)
       Method: public void UpdateTool(Tool tool)
+      Method: public void UpdateToolQuantities(string toolID, int quantityChange, bool isRental)
+      Method: public void DeleteTool(string toolID)
+      Method: public void ToggleToolCheckOutStatus(string toolID, string currentUser)
+      Method: public List<Tool> GetToolsCheckedOutBy(string userName)
+      Method: public void UpdateToolImage(string toolID, string imagePath)
+      Method: public void ImportToolsFromCsv(string filePath)
+      Method: public void ExportToolsToCsv(string filePath)
+      Method: public void ImportToolsFromCsv(string filePath, IDictionary<string, string> map)
+      Method: private string get(string prop)
 
   File: UserService.cs
   Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\UserService.cs
@@ -216,12 +259,27 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
 
 Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels
 ---------------------------------------------------------------------------------------------------------
+  File: ImportMappingViewModel.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\ImportMappingViewModel.cs
+    Class: ObservableObject
+      Visibility: public
+      Field: public string SelectedColumn
+      Property: public string PropertyName
+      Method: private public FieldMapping(string name)
+    Class: ObservableObject
+      Visibility: public
+      Property: public List<string> ColumnHeaders
+      Property: public ObservableCollection<FieldMapping> Mappings
+      Method: private public ImportMappingViewModel(IEnumerable<string> headers, IEnumerable<string> properties)
+
   File: MainViewModel.cs
   Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\MainViewModel.cs
     Class: ObservableObject
       Visibility: public
       Field: public Tool SelectedTool
       Field: public User SelectedUser
+      Field: public Customer SelectedCustomer
+      Field: public Rental SelectedRental
       Field: public string CurrentUserName
       Field: public BitmapImage CurrentUserPhoto
       Field: public BitmapImage HeaderLogo
@@ -231,29 +289,71 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Field: public string ConfirmPassword
       Field: var nt =
       Field: var dlg =
+      Field: var lines =
+      Field: var headers =
+      Field: var mapWin =
+      Field: var map =
+      Field: var dlg =
+      Field: var dlg =
+      Field: var lines =
+      Field: var headers =
+      Field: var customerFields =
+      Field: var mapWin =
+      Field: var map =
+      Field: var dlg =
+      Field: var dlg =
       Field: var src =
       Field: var folder =
       Field: var dest =
       Field: var bmp =
+      Property: public string NewCustomerName
+      Property: public string NewCustomerEmail
+      Property: public string NewCustomerContact
+      Property: public string NewCustomerPhone
+      Property: public string NewCustomerAddress
+      Property: public string SearchTerm
       Property: public ICommand SearchCommand
       Property: public ICommand AddToolCommand
       Property: public ICommand UpdateToolCommand
+      Property: public ICommand ImportToolsCommand
+      Property: public ICommand ExportToolsCommand
       Property: public ICommand DeleteToolCommand
       Property: public ICommand LoadUsersCommand
       Property: public ICommand ChooseProfilePicCommand
       Property: public ICommand UploadUserPhotoCommand
-      Property: public string SearchTerm
-      Method: public void LoadUsers()
-      Method: public void LoadCurrentUser()
+      Property: public ICommand LoadCustomersCommand
+      Property: public ICommand AddCustomerCommand
+      Property: public ICommand UpdateCustomerCommand
+      Property: public ICommand ImportCustomersCommand
+      Property: public ICommand ExportCustomersCommand
+      Property: public ICommand DeleteCustomerCommand
+      Property: public ICommand LoadActiveRentalsCommand
+      Property: public ICommand LoadOverdueRentalsCommand
+      Property: public ICommand ReturnToolCommand
+      Property: public ICommand ExtendRentalCommand
       Method: private void LoadTools()
       Method: private void LoadCheckedOutTools()
       Method: private void SearchTools()
       Method: private void AddTool()
       Method: private void UpdateTool()
+      Method: private void ImportTools()
+      Method: private void ExportTools()
+      Method: private void ImportCustomers()
+      Method: private void ExportCustomers()
       Method: private void DeleteTool()
+      Method: public void LoadUsers()
+      Method: private void LoadCurrentUser()
       Method: private void ChooseProfilePic()
       Method: private void UploadSelectedUserPhoto()
       Method: private void UploadPhotoForUser(User u)
+      Method: public void LoadCustomers()
+      Method: private void AddCustomer()
+      Method: private void UpdateCustomer()
+      Method: private void DeleteCustomer()
+      Method: private void LoadActiveRentals()
+      Method: private void LoadOverdueRentals()
+      Method: private void ReturnSelectedRental()
+      Method: private void ExtendSelectedRental()
 
 
 Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2
@@ -262,8 +362,39 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
   Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\App.xaml
     XAML Element: Application
 
+
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views
+----------------------------------------------------------------------------------------------------
+  File: ImportMappingWindow.xaml
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views\ImportMappingWindow.xaml
+    XAML Element: DockPanel
+      Attribute: Margin="10"
+    XAML Element: DataGrid
+    XAML Element: DataGridTemplateColumn
+      Attribute: Header="CSV
+    XAML Element: DataGridTemplateColumn
+    XAML Element: DataTemplate
+    XAML Element: TextBlock
+      Attribute: Text="{Binding
+    XAML Element: DataGridTemplateColumn
+    XAML Element: DataTemplate
+    XAML Element: StackPanel
+      Attribute: Orientation="Horizontal"
+      Attribute: HorizontalAlignment="Right"
+      Attribute: DockPanel.Dock="Bottom"
+    XAML Element: Button
+      Attribute: Content="OK"
+      Attribute: Width="75"
+      Attribute: Margin="5"
+      Attribute: Click="Ok_Click"
+    XAML Element: Button
+      Attribute: Content="Cancel"
+      Attribute: Width="75"
+      Attribute: Margin="5"
+      Attribute: Click="Cancel_Click"
+
   File: LoginWindow.xaml
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\LoginWindow.xaml
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views\LoginWindow.xaml
     XAML Element: Window
     XAML Element: local
       Attribute: x:Key="NullToDefaultImageConverter"
@@ -328,7 +459,7 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Attribute: Foreground="Red"
 
   File: MainWindow.xaml
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\MainWindow.xaml
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views\MainWindow.xaml
     XAML Element: DockPanel
       Attribute: Margin="10"
     XAML Element: DockPanel
@@ -1025,27 +1156,16 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Attribute: FontWeight="Bold"
       Attribute: FontSize="16"
       Attribute: Margin="5"
-    XAML Element: Button
-      Attribute: Content="Select
-      Attribute: Click="SelectCsvFileButton_Click"
-      Attribute: Margin="5"
     XAML Element: TextBlock
-      Attribute: x:Name="SelectedCsvFile"
-      Attribute: Text="No
-      Attribute: Margin="5"
-    XAML Element: Button
-      Attribute: Content="Import"
-      Attribute: Click="ImportCsvButton_Click"
-      Attribute: Margin="5"
-    XAML Element: TextBlock
-      Attribute: Text="Export
+      Attribute: Text="Tools"
       Attribute: FontWeight="Bold"
-      Attribute: FontSize="16"
-      Attribute: Margin="5"
-    XAML Element: Button
-      Attribute: Content="Export
-      Attribute: Click="ExportCsvButton_Click"
-      Attribute: Margin="5"
+      Attribute: Margin="5,10,5,5"
+    XAML Element: WrapPanel
+    XAML Element: TextBlock
+      Attribute: Text="Customers"
+      Attribute: FontWeight="Bold"
+      Attribute: Margin="5,20,5,5"
+    XAML Element: WrapPanel
     XAML Element: TabItem
       Attribute: Header="Activity
     XAML Element: Grid
@@ -1148,7 +1268,7 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Attribute: Content="Ready"
 
   File: PasswordPromptWindow.xaml
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\PasswordPromptWindow.xaml
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views\PasswordPromptWindow.xaml
     XAML Element: Grid
       Attribute: Margin="20"
     XAML Element: Grid

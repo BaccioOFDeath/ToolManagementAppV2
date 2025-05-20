@@ -1,0 +1,111 @@
+﻿<Window x:Class="ToolManagementAppV2.LoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:ToolManagementAppV2.Utilities"
+        Title="Tool Inventory Management - Login"
+        Height="650"
+        Width="1600"
+        WindowStartupLocation="CenterScreen"
+        Background="White">
+
+    <Window.Resources>
+        <local:NullToDefaultImageConverter x:Key="NullToDefaultImageConverter"/>
+        <local:BooleanToAdminConverter    x:Key="BooleanToAdminConverter"/>
+    </Window.Resources>
+
+    <DockPanel>
+
+        <!-- header -->
+        <DockPanel DockPanel.Dock="Top"
+                   Background="#DDD"
+                   Margin="0,0,0,10">
+            <Image x:Name="LoginLogo"
+                   Width="50" Height="50"
+                   Margin="10"/>
+            <TextBlock Text="Tool Inventory Management"
+                       FontWeight="Bold"
+                       FontSize="20"
+                       VerticalAlignment="Center"
+                       Margin="10,0,0,0"/>
+        </DockPanel>
+
+        <!-- content -->
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Text="Select User to Login:"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,10"
+                       HorizontalAlignment="Center"
+                       Grid.Row="0"/>
+
+            <ListBox x:Name="UsersListBox"
+                     Grid.Row="1"
+                     HorizontalAlignment="Center"
+                     BorderThickness="0"
+                     Background="Transparent"
+                     HorizontalContentAlignment="Center"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     MaxHeight="350">
+                <!-- remove default ListBoxItem hover/selection highlighting -->
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Margin" Value="0"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <ContentPresenter/>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+
+                <!-- wrap items and center them -->
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"
+                                  HorizontalAlignment="Center"/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Width="120" Margin="5">
+                            <Button Click="UserButton_Click"
+                                    Tag="{Binding}"
+                                    Background="Transparent"
+                                    BorderThickness="0">
+                                <StackPanel>
+                                    <Image Source="{Binding PhotoBitmap,
+                                                   Converter={StaticResource NullToDefaultImageConverter},
+                                                   ConverterParameter=User}"
+                                           Width="80" Height="80" Stretch="Uniform"/>
+                                    <TextBlock Text="{Binding UserName}"
+                                               TextWrapping="Wrap"
+                                               TextAlignment="Center"
+                                               Margin="0,5,0,0"
+                                               FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding IsAdmin,
+                                                   Converter={StaticResource BooleanToAdminConverter}}"
+                                               FontSize="10"
+                                               Foreground="Red"
+                                               TextAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+
+    </DockPanel>
+</Window>

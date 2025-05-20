@@ -9,6 +9,7 @@ using System.Windows.Media.Imaging;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Services;
 using ToolManagementAppV2.ViewModels;
+using ToolManagementAppV2.Views;
 
 namespace ToolManagementAppV2
 {
@@ -402,9 +403,45 @@ namespace ToolManagementAppV2
         private void UploadUserPhotoButton_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is MainViewModel vm && vm.SelectedUser != null)
-                UploadPhotoForUser(vm.SelectedUser);
+            {
+                var dlg = new AvatarSelectionWindow();
+                if (dlg.ShowDialog() == true)
+                    ApplyAvatarToUser(vm.SelectedUser, dlg.SelectedAvatarPath);
+            }
         }
 
+        private void ChooseUserProfilePicButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (App.Current.Properties["CurrentUser"] is User curr)
+            {
+                var dlg = new AvatarSelectionWindow();
+                if (dlg.ShowDialog() == true)
+                    ApplyAvatarToUser(curr, dlg.SelectedAvatarPath);
+            }
+        }
+
+        private void ApplyAvatarToUser(User user, string imagePath)
+        {
+            var bmp = new BitmapImage();
+            bmp.BeginInit();
+            bmp.CacheOption = BitmapCacheOption.OnLoad;
+            bmp.UriSource = new Uri(imagePath, UriKind.Absolute);
+            bmp.EndInit();
+
+            user.UserPhotoPath = imagePath;
+            user.PhotoBitmap = bmp;
+            _userService.UpdateUser(user);
+
+            if (App.Current.Properties["CurrentUser"] is User curr && curr.UserID == user.UserID)
+            {
+                curr.UserPhotoPath = imagePath;
+                curr.PhotoBitmap = bmp;
+                if (DataContext is MainViewModel vm)
+                    vm.CurrentUserPhoto = bmp;
+            }
+
+            RefreshUserList();
+        }
         private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
         {
             if (DataContext is MainViewModel vm && vm.SelectedUser != null)
@@ -822,13 +859,7 @@ namespace ToolManagementAppV2
             }
         }
 
-       
 
-        private void ChooseUserProfilePicButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (App.Current.Properties["CurrentUser"] is User curr)
-                UploadPhotoForUser(curr);
-        }
 
 
         private void PrintSearchResults_Click(object sender, RoutedEventArgs e)

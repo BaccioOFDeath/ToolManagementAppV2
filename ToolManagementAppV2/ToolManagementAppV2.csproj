@@ -16,6 +16,47 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Avatars\1.png" />
+    <None Remove="Resources\Avatars\10.png" />
+    <None Remove="Resources\Avatars\11.png" />
+    <None Remove="Resources\Avatars\12.png" />
+    <None Remove="Resources\Avatars\13.png" />
+    <None Remove="Resources\Avatars\14.png" />
+    <None Remove="Resources\Avatars\15.png" />
+    <None Remove="Resources\Avatars\16.png" />
+    <None Remove="Resources\Avatars\17.png" />
+    <None Remove="Resources\Avatars\18.png" />
+    <None Remove="Resources\Avatars\19.png" />
+    <None Remove="Resources\Avatars\2.png" />
+    <None Remove="Resources\Avatars\20.png" />
+    <None Remove="Resources\Avatars\21.png" />
+    <None Remove="Resources\Avatars\22.png" />
+    <None Remove="Resources\Avatars\23.png" />
+    <None Remove="Resources\Avatars\24.png" />
+    <None Remove="Resources\Avatars\25.png" />
+    <None Remove="Resources\Avatars\26.png" />
+    <None Remove="Resources\Avatars\27.png" />
+    <None Remove="Resources\Avatars\28.png" />
+    <None Remove="Resources\Avatars\29.png" />
+    <None Remove="Resources\Avatars\3.png" />
+    <None Remove="Resources\Avatars\30.png" />
+    <None Remove="Resources\Avatars\31.png" />
+    <None Remove="Resources\Avatars\32.png" />
+    <None Remove="Resources\Avatars\33.png" />
+    <None Remove="Resources\Avatars\34.png" />
+    <None Remove="Resources\Avatars\35.png" />
+    <None Remove="Resources\Avatars\36.png" />
+    <None Remove="Resources\Avatars\37.png" />
+    <None Remove="Resources\Avatars\38.png" />
+    <None Remove="Resources\Avatars\39.png" />
+    <None Remove="Resources\Avatars\4.png" />
+    <None Remove="Resources\Avatars\40.png" />
+    <None Remove="Resources\Avatars\5.png" />
+    <None Remove="Resources\Avatars\6.png" />
+    <None Remove="Resources\Avatars\7.png" />
+    <None Remove="Resources\Avatars\8.png" />
+    <None Remove="Resources\Avatars\9.png" />
+    <None Remove="Resources\Avatars\Thumbs.db" />
     <None Remove="Resources\DefaultLogo.png" />
     <None Remove="Resources\DefaultToolImage.png" />
     <None Remove="Resources\DefaultUserPhoto.png" />
@@ -33,6 +74,129 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Resources\Avatars\1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\10.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\11.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\12.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\13.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\14.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\15.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\16.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\17.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\18.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\19.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\20.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\21.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\22.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\23.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\24.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\25.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\26.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\27.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\28.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\29.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\30.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\31.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\32.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\33.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\34.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\35.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\36.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\37.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\38.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\39.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\4.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\40.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\5.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\6.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\7.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\8.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\9.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Avatars\Thumbs.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Resource Include="Resources\DefaultLogo.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>

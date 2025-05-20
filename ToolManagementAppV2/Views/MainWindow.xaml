@@ -27,7 +27,7 @@
             <DockPanel>
                 <!-- Bind HeaderLogo property; if no logo is set, it returns the default logo -->
                 <Image x:Name="HeaderIcon" Source="{Binding HeaderLogo}" Width="50" Height="50" />
-                <TextBlock Text="T.I.M" FontWeight="Bold" FontSize="20" Margin="10" VerticalAlignment="Center" />
+                <TextBlock Text="Tool Inventory Management" FontWeight="Bold" FontSize="20" Margin="10" VerticalAlignment="Center" />
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
                     <Image Source="{Binding CurrentUserPhoto}" Width="50" Height="50" Margin="0,0,10,0" />
                     <StackPanel Orientation="Vertical">
@@ -89,7 +89,15 @@
                                     <GridViewColumn Header="Image" Width="100">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}}" Height="50" Width="50" Stretch="Uniform"/>
+                                                <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}}"
+             Height="50" Width="50" Stretch="Uniform">
+                                                    <Image.ToolTip>
+                                                        <Border BorderBrush="Gray" BorderThickness="1" Padding="2" Background="White">
+                                                            <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}}"
+                   Height="400" Width="400" Stretch="Uniform"/>
+                                                        </Border>
+                                                    </Image.ToolTip>
+                                                </Image>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
@@ -174,7 +182,15 @@
                                     <GridViewColumn Header="Image" Width="100">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}}" Height="50" Width="50" Stretch="Uniform"/>
+                                                <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}}"
+             Height="50" Width="50" Stretch="Uniform">
+                                                    <Image.ToolTip>
+                                                        <Border BorderBrush="Gray" BorderThickness="1" Padding="2" Background="White">
+                                                            <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}}"
+                   Height="400" Width="400" Stretch="Uniform"/>
+                                                        </Border>
+                                                    </Image.ToolTip>
+                                                </Image>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
