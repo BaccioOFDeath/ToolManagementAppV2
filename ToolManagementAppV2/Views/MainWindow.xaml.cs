@@ -829,18 +829,27 @@ namespace ToolManagementAppV2
         }
 
         #endregion
-
         private void PrintSearchResults_Click(object sender, RoutedEventArgs e)
         {
-            // pull the actual collection from your ViewModel
-            var vm = DataContext as MainViewModel;
-            _printer.PrintTools(vm.SearchResults, "Search Results");
+            // grab whatever is actually in the ListView
+            var tools = (SearchResultsList.ItemsSource as IEnumerable<Tool>)
+                        ?? SearchResultsList.Items.OfType<Tool>();
+
+            if (!tools.Any())
+            {
+                MessageBox.Show("There are no items to print.", "Print Search Results",
+                                MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            _printer.PrintTools(tools, "Search Results");
         }
 
         private void PrintMyCheckedOutTools_Click(object sender, RoutedEventArgs e)
         {
-            var vm = DataContext as MainViewModel;
-            _printer.PrintTools(vm.CheckedOutTools, "My Checked-Out Tools", vm.CurrentUserName);
+            if (DataContext is MainViewModel vm)
+                _printer.PrintTools(vm.CheckedOutTools, "My Checked-Out Tools", vm.CurrentUserName);
         }
+
     }
 }

@@ -1,13 +1,17 @@
-﻿using System.Windows;
+﻿using System;
+using System.IO;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Media.Imaging;
 
 namespace ToolManagementAppV2.Views
 {
     public partial class PrintPreviewWindow : Window
     {
-        private FlowDocument _doc;
+        private FlowDocument _doc;   // store the FlowDocument
         private string _title;
+        private string _logoPath;
 
         public PrintPreviewWindow()
         {
@@ -15,14 +19,27 @@ namespace ToolManagementAppV2.Views
         }
 
         /// <summary>
-        /// Call this with your FlowDocument and title
+        /// Show a FlowDocument for preview.
         /// </summary>
-        public void ShowPreview(FlowDocument doc, string title)
+        public void ShowPreview(FlowDocument document, string title, string logoPath)
         {
-            _doc = doc;
+            _doc = document;
             _title = title;
+            _logoPath = logoPath;
 
-            DocViewer.Document = doc;
+            // window & header
+            this.Title = $"Print Preview – {title}";
+            PreviewTitle.Text = title;
+
+            // logo
+            if (!string.IsNullOrEmpty(logoPath) && File.Exists(logoPath))
+                PreviewLogo.Source = new BitmapImage(new Uri(logoPath, UriKind.Absolute));
+            else
+                PreviewLogo.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultLogo.png"));
+
+            // feed the FlowDocument into the reader
+            DocViewer.Document = _doc;
+
             this.Owner = Application.Current.MainWindow;
             this.ShowDialog();
         }
@@ -33,15 +50,10 @@ namespace ToolManagementAppV2.Views
 
             var dlg = new PrintDialog();
             if (dlg.ShowDialog() == true)
-            {
-                // cast to IDocumentPaginatorSource to get the paginator
-                var paginator = ((IDocumentPaginatorSource)_doc).DocumentPaginator;
-                dlg.PrintDocument(paginator, _title);
-                this.Close();
-            }
+                dlg.PrintDocument(((IDocumentPaginatorSource)_doc).DocumentPaginator, _title);
         }
 
-        private void Cancel_Click(object sender, RoutedEventArgs e)
+        private void Close_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
         }

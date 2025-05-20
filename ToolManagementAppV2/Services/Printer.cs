@@ -42,7 +42,7 @@ namespace ToolManagementAppV2.Services
 
             // 4) show preview window instead of calling PrintDialog directly
             var preview = new PrintPreviewWindow();
-            preview.ShowPreview(doc, title);
+            preview.ShowPreview(doc, title, logoPath);
             // printing now happens from inside the preview window
         }
 
