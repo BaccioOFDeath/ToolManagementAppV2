@@ -1,7 +1,4 @@
-﻿
-using System;
-
-namespace ToolManagementAppV2.Models
+﻿namespace ToolManagementAppV2.Models
 {
     public class Tool
     {

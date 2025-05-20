@@ -1,5 +1,4 @@
-﻿// Updated User.cs model with additional properties
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Windows.Media.Imaging;
 
 namespace ToolManagementAppV2.Models
