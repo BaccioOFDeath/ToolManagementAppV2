@@ -205,7 +205,7 @@ namespace ToolManagementAppV2.ViewModels
 
         void AddTool()
         {
-            _toolService.AddTool(new Tool { ToolID = Guid.NewGuid().ToString(), Description = string.Empty });
+            _toolService.AddTool(new Tool { ToolID = Guid.NewGuid().ToString(), NameDescription = string.Empty });
             LoadTools();
         }
 
@@ -221,7 +221,7 @@ namespace ToolManagementAppV2.ViewModels
             var lines = File.ReadAllLines(path);
             if (lines.Length < 2) { ShowWarning("CSV has no data rows."); return; }
             var headers = lines[0].Split(',').Select(h => h.Trim());
-            var fields = new[] { "Name", "Description", "Location", "Brand", "PartNumber", "Supplier", "PurchasedDate", "Notes", "AvailableQuantity" };
+            var fields = new[] { "ToolNumber", "NameDescription", "Location", "Brand", "PartNumber", "Supplier", "PurchasedDate", "Notes", "AvailableQuantity" };
             if (!ShowMappingWindow(headers, fields, out var map)) return;
             _toolService.ImportToolsFromCsv(path, map);
             LoadTools();
@@ -314,7 +314,7 @@ namespace ToolManagementAppV2.ViewModels
             var lines = File.ReadAllLines(path);
             if (lines.Length < 2) { ShowWarning("CSV has no data rows."); return; }
             var headers = lines[0].Split(',').Select(h => h.Trim());
-            var fields = new[] { "Name", "Email", "Contact", "Phone", "Address" };
+            var fields = new[] { "ToolNumber", "Email", "Contact", "Phone", "Address" };
             if (!ShowMappingWindow(headers, fields, out var map)) return;
             LoadTools();
             LoadCheckedOutTools();

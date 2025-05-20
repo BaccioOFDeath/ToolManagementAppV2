@@ -30,7 +30,7 @@ namespace ToolManagementAppV2.Services
         {
             var lines = _toolService.GetAllTools()
                 .Select(t =>
-                    $"Tool ID: {t.ToolID} | Name: {t.Name} | Qty: {t.QuantityOnHand} | " +
+                    $"Tool ID: {t.ToolID} | ToolNumber: {t.ToolNumber} | Qty: {t.QuantityOnHand} | " +
                     $"Location: {t.Location} | Supplier: {t.Supplier}");
             return BuildReport("Tool Inventory Report", lines);
         }
@@ -67,7 +67,7 @@ namespace ToolManagementAppV2.Services
         {
             var lines = _customerService.GetAllCustomers()
                 .Select(c =>
-                    $"CustomerID: {c.CustomerID} | Name: {c.Name} | Email: {c.Email} | " +
+                    $"CustomerID: {c.CustomerID} | ToolNumber: {c.Name} | Email: {c.Email} | " +
                     $"Contact: {c.Contact} | Phone: {c.Phone} | Address: {c.Address}");
             return BuildReport("Customer Report", lines);
         }
@@ -76,7 +76,7 @@ namespace ToolManagementAppV2.Services
         {
             var lines = _userService.GetAllUsers()
                 .Select(u =>
-                    $"UserID: {u.UserID} | Name: {u.UserName} | IsAdmin: {u.IsAdmin}");
+                    $"UserID: {u.UserID} | ToolNumber: {u.UserName} | IsAdmin: {u.IsAdmin}");
             return BuildReport("User Report", lines);
         }
 

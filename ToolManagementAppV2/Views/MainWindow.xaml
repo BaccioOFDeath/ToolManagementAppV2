@@ -69,12 +69,10 @@
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Header="Action" Width="80" CellTemplate="{StaticResource CheckOutButtonTemplate}"/>
-                                    <GridViewColumn Header="ID" DisplayMemberBinding="{Binding ToolID}" Width="60"/>
-                                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="120"/>
-                                    <GridViewColumn Header="Location" DisplayMemberBinding="{Binding Location}" Width="70"/>
+                                    <GridViewColumn Header="Tool Number" DisplayMemberBinding="{Binding ToolNumber}" Width="120"/>
+                                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding NameDescription}" Width="380"/>
                                     <GridViewColumn Header="Part Number" DisplayMemberBinding="{Binding PartNumber}" Width="100"/>
                                     <GridViewColumn Header="Brand" DisplayMemberBinding="{Binding Brand}" Width="100"/>
-                                    <GridViewColumn Header="Description" DisplayMemberBinding="{Binding Description}" Width="380"/>
                                     <GridViewColumn Header="Quantity" DisplayMemberBinding="{Binding QuantityOnHand}" Width="60"/>
                                     <GridViewColumn Header="Supplier" DisplayMemberBinding="{Binding Supplier}" Width="100"/>
                                     <GridViewColumn Header="Purchased Date" Width="80">
@@ -129,7 +127,7 @@
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
                                     <GridViewColumn Header="Tool ID" DisplayMemberBinding="{Binding ToolID}" Width="60" />
-                                    <GridViewColumn Header="Description" DisplayMemberBinding="{Binding Description}" Width="380" />
+                                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding NameDescription}" Width="380" />
                                     <GridViewColumn Header="Checked Out By" DisplayMemberBinding="{Binding CheckedOutBy}" Width="150" />
                                     <GridViewColumn Header="Checked Out Time" DisplayMemberBinding="{Binding CheckedOutTime, StringFormat=\{0:G\}}" Width="150" />
                                     <GridViewColumn Header="Location" DisplayMemberBinding="{Binding Location}" Width="100" />
@@ -144,32 +142,83 @@
                 <TabItem Header="Tool Management">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="350" />
-                            <ColumnDefinition />
+                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
+
+                        <!-- Tool Details Panel -->
                         <GroupBox Grid.Column="0" Header="Tool Details" Margin="5">
-                            <StackPanel>
-                                <xctk:WatermarkTextBox x:Name="ToolIDInput" Watermark="Tool ID (Required)" Margin="0,5" />
-                                <xctk:WatermarkTextBox x:Name="PartNumberInput" Watermark="Part Number" Margin="0,5" />
-                                <xctk:WatermarkTextBox x:Name="ToolNameInput" Watermark="Tool Name" Margin="0,5" />
-                                <xctk:WatermarkTextBox x:Name="BrandInput" Watermark="Brand" Margin="0,5" />
-                                <xctk:WatermarkTextBox x:Name="LocationInput" Watermark="Location" Margin="0,5" />
-                                <xctk:WatermarkTextBox x:Name="QuantityInput" Watermark="Quantity on Hand" Margin="0,5" />
-                                <xctk:WatermarkTextBox x:Name="SupplierInput" Watermark="Supplier" Margin="0,5" />
-                                <xctk:WatermarkTextBox x:Name="PurchasedInput" Watermark="Purchased Date (yyyy-MM-dd)" Margin="0,5" />
-                                <xctk:WatermarkTextBox x:Name="NotesInput" Watermark="Notes" TextWrapping="Wrap" Margin="0,5" Height="60" AcceptsReturn="True" />
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <Button Content="Add" Click="AddButton_Click" Margin="5" />
-                                    <Button Content="Update" Click="UpdateButton_Click" Margin="5" />
-                                    <Button Content="Delete" Click="DeleteButton_Click" Margin="5" />
-                                    <Button Content="Add/Change Tool Image" Click="ChangeToolImage_Click" Margin="5" />
+                            <Grid Margin="5">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                
+
+                                <TextBlock Text="Tool Number:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
+                                <xctk:WatermarkTextBox x:Name="ToolNumberInput" Grid.Row="1" Grid.Column="1" Watermark="Tool Number" Margin="0,2"/>
+
+                                <TextBlock Text="Name:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center"/>
+                                <xctk:WatermarkTextBox x:Name="ToolNameInput" Grid.Row="2" Grid.Column="1" Watermark="Tool Name" Margin="0,2"/>
+
+                                <TextBlock Text="Part Number:" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center"/>
+                                <xctk:WatermarkTextBox x:Name="PartNumberInput" Grid.Row="3" Grid.Column="1" Watermark="Part Number" Margin="0,2"/>
+
+                                <TextBlock Text="Brand:" Grid.Row="4" Grid.Column="0" VerticalAlignment="Center"/>
+                                <xctk:WatermarkTextBox x:Name="BrandInput" Grid.Row="4" Grid.Column="1" Watermark="Brand" Margin="0,2"/>
+
+                                <TextBlock Text="Location:" Grid.Row="5" Grid.Column="0" VerticalAlignment="Center"/>
+                                <xctk:WatermarkTextBox x:Name="LocationInput" Grid.Row="5" Grid.Column="1" Watermark="Location" Margin="0,2"/>
+
+                                <TextBlock Text="Quantity:" Grid.Row="6" Grid.Column="0" VerticalAlignment="Center"/>
+                                <xctk:WatermarkTextBox x:Name="QuantityInput" Grid.Row="6" Grid.Column="1" Watermark="Quantity on Hand" Margin="0,2"/>
+
+                                <TextBlock Text="Supplier:" Grid.Row="7" Grid.Column="0" VerticalAlignment="Center"/>
+                                <xctk:WatermarkTextBox x:Name="SupplierInput" Grid.Row="7" Grid.Column="1" Watermark="Supplier" Margin="0,2"/>
+
+                                <TextBlock Text="Purchased Date:" Grid.Row="8" Grid.Column="0" VerticalAlignment="Center"/>
+                                <xctk:WatermarkTextBox x:Name="PurchasedInput" Grid.Row="8" Grid.Column="1" Watermark="yyyy-MM-dd" Margin="0,2"/>
+
+                                <TextBlock Text="Notes:" Grid.Row="9" Grid.Column="0" VerticalAlignment="Top" Margin="0,5,0,0"/>
+                                <Grid Grid.Row="9" Grid.Column="1">
+                                    <xctk:WatermarkTextBox x:Name="NotesInput"
+                           Watermark="Notes"
+                           AcceptsReturn="True"
+                           VerticalScrollBarVisibility="Auto"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,5"
+                           VerticalAlignment="Stretch"/>
+                                </Grid>
+
+                                <StackPanel Grid.Row="10" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+                                    <Button Content="Add" Click="AddButton_Click" Margin="5"/>
+                                    <Button Content="Update" Click="UpdateButton_Click" Margin="5"/>
+                                    <Button Content="Delete" Click="DeleteButton_Click" Margin="5"/>
+                                    <Button Content="Add/Change Tool Image" Click="ChangeToolImage_Click" Margin="5"/>
                                 </StackPanel>
-                            </StackPanel>
+                            </Grid>
                         </GroupBox>
+
+                        <!-- Tool List Display -->
                         <ListView x:Name="ToolsList" Grid.Column="1" ItemsSource="{Binding Tools}" SelectionChanged="ToolsList_SelectionChanged" Margin="5">
                             <ListView.View>
                                 <GridView>
-                                    <GridViewColumn Header="ID" DisplayMemberBinding="{Binding ToolID}" Width="60" />
+                                    <GridViewColumn Header="Tool#" DisplayMemberBinding="{Binding ToolNumber}" Width="100" />
+                                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding NameDescription}" Width="200" />
                                     <GridViewColumn Header="Part Number" DisplayMemberBinding="{Binding PartNumber}" Width="100" />
                                     <GridViewColumn Header="Brand" DisplayMemberBinding="{Binding Brand}" Width="100" />
                                     <GridViewColumn Header="Location" DisplayMemberBinding="{Binding Location}" Width="100" />
@@ -185,7 +234,7 @@
                                     <GridViewColumn Header="Notes">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding Notes}" TextWrapping="Wrap" Width="400" />
+                                                <TextBlock Text="{Binding Notes}" TextWrapping="Wrap" Width="400"/>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
@@ -193,11 +242,11 @@
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}}"
-             Height="50" Width="50" Stretch="Uniform">
+                                       Height="50" Width="50" Stretch="Uniform">
                                                     <Image.ToolTip>
                                                         <Border BorderBrush="Gray" BorderThickness="1" Padding="2" Background="White">
                                                             <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}}"
-                   Height="400" Width="400" Stretch="Uniform"/>
+                                                   Height="400" Width="400" Stretch="Uniform"/>
                                                         </Border>
                                                     </Image.ToolTip>
                                                 </Image>

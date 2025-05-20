@@ -112,10 +112,23 @@ namespace ToolManagementAppV2
 
         void AddButton_Click(object s, RoutedEventArgs e)
         {
+            var toolNumber = ToolNumberInput.Text.Trim();
+            if (string.IsNullOrEmpty(toolNumber))
+            {
+                ShowMessage("Validation Error", "Tool Number is required.", MessageBoxImage.Warning);
+                return;
+            }
+
+            if (_toolService.GetAllTools().Any(x => x.ToolNumber.Equals(toolNumber, StringComparison.OrdinalIgnoreCase)))
+            {
+                ShowMessage("Duplicate Tool Number", "A tool with this Tool Number already exists.", MessageBoxImage.Warning);
+                return;
+            }
+
             var tool = new Tool
             {
-                ToolID = ToolIDInput.Text.Trim(),
-                Name = ToolNameInput.Text.Trim(),
+                ToolNumber = toolNumber,
+                NameDescription = ToolNameInput.Text.Trim(),
                 PartNumber = PartNumberInput.Text.Trim(),
                 Brand = BrandInput.Text.Trim(),
                 Location = LocationInput.Text.Trim(),
@@ -124,13 +137,18 @@ namespace ToolManagementAppV2
                 PurchasedDate = DateTime.TryParse(PurchasedInput.Text, out var d) ? d : (DateTime?)null,
                 Notes = NotesInput.Text.Trim()
             };
+
             _toolService.AddTool(tool);
             RefreshToolList();
+            ClearToolInputs();
         }
+
 
         void UpdateButton_Click(object s, RoutedEventArgs e)
         {
             if (!(ToolsList.SelectedItem is Tool t)) return;
+            t.ToolNumber = ToolNumberInput.Text.Trim();
+            t.NameDescription = ToolNameInput.Text.Trim();
             t.PartNumber = PartNumberInput.Text.Trim();
             t.Brand = BrandInput.Text.Trim();
             t.Location = LocationInput.Text.Trim();
@@ -140,6 +158,20 @@ namespace ToolManagementAppV2
             t.Notes = NotesInput.Text.Trim();
             _toolService.UpdateTool(t);
             RefreshToolList();
+            ClearToolInputs();
+        }
+
+        void ClearToolInputs()
+        {
+            ToolNumberInput.Text = "";
+            ToolNameInput.Text = "";
+            PartNumberInput.Text = "";
+            BrandInput.Text = "";
+            LocationInput.Text = "";
+            QuantityInput.Text = "";
+            SupplierInput.Text = "";
+            PurchasedInput.Text = "";
+            NotesInput.Text = "";
         }
 
         void DeleteButton_Click(object s, RoutedEventArgs e)
@@ -173,7 +205,8 @@ namespace ToolManagementAppV2
         {
             if (ToolsList.SelectedItem is Tool t)
             {
-                ToolIDInput.Text = t.ToolID;
+                ToolNumberInput.Text = t.ToolNumber;
+                ToolNameInput.Text = t.NameDescription;
                 PartNumberInput.Text = t.PartNumber;
                 BrandInput.Text = t.Brand;
                 LocationInput.Text = t.Location;
@@ -183,6 +216,7 @@ namespace ToolManagementAppV2
                 NotesInput.Text = t.Notes;
             }
         }
+
 
         // ---------- Customer & Rental ----------
         void AddCustomerButton_Click(object s, RoutedEventArgs e)
@@ -449,14 +483,16 @@ namespace ToolManagementAppV2
         {
             try
             {
-                ToolsList.ItemsSource = _toolService.GetAllTools();
-                SearchResultsList.ItemsSource = _toolService.GetAllTools();
+                var tools = _toolService.GetAllTools();
+                ToolsList.ItemsSource = tools;
+                SearchResultsList.ItemsSource = tools;
             }
             catch (Exception ex)
             {
                 ShowError("Error loading tools", ex);
             }
         }
+
 
         void RefreshCustomerList()
         {

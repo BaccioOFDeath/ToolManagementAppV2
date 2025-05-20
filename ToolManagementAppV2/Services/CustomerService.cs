@@ -38,7 +38,7 @@ namespace ToolManagementAppV2.Services
 
                 var c = new Customer
                 {
-                    Name = get("Name"),
+                    Name = get("ToolNumber"),
                     Email = get("Email"),
                     Contact = get("Contact"),
                     Phone = get("Phone"),
@@ -52,7 +52,7 @@ namespace ToolManagementAppV2.Services
         {
             var all = GetAllCustomers();
             using var writer = new StreamWriter(filePath);
-            writer.WriteLine("Name,Email,Contact,Phone,Address");
+            writer.WriteLine("ToolNumber,Email,Contact,Phone,Address");
             foreach (var c in all)
                 writer.WriteLine($"{c.Name},{c.Email},{c.Contact},{c.Phone},{c.Address}");
         }
@@ -67,7 +67,7 @@ namespace ToolManagementAppV2.Services
         {
             const string sql = @"
                 SELECT * FROM Customers
-                  WHERE Name   LIKE @t
+                  WHERE ToolNumber   LIKE @t
                      OR Email  LIKE @t
                      OR Phone  LIKE @t
                      OR Address LIKE @t";
@@ -85,11 +85,11 @@ namespace ToolManagementAppV2.Services
         public void AddCustomer(Customer customer)
         {
             const string sql = @"
-                INSERT INTO Customers (Name, Email, Contact, Phone, Address)
-                VALUES (@Name, @Email, @Contact, @Phone, @Address)";
+                INSERT INTO Customers (ToolNumber, Email, Contact, Phone, Address)
+                VALUES (@ToolNumber, @Email, @Contact, @Phone, @Address)";
             var p = new[]
             {
-                new SQLiteParameter("@Name",    customer.Name),
+                new SQLiteParameter("@ToolNumber",    customer.Name),
                 new SQLiteParameter("@Email",   customer.Email),
                 new SQLiteParameter("@Contact", customer.Contact),
                 new SQLiteParameter("@Phone",   customer.Phone),
@@ -102,7 +102,7 @@ namespace ToolManagementAppV2.Services
         {
             const string sql = @"
                 UPDATE Customers
-                   SET Name    = @Name,
+                   SET ToolNumber    = @ToolNumber,
                        Email   = @Email,
                        Contact = @Contact,
                        Phone   = @Phone,
@@ -110,7 +110,7 @@ namespace ToolManagementAppV2.Services
                  WHERE CustomerID = @CustomerID";
             var p = new[]
             {
-                new SQLiteParameter("@Name",       customer.Name),
+                new SQLiteParameter("@ToolNumber",       customer.Name),
                 new SQLiteParameter("@Email",      customer.Email),
                 new SQLiteParameter("@Contact",    customer.Contact),
                 new SQLiteParameter("@Phone",      customer.Phone),
@@ -130,7 +130,7 @@ namespace ToolManagementAppV2.Services
         Customer MapCustomer(IDataRecord r) => new()
         {
             CustomerID = Convert.ToInt32(r["CustomerID"]),
-            Name = r["Name"].ToString(),
+            Name = r["ToolNumber"].ToString(),
             Email = r["Email"].ToString(),
             Contact = r["Contact"].ToString(),
             Phone = r["Phone"].ToString(),

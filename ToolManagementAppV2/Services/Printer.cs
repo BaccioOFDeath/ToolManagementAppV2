@@ -126,8 +126,8 @@ namespace ToolManagementAppV2.Services
             left.Inlines.Add(new Run("\n"));
             left.Inlines.Add(new Bold(new Run("Tool ID: ")));
             left.Inlines.Add(new Run(tool.ToolID + "\n"));
-            left.Inlines.Add(new Bold(new Run("Description: ")));
-            left.Inlines.Add(new Run(tool.Description + "\n"));
+            left.Inlines.Add(new Bold(new Run("NameDescription: ")));
+            left.Inlines.Add(new Run(tool.NameDescription + "\n"));
             Grid.SetColumn(left, 1);
             grid.Children.Add(left);
 
