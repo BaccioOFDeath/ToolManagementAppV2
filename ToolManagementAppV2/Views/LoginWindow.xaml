@@ -2,8 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:ToolManagementAppV2.Utilities"
-        Title="Tool Inventory Management - Login"
-        Height="650"
+        Title="Tool Inventory Management – Login" 
+    Height="650"
         Width="1600"
         WindowStartupLocation="CenterScreen"
         Background="White">
@@ -22,7 +22,9 @@
             <Image x:Name="LoginLogo"
                    Width="50" Height="50"
                    Margin="10"/>
-            <TextBlock Text="Tool Inventory Management"
+            <!-- Give this TextBlock a name so we can update it in code-behind -->
+            <TextBlock x:Name="HeaderTitle"
+                       Text="Tool Inventory Management" 
                        FontWeight="Bold"
                        FontSize="20"
                        VerticalAlignment="Center"
@@ -52,7 +54,7 @@
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      ScrollViewer.VerticalScrollBarVisibility="Auto"
                      MaxHeight="350">
-                <!-- remove default ListBoxItem hover/selection highlighting -->
+                <!-- remove default ListBoxItem highlighting -->
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
                         <Setter Property="Background" Value="Transparent"/>
@@ -69,7 +71,7 @@
                     </Style>
                 </ListBox.ItemContainerStyle>
 
-                <!-- wrap items and center them -->
+                <!-- wrap items and center -->
                 <ListBox.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel Orientation="Horizontal"
@@ -106,6 +108,5 @@
                 </ListBox.ItemTemplate>
             </ListBox>
         </Grid>
-
     </DockPanel>
 </Window>

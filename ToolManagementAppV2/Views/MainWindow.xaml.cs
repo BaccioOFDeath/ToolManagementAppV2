@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -533,15 +534,29 @@ namespace ToolManagementAppV2
         #region Settings, Import/Export, and Logs
         private void SaveSettingsButton_Click(object sender, RoutedEventArgs e)
         {
-            if (int.TryParse(RentalDurationInput.Text, out var rentalDuration))
+            // — save rental duration —
+            if (int.TryParse(RentalDurationInput.Text, out var days))
             {
-                _settingsService.SaveSetting("DefaultRentalDuration", rentalDuration.ToString());
-                MessageBox.Show("Settings saved successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                _settingsService.SaveSetting("DefaultRentalDuration", days.ToString());
             }
             else
             {
-                MessageBox.Show("Invalid rental duration.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Invalid rental duration.", "Error",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
             }
+
+            // — save application name —
+            var appName = ApplicationNameInput.Text?.Trim();
+            if (!string.IsNullOrEmpty(appName))
+            {
+                _settingsService.SaveSetting("ApplicationName", appName);
+                this.Title = appName;
+                HeaderTitle.Text = appName;
+            }
+
+            MessageBox.Show("Settings saved successfully!", "Success",
+                            MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void UploadLogoButton_Click(object sender, RoutedEventArgs e)
@@ -633,16 +648,30 @@ namespace ToolManagementAppV2
         {
             try
             {
-                var companyLogoPath = _settingsService.GetSetting("CompanyLogoPath");
-                if (!string.IsNullOrEmpty(companyLogoPath))
+                // — load saved logo (existing) —
+                var logoPath = _settingsService.GetSetting("CompanyLogoPath");
+                if (!string.IsNullOrEmpty(logoPath) && File.Exists(logoPath))
                 {
-                    LogoPreview.Source = new BitmapImage(new Uri(companyLogoPath));
-                    HeaderIcon.Source = LogoPreview.Source;
+                    var bmp = new BitmapImage(new Uri(logoPath, UriKind.Absolute));
+                    LogoPreview.Source = bmp;
+                    HeaderIcon.Source = bmp;
+                }
+
+                // — NEW: load application name —
+                var appName = _settingsService.GetSetting("ApplicationName");
+                if (!string.IsNullOrEmpty(appName))
+                {
+                    this.Title = appName;
+                    HeaderTitle.Text = appName;
+                    ApplicationNameInput.Text = appName;
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to load settings: {ex.Message}", "Settings Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show($"Failed to load settings: {ex.Message}",
+                                "Settings Error",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning);
             }
         }
 

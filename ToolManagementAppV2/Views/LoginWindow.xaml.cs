@@ -10,22 +10,35 @@ namespace ToolManagementAppV2
     public partial class LoginWindow : Window
     {
         private readonly UserService _userService;
+        private readonly SettingsService _settingsService;
 
         public LoginWindow()
         {
             InitializeComponent();
 
+            // --- initialize services pointing at your same database ---
             var dbPath = "tool_inventory.db";
             var databaseService = new DatabaseService(dbPath);
-            var settingsService = new SettingsService(databaseService);
+            _settingsService = new SettingsService(databaseService);
+            _userService = new UserService(databaseService);
 
-            var logoPath = settingsService.GetSetting("CompanyLogoPath");
+            // --- load & apply application name from settings ---
+            var appName = _settingsService.GetSetting("ApplicationName");
+            if (string.IsNullOrWhiteSpace(appName))
+                appName = "Tool Inventory Management";
+            // Window title
+            this.Title = $"{appName} – Login";
+            // Header TextBlock (named in XAML)
+            HeaderTitle.Text = appName;
+
+            // --- load & display logo from settings (or fallback) ---
+            var logoPath = _settingsService.GetSetting("CompanyLogoPath");
             var logoUri = !string.IsNullOrEmpty(logoPath) && File.Exists(logoPath)
                 ? new Uri(logoPath, UriKind.Absolute)
                 : new Uri("pack://application:,,,/Resources/DefaultLogo.png", UriKind.Absolute);
             LoginLogo.Source = new BitmapImage(logoUri);
 
-            _userService = new UserService(databaseService);
+            // --- populate the user list ---
             LoadUsers();
         }
 
@@ -37,6 +50,7 @@ namespace ToolManagementAppV2
                 MessageBox.Show(
                     "No users exist. A default admin account will be created (username: admin, password: admin).",
                     "Setup", MessageBoxButton.OK, MessageBoxImage.Information);
+
                 var defaultUser = new User
                 {
                     UserName = "admin",
@@ -49,63 +63,56 @@ namespace ToolManagementAppV2
             UsersListBox.ItemsSource = users;
         }
 
-        // LoginWindow.xaml.cs – Updated UserButton_Click to treat an empty admin password as default "admin"
-        // Updated UserButton_Click in LoginWindow.xaml.cs
         private void UserButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is FrameworkElement fe && fe.Tag is User selectedUser)
             {
-                // For admin users, if password is empty or whitespace, set default to "admin"
+                // For admin users, treat empty password as "admin"
                 if (selectedUser.IsAdmin && string.IsNullOrWhiteSpace(selectedUser.Password))
                 {
                     selectedUser.Password = "admin";
                     _userService.ChangeUserPassword(selectedUser.UserID, "admin");
                 }
 
-                // For non-admin users, if password is empty OR equals the default "newpassword", skip prompt
-                if (!selectedUser.IsAdmin && (string.IsNullOrWhiteSpace(selectedUser.Password) ||
+                // For non-admins, skip prompt if no real password set
+                if (!selectedUser.IsAdmin &&
+                    (string.IsNullOrWhiteSpace(selectedUser.Password) ||
                      selectedUser.Password.Equals("newpassword", StringComparison.OrdinalIgnoreCase)))
                 {
                     App.Current.Properties["CurrentUser"] = selectedUser;
-                    this.DialogResult = true;
-                    this.Close();
+                    DialogResult = true;
+                    Close();
                     return;
                 }
 
-                // Otherwise, prompt for password
-                PasswordPromptWindow prompt = new PasswordPromptWindow
+                // Otherwise ask for password
+                var prompt = new PasswordPromptWindow
                 {
                     SelectedUser = selectedUser,
-                    ValidatePassword = (pwd) => _userService.AuthenticateUser(selectedUser.UserName, pwd) != null
+                    ValidatePassword = pwd => _userService.AuthenticateUser(selectedUser.UserName, pwd) != null
                 };
 
-                bool? result = prompt.ShowDialog();
-                if (result == true)
+                if (prompt.ShowDialog() == true)
                 {
+                    User user = null;
                     if (prompt.IsPasswordResetRequested)
                     {
-                        var user = _userService.AuthenticateUser(selectedUser.UserName, "admin");
-                        if (user != null)
-                        {
-                            App.Current.Properties["CurrentUser"] = user;
-                            this.DialogResult = true;
-                            this.Close();
-                        }
+                        // reset via admin fallback
+                        user = _userService.AuthenticateUser(selectedUser.UserName, "admin");
                     }
                     else
                     {
-                        var user = _userService.AuthenticateUser(selectedUser.UserName, prompt.EnteredPassword);
-                        if (user != null)
-                        {
-                            App.Current.Properties["CurrentUser"] = user;
-                            this.DialogResult = true;
-                            this.Close();
-                        }
+                        user = _userService.AuthenticateUser(selectedUser.UserName, prompt.EnteredPassword);
+                    }
+
+                    if (user != null)
+                    {
+                        App.Current.Properties["CurrentUser"] = user;
+                        DialogResult = true;
+                        Close();
                     }
                 }
             }
         }
-
     }
 }
-
