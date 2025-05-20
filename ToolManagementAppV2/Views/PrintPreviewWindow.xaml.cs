@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -9,53 +8,47 @@ namespace ToolManagementAppV2.Views
 {
     public partial class PrintPreviewWindow : Window
     {
-        private FlowDocument _doc;   // store the FlowDocument
-        private string _title;
-        private string _logoPath;
+        FlowDocument _document;
+        string _title;
+        string _logoPath;
 
         public PrintPreviewWindow()
         {
             InitializeComponent();
         }
 
-        /// <summary>
-        /// Show a FlowDocument for preview.
-        /// </summary>
         public void ShowPreview(FlowDocument document, string title, string logoPath)
         {
-            _doc = document;
-            _title = title;
+            _document = document ?? throw new ArgumentNullException(nameof(document));
+            _title = title ?? throw new ArgumentNullException(nameof(title));
             _logoPath = logoPath;
 
-            // window & header
-            this.Title = $"Print Preview – {title}";
-            PreviewTitle.Text = title;
+            Title = $"Print Preview – {_title}";
+            PreviewTitle.Text = _title;
 
-            // logo
-            if (!string.IsNullOrEmpty(logoPath) && File.Exists(logoPath))
-                PreviewLogo.Source = new BitmapImage(new Uri(logoPath, UriKind.Absolute));
-            else
-                PreviewLogo.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultLogo.png"));
+            var logoUri = !string.IsNullOrWhiteSpace(_logoPath) && File.Exists(_logoPath)
+                ? new Uri(_logoPath, UriKind.Absolute)
+                : new Uri("pack://application:,,,/Resources/DefaultLogo.png");
+            PreviewLogo.Source = new BitmapImage(logoUri);
 
-            // feed the FlowDocument into the reader
-            DocViewer.Document = _doc;
-
-            this.Owner = Application.Current.MainWindow;
-            this.ShowDialog();
+            DocViewer.Document = _document;
+            Owner = Application.Current.MainWindow;
+            ShowDialog();
         }
 
-        private void Print_Click(object sender, RoutedEventArgs e)
+        void Print_Click(object sender, RoutedEventArgs e)
         {
-            if (_doc == null) return;
+            if (_document == null) return;
 
             var dlg = new PrintDialog();
-            if (dlg.ShowDialog() == true)
-                dlg.PrintDocument(((IDocumentPaginatorSource)_doc).DocumentPaginator, _title);
+            if (dlg.ShowDialog() != true) return;
+
+            dlg.PrintDocument(((IDocumentPaginatorSource)_document).DocumentPaginator, _title);
         }
 
-        private void Close_Click(object sender, RoutedEventArgs e)
+        void Close_Click(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            Close();
         }
     }
 }
