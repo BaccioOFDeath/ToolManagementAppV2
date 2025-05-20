@@ -94,12 +94,17 @@
                                     <GridViewColumn Header="Image" Width="100">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}}"
-             Height="50" Width="50" Stretch="Uniform">
+                                                <Image
+    Source="{Binding ToolImagePath,
+                     Converter={StaticResource NullToDefaultImageConverter},
+                     ConverterParameter=Tool}"
+    Width="50" Height="50" Stretch="Uniform">
                                                     <Image.ToolTip>
                                                         <Border BorderBrush="Gray" BorderThickness="1" Padding="2" Background="White">
-                                                            <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}}"
-                   Height="400" Width="400" Stretch="Uniform"/>
+                                                            <Image Source="{Binding ToolImagePath,
+                             Converter={StaticResource NullToDefaultImageConverter},
+                             ConverterParameter=Tool}"
+             Width="400" Height="400" Stretch="Uniform"/>
                                                         </Border>
                                                     </Image.ToolTip>
                                                 </Image>

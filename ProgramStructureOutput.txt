@@ -110,6 +110,40 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Method: private public DatabaseService(string dbPath)
       Method: private void InitializeDatabase()
 
+  File: Printer.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Printer.cs
+    Class: Printer
+      Visibility: public
+      Field: var list =
+      Field: var logoPath =
+      Field: var doc =
+      Field: var preview =
+      Field: var path =
+      Field: var headerContainer =
+      Field: var headerStack =
+      Field: var row =
+      Field: var panel =
+      Field: var grid =
+      Field: var imgBorder =
+      Field: var bmp =
+      Method: private public Printer(SettingsService settingsService)
+      Method: public void PrintTools(IEnumerable<Tool> tools, string title, string currentUserName = null)
+      Method: private string LoadCompanyLogoPath()
+      Method: private FlowDocument BuildDocument(List<Tool> tools, string title, string logoPath)
+      Method: private StackPanel CreateToolRow(Tool tool)
+      Method: private Border CreateOptimizedImage(string path)
+      Method: private void AddCompanyLogo(StackPanel host, string logoPath)
+      Method: private void AddTitle(StackPanel host, string title)
+    Class: DocumentPaginator
+      Visibility: private
+      Field: var page =
+      Field: var dv =
+      Field: var text =
+      Field: var x =
+      Field: var y =
+      Field: var cv =
+      Method: private public CustomDocumentPaginator(DocumentPaginator inner, Typeface tf, double fs)
+
   File: RentalService.cs
   Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\RentalService.cs
     Class: RentalService
@@ -248,12 +282,10 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
   Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\NullToDefaultImageConverter.cs
     Class: IValueConverter
       Visibility: public
-      Field: string path =
-      Field: string defaultFile =
-      Field: string param =
-      Field: var resourceUri =
+      Field: string type =
+      Field: var uri =
       Method: public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-      Method: private else if(param.Equals("Logo", StringComparison.OrdinalIgnoreCase))
+      Method: private BitmapImage LoadFromResource(string fileName)
       Method: public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 
 
@@ -365,10 +397,45 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
 
 Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views
 ----------------------------------------------------------------------------------------------------
+  File: AvatarSelectionWindow.xaml
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views\AvatarSelectionWindow.xaml
+    XAML Element: DockPanel
+      Attribute: Margin="10"
+    XAML Element: Border
+      Attribute: DockPanel.Dock="Top"
+      Attribute: Background="#DDD"
+      Attribute: Padding="10"
+    XAML Element: ListBox
+    XAML Element: ItemsPanelTemplate
+    XAML Element: UniformGrid
+      Attribute: Columns="6"
+      Attribute: HorizontalAlignment="Center"
+      Attribute: VerticalAlignment="Center"
+    XAML Element: ListBox
+    XAML Element: DataTemplate
+    XAML Element: Border
+      Attribute: Background="#dadada"
+      Attribute: CornerRadius="5"
+      Attribute: Padding="10"
+    XAML Element: Image
+      Attribute: Source="{Binding}"
+      Attribute: Width="100"
+      Attribute: Height="100"
+    XAML Element: StatusBar
+      Attribute: DockPanel.Dock="Bottom"
+      Attribute: Background="LightGray"
+      Attribute: Height="25"
+    XAML Element: StatusBarItem
+      Attribute: Content="Ready"
+
   File: ImportMappingWindow.xaml
   Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views\ImportMappingWindow.xaml
     XAML Element: DockPanel
       Attribute: Margin="10"
+    XAML Element: Border
+      Attribute: DockPanel.Dock="Top"
+      Attribute: Background="#DDD"
+      Attribute: Padding="10"
     XAML Element: DataGrid
     XAML Element: DataGridTemplateColumn
       Attribute: Header="CSV
@@ -410,26 +477,35 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Attribute: x:Name="LoginLogo"
       Attribute: Width="50"
       Attribute: Height="50"
-    XAML Element: TextBlock
-      Attribute: Text="Tool
-      Attribute: FontWeight="Bold"
-      Attribute: FontSize="20"
       Attribute: Margin="10"
-      Attribute: VerticalAlignment="Center"
-    XAML Element: StackPanel
-      Attribute: HorizontalAlignment="Center"
-      Attribute: VerticalAlignment="Center"
+    XAML Element: Grid
       Attribute: Margin="10"
-    XAML Element: TextBlock
-      Attribute: Text="Select
-      Attribute: FontSize="16"
-      Attribute: FontWeight="SemiBold"
-      Attribute: Margin="0,10,0,10"
-      Attribute: HorizontalAlignment="Center"
+    XAML Element: Grid
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: RowDefinition
+      Attribute: Height="*"
     XAML Element: ListBox
-      Attribute: x:Name="UsersListBox"
-      Attribute: BorderThickness="0"
-      Attribute: Background="Transparent"
+    XAML Element: Style
+      Attribute: TargetType="ListBoxItem"
+    XAML Element: Setter
+      Attribute: Property="Background"
+      Attribute: Value="Transparent"
+    XAML Element: Setter
+      Attribute: Property="BorderThickness"
+      Attribute: Value="0"
+    XAML Element: Setter
+      Attribute: Property="Padding"
+      Attribute: Value="0"
+    XAML Element: Setter
+      Attribute: Property="Margin"
+      Attribute: Value="0"
+    XAML Element: Setter
+      Attribute: Property="Template"
+    XAML Element: Setter
+    XAML Element: ControlTemplate
+      Attribute: TargetType="ListBoxItem"
+    XAML Element: ContentPresenter
     XAML Element: ListBox
     XAML Element: ItemsPanelTemplate
     XAML Element: WrapPanel
@@ -438,25 +514,9 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
     XAML Element: ListBox
     XAML Element: DataTemplate
     XAML Element: StackPanel
-      Attribute: Margin="10"
-      Attribute: Width="100"
-    XAML Element: Button
-      Attribute: Click="UserButton_Click"
-      Attribute: Tag="{Binding}"
-      Attribute: BorderThickness="0"
-      Attribute: Background="Transparent"
+      Attribute: Width="120"
+      Attribute: Margin="5"
     XAML Element: StackPanel
-    XAML Element: TextBlock
-      Attribute: Text="{Binding
-      Attribute: HorizontalAlignment="Center"
-      Attribute: Margin="0,5,0,0"
-      Attribute: FontWeight="SemiBold"
-    XAML Element: TextBlock
-      Attribute: Text="{Binding
-      Attribute: Converter={StaticResource
-      Attribute: HorizontalAlignment="Center"
-      Attribute: FontSize="10"
-      Attribute: Foreground="Red"
 
   File: MainWindow.xaml
   Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views\MainWindow.xaml
@@ -483,12 +543,6 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Attribute: Source="{Binding
       Attribute: Width="50"
       Attribute: Height="50"
-    XAML Element: TextBlock
-      Attribute: Text="T.I.M"
-      Attribute: FontWeight="Bold"
-      Attribute: FontSize="20"
-      Attribute: Margin="10"
-      Attribute: VerticalAlignment="Center"
     XAML Element: StackPanel
       Attribute: DockPanel.Dock="Right"
       Attribute: Orientation="Horizontal"
@@ -617,11 +671,11 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
     XAML Element: GridViewColumn
     XAML Element: DataTemplate
     XAML Element: Image
-      Attribute: Source="{Binding
-      Attribute: Converter={StaticResource
-      Attribute: Height="50"
-      Attribute: Width="50"
-      Attribute: Stretch="Uniform"
+    XAML Element: Border
+      Attribute: BorderBrush="Gray"
+      Attribute: BorderThickness="1"
+      Attribute: Padding="2"
+      Attribute: Background="White"
     XAML Element: Button
       Attribute: Content="Choose
       Attribute: Click="ChooseUserProfilePicButton_Click"
@@ -787,11 +841,11 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
     XAML Element: GridViewColumn
     XAML Element: DataTemplate
     XAML Element: Image
-      Attribute: Source="{Binding
-      Attribute: Converter={StaticResource
-      Attribute: Height="50"
-      Attribute: Width="50"
-      Attribute: Stretch="Uniform"
+    XAML Element: Border
+      Attribute: BorderBrush="Gray"
+      Attribute: BorderThickness="1"
+      Attribute: Padding="2"
+      Attribute: Background="White"
     XAML Element: TabItem
       Attribute: Header="Customers"
     XAML Element: Grid
@@ -1109,44 +1163,16 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
     XAML Element: StackPanel
       Attribute: Orientation="Vertical"
       Attribute: Margin="10"
-    XAML Element: TextBlock
-      Attribute: Text="Application
-      Attribute: FontWeight="Bold"
-      Attribute: FontSize="16"
+    XAML Element: StackPanel
+      Attribute: Orientation="Horizontal"
       Attribute: Margin="5"
     XAML Element: StackPanel
       Attribute: Orientation="Horizontal"
       Attribute: Margin="5"
     XAML Element: TextBlock
-      Attribute: Text="Default
-      Attribute: VerticalAlignment="Center"
-      Attribute: Width="200"
-    XAML Element: xctk
-      Attribute: x:Name="RentalDurationInput"
-      Attribute: Watermark="7"
-      Attribute: Width="100"
-      Attribute: Margin="5"
-    XAML Element: TextBlock
       Attribute: Text="Company
       Attribute: FontWeight="Bold"
       Attribute: Margin="5"
-    XAML Element: Image
-      Attribute: x:Name="LogoPreview"
-      Attribute: Width="150"
-      Attribute: Height="150"
-      Attribute: Margin="5"
-      Attribute: Stretch="Uniform"
-      Attribute: HorizontalAlignment="Left"
-    XAML Element: Button
-      Attribute: Content="Upload
-      Attribute: Click="UploadLogoButton_Click"
-      Attribute: Margin="5"
-      Attribute: HorizontalAlignment="Left"
-    XAML Element: Button
-      Attribute: Content="Save
-      Attribute: Click="SaveSettingsButton_Click"
-      Attribute: Margin="5"
-      Attribute: HorizontalAlignment="Left"
     XAML Element: TabItem
       Attribute: Header="Import/Export"
     XAML Element: StackPanel
@@ -1282,37 +1308,24 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Attribute: Height="Auto"
     XAML Element: RowDefinition
       Attribute: Height="Auto"
-    XAML Element: TextBlock
-      Attribute: Text="Enter
-      Attribute: FontSize="14"
-      Attribute: FontWeight="Bold"
-      Attribute: Grid.Row="0"
-      Attribute: Margin="0,0,0,10"
-    XAML Element: PasswordBox
-      Attribute: x:Name="PasswordBox"
-      Attribute: Grid.Row="1"
-      Attribute: Height="30"
-      Attribute: FontSize="14"
-    XAML Element: TextBlock
-      Attribute: x:Name="ErrorTextBlock"
-      Attribute: Grid.Row="2"
-      Attribute: Foreground="Red"
-      Attribute: FontSize="12"
-      Attribute: Visibility="Collapsed"
-      Attribute: Margin="0,5,0,5"
-    XAML Element: StackPanel
-      Attribute: Grid.Row="3"
-      Attribute: Orientation="Horizontal"
-      Attribute: HorizontalAlignment="Right"
-    XAML Element: Button
-      Attribute: Content="OK"
-      Attribute: Width="75"
-      Attribute: Margin="5"
-      Attribute: Click="OK_Click"
-    XAML Element: Button
-      Attribute: Content="Cancel"
-      Attribute: Width="75"
-      Attribute: Margin="5"
-      Attribute: Click="Cancel_Click"
+
+  File: PrintPreviewWindow.xaml
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views\PrintPreviewWindow.xaml
+    XAML Element: DockPanel
+      Attribute: Margin="10"
+    XAML Element: Border
+      Attribute: DockPanel.Dock="Top"
+      Attribute: Background="#DDD"
+      Attribute: Padding="10"
+    XAML Element: Grid
+    XAML Element: Grid
+    XAML Element: ColumnDefinition
+      Attribute: Width="Auto"
+    XAML Element: ColumnDefinition
+      Attribute: Width="*"
+    XAML Element: ColumnDefinition
+      Attribute: Width="Auto"
+    XAML Element: StatusBarItem
+      Attribute: Content="Ready
 
 
