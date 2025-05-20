@@ -7,41 +7,35 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
-using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Services;
 using ToolManagementAppV2.Views;
-using System.Windows.Threading;
-
 
 namespace ToolManagementAppV2.ViewModels
 {
     public class MainViewModel : ObservableObject
     {
+        readonly DispatcherTimer _refreshTimer;
+        readonly ToolService _toolService;
+        readonly UserService _userService;
+        readonly CustomerService _customerService;
+        readonly RentalService _rentalService;
+        readonly SettingsService _settingsService;
 
-        private readonly DispatcherTimer _refreshTimer;
-
-        private readonly ToolService _toolService;
-        private readonly UserService _userService;
-        private readonly CustomerService _customerService;
-        private readonly RentalService _rentalService;
-        private readonly SettingsService _settingsService;
-
-        // Tools
         public ObservableCollection<Tool> Tools { get; } = new();
         public ObservableCollection<Tool> SearchResults { get; } = new();
         public ObservableCollection<Tool> CheckedOutTools { get; } = new();
-        private Tool _selectedTool;
+        Tool _selectedTool;
         public Tool SelectedTool
         {
             get => _selectedTool;
             set => SetProperty(ref _selectedTool, value);
         }
 
-        // Users
         public ObservableCollection<User> Users { get; } = new();
-        private User _selectedUser;
+        User _selectedUser;
         public User SelectedUser
         {
             get => _selectedUser;
@@ -52,48 +46,47 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        // Customers
         public ObservableCollection<Customer> Customers { get; } = new();
-        private Customer _selectedCustomer;
+        Customer _selectedCustomer;
         public Customer SelectedCustomer
         {
             get => _selectedCustomer;
             set => SetProperty(ref _selectedCustomer, value);
         }
-        private string _newCustomerName, _newCustomerEmail, _newCustomerContact, _newCustomerPhone, _newCustomerAddress;
+
+        string _newCustomerName, _newCustomerEmail, _newCustomerContact, _newCustomerPhone, _newCustomerAddress;
         public string NewCustomerName { get => _newCustomerName; set => SetProperty(ref _newCustomerName, value); }
         public string NewCustomerEmail { get => _newCustomerEmail; set => SetProperty(ref _newCustomerEmail, value); }
         public string NewCustomerContact { get => _newCustomerContact; set => SetProperty(ref _newCustomerContact, value); }
         public string NewCustomerPhone { get => _newCustomerPhone; set => SetProperty(ref _newCustomerPhone, value); }
         public string NewCustomerAddress { get => _newCustomerAddress; set => SetProperty(ref _newCustomerAddress, value); }
 
-        // Rentals
         public ObservableCollection<Rental> ActiveRentals { get; } = new();
         public ObservableCollection<Rental> OverdueRentals { get; } = new();
-        private Rental _selectedRental;
+        Rental _selectedRental;
         public Rental SelectedRental
         {
             get => _selectedRental;
             set => SetProperty(ref _selectedRental, value);
         }
+
         public DateTime NewDueDate { get; set; } = DateTime.Today.AddDays(7);
 
-        // Header / Current User
-        private string _currentUserName;
+        string _currentUserName;
         public string CurrentUserName
         {
             get => _currentUserName;
             set => SetProperty(ref _currentUserName, value);
         }
 
-        private BitmapImage _currentUserPhoto;
+        BitmapImage _currentUserPhoto;
         public BitmapImage CurrentUserPhoto
         {
             get => _currentUserPhoto;
             set => SetProperty(ref _currentUserPhoto, value);
         }
 
-        private BitmapImage _headerLogo;
+        BitmapImage _headerLogo;
         public BitmapImage HeaderLogo
         {
             get
@@ -110,60 +103,37 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        // Search term
         public string SearchTerm { get; set; }
-
-        // Helpers
         public bool IsLastAdmin =>
             SelectedUser != null &&
             SelectedUser.IsAdmin &&
             Users.Count(u => u.IsAdmin) == 1;
 
-        // Commands
-        public ICommand SearchCommand { get; }
-        public ICommand AddToolCommand { get; }
-        public ICommand UpdateToolCommand { get; }
-        public ICommand ImportToolsCommand { get; }
-        public ICommand ExportToolsCommand { get; }
-        public ICommand DeleteToolCommand { get; }
-        public ICommand LoadUsersCommand { get; }
-        public ICommand ChooseProfilePicCommand { get; }
-        public ICommand UploadUserPhotoCommand { get; }
+        public string UserPassword { get; set; }
+        public string NewPassword { get; set; }
+        public string ConfirmPassword { get; set; }
 
-        public ICommand LoadCustomersCommand { get; }
-        public ICommand AddCustomerCommand { get; }
-        public ICommand UpdateCustomerCommand { get; }
-        public ICommand ImportCustomersCommand { get; }
-        public ICommand ExportCustomersCommand { get; }
-        public ICommand DeleteCustomerCommand { get; }
+        public IRelayCommand SearchCommand { get; }
+        public IRelayCommand AddToolCommand { get; }
+        public IRelayCommand UpdateToolCommand { get; }
+        public IRelayCommand ImportToolsCommand { get; }
+        public IRelayCommand ExportToolsCommand { get; }
+        public IRelayCommand DeleteToolCommand { get; }
+        public IRelayCommand LoadUsersCommand { get; }
+        public IRelayCommand ChooseProfilePicCommand { get; }
+        public IRelayCommand UploadUserPhotoCommand { get; }
 
-        public ICommand LoadActiveRentalsCommand { get; }
-        public ICommand LoadOverdueRentalsCommand { get; }
-        public ICommand ReturnToolCommand { get; }
-        public ICommand ExtendRentalCommand { get; }
+        public IRelayCommand LoadCustomersCommand { get; }
+        public IRelayCommand AddCustomerCommand { get; }
+        public IRelayCommand UpdateCustomerCommand { get; }
+        public IRelayCommand ImportCustomersCommand { get; }
+        public IRelayCommand ExportCustomersCommand { get; }
+        public IRelayCommand DeleteCustomerCommand { get; }
 
-        private string _userPassword;
-        public string UserPassword
-        {
-            get => _userPassword;
-            set => SetProperty(ref _userPassword, value);
-        }
-
-        private string _newPassword;
-        public string NewPassword
-        {
-            get => _newPassword;
-            set => SetProperty(ref _newPassword, value);
-        }
-
-        private string _confirmPassword;
-        public string ConfirmPassword
-        {
-            get => _confirmPassword;
-            set => SetProperty(ref _confirmPassword, value);
-        }
-
-
+        public IRelayCommand LoadActiveRentalsCommand { get; }
+        public IRelayCommand LoadOverdueRentalsCommand { get; }
+        public IRelayCommand ReturnToolCommand { get; }
+        public IRelayCommand ExtendRentalCommand { get; }
 
         public MainViewModel(
             ToolService toolService,
@@ -178,37 +148,37 @@ namespace ToolManagementAppV2.ViewModels
             _rentalService = rentalService;
             _settingsService = settingsService;
 
-
-
-            // Tool commands
             SearchCommand = new RelayCommand(SearchTools);
             AddToolCommand = new RelayCommand(AddTool);
-            UpdateToolCommand = new RelayCommand(UpdateTool);
+            UpdateToolCommand = new RelayCommand(UpdateTool, () => SelectedTool != null);
             ImportToolsCommand = new RelayCommand(ImportTools);
             ExportToolsCommand = new RelayCommand(ExportTools);
-            DeleteToolCommand = new RelayCommand(DeleteTool);
+            DeleteToolCommand = new RelayCommand(DeleteTool, () => SelectedTool != null);
 
-            // User commands
             LoadUsersCommand = new RelayCommand(LoadUsers);
-            ChooseProfilePicCommand = new RelayCommand(ChooseProfilePic);
-            UploadUserPhotoCommand = new RelayCommand(UploadSelectedUserPhoto);
+            ChooseProfilePicCommand = new RelayCommand(ChooseProfilePic, () => Application.Current.Properties["CurrentUser"] is User);
+            UploadUserPhotoCommand = new RelayCommand(() => UploadPhotoForUser(SelectedUser), () => SelectedUser != null);
 
-            // Customer commands
             LoadCustomersCommand = new RelayCommand(LoadCustomers);
             AddCustomerCommand = new RelayCommand(AddCustomer);
             UpdateCustomerCommand = new RelayCommand(UpdateCustomer, () => SelectedCustomer != null);
-            ImportToolsCommand = new RelayCommand(ImportTools);
             ImportCustomersCommand = new RelayCommand(ImportCustomers);
             ExportCustomersCommand = new RelayCommand(ExportCustomers);
             DeleteCustomerCommand = new RelayCommand(DeleteCustomer, () => SelectedCustomer != null);
 
-            // Rental commands
             LoadActiveRentalsCommand = new RelayCommand(LoadActiveRentals);
             LoadOverdueRentalsCommand = new RelayCommand(LoadOverdueRentals);
             ReturnToolCommand = new RelayCommand(ReturnSelectedRental, () => SelectedRental != null);
             ExtendRentalCommand = new RelayCommand(ExtendSelectedRental, () => SelectedRental != null);
 
-            // initial load
+            InitializeData();
+            _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+            _refreshTimer.Tick += (_, __) => { LoadTools(); LoadCheckedOutTools(); };
+            _refreshTimer.Start();
+        }
+
+        void InitializeData()
+        {
             LoadTools();
             LoadCheckedOutTools();
             LoadUsers();
@@ -216,268 +186,214 @@ namespace ToolManagementAppV2.ViewModels
             LoadCustomers();
             LoadActiveRentals();
             LoadOverdueRentals();
-
-            // start a timer to refresh every 2 seconds
-            _refreshTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromSeconds(2)
-            };
-            _refreshTimer.Tick += (s, e) =>
-            {
-                LoadTools();            // update inventory counts / availability
-                LoadCheckedOutTools();  // update each user's checked-out list
-            };
-            _refreshTimer.Start();
         }
 
-        // Tool methods
-        private void LoadTools()
+        void LoadTools()
         {
-            Tools.Clear();
-            foreach (var t in _toolService.GetAllTools())
-                Tools.Add(t);
+            Tools.ReplaceRange(_toolService.GetAllTools());
         }
 
-        private void LoadCheckedOutTools()
+        void LoadCheckedOutTools()
         {
-            CheckedOutTools.Clear();
-            foreach (var t in _toolService.GetAllTools().Where(t => t.IsCheckedOut))
-                CheckedOutTools.Add(t);
+            CheckedOutTools.ReplaceRange(_toolService.GetAllTools().Where(t => t.IsCheckedOut));
         }
 
-
-        private void SearchTools()
+        void SearchTools()
         {
-            SearchResults.Clear();
             var results = string.IsNullOrWhiteSpace(SearchTerm)
                 ? _toolService.GetAllTools()
                 : _toolService.SearchTools(SearchTerm);
-            foreach (var tool in results)
-                SearchResults.Add(tool);
+            SearchResults.ReplaceRange(results);
         }
 
-        private void AddTool()
+        void AddTool()
         {
-            var nt = new Tool { ToolID = "NewID", Description = "New Description" };
-            _toolService.AddTool(nt);
+            _toolService.AddTool(new Tool { ToolID = Guid.NewGuid().ToString(), Description = string.Empty });
             LoadTools();
         }
 
-        private void UpdateTool()
+        void UpdateTool()
         {
-            if (SelectedTool == null) return;
             _toolService.UpdateTool(SelectedTool);
             LoadTools();
         }
 
-        private void ImportTools()
+        void ImportTools()
         {
-            var dlg = new OpenFileDialog { Filter = "CSV Files|*.csv" };
-            if (dlg.ShowDialog() != true) return;
-
-            var lines = File.ReadAllLines(dlg.FileName);
-            if (lines.Length < 2)
-            {
-                MessageBox.Show("CSV has no data rows.", "Import Tools", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
+            if (!ShowFileDialog("CSV Files|*.csv", out var path)) return;
+            var lines = File.ReadAllLines(path);
+            if (lines.Length < 2) { ShowWarning("CSV has no data rows."); return; }
             var headers = lines[0].Split(',').Select(h => h.Trim());
-            var toolFields = new[] { "Name","Description","Location","Brand","PartNumber",
-                              "Supplier","PurchasedDate","Notes","AvailableQuantity" };
-            var mapWin = new ImportMappingWindow(headers, toolFields);
-            if (mapWin.ShowDialog() != true) return;
-
-            var map = mapWin.VM.Mappings.ToDictionary(m => m.PropertyName, m => m.SelectedColumn);
-            _toolService.ImportToolsFromCsv(dlg.FileName, map);
+            var fields = new[] { "Name", "Description", "Location", "Brand", "PartNumber", "Supplier", "PurchasedDate", "Notes", "AvailableQuantity" };
+            if (!ShowMappingWindow(headers, fields, out var map)) return;
+            _toolService.ImportToolsFromCsv(path, map);
             LoadTools();
-            MessageBox.Show($"{lines.Skip(1).Count()} tools imported successfully.", "Import Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+            ShowInfo($"{lines.Length - 1} tools imported successfully.");
         }
 
-
-        private void ExportTools()
+        void ExportTools()
         {
-            var dlg = new SaveFileDialog { Filter = "CSV Files|*.csv", FileName = "tools_export.csv" };
-            if (dlg.ShowDialog() != true) return;
-            _toolService.ExportToolsToCsv(dlg.FileName);
-            MessageBox.Show("Tools exported successfully.", "Export Tools", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (!ShowSaveDialog("tools_export.csv", out var path)) return;
+            _toolService.ExportToolsToCsv(path);
+            ShowInfo("Tools exported successfully.");
         }
 
-        private void ImportCustomers()
+        void DeleteTool()
         {
-            var dlg = new OpenFileDialog { Filter = "CSV Files|*.csv" };
-            if (dlg.ShowDialog() != true) return;
-
-            var lines = File.ReadAllLines(dlg.FileName);
-            if (lines.Length < 2)
-            {
-                MessageBox.Show("CSV has no data rows.", "Import Customers", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            var headers = lines[0].Split(',').Select(h => h.Trim());
-            var customerFields = new[] { "Name", "Email", "Contact", "Phone", "Address" };
-            var mapWin = new ImportMappingWindow(headers, customerFields);
-            if (mapWin.ShowDialog() != true) return;
-
-            var map = mapWin.VM.Mappings.ToDictionary(m => m.PropertyName, m => m.SelectedColumn);
-            _customerService.ImportCustomersFromCsv(dlg.FileName, map);
-            LoadCustomers();
-            MessageBox.Show($"{lines.Skip(1).Count()} customers imported successfully.", "Import Complete", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        private void ExportCustomers()
-        {
-            var dlg = new SaveFileDialog { Filter = "CSV Files|*.csv", FileName = "customers_export.csv" };
-            if (dlg.ShowDialog() != true) return;
-            _customerService.ExportCustomersToCsv(dlg.FileName);
-            MessageBox.Show("Customers exported successfully.", "Export Customers", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-
-        private void DeleteTool()
-        {
-            if (SelectedTool == null) return;
             _toolService.DeleteTool(SelectedTool.ToolID);
             LoadTools();
         }
 
-        // User methods
         public void LoadUsers()
         {
-            Users.Clear();
-            foreach (var u in _userService.GetAllUsers())
-                Users.Add(u);
-
-            // If we have at least one user, select the first one
+            Users.ReplaceRange(_userService.GetAllUsers());
             SelectedUser = Users.FirstOrDefault();
-
-            // Update any dependent properties
             OnPropertyChanged(nameof(IsLastAdmin));
         }
 
-
-        private void LoadCurrentUser()
+        void LoadCurrentUser()
         {
-            if (Application.Current.Properties["CurrentUser"] is User curr)
+            if (Application.Current.Properties["CurrentUser"] is User cu)
             {
-                CurrentUserName = curr.UserName;
-                CurrentUserPhoto = File.Exists(curr.UserPhotoPath)
-                    ? new BitmapImage(new Uri(curr.UserPhotoPath, UriKind.Absolute))
-                    : new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultUserPhoto.png", UriKind.Absolute));
+                CurrentUserName = cu.UserName;
+                CurrentUserPhoto = File.Exists(cu.UserPhotoPath)
+                    ? new BitmapImage(new Uri(cu.UserPhotoPath))
+                    : new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultUserPhoto.png"));
             }
         }
 
-        private void ChooseProfilePic()
-        {
-            if (Application.Current.Properties["CurrentUser"] is User cu)
-                UploadPhotoForUser(cu);
-        }
+        void ChooseProfilePic() => UploadPhotoForUser((User)Application.Current.Properties["CurrentUser"]);
 
-        private void UploadSelectedUserPhoto()
+        void UploadPhotoForUser(User u)
         {
-            if (SelectedUser != null)
-                UploadPhotoForUser(SelectedUser);
-        }
-
-        private void UploadPhotoForUser(User u)
-        {
-            var dlg = new OpenFileDialog { Filter = "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg" };
-            if (dlg.ShowDialog() != true) return;
-
-            var src = dlg.FileName;
+            if (!ShowFileDialog("Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg", out var src)) return;
             var folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UserPhotos");
             Directory.CreateDirectory(folder);
             var dest = Path.Combine(folder, $"{Guid.NewGuid()}{Path.GetExtension(src)}");
             File.Copy(src, dest, true);
-
             var bmp = new BitmapImage();
-            bmp.BeginInit();
-            bmp.CacheOption = BitmapCacheOption.OnLoad;
-            bmp.UriSource = new Uri(dest, UriKind.Absolute);
-            bmp.EndInit();
-
-            u.UserPhotoPath = dest;
-            u.PhotoBitmap = bmp;
+            bmp.BeginInit(); bmp.CacheOption = BitmapCacheOption.OnLoad; bmp.UriSource = new Uri(dest); bmp.EndInit();
+            u.UserPhotoPath = dest; u.PhotoBitmap = bmp;
             _userService.UpdateUser(u);
-
             if (Application.Current.Properties["CurrentUser"] is User cu && cu.UserID == u.UserID)
             {
-                cu.UserPhotoPath = dest;
-                cu.PhotoBitmap = bmp;
-                CurrentUserPhoto = bmp;
-                CurrentUserName = cu.UserName;
+                cu.UserPhotoPath = dest; cu.PhotoBitmap = bmp;
+                CurrentUserPhoto = bmp; CurrentUserName = cu.UserName;
             }
-
             LoadUsers();
         }
 
-        // Customer methods
-        public void LoadCustomers()
+        void LoadCustomers()
         {
-            Customers.Clear();
-            foreach (var c in _customerService.GetAllCustomers())
-                Customers.Add(c);
+            Customers.ReplaceRange(_customerService.GetAllCustomers());
         }
 
-        private void AddCustomer()
+        void AddCustomer()
         {
-            var c = new Customer
+            _customerService.AddCustomer(new Customer
             {
                 Name = NewCustomerName,
                 Email = NewCustomerEmail,
                 Contact = NewCustomerContact,
                 Phone = NewCustomerPhone,
                 Address = NewCustomerAddress
-            };
-            _customerService.AddCustomer(c);
+            });
             LoadCustomers();
         }
 
-        private void UpdateCustomer()
+        void UpdateCustomer()
         {
-            if (SelectedCustomer == null) return;
             _customerService.UpdateCustomer(SelectedCustomer);
             LoadCustomers();
         }
 
-        private void DeleteCustomer()
+        void ImportCustomers()
         {
-            if (SelectedCustomer == null) return;
+            if (!ShowFileDialog("CSV Files|*.csv", out var path)) return;
+            var lines = File.ReadAllLines(path);
+            if (lines.Length < 2) { ShowWarning("CSV has no data rows."); return; }
+            var headers = lines[0].Split(',').Select(h => h.Trim());
+            var fields = new[] { "Name", "Email", "Contact", "Phone", "Address" };
+            if (!ShowMappingWindow(headers, fields, out var map)) return;
+            _customerService.ImportCustomersFromCsv(path, map);
+            LoadCustomers();
+            ShowInfo($"{lines.Length - 1} customers imported successfully.");
+        }
+
+        void ExportCustomers()
+        {
+            if (!ShowSaveDialog("customers_export.csv", out var path)) return;
+            _customerService.ExportCustomersToCsv(path);
+            ShowInfo("Customers exported successfully.");
+        }
+
+        void DeleteCustomer()
+        {
             _customerService.DeleteCustomer(SelectedCustomer.CustomerID);
             LoadCustomers();
         }
 
-        // Rental methods
-        private void LoadActiveRentals()
+        void LoadActiveRentals()
         {
-            ActiveRentals.Clear();
-            foreach (var r in _rentalService.GetActiveRentals())
-                ActiveRentals.Add(r);
+            ActiveRentals.ReplaceRange(_rentalService.GetActiveRentals());
             SelectedRental = null;
         }
 
-        private void LoadOverdueRentals()
+        void LoadOverdueRentals()
         {
-            OverdueRentals.Clear();
-            foreach (var r in _rentalService.GetOverdueRentals())
-                OverdueRentals.Add(r);
+            OverdueRentals.ReplaceRange(_rentalService.GetOverdueRentals());
         }
 
-        private void ReturnSelectedRental()
+        void ReturnSelectedRental()
         {
-            if (SelectedRental == null) return;
             _rentalService.ReturnTool(SelectedRental.RentalID, DateTime.Now);
             LoadActiveRentals();
             LoadOverdueRentals();
         }
 
-        private void ExtendSelectedRental()
+        void ExtendSelectedRental()
         {
-            if (SelectedRental == null) return;
             _rentalService.ExtendRental(SelectedRental.RentalID, NewDueDate);
             LoadActiveRentals();
             LoadOverdueRentals();
+        }
+
+        bool ShowFileDialog(string filter, out string path)
+        {
+            var dlg = new OpenFileDialog { Filter = filter };
+            if (dlg.ShowDialog() == true) { path = dlg.FileName; return true; }
+            path = null; return false;
+        }
+
+        bool ShowSaveDialog(string defaultName, out string path)
+        {
+            var dlg = new SaveFileDialog { Filter = "CSV Files|*.csv", FileName = defaultName };
+            if (dlg.ShowDialog() == true) { path = dlg.FileName; return true; }
+            path = null; return false;
+        }
+
+        bool ShowMappingWindow(IEnumerable<string> headers, IEnumerable<string> fields, out Dictionary<string, string> map)
+        {
+            var win = new ImportMappingWindow(headers, fields);
+            if (win.ShowDialog() == true)
+            {
+                map = win.VM.Mappings.ToDictionary(m => m.PropertyName, m => m.SelectedColumn);
+                return true;
+            }
+            map = null;
+            return false;
+        }
+
+        void ShowInfo(string msg) => MessageBox.Show(msg, "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+        void ShowWarning(string msg) => MessageBox.Show(msg, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+    }
+
+    static class ObservableCollectionExtensions
+    {
+        public static void ReplaceRange<T>(this ObservableCollection<T> collection, IEnumerable<T> items)
+        {
+            collection.Clear();
+            foreach (var i in items) collection.Add(i);
         }
     }
 }
