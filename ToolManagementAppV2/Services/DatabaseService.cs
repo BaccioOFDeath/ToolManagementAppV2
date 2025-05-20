@@ -1,4 +1,6 @@
-﻿using System.Data.SQLite;
+﻿// File: Services/DatabaseService.cs
+using System;
+using System.Data.SQLite;
 using System.IO;
 using System.Linq;
 
@@ -12,182 +14,64 @@ namespace ToolManagementAppV2.Services
         {
             ConnectionString = $"Data Source={dbPath};Version=3;";
             InitializeDatabase();
-            UpdateDatabaseSchema();
-            UpdateUserSchema();
+            EnsureColumn("Tools", "ToolImagePath", "TEXT");
+            EnsureColumn("Users", "Password", "TEXT");
+            EnsureColumn("Users", "Email", "TEXT");
+            EnsureColumn("Users", "Phone", "TEXT");
+            EnsureColumn("Users", "Address", "TEXT");
+            EnsureColumn("Users", "Role", "TEXT");
         }
 
-        private void InitializeDatabase()
+        void InitializeDatabase()
         {
-            using var connection = new SQLiteConnection(ConnectionString);
-            connection.Open();
-
-            var createTables = @"
-                -- Tools Table
-                CREATE TABLE IF NOT EXISTS Tools (
-                    ToolID INTEGER PRIMARY KEY AUTOINCREMENT,
-                    Name TEXT NOT NULL,
-                    Description TEXT,
-                    Location TEXT,
-                    Brand TEXT,
-                    PartNumber TEXT,
-                    Supplier TEXT,
-                    PurchasedDate DATETIME,
-                    Notes TEXT,
-                    AvailableQuantity INTEGER NOT NULL DEFAULT 0,
-                    RentedQuantity INTEGER NOT NULL DEFAULT 0,
-                    IsCheckedOut INTEGER NOT NULL DEFAULT 0,
-                    CheckedOutBy TEXT,
-                    CheckedOutTime DATETIME
-                );
-
-                -- Users Table
-                CREATE TABLE IF NOT EXISTS Users (
-                    UserID INTEGER PRIMARY KEY AUTOINCREMENT,
-                    UserName TEXT NOT NULL,
-                    UserPhotoPath TEXT,
-                    IsAdmin INTEGER NOT NULL DEFAULT 0
-                );
-
-                -- Customers Table
-                CREATE TABLE IF NOT EXISTS Customers (
-                    CustomerID INTEGER PRIMARY KEY AUTOINCREMENT,
-                    Name TEXT NOT NULL,
-                    Email TEXT,
-                    Contact TEXT,
-                    Phone TEXT,
-                    Address TEXT
-                );
-
-                -- Rentals Table
-                CREATE TABLE IF NOT EXISTS Rentals (
-                    RentalID INTEGER PRIMARY KEY AUTOINCREMENT,
-                    ToolID INTEGER NOT NULL,
-                    CustomerID INTEGER NOT NULL,
-                    RentalDate DATETIME NOT NULL,
-                    DueDate DATETIME NOT NULL,
-                    ReturnDate DATETIME,
-                    Status TEXT NOT NULL DEFAULT 'Rented',
-                    FOREIGN KEY (ToolID) REFERENCES Tools (ToolID),
-                    FOREIGN KEY (CustomerID) REFERENCES Customers (CustomerID)
-                );
-
-                -- Activity Logs Table
-                CREATE TABLE IF NOT EXISTS ActivityLogs (
-                    LogID INTEGER PRIMARY KEY AUTOINCREMENT,
-                    UserID INTEGER,
-                    UserName TEXT,
-                    Action TEXT,
-                    Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (UserID) REFERENCES Users (UserID)
-                );
-
-                -- Settings Table for configuration options
-                CREATE TABLE IF NOT EXISTS Settings (
-                    Key TEXT PRIMARY KEY,
-                    Value TEXT
-                );
+            using var conn = new SQLiteConnection(ConnectionString);
+            conn.Open();
+            var sql = @"
+                CREATE TABLE IF NOT EXISTS Tools (ToolID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Description TEXT, Location TEXT, Brand TEXT, PartNumber TEXT, Supplier TEXT, PurchasedDate DATETIME, Notes TEXT, AvailableQuantity INTEGER NOT NULL DEFAULT 0, RentedQuantity INTEGER NOT NULL DEFAULT 0, IsCheckedOut INTEGER NOT NULL DEFAULT 0, CheckedOutBy TEXT, CheckedOutTime DATETIME);
+                CREATE TABLE IF NOT EXISTS Users (UserID INTEGER PRIMARY KEY AUTOINCREMENT, UserName TEXT NOT NULL, UserPhotoPath TEXT, IsAdmin INTEGER NOT NULL DEFAULT 0);
+                CREATE TABLE IF NOT EXISTS Customers (CustomerID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Email TEXT, Contact TEXT, Phone TEXT, Address TEXT);
+                CREATE TABLE IF NOT EXISTS Rentals (RentalID INTEGER PRIMARY KEY AUTOINCREMENT, ToolID INTEGER NOT NULL, CustomerID INTEGER NOT NULL, RentalDate DATETIME NOT NULL, DueDate DATETIME NOT NULL, ReturnDate DATETIME, Status TEXT NOT NULL DEFAULT 'Rented', FOREIGN KEY (ToolID) REFERENCES Tools(ToolID), FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID));
+                CREATE TABLE IF NOT EXISTS ActivityLogs (LogID INTEGER PRIMARY KEY AUTOINCREMENT, UserID INTEGER, UserName TEXT, Action TEXT, Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (UserID) REFERENCES Users(UserID));
+                CREATE TABLE IF NOT EXISTS Settings (Key TEXT PRIMARY KEY, Value TEXT);
             ";
-
-            using var command = new SQLiteCommand(createTables, connection);
-            command.ExecuteNonQuery();
+            using var cmd = new SQLiteCommand(sql, conn);
+            cmd.ExecuteNonQuery();
         }
 
-        private void UpdateDatabaseSchema()
+        void EnsureColumn(string table, string column, string type)
         {
-            using var connection = new SQLiteConnection(ConnectionString);
-            connection.Open();
+            using var conn = new SQLiteConnection(ConnectionString);
+            conn.Open();
 
-            bool columnExists = false;
-            using (var command = new SQLiteCommand("PRAGMA table_info(Tools)", connection))
-            using (var reader = command.ExecuteReader())
-            {
+            var exists = false;
+            using (var cmd = new SQLiteCommand($"PRAGMA table_info({table})", conn))
+            using (var reader = cmd.ExecuteReader())
                 while (reader.Read())
-                {
-                    if (reader["name"].ToString().Equals("ToolImagePath", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(reader["name"].ToString(), column, StringComparison.OrdinalIgnoreCase))
                     {
-                        columnExists = true;
+                        exists = true;
                         break;
                     }
-                }
-            }
 
-            if (!columnExists)
+            if (!exists)
             {
-                using var command = new SQLiteCommand("ALTER TABLE Tools ADD COLUMN ToolImagePath TEXT", connection);
-                command.ExecuteNonQuery();
+                using var alter = new SQLiteCommand($"ALTER TABLE {table} ADD COLUMN {column} {type}", conn);
+                alter.ExecuteNonQuery();
             }
         }
-
-        // Update the UpdateUserSchema method in DatabaseService.cs to include the new columns
-        private void UpdateUserSchema()
-        {
-            using var connection = new SQLiteConnection(ConnectionString);
-            connection.Open();
-
-            bool passwordColumnExists = false;
-            bool emailColumnExists = false;
-            bool phoneColumnExists = false;
-            bool addressColumnExists = false;
-            bool roleColumnExists = false;
-
-            using (var command = new SQLiteCommand("PRAGMA table_info(Users)", connection))
-            using (var reader = command.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    string columnName = reader["name"].ToString();
-                    if (columnName.Equals("Password", StringComparison.OrdinalIgnoreCase))
-                        passwordColumnExists = true;
-                    else if (columnName.Equals("Email", StringComparison.OrdinalIgnoreCase))
-                        emailColumnExists = true;
-                    else if (columnName.Equals("Phone", StringComparison.OrdinalIgnoreCase))
-                        phoneColumnExists = true;
-                    else if (columnName.Equals("Address", StringComparison.OrdinalIgnoreCase))
-                        addressColumnExists = true;
-                    else if (columnName.Equals("Role", StringComparison.OrdinalIgnoreCase))
-                        roleColumnExists = true;
-                }
-            }
-            if (!passwordColumnExists)
-            {
-                using var command = new SQLiteCommand("ALTER TABLE Users ADD COLUMN Password TEXT", connection);
-                command.ExecuteNonQuery();
-            }
-            if (!emailColumnExists)
-            {
-                using var command = new SQLiteCommand("ALTER TABLE Users ADD COLUMN Email TEXT", connection);
-                command.ExecuteNonQuery();
-            }
-            if (!phoneColumnExists)
-            {
-                using var command = new SQLiteCommand("ALTER TABLE Users ADD COLUMN Phone TEXT", connection);
-                command.ExecuteNonQuery();
-            }
-            if (!addressColumnExists)
-            {
-                using var command = new SQLiteCommand("ALTER TABLE Users ADD COLUMN Address TEXT", connection);
-                command.ExecuteNonQuery();
-            }
-            if (!roleColumnExists)
-            {
-                using var command = new SQLiteCommand("ALTER TABLE Users ADD COLUMN Role TEXT", connection);
-                command.ExecuteNonQuery();
-            }
-        }
-
 
         public void BackupDatabase(string backupFilePath)
         {
-            var dataSourcePart = ConnectionString.Split(';').FirstOrDefault(s => s.StartsWith("Data Source="));
-            if (dataSourcePart != null)
-            {
-                string dbFilePath = dataSourcePart.Replace("Data Source=", "").Trim();
-                File.Copy(dbFilePath, backupFilePath, true);
-            }
-            else
-            {
+            var dataSource = ConnectionString
+                .Split(';')
+                .FirstOrDefault(x => x.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase))
+                ?.Substring("Data Source=".Length)
+                .Trim();
+
+            if (string.IsNullOrEmpty(dataSource) || !File.Exists(dataSource))
                 throw new InvalidOperationException("Database file path could not be determined.");
-            }
+
+            File.Copy(dataSource, backupFilePath, overwrite: true);
         }
     }
 }
