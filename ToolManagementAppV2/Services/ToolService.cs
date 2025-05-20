@@ -1,9 +1,6 @@
-﻿// File: Services/ToolService.cs
-using System;
-using System.Collections.Generic;
+﻿using System.Data;
 using System.Data.SQLite;
 using System.IO;
-using System.Linq;
 using System.Text;
 using ToolManagementAppV2.Models;
 
@@ -11,378 +8,191 @@ namespace ToolManagementAppV2.Services
 {
     public class ToolService
     {
-        private readonly DatabaseService _dbService;
+        readonly string _connString;
+        const string AllToolsSql = "SELECT * FROM Tools";
+        const string UpsertToolCsv = @"
+            INSERT INTO Tools 
+              (Name, Description, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, AvailableQuantity, RentedQuantity, IsCheckedOut)
+            VALUES (@Name,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Avail,@Rent,0)";
 
-        public ToolService(DatabaseService dbService)
-        {
-            _dbService = dbService;
-        }
+        public ToolService(DatabaseService dbService) =>
+            _connString = dbService.ConnectionString;
 
-        public List<Tool> GetAllTools()
-        {
-            var tools = new List<Tool>();
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-            var query = "SELECT * FROM Tools";
-            using var cmd = new SQLiteCommand(query, connection);
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-                tools.Add(new Tool
-                {
-                    ToolID = reader["ToolID"].ToString(),
-                    Name = reader["Name"].ToString(),
-                    PartNumber = reader["PartNumber"].ToString(),
-                    Description = reader["Description"].ToString(),
-                    Brand = reader["Brand"].ToString(),
-                    Location = reader["Location"].ToString(),
-                    QuantityOnHand = Convert.ToInt32(reader["AvailableQuantity"]),
-                    RentedQuantity = Convert.ToInt32(reader["RentedQuantity"]),
-                    Supplier = reader["Supplier"].ToString(),
-                    PurchasedDate = reader["PurchasedDate"] is DBNull ? (DateTime?)null : Convert.ToDateTime(reader["PurchasedDate"]),
-                    Notes = reader["Notes"].ToString(),
-                    IsCheckedOut = Convert.ToInt32(reader["IsCheckedOut"]) == 1,
-                    CheckedOutBy = reader["CheckedOutBy"].ToString(),
-                    CheckedOutTime = reader["CheckedOutTime"] is DBNull ? (DateTime?)null : Convert.ToDateTime(reader["CheckedOutTime"]),
-                    ToolImagePath = reader["ToolImagePath"]?.ToString()
-                });
-            }
-            return tools;
-        }
+        public List<Tool> GetAllTools() =>
+            ExecuteReader(AllToolsSql, null);
 
-        public Tool GetToolByID(string toolID)
-        {
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-            var query = "SELECT * FROM Tools WHERE ToolID = @ToolID";
-            using var cmd = new SQLiteCommand(query, connection);
-            cmd.Parameters.AddWithValue("@ToolID", toolID);
-            using var reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                return new Tool
-                {
-                    ToolID = reader["ToolID"].ToString(),
-                    Name = reader["Name"].ToString(),
-                    PartNumber = reader["PartNumber"].ToString(),
-                    Description = reader["Description"].ToString(),
-                    Brand = reader["Brand"].ToString(),
-                    Location = reader["Location"].ToString(),
-                    QuantityOnHand = Convert.ToInt32(reader["AvailableQuantity"]),
-                    RentedQuantity = Convert.ToInt32(reader["RentedQuantity"]),
-                    Supplier = reader["Supplier"].ToString(),
-                    PurchasedDate = reader["PurchasedDate"] is DBNull ? (DateTime?)null : Convert.ToDateTime(reader["PurchasedDate"]),
-                    Notes = reader["Notes"].ToString(),
-                    IsCheckedOut = Convert.ToInt32(reader["IsCheckedOut"]) == 1,
-                    CheckedOutBy = reader["CheckedOutBy"].ToString(),
-                    CheckedOutTime = reader["CheckedOutTime"] is DBNull ? (DateTime?)null : Convert.ToDateTime(reader["CheckedOutTime"]),
-                    ToolImagePath = reader["ToolImagePath"]?.ToString()
-                };
-            }
-            return null;
-        }
+        public Tool GetToolByID(string toolID) =>
+            ExecuteReader("SELECT * FROM Tools WHERE ToolID=@ToolID",
+                new[] { new SQLiteParameter("@ToolID", toolID) })
+            .FirstOrDefault();
 
         public List<Tool> SearchTools(string searchText)
         {
-            var tools = new List<Tool>();
             var terms = searchText
-                .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var sb = new StringBuilder("SELECT * FROM Tools");
-            if (terms.Length > 0)
+            if (terms.Any())
             {
-                sb.Append(" WHERE ");
-                for (int i = 0; i < terms.Length; i++)
-                {
-                    var p = $"@p{i}";
-                    sb.Append("(")
-                      .Append("ToolID LIKE ").Append(p)
-                      .Append(" OR Name LIKE ").Append(p)
-                      .Append(" OR Description LIKE ").Append(p)
-                      .Append(" OR Brand LIKE ").Append(p)
-                      .Append(" OR PartNumber LIKE ").Append(p)
-                      .Append(" OR Supplier LIKE ").Append(p)
-                      .Append(" OR Location LIKE ").Append(p)
-                      .Append(" OR Notes LIKE ").Append(p)
-                      .Append(")");
-                    if (i < terms.Length - 1)
-                        sb.Append(" AND ");
-                }
+                sb.Append(" WHERE ")
+                  .Append(string.Join(" AND ", terms.Select((t, i) =>
+                    "(ToolID LIKE @p" + i +
+                    " OR Name LIKE @p" + i +
+                    " OR Description LIKE @p" + i +
+                    " OR Brand LIKE @p" + i +
+                    " OR PartNumber LIKE @p" + i +
+                    " OR Supplier LIKE @p" + i +
+                    " OR Location LIKE @p" + i +
+                    " OR Notes LIKE @p" + i + ")")));
             }
-
-            using var conn = new SQLiteConnection(_dbService.ConnectionString);
-            conn.Open();
-            using var cmd = new SQLiteCommand(sb.ToString(), conn);
-            for (int i = 0; i < terms.Length; i++)
-                cmd.Parameters.AddWithValue($"@p{i}", $"%{terms[i]}%");
-
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-                tools.Add(new Tool
-                {
-                    ToolID = reader["ToolID"].ToString(),
-                    Name = reader["Name"].ToString(),
-                    PartNumber = reader["PartNumber"].ToString(),
-                    Description = reader["Description"].ToString(),
-                    Brand = reader["Brand"].ToString(),
-                    Location = reader["Location"].ToString(),
-                    QuantityOnHand = Convert.ToInt32(reader["AvailableQuantity"]),
-                    RentedQuantity = Convert.ToInt32(reader["RentedQuantity"]),
-                    Supplier = reader["Supplier"].ToString(),
-                    PurchasedDate = reader["PurchasedDate"] is DBNull ? (DateTime?)null : Convert.ToDateTime(reader["PurchasedDate"]),
-                    Notes = reader["Notes"].ToString(),
-                    IsCheckedOut = Convert.ToInt32(reader["IsCheckedOut"]) == 1,
-                    CheckedOutBy = reader["CheckedOutBy"].ToString(),
-                    CheckedOutTime = reader["CheckedOutTime"] is DBNull ? (DateTime?)null : Convert.ToDateTime(reader["CheckedOutTime"]),
-                    ToolImagePath = reader["ToolImagePath"]?.ToString()
-                });
-            }
-
-            return tools;
+            var parameters = terms
+                .Select((t, i) => new SQLiteParameter("@p" + i, $"%{t}%"))
+                .ToArray();
+            return ExecuteReader(sb.ToString(), parameters);
         }
-    
+
         public void AddTool(Tool tool)
         {
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-            var query = @"
-                INSERT INTO Tools 
-                  (Name, Description, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, AvailableQuantity, RentedQuantity, IsCheckedOut)
-                VALUES 
-                  (@Name, @Description, @Location, @Brand, @PartNumber, @Supplier, @PurchasedDate, @Notes, @AvailableQuantity, 0, 0)";
-            using var cmd = new SQLiteCommand(query, connection);
-            cmd.Parameters.AddWithValue("@Name", tool.Name);
-            cmd.Parameters.AddWithValue("@Description", tool.Description ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("@Location", tool.Location);
-            cmd.Parameters.AddWithValue("@Brand", tool.Brand);
-            cmd.Parameters.AddWithValue("@PartNumber", tool.PartNumber);
-            cmd.Parameters.AddWithValue("@Supplier", tool.Supplier ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("@PurchasedDate", tool.PurchasedDate ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("@Notes", tool.Notes ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("@AvailableQuantity", tool.QuantityOnHand);
-            cmd.ExecuteNonQuery();
+            var p = new[]
+            {
+                new SQLiteParameter("@Name",  tool.Name),
+                new SQLiteParameter("@Desc",  (object)tool.Description ?? DBNull.Value),
+                new SQLiteParameter("@Loc",   tool.Location),
+                new SQLiteParameter("@Brand", tool.Brand),
+                new SQLiteParameter("@PN",    tool.PartNumber),
+                new SQLiteParameter("@Sup",   (object)tool.Supplier ?? DBNull.Value),
+                new SQLiteParameter("@PD",    (object)tool.PurchasedDate ?? DBNull.Value),
+                new SQLiteParameter("@Notes", (object)tool.Notes ?? DBNull.Value),
+                new SQLiteParameter("@Avail", tool.QuantityOnHand),
+                new SQLiteParameter("@Rent",  tool.RentedQuantity)
+            };
+            ExecuteNonQuery(UpsertToolCsv, p);
         }
 
         public void UpdateTool(Tool tool)
         {
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-            var query = @"
+            const string sql = @"
                 UPDATE Tools SET
                   Name = @Name,
-                  Description = @Description,
-                  Location = @Location,
+                  Description = @Desc,
+                  Location = @Loc,
                   Brand = @Brand,
-                  PartNumber = @PartNumber,
-                  Supplier = @Supplier,
-                  PurchasedDate = @PurchasedDate,
+                  PartNumber = @PN,
+                  Supplier = @Sup,
+                  PurchasedDate = @PD,
                   Notes = @Notes,
-                  AvailableQuantity = @AvailableQuantity,
-                  IsCheckedOut = @IsCheckedOut,
-                  CheckedOutBy = @CheckedOutBy,
-                  CheckedOutTime = @CheckedOutTime,
-                  ToolImagePath = @ToolImagePath
-                WHERE ToolID = @ToolID";
-            using var cmd = new SQLiteCommand(query, connection);
-            cmd.Parameters.AddWithValue("@ToolID", tool.ToolID);
-            cmd.Parameters.AddWithValue("@Name", tool.Name);
-            cmd.Parameters.AddWithValue("@Description", tool.Description ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("@Location", tool.Location);
-            cmd.Parameters.AddWithValue("@Brand", tool.Brand);
-            cmd.Parameters.AddWithValue("@PartNumber", tool.PartNumber);
-            cmd.Parameters.AddWithValue("@Supplier", tool.Supplier ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("@PurchasedDate", tool.PurchasedDate ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("@Notes", tool.Notes ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("@AvailableQuantity", tool.QuantityOnHand);
-            cmd.Parameters.AddWithValue("@IsCheckedOut", tool.IsCheckedOut ? 1 : 0);
-            cmd.Parameters.AddWithValue("@CheckedOutBy", tool.CheckedOutBy ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("@CheckedOutTime", tool.CheckedOutTime ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("@ToolImagePath", tool.ToolImagePath ?? (object)DBNull.Value);
-            cmd.ExecuteNonQuery();
+                  AvailableQuantity = @Avail,
+                  RentedQuantity = @Rent,
+                  IsCheckedOut = @Out,
+                  CheckedOutBy = @By,
+                  CheckedOutTime = @Time,
+                  ToolImagePath = @Img
+                WHERE ToolID = @ID";
+            var p = new[]
+            {
+                new SQLiteParameter("@ID",   tool.ToolID),
+                new SQLiteParameter("@Name", tool.Name),
+                new SQLiteParameter("@Desc",  (object)tool.Description ?? DBNull.Value),
+                new SQLiteParameter("@Loc",   tool.Location),
+                new SQLiteParameter("@Brand", tool.Brand),
+                new SQLiteParameter("@PN",    tool.PartNumber),
+                new SQLiteParameter("@Sup",   (object)tool.Supplier ?? DBNull.Value),
+                new SQLiteParameter("@PD",    (object)tool.PurchasedDate ?? DBNull.Value),
+                new SQLiteParameter("@Notes", (object)tool.Notes ?? DBNull.Value),
+                new SQLiteParameter("@Avail", tool.QuantityOnHand),
+                new SQLiteParameter("@Rent",  tool.RentedQuantity),
+                new SQLiteParameter("@Out",   tool.IsCheckedOut ? 1 : 0),
+                new SQLiteParameter("@By",    (object)tool.CheckedOutBy ?? DBNull.Value),
+                new SQLiteParameter("@Time",  (object)tool.CheckedOutTime ?? DBNull.Value),
+                new SQLiteParameter("@Img",   (object)tool.ToolImagePath ?? DBNull.Value)
+            };
+            ExecuteNonQuery(sql, p);
         }
 
-        public void UpdateToolQuantities(string toolID, int quantityChange, bool isRental)
+        public void UpdateToolQuantities(string toolID, int qtyChange, bool isRental)
         {
-            if (quantityChange <= 0) throw new ArgumentException("Quantity change must be > 0");
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-            var query = isRental
-                ? @"UPDATE Tools
-                    SET AvailableQuantity = AvailableQuantity - @Q,
-                        RentedQuantity   = RentedQuantity + @Q
-                    WHERE ToolID = @ToolID AND AvailableQuantity >= @Q"
-                : @"UPDATE Tools
-                    SET AvailableQuantity = AvailableQuantity + @Q,
-                        RentedQuantity   = RentedQuantity - @Q
-                    WHERE ToolID = @ToolID AND RentedQuantity >= @Q";
-            using var cmd = new SQLiteCommand(query, connection);
-            cmd.Parameters.AddWithValue("@ToolID", toolID);
-            cmd.Parameters.AddWithValue("@Q", quantityChange);
-            if (cmd.ExecuteNonQuery() == 0)
+            if (qtyChange <= 0) throw new ArgumentException("Quantity change must be positive.", nameof(qtyChange));
+            var sql = isRental
+                ? @"
+                    UPDATE Tools
+                       SET AvailableQuantity = AvailableQuantity - @Q,
+                           RentedQuantity   = RentedQuantity + @Q
+                     WHERE ToolID = @ID AND AvailableQuantity >= @Q"
+                : @"
+                    UPDATE Tools
+                       SET AvailableQuantity = AvailableQuantity + @Q,
+                           RentedQuantity   = RentedQuantity - @Q
+                     WHERE ToolID = @ID AND RentedQuantity >= @Q";
+            var p = new[]
+            {
+                new SQLiteParameter("@ID", toolID),
+                new SQLiteParameter("@Q",  qtyChange)
+            };
+            if (ExecuteNonQuery(sql, p) == 0)
                 throw new InvalidOperationException("Quantity update failed.");
         }
 
-        public void DeleteTool(string toolID)
-        {
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-            var query = "DELETE FROM Tools WHERE ToolID = @ToolID";
-            using var cmd = new SQLiteCommand(query, connection);
-            cmd.Parameters.AddWithValue("@ToolID", toolID);
-            cmd.ExecuteNonQuery();
-        }
+        public void DeleteTool(string toolID) =>
+            ExecuteNonQuery("DELETE FROM Tools WHERE ToolID=@ID",
+                new[] { new SQLiteParameter("@ID", toolID) });
 
         public void ToggleToolCheckOutStatus(string toolID, string currentUser)
         {
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-            var select = "SELECT IsCheckedOut FROM Tools WHERE ToolID = @ToolID";
-            using var sCmd = new SQLiteCommand(select, connection);
-            sCmd.Parameters.AddWithValue("@ToolID", toolID);
-            bool isOut = Convert.ToInt32(sCmd.ExecuteScalar()) == 1;
-            bool newStatus = !isOut;
-            DateTime? time = newStatus ? DateTime.Now : (DateTime?)null;
-            string by = newStatus ? currentUser : null;
-            var update = @"
+            var isOut = Convert.ToInt32(
+                ExecuteScalar("SELECT IsCheckedOut FROM Tools WHERE ToolID=@ID",
+                    new[] { new SQLiteParameter("@ID", toolID) })
+            ) == 1;
+            var newStatus = isOut ? 0 : 1;
+            var time = isOut ? (object)DBNull.Value : DateTime.Now;
+            var by = isOut ? (object)DBNull.Value : currentUser;
+            ExecuteNonQuery(@"
                 UPDATE Tools SET
-                  IsCheckedOut = @O,
-                  CheckedOutBy = @B,
-                  CheckedOutTime = @T
-                WHERE ToolID = @ToolID";
-            using var uCmd = new SQLiteCommand(update, connection);
-            uCmd.Parameters.AddWithValue("@O", newStatus ? 1 : 0);
-            uCmd.Parameters.AddWithValue("@B", by ?? (object)DBNull.Value);
-            uCmd.Parameters.AddWithValue("@T", time ?? (object)DBNull.Value);
-            uCmd.Parameters.AddWithValue("@ToolID", toolID);
-            uCmd.ExecuteNonQuery();
+                  IsCheckedOut = @Out,
+                  CheckedOutBy = @By,
+                  CheckedOutTime = @Time
+                WHERE ToolID = @ID", new[]
+            {
+                new SQLiteParameter("@Out",  newStatus),
+                new SQLiteParameter("@By",   by),
+                new SQLiteParameter("@Time", time),
+                new SQLiteParameter("@ID",   toolID)
+            });
         }
 
-        public List<Tool> GetToolsCheckedOutBy(string userName)
-        {
-            var tools = new List<Tool>();
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-            var query = "SELECT * FROM Tools WHERE CheckedOutBy = @User AND IsCheckedOut = 1";
-            using var cmd = new SQLiteCommand(query, connection);
-            cmd.Parameters.AddWithValue("@User", userName);
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-                tools.Add(new Tool
+        public List<Tool> GetToolsCheckedOutBy(string userName) =>
+            ExecuteReader("SELECT * FROM Tools WHERE CheckedOutBy=@User AND IsCheckedOut=1",
+                new[] { new SQLiteParameter("@User", userName) });
+
+        public void UpdateToolImage(string toolID, string imagePath) =>
+            ExecuteNonQuery("UPDATE Tools SET ToolImagePath=@Img WHERE ToolID=@ID",
+                new[]
                 {
-                    ToolID = reader["ToolID"].ToString(),
-                    Name = reader["Name"].ToString(),
-                    PartNumber = reader["PartNumber"].ToString(),
-                    Description = reader["Description"].ToString(),
-                    Brand = reader["Brand"].ToString(),
-                    Location = reader["Location"].ToString(),
-                    QuantityOnHand = Convert.ToInt32(reader["AvailableQuantity"]),
-                    RentedQuantity = Convert.ToInt32(reader["RentedQuantity"]),
-                    Supplier = reader["Supplier"].ToString(),
-                    PurchasedDate = reader["PurchasedDate"] is DBNull ? (DateTime?)null : Convert.ToDateTime(reader["PurchasedDate"]),
-                    Notes = reader["Notes"].ToString(),
-                    IsCheckedOut = true,
-                    CheckedOutBy = reader["CheckedOutBy"].ToString(),
-                    CheckedOutTime = reader["CheckedOutTime"] is DBNull ? (DateTime?)null : Convert.ToDateTime(reader["CheckedOutTime"]),
-                    ToolImagePath = reader["ToolImagePath"]?.ToString()
+                    new SQLiteParameter("@Img", imagePath),
+                    new SQLiteParameter("@ID",  toolID)
                 });
-            }
-            return tools;
-        }
-
-        public void UpdateToolImage(string toolID, string imagePath)
-        {
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-            var query = "UPDATE Tools SET ToolImagePath = @P WHERE ToolID = @ID";
-            using var cmd = new SQLiteCommand(query, connection);
-            cmd.Parameters.AddWithValue("@P", imagePath);
-            cmd.Parameters.AddWithValue("@ID", toolID);
-            cmd.ExecuteNonQuery();
-        }
-
-        public void ImportToolsFromCsv(string filePath)
-        {
-            var lines = File.ReadAllLines(filePath).Skip(1);
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-            foreach (var line in lines)
-            {
-                var c = line.Split(',');
-                var query = @"
-                    INSERT INTO Tools 
-                      (Name, Description, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, AvailableQuantity, RentedQuantity, IsCheckedOut)
-                    VALUES 
-                      (@Name,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Avail,@Rent,0)";
-                using var cmd = new SQLiteCommand(query, connection);
-                cmd.Parameters.AddWithValue("@Name", c[0]);
-                cmd.Parameters.AddWithValue("@Desc", c[1]);
-                cmd.Parameters.AddWithValue("@Loc", c[2]);
-                cmd.Parameters.AddWithValue("@Brand", c[3]);
-                cmd.Parameters.AddWithValue("@PN", c[4]);
-                cmd.Parameters.AddWithValue("@Sup", c[5]);
-                cmd.Parameters.AddWithValue("@PD", DateTime.TryParse(c[6], out var d) ? (object)d : DBNull.Value);
-                cmd.Parameters.AddWithValue("@Notes", c[7]);
-                cmd.Parameters.AddWithValue("@Avail", int.TryParse(c[8], out var q) ? q : 0);
-                cmd.Parameters.AddWithValue("@Rent", int.TryParse(c[9], out var r) ? r : 0);
-                cmd.ExecuteNonQuery();
-            }
-        }
-
-        public void ExportToolsToCsv(string filePath)
-        {
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-            var query = "SELECT * FROM Tools";
-            using var cmd = new SQLiteCommand(query, connection);
-            using var reader = cmd.ExecuteReader();
-            using var wr = new StreamWriter(filePath);
-            wr.WriteLine("Name,Description,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,RentedQuantity,IsCheckedOut");
-            while (reader.Read())
-            {
-                var vals = new[]
-                {
-                    reader["Name"],
-                    reader["Description"],
-                    reader["Location"],
-                    reader["Brand"],
-                    reader["PartNumber"],
-                    reader["Supplier"],
-                    reader["PurchasedDate"],
-                    reader["Notes"],
-                    reader["AvailableQuantity"],
-                    reader["RentedQuantity"],
-                    reader["IsCheckedOut"]
-                };
-                wr.WriteLine(string.Join(",", vals));
-            }
-        }
 
         public void ImportToolsFromCsv(string filePath, IDictionary<string, string> map)
         {
             var lines = File.ReadAllLines(filePath);
             if (lines.Length < 2) return;
-            var headers = lines[0].Split(',').Select(h => h.Trim()).ToArray();
-            var idx = map.ToDictionary(kv => kv.Key,
-                                      kv => System.Array.IndexOf(headers, kv.Value));
 
-            using var conn = new SQLiteConnection(_dbService.ConnectionString);
-            conn.Open();
+            var headers = lines[0].Split(',').Select(h => h.Trim()).ToArray();
+            var idx = map.ToDictionary(
+                kv => kv.Key,
+                kv => Array.IndexOf(headers, kv.Value.Trim()),
+                StringComparer.OrdinalIgnoreCase
+            );
+
             foreach (var line in lines.Skip(1))
             {
                 if (string.IsNullOrWhiteSpace(line)) continue;
                 var cols = line.Split(',');
 
-                string get(string prop)
-                    => idx[prop] >= 0 && idx[prop] < cols.Length
-                        ? cols[idx[prop]].Trim()
-                        : "";
+                string get(string prop) =>
+                    idx.TryGetValue(prop, out var i) && i >= 0 && i < cols.Length
+                        ? cols[i].Trim()
+                        : string.Empty;
 
-                DateTime? pd = DateTime.TryParse(get("PurchasedDate"), out var d) ? d : (DateTime?)null;
-                int aq = int.TryParse(get("AvailableQuantity"), out var q) ? q : 0;
-
-                var tool = new Tool
+                AddTool(new Tool
                 {
                     Name = get("Name"),
                     Description = get("Description"),
@@ -390,13 +200,79 @@ namespace ToolManagementAppV2.Services
                     Brand = get("Brand"),
                     PartNumber = get("PartNumber"),
                     Supplier = get("Supplier"),
-                    PurchasedDate = pd,
+                    PurchasedDate = DateTime.TryParse(get("PurchasedDate"), out var d) ? d : (DateTime?)null,
                     Notes = get("Notes"),
-                    QuantityOnHand = aq
-                };
-
-                AddTool(tool);
+                    QuantityOnHand = int.TryParse(get("AvailableQuantity"), out var q) ? q : 0
+                });
             }
         }
+
+        public void ExportToolsToCsv(string filePath)
+        {
+            using var writer = new StreamWriter(filePath);
+            writer.WriteLine("Name,Description,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,RentedQuantity,IsCheckedOut");
+            ExecuteReader(AllToolsSql, null).ForEach(t =>
+            {
+                var vals = new[]
+                {
+                    t.Name, t.Description, t.Location, t.Brand, t.PartNumber,
+                    t.Supplier, t.PurchasedDate?.ToString("s") ?? "",
+                    t.Notes, t.QuantityOnHand.ToString(), t.RentedQuantity.ToString(),
+                    t.IsCheckedOut ? "1" : "0"
+                };
+                writer.WriteLine(string.Join(",", vals));
+            });
+        }
+
+        // --- Helpers ---
+        List<Tool> ExecuteReader(string sql, SQLiteParameter[] parameters)
+        {
+            var list = new List<Tool>();
+            using var conn = new SQLiteConnection(_connString);
+            conn.Open();
+            using var cmd = new SQLiteCommand(sql, conn);
+            if (parameters != null) cmd.Parameters.AddRange(parameters);
+            using var rdr = cmd.ExecuteReader();
+            while (rdr.Read())
+                list.Add(MapTool(rdr));
+            return list;
+        }
+
+        object ExecuteScalar(string sql, SQLiteParameter[] parameters)
+        {
+            using var conn = new SQLiteConnection(_connString);
+            conn.Open();
+            using var cmd = new SQLiteCommand(sql, conn);
+            if (parameters != null) cmd.Parameters.AddRange(parameters);
+            return cmd.ExecuteScalar();
+        }
+
+        int ExecuteNonQuery(string sql, SQLiteParameter[] parameters)
+        {
+            using var conn = new SQLiteConnection(_connString);
+            conn.Open();
+            using var cmd = new SQLiteCommand(sql, conn);
+            if (parameters != null) cmd.Parameters.AddRange(parameters);
+            return cmd.ExecuteNonQuery();
+        }
+
+        Tool MapTool(IDataRecord r) => new()
+        {
+            ToolID = r["ToolID"].ToString(),
+            Name = r["Name"].ToString(),
+            PartNumber = r["PartNumber"].ToString(),
+            Description = r["Description"].ToString(),
+            Brand = r["Brand"].ToString(),
+            Location = r["Location"].ToString(),
+            QuantityOnHand = Convert.ToInt32(r["AvailableQuantity"]),
+            RentedQuantity = Convert.ToInt32(r["RentedQuantity"]),
+            Supplier = r["Supplier"].ToString(),
+            PurchasedDate = r["PurchasedDate"] is DBNull ? (DateTime?)null : Convert.ToDateTime(r["PurchasedDate"]),
+            Notes = r["Notes"].ToString(),
+            IsCheckedOut = Convert.ToInt32(r["IsCheckedOut"]) == 1,
+            CheckedOutBy = r["CheckedOutBy"].ToString(),
+            CheckedOutTime = r["CheckedOutTime"] is DBNull ? (DateTime?)null : Convert.ToDateTime(r["CheckedOutTime"]),
+            ToolImagePath = r["ToolImagePath"]?.ToString()
+        };
     }
 }
