@@ -1,98 +1,93 @@
-﻿using System.Collections.Generic;
-using System.Data.SQLite;
+﻿using System.Data.SQLite;
 
 namespace ToolManagementAppV2.Services
 {
     public class SettingsService
     {
-        private readonly DatabaseService _dbService;
+        readonly string _connString;
+        const string UpsertSql = @"
+            INSERT INTO Settings (Key, Value) 
+            VALUES (@Key, @Value)
+            ON CONFLICT(Key) DO UPDATE SET Value = @Value";
 
-        public SettingsService(DatabaseService dbService)
-        {
-            _dbService = dbService;
-        }
+        public SettingsService(DatabaseService dbService) =>
+            _connString = dbService.ConnectionString;
 
-        public void SaveSetting(string key, string value)
-        {
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-
-            var query = @"
-                INSERT INTO Settings (Key, Value) 
-                VALUES (@Key, @Value)
-                ON CONFLICT(Key) DO UPDATE SET Value = @Value";
-            using var command = new SQLiteCommand(query, connection);
-            command.Parameters.AddWithValue("@Key", key);
-            command.Parameters.AddWithValue("@Value", value);
-            command.ExecuteNonQuery();
-        }
+        public void SaveSetting(string key, string value) =>
+            ExecuteNonQuery(UpsertSql, new[]
+            {
+                new SQLiteParameter("@Key",   key),
+                new SQLiteParameter("@Value", value)
+            });
 
         public string GetSetting(string key)
         {
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-
-            var query = "SELECT Value FROM Settings WHERE Key = @Key";
-            using var command = new SQLiteCommand(query, connection);
-            command.Parameters.AddWithValue("@Key", key);
-            return command.ExecuteScalar()?.ToString();
+            const string sql = "SELECT Value FROM Settings WHERE Key = @Key";
+            using var conn = new SQLiteConnection(_connString);
+            conn.Open();
+            using var cmd = new SQLiteCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@Key", key);
+            return cmd.ExecuteScalar()?.ToString();
         }
 
         public Dictionary<string, string> GetAllSettings()
         {
-            var settings = new Dictionary<string, string>();
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-
-            var query = "SELECT Key, Value FROM Settings";
-            using var command = new SQLiteCommand(query, connection);
-            using var reader = command.ExecuteReader();
-
-            while (reader.Read())
-            {
-                settings[reader["Key"].ToString()] = reader["Value"].ToString();
-            }
-
-            return settings;
+            var dict = new Dictionary<string, string>();
+            const string sql = "SELECT Key, Value FROM Settings";
+            using var conn = new SQLiteConnection(_connString);
+            conn.Open();
+            using var cmd = new SQLiteCommand(sql, conn);
+            using var rdr = cmd.ExecuteReader();
+            while (rdr.Read())
+                dict[rdr["Key"].ToString()] = rdr["Value"].ToString();
+            return dict;
         }
 
         public void UpdateSettings(Dictionary<string, string> settings)
         {
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-            using var transaction = connection.BeginTransaction();
+            using var conn = new SQLiteConnection(_connString);
+            conn.Open();
+            using var tx = conn.BeginTransaction();
             try
             {
                 foreach (var kv in settings)
-                {
-                    var query = @"
-                INSERT INTO Settings (Key, Value) 
-                VALUES (@Key, @Value)
-                ON CONFLICT(Key) DO UPDATE SET Value = @Value";
-                    using var command = new SQLiteCommand(query, connection, transaction);
-                    command.Parameters.AddWithValue("@Key", kv.Key);
-                    command.Parameters.AddWithValue("@Value", kv.Value);
-                    command.ExecuteNonQuery();
-                }
-                transaction.Commit();
+                    ExecuteNonQuery(UpsertSql, new[]
+                    {
+                        new SQLiteParameter("@Key",   kv.Key),
+                        new SQLiteParameter("@Value", kv.Value)
+                    }, conn, tx);
+
+                tx.Commit();
             }
             catch
             {
-                transaction.Rollback();
+                tx.Rollback();
                 throw;
             }
         }
 
         public void DeleteSetting(string key)
         {
-            using var connection = new SQLiteConnection(_dbService.ConnectionString);
-            connection.Open();
-            var query = "DELETE FROM Settings WHERE Key = @Key";
-            using var command = new SQLiteCommand(query, connection);
-            command.Parameters.AddWithValue("@Key", key);
-            command.ExecuteNonQuery();
+            const string sql = "DELETE FROM Settings WHERE Key = @Key";
+            ExecuteNonQuery(sql, new[] { new SQLiteParameter("@Key", key) });
         }
 
+        // --- Helpers ---
+        void ExecuteNonQuery(string sql, SQLiteParameter[] parameters) =>
+            ExecuteNonQuery(sql, parameters, null, null);
 
+        void ExecuteNonQuery(
+            string sql,
+            SQLiteParameter[] parameters,
+            SQLiteConnection existingConn,
+            SQLiteTransaction transaction)
+        {
+            var ownConn = existingConn is null;
+            using var conn = existingConn ?? new SQLiteConnection(_connString);
+            if (ownConn) { conn.Open(); }
+            using var cmd = new SQLiteCommand(sql, conn, transaction);
+            cmd.Parameters.AddRange(parameters);
+            cmd.ExecuteNonQuery();
+        }
     }
 }
