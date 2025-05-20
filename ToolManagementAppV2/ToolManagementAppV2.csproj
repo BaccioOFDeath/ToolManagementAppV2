@@ -9,9 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Assets\**" />
     <Compile Remove="Views\NewFolder\**" />
+    <EmbeddedResource Remove="Assets\**" />
     <EmbeddedResource Remove="Views\NewFolder\**" />
+    <None Remove="Assets\**" />
     <None Remove="Views\NewFolder\**" />
+    <Page Remove="Assets\**" />
     <Page Remove="Views\NewFolder\**" />
   </ItemGroup>
 
@@ -63,7 +67,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Assets\" />
+    <Folder Include="Models\Domain\" />
+    <Folder Include="Models\DTOs\" />
+    <Folder Include="Interfaces\" />
+    <Folder Include="Images\" />
   </ItemGroup>
 
   <ItemGroup>

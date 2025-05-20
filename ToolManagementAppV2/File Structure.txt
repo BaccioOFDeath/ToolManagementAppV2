@@ -1,0 +1,96 @@
+ToolManagementAppV2/
+│
+├── App.xaml
+├── App.xaml.cs
+├── MainWindow.xaml
+├── MainWindow.xaml.cs
+│
+├── Models/
+│   ├── Domain/
+│   │   ├── Tool.cs
+│   │   ├── User.cs
+│   │   ├── Customer.cs
+│   │   ├── Rental.cs
+│   │   ├── ActivityLog.cs
+│   │   └── Setting.cs
+│   └── DTOs/
+│       └── ToolImportDto.cs     ← optional, for future import/export
+│
+├── Interfaces/
+│   ├── IToolService.cs
+│   ├── IUserService.cs
+│   ├── ICustomerService.cs
+│   ├── IRentalService.cs
+│   ├── ISettingsService.cs
+│   └── IActivityLogService.cs
+│
+├── Services/
+│   ├── Core/
+│   │   ├── DatabaseService.cs
+│   │   ├── SqliteHelper.cs
+│   │   └── CsvHelper.cs           ← if you add one
+│   ├── Tools/
+│   │   ├── ToolService.cs
+│   │   ├── Printer.cs
+│   │   └── ReportService.cs
+│   ├── Customers/
+│   │   └── CustomerService.cs
+│   ├── Rentals/
+│   │   └── RentalService.cs
+│   ├── Users/
+│   │   ├── UserService.cs
+│   │   └── ActivityLogService.cs
+│   └── Settings/
+│       └── SettingsService.cs
+│
+├── ViewModels/
+│   ├── Main/
+│   │   └── MainViewModel.cs
+│   ├── Tool/
+│   │   └── ToolViewModel.cs         ← optional breakout
+│   ├── Customer/
+│   │   └── CustomerViewModel.cs
+│   ├── Rental/
+│   │   └── RentalViewModel.cs
+│   ├── User/
+│   │   └── UserViewModel.cs
+│   ├── Settings/
+│   │   └── SettingsViewModel.cs
+│   └── Import/
+│       └── ImportMappingViewModel.cs
+│
+├── Views/
+│   ├── Common/
+│   │   ├── LoginWindow.xaml
+│   │   └── PrintPreviewWindow.xaml
+│   ├── Tool/
+│   │   └── ToolManagementTab.xaml
+│   ├── Customer/
+│   │   └── CustomerTab.xaml
+│   ├── Rental/
+│   │   └── RentalTab.xaml
+│   ├── User/
+│   │   └── UserTab.xaml
+│   ├── Settings/
+│   │   └── SettingsTab.xaml
+│   ├── ImportExport/
+│   │   └── ImportExportTab.xaml
+│   └── Reports/
+│       └── ReportsTab.xaml
+│
+├── Utilities/
+│   ├── Converters/
+│   │   ├── NullToDefaultImageConverter.cs
+│   │   ├── CheckOutStatusConverter.cs
+│   │   ├── InverseBooleanConverter.cs
+│   │   └── NonEmptyStringToBoolConverter.cs
+│   └── Extensions/
+│       └── ObservableCollectionExtensions.cs
+│
+├── Resources/
+│   ├── DefaultUserPhoto.png
+│   ├── DefaultToolImage.png
+│   └── DefaultLogo.png
+│
+└── Images/
+    └── UploadedToolImagesHere.png
