@@ -1,8 +1,10 @@
 ﻿using System.IO;
 using System.Windows;
 using System.Windows.Media.Imaging;
-using ToolManagementAppV2.Models;
-using ToolManagementAppV2.Services;
+using ToolManagementAppV2.Models.Domain;
+using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.Services.Settings;
+using ToolManagementAppV2.Services.Core;
 
 namespace ToolManagementAppV2
 {

@@ -1,6 +1,8 @@
 ﻿using System.IO;
 using System.Windows;
-using ToolManagementAppV2.Services;
+using ToolManagementAppV2.Services.Core;
+using ToolManagementAppV2.Services.Settings;
+
 
 namespace ToolManagementAppV2.Views
 {

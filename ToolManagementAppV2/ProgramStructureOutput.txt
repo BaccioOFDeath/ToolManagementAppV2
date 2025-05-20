@@ -1,9 +1,9 @@
 Program Structure Visualization
 ==============================
-Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models
------------------------------------------------------------------------------------------------------
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\Domain
+------------------------------------------------------------------------------------------------------------
   File: ActivityLog.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\ActivityLog.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\Domain\ActivityLog.cs
     Class: ActivityLog
       Visibility: public
       Property: public int LogID
@@ -13,7 +13,7 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Property: public DateTime Timestamp
 
   File: Customer.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\Customer.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\Domain\Customer.cs
     Class: Customer
       Visibility: public
       Property: public int CustomerID
@@ -24,7 +24,7 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Property: public string Address
 
   File: Rental.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\Rental.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\Domain\Rental.cs
     Class: Rental
       Visibility: public
       Property: public int RentalID
@@ -34,27 +34,27 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Property: public DateTime DueDate
 
   File: Tool.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\Tool.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\Domain\Tool.cs
     Class: Tool
       Visibility: public
       Field: public int OnHand
       Field: public string Purchased
-      Property: public string ToolID
-      Property: public string Name
+      Property: public string ToolNumber
       Property: public string PartNumber
-      Property: public string Description
+      Property: public string NameDescription
       Property: public string Brand
       Property: public string Location
       Property: public int QuantityOnHand
       Property: public int RentedQuantity
       Property: public string Supplier
       Property: public string Notes
+      Property: public string Keywords
       Property: public bool IsCheckedOut
       Property: public string CheckedOutBy
       Property: public string ToolImagePath
 
   File: User.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\User.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\Domain\User.cs
     Class: ObservableObject
       Visibility: public
       Property: public int UserID
@@ -69,25 +69,36 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Property: public string Role
 
 
-Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services
--------------------------------------------------------------------------------------------------------
-  File: ActivityLogService.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\ActivityLogService.cs
-    Class: ActivityLogService
-      Visibility: public
-      Field: var p =
-      Field: var p =
-      Method: private public ActivityLogService(DatabaseService dbService)
-      Method: public void LogAction(int userID, string userName, string action)
-      Method: private new SQLiteParameter("@UserID",   userID)
-      Method: private new SQLiteParameter("@UserName", userName)
-      Method: private new SQLiteParameter("@Action",   action)
-      Method: public List<ActivityLog> GetRecentLogs(int count = 50)
-      Method: public void PurgeOldLogs(DateTime threshold)
-      Method: private ActivityLog MapLog(IDataRecord r) => new()
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\DTOs
+----------------------------------------------------------------------------------------------------------
+  File: ToolImportDto.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\DTOs\ToolImportDto.cs
+    Class: ToolImportDto
+      Visibility: internal
 
+
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Core
+------------------------------------------------------------------------------------------------------------
+  File: CsvHelper.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Core\CsvHelper.cs
+    Class: CsvHelper
+      Visibility: internal
+
+  File: DatabaseService.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Core\DatabaseService.cs
+    Class: DatabaseService
+      Visibility: public
+      Property: public string ConnectionString
+      Method: private public DatabaseService(string dbPath)
+      Method: private void InitializeDatabase()
+      Method: private void EnsureColumn(string table, string column, string type)
+      Method: public void BackupDatabase(string backupFilePath)
+
+
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Customers
+-----------------------------------------------------------------------------------------------------------------
   File: CustomerService.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\CustomerService.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Customers\CustomerService.cs
     Class: CustomerService
       Visibility: public
       Field: var lines =
@@ -104,25 +115,48 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Method: public List<Customer> SearchCustomers(string searchTerm)
       Method: public Customer GetCustomerByID(int customerID)
       Method: public void AddCustomer(Customer customer)
-      Method: private new SQLiteParameter("@Name",    customer.Name)
+      Method: private new SQLiteParameter("@ToolNumber",    customer.Name)
       Method: private new SQLiteParameter("@Email",   customer.Email)
       Method: private new SQLiteParameter("@Contact", customer.Contact)
       Method: private new SQLiteParameter("@Phone",   customer.Phone)
       Method: private new SQLiteParameter("@Address", customer.Address)
       Method: public void UpdateCustomer(Customer customer)
 
-  File: DatabaseService.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\DatabaseService.cs
-    Class: DatabaseService
-      Visibility: public
-      Property: public string ConnectionString
-      Method: private public DatabaseService(string dbPath)
-      Method: private void InitializeDatabase()
-      Method: private void EnsureColumn(string table, string column, string type)
-      Method: public void BackupDatabase(string backupFilePath)
 
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Rentals
+---------------------------------------------------------------------------------------------------------------
+  File: RentalService.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Rentals\RentalService.cs
+    Class: RentalService
+      Visibility: public
+      Method: private public RentalService(DatabaseService dbService)
+      Method: public void RentTool(string toolID, int customerID, DateTime rentalDate, DateTime dueDate)
+
+
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Settings
+----------------------------------------------------------------------------------------------------------------
+  File: SettingsService.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Settings\SettingsService.cs
+    Class: SettingsService
+      Visibility: public
+      Field: var dict =
+      Field: var p =
+      Method: private ON CONFLICT(Key)
+      Method: private public SettingsService(DatabaseService dbService)
+      Method: public void SaveSetting(string key, string value)
+      Method: private new SQLiteParameter("@Key", key)
+      Method: private new SQLiteParameter("@Value", value)
+      Method: public string GetSetting(string key)
+      Method: public void UpdateSettings(Dictionary<string, string> settings)
+      Method: private new SQLiteParameter("@Key", kv.Key)
+      Method: private new SQLiteParameter("@Value", kv.Value)
+      Method: public void DeleteSetting(string key)
+
+
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Tools
+-------------------------------------------------------------------------------------------------------------
   File: Printer.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Printer.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Tools\Printer.cs
     Class: Printer
       Visibility: public
       Field: var list =
@@ -138,9 +172,9 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Field: var imgBorder =
       Field: var bmp =
       Method: private public Printer(SettingsService settingsService)
-      Method: public void PrintTools(IEnumerable<Tool> tools, string title, string currentUserName = null)
-      Method: private FlowDocument BuildDocument(List<Tool> tools, string title, string logoPath)
-      Method: private StackPanel CreateToolRow(Tool tool)
+      Method: public void PrintTools(IEnumerable<ToolModel> tools, string title, string currentUserName = null)
+      Method: private FlowDocument BuildDocument(List<ToolModel> tools, string title, string logoPath)
+      Method: private StackPanel CreateToolRow(ToolModel tool)
       Method: private Border CreateOptimizedImage(string path)
       Method: private void AddCompanyLogo(StackPanel host, string logoPath)
       Method: private void AddTitle(StackPanel host, string title)
@@ -154,15 +188,8 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Field: var cv =
       Method: private public CustomDocumentPaginator(DocumentPaginator inner, Typeface tf, double fs)
 
-  File: RentalService.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\RentalService.cs
-    Class: RentalService
-      Visibility: public
-      Method: private public RentalService(DatabaseService dbService)
-      Method: public void RentTool(string toolID, int customerID, DateTime rentalDate, DateTime dueDate)
-
   File: ReportService.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\ReportService.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Tools\ReportService.cs
     Class: ReportService
       Visibility: public
       Field: var totalTools =
@@ -185,25 +212,8 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Method: private return BuildReport("Application Summary Report", lines)
       Method: private FlowDocument BuildReport(string title, IEnumerable<string> lines)
 
-  File: SettingsService.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\SettingsService.cs
-    Class: SettingsService
-      Visibility: public
-      Field: var dict =
-      Field: var p =
-      Method: private ON CONFLICT(Key)
-      Method: private public SettingsService(DatabaseService dbService)
-      Method: public void SaveSetting(string key, string value)
-      Method: private new SQLiteParameter("@Key", key)
-      Method: private new SQLiteParameter("@Value", value)
-      Method: public string GetSetting(string key)
-      Method: public void UpdateSettings(Dictionary<string, string> settings)
-      Method: private new SQLiteParameter("@Key", kv.Key)
-      Method: private new SQLiteParameter("@Value", kv.Value)
-      Method: public void DeleteSetting(string key)
-
   File: ToolService.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\ToolService.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Tools\ToolService.cs
     Class: ToolService
       Visibility: public
       Field: var terms =
@@ -216,56 +226,76 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Field: var headers =
       Field: var cols =
       Method: private public ToolService(DatabaseService dbService)
-      Method: public List<Tool> GetAllTools()
-      Method: public Tool GetToolByID(string toolID)
-      Method: public List<Tool> SearchTools(string searchText)
-      Method: public void AddTool(Tool tool)
-      Method: private new SQLiteParameter("@Name",  tool.Name)
-      Method: private new SQLiteParameter("@Desc",  (object)tool.Description ?? DBNull.Value)
-      Method: private new SQLiteParameter("@Loc",   tool.Location)
+      Method: public List<ToolModel> GetAllTools()
+      Method: public ToolModel GetToolByID(string toolID)
+      Method: public List<ToolModel> SearchTools(string searchText)
+      Method: public void AddTool(ToolModel tool)
+      Method: private new SQLiteParameter("@ToolNumber", tool.ToolNumber)
+      Method: private new SQLiteParameter("@Desc", (object)tool.NameDescription ?? DBNull.Value)
+      Method: private new SQLiteParameter("@Loc", tool.Location)
       Method: private new SQLiteParameter("@Brand", tool.Brand)
-      Method: private new SQLiteParameter("@PN",    tool.PartNumber)
-      Method: private new SQLiteParameter("@Sup",   (object)tool.Supplier ?? DBNull.Value)
-      Method: private new SQLiteParameter("@PD",    (object)tool.PurchasedDate ?? DBNull.Value)
+      Method: private new SQLiteParameter("@PN", tool.PartNumber)
+      Method: private new SQLiteParameter("@Sup", (object)tool.Supplier ?? DBNull.Value)
+      Method: private new SQLiteParameter("@PD", (object)tool.PurchasedDate ?? DBNull.Value)
       Method: private new SQLiteParameter("@Notes", (object)tool.Notes ?? DBNull.Value)
+      Method: private new SQLiteParameter("@Keywords", (object)tool.Keywords ?? DBNull.Value)
       Method: private new SQLiteParameter("@Avail", tool.QuantityOnHand)
-      Method: private new SQLiteParameter("@Rent",  tool.RentedQuantity)
-      Method: public void UpdateTool(Tool tool)
-      Method: private new SQLiteParameter("@ID",   tool.ToolID)
-      Method: private new SQLiteParameter("@Name", tool.Name)
-      Method: private new SQLiteParameter("@Desc",  (object)tool.Description ?? DBNull.Value)
-      Method: private new SQLiteParameter("@Loc",   tool.Location)
+      Method: private new SQLiteParameter("@Rent", tool.RentedQuantity)
+      Method: public void UpdateTool(ToolModel tool)
+      Method: private new SQLiteParameter("@ID", tool.ToolID)
+      Method: private new SQLiteParameter("@ToolNumber", tool.ToolNumber)
+      Method: private new SQLiteParameter("@Desc", (object)tool.NameDescription ?? DBNull.Value)
+      Method: private new SQLiteParameter("@Loc", tool.Location)
       Method: private new SQLiteParameter("@Brand", tool.Brand)
-      Method: private new SQLiteParameter("@PN",    tool.PartNumber)
-      Method: private new SQLiteParameter("@Sup",   (object)tool.Supplier ?? DBNull.Value)
-      Method: private new SQLiteParameter("@PD",    (object)tool.PurchasedDate ?? DBNull.Value)
+      Method: private new SQLiteParameter("@PN", tool.PartNumber)
+      Method: private new SQLiteParameter("@Sup", (object)tool.Supplier ?? DBNull.Value)
+      Method: private new SQLiteParameter("@PD", (object)tool.PurchasedDate ?? DBNull.Value)
       Method: private new SQLiteParameter("@Notes", (object)tool.Notes ?? DBNull.Value)
+      Method: private new SQLiteParameter("@Keywords", (object)tool.Keywords ?? DBNull.Value)
       Method: private new SQLiteParameter("@Avail", tool.QuantityOnHand)
-      Method: private new SQLiteParameter("@Rent",  tool.RentedQuantity)
-      Method: private new SQLiteParameter("@Out",   tool.IsCheckedOut ? 1 : 0)
-      Method: private new SQLiteParameter("@By",    (object)tool.CheckedOutBy ?? DBNull.Value)
-      Method: private new SQLiteParameter("@Time",  (object)tool.CheckedOutTime ?? DBNull.Value)
-      Method: private new SQLiteParameter("@Img",   (object)tool.ToolImagePath ?? DBNull.Value)
+      Method: private new SQLiteParameter("@Rent", tool.RentedQuantity)
+      Method: private new SQLiteParameter("@Out", tool.IsCheckedOut ? 1 : 0)
+      Method: private new SQLiteParameter("@By", (object)tool.CheckedOutBy ?? DBNull.Value)
+      Method: private new SQLiteParameter("@Time", (object)tool.CheckedOutTime ?? DBNull.Value)
+      Method: private new SQLiteParameter("@Img", (object)tool.ToolImagePath ?? DBNull.Value)
       Method: public void UpdateToolQuantities(string toolID, int qtyChange, bool isRental)
       Method: private new SQLiteParameter("@ID", toolID)
-      Method: private new SQLiteParameter("@Q",  qtyChange)
+      Method: private new SQLiteParameter("@Q", qtyChange)
       Method: public void DeleteTool(string toolID)
       Method: public void ToggleToolCheckOutStatus(string toolID, string currentUser)
-      Method: private new SQLiteParameter("@Out",  newStatus)
-      Method: private new SQLiteParameter("@By",   by)
+      Method: private new SQLiteParameter("@Out", newStatus)
+      Method: private new SQLiteParameter("@By", by)
       Method: private new SQLiteParameter("@Time", time)
-      Method: private new SQLiteParameter("@ID",   toolID)
-      Method: public List<Tool> GetToolsCheckedOutBy(string userName)
+      Method: private new SQLiteParameter("@ID", toolID)
+      Method: public List<ToolModel> GetToolsCheckedOutBy(string userName)
       Method: public void UpdateToolImage(string toolID, string imagePath)
       Method: private new SQLiteParameter("@Img", imagePath)
-      Method: private new SQLiteParameter("@ID",  toolID)
+      Method: private new SQLiteParameter("@ID", toolID)
       Method: public void ImportToolsFromCsv(string filePath, IDictionary<string, string> map)
       Method: private string get(string prop)
       Method: public void ExportToolsToCsv(string filePath)
-      Method: private Tool MapTool(IDataRecord r) => new()
+      Method: private ToolModel MapTool(IDataRecord r) => new()
+
+
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Users
+-------------------------------------------------------------------------------------------------------------
+  File: ActivityLogService.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Users\ActivityLogService.cs
+    Class: ActivityLogService
+      Visibility: public
+      Field: var p =
+      Field: var p =
+      Method: private public ActivityLogService(DatabaseService dbService)
+      Method: public void LogAction(int userID, string userName, string action)
+      Method: private new SQLiteParameter("@UserID",   userID)
+      Method: private new SQLiteParameter("@UserName", userName)
+      Method: private new SQLiteParameter("@Action",   action)
+      Method: public List<ActivityLog> GetRecentLogs(int count = 50)
+      Method: public void PurgeOldLogs(DateTime threshold)
+      Method: private ActivityLog MapLog(IDataRecord r) => new()
 
   File: UserService.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\UserService.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Users\UserService.cs
     Class: UserService
       Visibility: public
       Field: var u =
@@ -305,38 +335,38 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Method: private User MapUser(IDataRecord rdr)
 
 
-Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities
---------------------------------------------------------------------------------------------------------
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\Converters
+-------------------------------------------------------------------------------------------------------------------
   File: BooleanToAdminConverter.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\BooleanToAdminConverter.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\Converters\BooleanToAdminConverter.cs
     Class: IValueConverter
       Visibility: public
       Method: public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
       Method: public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 
   File: CheckOutStatusConverter.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\CheckOutStatusConverter.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\Converters\CheckOutStatusConverter.cs
     Class: IValueConverter
       Visibility: public
       Method: public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
       Method: public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 
   File: InverseBooleanConverter.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\InverseBooleanConverter.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\Converters\InverseBooleanConverter.cs
     Class: IValueConverter
       Visibility: public
       Method: public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
       Method: public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 
   File: NonEmptyStringToBoolConverter.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\NonEmptyStringToBoolConverter.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\Converters\NonEmptyStringToBoolConverter.cs
     Class: IValueConverter
       Visibility: public
       Method: public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
       Method: public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 
   File: NullToDefaultImageConverter.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\NullToDefaultImageConverter.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\Converters\NullToDefaultImageConverter.cs
     Class: IValueConverter
       Visibility: public
       Field: string type =
@@ -346,10 +376,21 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Method: public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 
 
-Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels
----------------------------------------------------------------------------------------------------------
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\Customer
+------------------------------------------------------------------------------------------------------------------
+  File: CustomerViewModel.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\Customer\CustomerViewModel.cs
+    Class: ObservableObject
+      Visibility: internal
+      Field: public CustomerModel Customer
+      Field: public string DisplayName
+      Method: private public CustomerViewModel(CustomerModel customer)
+
+
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\Import
+----------------------------------------------------------------------------------------------------------------
   File: ImportMappingViewModel.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\ImportMappingViewModel.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\Import\ImportMappingViewModel.cs
     Class: ObservableObject
       Visibility: public
       Field: public string SelectedColumn
@@ -363,14 +404,17 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Property: public ObservableCollection<FieldMapping> Mappings
       Method: private public ImportMappingViewModel(IEnumerable<string> headers, IEnumerable<string> properties)
 
+
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\Main
+--------------------------------------------------------------------------------------------------------------
   File: MainViewModel.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\MainViewModel.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\Main\MainViewModel.cs
     Class: ObservableObject
       Visibility: public
-      Field: public Tool SelectedTool
-      Field: public User SelectedUser
-      Field: public Customer SelectedCustomer
-      Field: public Rental SelectedRental
+      Field: public ToolModel SelectedTool
+      Field: public UserModel SelectedUser
+      Field: public CustomerModel SelectedCustomer
+      Field: public RentalModel SelectedRental
       Field: public string CurrentUserName
       Field: public BitmapImage CurrentUserPhoto
       Field: public BitmapImage HeaderLogo
@@ -427,8 +471,8 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Method: private void DeleteTool()
       Method: public void LoadUsers()
       Method: private void LoadCurrentUser()
-      Method: private void ChooseProfilePic() => UploadPhotoForUser((User)Application.Current.Properties["CurrentUser"])
-      Method: private void UploadPhotoForUser(User u)
+      Method: private void ChooseProfilePic() => UploadPhotoForUser((UserModel)Application.Current.Properties["CurrentUser"])
+      Method: private void UploadPhotoForUser(UserModel u)
       Method: private void LoadCustomers()
       Method: private void AddCustomer()
       Method: private void UpdateCustomer()
@@ -446,138 +490,58 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Method: private void ShowWarning(string msg) => MessageBox.Show(msg, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning)
 
 
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\Rental
+----------------------------------------------------------------------------------------------------------------
+  File: RentalViewModel.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\Rental\RentalViewModel.cs
+    Class: ObservableObject
+      Visibility: internal
+      Field: public RentalModel Rental
+      Field: public string StatusSummary
+      Method: private public RentalViewModel(RentalModel rental)
+
+
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\Settings
+------------------------------------------------------------------------------------------------------------------
+  File: SettingsViewModel.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\Settings\SettingsViewModel.cs
+    Class: ObservableObject
+      Visibility: internal
+      Field: public string ApplicationName
+      Field: public string CompanyLogoPath
+      Field: public int DefaultRentalDuration
+
+
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\Tool
+--------------------------------------------------------------------------------------------------------------
+  File: ToolViewModel.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\Tool\ToolViewModel.cs
+    Class: ObservableObject
+      Visibility: internal
+      Field: public ToolModel Tool
+      Field: public string DisplayName
+      Method: private public ToolViewModel(ToolModel tool)
+
+
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\User
+--------------------------------------------------------------------------------------------------------------
+  File: UserViewModel.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels\User\UserViewModel.cs
+    Class: ObservableObject
+      Visibility: internal
+      Field: public UserModel User
+      Field: public string DisplayName
+      Method: private public UserViewModel(UserModel user)
+
+
 Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2
 ----------------------------------------------------------------------------------------------
   File: App.xaml
   Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\App.xaml
     XAML Element: Application
 
-
-Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views
-----------------------------------------------------------------------------------------------------
-  File: AvatarSelectionWindow.xaml
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views\AvatarSelectionWindow.xaml
-    XAML Element: DockPanel
-      Attribute: Margin="10"
-    XAML Element: Border
-      Attribute: DockPanel.Dock="Top"
-      Attribute: Background="#DDD"
-      Attribute: Padding="10"
-    XAML Element: ListBox
-    XAML Element: ItemsPanelTemplate
-    XAML Element: UniformGrid
-      Attribute: Columns="6"
-      Attribute: HorizontalAlignment="Center"
-      Attribute: VerticalAlignment="Center"
-    XAML Element: ListBox
-    XAML Element: DataTemplate
-    XAML Element: Border
-      Attribute: Background="#dadada"
-      Attribute: CornerRadius="5"
-      Attribute: Padding="10"
-    XAML Element: Image
-      Attribute: Source="{Binding}"
-      Attribute: Width="100"
-      Attribute: Height="100"
-    XAML Element: StatusBar
-      Attribute: DockPanel.Dock="Bottom"
-      Attribute: Background="LightGray"
-      Attribute: Height="25"
-    XAML Element: StatusBarItem
-      Attribute: Content="Ready"
-
-  File: ImportMappingWindow.xaml
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views\ImportMappingWindow.xaml
-    XAML Element: DockPanel
-      Attribute: Margin="10"
-    XAML Element: Border
-      Attribute: DockPanel.Dock="Top"
-      Attribute: Background="#DDD"
-      Attribute: Padding="10"
-    XAML Element: DataGrid
-    XAML Element: DataGridTemplateColumn
-      Attribute: Header="CSV
-    XAML Element: DataGridTemplateColumn
-    XAML Element: DataTemplate
-    XAML Element: TextBlock
-      Attribute: Text="{Binding
-    XAML Element: DataGridTemplateColumn
-    XAML Element: DataTemplate
-    XAML Element: StackPanel
-      Attribute: Orientation="Horizontal"
-      Attribute: HorizontalAlignment="Right"
-      Attribute: DockPanel.Dock="Bottom"
-    XAML Element: Button
-      Attribute: Content="OK"
-      Attribute: Width="75"
-      Attribute: Margin="5"
-      Attribute: Click="Ok_Click"
-    XAML Element: Button
-      Attribute: Content="Cancel"
-      Attribute: Width="75"
-      Attribute: Margin="5"
-      Attribute: Click="Cancel_Click"
-
-  File: LoginWindow.xaml
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views\LoginWindow.xaml
-    XAML Element: Window
-    XAML Element: local
-      Attribute: x:Key="NullToDefaultImageConverter"
-    XAML Element: local
-      Attribute: x:Key="BooleanToAdminConverter"
-    XAML Element: DockPanel
-    XAML Element: Border
-      Attribute: DockPanel.Dock="Top"
-      Attribute: Background="#DDD"
-      Attribute: Padding="10"
-    XAML Element: DockPanel
-    XAML Element: Image
-      Attribute: x:Name="LoginLogo"
-      Attribute: Width="50"
-      Attribute: Height="50"
-      Attribute: Margin="10"
-    XAML Element: Grid
-      Attribute: Margin="10"
-    XAML Element: Grid
-    XAML Element: RowDefinition
-      Attribute: Height="Auto"
-    XAML Element: RowDefinition
-      Attribute: Height="*"
-    XAML Element: ListBox
-    XAML Element: Style
-      Attribute: TargetType="ListBoxItem"
-    XAML Element: Setter
-      Attribute: Property="Background"
-      Attribute: Value="Transparent"
-    XAML Element: Setter
-      Attribute: Property="BorderThickness"
-      Attribute: Value="0"
-    XAML Element: Setter
-      Attribute: Property="Padding"
-      Attribute: Value="0"
-    XAML Element: Setter
-      Attribute: Property="Margin"
-      Attribute: Value="0"
-    XAML Element: Setter
-      Attribute: Property="Template"
-    XAML Element: Setter
-    XAML Element: ControlTemplate
-      Attribute: TargetType="ListBoxItem"
-    XAML Element: ContentPresenter
-    XAML Element: ListBox
-    XAML Element: ItemsPanelTemplate
-    XAML Element: WrapPanel
-      Attribute: Orientation="Horizontal"
-      Attribute: HorizontalAlignment="Center"
-    XAML Element: ListBox
-    XAML Element: DataTemplate
-    XAML Element: StackPanel
-      Attribute: Width="120"
-      Attribute: Margin="5"
-    XAML Element: StackPanel
-
   File: MainWindow.xaml
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views\MainWindow.xaml
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\MainWindow.xaml
     XAML Element: DockPanel
       Attribute: Margin="10"
     XAML Element: DockPanel
@@ -676,17 +640,13 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Attribute: Width="80"
       Attribute: CellTemplate="{StaticResource
     XAML Element: GridViewColumn
-      Attribute: Header="ID"
-      Attribute: DisplayMemberBinding="{Binding
-      Attribute: Width="60"
-    XAML Element: GridViewColumn
-      Attribute: Header="Name"
+      Attribute: Header="Tool
       Attribute: DisplayMemberBinding="{Binding
       Attribute: Width="120"
     XAML Element: GridViewColumn
-      Attribute: Header="Location"
+      Attribute: Header="Name"
       Attribute: DisplayMemberBinding="{Binding
-      Attribute: Width="70"
+      Attribute: Width="380"
     XAML Element: GridViewColumn
       Attribute: Header="Part
       Attribute: DisplayMemberBinding="{Binding
@@ -695,10 +655,6 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Attribute: Header="Brand"
       Attribute: DisplayMemberBinding="{Binding
       Attribute: Width="100"
-    XAML Element: GridViewColumn
-      Attribute: Header="Description"
-      Attribute: DisplayMemberBinding="{Binding
-      Attribute: Width="380"
     XAML Element: GridViewColumn
       Attribute: Header="Quantity"
       Attribute: DisplayMemberBinding="{Binding
@@ -759,7 +715,7 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Attribute: DisplayMemberBinding="{Binding
       Attribute: Width="60"
     XAML Element: GridViewColumn
-      Attribute: Header="Description"
+      Attribute: Header="Name"
       Attribute: DisplayMemberBinding="{Binding
       Attribute: Width="380"
     XAML Element: GridViewColumn
@@ -780,55 +736,145 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
     XAML Element: Grid
     XAML Element: Grid
     XAML Element: ColumnDefinition
-      Attribute: Width="350"
+      Attribute: Width="400"
     XAML Element: ColumnDefinition
     XAML Element: GroupBox
       Attribute: Grid.Column="0"
       Attribute: Header="Tool
       Attribute: Margin="5"
-    XAML Element: StackPanel
+    XAML Element: Grid
+      Attribute: Margin="5"
+    XAML Element: Grid
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: RowDefinition
+      Attribute: Height="*"
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: Grid
+    XAML Element: ColumnDefinition
+      Attribute: Width="120"
+    XAML Element: ColumnDefinition
+      Attribute: Width="*"
+    XAML Element: TextBlock
+      Attribute: Text="Tool
+      Attribute: Grid.Row="1"
+      Attribute: Grid.Column="0"
+      Attribute: VerticalAlignment="Center"
     XAML Element: xctk
-      Attribute: x:Name="ToolIDInput"
+      Attribute: x:Name="ToolNumberInput"
+      Attribute: Grid.Row="1"
+      Attribute: Grid.Column="1"
       Attribute: Watermark="Tool
-      Attribute: Margin="0,5"
-    XAML Element: xctk
-      Attribute: x:Name="PartNumberInput"
-      Attribute: Watermark="Part
-      Attribute: Margin="0,5"
+      Attribute: Margin="0,2"
+    XAML Element: TextBlock
+      Attribute: Text="Name:"
+      Attribute: Grid.Row="2"
+      Attribute: Grid.Column="0"
+      Attribute: VerticalAlignment="Center"
     XAML Element: xctk
       Attribute: x:Name="ToolNameInput"
+      Attribute: Grid.Row="2"
+      Attribute: Grid.Column="1"
       Attribute: Watermark="Tool
-      Attribute: Margin="0,5"
+      Attribute: Margin="0,2"
+    XAML Element: TextBlock
+      Attribute: Text="Part
+      Attribute: Grid.Row="3"
+      Attribute: Grid.Column="0"
+      Attribute: VerticalAlignment="Center"
+    XAML Element: xctk
+      Attribute: x:Name="PartNumberInput"
+      Attribute: Grid.Row="3"
+      Attribute: Grid.Column="1"
+      Attribute: Watermark="Part
+      Attribute: Margin="0,2"
+    XAML Element: TextBlock
+      Attribute: Text="Brand:"
+      Attribute: Grid.Row="4"
+      Attribute: Grid.Column="0"
+      Attribute: VerticalAlignment="Center"
     XAML Element: xctk
       Attribute: x:Name="BrandInput"
+      Attribute: Grid.Row="4"
+      Attribute: Grid.Column="1"
       Attribute: Watermark="Brand"
-      Attribute: Margin="0,5"
+      Attribute: Margin="0,2"
+    XAML Element: TextBlock
+      Attribute: Text="Location:"
+      Attribute: Grid.Row="5"
+      Attribute: Grid.Column="0"
+      Attribute: VerticalAlignment="Center"
     XAML Element: xctk
       Attribute: x:Name="LocationInput"
+      Attribute: Grid.Row="5"
+      Attribute: Grid.Column="1"
       Attribute: Watermark="Location"
-      Attribute: Margin="0,5"
+      Attribute: Margin="0,2"
+    XAML Element: TextBlock
+      Attribute: Text="Quantity:"
+      Attribute: Grid.Row="6"
+      Attribute: Grid.Column="0"
+      Attribute: VerticalAlignment="Center"
     XAML Element: xctk
       Attribute: x:Name="QuantityInput"
+      Attribute: Grid.Row="6"
+      Attribute: Grid.Column="1"
       Attribute: Watermark="Quantity
-      Attribute: Margin="0,5"
+      Attribute: Margin="0,2"
+    XAML Element: TextBlock
+      Attribute: Text="Supplier:"
+      Attribute: Grid.Row="7"
+      Attribute: Grid.Column="0"
+      Attribute: VerticalAlignment="Center"
     XAML Element: xctk
       Attribute: x:Name="SupplierInput"
+      Attribute: Grid.Row="7"
+      Attribute: Grid.Column="1"
       Attribute: Watermark="Supplier"
-      Attribute: Margin="0,5"
+      Attribute: Margin="0,2"
+    XAML Element: TextBlock
+      Attribute: Text="Purchased
+      Attribute: Grid.Row="8"
+      Attribute: Grid.Column="0"
+      Attribute: VerticalAlignment="Center"
     XAML Element: xctk
       Attribute: x:Name="PurchasedInput"
-      Attribute: Watermark="Purchased
-      Attribute: Margin="0,5"
-    XAML Element: xctk
-      Attribute: x:Name="NotesInput"
-      Attribute: Watermark="Notes"
-      Attribute: TextWrapping="Wrap"
-      Attribute: Margin="0,5"
-      Attribute: Height="60"
-      Attribute: AcceptsReturn="True"
+      Attribute: Grid.Row="8"
+      Attribute: Grid.Column="1"
+      Attribute: Watermark="yyyy-MM-dd"
+      Attribute: Margin="0,2"
+    XAML Element: TextBlock
+      Attribute: Text="Notes:"
+      Attribute: Grid.Row="9"
+      Attribute: Grid.Column="0"
+      Attribute: VerticalAlignment="Top"
+      Attribute: Margin="0,5,0,0"
+    XAML Element: Grid
+      Attribute: Grid.Row="9"
+      Attribute: Grid.Column="1"
     XAML Element: StackPanel
+      Attribute: Grid.Row="10"
+      Attribute: Grid.ColumnSpan="2"
       Attribute: Orientation="Horizontal"
       Attribute: HorizontalAlignment="Center"
+      Attribute: Margin="0,10,0,0"
     XAML Element: Button
       Attribute: Content="Add"
       Attribute: Click="AddButton_Click"
@@ -854,9 +900,13 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
     XAML Element: ListView
     XAML Element: GridView
     XAML Element: GridViewColumn
-      Attribute: Header="ID"
+      Attribute: Header="Tool#"
       Attribute: DisplayMemberBinding="{Binding
-      Attribute: Width="60"
+      Attribute: Width="100"
+    XAML Element: GridViewColumn
+      Attribute: Header="Name"
+      Attribute: DisplayMemberBinding="{Binding
+      Attribute: Width="200"
     XAML Element: GridViewColumn
       Attribute: Header="Part
       Attribute: DisplayMemberBinding="{Binding
@@ -1350,6 +1400,130 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Attribute: Background="LightGray"
     XAML Element: StatusBarItem
       Attribute: Content="Ready"
+
+
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views
+----------------------------------------------------------------------------------------------------
+  File: AvatarSelectionWindow.xaml
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views\AvatarSelectionWindow.xaml
+    XAML Element: DockPanel
+      Attribute: Margin="10"
+    XAML Element: Border
+      Attribute: DockPanel.Dock="Top"
+      Attribute: Background="#DDD"
+      Attribute: Padding="10"
+    XAML Element: ListBox
+    XAML Element: ItemsPanelTemplate
+    XAML Element: UniformGrid
+      Attribute: Columns="6"
+      Attribute: HorizontalAlignment="Center"
+      Attribute: VerticalAlignment="Center"
+    XAML Element: ListBox
+    XAML Element: DataTemplate
+    XAML Element: Border
+      Attribute: Background="#dadada"
+      Attribute: CornerRadius="5"
+      Attribute: Padding="10"
+    XAML Element: Image
+      Attribute: Source="{Binding}"
+      Attribute: Width="100"
+      Attribute: Height="100"
+    XAML Element: StatusBar
+      Attribute: DockPanel.Dock="Bottom"
+      Attribute: Background="LightGray"
+      Attribute: Height="25"
+    XAML Element: StatusBarItem
+      Attribute: Content="Ready"
+
+  File: ImportMappingWindow.xaml
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views\ImportMappingWindow.xaml
+    XAML Element: DockPanel
+      Attribute: Margin="10"
+    XAML Element: Border
+      Attribute: DockPanel.Dock="Top"
+      Attribute: Background="#DDD"
+      Attribute: Padding="10"
+    XAML Element: DataGrid
+    XAML Element: DataGridTemplateColumn
+      Attribute: Header="CSV
+    XAML Element: DataGridTemplateColumn
+    XAML Element: DataTemplate
+    XAML Element: TextBlock
+      Attribute: Text="{Binding
+    XAML Element: DataGridTemplateColumn
+    XAML Element: DataTemplate
+    XAML Element: StackPanel
+      Attribute: Orientation="Horizontal"
+      Attribute: HorizontalAlignment="Right"
+      Attribute: DockPanel.Dock="Bottom"
+    XAML Element: Button
+      Attribute: Content="OK"
+      Attribute: Width="75"
+      Attribute: Margin="5"
+      Attribute: Click="Ok_Click"
+    XAML Element: Button
+      Attribute: Content="Cancel"
+      Attribute: Width="75"
+      Attribute: Margin="5"
+      Attribute: Click="Cancel_Click"
+
+  File: LoginWindow.xaml
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views\LoginWindow.xaml
+    XAML Element: Window
+    XAML Element: local
+      Attribute: x:Key="NullToDefaultImageConverter"
+    XAML Element: local
+      Attribute: x:Key="BooleanToAdminConverter"
+    XAML Element: DockPanel
+    XAML Element: Border
+      Attribute: DockPanel.Dock="Top"
+      Attribute: Background="#DDD"
+      Attribute: Padding="10"
+    XAML Element: DockPanel
+    XAML Element: Image
+      Attribute: x:Name="LoginLogo"
+      Attribute: Width="50"
+      Attribute: Height="50"
+      Attribute: Margin="10"
+    XAML Element: Grid
+      Attribute: Margin="10"
+    XAML Element: Grid
+    XAML Element: RowDefinition
+      Attribute: Height="Auto"
+    XAML Element: RowDefinition
+      Attribute: Height="*"
+    XAML Element: ListBox
+    XAML Element: Style
+      Attribute: TargetType="ListBoxItem"
+    XAML Element: Setter
+      Attribute: Property="Background"
+      Attribute: Value="Transparent"
+    XAML Element: Setter
+      Attribute: Property="BorderThickness"
+      Attribute: Value="0"
+    XAML Element: Setter
+      Attribute: Property="Padding"
+      Attribute: Value="0"
+    XAML Element: Setter
+      Attribute: Property="Margin"
+      Attribute: Value="0"
+    XAML Element: Setter
+      Attribute: Property="Template"
+    XAML Element: Setter
+    XAML Element: ControlTemplate
+      Attribute: TargetType="ListBoxItem"
+    XAML Element: ContentPresenter
+    XAML Element: ListBox
+    XAML Element: ItemsPanelTemplate
+    XAML Element: WrapPanel
+      Attribute: Orientation="Horizontal"
+      Attribute: HorizontalAlignment="Center"
+    XAML Element: ListBox
+    XAML Element: DataTemplate
+    XAML Element: StackPanel
+      Attribute: Width="120"
+      Attribute: Margin="5"
+    XAML Element: StackPanel
 
   File: PasswordPromptWindow.xaml
   Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views\PasswordPromptWindow.xaml

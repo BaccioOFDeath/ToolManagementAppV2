@@ -1,7 +1,7 @@
 ﻿<Window x:Class="ToolManagementAppV2.LoginWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:ToolManagementAppV2.Utilities"
+        xmlns:local="clr-namespace:ToolManagementAppV2.Utilities.Converters"
         Title="Tool Inventory Management – Login"
         Height="650" Width="1600"
         WindowStartupLocation="CenterScreen"

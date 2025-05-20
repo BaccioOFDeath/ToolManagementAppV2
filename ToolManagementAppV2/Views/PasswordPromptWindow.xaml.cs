@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Input;
-using ToolManagementAppV2.Models;
+using ToolManagementAppV2.Models.Domain;
 
 namespace ToolManagementAppV2
 {

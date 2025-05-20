@@ -10,13 +10,9 @@
 
   <ItemGroup>
     <Compile Remove="Assets\**" />
-    <Compile Remove="Views\NewFolder\**" />
     <EmbeddedResource Remove="Assets\**" />
-    <EmbeddedResource Remove="Views\NewFolder\**" />
     <None Remove="Assets\**" />
-    <None Remove="Views\NewFolder\**" />
     <Page Remove="Assets\**" />
-    <Page Remove="Views\NewFolder\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -67,14 +63,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\Domain\" />
-    <Folder Include="Models\DTOs\" />
-    <Folder Include="Interfaces\" />
     <Folder Include="Images\" />
+    <Folder Include="Views\Common\" />
+    <Folder Include="Views\Customer\" />
+    <Folder Include="Views\ImportExport\" />
+    <Folder Include="Views\Reports\" />
+    <Folder Include="Views\Settings\" />
+    <Folder Include="Views\User\" />
+    <Folder Include="Views\Rental\" />
+    <Folder Include="Views\Tool\" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="CsvHelper" Version="33.0.1" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.6.1" />
     <PackageReference Include="MaterialDesignThemes" Version="5.2.1" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.119" />
