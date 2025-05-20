@@ -226,6 +226,10 @@ namespace ToolManagementAppV2.ViewModels
             _toolService.ImportToolsFromCsv(path, map);
             LoadTools();
             ShowInfo($"{lines.Length - 1} tools imported successfully.");
+
+            LoadTools();
+            LoadCheckedOutTools();
+            LoadCustomers();
         }
 
         void ExportTools()
@@ -312,9 +316,12 @@ namespace ToolManagementAppV2.ViewModels
             var headers = lines[0].Split(',').Select(h => h.Trim());
             var fields = new[] { "Name", "Email", "Contact", "Phone", "Address" };
             if (!ShowMappingWindow(headers, fields, out var map)) return;
+            LoadTools();
+            LoadCheckedOutTools();
             _customerService.ImportCustomersFromCsv(path, map);
             LoadCustomers();
             ShowInfo($"{lines.Length - 1} customers imported successfully.");
+
         }
 
         void ExportCustomers()
