@@ -1,8 +1,5 @@
-﻿// File: Services/DatabaseService.cs
-using System;
-using System.Data.SQLite;
+﻿using System.Data.SQLite;
 using System.IO;
-using System.Linq;
 
 namespace ToolManagementAppV2.Services
 {

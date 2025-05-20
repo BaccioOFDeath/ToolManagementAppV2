@@ -1,10 +1,6 @@
-﻿// File: Services/CustomerService.cs
-using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Data;
 using System.Data.SQLite;
 using System.IO;
-using System.Linq;
 using ToolManagementAppV2.Models;
 
 namespace ToolManagementAppV2.Services
