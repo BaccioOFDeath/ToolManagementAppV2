@@ -1,17 +1,25 @@
-﻿<!-- File: Views/ImportMappingWindow.xaml -->
-<Window x:Class="ToolManagementAppV2.Views.ImportMappingWindow"
+﻿<Window x:Class="ToolManagementAppV2.Views.ImportMappingWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Map CSV Columns" Height="350" Width="450">
+        Title="Tool Inventory Management – Map CSV Columns"
+        Height="350" Width="450"
+        WindowStartupLocation="CenterScreen">
     <DockPanel Margin="10">
+        <!-- HEADER -->
+        <Border DockPanel.Dock="Top" Background="#DDD" Padding="10">
+            <TextBlock Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}"
+                       FontWeight="Bold" FontSize="20" Margin="10"/>
+        </Border>
+
+        <!-- MAPPING GRID -->
         <DataGrid ItemsSource="{Binding Mappings}"
-              AutoGenerateColumns="False"
-              CanUserAddRows="False"
-              Margin="0,0,0,40">
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  Margin="0,0,0,40">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Property"
-                            Binding="{Binding PropertyName}"
-                            IsReadOnly="True"/>
+                                    Binding="{Binding PropertyName}"
+                                    IsReadOnly="True"/>
                 <DataGridTemplateColumn Header="CSV Column">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
@@ -22,15 +30,16 @@
                         <DataTemplate>
                             <ComboBox ItemsSource="{Binding DataContext.ColumnHeaders,
                                       RelativeSource={RelativeSource AncestorType=Window}}"
-                        SelectedItem="{Binding SelectedColumn,Mode=TwoWay}"
-                        IsEditable="False"/>
+                                      SelectedItem="{Binding SelectedColumn,Mode=TwoWay}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellEditingTemplate>
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
+
+        <!-- OK / Cancel -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" DockPanel.Dock="Bottom">
-            <Button Content="OK" Width="75" Margin="5" Click="Ok_Click"/>
+            <Button Content="OK"   Width="75" Margin="5" Click="Ok_Click"/>
             <Button Content="Cancel" Width="75" Margin="5" Click="Cancel_Click"/>
         </StackPanel>
     </DockPanel>

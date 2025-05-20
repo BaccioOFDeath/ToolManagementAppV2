@@ -10,35 +10,27 @@ namespace ToolManagementAppV2
     public partial class LoginWindow : Window
     {
         private readonly UserService _userService;
-        private readonly SettingsService _settingsService;
 
         public LoginWindow()
         {
             InitializeComponent();
 
-            // --- initialize services pointing at your same database ---
+            // Load logo
             var dbPath = "tool_inventory.db";
             var databaseService = new DatabaseService(dbPath);
-            _settingsService = new SettingsService(databaseService);
-            _userService = new UserService(databaseService);
-
-            // --- load & apply application name from settings ---
-            var appName = _settingsService.GetSetting("ApplicationName");
-            if (string.IsNullOrWhiteSpace(appName))
-                appName = "Tool Inventory Management";
-            // Window title
-            this.Title = $"{appName} – Login";
-            // Header TextBlock (named in XAML)
-            HeaderTitle.Text = appName;
-
-            // --- load & display logo from settings (or fallback) ---
-            var logoPath = _settingsService.GetSetting("CompanyLogoPath");
+            var settingsService = new SettingsService(databaseService);
+            var logoPath = settingsService.GetSetting("CompanyLogoPath");
             var logoUri = !string.IsNullOrEmpty(logoPath) && File.Exists(logoPath)
-                ? new Uri(logoPath, UriKind.Absolute)
-                : new Uri("pack://application:,,,/Resources/DefaultLogo.png", UriKind.Absolute);
+                          ? new Uri(logoPath, UriKind.Absolute)
+                          : new Uri("pack://application:,,,/Resources/DefaultLogo.png", UriKind.Absolute);
             LoginLogo.Source = new BitmapImage(logoUri);
 
-            // --- populate the user list ---
+            // Set window Title (which also updates HeaderTitle via binding)
+            this.Title = settingsService.GetSetting("ApplicationName") is string appName && !string.IsNullOrEmpty(appName)
+                         ? $"{appName} – Login"
+                         : this.Title;
+
+            _userService = new UserService(databaseService);
             LoadUsers();
         }
 
@@ -50,7 +42,6 @@ namespace ToolManagementAppV2
                 MessageBox.Show(
                     "No users exist. A default admin account will be created (username: admin, password: admin).",
                     "Setup", MessageBoxButton.OK, MessageBoxImage.Information);
-
                 var defaultUser = new User
                 {
                     UserName = "admin",

@@ -1,65 +1,46 @@
 ﻿<Window x:Class="ToolManagementAppV2.Views.AvatarSelectionWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Select Avatar" Height="650" Width="1600"
+        Title="Tool Inventory Management – Select Avatar"
+        Height="650" Width="1600"
         WindowStartupLocation="CenterScreen">
-    <Window.Resources>
-        <Style x:Key="AvatarItemStyle" TargetType="Border">
-            <Setter Property="Padding" Value="10"/>
-            <Setter Property="Margin" Value="5"/>
-            <Setter Property="Background" Value="#dadada"/>
-            <Setter Property="CornerRadius" Value="5"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#cdcdcd"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-        <Style TargetType="ListBoxItem">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="0"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ListBoxItem">
-                        <ContentPresenter/>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </Window.Resources>
-
     <DockPanel Margin="10">
+
+        <!-- HEADER -->
         <Border DockPanel.Dock="Top" Background="#DDD" Padding="10">
-            <TextBlock Text="Select Avatar" FontWeight="Bold" FontSize="20" Margin="10"/>
+            <TextBlock Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}"
+                       FontWeight="Bold" FontSize="20" Margin="10" />
         </Border>
 
-        <Grid>
-            <ListBox x:Name="AvatarListBox" Margin="0,4,0,40">
-                <ListBox.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <UniformGrid Columns="6" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </ItemsPanelTemplate>
-                </ListBox.ItemsPanel>
+        <!-- AVATAR GRID -->
+        <ListBox x:Name="AvatarListBox"
+                 DockPanel.Dock="Top"
+                 Margin="0,4,0,0"
+                 ItemsSource="{Binding Avatars}">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="6" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Button Click="AvatarButton_Click"
+                            Tag="{Binding}"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Margin="5">
+                        <Border Background="#dadada" CornerRadius="5" Padding="10">
+                            <Image Source="{Binding}" Width="100" Height="100"/>
+                        </Border>
+                    </Button>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
 
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Button Click="AvatarButton_Click"
-                    Tag="{Binding}"
-                    Background="Transparent"
-                    BorderThickness="0">
-                            <Border Style="{StaticResource AvatarItemStyle}">
-                                <Image Source="{Binding}" Width="100" Height="100"/>
-                            </Border>
-                        </Button>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+        <!-- STATUS BAR -->
+        <StatusBar DockPanel.Dock="Bottom" Background="LightGray" Height="25">
+            <StatusBarItem Content="Ready" />
+        </StatusBar>
 
-            <StatusBar DockPanel.Dock="Bottom" Height="25" VerticalAlignment="Bottom">
-                <StatusBarItem Content="Ready" Background="LightGray"/>
-            </StatusBar>
-        </Grid>
     </DockPanel>
 </Window>
