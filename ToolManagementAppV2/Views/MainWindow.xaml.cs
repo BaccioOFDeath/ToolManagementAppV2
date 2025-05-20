@@ -1,9 +1,6 @@
-﻿using System;
-using System.Linq;
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -24,6 +21,7 @@ namespace ToolManagementAppV2
         private readonly SettingsService _settingsService;
         private readonly DatabaseService _databaseService;
         private readonly ActivityLogService _activityLogService;
+        private readonly Printer _printer;
 
         public MainWindow()
         {
@@ -36,6 +34,7 @@ namespace ToolManagementAppV2
             _rentalService = new RentalService(_databaseService);
             _userService = new UserService(_databaseService);
             _settingsService = new SettingsService(_databaseService);
+            _printer = new Printer(_settingsService);
             _activityLogService = new ActivityLogService(_databaseService);
             _reportService = new ReportService(_toolService, _rentalService, _activityLogService, _customerService, _userService);
 
@@ -770,31 +769,7 @@ namespace ToolManagementAppV2
             }
         }
 
-        private void PrintMyCheckedOutTools_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var currentUser = _userService.GetCurrentUser();
-                if (currentUser == null)
-                {
-                    MessageBox.Show("No user logged in.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-                var myTools = _toolService.GetToolsCheckedOutBy(currentUser.UserName);
-                if (myTools.Count == 0)
-                {
-                    MessageBox.Show("You have no checked out tools.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-                    return;
-                }
-                string message = string.Join(Environment.NewLine, myTools.Select(t => $"Tool ID: {t.ToolID}, Name: {t.Name}"));
-                MessageBox.Show(message, "My Checked Out Tools");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error retrieving checked out tools: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
+        
         private void RefreshLogsButton_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -855,91 +830,17 @@ namespace ToolManagementAppV2
 
         #endregion
 
-        private void UploadPhotoForUser(User user)
-        {
-            var dlg = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg"
-            };
-            if (dlg.ShowDialog() != true) return;
-
-            var src = dlg.FileName;
-            var photosFolder = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UserPhotos");
-            System.IO.Directory.CreateDirectory(photosFolder);
-            var dest = System.IO.Path.Combine(photosFolder, $"{Guid.NewGuid()}{System.IO.Path.GetExtension(src)}");
-            System.IO.File.Copy(src, dest, true);
-
-            var bitmap = new BitmapImage();
-            bitmap.BeginInit();
-            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            bitmap.UriSource = new Uri(dest, UriKind.Absolute);
-            bitmap.EndInit();
-
-            user.UserPhotoPath = dest;
-            user.PhotoBitmap = bitmap;
-            _userService.UpdateUser(user);
-
-            if (App.Current.Properties["CurrentUser"] is User curr && curr.UserID == user.UserID)
-            {
-                curr.UserPhotoPath = dest;
-                curr.PhotoBitmap = bitmap;
-                if (DataContext is MainViewModel vm)
-                    vm.CurrentUserPhoto = bitmap;
-            }
-        }
-
-
-
-
         private void PrintSearchResults_Click(object sender, RoutedEventArgs e)
         {
-            var items = SearchResultsList.ItemsSource?.Cast<object>().ToList();
-            if (items == null || items.Count == 0)
-            {
-                MessageBox.Show("No search results to print.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-            var doc = new FlowDocument { PagePadding = new Thickness(20) };
-            var table = new Table { CellSpacing = 0 };
-            doc.Blocks.Add(table);
-
-            if (SearchResultsList.View is GridView gv)
-            {
-                foreach (var _ in gv.Columns)
-                    table.Columns.Add(new TableColumn());
-
-                var rg = new TableRowGroup();
-                table.RowGroups.Add(rg);
-
-                var headerRow = new TableRow();
-                rg.Rows.Add(headerRow);
-                foreach (var col in gv.Columns)
-                {
-                    headerRow.Cells.Add(new TableCell(new Paragraph(new Run(col.Header?.ToString() ?? "")))
-                    { FontWeight = FontWeights.Bold, Padding = new Thickness(4) });
-                }
-
-                foreach (var item in items)
-                {
-                    var row = new TableRow();
-                    rg.Rows.Add(row);
-                    foreach (var col in gv.Columns.OfType<GridViewColumn>())
-                    {
-                        string text = "";
-                        if (col.DisplayMemberBinding is Binding bnd)
-                        {
-                            var prop = item.GetType().GetProperty(bnd.Path.Path);
-                            text = prop?.GetValue(item)?.ToString() ?? "";
-                        }
-                        row.Cells.Add(new TableCell(new Paragraph(new Run(text))) { Padding = new Thickness(4) });
-                    }
-                }
-
-                var pd = new PrintDialog();
-                if (pd.ShowDialog() == true)
-                    pd.PrintDocument(((IDocumentPaginatorSource)doc).DocumentPaginator, "Search Results");
-            }
+            // pull the actual collection from your ViewModel
+            var vm = DataContext as MainViewModel;
+            _printer.PrintTools(vm.SearchResults, "Search Results");
         }
 
+        private void PrintMyCheckedOutTools_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = DataContext as MainViewModel;
+            _printer.PrintTools(vm.CheckedOutTools, "My Checked-Out Tools", vm.CurrentUserName);
+        }
     }
 }

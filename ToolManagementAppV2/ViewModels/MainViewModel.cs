@@ -12,11 +12,16 @@ using System.Windows.Media.Imaging;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Services;
 using ToolManagementAppV2.Views;
+using System.Windows.Threading;
+
 
 namespace ToolManagementAppV2.ViewModels
 {
     public class MainViewModel : ObservableObject
     {
+
+        private readonly DispatcherTimer _refreshTimer;
+
         private readonly ToolService _toolService;
         private readonly UserService _userService;
         private readonly CustomerService _customerService;
@@ -172,10 +177,11 @@ namespace ToolManagementAppV2.ViewModels
             _customerService = customerService;
             _rentalService = rentalService;
             _settingsService = settingsService;
-        
 
-        // Tool commands
-        SearchCommand = new RelayCommand(SearchTools);
+
+
+            // Tool commands
+            SearchCommand = new RelayCommand(SearchTools);
             AddToolCommand = new RelayCommand(AddTool);
             UpdateToolCommand = new RelayCommand(UpdateTool);
             ImportToolsCommand = new RelayCommand(ImportTools);
@@ -210,6 +216,18 @@ namespace ToolManagementAppV2.ViewModels
             LoadCustomers();
             LoadActiveRentals();
             LoadOverdueRentals();
+
+            // start a timer to refresh every 2 seconds
+            _refreshTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(2)
+            };
+            _refreshTimer.Tick += (s, e) =>
+            {
+                LoadTools();            // update inventory counts / availability
+                LoadCheckedOutTools();  // update each user's checked-out list
+            };
+            _refreshTimer.Start();
         }
 
         // Tool methods
@@ -226,6 +244,7 @@ namespace ToolManagementAppV2.ViewModels
             foreach (var t in _toolService.GetAllTools().Where(t => t.IsCheckedOut))
                 CheckedOutTools.Add(t);
         }
+
 
         private void SearchTools()
         {
@@ -329,8 +348,14 @@ namespace ToolManagementAppV2.ViewModels
             Users.Clear();
             foreach (var u in _userService.GetAllUsers())
                 Users.Add(u);
-            SelectedUser = null;
+
+            // If we have at least one user, select the first one
+            SelectedUser = Users.FirstOrDefault();
+
+            // Update any dependent properties
+            OnPropertyChanged(nameof(IsLastAdmin));
         }
+
 
         private void LoadCurrentUser()
         {
