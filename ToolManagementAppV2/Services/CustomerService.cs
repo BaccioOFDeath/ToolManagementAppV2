@@ -2,6 +2,7 @@
 using System.Data.SQLite;
 using System.IO;
 using ToolManagementAppV2.Models;
+using ToolManagementAppV2.Helpers;
 
 namespace ToolManagementAppV2.Services
 {
@@ -59,7 +60,7 @@ namespace ToolManagementAppV2.Services
         public List<Customer> GetAllCustomers()
         {
             const string sql = "SELECT * FROM Customers";
-            return ExecuteReader(sql, null);
+            return SqliteHelper.ExecuteReader(_connString, sql, null, MapCustomer);
         }
 
         public List<Customer> SearchCustomers(string searchTerm)
@@ -71,14 +72,14 @@ namespace ToolManagementAppV2.Services
                      OR Phone  LIKE @t
                      OR Address LIKE @t";
             var p = new[] { new SQLiteParameter("@t", $"%{searchTerm}%") };
-            return ExecuteReader(sql, p);
+            return SqliteHelper.ExecuteReader(_connString, sql, p, MapCustomer);
         }
 
         public Customer GetCustomerByID(int customerID)
         {
             const string sql = "SELECT * FROM Customers WHERE CustomerID = @id";
             var p = new[] { new SQLiteParameter("@id", customerID) };
-            return ExecuteReader(sql, p).FirstOrDefault();
+            return SqliteHelper.ExecuteReader(_connString, sql, p, MapCustomer).FirstOrDefault();
         }
 
         public void AddCustomer(Customer customer)
@@ -86,7 +87,6 @@ namespace ToolManagementAppV2.Services
             const string sql = @"
                 INSERT INTO Customers (Name, Email, Contact, Phone, Address)
                 VALUES (@Name, @Email, @Contact, @Phone, @Address)";
-
             var p = new[]
             {
                 new SQLiteParameter("@Name",    customer.Name),
@@ -95,7 +95,7 @@ namespace ToolManagementAppV2.Services
                 new SQLiteParameter("@Phone",   customer.Phone),
                 new SQLiteParameter("@Address", customer.Address)
             };
-            ExecuteNonQuery(sql, p);
+            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
         }
 
         public void UpdateCustomer(Customer customer)
@@ -108,7 +108,6 @@ namespace ToolManagementAppV2.Services
                        Phone   = @Phone,
                        Address = @Address
                  WHERE CustomerID = @CustomerID";
-
             var p = new[]
             {
                 new SQLiteParameter("@Name",       customer.Name),
@@ -118,37 +117,14 @@ namespace ToolManagementAppV2.Services
                 new SQLiteParameter("@Address",    customer.Address),
                 new SQLiteParameter("@CustomerID", customer.CustomerID)
             };
-            ExecuteNonQuery(sql, p);
+            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
         }
 
         public void DeleteCustomer(int customerID)
         {
             const string sql = "DELETE FROM Customers WHERE CustomerID = @CustomerID";
             var p = new[] { new SQLiteParameter("@CustomerID", customerID) };
-            ExecuteNonQuery(sql, p);
-        }
-
-        // --- Helpers ---
-        List<Customer> ExecuteReader(string sql, SQLiteParameter[] parameters)
-        {
-            var list = new List<Customer>();
-            using var conn = new SQLiteConnection(_connString);
-            conn.Open();
-            using var cmd = new SQLiteCommand(sql, conn);
-            if (parameters != null) cmd.Parameters.AddRange(parameters);
-            using var rdr = cmd.ExecuteReader();
-            while (rdr.Read())
-                list.Add(MapCustomer(rdr));
-            return list;
-        }
-
-        void ExecuteNonQuery(string sql, SQLiteParameter[] parameters)
-        {
-            using var conn = new SQLiteConnection(_connString);
-            conn.Open();
-            using var cmd = new SQLiteCommand(sql, conn);
-            cmd.Parameters.AddRange(parameters);
-            cmd.ExecuteNonQuery();
+            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
         }
 
         Customer MapCustomer(IDataRecord r) => new()

@@ -1,4 +1,5 @@
 ﻿using System.Data.SQLite;
+using ToolManagementAppV2.Helpers;
 
 namespace ToolManagementAppV2.Services
 {
@@ -13,12 +14,15 @@ namespace ToolManagementAppV2.Services
         public SettingsService(DatabaseService dbService) =>
             _connString = dbService.ConnectionString;
 
-        public void SaveSetting(string key, string value) =>
-            ExecuteNonQuery(UpsertSql, new[]
+        public void SaveSetting(string key, string value)
+        {
+            var p = new[]
             {
-                new SQLiteParameter("@Key",   key),
+                new SQLiteParameter("@Key", key),
                 new SQLiteParameter("@Value", value)
-            });
+            };
+            SqliteHelper.ExecuteNonQuery(_connString, UpsertSql, p);
+        }
 
         public string GetSetting(string key)
         {
@@ -51,12 +55,14 @@ namespace ToolManagementAppV2.Services
             try
             {
                 foreach (var kv in settings)
-                    ExecuteNonQuery(UpsertSql, new[]
+                {
+                    var p = new[]
                     {
-                        new SQLiteParameter("@Key",   kv.Key),
+                        new SQLiteParameter("@Key", kv.Key),
                         new SQLiteParameter("@Value", kv.Value)
-                    }, conn, tx);
-
+                    };
+                    SqliteHelper.ExecuteNonQuery(conn, tx, UpsertSql, p);
+                }
                 tx.Commit();
             }
             catch
@@ -69,25 +75,8 @@ namespace ToolManagementAppV2.Services
         public void DeleteSetting(string key)
         {
             const string sql = "DELETE FROM Settings WHERE Key = @Key";
-            ExecuteNonQuery(sql, new[] { new SQLiteParameter("@Key", key) });
-        }
-
-        // --- Helpers ---
-        void ExecuteNonQuery(string sql, SQLiteParameter[] parameters) =>
-            ExecuteNonQuery(sql, parameters, null, null);
-
-        void ExecuteNonQuery(
-            string sql,
-            SQLiteParameter[] parameters,
-            SQLiteConnection existingConn,
-            SQLiteTransaction transaction)
-        {
-            var ownConn = existingConn is null;
-            using var conn = existingConn ?? new SQLiteConnection(_connString);
-            if (ownConn) { conn.Open(); }
-            using var cmd = new SQLiteCommand(sql, conn, transaction);
-            cmd.Parameters.AddRange(parameters);
-            cmd.ExecuteNonQuery();
+            var p = new[] { new SQLiteParameter("@Key", key) };
+            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
         }
     }
 }

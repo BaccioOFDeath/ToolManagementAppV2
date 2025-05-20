@@ -32,7 +32,6 @@ namespace ToolManagementAppV2.Services
                 .Select(t =>
                     $"Tool ID: {t.ToolID} | Name: {t.Name} | Qty: {t.QuantityOnHand} | " +
                     $"Location: {t.Location} | Supplier: {t.Supplier}");
-
             return BuildReport("Tool Inventory Report", lines);
         }
 
@@ -61,7 +60,6 @@ namespace ToolManagementAppV2.Services
                 .Select(l =>
                     $"LogID: {l.LogID} | UserID: {l.UserID} | User: {l.UserName} | " +
                     $"Action: {l.Action} | Timestamp: {l.Timestamp:yyyy-MM-dd HH:mm:ss}");
-
             return BuildReport("Activity Log Report", lines);
         }
 
@@ -71,7 +69,6 @@ namespace ToolManagementAppV2.Services
                 .Select(c =>
                     $"CustomerID: {c.CustomerID} | Name: {c.Name} | Email: {c.Email} | " +
                     $"Contact: {c.Contact} | Phone: {c.Phone} | Address: {c.Address}");
-
             return BuildReport("Customer Report", lines);
         }
 
@@ -80,7 +77,6 @@ namespace ToolManagementAppV2.Services
             var lines = _userService.GetAllUsers()
                 .Select(u =>
                     $"UserID: {u.UserID} | Name: {u.UserName} | IsAdmin: {u.IsAdmin}");
-
             return BuildReport("User Report", lines);
         }
 
@@ -104,7 +100,6 @@ namespace ToolManagementAppV2.Services
             return BuildReport("Application Summary Report", lines);
         }
 
-        // --- Helpers ---
         FlowDocument BuildReport(string title, IEnumerable<string> lines)
         {
             var doc = new FlowDocument
@@ -125,10 +120,7 @@ namespace ToolManagementAppV2.Services
 
             foreach (var line in lines)
             {
-                var p = new Paragraph(new Run(line))
-                {
-                    Margin = new Thickness(0, 0, 0, 10)
-                };
+                var p = new Paragraph(new Run(line)) { Margin = new Thickness(0, 0, 0, 10) };
                 doc.Blocks.Add(p);
             }
 

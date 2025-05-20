@@ -3,6 +3,7 @@ using System.Data.SQLite;
 using System.IO;
 using System.Text;
 using ToolManagementAppV2.Models;
+using ToolManagementAppV2.Helpers;
 
 namespace ToolManagementAppV2.Services
 {
@@ -19,17 +20,15 @@ namespace ToolManagementAppV2.Services
             _connString = dbService.ConnectionString;
 
         public List<Tool> GetAllTools() =>
-            ExecuteReader(AllToolsSql, null);
+            SqliteHelper.ExecuteReader(_connString, AllToolsSql, null, MapTool);
 
         public Tool GetToolByID(string toolID) =>
-            ExecuteReader("SELECT * FROM Tools WHERE ToolID=@ToolID",
-                new[] { new SQLiteParameter("@ToolID", toolID) })
-            .FirstOrDefault();
+            SqliteHelper.ExecuteReader(_connString, "SELECT * FROM Tools WHERE ToolID=@ToolID",
+                new[] { new SQLiteParameter("@ToolID", toolID) }, MapTool).FirstOrDefault();
 
         public List<Tool> SearchTools(string searchText)
         {
-            var terms = searchText
-                .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var terms = searchText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var sb = new StringBuilder("SELECT * FROM Tools");
             if (terms.Any())
             {
@@ -47,7 +46,7 @@ namespace ToolManagementAppV2.Services
             var parameters = terms
                 .Select((t, i) => new SQLiteParameter("@p" + i, $"%{t}%"))
                 .ToArray();
-            return ExecuteReader(sb.ToString(), parameters);
+            return SqliteHelper.ExecuteReader(_connString, sb.ToString(), parameters, MapTool);
         }
 
         public void AddTool(Tool tool)
@@ -65,7 +64,7 @@ namespace ToolManagementAppV2.Services
                 new SQLiteParameter("@Avail", tool.QuantityOnHand),
                 new SQLiteParameter("@Rent",  tool.RentedQuantity)
             };
-            ExecuteNonQuery(UpsertToolCsv, p);
+            SqliteHelper.ExecuteNonQuery(_connString, UpsertToolCsv, p);
         }
 
         public void UpdateTool(Tool tool)
@@ -105,46 +104,37 @@ namespace ToolManagementAppV2.Services
                 new SQLiteParameter("@Time",  (object)tool.CheckedOutTime ?? DBNull.Value),
                 new SQLiteParameter("@Img",   (object)tool.ToolImagePath ?? DBNull.Value)
             };
-            ExecuteNonQuery(sql, p);
+            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
         }
 
         public void UpdateToolQuantities(string toolID, int qtyChange, bool isRental)
         {
             if (qtyChange <= 0) throw new ArgumentException("Quantity change must be positive.", nameof(qtyChange));
             var sql = isRental
-                ? @"
-                    UPDATE Tools
-                       SET AvailableQuantity = AvailableQuantity - @Q,
-                           RentedQuantity   = RentedQuantity + @Q
-                     WHERE ToolID = @ID AND AvailableQuantity >= @Q"
-                : @"
-                    UPDATE Tools
-                       SET AvailableQuantity = AvailableQuantity + @Q,
-                           RentedQuantity   = RentedQuantity - @Q
-                     WHERE ToolID = @ID AND RentedQuantity >= @Q";
+                ? @"UPDATE Tools SET AvailableQuantity = AvailableQuantity - @Q, RentedQuantity = RentedQuantity + @Q WHERE ToolID = @ID AND AvailableQuantity >= @Q"
+                : @"UPDATE Tools SET AvailableQuantity = AvailableQuantity + @Q, RentedQuantity = RentedQuantity - @Q WHERE ToolID = @ID AND RentedQuantity >= @Q";
             var p = new[]
             {
                 new SQLiteParameter("@ID", toolID),
                 new SQLiteParameter("@Q",  qtyChange)
             };
-            if (ExecuteNonQuery(sql, p) == 0)
+            if (SqliteHelper.ExecuteNonQuery(_connString, sql, p) == 0)
                 throw new InvalidOperationException("Quantity update failed.");
         }
 
         public void DeleteTool(string toolID) =>
-            ExecuteNonQuery("DELETE FROM Tools WHERE ToolID=@ID",
+            SqliteHelper.ExecuteNonQuery(_connString, "DELETE FROM Tools WHERE ToolID=@ID",
                 new[] { new SQLiteParameter("@ID", toolID) });
 
         public void ToggleToolCheckOutStatus(string toolID, string currentUser)
         {
-            var isOut = Convert.ToInt32(
-                ExecuteScalar("SELECT IsCheckedOut FROM Tools WHERE ToolID=@ID",
-                    new[] { new SQLiteParameter("@ID", toolID) })
-            ) == 1;
+            var isOut = Convert.ToInt32(SqliteHelper.ExecuteScalar(_connString,
+                "SELECT IsCheckedOut FROM Tools WHERE ToolID=@ID",
+                new[] { new SQLiteParameter("@ID", toolID) })) == 1;
             var newStatus = isOut ? 0 : 1;
             var time = isOut ? (object)DBNull.Value : DateTime.Now;
             var by = isOut ? (object)DBNull.Value : currentUser;
-            ExecuteNonQuery(@"
+            SqliteHelper.ExecuteNonQuery(_connString, @"
                 UPDATE Tools SET
                   IsCheckedOut = @Out,
                   CheckedOutBy = @By,
@@ -159,11 +149,11 @@ namespace ToolManagementAppV2.Services
         }
 
         public List<Tool> GetToolsCheckedOutBy(string userName) =>
-            ExecuteReader("SELECT * FROM Tools WHERE CheckedOutBy=@User AND IsCheckedOut=1",
-                new[] { new SQLiteParameter("@User", userName) });
+            SqliteHelper.ExecuteReader(_connString, "SELECT * FROM Tools WHERE CheckedOutBy=@User AND IsCheckedOut=1",
+                new[] { new SQLiteParameter("@User", userName) }, MapTool);
 
         public void UpdateToolImage(string toolID, string imagePath) =>
-            ExecuteNonQuery("UPDATE Tools SET ToolImagePath=@Img WHERE ToolID=@ID",
+            SqliteHelper.ExecuteNonQuery(_connString, "UPDATE Tools SET ToolImagePath=@Img WHERE ToolID=@ID",
                 new[]
                 {
                     new SQLiteParameter("@Img", imagePath),
@@ -211,7 +201,7 @@ namespace ToolManagementAppV2.Services
         {
             using var writer = new StreamWriter(filePath);
             writer.WriteLine("Name,Description,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,RentedQuantity,IsCheckedOut");
-            ExecuteReader(AllToolsSql, null).ForEach(t =>
+            SqliteHelper.ExecuteReader(_connString, AllToolsSql, null, MapTool).ForEach(t =>
             {
                 var vals = new[]
                 {
@@ -222,38 +212,6 @@ namespace ToolManagementAppV2.Services
                 };
                 writer.WriteLine(string.Join(",", vals));
             });
-        }
-
-        // --- Helpers ---
-        List<Tool> ExecuteReader(string sql, SQLiteParameter[] parameters)
-        {
-            var list = new List<Tool>();
-            using var conn = new SQLiteConnection(_connString);
-            conn.Open();
-            using var cmd = new SQLiteCommand(sql, conn);
-            if (parameters != null) cmd.Parameters.AddRange(parameters);
-            using var rdr = cmd.ExecuteReader();
-            while (rdr.Read())
-                list.Add(MapTool(rdr));
-            return list;
-        }
-
-        object ExecuteScalar(string sql, SQLiteParameter[] parameters)
-        {
-            using var conn = new SQLiteConnection(_connString);
-            conn.Open();
-            using var cmd = new SQLiteCommand(sql, conn);
-            if (parameters != null) cmd.Parameters.AddRange(parameters);
-            return cmd.ExecuteScalar();
-        }
-
-        int ExecuteNonQuery(string sql, SQLiteParameter[] parameters)
-        {
-            using var conn = new SQLiteConnection(_connString);
-            conn.Open();
-            using var cmd = new SQLiteCommand(sql, conn);
-            if (parameters != null) cmd.Parameters.AddRange(parameters);
-            return cmd.ExecuteNonQuery();
         }
 
         Tool MapTool(IDataRecord r) => new()

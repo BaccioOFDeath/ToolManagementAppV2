@@ -2,6 +2,8 @@
 using System.IO;
 using System.Windows.Media.Imaging;
 using ToolManagementAppV2.Models;
+using ToolManagementAppV2.Helpers;
+using System.Data;
 
 namespace ToolManagementAppV2.Services
 {
@@ -13,26 +15,23 @@ namespace ToolManagementAppV2.Services
             _connString = dbService.ConnectionString;
 
         public List<User> GetAllUsers() =>
-            ExecuteReader("SELECT * FROM Users", null);
+            SqliteHelper.ExecuteReader(_connString, "SELECT * FROM Users", null, MapUser);
 
         public User GetUserByID(int userID) =>
-            ExecuteReader("SELECT * FROM Users WHERE UserID=@ID",
-                new[] { new SQLiteParameter("@ID", userID) })
-            .FirstOrDefault();
+            SqliteHelper.ExecuteReader(_connString, "SELECT * FROM Users WHERE UserID=@ID",
+                new[] { new SQLiteParameter("@ID", userID) }, MapUser).FirstOrDefault();
 
         public User AuthenticateUser(string userName, string password)
         {
-            var users = ExecuteReader(
+            var users = SqliteHelper.ExecuteReader(_connString,
                 "SELECT * FROM Users WHERE UserName=@UserName",
-                new[] { new SQLiteParameter("@UserName", userName) }
-            );
+                new[] { new SQLiteParameter("@UserName", userName) }, MapUser);
             var u = users.FirstOrDefault();
             return u != null && u.Password == password ? u : null;
         }
 
         public User GetCurrentUser() =>
-            ExecuteReader("SELECT * FROM Users LIMIT 1", null)
-            .FirstOrDefault();
+            SqliteHelper.ExecuteReader(_connString, "SELECT * FROM Users LIMIT 1", null, MapUser).FirstOrDefault();
 
         public void AddUser(User user)
         {
@@ -74,7 +73,7 @@ namespace ToolManagementAppV2.Services
                   Role          = @Role
                 WHERE UserID = @UserID";
 
-            ExecuteNonQuery(sql, new[]
+            var p = new[]
             {
                 new SQLiteParameter("@UserID",   user.UserID),
                 new SQLiteParameter("@UserName", user.UserName),
@@ -85,60 +84,45 @@ namespace ToolManagementAppV2.Services
                 new SQLiteParameter("@Phone",    (object)user.Phone ?? DBNull.Value),
                 new SQLiteParameter("@Address",  (object)user.Address ?? DBNull.Value),
                 new SQLiteParameter("@Role",     (object)user.Role ?? DBNull.Value)
-            });
+            };
+            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
         }
 
-        public void ChangeUserPassword(int userID, string newPassword) =>
-            ExecuteNonQuery(
-                "UPDATE Users SET Password=@Pwd WHERE UserID=@ID",
-                new[]
-                {
-                    new SQLiteParameter("@Pwd", newPassword),
-                    new SQLiteParameter("@ID",  userID)
-                });
-
-        public void DeleteUser(int userID) =>
-            ExecuteNonQuery(
-                "DELETE FROM Users WHERE UserID=@ID",
-                new[] { new SQLiteParameter("@ID", userID) });
-
-        // --- Helpers ---
-        List<User> ExecuteReader(string sql, SQLiteParameter[] parameters)
+        public void ChangeUserPassword(int userID, string newPassword)
         {
-            var list = new List<User>();
-            using var conn = new SQLiteConnection(_connString);
-            conn.Open();
-            using var cmd = new SQLiteCommand(sql, conn);
-            if (parameters != null) cmd.Parameters.AddRange(parameters);
-            using var rdr = cmd.ExecuteReader();
-            while (rdr.Read())
+            var sql = "UPDATE Users SET Password=@Pwd WHERE UserID=@ID";
+            var p = new[]
             {
-                var u = new User
-                {
-                    UserID = Convert.ToInt32(rdr["UserID"]),
-                    UserName = rdr["UserName"].ToString(),
-                    Password = rdr["Password"].ToString(),
-                    UserPhotoPath = rdr["UserPhotoPath"].ToString(),
-                    IsAdmin = Convert.ToInt32(rdr["IsAdmin"]) == 1,
-                    Email = rdr["Email"]?.ToString(),
-                    Phone = rdr["Phone"]?.ToString(),
-                    Address = rdr["Address"]?.ToString(),
-                    Role = rdr["Role"]?.ToString()
-                };
-                if (!string.IsNullOrEmpty(u.UserPhotoPath) && File.Exists(u.UserPhotoPath))
-                    u.PhotoBitmap = new BitmapImage(new Uri(u.UserPhotoPath));
-                list.Add(u);
-            }
-            return list;
+                new SQLiteParameter("@Pwd", newPassword),
+                new SQLiteParameter("@ID",  userID)
+            };
+            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
         }
 
-        int ExecuteNonQuery(string sql, SQLiteParameter[] parameters)
+        public void DeleteUser(int userID)
         {
-            using var conn = new SQLiteConnection(_connString);
-            conn.Open();
-            using var cmd = new SQLiteCommand(sql, conn);
-            if (parameters != null) cmd.Parameters.AddRange(parameters);
-            return cmd.ExecuteNonQuery();
+            var sql = "DELETE FROM Users WHERE UserID=@ID";
+            var p = new[] { new SQLiteParameter("@ID", userID) };
+            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
+        }
+
+        User MapUser(IDataRecord rdr)
+        {
+            var u = new User
+            {
+                UserID = Convert.ToInt32(rdr["UserID"]),
+                UserName = rdr["UserName"].ToString(),
+                Password = rdr["Password"].ToString(),
+                UserPhotoPath = rdr["UserPhotoPath"].ToString(),
+                IsAdmin = Convert.ToInt32(rdr["IsAdmin"]) == 1,
+                Email = rdr["Email"]?.ToString(),
+                Phone = rdr["Phone"]?.ToString(),
+                Address = rdr["Address"]?.ToString(),
+                Role = rdr["Role"]?.ToString()
+            };
+            if (!string.IsNullOrEmpty(u.UserPhotoPath) && File.Exists(u.UserPhotoPath))
+                u.PhotoBitmap = new BitmapImage(new Uri(u.UserPhotoPath));
+            return u;
         }
     }
 }

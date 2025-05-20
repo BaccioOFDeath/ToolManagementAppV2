@@ -46,7 +46,7 @@ namespace ToolManagementAppV2.Services
             // printing now happens from inside the preview window
         }
 
-        private string LoadCompanyLogoPath()
+        private string? LoadCompanyLogoPath()
         {
             var path = _settingsService.GetSetting("CompanyLogoPath");
             return !string.IsNullOrEmpty(path) && File.Exists(path)
@@ -224,6 +224,7 @@ namespace ToolManagementAppV2.Services
                 _fs = fs;
             }
 
+            [Obsolete]
             public override DocumentPage GetPage(int pageNumber)
             {
                 var page = _inner.GetPage(pageNumber);

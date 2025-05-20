@@ -1,9 +1,9 @@
-﻿// File: Services/ActivityLogService.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using ToolManagementAppV2.Models;
+using ToolManagementAppV2.Helpers;
 
 namespace ToolManagementAppV2.Services
 {
@@ -25,7 +25,7 @@ namespace ToolManagementAppV2.Services
                 new SQLiteParameter("@UserName", userName),
                 new SQLiteParameter("@Action",   action)
             };
-            ExecuteNonQuery(sql, p);
+            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
         }
 
         public List<ActivityLog> GetRecentLogs(int count = 50)
@@ -35,7 +35,7 @@ namespace ToolManagementAppV2.Services
                  ORDER BY Timestamp DESC
                  LIMIT @Count";
             var p = new[] { new SQLiteParameter("@Count", count) };
-            return ExecuteReader(sql, p);
+            return SqliteHelper.ExecuteReader(_connString, sql, p, MapLog);
         }
 
         public void PurgeOldLogs(DateTime threshold)
@@ -44,30 +44,7 @@ namespace ToolManagementAppV2.Services
                 DELETE FROM ActivityLogs
                  WHERE Timestamp < @Threshold";
             var p = new[] { new SQLiteParameter("@Threshold", threshold) };
-            ExecuteNonQuery(sql, p);
-        }
-
-        // --- Helpers ---
-        List<ActivityLog> ExecuteReader(string sql, SQLiteParameter[] parameters)
-        {
-            var list = new List<ActivityLog>();
-            using var conn = new SQLiteConnection(_connString);
-            conn.Open();
-            using var cmd = new SQLiteCommand(sql, conn);
-            cmd.Parameters.AddRange(parameters);
-            using var rdr = cmd.ExecuteReader();
-            while (rdr.Read())
-                list.Add(MapLog(rdr));
-            return list;
-        }
-
-        void ExecuteNonQuery(string sql, SQLiteParameter[] parameters)
-        {
-            using var conn = new SQLiteConnection(_connString);
-            conn.Open();
-            using var cmd = new SQLiteCommand(sql, conn);
-            cmd.Parameters.AddRange(parameters);
-            cmd.ExecuteNonQuery();
+            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
         }
 
         ActivityLog MapLog(IDataRecord r) => new()

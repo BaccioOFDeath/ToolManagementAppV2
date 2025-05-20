@@ -1,5 +1,6 @@
 ﻿using System.Data.SQLite;
 using System.IO;
+using ToolManagementAppV2.Helpers;
 
 namespace ToolManagementAppV2.Services
 {
@@ -29,32 +30,18 @@ namespace ToolManagementAppV2.Services
                 CREATE TABLE IF NOT EXISTS Customers (CustomerID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Email TEXT, Contact TEXT, Phone TEXT, Address TEXT);
                 CREATE TABLE IF NOT EXISTS Rentals (RentalID INTEGER PRIMARY KEY AUTOINCREMENT, ToolID INTEGER NOT NULL, CustomerID INTEGER NOT NULL, RentalDate DATETIME NOT NULL, DueDate DATETIME NOT NULL, ReturnDate DATETIME, Status TEXT NOT NULL DEFAULT 'Rented', FOREIGN KEY (ToolID) REFERENCES Tools(ToolID), FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID));
                 CREATE TABLE IF NOT EXISTS ActivityLogs (LogID INTEGER PRIMARY KEY AUTOINCREMENT, UserID INTEGER, UserName TEXT, Action TEXT, Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (UserID) REFERENCES Users(UserID));
-                CREATE TABLE IF NOT EXISTS Settings (Key TEXT PRIMARY KEY, Value TEXT);
-            ";
+                CREATE TABLE IF NOT EXISTS Settings (Key TEXT PRIMARY KEY, Value TEXT);";
             using var cmd = new SQLiteCommand(sql, conn);
             cmd.ExecuteNonQuery();
         }
 
         void EnsureColumn(string table, string column, string type)
         {
+            if (SqliteHelper.ColumnExists(ConnectionString, table, column)) return;
             using var conn = new SQLiteConnection(ConnectionString);
             conn.Open();
-
-            var exists = false;
-            using (var cmd = new SQLiteCommand($"PRAGMA table_info({table})", conn))
-            using (var reader = cmd.ExecuteReader())
-                while (reader.Read())
-                    if (string.Equals(reader["name"].ToString(), column, StringComparison.OrdinalIgnoreCase))
-                    {
-                        exists = true;
-                        break;
-                    }
-
-            if (!exists)
-            {
-                using var alter = new SQLiteCommand($"ALTER TABLE {table} ADD COLUMN {column} {type}", conn);
-                alter.ExecuteNonQuery();
-            }
+            using var alter = new SQLiteCommand($"ALTER TABLE {table} ADD COLUMN {column} {type}", conn);
+            alter.ExecuteNonQuery();
         }
 
         public void BackupDatabase(string backupFilePath)
