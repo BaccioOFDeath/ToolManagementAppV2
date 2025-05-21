@@ -71,19 +71,34 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
 
 Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\DTOs
 ----------------------------------------------------------------------------------------------------------
+  File: CustomerImportDto.cs
+  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\DTOs\CustomerImportDto.cs
+    Class: CustomerImportDto
+      Visibility: public
+      Property: public string Name
+      Property: public string Email
+      Property: public string Contact
+      Property: public string Phone
+      Property: public string Address
+
   File: ToolImportDto.cs
   Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\DTOs\ToolImportDto.cs
     Class: ToolImportDto
-      Visibility: internal
+      Visibility: public
+      Property: public string ToolNumber
+      Property: public string NameDescription
+      Property: public string Location
+      Property: public string Brand
+      Property: public string PartNumber
+      Property: public string Supplier
+      Property: public string Notes
+      Property: public string Keywords
+      Property: public int AvailableQuantity
+      Property: public int RentedQuantity
 
 
 Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Core
 ------------------------------------------------------------------------------------------------------------
-  File: CsvHelper.cs
-  Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Core\CsvHelper.cs
-    Class: CsvHelper
-      Visibility: internal
-
   File: DatabaseService.cs
   Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Core\DatabaseService.cs
     Class: DatabaseService
@@ -101,26 +116,23 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
   Path: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Customers\CustomerService.cs
     Class: CustomerService
       Visibility: public
-      Field: var lines =
-      Field: var headers =
-      Field: var cols =
+      Field: var customers =
       Field: var all =
       Field: var p =
       Field: var p =
       Method: private public CustomerService(DatabaseService dbService)
       Method: public void ImportCustomersFromCsv(string filePath, IDictionary<string, string> map)
-      Method: private string get(string prop)
       Method: public void ExportCustomersToCsv(string filePath)
-      Method: public List<Customer> GetAllCustomers()
-      Method: public List<Customer> SearchCustomers(string searchTerm)
-      Method: public Customer GetCustomerByID(int customerID)
-      Method: public void AddCustomer(Customer customer)
-      Method: private new SQLiteParameter("@ToolNumber",    customer.Name)
-      Method: private new SQLiteParameter("@Email",   customer.Email)
+      Method: public List<CustomerModel> GetAllCustomers()
+      Method: public List<CustomerModel> SearchCustomers(string searchTerm)
+      Method: public CustomerModel GetCustomerByID(int customerID)
+      Method: public void AddCustomer(CustomerModel customer)
+      Method: private new SQLiteParameter("@ToolNumber", customer.Name)
+      Method: private new SQLiteParameter("@Email", customer.Email)
       Method: private new SQLiteParameter("@Contact", customer.Contact)
-      Method: private new SQLiteParameter("@Phone",   customer.Phone)
+      Method: private new SQLiteParameter("@Phone", customer.Phone)
       Method: private new SQLiteParameter("@Address", customer.Address)
-      Method: public void UpdateCustomer(Customer customer)
+      Method: public void UpdateCustomer(CustomerModel customer)
 
 
 Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Rentals
@@ -222,9 +234,8 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Field: var newStatus =
       Field: var time =
       Field: var by =
-      Field: var lines =
-      Field: var headers =
-      Field: var cols =
+      Field: var tools =
+      Field: var tools =
       Method: private public ToolService(DatabaseService dbService)
       Method: public List<ToolModel> GetAllTools()
       Method: public ToolModel GetToolByID(string toolID)
@@ -272,8 +283,9 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Method: private new SQLiteParameter("@Img", imagePath)
       Method: private new SQLiteParameter("@ID", toolID)
       Method: public void ImportToolsFromCsv(string filePath, IDictionary<string, string> map)
-      Method: private string get(string prop)
       Method: public void ExportToolsToCsv(string filePath)
+      Method: private bool ToolExists(string toolNumber)
+      Method: private new SQLiteParameter("@TN", toolNumber)
       Method: private ToolModel MapTool(IDataRecord r) => new()
 
 
@@ -555,6 +567,17 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Attribute: x:Key="NonEmptyStringToBoolConverter"
     XAML Element: DataTemplate
       Attribute: x:Key="CheckOutButtonTemplate"
+    XAML Element: Style
+      Attribute: x:Key="ToolImageTooltipStyle"
+      Attribute: TargetType="ListViewItem"
+    XAML Element: Setter
+      Attribute: Property="ToolTip"
+    XAML Element: Setter
+    XAML Element: Border
+      Attribute: BorderBrush="Gray"
+      Attribute: BorderThickness="1"
+      Attribute: Padding="2"
+      Attribute: Background="White"
     XAML Element: Border
       Attribute: DockPanel.Dock="Top"
       Attribute: Background="#DDD"
@@ -629,6 +652,7 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Attribute: Margin="10,0"
     XAML Element: ListView
       Attribute: x:Name="SearchResultsList"
+      Attribute: ItemContainerStyle="{StaticResource
       Attribute: ItemsSource="{Binding
       Attribute: Margin="10"
       Attribute: Grid.Row="1"
@@ -700,6 +724,7 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
       Attribute: Grid.RowSpan="2"
     XAML Element: ListView
       Attribute: x:Name="CheckedOutToolsList"
+      Attribute: ItemContainerStyle="{StaticResource
       Attribute: ItemsSource="{Binding
       Attribute: Margin="10"
       Attribute: Grid.Row="2"
@@ -894,6 +919,7 @@ Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolM
     XAML Element: ListView
       Attribute: x:Name="ToolsList"
       Attribute: Grid.Column="1"
+      Attribute: ItemContainerStyle="{StaticResource
       Attribute: ItemsSource="{Binding
       Attribute: SelectionChanged="ToolsList_SelectionChanged"
       Attribute: Margin="5"
