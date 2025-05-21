@@ -16,6 +16,6 @@ namespace ToolManagementAppV2.ViewModels.Customer
             _customer = customer;
         }
 
-        public string DisplayName => $"{_customer.Name} - {_customer.Email}";
+        public string DisplayName => $"{_customer.Company} - {_customer.Email}";
     }
 }

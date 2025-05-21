@@ -23,10 +23,16 @@ namespace ToolManagementAppV2.Services.Customers
             var customers = CsvHelperUtil.LoadCustomersFromCsv(filePath, map);
             foreach (var c in customers)
             {
-                if (!CustomerExists(c.Name, c.Email))
+                if (string.IsNullOrWhiteSpace(c.Company)) continue;
+                if (string.IsNullOrWhiteSpace(c.Contact)) continue;
+                if (string.IsNullOrWhiteSpace(c.Phone) && string.IsNullOrWhiteSpace(c.Mobile)) continue;
+
+                if (!CustomerExists(c.Contact, c.Phone, c.Mobile))
                     AddCustomer(c);
             }
         }
+
+
 
         public void ExportCustomersToCsv(string filePath)
         {
@@ -44,7 +50,7 @@ namespace ToolManagementAppV2.Services.Customers
         {
             const string sql = @"
                 SELECT * FROM Customers
-                WHERE ToolNumber LIKE @t OR Email LIKE @t OR Phone LIKE @t OR Address LIKE @t";
+                WHERE Company LIKE @t OR Email LIKE @t OR Phone LIKE @t OR Mobile LIKE @t OR Address LIKE @t";
             var p = new[] { new SQLiteParameter("@t", $"%{searchTerm}%") };
             return SqliteHelper.ExecuteReader(_connString, sql, p, MapCustomer);
         }
@@ -59,32 +65,35 @@ namespace ToolManagementAppV2.Services.Customers
         public void AddCustomer(CustomerModel customer)
         {
             const string sql = @"
-                INSERT INTO Customers (ToolNumber, Email, Contact, Phone, Address)
-                VALUES (@ToolNumber, @Email, @Contact, @Phone, @Address)";
+        INSERT INTO Customers (Company, Email, Contact, Phone, Mobile, Address)
+        VALUES (@Company, @Email, @Contact, @Phone, @Mobile, @Address)";
             var p = new[]
             {
-                new SQLiteParameter("@ToolNumber", customer.Name),
-                new SQLiteParameter("@Email", customer.Email),
-                new SQLiteParameter("@Contact", customer.Contact),
-                new SQLiteParameter("@Phone", customer.Phone),
-                new SQLiteParameter("@Address", customer.Address)
+                new SQLiteParameter("@Company", customer.Company ?? ""),
+                new SQLiteParameter("@Email", customer.Email ?? ""),
+                new SQLiteParameter("@Contact", customer.Contact ?? ""),
+                new SQLiteParameter("@Phone", customer.Phone ?? ""),
+                new SQLiteParameter("@Mobile", customer.Mobile ?? ""),
+                new SQLiteParameter("@Address", customer.Address ?? "")
             };
             SqliteHelper.ExecuteNonQuery(_connString, sql, p);
         }
+
 
         public void UpdateCustomer(CustomerModel customer)
         {
             const string sql = @"
                 UPDATE Customers
-                SET ToolNumber = @ToolNumber, Email = @Email, Contact = @Contact,
-                    Phone = @Phone, Address = @Address
+                SET Company = @Company, Email = @Email, Contact = @Contact,
+                    Phone = @Phone, Mobile = @Mobile, Address = @Address
                 WHERE CustomerID = @CustomerID";
             var p = new[]
             {
-                new SQLiteParameter("@ToolNumber", customer.Name),
+                new SQLiteParameter("@Company", customer.Company),
                 new SQLiteParameter("@Email", customer.Email),
                 new SQLiteParameter("@Contact", customer.Contact),
                 new SQLiteParameter("@Phone", customer.Phone),
+                new SQLiteParameter("@Mobile", customer.Mobile),
                 new SQLiteParameter("@Address", customer.Address),
                 new SQLiteParameter("@CustomerID", customer.CustomerID)
             };
@@ -98,24 +107,29 @@ namespace ToolManagementAppV2.Services.Customers
             SqliteHelper.ExecuteNonQuery(_connString, sql, p);
         }
 
-        private bool CustomerExists(string name, string email)
+        private bool CustomerExists(string contact, string phone, string mobile)
         {
-            const string sql = "SELECT COUNT(*) FROM Customers WHERE ToolNumber = @N AND Email = @E";
+            const string sql = @"
+        SELECT COUNT(*) FROM Customers
+         WHERE Contact = @Contact AND (Phone = @Phone OR Mobile = @Mobile)";
             var count = Convert.ToInt32(SqliteHelper.ExecuteScalar(_connString, sql, new[]
             {
-                new SQLiteParameter("@N", name),
-                new SQLiteParameter("@E", email)
+            new SQLiteParameter("@Contact", contact),
+            new SQLiteParameter("@Phone", phone ?? ""),
+            new SQLiteParameter("@Mobile", mobile ?? "")
             }));
             return count > 0;
         }
 
+
         private CustomerModel MapCustomer(IDataRecord r) => new()
         {
             CustomerID = Convert.ToInt32(r["CustomerID"]),
-            Name = r["ToolNumber"].ToString(),
+            Company = r["Company"].ToString(),
             Email = r["Email"].ToString(),
             Contact = r["Contact"].ToString(),
             Phone = r["Phone"].ToString(),
+            Mobile = r["Mobile"].ToString(),
             Address = r["Address"].ToString()
         };
     }

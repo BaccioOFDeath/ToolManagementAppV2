@@ -23,7 +23,6 @@ namespace ToolManagementAppV2.Models.Domain
         private BitmapImage _photoBitmap;
         public BitmapImage PhotoBitmap { get => _photoBitmap; set => SetProperty(ref _photoBitmap, value); }
 
-        // New expanded properties
         private string _email;
         public string Email { get => _email; set => SetProperty(ref _email, value); }
 

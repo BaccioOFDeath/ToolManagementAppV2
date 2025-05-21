@@ -50,10 +50,11 @@ namespace ToolManagementAppV2.Utilities.IO
                 .Select(line => line.Split(','))
                 .Select(cols => new CustomerModel
                 {
-                    Name = GetMapped(cols, headers, map, "Name"),
+                    Company = GetMapped(cols, headers, map, "Company"),
                     Email = GetMapped(cols, headers, map, "Email"),
                     Contact = GetMapped(cols, headers, map, "Contact"),
                     Phone = GetMapped(cols, headers, map, "Phone"),
+                    Mobile = GetMapped(cols, headers, map, "Mobile"),
                     Address = GetMapped(cols, headers, map, "Address")
                 }).ToList();
         }
@@ -62,10 +63,10 @@ namespace ToolManagementAppV2.Utilities.IO
         {
             var lines = new List<string>
             {
-                "Name,Email,Contact,Phone,Address"
+                "Company,Email,Contact,Phone,,Mobile,Address"
             };
             lines.AddRange(customers.Select(c =>
-                $"{c.Name},{c.Email},{c.Contact},{c.Phone},{c.Address}"));
+                $"{c.Company},{c.Email},{c.Contact},{c.Phone},{c.Mobile},{c.Address}"));
             File.WriteAllLines(filePath, lines);
         }
 

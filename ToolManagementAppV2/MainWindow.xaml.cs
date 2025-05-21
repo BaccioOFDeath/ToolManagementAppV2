@@ -228,10 +228,11 @@ namespace ToolManagementAppV2
         {
             var c = new Customer
             {
-                Name = CustomerNameInput.Text.Trim(),
+                Company = CustomerNameInput.Text.Trim(),
                 Email = CustomerEmailInput.Text.Trim(),
                 Contact = CustomerContactInput.Text.Trim(),
                 Phone = CustomerPhoneInput.Text.Trim(),
+                Mobile = CustomerMobileInput.Text.Trim(),
                 Address = CustomerAddressInput.Text.Trim()
             };
             _customerService.AddCustomer(c);
@@ -241,10 +242,11 @@ namespace ToolManagementAppV2
         void UpdateCustomerButton_Click(object s, RoutedEventArgs e)
         {
             if (!(CustomerList.SelectedItem is Customer c)) return;
-            c.Name = CustomerNameInput.Text.Trim();
+            c.Company = CustomerNameInput.Text.Trim();
             c.Email = CustomerEmailInput.Text.Trim();
             c.Contact = CustomerContactInput.Text.Trim();
             c.Phone = CustomerPhoneInput.Text.Trim();
+            c.Mobile = CustomerMobileInput.Text.Trim();
             c.Address = CustomerAddressInput.Text.Trim();
             _customerService.UpdateCustomer(c);
             RefreshCustomerList();
@@ -263,10 +265,11 @@ namespace ToolManagementAppV2
         {
             if (CustomerList.SelectedItem is Customer c)
             {
-                CustomerNameInput.Text = c.Name;
+                CustomerNameInput.Text = c.Company;
                 CustomerEmailInput.Text = c.Email;
                 CustomerContactInput.Text = c.Contact;
                 CustomerPhoneInput.Text = c.Phone;
+                CustomerMobileInput.Text = c.Mobile;
                 CustomerAddressInput.Text = c.Address;
             }
         }

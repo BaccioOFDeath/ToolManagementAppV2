@@ -72,10 +72,18 @@
                         </Grid.RowDefinitions>
                         <xctk:WatermarkTextBox x:Name="SearchInput" Width="300" Margin="10,0" Watermark="Search Tools..." TextChanged="SearchInput_TextChanged" />
                         <StackPanel Orientation="Horizontal">
-                            <Button Content="Print Search Results" Click="PrintSearchResults_Click" Height="20" Width="160" Margin="10,0" />
-                            <Button Content="Print My Checked-Out Tools" Click="PrintMyCheckedOutTools_Click" Height="20" Width="160" Margin="10,0" />
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="Print Search Results" Click="PrintSearchResults_Click" Height="20" Width="160" Margin="10,0" />
+                                <Button Content="Print My Checked-Out Tools" Click="PrintMyCheckedOutTools_Click" Height="20" Width="160" Margin="10,0" />
+                                <Button Content="Rent Selected Tool"
+                                Command="{Binding RentToolCommand}"
+                                Height="20"
+                                Width="150"
+                                Margin="10,0"/>
+
+                            </StackPanel>
                         </StackPanel>
-                        <ListView x:Name="SearchResultsList" ItemContainerStyle="{StaticResource ToolImageTooltipStyle}" ItemsSource="{Binding SearchResults}" Margin="10" Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ListView x:Name="SearchResultsList" ItemContainerStyle="{StaticResource ToolImageTooltipStyle}" ItemsSource="{Binding SearchResults}" SelectedItem="{Binding SelectedTool, Mode=TwoWay}" Margin="10" Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Auto">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Header="Action" Width="80" CellTemplate="{StaticResource CheckOutButtonTemplate}"/>
@@ -124,7 +132,7 @@
                         </ListView>
                         <Button Content="Choose Profile Picture" Click="ChooseUserProfilePicButton_Click" Width="150" Height="20" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.RowSpan="2" />
                         <!-- In MainWindow.xaml, update the Checked Out Tools ListView -->
-                        <ListView x:Name="CheckedOutToolsList" ItemContainerStyle="{StaticResource ToolImageTooltipStyle}" ItemsSource="{Binding CheckedOutTools}" Margin="10" Grid.Row="2">
+                        <ListView x:Name="CheckedOutToolsList" ItemContainerStyle="{StaticResource ToolImageTooltipStyle}" ItemsSource="{Binding CheckedOutTools}" SelectedItem="{Binding SelectedTool, Mode=TwoWay}" Margin="10" Grid.Row="2">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Header="Action" Width="80">
@@ -224,7 +232,7 @@
                         </GroupBox>
 
                         <!-- Tool List Display -->
-                        <ListView x:Name="ToolsList" Grid.Column="1" ItemContainerStyle="{StaticResource ToolImageTooltipStyle}" ItemsSource="{Binding Tools}" SelectionChanged="ToolsList_SelectionChanged" Margin="5">
+                        <ListView x:Name="ToolsList" Grid.Column="1" ItemContainerStyle="{StaticResource ToolImageTooltipStyle}" ItemsSource="{Binding Tools}" SelectedItem="{Binding SelectedTool, Mode=TwoWay}" SelectionChanged="ToolsList_SelectionChanged" Margin="5">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Header="Tool#" DisplayMemberBinding="{Binding ToolNumber}" Width="100" />
@@ -282,6 +290,7 @@
                                 <xctk:WatermarkTextBox x:Name="CustomerEmailInput" Watermark="Email" Margin="5" />
                                 <xctk:WatermarkTextBox x:Name="CustomerContactInput" Watermark="Customer Contact" Margin="5" />
                                 <xctk:WatermarkTextBox x:Name="CustomerPhoneInput" Watermark="Phone" Margin="5" />
+                                <xctk:WatermarkTextBox x:Name="CustomerMobileInput" Watermark="Mobile" Margin="5" />
                                 <xctk:WatermarkTextBox x:Name="CustomerAddressInput" Watermark="Address" Margin="5" />
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                     <Button Content="Add" Click="AddCustomerButton_Click" Margin="5" />
@@ -293,10 +302,11 @@
                         <ListView x:Name="CustomerList" Grid.Column="1" ItemsSource="{Binding Customers}" Margin="5">
                             <ListView.View>
                                 <GridView>
-                                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="150" />
+                                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Company}" Width="150" />
                                     <GridViewColumn Header="Email" DisplayMemberBinding="{Binding Email}" Width="200" />
                                     <GridViewColumn Header="Contact" DisplayMemberBinding="{Binding Contact}" Width="200" />
                                     <GridViewColumn Header="Phone" DisplayMemberBinding="{Binding Phone}" Width="120" />
+                                    <GridViewColumn Header="Mobile" DisplayMemberBinding="{Binding Mobile}" Width="120" />
                                     <GridViewColumn Header="Address" DisplayMemberBinding="{Binding Address}" Width="250" />
                                 </GridView>
                             </ListView.View>
@@ -390,6 +400,10 @@
                             <StackPanel Orientation="Horizontal" Margin="5">
                                 <TextBlock Text="Phone:" Width="100" VerticalAlignment="Center"/>
                                 <TextBox Text="{Binding SelectedUser.Phone, Mode=TwoWay}" Width="200"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="Mobile:" Width="100" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding SelectedUser.Mobile, Mode=TwoWay}" Width="200"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="5">
                                 <TextBlock Text="Address:" Width="100" VerticalAlignment="Center"/>

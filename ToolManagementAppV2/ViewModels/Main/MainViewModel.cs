@@ -11,6 +11,7 @@ using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.ViewModels.Rental;
 using ToolManagementAppV2.Views;
 
 namespace ToolManagementAppV2.ViewModels.Main
@@ -31,8 +32,13 @@ namespace ToolManagementAppV2.ViewModels.Main
         public ToolModel SelectedTool
         {
             get => _selectedTool;
-            set => SetProperty(ref _selectedTool, value);
+            set
+            {
+                if (SetProperty(ref _selectedTool, value))
+                    ((RelayCommand)RentToolCommand).NotifyCanExecuteChanged();
+            }
         }
+
 
         public ObservableCollection<UserModel> Users { get; } = new();
         UserModel _selectedUser;
@@ -54,11 +60,12 @@ namespace ToolManagementAppV2.ViewModels.Main
             set => SetProperty(ref _selectedCustomer, value);
         }
 
-        string _newCustomerName, _newCustomerEmail, _newCustomerContact, _newCustomerPhone, _newCustomerAddress;
+        string _newCustomerName, _newCustomerEmail, _newCustomerContact, _newCustomerPhone, _newCustomerMobile, _newCustomerAddress;
         public string NewCustomerName { get => _newCustomerName; set => SetProperty(ref _newCustomerName, value); }
         public string NewCustomerEmail { get => _newCustomerEmail; set => SetProperty(ref _newCustomerEmail, value); }
         public string NewCustomerContact { get => _newCustomerContact; set => SetProperty(ref _newCustomerContact, value); }
         public string NewCustomerPhone { get => _newCustomerPhone; set => SetProperty(ref _newCustomerPhone, value); }
+        public string NewCustomerMobile { get => _newCustomerMobile; set => SetProperty(ref _newCustomerMobile, value); }
         public string NewCustomerAddress { get => _newCustomerAddress; set => SetProperty(ref _newCustomerAddress, value); }
 
         public ObservableCollection<RentalModel> ActiveRentals { get; } = new();
@@ -130,6 +137,7 @@ namespace ToolManagementAppV2.ViewModels.Main
         public IRelayCommand ExportCustomersCommand { get; }
         public IRelayCommand DeleteCustomerCommand { get; }
 
+        public IRelayCommand RentToolCommand { get; }
         public IRelayCommand LoadActiveRentalsCommand { get; }
         public IRelayCommand LoadOverdueRentalsCommand { get; }
         public IRelayCommand ReturnToolCommand { get; }
@@ -166,6 +174,7 @@ namespace ToolManagementAppV2.ViewModels.Main
             ExportCustomersCommand = new RelayCommand(ExportCustomers);
             DeleteCustomerCommand = new RelayCommand(DeleteCustomer, () => SelectedCustomer != null);
 
+            RentToolCommand = new RelayCommand(RentSelectedTool, () => SelectedTool != null);
             LoadActiveRentalsCommand = new RelayCommand(LoadActiveRentals);
             LoadOverdueRentalsCommand = new RelayCommand(LoadOverdueRentals);
             ReturnToolCommand = new RelayCommand(ReturnSelectedRental, () => SelectedRental != null);
@@ -296,10 +305,11 @@ namespace ToolManagementAppV2.ViewModels.Main
         {
             _customerService.AddCustomer(new CustomerModel
             {
-                Name = NewCustomerName,
+                Company = NewCustomerName,
                 Email = NewCustomerEmail,
                 Contact = NewCustomerContact,
                 Phone = NewCustomerPhone,
+                Mobile = NewCustomerMobile,
                 Address = NewCustomerAddress
             });
             LoadCustomers();
@@ -317,7 +327,7 @@ namespace ToolManagementAppV2.ViewModels.Main
             var lines = File.ReadAllLines(path);
             if (lines.Length < 2) { ShowWarning("CSV has no data rows."); return; }
             var headers = lines[0].Split(',').Select(h => h.Trim());
-            var fields = new[] { "ToolNumber", "Email", "Contact", "Phone", "Address" };
+            var fields = new[] { "Company", "Email", "Contact", "Phone", "Mobile", "Address" };
             if (!ShowMappingWindow(headers, fields, out var map)) return;
             LoadTools();
             LoadCheckedOutTools();
@@ -339,6 +349,52 @@ namespace ToolManagementAppV2.ViewModels.Main
             _customerService.DeleteCustomer(SelectedCustomer.CustomerID);
             LoadCustomers();
         }
+
+        void RentSelectedTool()
+        {
+            if (SelectedTool == null || SelectedTool.QuantityOnHand <= 0)
+            {
+                ShowWarning("Tool not selected or no available quantity.");
+                return;
+            }
+
+            LoadCustomers();
+            if (Customers.Count == 0)
+            {
+                ShowWarning("No customers available. Please add a customer first.");
+                return;
+            }
+
+            var vm = new RentToolPopupViewModel(SelectedTool, Customers);
+            var popup = new RentToolPopupWindow { DataContext = vm };
+            vm.RequestClose += (_, __) => popup.Close();
+            popup.ShowDialog();
+
+            if (vm.SelectedCustomerResult == null) return;
+
+            try
+            {
+                _rentalService.RentTool(
+                    SelectedTool.ToolID,
+                    vm.SelectedCustomerResult.CustomerID,
+                    DateTime.Now,
+                    vm.SelectedDueDateResult);
+
+                _toolService.UpdateToolQuantities(SelectedTool.ToolID, 1, true);
+            }
+            catch (Exception ex)
+            {
+                ShowWarning($"Rental failed: {ex.Message}");
+                return;
+            }
+
+            LoadTools();
+            LoadCheckedOutTools();
+            LoadActiveRentals();
+            LoadOverdueRentals();
+        }
+
+
 
         void LoadActiveRentals()
         {

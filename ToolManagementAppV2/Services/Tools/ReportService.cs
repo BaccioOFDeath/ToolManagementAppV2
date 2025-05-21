@@ -70,8 +70,8 @@ namespace ToolManagementAppV2.Services.Tools
         {
             var lines = _customerService.GetAllCustomers()
                 .Select(c =>
-                    $"CustomerID: {c.CustomerID} | ToolNumber: {c.Name} | Email: {c.Email} | " +
-                    $"Contact: {c.Contact} | Phone: {c.Phone} | Address: {c.Address}");
+                    $"CustomerID: {c.CustomerID} | ToolNumber: {c.Company} | Email: {c.Email} | " +
+                    $"Contact: {c.Contact} | Phone: {c.Phone} | Mobile: {c.Mobile} | Address: {c.Address}");
             return BuildReport("Customer Report", lines);
         }
 
