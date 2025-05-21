@@ -201,7 +201,8 @@ namespace ToolManagementAppV2
             Directory.CreateDirectory(destDir);
             var dest = Path.Combine(destDir, Path.GetFileName(dlg.FileName));
             File.Copy(dlg.FileName, dest, true);
-            _toolService.UpdateToolImage(t.ToolID, dest);
+            var relative = "Images/" + Path.GetFileName(dest);
+            _toolService.UpdateToolImage(t.ToolID, relative);
             ShowMessage("Success", "Tool image updated.", MessageBoxImage.Information);
             RefreshToolList();
         }
@@ -384,14 +385,38 @@ namespace ToolManagementAppV2
 
         void ApplyAvatar(User u, string path)
         {
-            var bmp = new BitmapImage(new Uri(path)) { CacheOption = BitmapCacheOption.OnLoad };
-            u.UserPhotoPath = path;
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string finalPath;
+
+            if (path.Contains("Resources\\Avatars") || path.Contains("Resources/Avatars"))
+            {
+                finalPath = $"Resources/Avatars/{Path.GetFileName(path)}";
+            }
+            else
+            {
+                var destDir = Path.Combine(baseDir, "UserPhotos");
+                Directory.CreateDirectory(destDir);
+                var destFile = Path.Combine(destDir, $"{Guid.NewGuid()}{Path.GetExtension(path)}");
+                File.Copy(path, destFile, true);
+                finalPath = $"UserPhotos/{Path.GetFileName(destFile)}";
+            }
+
+            var bmp = new BitmapImage();
+            bmp.BeginInit();
+            bmp.CacheOption = BitmapCacheOption.OnLoad;
+            bmp.UriSource = new Uri($"file:///{Path.Combine(baseDir, finalPath).Replace("\\", "/")}");
+            bmp.EndInit();
+
+            u.UserPhotoPath = finalPath;
             u.PhotoBitmap = bmp;
             _userService.UpdateUser(u);
+
             if (App.Current.Properties["CurrentUser"] is User cu && cu.UserID == u.UserID)
                 (DataContext as MainViewModel).CurrentUserPhoto = bmp;
+
             RefreshUserList();
         }
+
 
         void PasswordBox_PasswordChanged(object s, RoutedEventArgs e)
         {
@@ -410,8 +435,32 @@ namespace ToolManagementAppV2
                 var users = _userService.GetAllUsers();
                 foreach (var u in users)
                 {
-                    if (!string.IsNullOrEmpty(u.UserPhotoPath) && File.Exists(u.UserPhotoPath))
-                        u.PhotoBitmap = new BitmapImage(new Uri(u.UserPhotoPath)) { CacheOption = BitmapCacheOption.OnLoad };
+                    if (!string.IsNullOrWhiteSpace(u.UserPhotoPath))
+                    {
+                        try
+                        {
+                            Uri uri;
+                            if (u.UserPhotoPath.StartsWith("pack://"))
+                            {
+                                uri = new Uri(u.UserPhotoPath, UriKind.Absolute);
+                            }
+                            else
+                            {
+                                var fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, u.UserPhotoPath);
+                                if (!File.Exists(fullPath)) continue;
+                                uri = new Uri($"file:///{fullPath.Replace("\\", "/")}", UriKind.Absolute);
+                            }
+
+                            var bmp = new BitmapImage();
+                            bmp.BeginInit();
+                            bmp.CacheOption = BitmapCacheOption.OnLoad;
+                            bmp.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                            bmp.UriSource = uri;
+                            bmp.EndInit();
+                            u.PhotoBitmap = bmp;
+                        }
+                        catch { u.PhotoBitmap = null; }
+                    }
                 }
                 UserList.ItemsSource = users;
                 UserList.Items.Refresh();
@@ -421,6 +470,7 @@ namespace ToolManagementAppV2
                 ShowError("Error loading users", ex);
             }
         }
+
 
         void LogoutButton_Click(object s, RoutedEventArgs e)
         {
@@ -482,10 +532,17 @@ namespace ToolManagementAppV2
                 Title = "Select Company Logo"
             };
             if (dlg.ShowDialog() != true) return;
-            LogoPreview.Source = new BitmapImage(new Uri(dlg.FileName));
-            _settingsService.SaveSetting("CompanyLogoPath", dlg.FileName);
+
+            var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+            Directory.CreateDirectory(destDir);
+            var destFile = Path.Combine(destDir, "CompanyLogo" + Path.GetExtension(dlg.FileName));
+            File.Copy(dlg.FileName, destFile, true);
+
+            LogoPreview.Source = new BitmapImage(new Uri(destFile));
+            _settingsService.SaveSetting("CompanyLogoPath", "Images/" + Path.GetFileName(destFile));
             UpdateHeaderLogo();
         }
+
 
         void RefreshToolList()
         {
@@ -546,15 +603,24 @@ namespace ToolManagementAppV2
             try
             {
                 var logoPath = _settingsService.GetSetting("CompanyLogoPath");
-                HeaderIcon.Source = (!string.IsNullOrWhiteSpace(logoPath) && File.Exists(logoPath))
-                    ? new BitmapImage(new Uri(logoPath))
-                    : new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultLogo.png"));
+                if (!string.IsNullOrWhiteSpace(logoPath))
+                {
+                    var fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, logoPath);
+                    HeaderIcon.Source = File.Exists(fullPath)
+                        ? new BitmapImage(new Uri(fullPath))
+                        : new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultLogo.png"));
+                }
+                else
+                {
+                    HeaderIcon.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultLogo.png"));
+                }
             }
-            catch (Exception ex)
+            catch
             {
-                ShowError("Failed to load header logo", ex);
+                HeaderIcon.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultLogo.png"));
             }
         }
+
 
         void LoadSettings()
         {
@@ -563,7 +629,8 @@ namespace ToolManagementAppV2
                 var logoPath = _settingsService.GetSetting("CompanyLogoPath");
                 if (!string.IsNullOrWhiteSpace(logoPath) && File.Exists(logoPath))
                 {
-                    var bmp = new BitmapImage(new Uri(logoPath)) { CacheOption = BitmapCacheOption.OnLoad };
+                    var logoFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, logoPath);
+                    var bmp = new BitmapImage(new Uri(logoFile)) { CacheOption = BitmapCacheOption.OnLoad };
                     LogoPreview.Source = bmp;
                     HeaderIcon.Source = bmp;
                 }

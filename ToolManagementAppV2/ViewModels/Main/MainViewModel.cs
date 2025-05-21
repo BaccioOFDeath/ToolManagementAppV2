@@ -150,6 +150,9 @@ namespace ToolManagementAppV2.ViewModels.Main
             RentalService rentalService,
             SettingsService settingsService)
         {
+            Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images"));
+            Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UserPhotos"));
+
             _toolService = toolService;
             _userService = userService;
             _customerService = customerService;
@@ -269,32 +272,94 @@ namespace ToolManagementAppV2.ViewModels.Main
             if (Application.Current.Properties["CurrentUser"] is UserModel cu)
             {
                 CurrentUserName = cu.UserName;
-                CurrentUserPhoto = File.Exists(cu.UserPhotoPath)
-                    ? new BitmapImage(new Uri(cu.UserPhotoPath))
-                    : new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultUserPhoto.png"));
+
+                try
+                {
+                    Uri uri;
+                    if (string.IsNullOrWhiteSpace(cu.UserPhotoPath))
+                    {
+                        CurrentUserPhoto = new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultUserPhoto.png"));
+                        return;
+                    }
+
+                    if (cu.UserPhotoPath.StartsWith("pack://"))
+                    {
+                        uri = new Uri(cu.UserPhotoPath, UriKind.Absolute);
+                    }
+                    else
+                    {
+                        var fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, cu.UserPhotoPath);
+                        if (!File.Exists(fullPath))
+                        {
+                            CurrentUserPhoto = new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultUserPhoto.png"));
+                            return;
+                        }
+
+                        uri = new Uri($"file:///{fullPath.Replace("\\", "/")}", UriKind.Absolute);
+                    }
+
+                    var bmp = new BitmapImage();
+                    bmp.BeginInit();
+                    bmp.CacheOption = BitmapCacheOption.OnLoad;
+                    bmp.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                    bmp.UriSource = uri;
+                    bmp.EndInit();
+                    CurrentUserPhoto = bmp;
+                }
+                catch
+                {
+                    CurrentUserPhoto = new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultUserPhoto.png"));
+                }
             }
         }
+
+
 
         void ChooseProfilePic() => UploadPhotoForUser((UserModel)Application.Current.Properties["CurrentUser"]);
 
         void UploadPhotoForUser(UserModel u)
         {
             if (!ShowFileDialog("Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg", out var src)) return;
-            var folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UserPhotos");
-            Directory.CreateDirectory(folder);
-            var dest = Path.Combine(folder, $"{Guid.NewGuid()}{Path.GetExtension(src)}");
-            File.Copy(src, dest, true);
+
+            string dest;
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            var avatarDir = Path.Combine(baseDir, "Resources", "Avatars");
+
+            if (src.StartsWith("pack://") || src.StartsWith(avatarDir, StringComparison.OrdinalIgnoreCase))
+            {
+                dest = src;
+            }
+            else
+            {
+                var folder = Path.Combine(baseDir, "UserPhotos");
+                Directory.CreateDirectory(folder);
+                dest = Path.Combine(folder, $"{Guid.NewGuid()}{Path.GetExtension(src)}");
+                File.Copy(src, dest, true);
+            }
+
             var bmp = new BitmapImage();
-            bmp.BeginInit(); bmp.CacheOption = BitmapCacheOption.OnLoad; bmp.UriSource = new Uri(dest); bmp.EndInit();
-            u.UserPhotoPath = dest; u.PhotoBitmap = bmp;
+            bmp.BeginInit();
+            bmp.UriSource = new Uri(dest, UriKind.Absolute);
+            bmp.CacheOption = BitmapCacheOption.OnLoad;
+            bmp.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+            bmp.EndInit();
+
+            u.UserPhotoPath = dest;
+            u.PhotoBitmap = bmp;
             _userService.UpdateUser(u);
+
             if (Application.Current.Properties["CurrentUser"] is UserModel cu && cu.UserID == u.UserID)
             {
-                cu.UserPhotoPath = dest; cu.PhotoBitmap = bmp;
-                CurrentUserPhoto = bmp; CurrentUserName = cu.UserName;
+                cu.UserPhotoPath = dest;
+                cu.PhotoBitmap = bmp;
+                CurrentUserPhoto = bmp;
+                CurrentUserName = cu.UserName;
             }
+
             LoadUsers();
         }
+
+
 
         void LoadCustomers()
         {

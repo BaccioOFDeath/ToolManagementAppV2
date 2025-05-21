@@ -113,16 +113,50 @@ namespace ToolManagementAppV2.Services.Users
                 UserID = Convert.ToInt32(rdr["UserID"]),
                 UserName = rdr["UserName"].ToString(),
                 Password = rdr["Password"].ToString(),
-                UserPhotoPath = rdr["UserPhotoPath"].ToString(),
+                UserPhotoPath = rdr["UserPhotoPath"]?.ToString(),
                 IsAdmin = Convert.ToInt32(rdr["IsAdmin"]) == 1,
                 Email = rdr["Email"]?.ToString(),
                 Phone = rdr["Phone"]?.ToString(),
                 Address = rdr["Address"]?.ToString(),
                 Role = rdr["Role"]?.ToString()
             };
-            if (!string.IsNullOrEmpty(u.UserPhotoPath) && File.Exists(u.UserPhotoPath))
-                u.PhotoBitmap = new BitmapImage(new Uri(u.UserPhotoPath));
+
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(u.UserPhotoPath))
+                {
+                    Uri uri;
+                    if (u.UserPhotoPath.StartsWith("pack://"))
+                    {
+                        uri = new Uri(u.UserPhotoPath, UriKind.Absolute);
+                    }
+                    else
+                    {
+                        var full = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, u.UserPhotoPath);
+                        if (!File.Exists(full))
+                        {
+                            u.PhotoBitmap = null;
+                            return u;
+                        }
+                        uri = new Uri($"file:///{full.Replace("\\", "/")}", UriKind.Absolute);
+                    }
+
+                    var bmp = new BitmapImage();
+                    bmp.BeginInit();
+                    bmp.UriSource = uri;
+                    bmp.CacheOption = BitmapCacheOption.OnLoad;
+                    bmp.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                    bmp.EndInit();
+                    u.PhotoBitmap = bmp;
+                }
+            }
+            catch
+            {
+                u.PhotoBitmap = null;
+            }
+
             return u;
         }
+
     }
 }
