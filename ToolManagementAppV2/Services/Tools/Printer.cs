@@ -54,7 +54,7 @@ namespace ToolManagementAppV2.Services.Tools
                 return null;
 
             var full = Utilities.Helpers.PathHelper.GetAbsolutePath(path);
-            return File.Exists(full) ? full : null;
+            return !string.IsNullOrEmpty(full) && File.Exists(full) ? full : null;
         }
 
         private FlowDocument BuildDocument(List<ToolModel> tools, string title, string logoPath)
@@ -181,6 +181,8 @@ namespace ToolManagementAppV2.Services.Tools
         private Border CreateOptimizedImage(string path)
         {
             var full = Utilities.Helpers.PathHelper.GetAbsolutePath(path);
+            if (string.IsNullOrEmpty(full))
+                return new Border { Width = 120, Height = 120, CornerRadius = new CornerRadius(10) };
 
             var bmp = new BitmapImage();
             bmp.BeginInit();
@@ -206,7 +208,7 @@ namespace ToolManagementAppV2.Services.Tools
                 return;
 
             var full = Utilities.Helpers.PathHelper.GetAbsolutePath(logoPath);
-            if (!File.Exists(full))
+            if (string.IsNullOrEmpty(full) || !File.Exists(full))
                 return;
             var bmp = new BitmapImage();
             bmp.BeginInit();

@@ -107,7 +107,7 @@ namespace ToolManagementAppV2.ViewModels
                     if (!string.IsNullOrEmpty(path))
                     {
                         var full = Utilities.Helpers.PathHelper.GetAbsolutePath(path);
-                        uri = File.Exists(full)
+                        uri = !string.IsNullOrEmpty(full) && File.Exists(full)
                             ? new Uri(full, UriKind.Absolute)
                             : new Uri("pack://application:,,,/Resources/DefaultLogo.png", UriKind.Absolute);
                     }

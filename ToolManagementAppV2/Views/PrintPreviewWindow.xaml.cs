@@ -31,7 +31,7 @@ namespace ToolManagementAppV2.Views
             if (!string.IsNullOrWhiteSpace(_logoPath))
             {
                 var full = Utilities.Helpers.PathHelper.GetAbsolutePath(_logoPath);
-                logoUri = File.Exists(full)
+                logoUri = !string.IsNullOrEmpty(full) && File.Exists(full)
                     ? new Uri(full, UriKind.Absolute)
                     : new Uri("pack://application:,,,/Resources/DefaultLogo.png");
             }
