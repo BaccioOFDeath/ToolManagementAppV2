@@ -261,9 +261,13 @@ namespace ToolManagementAppV2.ViewModels
             var headers = lines[0].Split(',').Select(h => h.Trim());
             var fields = new[] { "ToolNumber", "NameDescription", "Location", "Brand", "PartNumber", "Supplier", "PurchasedDate", "Notes", "AvailableQuantity" };
             if (!ShowMappingWindow(headers, fields, out var map)) return;
-            _toolService.ImportToolsFromCsv(path, map);
+            var invalid = _toolService.ImportToolsFromCsv(path, map);
             LoadTools();
-            ShowInfo($"{lines.Length - 1} tools imported successfully.");
+            var importedCount = (lines.Length - 1) - invalid.Count;
+            var msg = $"{importedCount} tools imported successfully.";
+            if (invalid.Count > 0)
+                msg += $" {invalid.Count} rows skipped.";
+            ShowInfo(msg);
 
             LoadTools();
             LoadCheckedOutTools();
