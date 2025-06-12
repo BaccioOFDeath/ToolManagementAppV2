@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 
-namespace ToolManagementAppV2.ViewModels.ImportExport
+namespace ToolManagementAppV2.ViewModels
 {
     public class FieldMapping : ObservableObject
     {

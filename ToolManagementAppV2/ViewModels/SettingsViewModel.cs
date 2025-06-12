@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace ToolManagementAppV2.ViewModels.Settings
+namespace ToolManagementAppV2.ViewModels
 {
     internal class SettingsViewModel : ObservableObject
     {

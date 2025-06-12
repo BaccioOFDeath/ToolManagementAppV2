@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace ToolManagementAppV2.ViewModels.Rental
+namespace ToolManagementAppV2.ViewModels
 {
     internal class RentalViewModel : ObservableObject
     {

@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace ToolManagementAppV2.Utilities
+namespace ToolManagementAppV2.Utilities.Helpers
 {
     public static class SecurityHelper
     {

@@ -10,9 +10,41 @@
 
   <ItemGroup>
     <Compile Remove="Assets\**" />
+    <Compile Remove="Views\Common\**" />
+    <Compile Remove="Views\Customer\**" />
+    <Compile Remove="Views\ImportExport\**" />
+    <Compile Remove="Views\Rental\**" />
+    <Compile Remove="Views\Reports\**" />
+    <Compile Remove="Views\Settings\**" />
+    <Compile Remove="Views\Tool\**" />
+    <Compile Remove="Views\User\**" />
     <EmbeddedResource Remove="Assets\**" />
+    <EmbeddedResource Remove="Views\Common\**" />
+    <EmbeddedResource Remove="Views\Customer\**" />
+    <EmbeddedResource Remove="Views\ImportExport\**" />
+    <EmbeddedResource Remove="Views\Rental\**" />
+    <EmbeddedResource Remove="Views\Reports\**" />
+    <EmbeddedResource Remove="Views\Settings\**" />
+    <EmbeddedResource Remove="Views\Tool\**" />
+    <EmbeddedResource Remove="Views\User\**" />
     <None Remove="Assets\**" />
+    <None Remove="Views\Common\**" />
+    <None Remove="Views\Customer\**" />
+    <None Remove="Views\ImportExport\**" />
+    <None Remove="Views\Rental\**" />
+    <None Remove="Views\Reports\**" />
+    <None Remove="Views\Settings\**" />
+    <None Remove="Views\Tool\**" />
+    <None Remove="Views\User\**" />
     <Page Remove="Assets\**" />
+    <Page Remove="Views\Common\**" />
+    <Page Remove="Views\Customer\**" />
+    <Page Remove="Views\ImportExport\**" />
+    <Page Remove="Views\Rental\**" />
+    <Page Remove="Views\Reports\**" />
+    <Page Remove="Views\Settings\**" />
+    <Page Remove="Views\Tool\**" />
+    <Page Remove="Views\User\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -64,14 +96,6 @@
 
   <ItemGroup>
     <Folder Include="Images\" />
-    <Folder Include="Views\Common\" />
-    <Folder Include="Views\Customer\" />
-    <Folder Include="Views\ImportExport\" />
-    <Folder Include="Views\Reports\" />
-    <Folder Include="Views\Settings\" />
-    <Folder Include="Views\User\" />
-    <Folder Include="Views\Rental\" />
-    <Folder Include="Views\Tool\" />
   </ItemGroup>
 
   <ItemGroup>

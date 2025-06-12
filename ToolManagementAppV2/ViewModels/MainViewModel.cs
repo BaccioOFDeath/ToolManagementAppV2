@@ -14,7 +14,7 @@ using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.ViewModels.Rental;
 using ToolManagementAppV2.Views;
 
-namespace ToolManagementAppV2.ViewModels.Main
+namespace ToolManagementAppV2.ViewModels
 {
     public class MainViewModel : ObservableObject
     {

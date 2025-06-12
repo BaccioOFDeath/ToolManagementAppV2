@@ -11,7 +11,7 @@ using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Services.Users;
-using ToolManagementAppV2.ViewModels.Main;
+using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Views;
 
 namespace ToolManagementAppV2
