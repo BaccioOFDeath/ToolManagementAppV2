@@ -12,6 +12,8 @@ namespace ToolManagementAppV2.Services.Rentals
         public RentalService(DatabaseService dbService) =>
             _connString = dbService.ConnectionString;
 
+        // toolID is passed as a string even though the underlying column is INTEGER
+        // to keep consistency with ToolModel.ToolID
         public void RentTool(string toolID, int customerID, DateTime rentalDate, DateTime dueDate)
         {
             const string sql = @"
@@ -98,7 +100,7 @@ namespace ToolManagementAppV2.Services.Rentals
                 selCmd.Parameters.AddWithValue("@RentalID", rentalID);
                 var result = selCmd.ExecuteScalar();
                 if (result == null) throw new InvalidOperationException("Rental not found or already returned.");
-                int toolID = Convert.ToInt32(result);
+                string toolID = result.ToString();
 
                 SqliteHelper.ExecuteNonQuery(conn, tx,
                     "UPDATE Rentals SET ReturnDate=@ReturnDate,Status='Returned' WHERE RentalID=@RentalID",
@@ -152,7 +154,7 @@ namespace ToolManagementAppV2.Services.Rentals
         public List<Rental> GetAllRentals() =>
             SqliteHelper.ExecuteReader(_connString, "SELECT * FROM Rentals", null, MapRental);
 
-        public List<Rental> GetRentalHistoryForTool(int toolID)
+        public List<Rental> GetRentalHistoryForTool(string toolID)
         {
             const string sql = @"
                 SELECT * FROM Rentals
@@ -165,7 +167,7 @@ namespace ToolManagementAppV2.Services.Rentals
         Rental MapRental(IDataRecord r) => new()
         {
             RentalID = Convert.ToInt32(r["RentalID"]),
-            ToolID = Convert.ToInt32(r["ToolID"]),
+            ToolID = r["ToolID"].ToString(),
             CustomerID = Convert.ToInt32(r["CustomerID"]),
             RentalDate = Convert.ToDateTime(r["RentalDate"]),
             DueDate = Convert.ToDateTime(r["DueDate"]),

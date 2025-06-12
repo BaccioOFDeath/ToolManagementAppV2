@@ -2,7 +2,10 @@
 {
     public class Tool
     {
-        public string ToolID { get; set; } // keep for DB use, but hide in UI
+        // ToolID is stored as an INTEGER PRIMARY KEY in the database.
+        // It is represented as a string in the model for easier binding and
+        // because most services treat it as a string key.
+        public string ToolID { get; set; } // hide in UI, used internally
         public string ToolNumber { get; set; }
         public string PartNumber { get; set; }
         public string NameDescription { get; set; }
