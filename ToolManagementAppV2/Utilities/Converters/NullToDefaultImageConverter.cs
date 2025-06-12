@@ -23,17 +23,20 @@ namespace ToolManagementAppV2.Utilities.Converters
             {
                 try
                 {
-                    var absPath = path;
-                    if (!Uri.IsWellFormedUriString(path, UriKind.Absolute))
-                        absPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path));
+                    var absPath = Uri.IsWellFormedUriString(path, UriKind.Absolute)
+                        ? path
+                        : Helpers.PathHelper.GetAbsolutePath(path);
 
-                    var image = new BitmapImage();
-                    image.BeginInit();
-                    image.CacheOption = BitmapCacheOption.OnLoad;
-                    image.UriSource = new Uri(absPath, UriKind.Absolute);
-                    image.EndInit();
-                    image.Freeze();
-                    return image;
+                    if (!string.IsNullOrEmpty(absPath))
+                    {
+                        var image = new BitmapImage();
+                        image.BeginInit();
+                        image.CacheOption = BitmapCacheOption.OnLoad;
+                        image.UriSource = new Uri(absPath, UriKind.Absolute);
+                        image.EndInit();
+                        image.Freeze();
+                        return image;
+                    }
                 }
                 catch
                 {

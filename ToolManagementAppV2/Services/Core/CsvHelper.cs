@@ -10,9 +10,10 @@ namespace ToolManagementAppV2.Utilities.IO
 {
     public static class CsvHelperUtil
     {
-        public static List<ToolModel> LoadToolsFromCsv(string filePath, IDictionary<string, string> map)
+        public static List<ToolModel> LoadToolsFromCsv(string filePath, IDictionary<string, string> map, out List<int> invalidRows)
         {
             var list = new List<ToolModel>();
+            invalidRows = new List<int>();
             using var parser = new TextFieldParser(filePath);
             parser.SetDelimiters(",");
             parser.HasFieldsEnclosedInQuotes = true;
@@ -20,12 +21,21 @@ namespace ToolManagementAppV2.Utilities.IO
             if (parser.EndOfData) return list;
             var headers = parser.ReadFields();
 
+            var row = 1; // header already read
             while (!parser.EndOfData)
             {
+                row++;
                 var cols = parser.ReadFields();
+                var toolNumber = GetMapped(cols, headers, map, "ToolNumber");
+                if (string.IsNullOrWhiteSpace(toolNumber))
+                {
+                    invalidRows.Add(row);
+                    continue;
+                }
+
                 list.Add(new ToolModel
                 {
-                    ToolNumber = GetMapped(cols, headers, map, "ToolNumber"),
+                    ToolNumber = toolNumber,
                     NameDescription = GetMapped(cols, headers, map, "NameDescription"),
                     Location = GetMapped(cols, headers, map, "Location"),
                     Brand = GetMapped(cols, headers, map, "Brand"),

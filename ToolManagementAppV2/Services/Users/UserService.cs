@@ -104,6 +104,21 @@ namespace ToolManagementAppV2.Services.Users
         }
 
         public void DeleteUser(int userID)
+            => DeleteUserInternal(userID);
+
+        public bool TryDeleteUser(int userID)
+        {
+            var user = GetUserByID(userID);
+            if (user == null) return false;
+            var adminCount = GetAllUsers().Count(u => u.IsAdmin);
+            if (user.IsAdmin && adminCount <= 1)
+                return false;
+
+            DeleteUserInternal(userID);
+            return true;
+        }
+
+        void DeleteUserInternal(int userID)
         {
             var sql = "DELETE FROM Users WHERE UserID=@ID";
             var p = new[] { new SQLiteParameter("@ID", userID) };
