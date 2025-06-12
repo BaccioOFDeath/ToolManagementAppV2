@@ -5,6 +5,7 @@ using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Services.Core;
+using ToolManagementAppV2.Utilities.Helpers;
 
 namespace ToolManagementAppV2
 {
@@ -22,9 +23,18 @@ namespace ToolManagementAppV2
 
             // Load logo
             var logoPath = settings.GetSetting("CompanyLogoPath");
-            var logoUri = !string.IsNullOrWhiteSpace(logoPath) && File.Exists(logoPath)
-                           ? new Uri(logoPath)
-                           : new Uri("pack://application:,,,/Resources/DefaultLogo.png");
+            Uri logoUri;
+            if (!string.IsNullOrWhiteSpace(logoPath))
+            {
+                var full = Utilities.Helpers.PathHelper.GetAbsolutePath(logoPath);
+                logoUri = File.Exists(full)
+                    ? new Uri(full)
+                    : new Uri("pack://application:,,,/Resources/DefaultLogo.png");
+            }
+            else
+            {
+                logoUri = new Uri("pack://application:,,,/Resources/DefaultLogo.png");
+            }
             LoginLogo.Source = new BitmapImage(logoUri);
 
             // Set window title

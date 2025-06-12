@@ -12,6 +12,7 @@ using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Utilities.Extensions;
+using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.ViewModels.Rental;
 using ToolManagementAppV2.Views;
 
@@ -102,9 +103,18 @@ namespace ToolManagementAppV2.ViewModels
                 if (_headerLogo == null)
                 {
                     var path = _settingsService.GetSetting("CompanyLogoPath");
-                    var uri = string.IsNullOrEmpty(path) || !File.Exists(path)
-                        ? new Uri("pack://application:,,,/Resources/DefaultLogo.png", UriKind.Absolute)
-                        : new Uri(path, UriKind.Absolute);
+                    Uri uri;
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        var full = Utilities.Helpers.PathHelper.GetAbsolutePath(path);
+                        uri = File.Exists(full)
+                            ? new Uri(full, UriKind.Absolute)
+                            : new Uri("pack://application:,,,/Resources/DefaultLogo.png", UriKind.Absolute);
+                    }
+                    else
+                    {
+                        uri = new Uri("pack://application:,,,/Resources/DefaultLogo.png", UriKind.Absolute);
+                    }
                     _headerLogo = new BitmapImage(uri);
                 }
                 return _headerLogo;
