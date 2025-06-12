@@ -166,14 +166,15 @@ public class ToolService
                 new SQLiteParameter("@ID", toolID)
             });
 
-    public void ImportToolsFromCsv(string filePath, IDictionary<string, string> map)
+    public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map)
     {
-        var tools = CsvHelperUtil.LoadToolsFromCsv(filePath, map);
+        var tools = CsvHelperUtil.LoadToolsFromCsv(filePath, map, out var invalidRows);
         foreach (var tool in tools)
         {
             if (!ToolExists(tool.ToolNumber))
                 AddTool(tool);
         }
+        return invalidRows;
     }
 
     public void ExportToolsToCsv(string filePath)

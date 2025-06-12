@@ -294,6 +294,10 @@ namespace ToolManagementAppV2
                     RefreshRentalList();
                     RefreshToolList();
                 }
+                catch (InvalidOperationException ex)
+                {
+                    ShowMessage("Rental Error", ex.Message, MessageBoxImage.Warning);
+                }
                 catch (Exception ex)
                 {
                     ShowError("Error renting tool", ex);
@@ -630,7 +634,7 @@ namespace ToolManagementAppV2
                 if (!string.IsNullOrWhiteSpace(logoPath))
                 {
                     var fullPath = Utilities.Helpers.PathHelper.GetAbsolutePath(logoPath);
-                    if (File.Exists(fullPath))
+                    if (!string.IsNullOrEmpty(fullPath) && File.Exists(fullPath))
                     {
                         using (var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read))
                         {
@@ -669,7 +673,7 @@ namespace ToolManagementAppV2
                 if (!string.IsNullOrWhiteSpace(logoPath))
                 {
                     var fullPath = Utilities.Helpers.PathHelper.GetAbsolutePath(logoPath);
-                    if (File.Exists(fullPath))
+                    if (!string.IsNullOrEmpty(fullPath) && File.Exists(fullPath))
                     {
                         using (var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read))
                         {
