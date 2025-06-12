@@ -3,6 +3,7 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
+using System.IO;
 
 namespace ToolManagementAppV2.Utilities.Converters
 {
@@ -20,12 +21,22 @@ namespace ToolManagementAppV2.Utilities.Converters
             // If it's a path, try loading it
             if (value is string path && !string.IsNullOrEmpty(path))
             {
-                try { return new BitmapImage(new Uri(path, UriKind.Absolute)); }
-                catch { /* fall‐through to default */ }
+                try
+                {
+                    var absPath = path;
+                    if (!Uri.IsWellFormedUriString(path, UriKind.Absolute))
+                        absPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path));
+
+                    return new BitmapImage(new Uri(absPath, UriKind.Absolute));
+                }
+                catch
+                {
+                    // fall-through to default
+                }
             }
 
-            // Figure out which default we need
-            string type = (parameter as string)?.ToLowerInvariant() ?? "user";
+                // Figure out which default we need
+                string type = (parameter as string)?.ToLowerInvariant() ?? "user";
             switch (type)
             {
                 case "tool":
