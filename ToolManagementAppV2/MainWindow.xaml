@@ -61,7 +61,7 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <TabControl x:Name="MyTabControl" Margin="5" Grid.Row="0">
+            <TabControl x:Name="MyTabControl" Margin="5" Grid.Row="0" SelectionChanged="MyTabControl_SelectionChanged">
                 <!-- Search Tools Tab -->
                 <TabItem Header="Search Tools">
                     <Grid Margin="5">
