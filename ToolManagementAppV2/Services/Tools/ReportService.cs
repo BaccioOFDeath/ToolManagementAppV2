@@ -70,7 +70,7 @@ namespace ToolManagementAppV2.Services.Tools
         {
             var lines = _customerService.GetAllCustomers()
                 .Select(c =>
-                    $"CustomerID: {c.CustomerID} | ToolNumber: {c.Company} | Email: {c.Email} | " +
+                    $"CustomerID: {c.CustomerID} | Company: {c.Company} | Email: {c.Email} | " +
                     $"Contact: {c.Contact} | Phone: {c.Phone} | Mobile: {c.Mobile} | Address: {c.Address}");
             return BuildReport("Customer Report", lines);
         }
@@ -79,7 +79,7 @@ namespace ToolManagementAppV2.Services.Tools
         {
             var lines = _userService.GetAllUsers()
                 .Select(u =>
-                    $"UserID: {u.UserID} | ToolNumber: {u.UserName} | IsAdmin: {u.IsAdmin}");
+                    $"UserID: {u.UserID} | UserName: {u.UserName} | IsAdmin: {u.IsAdmin}");
             return BuildReport("User Report", lines);
         }
 
