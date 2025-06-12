@@ -16,7 +16,7 @@
         <TextBlock Text="Customer:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,5,5"/>
         <ComboBox ItemsSource="{Binding Customers}" 
                   SelectedItem="{Binding SelectedCustomer}" 
-                  DisplayMemberPath="Name"
+                  DisplayMemberPath="Company"
                   Grid.Row="0" Grid.Column="1" Margin="0,0,0,5"/>
 
         <TextBlock Text="Due Date:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,5,5"/>
