@@ -368,7 +368,13 @@ namespace ToolManagementAppV2
                     ShowMessage("Deletion Not Allowed", "You cannot delete your own account.", MessageBoxImage.Warning);
                     return;
                 }
-                _userService.DeleteUser(u.UserID);
+
+                if (!_userService.TryDeleteUser(u.UserID))
+                {
+                    ShowMessage("Deletion Not Allowed", "At least one admin user must remain.", MessageBoxImage.Warning);
+                    return;
+                }
+
                 vm.LoadUsers();
                 RefreshUserList();
                 vm.SelectedUser = vm.Users.FirstOrDefault();
