@@ -29,6 +29,9 @@ namespace ToolManagementAppV2.Models.Domain
         private string _phone;
         public string Phone { get => _phone; set => SetProperty(ref _phone, value); }
 
+        private string _mobile;
+        public string Mobile { get => _mobile; set => SetProperty(ref _mobile, value); }
+
         private string _address;
         public string Address { get => _address; set => SetProperty(ref _address, value); }
 

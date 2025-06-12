@@ -16,7 +16,8 @@ namespace ToolManagementAppV2
         {
             InitializeComponent();
 
-            var dbService = new DatabaseService("tool_inventory.db");
+            var dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db");
+            var dbService = new DatabaseService(dbPath);
             var settings = new SettingsService(dbService);
 
             // Load logo

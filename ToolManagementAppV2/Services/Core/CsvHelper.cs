@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.VisualBasic.FileIO;
 using System.Linq;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Models.ImportExport;
@@ -11,12 +12,18 @@ namespace ToolManagementAppV2.Utilities.IO
     {
         public static List<ToolModel> LoadToolsFromCsv(string filePath, IDictionary<string, string> map)
         {
-            var lines = File.ReadAllLines(filePath);
-            if (lines.Length < 2) return new List<ToolModel>();
-            var headers = lines[0].Split(',').Select(h => h.Trim()).ToArray();
-            return lines.Skip(1)
-                .Select(line => line.Split(','))
-                .Select(cols => new ToolModel
+            var list = new List<ToolModel>();
+            using var parser = new TextFieldParser(filePath);
+            parser.SetDelimiters(",");
+            parser.HasFieldsEnclosedInQuotes = true;
+
+            if (parser.EndOfData) return list;
+            var headers = parser.ReadFields();
+
+            while (!parser.EndOfData)
+            {
+                var cols = parser.ReadFields();
+                list.Add(new ToolModel
                 {
                     ToolNumber = GetMapped(cols, headers, map, "ToolNumber"),
                     NameDescription = GetMapped(cols, headers, map, "NameDescription"),
@@ -27,7 +34,10 @@ namespace ToolManagementAppV2.Utilities.IO
                     PurchasedDate = TryParseDate(GetMapped(cols, headers, map, "PurchasedDate")),
                     Notes = GetMapped(cols, headers, map, "Notes"),
                     QuantityOnHand = TryParseInt(GetMapped(cols, headers, map, "AvailableQuantity"))
-                }).ToList();
+                });
+            }
+
+            return list;
         }
 
         public static void ExportToolsToCsv(string filePath, List<ToolModel> tools)
@@ -37,18 +47,33 @@ namespace ToolManagementAppV2.Utilities.IO
                 "ToolNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity"
             };
             lines.AddRange(tools.Select(t =>
-                $"{t.ToolNumber},{t.NameDescription},{t.Location},{t.Brand},{t.PartNumber},{t.Supplier},{t.PurchasedDate:yyyy-MM-dd},{t.Notes},{t.QuantityOnHand}"));
+                string.Join(",",
+                    Quote(t.ToolNumber),
+                    Quote(t.NameDescription),
+                    Quote(t.Location),
+                    Quote(t.Brand),
+                    Quote(t.PartNumber),
+                    Quote(t.Supplier),
+                    Quote(t.PurchasedDate?.ToString("yyyy-MM-dd")),
+                    Quote(t.Notes),
+                    Quote(t.QuantityOnHand.ToString()))));
             File.WriteAllLines(filePath, lines);
         }
 
         public static List<CustomerModel> LoadCustomersFromCsv(string filePath, IDictionary<string, string> map)
         {
-            var lines = File.ReadAllLines(filePath);
-            if (lines.Length < 2) return new List<CustomerModel>();
-            var headers = lines[0].Split(',').Select(h => h.Trim()).ToArray();
-            return lines.Skip(1)
-                .Select(line => line.Split(','))
-                .Select(cols => new CustomerModel
+            var list = new List<CustomerModel>();
+            using var parser = new TextFieldParser(filePath);
+            parser.SetDelimiters(",");
+            parser.HasFieldsEnclosedInQuotes = true;
+
+            if (parser.EndOfData) return list;
+            var headers = parser.ReadFields();
+
+            while (!parser.EndOfData)
+            {
+                var cols = parser.ReadFields();
+                list.Add(new CustomerModel
                 {
                     Company = GetMapped(cols, headers, map, "Company"),
                     Email = GetMapped(cols, headers, map, "Email"),
@@ -56,8 +81,12 @@ namespace ToolManagementAppV2.Utilities.IO
                     Phone = GetMapped(cols, headers, map, "Phone"),
                     Mobile = GetMapped(cols, headers, map, "Mobile"),
                     Address = GetMapped(cols, headers, map, "Address")
-                }).ToList();
+                });
+            }
+
+            return list;
         }
+
 
         public static void ExportCustomersToCsv(string filePath, List<CustomerModel> customers)
         {
@@ -66,7 +95,13 @@ namespace ToolManagementAppV2.Utilities.IO
                 "Company,Email,Contact,Phone,Mobile,Address"
             };
             lines.AddRange(customers.Select(c =>
-                $"{c.Company},{c.Email},{c.Contact},{c.Phone},{c.Mobile},{c.Address}"));
+                string.Join(",",
+                    Quote(c.Company),
+                    Quote(c.Email),
+                    Quote(c.Contact),
+                    Quote(c.Phone),
+                    Quote(c.Mobile),
+                    Quote(c.Address))));
             File.WriteAllLines(filePath, lines);
         }
 
@@ -82,5 +117,14 @@ namespace ToolManagementAppV2.Utilities.IO
 
         private static DateTime? TryParseDate(string input) =>
             DateTime.TryParse(input, out var result) ? result : null;
+    
+
+        private static string Quote(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return string.Empty;
+            if (value.Contains(",") || value.Contains("\"") || value.Contains("\n"))
+                return $"\"{value.Replace("\"", "\"\"")}\"";
+            return value;
+        }
     }
 }

@@ -129,9 +129,14 @@ public class ToolService
 
     public void ToggleToolCheckOutStatus(string toolID, string currentUser)
     {
-        var isOut = Convert.ToInt32(SqliteHelper.ExecuteScalar(_connString,
+        var result = SqliteHelper.ExecuteScalar(_connString,
             "SELECT IsCheckedOut FROM Tools WHERE ToolID=@ID",
-            new[] { new SQLiteParameter("@ID", toolID) })) == 1;
+               new[] { new SQLiteParameter("@ID", toolID) });
+
+        if (result == null)
+            throw new InvalidOperationException($"Tool {toolID} not found.");
+
+        var isOut = Convert.ToInt32(result) == 1;
         var newStatus = isOut ? 0 : 1;
         var time = isOut ? (object)DBNull.Value : DateTime.Now;
         var by = isOut ? (object)DBNull.Value : currentUser;

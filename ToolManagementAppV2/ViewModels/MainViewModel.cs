@@ -11,6 +11,7 @@ using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.ViewModels.Rental;
 using ToolManagementAppV2.Views;
 
@@ -220,7 +221,13 @@ namespace ToolManagementAppV2.ViewModels
 
         void AddTool()
         {
-            _toolService.AddTool(new ToolModel { ToolID = Guid.NewGuid().ToString(), NameDescription = string.Empty });
+            var newTool = new ToolModel
+            {
+                ToolID = Guid.NewGuid().ToString(),
+                ToolNumber = Guid.NewGuid().ToString(),   // any unique placeholder
+                NameDescription = string.Empty
+            };
+            _toolService.AddTool(newTool);
             LoadTools();
         }
 
@@ -394,8 +401,6 @@ namespace ToolManagementAppV2.ViewModels
             var headers = lines[0].Split(',').Select(h => h.Trim());
             var fields = new[] { "Company", "Email", "Contact", "Phone", "Mobile", "Address" };
             if (!ShowMappingWindow(headers, fields, out var map)) return;
-            LoadTools();
-            LoadCheckedOutTools();
             _customerService.ImportCustomersFromCsv(path, map);
             LoadCustomers();
             ShowInfo($"{lines.Length - 1} customers imported successfully.");
@@ -512,14 +517,5 @@ namespace ToolManagementAppV2.ViewModels
 
         void ShowInfo(string msg) => MessageBox.Show(msg, "Info", MessageBoxButton.OK, MessageBoxImage.Information);
         void ShowWarning(string msg) => MessageBox.Show(msg, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-    }
-
-    static class ObservableCollectionExtensions
-    {
-        public static void ReplaceRange<T>(this ObservableCollection<T> collection, IEnumerable<T> items)
-        {
-            collection.Clear();
-            foreach (var i in items) collection.Add(i);
-        }
     }
 }

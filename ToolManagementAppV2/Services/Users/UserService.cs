@@ -30,8 +30,12 @@ namespace ToolManagementAppV2.Services.Users
             return u != null && u.Password == password ? u : null;
         }
 
-        public User GetCurrentUser() =>
-            SqliteHelper.ExecuteReader(_connString, "SELECT * FROM Users LIMIT 1", null, MapUser).FirstOrDefault();
+        public User GetCurrentUser()
+        {
+            if (System.Windows.Application.Current.Properties["CurrentUser"] is User u)
+                return GetUserByID(u.UserID);
+            return null;
+        }
 
         public void AddUser(User user)
         {
