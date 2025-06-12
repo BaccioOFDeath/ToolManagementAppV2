@@ -13,5 +13,6 @@ namespace ToolManagementAppV2.Interfaces
         void AddUser(User user);
         void UpdateUser(User user);
         void DeleteUser(int userID);
+        bool TryDeleteUser(int userID);
     }
 }
