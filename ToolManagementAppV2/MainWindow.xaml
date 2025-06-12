@@ -328,6 +328,7 @@
                             <xctk:WatermarkTextBox x:Name="DueDateInput" Watermark="Due Date (YYYY-MM-DD)" Margin="5" Width="200" />
                             <Button Content="Rent Tool" Click="RentToolButton_Click" Margin="5" />
                             <Button Content="Return Tool" Click="ReturnToolButton_Click" Margin="5" />
+                            <Button Content="Print Receipt" Click="PrintRentalReceipt_Click" Margin="5" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="10" Grid.Row="1">
                             <xctk:WatermarkTextBox x:Name="RentalIDInput" Watermark="Rental ID" Margin="5" Width="100" />
@@ -501,6 +502,10 @@
               Command="{Binding ExportCustomersCommand}"
               Width="150" Margin="5"/>
                         </WrapPanel>
+                        <TextBlock Text="Database" FontWeight="Bold" Margin="5,20,5,5"/>
+                        <WrapPanel>
+                            <Button Content="Backup Database" Click="BackupDatabaseButton_Click" Width="150" Margin="5"/>
+                        </WrapPanel>
                     </StackPanel>
                 </TabItem>
 
@@ -538,6 +543,7 @@
                                 <Button Content="Print Inventory Report" Click="PrintInventoryReport_Click" Margin="5" Width="200"/>
                                 <Button Content="Print Active Rentals Report" Click="PrintActiveRentalsReport_Click" Margin="5" Width="200"/>
                                 <Button Content="Print Full Rental History" Click="PrintFullRentalReport_Click" Margin="5" Width="200"/>
+                                <Button Content="Print Rental Report" Click="PrintRentalReport_Click" Margin="5" Width="200"/>
                             </WrapPanel>
                             <WrapPanel Orientation="Horizontal">
                                 <Button Content="Print Activity Log Report" Click="PrintActivityLogReport_Click" Margin="5" Width="200"/>
