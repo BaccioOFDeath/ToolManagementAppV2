@@ -71,21 +71,33 @@ namespace ToolManagementAppV2.Services.Rentals
 
         public void ReturnTool(int rentalID, DateTime returnDate)
         {
-            const string sql = @"
-                UPDATE Rentals
-                   SET ReturnDate = @ReturnDate, Status = 'Returned'
-                 WHERE RentalID = @RentalID;
-                UPDATE Tools
-                   SET AvailableQuantity = AvailableQuantity + 1,
-                       RentedQuantity   = RentedQuantity - 1
-                 WHERE ToolID =
-                   (SELECT ToolID FROM Rentals WHERE RentalID=@RentalID)";
-            var p = new[]
+            using var conn = new SQLiteConnection(_connString);
+            conn.Open();
+            using var tx = conn.BeginTransaction();
+            try
             {
-                new SQLiteParameter("@RentalID", rentalID),
-                new SQLiteParameter("@ReturnDate", returnDate)
-            };
-            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
+                var rentalRows = SqliteHelper.ExecuteNonQuery(conn, tx,
+                    "UPDATE Rentals SET ReturnDate=@ReturnDate, Status='Returned' WHERE RentalID=@RentalID",
+                    new[]
+                    {
+                        new SQLiteParameter("@ReturnDate", returnDate),
+                        new SQLiteParameter("@RentalID", rentalID)
+                    });
+
+                var toolRows = SqliteHelper.ExecuteNonQuery(conn, tx,
+                    "UPDATE Tools SET AvailableQuantity=AvailableQuantity+1, RentedQuantity=RentedQuantity-1 WHERE ToolID=(SELECT ToolID FROM Rentals WHERE RentalID=@RentalID)",
+                    new[] { new SQLiteParameter("@RentalID", rentalID) });
+
+                if (rentalRows == 0 || toolRows == 0)
+                    throw new InvalidOperationException("Return operation failed.");
+
+                tx.Commit();
+            }
+            catch
+            {
+                tx.Rollback();
+                throw;
+            }
         }
 
         public void ReturnToolWithTransaction(int rentalID, DateTime returnDate)
