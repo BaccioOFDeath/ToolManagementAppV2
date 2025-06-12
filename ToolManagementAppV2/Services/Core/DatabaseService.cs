@@ -97,6 +97,15 @@ namespace ToolManagementAppV2.Services.Core
             alter.ExecuteNonQuery();
         }
 
+        /// <summary>
+        /// Creates a backup of the current database using SQLite's backup API.
+        /// </summary>
+        /// <remarks>
+        /// Ensure this method is called when no open transactions exist on the connection.
+        /// </remarks>
+        /// <param name="backupFilePath">Destination path for the backup file.</param>
+        /// <exception cref="InvalidOperationException">Thrown when the database file path cannot be resolved.</exception>
+        /// <exception cref="IOException">Thrown when the backup operation fails.</exception>
         public void BackupDatabase(string backupFilePath)
         {
             var dataSource = ConnectionString
@@ -108,7 +117,19 @@ namespace ToolManagementAppV2.Services.Core
             if (string.IsNullOrEmpty(dataSource) || !File.Exists(dataSource))
                 throw new InvalidOperationException("Database file path could not be determined.");
 
-            File.Copy(dataSource, backupFilePath, overwrite: true);
+            try
+            {
+                using var source = new SQLiteConnection(ConnectionString);
+                using var destination = new SQLiteConnection($"Data Source={backupFilePath};Version=3;");
+                source.Open();
+                destination.Open();
+
+                source.BackupDatabase(destination, "main", "main", -1, null, 0);
+            }
+            catch (Exception ex)
+            {
+                throw new IOException("Failed to backup database.", ex);
+            }
         }
     }
 }
