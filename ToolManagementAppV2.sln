@@ -5,6 +5,8 @@ VisualStudioVersion = 17.12.35707.178 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolManagementAppV2", "ToolManagementAppV2\ToolManagementAppV2.csproj", "{D7C90C3C-2641-4E33-87A2-8778E278A369}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolManagementAppV2.Tests", "ToolManagementAppV2.Tests\ToolManagementAppV2.Tests.csproj", "{ED171CFF-8014-487E-AFD0-A742D7746BAD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,8 +16,12 @@ Global
 		{D7C90C3C-2641-4E33-87A2-8778E278A369}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D7C90C3C-2641-4E33-87A2-8778E278A369}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D7C90C3C-2641-4E33-87A2-8778E278A369}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D7C90C3C-2641-4E33-87A2-8778E278A369}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
+                {D7C90C3C-2641-4E33-87A2-8778E278A369}.Release|Any CPU.Build.0 = Release|Any CPU
+                {ED171CFF-8014-487E-AFD0-A742D7746BAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+                {ED171CFF-8014-487E-AFD0-A742D7746BAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+                {ED171CFF-8014-487E-AFD0-A742D7746BAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+                {ED171CFF-8014-487E-AFD0-A742D7746BAD}.Release|Any CPU.Build.0 = Release|Any CPU
+        EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection

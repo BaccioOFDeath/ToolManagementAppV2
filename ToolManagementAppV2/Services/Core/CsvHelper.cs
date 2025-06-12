@@ -108,7 +108,8 @@ namespace ToolManagementAppV2.Utilities.IO
         private static string GetMapped(string[] row, string[] headers, IDictionary<string, string> map, string key)
         {
             if (!map.TryGetValue(key, out var column)) return null;
-            var index = Array.IndexOf(headers, column);
+            var index = Array.FindIndex(headers,
+                h => string.Equals(h, column, StringComparison.OrdinalIgnoreCase));
             return index >= 0 && index < row.Length ? row[index].Trim() : null;
         }
 
