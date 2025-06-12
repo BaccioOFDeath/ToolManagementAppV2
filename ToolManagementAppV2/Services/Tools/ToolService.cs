@@ -25,6 +25,9 @@ public class ToolService
 
     public List<ToolModel> SearchTools(string searchText)
     {
+        if (string.IsNullOrWhiteSpace(searchText))
+            return GetAllTools();
+
         var terms = searchText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var sb = new StringBuilder("SELECT * FROM Tools");
         if (terms.Any())
