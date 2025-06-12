@@ -294,6 +294,10 @@ namespace ToolManagementAppV2
                     RefreshRentalList();
                     RefreshToolList();
                 }
+                catch (InvalidOperationException ex)
+                {
+                    ShowMessage("Rental Error", ex.Message, MessageBoxImage.Warning);
+                }
                 catch (Exception ex)
                 {
                     ShowError("Error renting tool", ex);
