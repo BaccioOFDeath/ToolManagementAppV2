@@ -10,6 +10,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using ToolManagementAppV2.Services.Settings;
+using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.Views;
 
 namespace ToolManagementAppV2.Services.Tools
@@ -49,9 +50,11 @@ namespace ToolManagementAppV2.Services.Tools
         private string? LoadCompanyLogoPath()
         {
             var path = _settingsService.GetSetting("CompanyLogoPath");
-            return !string.IsNullOrEmpty(path) && File.Exists(path)
-                ? path
-                : null;
+            if (string.IsNullOrEmpty(path))
+                return null;
+
+            var full = Utilities.Helpers.PathHelper.GetAbsolutePath(path);
+            return File.Exists(full) ? full : null;
         }
 
         private FlowDocument BuildDocument(List<ToolModel> tools, string title, string logoPath)
@@ -97,9 +100,15 @@ namespace ToolManagementAppV2.Services.Tools
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
             // image or placeholder
-            if (!string.IsNullOrEmpty(tool.ToolImagePath) && File.Exists(tool.ToolImagePath))
+            string imgPath = null;
+            if (!string.IsNullOrEmpty(tool.ToolImagePath))
             {
-                var imgBorder = CreateOptimizedImage(tool.ToolImagePath);
+                imgPath = Utilities.Helpers.PathHelper.GetAbsolutePath(tool.ToolImagePath);
+            }
+
+            if (!string.IsNullOrEmpty(imgPath) && File.Exists(imgPath))
+            {
+                var imgBorder = CreateOptimizedImage(imgPath);
                 Grid.SetColumn(imgBorder, 0);
                 grid.Children.Add(imgBorder);
             }
@@ -171,11 +180,13 @@ namespace ToolManagementAppV2.Services.Tools
 
         private Border CreateOptimizedImage(string path)
         {
+            var full = Utilities.Helpers.PathHelper.GetAbsolutePath(path);
+
             var bmp = new BitmapImage();
             bmp.BeginInit();
             bmp.CacheOption = BitmapCacheOption.OnLoad;
             bmp.DecodePixelWidth = 720;
-            bmp.UriSource = new Uri(path, UriKind.Absolute);
+            bmp.UriSource = new Uri(full, UriKind.Absolute);
             bmp.EndInit();
             bmp.Freeze();
 
@@ -191,10 +202,16 @@ namespace ToolManagementAppV2.Services.Tools
 
         private void AddCompanyLogo(StackPanel host, string logoPath)
         {
-            if (string.IsNullOrEmpty(logoPath) || !File.Exists(logoPath)) return;
+            if (string.IsNullOrEmpty(logoPath))
+                return;
+
+            var full = Utilities.Helpers.PathHelper.GetAbsolutePath(logoPath);
+            if (!File.Exists(full))
+                return;
+
             host.Children.Add(new Image
             {
-                Source = new BitmapImage(new Uri(logoPath, UriKind.Absolute)),
+                Source = new BitmapImage(new Uri(full, UriKind.Absolute)),
                 Width = 50,
                 Height = 50,
                 Stretch = Stretch.Uniform

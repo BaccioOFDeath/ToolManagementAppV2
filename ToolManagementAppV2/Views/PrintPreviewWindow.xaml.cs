@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media.Imaging;
+using ToolManagementAppV2.Utilities.Helpers;
 
 namespace ToolManagementAppV2.Views
 {
@@ -26,9 +27,18 @@ namespace ToolManagementAppV2.Views
             Title = $"Print Preview – {_title}";
             PreviewTitle.Text = _title;
 
-            var logoUri = !string.IsNullOrWhiteSpace(_logoPath) && File.Exists(_logoPath)
-                ? new Uri(_logoPath, UriKind.Absolute)
-                : new Uri("pack://application:,,,/Resources/DefaultLogo.png");
+            Uri logoUri;
+            if (!string.IsNullOrWhiteSpace(_logoPath))
+            {
+                var full = Utilities.Helpers.PathHelper.GetAbsolutePath(_logoPath);
+                logoUri = File.Exists(full)
+                    ? new Uri(full, UriKind.Absolute)
+                    : new Uri("pack://application:,,,/Resources/DefaultLogo.png");
+            }
+            else
+            {
+                logoUri = new Uri("pack://application:,,,/Resources/DefaultLogo.png");
+            }
             PreviewLogo.Source = new BitmapImage(logoUri);
 
             DocViewer.Document = _document;

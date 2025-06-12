@@ -13,6 +13,7 @@ using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Views;
+using ToolManagementAppV2.Utilities.Helpers;
 
 namespace ToolManagementAppV2
 {
@@ -605,7 +606,7 @@ namespace ToolManagementAppV2
                 var logoPath = _settingsService.GetSetting("CompanyLogoPath");
                 if (!string.IsNullOrWhiteSpace(logoPath))
                 {
-                    var fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, logoPath);
+                    var fullPath = Utilities.Helpers.PathHelper.GetAbsolutePath(logoPath);
                     HeaderIcon.Source = File.Exists(fullPath)
                         ? new BitmapImage(new Uri(fullPath))
                         : new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultLogo.png"));
@@ -627,12 +628,15 @@ namespace ToolManagementAppV2
             try
             {
                 var logoPath = _settingsService.GetSetting("CompanyLogoPath");
-                if (!string.IsNullOrWhiteSpace(logoPath) && File.Exists(logoPath))
+                if (!string.IsNullOrWhiteSpace(logoPath))
                 {
-                    var logoFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, logoPath);
-                    var bmp = new BitmapImage(new Uri(logoFile)) { CacheOption = BitmapCacheOption.OnLoad };
-                    LogoPreview.Source = bmp;
-                    HeaderIcon.Source = bmp;
+                    var logoFile = Utilities.Helpers.PathHelper.GetAbsolutePath(logoPath);
+                    if (File.Exists(logoFile))
+                    {
+                        var bmp = new BitmapImage(new Uri(logoFile)) { CacheOption = BitmapCacheOption.OnLoad };
+                        LogoPreview.Source = bmp;
+                        HeaderIcon.Source = bmp;
+                    }
                 }
 
                 var app = _settingsService.GetSetting("ApplicationName");
