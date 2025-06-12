@@ -63,7 +63,7 @@ namespace ToolManagementAppV2.Utilities.IO
         {
             var lines = new List<string>
             {
-                "Company,Email,Contact,Phone,,Mobile,Address"
+                "Company,Email,Contact,Phone,Mobile,Address"
             };
             lines.AddRange(customers.Select(c =>
                 $"{c.Company},{c.Email},{c.Contact},{c.Phone},{c.Mobile},{c.Address}"));
