@@ -23,7 +23,7 @@ public class ToolService
         SqliteHelper.ExecuteReader(_connString, "SELECT * FROM Tools WHERE ToolID=@ToolID",
             new[] { new SQLiteParameter("@ToolID", toolID) }, MapTool).FirstOrDefault();
 
-    public List<ToolModel> SearchTools(string searchText)
+    public List<ToolModel> SearchTools(string? searchText)
     {
         if (string.IsNullOrWhiteSpace(searchText))
             return GetAllTools();

@@ -11,7 +11,7 @@ namespace ToolManagementAppV2.Interfaces
         void DeleteTool(string toolID);
         ToolModel GetToolByID(string toolID);
         List<ToolModel> GetAllTools();
-        List<ToolModel> SearchTools(string searchText);
+        List<ToolModel> SearchTools(string? searchText);
         void ToggleToolCheckOutStatus(string toolID, string currentUser);
         List<ToolModel> GetToolsCheckedOutBy(string userName);
         void UpdateToolImage(string toolID, string imagePath);

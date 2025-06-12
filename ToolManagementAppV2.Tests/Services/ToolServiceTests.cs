@@ -10,7 +10,7 @@ namespace ToolManagementAppV2.Tests.Services
     public class ToolServiceTests
     {
         [Fact]
-        public void SearchTools_NullInput_DoesNotThrow()
+        public void SearchTools_WithNull_ReturnsAllTools()
         {
             var dbPath = Path.GetTempFileName();
             try
