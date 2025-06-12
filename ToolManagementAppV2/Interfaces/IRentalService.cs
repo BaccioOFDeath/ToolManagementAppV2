@@ -13,6 +13,6 @@ namespace ToolManagementAppV2.Interfaces
         List<Rental> GetActiveRentals();
         List<Rental> GetOverdueRentals();
         List<Rental> GetAllRentals();
-        List<Rental> GetRentalHistoryForTool(int toolID);
+        List<Rental> GetRentalHistoryForTool(string toolID);
     }
 }

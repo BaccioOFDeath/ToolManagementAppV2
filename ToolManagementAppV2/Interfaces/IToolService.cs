@@ -15,7 +15,7 @@ namespace ToolManagementAppV2.Interfaces
         void ToggleToolCheckOutStatus(string toolID, string currentUser);
         List<ToolModel> GetToolsCheckedOutBy(string userName);
         void UpdateToolImage(string toolID, string imagePath);
-        void ImportToolsFromCsv(string filePath, IDictionary<string, string> map);
+        List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map);
         void ExportToolsToCsv(string filePath);
     }
 }
