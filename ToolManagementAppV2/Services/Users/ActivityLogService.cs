@@ -47,13 +47,21 @@ namespace ToolManagementAppV2.Services.Users
             SqliteHelper.ExecuteNonQuery(_connString, sql, p);
         }
 
-        ActivityLog MapLog(IDataRecord r) => new()
+        ActivityLog MapLog(IDataRecord r)
         {
-            LogID = Convert.ToInt32(r["LogID"]),
-            UserID = Convert.ToInt32(r["UserID"]),
-            UserName = r["UserName"].ToString(),
-            Action = r["Action"].ToString(),
-            Timestamp = Convert.ToDateTime(r["Timestamp"])
-        };
+            var log = new ActivityLog
+            {
+                LogID = Convert.ToInt32(r["LogID"]),
+                UserName = r["UserName"].ToString(),
+                Action = r["Action"].ToString(),
+                Timestamp = Convert.ToDateTime(r["Timestamp"])
+            };
+
+            log.UserID = r["UserID"] == DBNull.Value
+                ? 0
+                : Convert.ToInt32(r["UserID"]);
+
+            return log;
+        }
     }
 }
