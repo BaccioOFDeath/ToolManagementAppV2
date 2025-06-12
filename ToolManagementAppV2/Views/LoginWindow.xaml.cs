@@ -35,7 +35,14 @@ namespace ToolManagementAppV2
             {
                 logoUri = new Uri("pack://application:,,,/Resources/DefaultLogo.png");
             }
-            LoginLogo.Source = new BitmapImage(logoUri);
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.UriSource = logoUri;
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.EndInit();
+            bitmap.Freeze();
+            LoginLogo.Source = bitmap;
+
 
             // Set window title
             var appName = settings.GetSetting("ApplicationName");

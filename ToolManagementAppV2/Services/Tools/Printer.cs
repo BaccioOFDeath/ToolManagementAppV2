@@ -208,10 +208,16 @@ namespace ToolManagementAppV2.Services.Tools
             var full = Utilities.Helpers.PathHelper.GetAbsolutePath(logoPath);
             if (!File.Exists(full))
                 return;
+            var bmp = new BitmapImage();
+            bmp.BeginInit();
+            bmp.CacheOption = BitmapCacheOption.OnLoad;
+            bmp.UriSource = new Uri(full, UriKind.Absolute);
+            bmp.EndInit();
+            bmp.Freeze();
 
             host.Children.Add(new Image
             {
-                Source = new BitmapImage(new Uri(full, UriKind.Absolute)),
+                Source = bmp,
                 Width = 50,
                 Height = 50,
                 Stretch = Stretch.Uniform

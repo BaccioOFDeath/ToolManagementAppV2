@@ -27,7 +27,13 @@ namespace ToolManagementAppV2.Utilities.Converters
                     if (!Uri.IsWellFormedUriString(path, UriKind.Absolute))
                         absPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path));
 
-                    return new BitmapImage(new Uri(absPath, UriKind.Absolute));
+                    var image = new BitmapImage();
+                    image.BeginInit();
+                    image.CacheOption = BitmapCacheOption.OnLoad;
+                    image.UriSource = new Uri(absPath, UriKind.Absolute);
+                    image.EndInit();
+                    image.Freeze();
+                    return image;
                 }
                 catch
                 {

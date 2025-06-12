@@ -1,0 +1,766 @@
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\ViewModels
+  File: ToolViewModel.cs
+    Class: ToolViewModel
+      Field: private ToolModel _tool
+      Property: public ToolModel Tool
+      Property: public string DisplayName
+  File: RentToolPopupViewModel.cs
+    Class: RentToolPopupViewModel
+      Property: public ObservableCollection<CustomerModel> Customers
+      Property: public CustomerModel SelectedCustomer
+      Property: public DateTime SelectedDueDate
+      Property: public CustomerModel SelectedCustomerResult
+      Property: public DateTime SelectedDueDateResult
+      Method: public void Confirm()
+  File: UserViewModel.cs
+    Class: UserViewModel
+      Field: private UserModel _user
+      Property: public UserModel User
+      Property: public string DisplayName
+  File: SettingsViewModel.cs
+    Class: SettingsViewModel
+      Field: private string _applicationName
+      Field: private string _companyLogoPath
+      Field: private int _defaultRentalDuration
+      Property: public string ApplicationName
+      Property: public string CompanyLogoPath
+      Property: public int DefaultRentalDuration
+  File: RentalViewModel.cs
+    Class: RentalViewModel
+      Field: private RentalModel _rental
+      Property: public RentalModel Rental
+      Property: public string StatusSummary
+  File: CustomerViewModel.cs
+    Class: CustomerViewModel
+      Field: private CustomerModel _customer
+      Property: public CustomerModel Customer
+      Property: public string DisplayName
+  File: MainViewModel.cs
+    Class: MainViewModel
+      Field: private DispatcherTimer _refreshTimer
+      Field: private ToolService _toolService
+      Field: private UserService _userService
+      Field: private CustomerService _customerService
+      Field: private RentalService _rentalService
+      Field: private SettingsService _settingsService
+      Field: private ToolModel _selectedTool
+      Field: private UserModel _selectedUser
+      Field: private CustomerModel _selectedCustomer
+      Field: private string _newCustomerName
+      Field: private string _newCustomerEmail
+      Field: private string _newCustomerContact
+      Field: private string _newCustomerPhone
+      Field: private string _newCustomerMobile
+      Field: private string _newCustomerAddress
+      Field: private RentalModel _selectedRental
+      Field: private string _currentUserName
+      Field: private BitmapImage _currentUserPhoto
+      Field: private BitmapImage _headerLogo
+      Property: public ObservableCollection<ToolModel> Tools
+      Property: public ObservableCollection<ToolModel> SearchResults
+      Property: public ObservableCollection<ToolModel> CheckedOutTools
+      Property: public ToolModel SelectedTool
+      Property: public ObservableCollection<UserModel> Users
+      Property: public UserModel SelectedUser
+      Property: public ObservableCollection<CustomerModel> Customers
+      Property: public CustomerModel SelectedCustomer
+      Property: public string NewCustomerName
+      Property: public string NewCustomerEmail
+      Property: public string NewCustomerContact
+      Property: public string NewCustomerPhone
+      Property: public string NewCustomerMobile
+      Property: public string NewCustomerAddress
+      Property: public ObservableCollection<RentalModel> ActiveRentals
+      Property: public ObservableCollection<RentalModel> OverdueRentals
+      Property: public RentalModel SelectedRental
+      Property: public DateTime NewDueDate
+      Property: public string CurrentUserName
+      Property: public BitmapImage CurrentUserPhoto
+      Property: public BitmapImage HeaderLogo
+      Property: public string SearchTerm
+      Property: public bool IsLastAdmin
+      Property: public string UserPassword
+      Property: public string NewPassword
+      Property: public string ConfirmPassword
+      Property: public IRelayCommand SearchCommand
+      Property: public IRelayCommand AddToolCommand
+      Property: public IRelayCommand UpdateToolCommand
+      Property: public IRelayCommand ImportToolsCommand
+      Property: public IRelayCommand ExportToolsCommand
+      Property: public IRelayCommand DeleteToolCommand
+      Property: public IRelayCommand LoadUsersCommand
+      Property: public IRelayCommand ChooseProfilePicCommand
+      Property: public IRelayCommand UploadUserPhotoCommand
+      Property: public IRelayCommand LoadCustomersCommand
+      Property: public IRelayCommand AddCustomerCommand
+      Property: public IRelayCommand UpdateCustomerCommand
+      Property: public IRelayCommand ImportCustomersCommand
+      Property: public IRelayCommand ExportCustomersCommand
+      Property: public IRelayCommand DeleteCustomerCommand
+      Property: public IRelayCommand RentToolCommand
+      Property: public IRelayCommand LoadActiveRentalsCommand
+      Property: public IRelayCommand LoadOverdueRentalsCommand
+      Property: public IRelayCommand ReturnToolCommand
+      Property: public IRelayCommand ExtendRentalCommand
+      Method: private void InitializeData()
+      Method: private void LoadTools()
+      Method: private void LoadCheckedOutTools()
+      Method: private void SearchTools()
+      Method: private void AddTool()
+      Method: private void UpdateTool()
+      Method: private void ImportTools()
+      Method: private void ExportTools()
+      Method: private void DeleteTool()
+      Method: public void LoadUsers()
+      Method: private void LoadCurrentUser()
+      Method: private void ChooseProfilePic()
+      Method: private void UploadPhotoForUser(UserModel u)
+      Method: private void LoadCustomers()
+      Method: private void AddCustomer()
+      Method: private void UpdateCustomer()
+      Method: private void ImportCustomers()
+      Method: private void ExportCustomers()
+      Method: private void DeleteCustomer()
+      Method: private void RentSelectedTool()
+      Method: private void LoadActiveRentals()
+      Method: private void LoadOverdueRentals()
+      Method: private void ReturnSelectedRental()
+      Method: private void ExtendSelectedRental()
+      Method: private bool ShowFileDialog(string filter, out string path)
+      Method: private bool ShowSaveDialog(string defaultName, out string path)
+      Method: private bool ShowMappingWindow(IEnumerable<string> headers, IEnumerable<string> fields, out Dictionary<string, string> map)
+      Method: private void ShowInfo(string msg)
+      Method: private void ShowWarning(string msg)
+  File: ImportMappingViewModel.cs
+    Class: FieldMapping
+      Field: private string _selectedColumn
+      Property: public string PropertyName
+      Property: public IReadOnlyList<string> AvailableColumns
+      Property: public string SelectedColumn
+    Class: ImportMappingViewModel
+      Property: public IReadOnlyList<string> ColumnHeaders
+      Property: public ObservableCollection<FieldMapping> Mappings
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\Converters
+  File: CheckOutStatusConverter.cs
+    Class: CheckOutStatusConverter
+      Method: public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+      Method: public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+  File: NullToDefaultImageConverter.cs
+    Class: NullToDefaultImageConverter
+      Field: private BitmapImage _defaultUser
+      Field: private BitmapImage _defaultTool
+      Field: private BitmapImage _defaultLogo
+      Method: public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+      Method: private BitmapImage LoadFromResource(string fileName)
+      Method: public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+  File: NonEmptyStringToBoolConverter.cs
+    Class: NonEmptyStringToBoolConverter
+      Method: public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+      Method: public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+  File: InverseBooleanConverter.cs
+    Class: InverseBooleanConverter
+      Method: public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+      Method: public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+  File: BooleanToAdminConverter.cs
+    Class: BooleanToAdminConverter
+      Method: public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+      Method: public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Views
+  File: AvatarSelectionWindow.xaml.cs
+    Class: AvatarSelectionWindow
+      Property: public string SelectedAvatarPath
+      Property: public Uri[] Avatars
+      Method: private void AvatarButton_Click(object sender, RoutedEventArgs e)
+  File: ImportMappingWindow.xaml.cs
+    Class: ImportMappingWindow
+      Property: public ImportMappingViewModel VM
+      Method: private void Ok_Click(object sender, RoutedEventArgs e)
+      Method: private void Cancel_Click(object sender, RoutedEventArgs e)
+  File: RentToolPopup.xaml.cs
+    Class: RentToolPopupWindow
+      Method: private void Confirm_Click(object sender, RoutedEventArgs e)
+      Method: private void Cancel_Click(object sender, RoutedEventArgs e)
+  File: PasswordPromptWindow.xaml.cs
+    Class: PasswordPromptWindow
+      Field: private int MaxAttempts
+      Field: private int _attemptCount
+      Property: public string EnteredPassword
+      Property: public bool IsPasswordResetRequested
+      Property: public Func<string, bool> ValidatePassword
+      Property: public User SelectedUser
+      Method: private void OnLoaded(object sender, RoutedEventArgs e)
+      Method: private void OK_Click(object sender, RoutedEventArgs e)
+      Method: private void Cancel_Click(object sender, RoutedEventArgs e)
+      Method: private void ShowError(string message)
+      Method: private void ForgotPasswordTextBlock_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+  File: PrintPreviewWindow.xaml.cs
+    Class: PrintPreviewWindow
+      Field: private FlowDocument _document
+      Field: private string _title
+      Field: private string _logoPath
+      Method: public void ShowPreview(FlowDocument document, string title, string logoPath)
+      Method: private void Print_Click(object sender, RoutedEventArgs e)
+      Method: private void Close_Click(object sender, RoutedEventArgs e)
+  File: LoginWindow.xaml.cs
+    Class: LoginWindow
+      Field: private UserService _userService
+      Method: private void LoadUsers()
+      Method: private void UserButton_Click(object sender, RoutedEventArgs e)
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Core
+  File: SqliteHelper.cs
+    Class: SqliteHelper
+      Method: public int ExecuteNonQuery(string connStr, string sql, SQLiteParameter[] parameters = null)
+      Method: public int ExecuteNonQuery(SQLiteConnection conn, SQLiteTransaction tx, string sql, SQLiteParameter[] parameters)
+      Method: public object ExecuteScalar(string connStr, string sql, SQLiteParameter[] parameters = null)
+      Method: public List<T> ExecuteReader(string connStr, string sql, SQLiteParameter[] parameters, Func<IDataRecord, T> map)
+      Method: public bool ColumnExists(string connStr, string table, string column)
+  File: DatabaseService.cs
+    Class: DatabaseService
+      Property: public string ConnectionString
+      Method: private void InitializeDatabase()
+      Method: private void EnsureColumn(string table, string column, string type)
+      Method: public void BackupDatabase(string backupFilePath)
+  File: CsvHelper.cs
+    Class: CsvHelperUtil
+      Method: public List<ToolModel> LoadToolsFromCsv(string filePath, IDictionary<string, string> map)
+      Method: public void ExportToolsToCsv(string filePath, List<ToolModel> tools)
+      Method: public List<CustomerModel> LoadCustomersFromCsv(string filePath, IDictionary<string, string> map)
+      Method: public void ExportCustomersToCsv(string filePath, List<CustomerModel> customers)
+      Method: private string GetMapped(string[] row, string[] headers, IDictionary<string, string> map, string key)
+      Method: private int TryParseInt(string input)
+      Method: private DateTime? TryParseDate(string input)
+      Method: private string Quote(string value)
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows\Views
+  File: LoginWindow.g.cs
+    Class: LoginWindow
+      Field: internal System.Windows.Controls.Image LoginLogo
+      Field: internal System.Windows.Controls.TextBlock HeaderTitle
+      Field: internal System.Windows.Controls.ListBox UsersListBox
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+      Method: private void Connect(int connectionId, object target)
+  File: AvatarSelectionWindow.g.cs
+    Class: AvatarSelectionWindow
+      Field: internal System.Windows.Controls.ListBox AvatarListBox
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+      Method: private void Connect(int connectionId, object target)
+  File: RentToolPopup.g.i.cs
+    Class: RentToolPopupWindow
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+  File: PrintPreviewWindow.g.cs
+    Class: PrintPreviewWindow
+      Field: internal System.Windows.Controls.Image PreviewLogo
+      Field: internal System.Windows.Controls.TextBlock PreviewTitle
+      Field: internal System.Windows.Controls.FlowDocumentReader DocViewer
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+  File: AvatarSelectionWindow.g.i.cs
+    Class: AvatarSelectionWindow
+      Field: internal System.Windows.Controls.ListBox AvatarListBox
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+      Method: private void Connect(int connectionId, object target)
+  File: RentToolPopup.g.cs
+    Class: RentToolPopupWindow
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+  File: ImportMappingWindow.g.i.cs
+    Class: ImportMappingWindow
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+  File: PasswordPromptWindow.g.cs
+    Class: PasswordPromptWindow
+      Field: internal System.Windows.Controls.TextBlock PromptTextBlock
+      Field: internal System.Windows.Controls.PasswordBox PasswordBox
+      Field: internal System.Windows.Controls.TextBlock ErrorTextBlock
+      Field: internal System.Windows.Controls.TextBlock ForgotPasswordTextBlock
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+  File: PrintPreviewWindow.g.i.cs
+    Class: PrintPreviewWindow
+      Field: internal System.Windows.Controls.Image PreviewLogo
+      Field: internal System.Windows.Controls.TextBlock PreviewTitle
+      Field: internal System.Windows.Controls.FlowDocumentReader DocViewer
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+  File: LoginWindow.g.i.cs
+    Class: LoginWindow
+      Field: internal System.Windows.Controls.Image LoginLogo
+      Field: internal System.Windows.Controls.TextBlock HeaderTitle
+      Field: internal System.Windows.Controls.ListBox UsersListBox
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+      Method: private void Connect(int connectionId, object target)
+  File: ImportMappingWindow.g.cs
+    Class: ImportMappingWindow
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+  File: PasswordPromptWindow.g.i.cs
+    Class: PasswordPromptWindow
+      Field: internal System.Windows.Controls.TextBlock PromptTextBlock
+      Field: internal System.Windows.Controls.PasswordBox PasswordBox
+      Field: internal System.Windows.Controls.TextBlock ErrorTextBlock
+      Field: internal System.Windows.Controls.TextBlock ForgotPasswordTextBlock
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\Domain
+  File: User.cs
+    Class: User
+      Field: private int _userID
+      Field: private string _userName
+      Field: private string _password
+      Field: private string _userPhotoPath
+      Field: private bool _isAdmin
+      Field: private BitmapImage _photoBitmap
+      Field: private string _email
+      Field: private string _phone
+      Field: private string _mobile
+      Field: private string _address
+      Field: private string _role
+      Property: public int UserID
+      Property: public string UserName
+      Property: public string Password
+      Property: public string UserPhotoPath
+      Property: public bool IsAdmin
+      Property: public BitmapImage PhotoBitmap
+      Property: public string Email
+      Property: public string Phone
+      Property: public string Mobile
+      Property: public string Address
+      Property: public string Role
+  File: Tool.cs
+    Class: Tool
+      Property: public string ToolID
+      Property: public string ToolNumber
+      Property: public string PartNumber
+      Property: public string NameDescription
+      Property: public string Brand
+      Property: public string Location
+      Property: public int QuantityOnHand
+      Property: public int RentedQuantity
+      Property: public string Supplier
+      Property: public DateTime? PurchasedDate
+      Property: public string Notes
+      Property: public string Keywords
+      Property: public bool IsCheckedOut
+      Property: public string CheckedOutBy
+      Property: public DateTime? CheckedOutTime
+      Property: public string ToolImagePath
+      Property: public int OnHand
+      Property: public string Purchased
+  File: Customer.cs
+    Class: Customer
+      Property: public int CustomerID
+      Property: public string Company
+      Property: public string Contact
+      Property: public string Email
+      Property: public string Phone
+      Property: public string Mobile
+      Property: public string Address
+  File: ActivityLog.cs
+    Class: ActivityLog
+      Property: public int LogID
+      Property: public int UserID
+      Property: public string UserName
+      Property: public string Action
+      Property: public DateTime Timestamp
+  File: Rental.cs
+    Class: Rental
+      Property: public int RentalID
+      Property: public int ToolID
+      Property: public int CustomerID
+      Property: public DateTime RentalDate
+      Property: public DateTime DueDate
+      Property: public DateTime? ReturnDate
+      Property: public string? Status
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Rentals
+  File: RentalService.cs
+    Class: RentalService
+      Field: private string _connString
+      Method: public void RentTool(string toolID, int customerID, DateTime rentalDate, DateTime dueDate)
+      Method: public void RentToolWithTransaction(string toolID, int customerID, DateTime rentalDate, DateTime dueDate)
+      Method: public void ReturnTool(int rentalID, DateTime returnDate)
+      Method: public void ReturnToolWithTransaction(int rentalID, DateTime returnDate)
+      Method: public void ExtendRental(int rentalID, DateTime newDueDate)
+      Method: public List<Rental> GetActiveRentals()
+      Method: public List<Rental> GetOverdueRentals()
+      Method: public List<Rental> GetAllRentals()
+      Method: public List<Rental> GetRentalHistoryForTool(int toolID)
+      Method: private Rental MapRental(IDataRecord r)
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2
+  File: App.xaml.cs
+    Class: App
+      Method: protected void OnStartup(StartupEventArgs e)
+  File: MainWindow.xaml.cs
+    Class: MainWindow
+      Field: private DatabaseService _db
+      Field: private ToolService _toolService
+      Field: private CustomerService _customerService
+      Field: private RentalService _rentalService
+      Field: private UserService _userService
+      Field: private SettingsService _settingsService
+      Field: private ActivityLogService _activityLogService
+      Field: private ReportService _reportService
+      Field: private Printer _printer
+      Method: private void RestrictTabsForNonAdmin()
+      Method: private void PrintInventoryReport_Click(object s, RoutedEventArgs e)
+      Method: private void PrintRentalReport_Click(object s, RoutedEventArgs e)
+      Method: private void PrintActiveRentalsReport_Click(object s, RoutedEventArgs e)
+      Method: private void PrintActivityLogReport_Click(object s, RoutedEventArgs e)
+      Method: private void PrintCustomerReport_Click(object s, RoutedEventArgs e)
+      Method: private void PrintUserReport_Click(object s, RoutedEventArgs e)
+      Method: private void PrintSummaryReport_Click(object s, RoutedEventArgs e)
+      Method: private void PrintFullRentalReport_Click(object s, RoutedEventArgs e)
+      Method: private void PrintReport(FlowDocument doc, string title)
+      Method: private void CheckOutButton_Click(object s, RoutedEventArgs e)
+      Method: private void AddButton_Click(object s, RoutedEventArgs e)
+      Method: private void UpdateButton_Click(object s, RoutedEventArgs e)
+      Method: private void ClearToolInputs()
+      Method: private void DeleteButton_Click(object s, RoutedEventArgs e)
+      Method: private void ChangeToolImage_Click(object s, RoutedEventArgs e)
+      Method: private void ToolsList_SelectionChanged(object s, SelectionChangedEventArgs e)
+      Method: private void AddCustomerButton_Click(object s, RoutedEventArgs e)
+      Method: private void UpdateCustomerButton_Click(object s, RoutedEventArgs e)
+      Method: private void DeleteCustomerButton_Click(object s, RoutedEventArgs e)
+      Method: private void CustomerList_SelectionChanged(object s, SelectionChangedEventArgs e)
+      Method: private void RentToolButton_Click(object s, RoutedEventArgs e)
+      Method: private void ReturnToolButton_Click(object s, RoutedEventArgs e)
+      Method: private void NewUserButton_Click(object s, RoutedEventArgs e)
+      Method: private void SaveUserButton_Click(object s, RoutedEventArgs e)
+      Method: private void DeleteUserButton_Click(object s, RoutedEventArgs e)
+      Method: private void UploadUserPhotoButton_Click(object s, RoutedEventArgs e)
+      Method: private void ChooseUserProfilePicButton_Click(object s, RoutedEventArgs e)
+      Method: private void ApplyAvatar(User u, string path)
+      Method: private void PasswordBox_PasswordChanged(object s, RoutedEventArgs e)
+      Method: private void RefreshUserList()
+      Method: private void LogoutButton_Click(object s, RoutedEventArgs e)
+      Method: private void RestartToLogin()
+      Method: private void SaveSettingsButton_Click(object s, RoutedEventArgs e)
+      Method: private void UploadLogoButton_Click(object s, RoutedEventArgs e)
+      Method: private void RefreshToolList()
+      Method: private void RefreshCustomerList()
+      Method: private void RefreshRentalList()
+      Method: private void SearchInput_TextChanged(object s, TextChangedEventArgs e)
+      Method: private void UpdateHeaderLogo()
+      Method: private void LoadSettings()
+      Method: private void LoadOverdueRentals_Click(object s, RoutedEventArgs e)
+      Method: private void ExtendRentalButton_Click(object s, RoutedEventArgs e)
+      Method: private void PrintRentalReceipt_Click(object s, RoutedEventArgs e)
+      Method: private void BackupDatabaseButton_Click(object s, RoutedEventArgs e)
+      Method: private void RefreshLogsButton_Click(object s, RoutedEventArgs e)
+      Method: private void PurgeLogsButton_Click(object s, RoutedEventArgs e)
+      Method: private void PrintSearchResults_Click(object s, RoutedEventArgs e)
+      Method: private void PrintMyCheckedOutTools_Click(object s, RoutedEventArgs e)
+      Method: private void ShowMessage(string title, string msg, MessageBoxImage icon)
+      Method: private void ShowError(string title, Exception ex)
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Tools
+  File: ReportService.cs
+    Class: ReportService
+      Field: private ToolService _toolService
+      Field: private RentalService _rentalService
+      Field: private ActivityLogService _activityLogService
+      Field: private CustomerService _customerService
+      Field: private UserService _userService
+      Method: public FlowDocument GenerateInventoryReport()
+      Method: public FlowDocument GenerateRentalReport(bool activeOnly = true)
+      Method: public FlowDocument GenerateActivityLogReport()
+      Method: public FlowDocument GenerateCustomerReport()
+      Method: public FlowDocument GenerateUserReport()
+      Method: public FlowDocument GenerateSummaryReport()
+      Method: private FlowDocument BuildReport(string title, IEnumerable<string> lines)
+  File: Printer.cs
+    Class: Printer
+      Field: private SettingsService _settingsService
+      Field: private DocumentPaginator _inner
+      Field: private Typeface _tf
+      Field: private double _fs
+      Property: public bool IsPageCountValid
+      Property: public int PageCount
+      Property: public Size PageSize
+      Property: public IDocumentPaginatorSource Source
+      Method: public void PrintTools(IEnumerable<ToolModel> tools, string title, string currentUserName = null)
+      Method: private string? LoadCompanyLogoPath()
+      Method: private FlowDocument BuildDocument(List<ToolModel> tools, string title, string logoPath)
+      Method: private StackPanel CreateToolRow(ToolModel tool)
+      Method: private Border CreateOptimizedImage(string path)
+      Method: private void AddCompanyLogo(StackPanel host, string logoPath)
+      Method: private void AddTitle(StackPanel host, string title)
+      Method: public DocumentPage GetPage(int pageNumber)
+    Class: CustomDocumentPaginator
+      Field: private DocumentPaginator _inner
+      Field: private Typeface _tf
+      Field: private double _fs
+      Property: public bool IsPageCountValid
+      Property: public int PageCount
+      Property: public Size PageSize
+      Property: public IDocumentPaginatorSource Source
+      Method: public DocumentPage GetPage(int pageNumber)
+  File: ToolService.cs
+    Class: ToolService
+      Field: private string _connString
+      Field: private string AllToolsSql
+      Field: private string UpsertToolCsv
+      Method: public List<ToolModel> GetAllTools()
+      Method: public ToolModel GetToolByID(string toolID)
+      Method: public List<ToolModel> SearchTools(string searchText)
+      Method: public void AddTool(ToolModel tool)
+      Method: public void UpdateTool(ToolModel tool)
+      Method: public void UpdateToolQuantities(string toolID, int qtyChange, bool isRental)
+      Method: public void DeleteTool(string toolID)
+      Method: public void ToggleToolCheckOutStatus(string toolID, string currentUser)
+      Method: public List<ToolModel> GetToolsCheckedOutBy(string userName)
+      Method: public void UpdateToolImage(string toolID, string imagePath)
+      Method: public void ImportToolsFromCsv(string filePath, IDictionary<string, string> map)
+      Method: public void ExportToolsToCsv(string filePath)
+      Method: private bool ToolExists(string toolNumber)
+      Method: private ToolModel MapTool(IDataRecord r)
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Debug\net8.0-windows
+  File: MainWindow.g.cs
+    Class: MainWindow
+      Field: internal System.Windows.Controls.Image HeaderIcon
+      Field: internal System.Windows.Controls.TextBlock HeaderTitle
+      Field: internal System.Windows.Controls.TabControl MyTabControl
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox SearchInput
+      Field: internal System.Windows.Controls.ListView SearchResultsList
+      Field: internal System.Windows.Controls.ListView CheckedOutToolsList
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox ToolNumberInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox ToolNameInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox PartNumberInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox BrandInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox LocationInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox QuantityInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox SupplierInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox PurchasedInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox NotesInput
+      Field: internal System.Windows.Controls.ListView ToolsList
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox CustomerNameInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox CustomerEmailInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox CustomerContactInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox CustomerPhoneInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox CustomerMobileInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox CustomerAddressInput
+      Field: internal System.Windows.Controls.ListView CustomerList
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox ToolIDForRentalInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox CustomerIDForRentalInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox DueDateInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox RentalIDInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox NewDueDateInput
+      Field: internal System.Windows.Controls.ListView RentalsList
+      Field: internal System.Windows.Controls.ListView UserList
+      Field: internal System.Windows.Controls.PasswordBox PasswordBox
+      Field: internal System.Windows.Controls.TextBox ApplicationNameInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox RentalDurationInput
+      Field: internal System.Windows.Controls.Image LogoPreview
+      Field: internal System.Windows.Controls.ListView ActivityLogsList
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+      Method: private void Connect(int connectionId, object target)
+  File: App.g.i.cs
+    Class: App
+      Method: public void Main()
+  File: App.g.cs
+    Class: App
+      Method: public void Main()
+  File: GeneratedInternalTypeHelper.g.cs
+    Class: GeneratedInternalTypeHelper
+      Method: protected object CreateInstance(System.Type type, System.Globalization.CultureInfo culture)
+      Method: protected object GetPropertyValue(System.Reflection.PropertyInfo propertyInfo, object target, System.Globalization.CultureInfo culture)
+      Method: protected void SetPropertyValue(System.Reflection.PropertyInfo propertyInfo, object target, object value, System.Globalization.CultureInfo culture)
+      Method: protected System.Delegate CreateDelegate(System.Type delegateType, object target, string handler)
+      Method: protected void AddEventHandler(System.Reflection.EventInfo eventInfo, object target, System.Delegate handler)
+  File: GeneratedInternalTypeHelper.g.i.cs
+    Class: GeneratedInternalTypeHelper
+      Method: protected object CreateInstance(System.Type type, System.Globalization.CultureInfo culture)
+      Method: protected object GetPropertyValue(System.Reflection.PropertyInfo propertyInfo, object target, System.Globalization.CultureInfo culture)
+      Method: protected void SetPropertyValue(System.Reflection.PropertyInfo propertyInfo, object target, object value, System.Globalization.CultureInfo culture)
+      Method: protected System.Delegate CreateDelegate(System.Type delegateType, object target, string handler)
+      Method: protected void AddEventHandler(System.Reflection.EventInfo eventInfo, object target, System.Delegate handler)
+  File: MainWindow.g.i.cs
+    Class: MainWindow
+      Field: internal System.Windows.Controls.Image HeaderIcon
+      Field: internal System.Windows.Controls.TextBlock HeaderTitle
+      Field: internal System.Windows.Controls.TabControl MyTabControl
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox SearchInput
+      Field: internal System.Windows.Controls.ListView SearchResultsList
+      Field: internal System.Windows.Controls.ListView CheckedOutToolsList
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox ToolNumberInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox ToolNameInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox PartNumberInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox BrandInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox LocationInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox QuantityInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox SupplierInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox PurchasedInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox NotesInput
+      Field: internal System.Windows.Controls.ListView ToolsList
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox CustomerNameInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox CustomerEmailInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox CustomerContactInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox CustomerPhoneInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox CustomerMobileInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox CustomerAddressInput
+      Field: internal System.Windows.Controls.ListView CustomerList
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox ToolIDForRentalInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox CustomerIDForRentalInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox DueDateInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox RentalIDInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox NewDueDateInput
+      Field: internal System.Windows.Controls.ListView RentalsList
+      Field: internal System.Windows.Controls.ListView UserList
+      Field: internal System.Windows.Controls.PasswordBox PasswordBox
+      Field: internal System.Windows.Controls.TextBox ApplicationNameInput
+      Field: internal Xceed.Wpf.Toolkit.WatermarkTextBox RentalDurationInput
+      Field: internal System.Windows.Controls.Image LogoPreview
+      Field: internal System.Windows.Controls.ListView ActivityLogsList
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+      Method: private void Connect(int connectionId, object target)
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Release\net8.0-windows\Views
+  File: RentToolPopup.g.cs
+    Class: RentToolPopupWindow
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+  File: LoginWindow.g.cs
+    Class: LoginWindow
+      Field: internal System.Windows.Controls.Image LoginLogo
+      Field: internal System.Windows.Controls.TextBlock HeaderTitle
+      Field: internal System.Windows.Controls.ListBox UsersListBox
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+      Method: private void Connect(int connectionId, object target)
+  File: PrintPreviewWindow.g.cs
+    Class: PrintPreviewWindow
+      Field: internal System.Windows.Controls.Image PreviewLogo
+      Field: internal System.Windows.Controls.TextBlock PreviewTitle
+      Field: internal System.Windows.Controls.FlowDocumentReader DocViewer
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+  File: PasswordPromptWindow.g.cs
+    Class: PasswordPromptWindow
+      Field: internal System.Windows.Controls.TextBlock PromptTextBlock
+      Field: internal System.Windows.Controls.PasswordBox PasswordBox
+      Field: internal System.Windows.Controls.TextBlock ErrorTextBlock
+      Field: internal System.Windows.Controls.TextBlock ForgotPasswordTextBlock
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+  File: AvatarSelectionWindow.g.cs
+    Class: AvatarSelectionWindow
+      Field: internal System.Windows.Controls.ListBox AvatarListBox
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+      Method: private void Connect(int connectionId, object target)
+  File: ImportMappingWindow.g.cs
+    Class: ImportMappingWindow
+      Field: private bool _contentLoaded
+      Method: public void InitializeComponent()
+      Method: private void Connect(int connectionId, object target)
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\Helpers
+  File: SecurityHelper.cs
+    Class: SecurityHelper
+      Method: public string ComputeSha256Hash(string rawData)
+  File: PathHelper.cs
+    Class: PathHelper
+      Method: public string GetAbsolutePath(string path)
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Settings
+  File: SettingsService.cs
+    Class: SettingsService
+      Field: private string _connString
+      Field: private string UpsertSql
+      Method: public void SaveSetting(string key, string value)
+      Method: public string GetSetting(string key)
+      Method: public Dictionary<string, string> GetAllSettings()
+      Method: public void UpdateSettings(Dictionary<string, string> settings)
+      Method: public void DeleteSetting(string key)
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Users
+  File: ActivityLogService.cs
+    Class: ActivityLogService
+      Field: private string _connString
+      Method: public void LogAction(int userID, string userName, string action)
+      Method: public List<ActivityLog> GetRecentLogs(int count = 50)
+      Method: public void PurgeOldLogs(DateTime threshold)
+      Method: private ActivityLog MapLog(IDataRecord r)
+  File: UserService.cs
+    Class: UserService
+      Field: private string _connString
+      Method: public List<User> GetAllUsers()
+      Method: public User GetUserByID(int userID)
+      Method: public User AuthenticateUser(string userName, string password)
+      Method: public User GetCurrentUser()
+      Method: public void AddUser(User user)
+      Method: public void UpdateUser(User user)
+      Method: public void ChangeUserPassword(int userID, string newPassword)
+      Method: public void DeleteUser(int userID)
+      Method: private User MapUser(IDataRecord rdr)
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Models\DTOs
+  File: ToolImportDto.cs
+    Class: ToolImportDto
+      Property: public string ToolNumber
+      Property: public string NameDescription
+      Property: public string Location
+      Property: public string Brand
+      Property: public string PartNumber
+      Property: public string Supplier
+      Property: public DateTime? PurchasedDate
+      Property: public string Notes
+      Property: public string Keywords
+      Property: public int AvailableQuantity
+      Property: public int RentedQuantity
+  File: CustomerImportDto.cs
+    Class: CustomerImportDto
+      Property: public string Company
+      Property: public string Email
+      Property: public string Contact
+      Property: public string Phone
+      Property: public string Mobile
+      Property: public string Address
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Utilities\Extensions
+  File: ObservableCollectionExtensions.cs
+    Class: ObservableCollectionExtensions
+      Method: public void ReplaceRange(this ObservableCollection<T> collection, IEnumerable<T> items)
+      Method: public void AddRange(this ObservableCollection<T> collection, IEnumerable<T> items)
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\Services\Customers
+  File: CustomerService.cs
+    Class: CustomerService
+      Field: private string _connString
+      Method: public void ImportCustomersFromCsv(string filePath, IDictionary<string, string> map)
+      Method: public void ExportCustomersToCsv(string filePath)
+      Method: public List<CustomerModel> GetAllCustomers()
+      Method: public List<CustomerModel> SearchCustomers(string searchTerm)
+      Method: public CustomerModel GetCustomerByID(int customerID)
+      Method: public void AddCustomer(CustomerModel customer)
+      Method: public void UpdateCustomer(CustomerModel customer)
+      Method: public void DeleteCustomer(int customerID)
+      Method: private bool CustomerExists(string contact, string phone, string mobile)
+      Method: private CustomerModel MapCustomer(IDataRecord r)
+Folder: C:\Users\GarettDaly\source\repos\BaccioOFDeath\ToolManagementAppV2\ToolManagementAppV2\obj\Release\net8.0-windows
+  File: GeneratedInternalTypeHelper.g.cs
+    Class: GeneratedInternalTypeHelper
+      Method: protected object CreateInstance(System.Type type, System.Globalization.CultureInfo culture)
+      Method: protected object GetPropertyValue(System.Reflection.PropertyInfo propertyInfo, object target, System.Globalization.CultureInfo culture)
+      Method: protected void SetPropertyValue(System.Reflection.PropertyInfo propertyInfo, object target, object value, System.Globalization.CultureInfo culture)
+      Method: protected System.Delegate CreateDelegate(System.Type delegateType, object target, string handler)
+      Method: protected void AddEventHandler(System.Reflection.EventInfo eventInfo, object target, System.Delegate handler)
+  File: App.g.cs
+    Class: App
+      Method: public void Main()

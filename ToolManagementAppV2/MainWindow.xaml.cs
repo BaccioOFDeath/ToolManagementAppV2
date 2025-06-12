@@ -201,8 +201,13 @@ namespace ToolManagementAppV2
             var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
             Directory.CreateDirectory(destDir);
             var dest = Path.Combine(destDir, Path.GetFileName(dlg.FileName));
-            File.Copy(dlg.FileName, dest, true);
-            var relative = "Images/" + Path.GetFileName(dest);
+            var selectedPath = Path.GetFullPath(dlg.FileName);
+            var destPath = Path.GetFullPath(dest);
+            if (!string.Equals(selectedPath, destPath, StringComparison.OrdinalIgnoreCase))
+            {
+                File.Copy(selectedPath, destPath, true);
+            }
+            var relative = "Images/" + Path.GetFileName(destPath);
             _toolService.UpdateToolImage(t.ToolID, relative);
             ShowMessage("Success", "Tool image updated.", MessageBoxImage.Information);
             RefreshToolList();
@@ -537,13 +542,23 @@ namespace ToolManagementAppV2
             var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
             Directory.CreateDirectory(destDir);
             var destFile = Path.Combine(destDir, "CompanyLogo" + Path.GetExtension(dlg.FileName));
+
             File.Copy(dlg.FileName, destFile, true);
 
-            LogoPreview.Source = new BitmapImage(new Uri(destFile));
+            BitmapImage bmp = new BitmapImage();
+            using (var stream = new FileStream(destFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                bmp.BeginInit();
+                bmp.CacheOption = BitmapCacheOption.OnLoad;
+                bmp.StreamSource = stream;
+                bmp.EndInit();
+                bmp.Freeze();
+            }
+
+            LogoPreview.Source = bmp;
             _settingsService.SaveSetting("CompanyLogoPath", "Images/" + Path.GetFileName(destFile));
             UpdateHeaderLogo();
         }
-
 
         void RefreshToolList()
         {
@@ -604,17 +619,31 @@ namespace ToolManagementAppV2
             try
             {
                 var logoPath = _settingsService.GetSetting("CompanyLogoPath");
+                BitmapImage bmp = null;
+
                 if (!string.IsNullOrWhiteSpace(logoPath))
                 {
                     var fullPath = Utilities.Helpers.PathHelper.GetAbsolutePath(logoPath);
-                    HeaderIcon.Source = File.Exists(fullPath)
-                        ? new BitmapImage(new Uri(fullPath))
-                        : new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultLogo.png"));
+                    if (File.Exists(fullPath))
+                    {
+                        using (var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        {
+                            bmp = new BitmapImage();
+                            bmp.BeginInit();
+                            bmp.CacheOption = BitmapCacheOption.OnLoad;
+                            bmp.StreamSource = stream;
+                            bmp.EndInit();
+                            bmp.Freeze();
+                        }
+                    }
                 }
-                else
+
+                if (bmp == null)
                 {
-                    HeaderIcon.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultLogo.png"));
+                    bmp = new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultLogo.png"));
                 }
+
+                HeaderIcon.Source = bmp;
             }
             catch
             {
@@ -623,21 +652,38 @@ namespace ToolManagementAppV2
         }
 
 
+
         void LoadSettings()
         {
             try
             {
                 var logoPath = _settingsService.GetSetting("CompanyLogoPath");
+                BitmapImage bmp = null;
+
                 if (!string.IsNullOrWhiteSpace(logoPath))
                 {
-                    var logoFile = Utilities.Helpers.PathHelper.GetAbsolutePath(logoPath);
-                    if (File.Exists(logoFile))
+                    var fullPath = Utilities.Helpers.PathHelper.GetAbsolutePath(logoPath);
+                    if (File.Exists(fullPath))
                     {
-                        var bmp = new BitmapImage(new Uri(logoFile)) { CacheOption = BitmapCacheOption.OnLoad };
-                        LogoPreview.Source = bmp;
-                        HeaderIcon.Source = bmp;
+                        using (var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        {
+                            bmp = new BitmapImage();
+                            bmp.BeginInit();
+                            bmp.CacheOption = BitmapCacheOption.OnLoad;
+                            bmp.StreamSource = stream;
+                            bmp.EndInit();
+                            bmp.Freeze();
+                        }
                     }
                 }
+
+                if (bmp == null)
+                {
+                    bmp = new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultLogo.png"));
+                }
+
+                LogoPreview.Source = bmp;
+                HeaderIcon.Source = bmp;
 
                 var app = _settingsService.GetSetting("ApplicationName");
                 if (!string.IsNullOrWhiteSpace(app))
@@ -652,6 +698,7 @@ namespace ToolManagementAppV2
                 ShowError("Settings Error", ex);
             }
         }
+
 
         void LoadOverdueRentals_Click(object s, RoutedEventArgs e)
         {

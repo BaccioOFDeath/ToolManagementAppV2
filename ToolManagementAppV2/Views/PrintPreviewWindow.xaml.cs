@@ -39,7 +39,13 @@ namespace ToolManagementAppV2.Views
             {
                 logoUri = new Uri("pack://application:,,,/Resources/DefaultLogo.png");
             }
-            PreviewLogo.Source = new BitmapImage(logoUri);
+            var bmp = new BitmapImage();
+            bmp.BeginInit();
+            bmp.CacheOption = BitmapCacheOption.OnLoad;
+            bmp.UriSource = logoUri;
+            bmp.EndInit();
+            bmp.Freeze();
+            PreviewLogo.Source = bmp;
 
             DocViewer.Document = _document;
             Owner = Application.Current.MainWindow;

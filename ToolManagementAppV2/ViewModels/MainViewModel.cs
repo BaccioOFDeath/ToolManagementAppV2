@@ -115,7 +115,13 @@ namespace ToolManagementAppV2.ViewModels
                     {
                         uri = new Uri("pack://application:,,,/Resources/DefaultLogo.png", UriKind.Absolute);
                     }
-                    _headerLogo = new BitmapImage(uri);
+                    var bmp = new BitmapImage();
+                    bmp.BeginInit();
+                    bmp.UriSource = uri;
+                    bmp.CacheOption = BitmapCacheOption.OnLoad;
+                    bmp.EndInit();
+                    bmp.Freeze();
+                    _headerLogo = bmp;
                 }
                 return _headerLogo;
             }
@@ -293,9 +299,16 @@ namespace ToolManagementAppV2.ViewModels
                 try
                 {
                     Uri uri;
+                    BitmapImage bmp = new BitmapImage();
+
                     if (string.IsNullOrWhiteSpace(cu.UserPhotoPath))
                     {
-                        CurrentUserPhoto = new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultUserPhoto.png"));
+                        bmp.BeginInit();
+                        bmp.UriSource = new Uri("pack://application:,,,/Resources/DefaultUserPhoto.png");
+                        bmp.CacheOption = BitmapCacheOption.OnLoad;
+                        bmp.EndInit();
+                        bmp.Freeze();
+                        CurrentUserPhoto = bmp;
                         return;
                     }
 
@@ -308,29 +321,40 @@ namespace ToolManagementAppV2.ViewModels
                         var fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, cu.UserPhotoPath);
                         if (!File.Exists(fullPath))
                         {
-                            CurrentUserPhoto = new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultUserPhoto.png"));
+                            bmp = new BitmapImage();
+                            bmp.BeginInit();
+                            bmp.UriSource = new Uri("pack://application:,,,/Resources/DefaultUserPhoto.png");
+                            bmp.CacheOption = BitmapCacheOption.OnLoad;
+                            bmp.EndInit();
+                            bmp.Freeze();
+                            CurrentUserPhoto = bmp;
                             return;
                         }
 
                         uri = new Uri($"file:///{fullPath.Replace("\\", "/")}", UriKind.Absolute);
                     }
 
-                    var bmp = new BitmapImage();
+                    bmp = new BitmapImage();
                     bmp.BeginInit();
                     bmp.CacheOption = BitmapCacheOption.OnLoad;
                     bmp.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
                     bmp.UriSource = uri;
                     bmp.EndInit();
+                    bmp.Freeze();
                     CurrentUserPhoto = bmp;
                 }
                 catch
                 {
-                    CurrentUserPhoto = new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultUserPhoto.png"));
+                    BitmapImage bmp = new BitmapImage();
+                    bmp.BeginInit();
+                    bmp.UriSource = new Uri("pack://application:,,,/Resources/DefaultUserPhoto.png");
+                    bmp.CacheOption = BitmapCacheOption.OnLoad;
+                    bmp.EndInit();
+                    bmp.Freeze();
+                    CurrentUserPhoto = bmp;
                 }
             }
         }
-
-
 
         void ChooseProfilePic() => UploadPhotoForUser((UserModel)Application.Current.Properties["CurrentUser"]);
 
@@ -360,6 +384,7 @@ namespace ToolManagementAppV2.ViewModels
             bmp.CacheOption = BitmapCacheOption.OnLoad;
             bmp.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
             bmp.EndInit();
+            bmp.Freeze();
 
             u.UserPhotoPath = dest;
             u.PhotoBitmap = bmp;
