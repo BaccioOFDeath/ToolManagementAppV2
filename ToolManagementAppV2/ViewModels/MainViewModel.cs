@@ -485,6 +485,11 @@ namespace ToolManagementAppV2.ViewModels
                     DateTime.Now,
                     vm.SelectedDueDateResult);
             }
+            catch (InvalidOperationException ex)
+            {
+                ShowWarning(ex.Message);
+                return;
+            }
             catch (Exception ex)
             {
                 ShowWarning($"Rental failed: {ex.Message}");

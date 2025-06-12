@@ -14,21 +14,43 @@ namespace ToolManagementAppV2.Services.Rentals
 
         public void RentTool(string toolID, int customerID, DateTime rentalDate, DateTime dueDate)
         {
-            const string sql = @"
-                INSERT INTO Rentals (ToolID, CustomerID, RentalDate, DueDate, Status)
-                VALUES (@ToolID, @CustomerID, @RentalDate, @DueDate, 'Rented');
-                UPDATE Tools
-                   SET AvailableQuantity = AvailableQuantity - 1,
-                       RentedQuantity   = RentedQuantity + 1
-                 WHERE ToolID = @ToolID AND AvailableQuantity > 0";
-            var p = new[]
+            using var conn = new SQLiteConnection(_connString);
+            conn.Open();
+            using var tx = conn.BeginTransaction();
+
+            try
             {
-                new SQLiteParameter("@ToolID", toolID),
-                new SQLiteParameter("@CustomerID", customerID),
-                new SQLiteParameter("@RentalDate", rentalDate),
-                new SQLiteParameter("@DueDate", dueDate)
-            };
-            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
+                var availCmd = new SQLiteCommand(
+                    "SELECT AvailableQuantity FROM Tools WHERE ToolID=@ToolID",
+                    conn, tx);
+                availCmd.Parameters.AddWithValue("@ToolID", toolID);
+                int avail = Convert.ToInt32(availCmd.ExecuteScalar() ?? 0);
+                if (avail < 1)
+                    throw new InvalidOperationException("Insufficient quantity.");
+
+                SqliteHelper.ExecuteNonQuery(conn, tx,
+                    "INSERT INTO Rentals (ToolID, CustomerID, RentalDate, DueDate, Status) " +
+                    "VALUES (@ToolID, @CustomerID, @RentalDate, @DueDate, 'Rented')",
+                    new[]
+                    {
+                        new SQLiteParameter("@ToolID", toolID),
+                        new SQLiteParameter("@CustomerID", customerID),
+                        new SQLiteParameter("@RentalDate", rentalDate),
+                        new SQLiteParameter("@DueDate", dueDate)
+                    });
+
+                SqliteHelper.ExecuteNonQuery(conn, tx,
+                    "UPDATE Tools SET AvailableQuantity = AvailableQuantity - 1, " +
+                    "RentedQuantity = RentedQuantity + 1 WHERE ToolID = @ToolID",
+                    new[] { new SQLiteParameter("@ToolID", toolID) });
+
+                tx.Commit();
+            }
+            catch
+            {
+                tx.Rollback();
+                throw;
+            }
         }
 
         public void RentToolWithTransaction(string toolID, int customerID, DateTime rentalDate, DateTime dueDate)
