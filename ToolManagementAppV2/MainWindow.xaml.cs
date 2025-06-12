@@ -840,6 +840,35 @@ namespace ToolManagementAppV2
                 _printer.PrintTools(vm.CheckedOutTools, "My Checked-Out Tools", vm.CurrentUserName);
         }
 
+        void MyTabControl_SelectionChanged(object s, SelectionChangedEventArgs e)
+        {
+            if (!(MyTabControl.SelectedItem is TabItem tab))
+                return;
+
+            switch (tab.Header)
+            {
+                case "Search Tools":
+                case "Tool Management":
+                    RefreshToolList();
+                    break;
+                case "Customers":
+                    RefreshCustomerList();
+                    break;
+                case "Rentals":
+                    RefreshRentalList();
+                    break;
+                case "Users":
+                    RefreshUserList();
+                    break;
+                case "Settings":
+                    LoadSettings();
+                    break;
+                case "Activity Logs":
+                    RefreshLogsButton_Click(s, e);
+                    break;
+            }
+        }
+
         // ---------- Helpers ----------
         void ShowMessage(string title, string msg, MessageBoxImage icon)
             => MessageBox.Show(msg, title, MessageBoxButton.OK, icon);
