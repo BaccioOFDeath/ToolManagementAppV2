@@ -444,8 +444,6 @@ namespace ToolManagementAppV2.ViewModels
                     vm.SelectedCustomerResult.CustomerID,
                     DateTime.Now,
                     vm.SelectedDueDateResult);
-
-                _toolService.UpdateToolQuantities(SelectedTool.ToolID, 1, true);
             }
             catch (Exception ex)
             {
