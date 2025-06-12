@@ -5,8 +5,6 @@ VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolManagementAppV2", "ToolManagementAppV2\ToolManagementAppV2.csproj", "{D7C90C3C-2641-4E33-87A2-8778E278A369}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolManagementAppV2.Tests", "ToolManagementAppV2.Tests\ToolManagementAppV2.Tests.csproj", "{DA332D39-AF9A-4F53-90F9-E359C0A85F23}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
