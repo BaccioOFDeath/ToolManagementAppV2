@@ -80,6 +80,11 @@
                                 Height="20"
                                 Width="150"
                                 Margin="10,0"/>
+                                <Button Content="View Rental History"
+                                Command="{Binding ViewRentalHistoryCommand}"
+                                Height="20"
+                                Width="150"
+                                Margin="10,0"/>
 
                             </StackPanel>
                         </StackPanel>

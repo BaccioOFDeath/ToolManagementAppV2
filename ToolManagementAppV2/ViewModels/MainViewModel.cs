@@ -37,7 +37,10 @@ namespace ToolManagementAppV2.ViewModels
             set
             {
                 if (SetProperty(ref _selectedTool, value))
+                {
                     ((RelayCommand)RentToolCommand).NotifyCanExecuteChanged();
+                    ((RelayCommand)ViewRentalHistoryCommand).NotifyCanExecuteChanged();
+                }
             }
         }
 
@@ -159,6 +162,7 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand LoadOverdueRentalsCommand { get; }
         public IRelayCommand ReturnToolCommand { get; }
         public IRelayCommand ExtendRentalCommand { get; }
+        public IRelayCommand ViewRentalHistoryCommand { get; }
 
         public MainViewModel(
             ToolService toolService,
@@ -199,6 +203,7 @@ namespace ToolManagementAppV2.ViewModels
             LoadOverdueRentalsCommand = new RelayCommand(LoadOverdueRentals);
             ReturnToolCommand = new RelayCommand(ReturnSelectedRental, () => SelectedRental != null);
             ExtendRentalCommand = new RelayCommand(ExtendSelectedRental, () => SelectedRental != null);
+            ViewRentalHistoryCommand = new RelayCommand(ShowRentalHistoryForSelectedTool, () => SelectedTool != null);
 
             InitializeData();
             _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
@@ -532,6 +537,16 @@ namespace ToolManagementAppV2.ViewModels
             _rentalService.ExtendRental(SelectedRental.RentalID, NewDueDate);
             LoadActiveRentals();
             LoadOverdueRentals();
+        }
+
+        void ShowRentalHistoryForSelectedTool()
+        {
+            if (SelectedTool == null) return;
+
+            var history = _rentalService.GetRentalHistoryForTool(SelectedTool.ToolID);
+            var vm = new RentalHistoryViewModel(SelectedTool, history);
+            var win = new RentalHistoryWindow { DataContext = vm };
+            win.ShowDialog();
         }
 
         bool ShowFileDialog(string filter, out string path)
