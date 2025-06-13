@@ -184,13 +184,13 @@ namespace ToolManagementAppV2.Services.Users
                     }
                     else
                     {
-                        var full = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, u.UserPhotoPath);
-                        if (!File.Exists(full))
+                        var full = PathHelper.GetAbsolutePath(u.UserPhotoPath);
+                        if (string.IsNullOrEmpty(full) || !File.Exists(full))
                         {
                             u.PhotoBitmap = null;
                             return u;
                         }
-                        uri = new Uri($"file:///{full.Replace("\\", "/")}", UriKind.Absolute);
+                        uri = new Uri(full, UriKind.Absolute);
                     }
 
                     var bmp = new BitmapImage();
