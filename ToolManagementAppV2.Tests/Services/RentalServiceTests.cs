@@ -44,5 +44,101 @@ namespace ToolManagementAppV2.Tests.Services
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void RentTool_NoAvailability_DoesNotThrow()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+
+                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 0 };
+                toolService.AddTool(tool);
+                var addedTool = toolService.GetAllTools().First();
+
+                customerService.AddCustomer(new Customer { Company = "Acme" });
+                var cust = customerService.GetAllCustomers().First();
+
+                var ex = Record.Exception(() => rentalService.RentTool(addedTool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1)));
+                Assert.Null(ex);
+                Assert.Empty(rentalService.GetAllRentals());
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void RentToolWithTransaction_NoAvailability_DoesNotThrow()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+
+                var tool = new Tool { ToolNumber = "T2", NameDescription = "Wrench", QuantityOnHand = 0 };
+                toolService.AddTool(tool);
+                var addedTool = toolService.GetAllTools().First();
+
+                customerService.AddCustomer(new Customer { Company = "Beta" });
+                var cust = customerService.GetAllCustomers().First();
+
+                var ex = Record.Exception(() => rentalService.RentToolWithTransaction(addedTool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1)));
+                Assert.Null(ex);
+                Assert.Empty(rentalService.GetAllRentals());
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void ReturnTool_InvalidRentalID_DoesNotThrow()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var rentalService = new RentalService(db);
+
+                var ex = Record.Exception(() => rentalService.ReturnTool(1, DateTime.Today));
+                Assert.Null(ex);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void ReturnToolWithTransaction_InvalidRentalID_DoesNotThrow()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var rentalService = new RentalService(db);
+
+                var ex = Record.Exception(() => rentalService.ReturnToolWithTransaction(1, DateTime.Today));
+                Assert.Null(ex);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }
