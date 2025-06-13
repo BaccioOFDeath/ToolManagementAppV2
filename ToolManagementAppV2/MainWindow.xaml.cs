@@ -672,6 +672,24 @@ namespace ToolManagementAppV2
             }
         }
 
+        void CustomerSearchInput_TextChanged(object s, TextChangedEventArgs e)
+        {
+            try
+            {
+                var txt = CustomerSearchInput.Text;
+                if (DataContext is MainViewModel vm)
+                {
+                    CustomerList.ItemsSource = string.IsNullOrWhiteSpace(txt)
+                        ? vm.SearchCustomers(string.Empty)
+                        : vm.SearchCustomers(txt);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowError("Error performing customer search", ex);
+            }
+        }
+
         void UpdateHeaderLogo()
         {
             try

@@ -135,6 +135,7 @@ namespace ToolManagementAppV2.ViewModels
         }
 
         public string SearchTerm { get; set; }
+        public string CustomerSearchTerm { get; set; }
         public bool IsLastAdmin =>
             SelectedUser != null &&
             SelectedUser.IsAdmin &&
@@ -145,6 +146,7 @@ namespace ToolManagementAppV2.ViewModels
         public string ConfirmPassword { get; set; }
 
         public IRelayCommand SearchCommand { get; }
+        public IRelayCommand SearchCustomersCommand { get; }
         public IRelayCommand AddToolCommand { get; }
         public IRelayCommand UpdateToolCommand { get; }
         public IRelayCommand ImportToolsCommand { get; }
@@ -182,9 +184,10 @@ namespace ToolManagementAppV2.ViewModels
             _userService = userService;
             _customerService = customerService;
             _rentalService = rentalService;
-            _settingsService = settingsService;
+           _settingsService = settingsService;
 
-            SearchCommand = new RelayCommand(SearchTools);
+           SearchCommand = new RelayCommand(SearchTools);
+            SearchCustomersCommand = new RelayCommand(SearchCustomers);
             AddToolCommand = new RelayCommand(AddTool);
             UpdateToolCommand = new RelayCommand(UpdateTool, () => SelectedTool != null);
             ImportToolsCommand = new RelayCommand(ImportTools);
@@ -472,6 +475,20 @@ namespace ToolManagementAppV2.ViewModels
         {
             _customerService.DeleteCustomer(SelectedCustomer.CustomerID);
             LoadCustomers();
+        }
+
+        public CustomerModel GetCustomerByID(int customerID)
+            => _customerService.GetCustomerByID(customerID);
+
+        public List<CustomerModel> SearchCustomers(string searchTerm)
+            => _customerService.SearchCustomers(searchTerm);
+
+        void SearchCustomers()
+        {
+            var results = string.IsNullOrWhiteSpace(CustomerSearchTerm)
+                ? _customerService.GetAllCustomers()
+                : _customerService.SearchCustomers(CustomerSearchTerm);
+            Customers.ReplaceRange(results);
         }
 
         void RentSelectedTool()
