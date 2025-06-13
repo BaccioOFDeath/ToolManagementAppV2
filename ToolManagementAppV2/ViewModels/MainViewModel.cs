@@ -36,7 +36,11 @@ namespace ToolManagementAppV2.ViewModels
             get => _selectedTool;
             set
             {
-                if (SetProperty(ref _selectedTool, value))
+                ToolModel updated = value;
+                if (value != null)
+                    updated = _toolService.GetToolByID(value.ToolID);
+
+                if (SetProperty(ref _selectedTool, updated))
                 {
                     ((RelayCommand)RentToolCommand).NotifyCanExecuteChanged();
                     ((RelayCommand)ViewRentalHistoryCommand).NotifyCanExecuteChanged();
@@ -229,7 +233,10 @@ namespace ToolManagementAppV2.ViewModels
 
         void LoadCheckedOutTools()
         {
-            CheckedOutTools.ReplaceRange(_toolService.GetAllTools().Where(t => t.IsCheckedOut));
+            if (!string.IsNullOrWhiteSpace(CurrentUserName))
+                CheckedOutTools.ReplaceRange(_toolService.GetToolsCheckedOutBy(CurrentUserName));
+            else
+                CheckedOutTools.ReplaceRange(_toolService.GetAllTools().Where(t => t.IsCheckedOut));
         }
 
         void SearchTools()
@@ -364,6 +371,8 @@ namespace ToolManagementAppV2.ViewModels
                     CurrentUserPhoto = bmp;
                 }
             }
+
+            LoadCheckedOutTools();
         }
 
         void ChooseProfilePic() => UploadPhotoForUser((UserModel)Application.Current.Properties["CurrentUser"]);
