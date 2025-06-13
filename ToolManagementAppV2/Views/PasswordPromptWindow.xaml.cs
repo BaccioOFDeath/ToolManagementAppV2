@@ -82,11 +82,7 @@ namespace ToolManagementAppV2
             if (result != MessageBoxResult.Yes) return;
 
             IsPasswordResetRequested = true;
-            _attemptCount = 0;
-            ErrorTextBlock.Visibility = Visibility.Collapsed;
-            ForgotPasswordTextBlock.Visibility = Visibility.Collapsed;
-            PasswordBox.Clear();
-            PasswordBox.Focus();
+            DialogResult = true;
         }
     }
 }
