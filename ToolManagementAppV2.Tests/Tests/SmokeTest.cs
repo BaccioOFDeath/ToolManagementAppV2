@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace ToolManagementAppV2.Tests
+namespace ToolManagementAppV2.Tests.Tests
 {
     public class SmokeTest
     {
