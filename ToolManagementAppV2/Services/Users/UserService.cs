@@ -1,4 +1,5 @@
-﻿using System.Data.SQLite;
+﻿using System;
+using System.Data.SQLite;
 using System.IO;
 using System.Windows.Media.Imaging;
 using System.Data;
@@ -192,8 +193,9 @@ namespace ToolManagementAppV2.Services.Users
                     u.PhotoBitmap = bmp;
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex);
                 u.PhotoBitmap = null;
             }
 
