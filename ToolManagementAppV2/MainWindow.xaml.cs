@@ -485,7 +485,11 @@ namespace ToolManagementAppV2
                             bmp.EndInit();
                             u.PhotoBitmap = bmp;
                         }
-                        catch { u.PhotoBitmap = null; }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                            u.PhotoBitmap = null;
+                        }
                     }
                 }
                 UserList.ItemsSource = users;
@@ -957,6 +961,9 @@ namespace ToolManagementAppV2
             => MessageBox.Show(msg, title, MessageBoxButton.OK, icon);
 
         void ShowError(string title, Exception ex)
-            => MessageBox.Show(ex.Message, title, MessageBoxButton.OK, MessageBoxImage.Error);
+        {
+            Console.WriteLine(ex);
+            MessageBox.Show(ex.Message, title, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 }

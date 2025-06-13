@@ -38,8 +38,9 @@ namespace ToolManagementAppV2.Utilities.Converters
                         return image;
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Console.WriteLine(ex);
                     // fall-through to default
                 }
             }
@@ -72,8 +73,9 @@ namespace ToolManagementAppV2.Utilities.Converters
                 var uri = new Uri($"pack://application:,,,/Resources/{fileName}", UriKind.Absolute);
                 return new BitmapImage(uri);
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex);
                 return new BitmapImage(); // empty fallback
             }
         }

@@ -30,8 +30,9 @@ namespace ToolManagementAppV2.Utilities.Helpers
 
                 return fullPath;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex);
                 return null;
             }
         }
