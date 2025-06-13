@@ -50,7 +50,7 @@ namespace ToolManagementAppV2.Services.Rentals
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex);
                 tx.Rollback();
                 return;
             }
@@ -87,7 +87,7 @@ namespace ToolManagementAppV2.Services.Rentals
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex);
                 tx.Rollback();
                 return;
             }
@@ -119,7 +119,7 @@ namespace ToolManagementAppV2.Services.Rentals
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex);
                 tx.Rollback();
                 return;
             }
@@ -155,7 +155,7 @@ namespace ToolManagementAppV2.Services.Rentals
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex);
                 tx.Rollback();
                 return;
             }
