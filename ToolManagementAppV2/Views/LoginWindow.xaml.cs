@@ -79,7 +79,7 @@ namespace ToolManagementAppV2
             if (user.IsAdmin && string.IsNullOrWhiteSpace(user.Password))
             {
                 _userService.ChangeUserPassword(user.UserID, "admin");
-                user.Password = "admin";
+                user.Password = SecurityHelper.ComputeSha256Hash("admin");
             }
 
             // Non-admin default-password skip

@@ -343,6 +343,14 @@ namespace ToolManagementAppV2
             if (DataContext is MainViewModel vm && vm.SelectedUser != null)
             {
                 var u = vm.SelectedUser;
+
+                if (!u.IsAdmin && vm.Users.Count(x => x.IsAdmin && x != u) == 0)
+                {
+                    ShowMessage("Save Failed", "At least one admin user must remain.", MessageBoxImage.Warning);
+                    u.IsAdmin = true;
+                    return;
+                }
+
                 if (u.UserID > 0) _userService.UpdateUser(u);
                 else _userService.AddUser(u);
 
