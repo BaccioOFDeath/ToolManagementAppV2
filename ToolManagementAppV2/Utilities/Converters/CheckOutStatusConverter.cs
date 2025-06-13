@@ -13,7 +13,21 @@ namespace ToolManagementAppV2.Utilities.Converters
         }
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (value is string status)
+                {
+                    if (status == "Check In")
+                        return true;
+                    if (status == "Check Out")
+                        return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            return Binding.DoNothing;
         }
     }
 }
