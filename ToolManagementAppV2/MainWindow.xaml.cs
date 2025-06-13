@@ -908,6 +908,14 @@ namespace ToolManagementAppV2
 
         void MyTabControl_SelectionChanged(object s, SelectionChangedEventArgs e)
         {
+            // Only respond when the tab selection actually changes.
+            // The SelectionChanged event bubbles from child controls like
+            // the ListView inside each tab which caused the tab refresh
+            // logic to run whenever an item was selected. This cleared the
+            // current selection such as user details.
+            if (!ReferenceEquals(e.OriginalSource, MyTabControl))
+                return;
+
             if (!(MyTabControl.SelectedItem is TabItem tab))
                 return;
 
