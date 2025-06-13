@@ -1,4 +1,5 @@
 ﻿using System.Data.SQLite;
+using System;
 using ToolManagementAppV2.Services.Core;
 
 namespace ToolManagementAppV2.Services.Settings
@@ -65,10 +66,11 @@ namespace ToolManagementAppV2.Services.Settings
                 }
                 tx.Commit();
             }
-            catch
+            catch (Exception ex)
             {
                 tx.Rollback();
-                throw;
+                Console.WriteLine(ex);
+                return;
             }
         }
 
