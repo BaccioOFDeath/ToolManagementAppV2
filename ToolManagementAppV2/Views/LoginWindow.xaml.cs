@@ -83,9 +83,10 @@ namespace ToolManagementAppV2
             }
 
             // Non-admin default-password skip
+            var defaultHash = SecurityHelper.ComputeSha256Hash("newpassword");
             if (!user.IsAdmin &&
                 (string.IsNullOrWhiteSpace(user.Password) ||
-                 user.Password.Equals("newpassword", StringComparison.OrdinalIgnoreCase)))
+                 user.Password.Equals(defaultHash, StringComparison.OrdinalIgnoreCase)))
             {
                 App.Current.Properties["CurrentUser"] = user;
                 DialogResult = true;
