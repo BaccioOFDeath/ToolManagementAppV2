@@ -289,7 +289,11 @@
                             <ColumnDefinition Width="350" />
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <GroupBox Header="Customer Details" Grid.Column="0" Margin="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <GroupBox Header="Customer Details" Grid.Column="0" Grid.Row="0" Margin="5">
                             <StackPanel>
                                 <xctk:WatermarkTextBox x:Name="CustomerNameInput" Watermark="Name" Margin="5" />
                                 <xctk:WatermarkTextBox x:Name="CustomerEmailInput" Watermark="Email" Margin="5" />
@@ -304,7 +308,10 @@
                                 </StackPanel>
                             </StackPanel>
                         </GroupBox>
-                        <ListView x:Name="CustomerList" Grid.Column="1" ItemsSource="{Binding Customers}" Margin="5">
+                        <xctk:WatermarkTextBox x:Name="CustomerSearchInput" Grid.Column="1" Grid.Row="0"
+                                              Margin="5" Width="300"
+                                              Watermark="Search Customers..." TextChanged="CustomerSearchInput_TextChanged" />
+                        <ListView x:Name="CustomerList" Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Customers}" Margin="5">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Company}" Width="150" />
