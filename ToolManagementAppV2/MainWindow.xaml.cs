@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Linq;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Customers;
@@ -568,6 +569,53 @@ namespace ToolManagementAppV2
             LogoPreview.Source = bmp;
             _settingsService.SaveSetting("CompanyLogoPath", "Images/" + Path.GetFileName(destFile));
             UpdateHeaderLogo();
+        }
+
+        void LoadAllSettingsButton_Click(object s, RoutedEventArgs e)
+        {
+            try
+            {
+                var dict = _settingsService.GetAllSettings();
+                var list = dict.Select(kv => new SettingItem { Key = kv.Key, Value = kv.Value }).ToList();
+                SettingsList.ItemsSource = list;
+            }
+            catch (Exception ex)
+            {
+                ShowError("Error loading settings", ex);
+            }
+        }
+
+        void BulkUpdateSettingsButton_Click(object s, RoutedEventArgs e)
+        {
+            if (SettingsList.ItemsSource is IEnumerable<SettingItem> list)
+            {
+                try
+                {
+                    var dict = list.ToDictionary(i => i.Key, i => i.Value);
+                    _settingsService.UpdateSettings(dict);
+                    ShowMessage("Success", "Settings updated.", MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    ShowError("Error updating settings", ex);
+                }
+            }
+        }
+
+        void DeleteSettingButton_Click(object s, RoutedEventArgs e)
+        {
+            if (SettingsList.SelectedItem is SettingItem item)
+            {
+                try
+                {
+                    _settingsService.DeleteSetting(item.Key);
+                    LoadAllSettingsButton_Click(s, e);
+                }
+                catch (Exception ex)
+                {
+                    ShowError("Error deleting setting", ex);
+                }
+            }
         }
 
         void RefreshToolList()
