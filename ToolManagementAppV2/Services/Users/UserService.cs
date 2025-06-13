@@ -128,7 +128,7 @@ namespace ToolManagementAppV2.Services.Users
             SqliteHelper.ExecuteNonQuery(_connString, sql, p);
         }
 
-        public bool DeleteUser(int userID)
+        public bool TryDeleteUser(int userID)
         {
             var user = GetUserByID(userID);
             if (user == null) return false;
@@ -140,6 +140,8 @@ namespace ToolManagementAppV2.Services.Users
             DeleteUserInternal(userID);
             return true;
         }
+
+        public bool DeleteUser(int userID) => TryDeleteUser(userID);
 
         void DeleteUserInternal(int userID)
         {
