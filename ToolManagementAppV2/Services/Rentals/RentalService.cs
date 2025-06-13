@@ -48,10 +48,11 @@ namespace ToolManagementAppV2.Services.Rentals
 
                 tx.Commit();
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 tx.Rollback();
-                throw;
+                return;
             }
         }
 
@@ -84,10 +85,11 @@ namespace ToolManagementAppV2.Services.Rentals
 
                 tx.Commit();
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 tx.Rollback();
-                throw;
+                return;
             }
         }
 
@@ -115,10 +117,11 @@ namespace ToolManagementAppV2.Services.Rentals
 
                 tx.Commit();
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 tx.Rollback();
-                throw;
+                return;
             }
         }
 
@@ -150,10 +153,11 @@ namespace ToolManagementAppV2.Services.Rentals
 
                 tx.Commit();
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 tx.Rollback();
-                throw;
+                return;
             }
         }
 
