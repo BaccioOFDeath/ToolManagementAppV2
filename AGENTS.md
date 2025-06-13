@@ -1,8 +1,11 @@
-Instructions:
-- Run `dotnet test` before each commit.
-- Use the MVVM pattern with the existing `DatabaseService` (SQLite).
+# Repository Agent Instructions
 
-PR Guidelines:
-- Summarize the feature implemented.
-- Reference the tests run.
-- Mention any limitations.
+## Development Workflow
+- Run `dotnet test` before every commit.
+- Use the MVVM pattern with the existing `DatabaseService` (SQLite); do not introduce other ORMs.
+- Add or update unit tests in `ToolManagementAppV2.Tests` when implementing new functionality.
+
+## Pull Request Guidelines
+- Summarize the feature or fix implemented.
+- Reference the result of `dotnet test`.
+- Mention any limitations or environment issues encountered.

@@ -24,7 +24,8 @@ The application is used in an automotive workshop to manage tool inventory, cust
 - **Tool** — full CRUD already implemented.
 - **Rental** — fields: `RentalID`, `ToolID`, `CustomerID`, `RentalDate`, `DueDate`, `ReturnedDate`, `Notes`.
 - **User** — fields: `UserID`, `UserName`, `PasswordHash`, `IsAdmin`, `PhotoPath`.
-- **AppDbContext** — exists and fully implemented.
+- **SettingItem** — key/value pairs for application settings.
+- **ActivityLog** — tracks user actions for audit purposes.
 
 ## Per Task Instructions
 
