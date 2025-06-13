@@ -21,7 +21,6 @@ namespace ToolManagementAppV2
             var dbService = new DatabaseService(dbPath);
             var settings = new SettingsService(dbService);
 
-            // Load logo
             var logoPath = settings.GetSetting("CompanyLogoPath");
             Uri logoUri;
             if (!string.IsNullOrWhiteSpace(logoPath))
@@ -43,8 +42,6 @@ namespace ToolManagementAppV2
             bitmap.Freeze();
             LoginLogo.Source = bitmap;
 
-
-            // Set window title
             var appName = settings.GetSetting("ApplicationName");
             Title = !string.IsNullOrWhiteSpace(appName)
                     ? $"{appName} – Login"
@@ -75,14 +72,12 @@ namespace ToolManagementAppV2
         {
             if (!(sender is FrameworkElement fe && fe.Tag is User user)) return;
 
-            // Admin empty-password fallback
             if (user.IsAdmin && string.IsNullOrWhiteSpace(user.Password))
             {
                 _userService.ChangeUserPassword(user.UserID, "admin");
                 user.Password = SecurityHelper.ComputeSha256Hash("admin");
             }
 
-            // Non-admin default-password skip
             var defaultHash = SecurityHelper.ComputeSha256Hash("newpassword");
             if (!user.IsAdmin &&
                 (string.IsNullOrWhiteSpace(user.Password) ||
@@ -93,29 +88,33 @@ namespace ToolManagementAppV2
                 return;
             }
 
-            var prompt = new PasswordPromptWindow
+            var passwordValidated = false;
+            while (!passwordValidated)
             {
-                SelectedUser = user,
-                ValidatePassword = pwd => _userService.AuthenticateUser(user.UserName, pwd) != null
-            };
+                var prompt = new PasswordPromptWindow
+                {
+                    SelectedUser = user,
+                    ValidatePassword = pwd => _userService.AuthenticateUser(user.UserName, pwd) != null
+                };
 
-            if (prompt.ShowDialog() != true) return;
+                if (prompt.ShowDialog() != true) return;
 
-            if (prompt.IsPasswordResetRequested)
-            {
-                _userService.ChangeUserPassword(user.UserID, "admin");
-                user.Password = SecurityHelper.ComputeSha256Hash("admin");
-                LoadUsers();
-            }
+                if (prompt.IsPasswordResetRequested)
+                {
+                    _userService.ChangeUserPassword(user.UserID, "admin");
+                    user.Password = SecurityHelper.ComputeSha256Hash("admin");
+                    LoadUsers();
+                    MessageBox.Show("Password has been reset to default. Please enter the new password to login.", "Password Reset", MessageBoxButton.OK, MessageBoxImage.Information);
+                    continue;
+                }
 
-            var credential = _userService.AuthenticateUser(
-                user.UserName,
-                prompt.IsPasswordResetRequested ? "admin" : prompt.EnteredPassword);
-
-            if (credential != null)
-            {
-                App.Current.Properties["CurrentUser"] = credential;
-                DialogResult = true;
+                var credential = _userService.AuthenticateUser(user.UserName, prompt.EnteredPassword);
+                if (credential != null)
+                {
+                    App.Current.Properties["CurrentUser"] = credential;
+                    DialogResult = true;
+                    passwordValidated = true;
+                }
             }
         }
     }
