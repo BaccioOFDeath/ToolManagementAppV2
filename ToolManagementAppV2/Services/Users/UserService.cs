@@ -58,7 +58,9 @@ namespace ToolManagementAppV2.Services.Users
 
             var hashed = string.IsNullOrWhiteSpace(user.Password)
                 ? string.Empty
-                : SecurityHelper.ComputeSha256Hash(user.Password);
+                : SecurityHelper.IsSha256Hash(user.Password)
+                    ? user.Password
+                    : SecurityHelper.ComputeSha256Hash(user.Password);
 
             cmd.Parameters.AddRange(new[]
             {
@@ -93,7 +95,9 @@ namespace ToolManagementAppV2.Services.Users
 
             var hashed = string.IsNullOrWhiteSpace(user.Password)
                 ? string.Empty
-                : SecurityHelper.ComputeSha256Hash(user.Password);
+                : SecurityHelper.IsSha256Hash(user.Password)
+                    ? user.Password
+                    : SecurityHelper.ComputeSha256Hash(user.Password);
 
             var p = new[]
             {
@@ -120,7 +124,9 @@ namespace ToolManagementAppV2.Services.Users
 
             var hashed = string.IsNullOrWhiteSpace(newPassword)
                 ? string.Empty
-                : SecurityHelper.ComputeSha256Hash(newPassword);
+                : SecurityHelper.IsSha256Hash(newPassword)
+                    ? newPassword
+                    : SecurityHelper.ComputeSha256Hash(newPassword);
 
             var p = new[]
             {
