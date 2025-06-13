@@ -3,6 +3,7 @@ using System.Linq;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.Interfaces;
 using Xunit;
 
 public class UserDeletionTests
@@ -14,7 +15,7 @@ public class UserDeletionTests
         try
         {
             var dbService = new DatabaseService(dbPath);
-            var userService = new UserService(dbService);
+            IUserService userService = new UserService(dbService);
 
             var admin = new User { UserName = "admin", Password = "pw", IsAdmin = true };
             userService.AddUser(admin);

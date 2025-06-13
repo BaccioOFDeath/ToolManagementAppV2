@@ -6,12 +6,13 @@ using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Utilities.Helpers;
+using ToolManagementAppV2.Interfaces;
 
 namespace ToolManagementAppV2
 {
     public partial class LoginWindow : Window
     {
-        readonly UserService _userService;
+        readonly IUserService _userService;
 
         public LoginWindow()
         {

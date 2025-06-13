@@ -10,6 +10,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using ToolManagementAppV2.Services.Settings;
+using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.Views;
 
@@ -17,9 +18,9 @@ namespace ToolManagementAppV2.Services.Tools
 {
     public class Printer
     {
-        private readonly SettingsService _settingsService;
+        private readonly ISettingsService _settingsService;
 
-        public Printer(SettingsService settingsService)
+        public Printer(ISettingsService settingsService)
         {
             _settingsService = settingsService;
         }

@@ -4,23 +4,24 @@ using System.Windows.Media;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.Interfaces;
 
 namespace ToolManagementAppV2.Services.Tools
 {
     public class ReportService
     {
-        readonly ToolService _toolService;
-        readonly RentalService _rentalService;
+        readonly IToolService _toolService;
+        readonly IRentalService _rentalService;
         readonly ActivityLogService _activityLogService;
-        readonly CustomerService _customerService;
-        readonly UserService _userService;
+        readonly ICustomerService _customerService;
+        readonly IUserService _userService;
 
         public ReportService(
-            ToolService toolService,
-            RentalService rentalService,
+            IToolService toolService,
+            IRentalService rentalService,
             ActivityLogService activityLogService,
-            CustomerService customerService,
-            UserService userService)
+            ICustomerService customerService,
+            IUserService userService)
         {
             _toolService = toolService;
             _rentalService = rentalService;

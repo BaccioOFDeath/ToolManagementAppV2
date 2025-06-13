@@ -3,6 +3,7 @@ using System.IO;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Interfaces;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.Services
@@ -16,7 +17,7 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var dbService = new DatabaseService(dbPath);
-                var service = new ToolService(dbService);
+                IToolService service = new ToolService(dbService);
 
                 service.AddTool(new Tool
                 {
