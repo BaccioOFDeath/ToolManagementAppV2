@@ -528,6 +528,7 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex);
                 ShowWarning($"Rental failed: {ex.Message}");
                 return;
             }

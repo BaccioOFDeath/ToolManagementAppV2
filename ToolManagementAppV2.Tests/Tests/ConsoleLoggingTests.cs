@@ -7,6 +7,9 @@ using System.Windows.Controls;
 using ToolManagementAppV2;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Customers;
+using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Utilities.Converters;
 using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.Models.Domain;
@@ -116,6 +119,108 @@ namespace ToolManagementAppV2.Tests
                 var original = Console.Out;
                 Console.SetOut(sw);
                 Assert.Throws<IOException>(() => db.BackupDatabase("invalid|path.db"));
+                Console.SetOut(original);
+                Assert.NotEqual(string.Empty, sw.ToString());
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void RentTool_LogsException()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+
+                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 0 });
+                var tool = toolService.GetAllTools().First();
+                customerService.AddCustomer(new Customer { Company = "Acme" });
+                var cust = customerService.GetAllCustomers().First();
+
+                var sw = new StringWriter();
+                var original = Console.Out;
+                Console.SetOut(sw);
+                rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                Console.SetOut(original);
+                Assert.NotEqual(string.Empty, sw.ToString());
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void RentToolWithTransaction_LogsException()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+
+                toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Wrench", QuantityOnHand = 0 });
+                var tool = toolService.GetAllTools().First();
+                customerService.AddCustomer(new Customer { Company = "Beta" });
+                var cust = customerService.GetAllCustomers().First();
+
+                var sw = new StringWriter();
+                var original = Console.Out;
+                Console.SetOut(sw);
+                rentalService.RentToolWithTransaction(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                Console.SetOut(original);
+                Assert.NotEqual(string.Empty, sw.ToString());
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void ReturnTool_LogsException()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var rentalService = new RentalService(db);
+
+                var sw = new StringWriter();
+                var original = Console.Out;
+                Console.SetOut(sw);
+                rentalService.ReturnTool(1, DateTime.Today);
+                Console.SetOut(original);
+                Assert.NotEqual(string.Empty, sw.ToString());
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void ReturnToolWithTransaction_LogsException()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var rentalService = new RentalService(db);
+
+                var sw = new StringWriter();
+                var original = Console.Out;
+                Console.SetOut(sw);
+                rentalService.ReturnToolWithTransaction(1, DateTime.Today);
                 Console.SetOut(original);
                 Assert.NotEqual(string.Empty, sw.ToString());
             }
