@@ -14,6 +14,7 @@
             <local:CheckOutStatusConverter x:Key="CheckOutStatusConverter"/>
             <local:NullToDefaultImageConverter x:Key="NullToDefaultImageConverter"/>
             <local:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+            <local:NonEmptyStringToBoolConverter x:Key="NonEmptyStringToBoolConverter"/>
             <DataTemplate x:Key="CheckOutButtonTemplate">
                 <Button Content="{Binding IsCheckedOut, Converter={StaticResource CheckOutStatusConverter}}"
                 Click="CheckOutButton_Click"
@@ -429,8 +430,8 @@
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="5">
                                 <TextBlock Text="Is Admin:" Width="100" VerticalAlignment="Center"/>
-                                <CheckBox IsChecked="{Binding SelectedUser.IsAdmin, Mode=TwoWay}"
-              IsEnabled="{Binding IsLastAdmin, Converter={StaticResource InverseBooleanConverter}}" />
+                                <CheckBox IsChecked="{Binding SelectedUser.IsAdmin, Mode=TwoWay}" 
+              IsEnabled="{Binding UserPassword, Converter={StaticResource NonEmptyStringToBoolConverter}, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="10">
                                 <Button Content="New User" Click="NewUserButton_Click" Width="100" Margin="5"/>

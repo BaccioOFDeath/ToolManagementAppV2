@@ -101,15 +101,9 @@ namespace ToolManagementAppV2
 
             if (prompt.ShowDialog() != true) return;
 
-            if (prompt.IsPasswordResetRequested)
-            {
-                _userService.ChangeUserPassword(user.UserID, "admin");
-                user.Password = SecurityHelper.ComputeSha256Hash("admin");
-            }
-
-            var credential = _userService.AuthenticateUser(
-                user.UserName,
-                prompt.IsPasswordResetRequested ? "admin" : prompt.EnteredPassword);
+            var credential = prompt.IsPasswordResetRequested
+                ? _userService.AuthenticateUser(user.UserName, "admin")
+                : _userService.AuthenticateUser(user.UserName, prompt.EnteredPassword);
 
             if (credential != null)
             {
