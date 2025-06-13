@@ -6,10 +6,11 @@ using System.IO;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Utilities.IO;
+using ToolManagementAppV2.Interfaces;
 
 namespace ToolManagementAppV2.Services.Customers
 {
-    public class CustomerService
+    public class CustomerService : ICustomerService
     {
         readonly string _connString;
 

@@ -4,6 +4,7 @@ using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Utilities.Helpers;
+using ToolManagementAppV2.Interfaces;
 using Xunit;
 
 public class UserAuthenticationTests
@@ -15,7 +16,7 @@ public class UserAuthenticationTests
         try
         {
             var dbService = new DatabaseService(dbPath);
-            var userService = new UserService(dbService);
+            IUserService userService = new UserService(dbService);
 
             var user = new User { UserName = "test", Password = "secret", IsAdmin = false };
             userService.AddUser(user);

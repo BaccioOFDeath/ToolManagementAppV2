@@ -3,9 +3,10 @@ using System.Data;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Utilities.IO;
 using ToolManagementAppV2.Models.ImportExport;
+using ToolManagementAppV2.Interfaces;
 using System.Text;
 
-public class ToolService
+public class ToolService : IToolService
 {
     readonly string _connString;
     const string AllToolsSql = "SELECT * FROM Tools";

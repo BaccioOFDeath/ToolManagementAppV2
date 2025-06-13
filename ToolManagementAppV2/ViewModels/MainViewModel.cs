@@ -11,6 +11,7 @@ using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.ViewModels.Rental;
@@ -21,11 +22,11 @@ namespace ToolManagementAppV2.ViewModels
     public class MainViewModel : ObservableObject
     {
         readonly DispatcherTimer _refreshTimer;
-        readonly ToolService _toolService;
-        readonly UserService _userService;
-        readonly CustomerService _customerService;
-        readonly RentalService _rentalService;
-        readonly SettingsService _settingsService;
+        readonly IToolService _toolService;
+        readonly IUserService _userService;
+        readonly ICustomerService _customerService;
+        readonly IRentalService _rentalService;
+        readonly ISettingsService _settingsService;
 
         public ObservableCollection<ToolModel> Tools { get; } = new();
         public ObservableCollection<ToolModel> SearchResults { get; } = new();
@@ -171,11 +172,11 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand ViewRentalHistoryCommand { get; }
 
         public MainViewModel(
-            ToolService toolService,
-            UserService userService,
-            CustomerService customerService,
-            RentalService rentalService,
-            SettingsService settingsService)
+            IToolService toolService,
+            IUserService userService,
+            ICustomerService customerService,
+            IRentalService rentalService,
+            ISettingsService settingsService)
         {
             Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images"));
             Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UserPhotos"));

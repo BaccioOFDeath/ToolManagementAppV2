@@ -1,10 +1,11 @@
 ﻿using System.Data.SQLite;
 using System;
 using ToolManagementAppV2.Services.Core;
+using ToolManagementAppV2.Interfaces;
 
 namespace ToolManagementAppV2.Services.Settings
 {
-    public class SettingsService
+    public class SettingsService : ISettingsService
     {
         readonly string _connString;
         const string UpsertSql = @"
