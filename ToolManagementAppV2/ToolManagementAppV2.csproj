@@ -51,7 +51,7 @@
     <Page Remove="Views\User\**" />
   </ItemGroup>
 
-  <ItemGroup>
+ <ItemGroup>
     <None Remove="Resources\Avatars\1.png" />
     <None Remove="Resources\Avatars\10.png" />
     <None Remove="Resources\Avatars\11.png" />
@@ -104,7 +104,7 @@
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.6.1" />
     <PackageReference Include="MaterialDesignThemes" Version="5.2.1" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.119" />
-	<PackageReference Include="Microsoft.VisualBasic" Version="10.3.0" />
+    <PackageReference Include="Microsoft.VisualBasic" Version="10.3.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -226,9 +226,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\Avatars\9.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Resources\Avatars\Thumbs.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Resource Include="Resources\DefaultLogo.png">
