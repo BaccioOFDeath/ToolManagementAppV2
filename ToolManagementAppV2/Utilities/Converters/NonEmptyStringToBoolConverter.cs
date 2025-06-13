@@ -10,7 +10,21 @@ namespace ToolManagementAppV2.Utilities.Converters
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
             !string.IsNullOrEmpty(value as string);
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
-            throw new NotImplementedException();
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            try
+            {
+                if (value is bool b)
+                    return b ? string.Empty : null;
+
+                if (value is string s)
+                    return s;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            return Binding.DoNothing;
+        }
     }
 }
