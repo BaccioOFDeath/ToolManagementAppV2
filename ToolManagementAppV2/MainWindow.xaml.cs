@@ -378,7 +378,7 @@ namespace ToolManagementAppV2
                     return;
                 }
 
-                if (!_userService.TryDeleteUser(u.UserID))
+                if (!_userService.DeleteUser(u.UserID))
                 {
                     ShowMessage("Deletion Not Allowed", "At least one admin user must remain.", MessageBoxImage.Warning);
                     return;
@@ -389,6 +389,7 @@ namespace ToolManagementAppV2
                 vm.SelectedUser = vm.Users.FirstOrDefault();
             }
         }
+
 
         void UploadUserPhotoButton_Click(object s, RoutedEventArgs e)
         {

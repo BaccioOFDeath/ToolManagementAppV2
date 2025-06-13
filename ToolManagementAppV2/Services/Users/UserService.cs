@@ -28,10 +28,7 @@ namespace ToolManagementAppV2.Services.Users
                 "SELECT * FROM Users WHERE UserName=@UserName",
                 new[] { new SQLiteParameter("@UserName", userName) }, MapUser);
             var u = users.FirstOrDefault();
-
-            if (u == null)
-                return null;
-
+            if (u == null) return null;
             var hashed = SecurityHelper.ComputeSha256Hash(password ?? string.Empty);
             return u.Password == hashed ? u : null;
         }
@@ -74,8 +71,6 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@Role",     (object)user.Role ?? DBNull.Value)
             });
             user.UserID = Convert.ToInt32(cmd.ExecuteScalar());
-
-            // update object with hashed password to reflect stored value
             user.Password = hashed;
         }
 
@@ -113,15 +108,12 @@ namespace ToolManagementAppV2.Services.Users
             };
 
             SqliteHelper.ExecuteNonQuery(_connString, sql, p);
-
-            // ensure in-memory object reflects stored hashed password
             user.Password = hashed;
         }
 
         public void ChangeUserPassword(int userID, string newPassword)
         {
             var sql = "UPDATE Users SET Password=@Pwd WHERE UserID=@ID";
-
             var hashed = string.IsNullOrWhiteSpace(newPassword)
                 ? string.Empty
                 : SecurityHelper.IsSha256Hash(newPassword)
@@ -136,17 +128,15 @@ namespace ToolManagementAppV2.Services.Users
             SqliteHelper.ExecuteNonQuery(_connString, sql, p);
         }
 
-        public void DeleteUser(int userID)
-            => DeleteUserInternal(userID);
-
-        public bool TryDeleteUser(int userID)
+        public bool DeleteUser(int userID)
         {
             var user = GetUserByID(userID);
             if (user == null) return false;
-            var adminCount = GetAllUsers().Count(u => u.IsAdmin);
-            if (user.IsAdmin && adminCount <= 1)
-                return false;
-
+            if (user.IsAdmin)
+            {
+                var adminCount = GetAllUsers().Count(u => u.IsAdmin);
+                if (adminCount <= 1) return false;
+            }
             DeleteUserInternal(userID);
             return true;
         }
@@ -179,9 +169,7 @@ namespace ToolManagementAppV2.Services.Users
                 {
                     Uri uri;
                     if (u.UserPhotoPath.StartsWith("pack://"))
-                    {
                         uri = new Uri(u.UserPhotoPath, UriKind.Absolute);
-                    }
                     else
                     {
                         var full = PathHelper.GetAbsolutePath(u.UserPhotoPath);
@@ -209,6 +197,5 @@ namespace ToolManagementAppV2.Services.Users
 
             return u;
         }
-
     }
 }
