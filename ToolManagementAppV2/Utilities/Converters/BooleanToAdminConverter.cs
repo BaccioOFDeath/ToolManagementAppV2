@@ -9,13 +9,33 @@ namespace ToolManagementAppV2.Utilities.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is bool isAdmin && isAdmin)
-                return "Admin";
-            return string.Empty;
+            try
+            {
+                if (value is bool isAdmin)
+                    return isAdmin ? "Admin" : string.Empty;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            return Binding.DoNothing;
         }
+
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (value is bool b)
+                    return b;
+
+                if (value is string s)
+                    return string.Equals(s, "Admin", StringComparison.OrdinalIgnoreCase);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            return value is string or bool ? false : Binding.DoNothing;
         }
     }
 }
