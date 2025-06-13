@@ -80,12 +80,6 @@
                                 Height="20"
                                 Width="150"
                                 Margin="10,0"/>
-                                <Button Content="View Rental History"
-                                Command="{Binding ViewRentalHistoryCommand}"
-                                Height="20"
-                                Width="150"
-                                Margin="10,0"/>
-
                             </StackPanel>
                         </StackPanel>
                         <ListView x:Name="SearchResultsList" ItemContainerStyle="{StaticResource ToolImageTooltipStyle}" ItemsSource="{Binding SearchResults}" SelectedItem="{Binding SelectedTool, Mode=TwoWay}" Margin="10" Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Auto">
@@ -334,6 +328,12 @@
                             <Button Content="Rent Tool" Click="RentToolButton_Click" Margin="5" />
                             <Button Content="Return Tool" Click="ReturnToolButton_Click" Margin="5" />
                             <Button Content="Print Receipt" Click="PrintRentalReceipt_Click" Margin="5" />
+                            <Button Content="View Rental History"
+Command="{Binding ViewRentalHistoryCommand}"
+Height="20"
+Width="150"
+Margin="10,0"/>
+
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="10" Grid.Row="1">
                             <xctk:WatermarkTextBox x:Name="RentalIDInput" Watermark="Rental ID" Margin="5" Width="100" />
