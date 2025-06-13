@@ -28,7 +28,7 @@ namespace ToolManagementAppV2.Services.Tools
         /// Prints a sorted list of tools with the given title.
         /// If currentUserName is non‐null, only prints tools checked out by that user.
         /// </summary>
-        public void PrintTools(IEnumerable<ToolModel> tools, string title, string currentUserName = null)
+        public void PrintTools(IEnumerable<ToolModel> tools, string title, string? currentUserName = null)
         {
             // 1) sort by Location
             var list = tools.OrderBy(t => t.Location).ToList();
@@ -57,7 +57,7 @@ namespace ToolManagementAppV2.Services.Tools
             return !string.IsNullOrEmpty(full) && File.Exists(full) ? full : null;
         }
 
-        private FlowDocument BuildDocument(List<ToolModel> tools, string title, string logoPath)
+        private FlowDocument BuildDocument(List<ToolModel> tools, string title, string? logoPath)
         {
             var doc = new FlowDocument
             {
@@ -100,7 +100,7 @@ namespace ToolManagementAppV2.Services.Tools
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
             // image or placeholder
-            string imgPath = null;
+            string? imgPath = null;
             if (!string.IsNullOrEmpty(tool.ToolImagePath))
             {
                 imgPath = Utilities.Helpers.PathHelper.GetAbsolutePath(tool.ToolImagePath);
@@ -202,7 +202,7 @@ namespace ToolManagementAppV2.Services.Tools
             };
         }
 
-        private void AddCompanyLogo(StackPanel host, string logoPath)
+        private void AddCompanyLogo(StackPanel host, string? logoPath)
         {
             if (string.IsNullOrEmpty(logoPath))
                 return;
@@ -249,7 +249,6 @@ namespace ToolManagementAppV2.Services.Tools
                 _fs = fs;
             }
 
-            [Obsolete]
             public override DocumentPage GetPage(int pageNumber)
             {
                 var page = _inner.GetPage(pageNumber);
