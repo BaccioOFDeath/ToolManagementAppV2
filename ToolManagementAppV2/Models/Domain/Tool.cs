@@ -2,25 +2,22 @@
 {
     public class Tool
     {
-        // ToolID is stored as an INTEGER PRIMARY KEY in the database.
-        // It is represented as a string in the model for easier binding and
-        // because most services treat it as a string key.
-        public string ToolID { get; set; } // hide in UI, used internally
-        public string ToolNumber { get; set; }
-        public string PartNumber { get; set; }
-        public string NameDescription { get; set; }
-        public string Brand { get; set; }
-        public string Location { get; set; }
+        public string ToolID { get; set; } = string.Empty;
+        public string ToolNumber { get; set; } = string.Empty;
+        public string PartNumber { get; set; } = string.Empty;
+        public string NameDescription { get; set; } = string.Empty;
+        public string Brand { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;
         public int QuantityOnHand { get; set; }
         public int RentedQuantity { get; set; }
-        public string Supplier { get; set; }
+        public string Supplier { get; set; } = string.Empty;
         public DateTime? PurchasedDate { get; set; }
-        public string Notes { get; set; }
-        public string Keywords { get; set; }
+        public string Notes { get; set; } = string.Empty;
+        public string Keywords { get; set; } = string.Empty;
         public bool IsCheckedOut { get; set; }
-        public string CheckedOutBy { get; set; }
+        public string CheckedOutBy { get; set; } = string.Empty;
         public DateTime? CheckedOutTime { get; set; }
-        public string ToolImagePath { get; set; }
+        public string ToolImagePath { get; set; } = string.Empty;
 
         public int OnHand => QuantityOnHand;
         public string Purchased => PurchasedDate?.ToString("yyyy-MM-dd") ?? "";
