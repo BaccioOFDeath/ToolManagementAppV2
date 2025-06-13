@@ -128,6 +128,7 @@ namespace ToolManagementAppV2.Services.Core
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex);
                 throw new IOException("Failed to backup database.", ex);
             }
         }
