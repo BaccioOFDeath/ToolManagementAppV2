@@ -80,7 +80,20 @@ namespace ToolManagementAppV2.Utilities.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (value is BitmapImage bmp)
+                    return bmp.UriSource?.OriginalString;
+
+                if (value is string path)
+                    return path;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            return Binding.DoNothing;
         }
     }
 }
