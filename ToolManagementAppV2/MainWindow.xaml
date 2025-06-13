@@ -479,6 +479,27 @@
                             Click="SaveSettingsButton_Click"
                             Margin="5"
                             HorizontalAlignment="Left" />
+
+                        <TextBlock Text="All Settings" FontWeight="Bold" Margin="5" />
+                        <Button Content="Load Settings" Click="LoadAllSettingsButton_Click" Margin="5" HorizontalAlignment="Left" />
+                        <ListView x:Name="SettingsList" Height="200" Margin="5">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Header="Key" DisplayMemberBinding="{Binding Key}" Width="200" />
+                                    <GridViewColumn Header="Value" Width="200">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBox Text="{Binding Value}" Width="180" />
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                        <StackPanel Orientation="Horizontal" Margin="5">
+                            <Button Content="Bulk Update" Click="BulkUpdateSettingsButton_Click" Margin="5" />
+                            <Button Content="Delete Setting" Click="DeleteSettingButton_Click" Margin="5" />
+                        </StackPanel>
                     </StackPanel>
                 </TabItem>
 
