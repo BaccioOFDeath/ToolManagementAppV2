@@ -70,9 +70,13 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="150" />
                         </Grid.RowDefinitions>
-                        <xctk:WatermarkTextBox x:Name="SearchInput" Width="300" Margin="10,0" Watermark="Search Tools..." TextChanged="SearchInput_TextChanged" />
-                        <StackPanel Orientation="Horizontal">
-                            <StackPanel Orientation="Horizontal">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="300" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <xctk:WatermarkTextBox x:Name="SearchInput" Grid.Row="0" Grid.Column="0" Width="300" Margin="10,0" Watermark="Search Tools..." TextChanged="SearchInput_TextChanged" />
+                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="Print Search Results" Click="PrintSearchResults_Click" Height="20" Width="160" Margin="10,0" />
                                 <Button Content="Print My Checked-Out Tools" Click="PrintMyCheckedOutTools_Click" Height="20" Width="160" Margin="10,0" />
                                 <Button Content="Rent Selected Tool"
@@ -80,15 +84,13 @@
                                 Height="20"
                                 Width="150"
                                 Margin="10,0"/>
-                                <Button Content="View Rental History"
-                                Command="{Binding ViewRentalHistoryCommand}"
-                                Height="20"
-                                Width="150"
-                                Margin="10,0"/>
-
-                            </StackPanel>
+                            <Button Content="View Rental History"
+                                    Command="{Binding ViewRentalHistoryCommand}"
+                                    Height="20"
+                                    Width="150"
+                                    Margin="10,0"/>
                         </StackPanel>
-                        <ListView x:Name="SearchResultsList" ItemContainerStyle="{StaticResource ToolImageTooltipStyle}" ItemsSource="{Binding SearchResults}" SelectedItem="{Binding SelectedTool, Mode=TwoWay}" Margin="10" Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ListView x:Name="SearchResultsList" ItemContainerStyle="{StaticResource ToolImageTooltipStyle}" ItemsSource="{Binding SearchResults}" SelectedItem="{Binding SelectedTool, Mode=TwoWay}" Margin="10" Grid.Row="0" ScrollViewer.VerticalScrollBarVisibility="Auto">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Header="Action" Width="80" CellTemplate="{StaticResource CheckOutButtonTemplate}"/>
@@ -135,9 +137,9 @@
                                 </GridView>
                             </ListView.View>
                         </ListView>
-                        <Button Content="Choose Profile Picture" Click="ChooseUserProfilePicButton_Click" Width="150" Height="20" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.RowSpan="2" />
+                        <Button Content="Choose Profile Picture" Click="ChooseUserProfilePicButton_Click" Width="150" Height="20" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="0" Grid.Column="2" />
                         <!-- Display tools checked out by the current user -->
-                        <GroupBox Header="My Checked-Out Tools" Grid.Row="2" Margin="10">
+                        <GroupBox Header="My Checked-Out Tools" Grid.Row="1" Margin="10">
                             <ListView x:Name="CheckedOutToolsList" ItemContainerStyle="{StaticResource ToolImageTooltipStyle}" ItemsSource="{Binding CheckedOutTools}" SelectedItem="{Binding SelectedTool, Mode=TwoWay}">
                                 <ListView.View>
                                     <GridView>
@@ -183,7 +185,6 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
@@ -194,32 +195,32 @@
 
                                 
 
-                                <TextBlock Text="Tool Number:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
-                                <xctk:WatermarkTextBox x:Name="ToolNumberInput" Grid.Row="1" Grid.Column="1" Watermark="Tool Number" Margin="0,2"/>
+                                <TextBlock Text="Tool Number:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
+                                <xctk:WatermarkTextBox x:Name="ToolNumberInput" Grid.Row="0" Grid.Column="1" Watermark="Tool Number" Margin="0,2"/>
 
-                                <TextBlock Text="Name:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center"/>
-                                <xctk:WatermarkTextBox x:Name="ToolNameInput" Grid.Row="2" Grid.Column="1" Watermark="Tool Name" Margin="0,2"/>
+                                <TextBlock Text="Name:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
+                                <xctk:WatermarkTextBox x:Name="ToolNameInput" Grid.Row="1" Grid.Column="1" Watermark="Tool Name" Margin="0,2"/>
 
-                                <TextBlock Text="Part Number:" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center"/>
-                                <xctk:WatermarkTextBox x:Name="PartNumberInput" Grid.Row="3" Grid.Column="1" Watermark="Part Number" Margin="0,2"/>
+                                <TextBlock Text="Part Number:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center"/>
+                                <xctk:WatermarkTextBox x:Name="PartNumberInput" Grid.Row="2" Grid.Column="1" Watermark="Part Number" Margin="0,2"/>
 
-                                <TextBlock Text="Brand:" Grid.Row="4" Grid.Column="0" VerticalAlignment="Center"/>
-                                <xctk:WatermarkTextBox x:Name="BrandInput" Grid.Row="4" Grid.Column="1" Watermark="Brand" Margin="0,2"/>
+                                <TextBlock Text="Brand:" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center"/>
+                                <xctk:WatermarkTextBox x:Name="BrandInput" Grid.Row="3" Grid.Column="1" Watermark="Brand" Margin="0,2"/>
 
-                                <TextBlock Text="Location:" Grid.Row="5" Grid.Column="0" VerticalAlignment="Center"/>
-                                <xctk:WatermarkTextBox x:Name="LocationInput" Grid.Row="5" Grid.Column="1" Watermark="Location" Margin="0,2"/>
+                                <TextBlock Text="Location:" Grid.Row="4" Grid.Column="0" VerticalAlignment="Center"/>
+                                <xctk:WatermarkTextBox x:Name="LocationInput" Grid.Row="4" Grid.Column="1" Watermark="Location" Margin="0,2"/>
 
-                                <TextBlock Text="Quantity:" Grid.Row="6" Grid.Column="0" VerticalAlignment="Center"/>
-                                <xctk:WatermarkTextBox x:Name="QuantityInput" Grid.Row="6" Grid.Column="1" Watermark="Quantity on Hand" Margin="0,2"/>
+                                <TextBlock Text="Quantity:" Grid.Row="5" Grid.Column="0" VerticalAlignment="Center"/>
+                                <xctk:WatermarkTextBox x:Name="QuantityInput" Grid.Row="5" Grid.Column="1" Watermark="Quantity on Hand" Margin="0,2"/>
 
-                                <TextBlock Text="Supplier:" Grid.Row="7" Grid.Column="0" VerticalAlignment="Center"/>
-                                <xctk:WatermarkTextBox x:Name="SupplierInput" Grid.Row="7" Grid.Column="1" Watermark="Supplier" Margin="0,2"/>
+                                <TextBlock Text="Supplier:" Grid.Row="6" Grid.Column="0" VerticalAlignment="Center"/>
+                                <xctk:WatermarkTextBox x:Name="SupplierInput" Grid.Row="6" Grid.Column="1" Watermark="Supplier" Margin="0,2"/>
 
-                                <TextBlock Text="Purchased Date:" Grid.Row="8" Grid.Column="0" VerticalAlignment="Center"/>
-                                <xctk:WatermarkTextBox x:Name="PurchasedInput" Grid.Row="8" Grid.Column="1" Watermark="yyyy-MM-dd" Margin="0,2"/>
+                                <TextBlock Text="Purchased Date:" Grid.Row="7" Grid.Column="0" VerticalAlignment="Center"/>
+                                <xctk:WatermarkTextBox x:Name="PurchasedInput" Grid.Row="7" Grid.Column="1" Watermark="yyyy-MM-dd" Margin="0,2"/>
 
-                                <TextBlock Text="Notes:" Grid.Row="9" Grid.Column="0" VerticalAlignment="Top" Margin="0,5,0,0"/>
-                                <Grid Grid.Row="9" Grid.Column="1">
+                                <TextBlock Text="Notes:" Grid.Row="8" Grid.Column="0" VerticalAlignment="Top" Margin="0,5,0,0"/>
+                                <Grid Grid.Row="8" Grid.Column="1">
                                     <xctk:WatermarkTextBox x:Name="NotesInput"
                            Watermark="Notes"
                            AcceptsReturn="True"
@@ -229,7 +230,7 @@
                            VerticalAlignment="Stretch"/>
                                 </Grid>
 
-                                <StackPanel Grid.Row="10" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+                                <StackPanel Grid.Row="9" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
                                     <Button Content="Add" Click="AddButton_Click" Margin="5"/>
                                     <Button Content="Update" Click="UpdateButton_Click" Margin="5"/>
                                     <Button Content="Delete" Click="DeleteButton_Click" Margin="5"/>
@@ -296,19 +297,28 @@
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         <GroupBox Header="Customer Details" Grid.Column="0" Grid.Row="0" Margin="5">
-                            <StackPanel>
-                                <xctk:WatermarkTextBox x:Name="CustomerNameInput" Watermark="Name" Margin="5" />
-                                <xctk:WatermarkTextBox x:Name="CustomerEmailInput" Watermark="Email" Margin="5" />
-                                <xctk:WatermarkTextBox x:Name="CustomerContactInput" Watermark="Customer Contact" Margin="5" />
-                                <xctk:WatermarkTextBox x:Name="CustomerPhoneInput" Watermark="Phone" Margin="5" />
-                                <xctk:WatermarkTextBox x:Name="CustomerMobileInput" Watermark="Mobile" Margin="5" />
-                                <xctk:WatermarkTextBox x:Name="CustomerAddressInput" Watermark="Address" Margin="5" />
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <xctk:WatermarkTextBox x:Name="CustomerNameInput" Grid.Row="0" Watermark="Name" Margin="5" />
+                                <xctk:WatermarkTextBox x:Name="CustomerEmailInput" Grid.Row="1" Watermark="Email" Margin="5" />
+                                <xctk:WatermarkTextBox x:Name="CustomerContactInput" Grid.Row="2" Watermark="Customer Contact" Margin="5" />
+                                <xctk:WatermarkTextBox x:Name="CustomerPhoneInput" Grid.Row="3" Watermark="Phone" Margin="5" />
+                                <xctk:WatermarkTextBox x:Name="CustomerMobileInput" Grid.Row="4" Watermark="Mobile" Margin="5" />
+                                <xctk:WatermarkTextBox x:Name="CustomerAddressInput" Grid.Row="5" Watermark="Address" Margin="5" />
+                                <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Left">
                                     <Button Content="Add" Click="AddCustomerButton_Click" Margin="5" />
                                     <Button Content="Update" Click="UpdateCustomerButton_Click" Margin="5" />
                                     <Button Content="Delete" Click="DeleteCustomerButton_Click" Margin="5" />
                                 </StackPanel>
-                            </StackPanel>
+                            </Grid>
                         </GroupBox>
                         <xctk:WatermarkTextBox x:Name="CustomerSearchInput" Grid.Column="1" Grid.Row="0"
                                               Margin="5" Width="300"
@@ -336,21 +346,25 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <StackPanel Orientation="Horizontal" Margin="10" Grid.Row="0">
-                            <xctk:WatermarkTextBox x:Name="ToolIDForRentalInput" Watermark="Tool ID" Margin="5" Width="200" />
-                            <xctk:WatermarkTextBox x:Name="CustomerIDForRentalInput" Watermark="Customer ID" Margin="5" Width="200" />
-                            <xctk:WatermarkTextBox x:Name="DueDateInput" Watermark="Due Date (YYYY-MM-DD)" Margin="5" Width="200" />
-                            <Button Content="Rent Tool" Click="RentToolButton_Click" Margin="5" />
-                            <Button Content="Return Tool" Click="ReturnToolButton_Click" Margin="5" />
-                            <Button Content="Print Receipt" Click="PrintRentalReceipt_Click" Margin="5" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="10" Grid.Row="1">
-                            <xctk:WatermarkTextBox x:Name="RentalIDInput" Watermark="Rental ID" Margin="5" Width="100" />
-                            <xctk:WatermarkTextBox x:Name="NewDueDateInput" Watermark="New Due Date (YYYY-MM-DD)" Margin="5" Width="200" />
-                            <Button Content="Extend Rental" Click="ExtendRentalButton_Click" Margin="5" />
-                            <Button Content="Load Overdue Rentals" Click="LoadOverdueRentals_Click" Margin="5" />
-                        </StackPanel>
-                        <ListView x:Name="RentalsList" ItemsSource="{Binding Rentals}" Grid.Row="2" Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <xctk:WatermarkTextBox x:Name="ToolIDForRentalInput" Grid.Row="0" Grid.Column="0" Watermark="Tool ID" Margin="5" Width="200" />
+                        <xctk:WatermarkTextBox x:Name="CustomerIDForRentalInput" Grid.Row="0" Grid.Column="1" Watermark="Customer ID" Margin="5" Width="200" />
+                        <xctk:WatermarkTextBox x:Name="DueDateInput" Grid.Row="0" Grid.Column="2" Watermark="Due Date (YYYY-MM-DD)" Margin="5" Width="200" />
+                        <Button Content="Rent Tool" Grid.Row="0" Grid.Column="3" Click="RentToolButton_Click" Margin="5" />
+                        <Button Content="Return Tool" Grid.Row="0" Grid.Column="4" Click="ReturnToolButton_Click" Margin="5" />
+                        <Button Content="Print Receipt" Grid.Row="0" Grid.Column="5" Click="PrintRentalReceipt_Click" Margin="5" />
+                        <xctk:WatermarkTextBox x:Name="RentalIDInput" Grid.Row="1" Grid.Column="0" Watermark="Rental ID" Margin="5" Width="100" />
+                        <xctk:WatermarkTextBox x:Name="NewDueDateInput" Grid.Row="1" Grid.Column="1" Watermark="New Due Date (YYYY-MM-DD)" Margin="5" Width="200" />
+                        <Button Content="Extend Rental" Grid.Row="1" Grid.Column="3" Click="ExtendRentalButton_Click" Margin="5" />
+                        <Button Content="Load Overdue Rentals" Grid.Row="1" Grid.Column="4" Click="LoadOverdueRentals_Click" Margin="5" />
+                        <ListView x:Name="RentalsList" ItemsSource="{Binding Rentals}" Grid.Row="2" Grid.ColumnSpan="6" Margin="10">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Header="Rental ID" DisplayMemberBinding="{Binding RentalID}" Width="100" />
@@ -400,39 +414,38 @@
                                 </Border>
                                 <Button Content="Change Photo" Click="UploadUserPhotoButton_Click" Margin="10,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="5">
-                                <TextBlock Text="User Name:" Width="100" VerticalAlignment="Center"/>
-                                <TextBox Text="{Binding SelectedUser.UserName, Mode=TwoWay}" Width="200"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="5">
-                                <TextBlock Text="Password:" Width="100" VerticalAlignment="Center"/>
-                                <PasswordBox x:Name="PasswordBox" Width="200" PasswordChanged="PasswordBox_PasswordChanged"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="5">
-                                <TextBlock Text="Email:" Width="100" VerticalAlignment="Center"/>
-                                <TextBox Text="{Binding SelectedUser.Email, Mode=TwoWay}" Width="200"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="5">
-                                <TextBlock Text="Phone:" Width="100" VerticalAlignment="Center"/>
-                                <TextBox Text="{Binding SelectedUser.Phone, Mode=TwoWay}" Width="200"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="5">
-                                <TextBlock Text="Mobile:" Width="100" VerticalAlignment="Center"/>
-                                <TextBox Text="{Binding SelectedUser.Mobile, Mode=TwoWay}" Width="200"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="5">
-                                <TextBlock Text="Address:" Width="100" VerticalAlignment="Center"/>
-                                <TextBox Text="{Binding SelectedUser.Address, Mode=TwoWay}" Width="200"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="5">
-                                <TextBlock Text="Role:" Width="100" VerticalAlignment="Center"/>
-                                <TextBox Text="{Binding SelectedUser.Role, Mode=TwoWay}" Width="200"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="5">
-                                <TextBlock Text="Is Admin:" Width="100" VerticalAlignment="Center"/>
-                                <CheckBox IsChecked="{Binding SelectedUser.IsAdmin, Mode=TwoWay}" 
-              IsEnabled="{Binding UserPassword, Converter={StaticResource NonEmptyStringToBoolConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                            </StackPanel>
+                            <Grid Margin="5">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="200"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="User Name:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding SelectedUser.UserName, Mode=TwoWay}" Grid.Row="0" Grid.Column="1" Width="200"/>
+                                <TextBlock Text="Password:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
+                                <PasswordBox x:Name="PasswordBox" Grid.Row="1" Grid.Column="1" Width="200" PasswordChanged="PasswordBox_PasswordChanged"/>
+                                <TextBlock Text="Email:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding SelectedUser.Email, Mode=TwoWay}" Grid.Row="2" Grid.Column="1" Width="200"/>
+                                <TextBlock Text="Phone:" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding SelectedUser.Phone, Mode=TwoWay}" Grid.Row="3" Grid.Column="1" Width="200"/>
+                                <TextBlock Text="Mobile:" Grid.Row="4" Grid.Column="0" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding SelectedUser.Mobile, Mode=TwoWay}" Grid.Row="4" Grid.Column="1" Width="200"/>
+                                <TextBlock Text="Address:" Grid.Row="5" Grid.Column="0" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding SelectedUser.Address, Mode=TwoWay}" Grid.Row="5" Grid.Column="1" Width="200"/>
+                                <TextBlock Text="Role:" Grid.Row="6" Grid.Column="0" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding SelectedUser.Role, Mode=TwoWay}" Grid.Row="6" Grid.Column="1" Width="200"/>
+                                <TextBlock Text="Is Admin:" Grid.Row="7" Grid.Column="0" VerticalAlignment="Center"/>
+                                <CheckBox Grid.Row="7" Grid.Column="1" IsChecked="{Binding SelectedUser.IsAdmin, Mode=TwoWay}" IsEnabled="{Binding UserPassword, Converter={StaticResource NonEmptyStringToBoolConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                            </Grid>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="10">
                                 <Button Content="New User" Click="NewUserButton_Click" Width="100" Margin="5"/>
                                 <Button Content="Delete User" Click="DeleteUserButton_Click" Width="100" Margin="5"/>
@@ -473,21 +486,18 @@
                         </StackPanel>
 
                         <!-- Company Logo -->
-                        <TextBlock Text="Company Logo:" FontWeight="Bold" Margin="5" />
-                        <Image x:Name="LogoPreview"
-                           Width="150"
-                           Height="150"
-                           Margin="5"
-                           Stretch="Uniform"
-                           HorizontalAlignment="Left"/>
-                        <Button Content="Upload Logo"
-                            Click="UploadLogoButton_Click"
-                            Margin="5"
-                            HorizontalAlignment="Left" />
-                        <Button Content="Save Settings"
-                            Click="SaveSettingsButton_Click"
-                            Margin="5"
-                            HorizontalAlignment="Left" />
+                        <Grid Margin="5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Company Logo:" FontWeight="Bold" Grid.Column="0" VerticalAlignment="Top" Margin="0,0,5,0" />
+                            <StackPanel Grid.Column="1">
+                                <Image x:Name="LogoPreview" Width="150" Height="150" Margin="0,0,0,5" Stretch="Uniform" />
+                                <Button Content="Upload Logo" Click="UploadLogoButton_Click" Margin="0,0,0,5" HorizontalAlignment="Left" />
+                                <Button Content="Save Settings" Click="SaveSettingsButton_Click" Margin="0" HorizontalAlignment="Left" />
+                            </StackPanel>
+                        </Grid>
 
                         <TextBlock Text="All Settings" FontWeight="Bold" Margin="5" />
                         <Button Content="Load Settings" Click="LoadAllSettingsButton_Click" Margin="5" HorizontalAlignment="Left" />
@@ -594,7 +604,7 @@
             </TabControl>
 
             <!-- Status Bar -->
-            <StatusBar Grid.Row="1" Height="25" Background="LightGray">
+            <StatusBar Grid.Row="0" Height="25" Background="LightGray">
                 <StatusBarItem Content="Ready" />
             </StatusBar>
         </Grid>
