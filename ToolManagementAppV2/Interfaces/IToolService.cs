@@ -4,7 +4,7 @@ using ToolManagementAppV2.Models;
 
 namespace ToolManagementAppV2.Interfaces
 {
-    internal interface IToolService
+    public interface IToolService
     {
         void AddTool(ToolModel tool);
         void UpdateTool(ToolModel tool);

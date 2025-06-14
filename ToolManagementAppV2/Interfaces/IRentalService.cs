@@ -5,7 +5,7 @@ using ToolManagementAppV2.Models.Domain;
 
 namespace ToolManagementAppV2.Interfaces
 {
-    internal interface IRentalService
+    public interface IRentalService
     {
         void RentTool(string toolID, int customerID, DateTime rentalDate, DateTime dueDate);
         void ReturnTool(int rentalID, DateTime returnDate);

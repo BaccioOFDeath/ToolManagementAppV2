@@ -2,7 +2,7 @@
 
 namespace ToolManagementAppV2.Interfaces
 {
-    internal interface ISettingsService
+    public interface ISettingsService
     {
         void SaveSetting(string key, string value);
         string GetSetting(string key);
