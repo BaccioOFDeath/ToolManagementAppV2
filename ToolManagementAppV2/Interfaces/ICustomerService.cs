@@ -12,5 +12,7 @@ namespace ToolManagementAppV2.Interfaces
         Customer GetCustomerByID(int customerID);
         List<Customer> GetAllCustomers();
         List<Customer> SearchCustomers(string searchTerm);
+        void ImportCustomersFromCsv(string filePath, IDictionary<string,string> map);
+        void ExportCustomersToCsv(string filePath);
     }
 }
