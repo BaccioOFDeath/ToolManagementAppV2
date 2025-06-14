@@ -8,7 +8,9 @@ namespace ToolManagementAppV2.Interfaces
     public interface IRentalService
     {
         void RentTool(string toolID, int customerID, DateTime rentalDate, DateTime dueDate);
+        void RentToolWithTransaction(string toolID, int customerID, DateTime rentalDate, DateTime dueDate);
         void ReturnTool(int rentalID, DateTime returnDate);
+        void ReturnToolWithTransaction(int rentalID, DateTime returnDate);
         void ExtendRental(int rentalID, DateTime newDueDate);
         List<Rental> GetActiveRentals();
         List<Rental> GetOverdueRentals();
