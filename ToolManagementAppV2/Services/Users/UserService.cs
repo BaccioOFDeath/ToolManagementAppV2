@@ -6,10 +6,11 @@ using System.Data;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Utilities.Helpers;
+using ToolManagementAppV2.Interfaces;
 
 namespace ToolManagementAppV2.Services.Users
 {
-    public class UserService
+    public class UserService : IUserService
     {
         readonly string _connString;
 

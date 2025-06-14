@@ -8,11 +8,12 @@ The application is used in an automotive workshop to manage tool inventory, cust
 - Use WPF MVVM pattern. `MainViewModel` is the root context.
 - Use `ObservableCollection<T>` for all collections.
 - Fully implement `INotifyPropertyChanged` in all models and viewmodels.
-- Use Entity Framework Core for database access (SQL Server or SQLite).
+- Use `DatabaseService` with SQLite for all database access. Do not use Entity Framework Core.
 - Use CommunityToolkit.Mvvm (`ObservableObject`, `RelayCommand`, etc).
 - Always include all necessary `using` statements.
 - Catch all exceptions and write them to the console. No unhandled exceptions.
 - All code must be fully functional, production-ready, and directly runnable.
+- Write accompanying unit tests in `ToolManagementAppV2.Tests` for new features or changes.
 - Provide full C# code files and full XAML files as complete Visual Studio files.
 - Do not include placeholders, pseudo-code, comments, explanations, or descriptions.
 - Code must be fully insertable into Visual Studio without any modifications.
@@ -23,11 +24,25 @@ The application is used in an automotive workshop to manage tool inventory, cust
 - **Tool** — full CRUD already implemented.
 - **Rental** — fields: `RentalID`, `ToolID`, `CustomerID`, `RentalDate`, `DueDate`, `ReturnedDate`, `Notes`.
 - **User** — fields: `UserID`, `UserName`, `PasswordHash`, `IsAdmin`, `PhotoPath`.
-- **AppDbContext** — exists and fully implemented.
+- **SettingItem** — key/value pairs for application settings.
+- **ActivityLog** — tracks user actions for audit purposes.
 
 ## Per Task Instructions
 
-For each coding task, use the following format:
+For each coding task, use the following template:
 
-**For this task:**  
-<INSERT FEATURE OR MODULE REQUEST HERE>
+**For this task:** <describe feature>
+
+1. Modify or create the necessary C# and XAML files following the Global Coding Rules.
+2. Add or update unit tests under `ToolManagementAppV2.Tests` for any new functionality.
+3. Run `dotnet test` to ensure all tests pass before committing.
+4. Commit with a concise message that reflects the change.
+
+### Pull Request Template
+
+**Title:** <short summary>
+
+**Description:**
+ - Explain the feature or fix implemented.
+ - Include the result of `dotnet test`.
+ - Note any environment limitations encountered.

@@ -10,6 +10,7 @@ using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
+using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Converters;
 using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.Models.Domain;
@@ -83,7 +84,7 @@ namespace ToolManagementAppV2.Tests
             try
             {
                 var db = new DatabaseService(dbPath);
-                var userService = new UserService(db);
+                IUserService userService = new UserService(db);
                 userService.AddUser(new User { UserName = "u", Password = "p", UserPhotoPath = "pack://application:,,,/Resources/NoFile.png" });
                 var window = (MainWindow)FormatterServices.GetUninitializedObject(typeof(MainWindow));
                 var list = new ListView();
@@ -136,9 +137,9 @@ namespace ToolManagementAppV2.Tests
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
-                var customerService = new CustomerService(db);
-                var rentalService = new RentalService(db);
+                IToolService toolService = new ToolService(db);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
 
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 0 });
                 var tool = toolService.GetAllTools().First();
@@ -165,9 +166,9 @@ namespace ToolManagementAppV2.Tests
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
-                var customerService = new CustomerService(db);
-                var rentalService = new RentalService(db);
+                IToolService toolService = new ToolService(db);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
 
                 toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Wrench", QuantityOnHand = 0 });
                 var tool = toolService.GetAllTools().First();
@@ -194,7 +195,7 @@ namespace ToolManagementAppV2.Tests
             try
             {
                 var db = new DatabaseService(dbPath);
-                var rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db);
 
                 var sw = new StringWriter();
                 var original = Console.Out;
@@ -216,7 +217,7 @@ namespace ToolManagementAppV2.Tests
             try
             {
                 var db = new DatabaseService(dbPath);
-                var rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db);
 
                 var sw = new StringWriter();
                 var original = Console.Out;

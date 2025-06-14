@@ -12,6 +12,7 @@ using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Views;
 using ToolManagementAppV2.Utilities.Helpers;
@@ -21,11 +22,11 @@ namespace ToolManagementAppV2
     public partial class MainWindow : Window
     {
         readonly DatabaseService _db;
-        readonly ToolService _toolService;
-        readonly CustomerService _customerService;
-        readonly RentalService _rentalService;
-        readonly UserService _userService;
-        readonly SettingsService _settingsService;
+        readonly IToolService _toolService;
+        readonly ICustomerService _customerService;
+        readonly IRentalService _rentalService;
+        readonly IUserService _userService;
+        readonly ISettingsService _settingsService;
         readonly ActivityLogService _activityLogService;
         readonly ReportService _reportService;
         readonly Printer _printer;

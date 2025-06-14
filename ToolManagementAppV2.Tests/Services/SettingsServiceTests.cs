@@ -3,6 +3,7 @@ using System.Data.SQLite;
 using System.IO;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Settings;
+using ToolManagementAppV2.Interfaces;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.Services
@@ -16,7 +17,7 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var dbService = new DatabaseService(dbPath);
-                var service = new SettingsService(dbService);
+                ISettingsService service = new SettingsService(dbService);
 
                 using (var conn = new SQLiteConnection(dbService.ConnectionString))
                 {

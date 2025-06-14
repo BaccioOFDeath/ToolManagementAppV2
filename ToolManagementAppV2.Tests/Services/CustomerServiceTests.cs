@@ -3,6 +3,7 @@ using System.Linq;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Customers;
+using ToolManagementAppV2.Interfaces;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.Services
@@ -16,7 +17,7 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var dbService = new DatabaseService(dbPath);
-                var service = new CustomerService(dbService);
+                ICustomerService service = new CustomerService(dbService);
 
                 service.AddCustomer(new Customer { Company = "Acme", Contact = "J" });
 
@@ -37,7 +38,7 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var dbService = new DatabaseService(dbPath);
-                var service = new CustomerService(dbService);
+                ICustomerService service = new CustomerService(dbService);
 
                 service.AddCustomer(new Customer { Company = "Acme", Contact = "John" });
                 var cust = service.GetAllCustomers().First();

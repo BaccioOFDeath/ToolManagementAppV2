@@ -2,10 +2,11 @@
 using System.Data.SQLite;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
+using ToolManagementAppV2.Interfaces;
 
 namespace ToolManagementAppV2.Services.Rentals
 {
-    public class RentalService
+    public class RentalService : IRentalService
     {
         readonly string _connString;
 

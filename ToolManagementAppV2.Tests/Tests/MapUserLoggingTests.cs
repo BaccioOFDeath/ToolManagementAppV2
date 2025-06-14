@@ -3,6 +3,7 @@ using System.IO;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.Interfaces;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests
@@ -16,7 +17,7 @@ namespace ToolManagementAppV2.Tests
             try
             {
                 var db = new DatabaseService(dbPath);
-                var service = new UserService(db);
+                IUserService service = new UserService(db);
                 service.AddUser(new User { UserName = "u", Password = "p", UserPhotoPath = "pack://application:,,,/Resources/NoImage.png" });
 
                 var sw = new StringWriter();
@@ -45,7 +46,7 @@ namespace ToolManagementAppV2.Tests
             try
             {
                 var db = new DatabaseService(dbPath);
-                var service = new UserService(db);
+                IUserService service = new UserService(db);
                 service.AddUser(new User { UserName = "u", Password = "p", UserPhotoPath = "invalid|path.png" });
 
                 var sw = new StringWriter();
