@@ -14,6 +14,7 @@ using ToolManagementAppV2.Utilities.Converters;
 using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.Models.Domain;
 using Xunit;
+using System.Linq;
 
 namespace ToolManagementAppV2.Tests
 {
