@@ -4,7 +4,7 @@ using ToolManagementAppV2.Models.Domain;
 
 namespace ToolManagementAppV2.Interfaces
 {
-    internal interface ICustomerService
+    public interface ICustomerService
     {
         void AddCustomer(Customer customer);
         void UpdateCustomer(Customer customer);

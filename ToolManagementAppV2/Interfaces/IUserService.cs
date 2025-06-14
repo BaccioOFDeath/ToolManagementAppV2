@@ -4,7 +4,7 @@ using ToolManagementAppV2.Models.Domain;
 
 namespace ToolManagementAppV2.Interfaces
 {
-    internal interface IUserService
+    public interface IUserService
     {
         List<User> GetAllUsers();
         User GetUserByID(int userID);
