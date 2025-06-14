@@ -32,3 +32,17 @@ The application is used in an automotive workshop to manage tool inventory, cust
 For each coding task, use the following template:
 
 **For this task:** <describe feature>
+
+1. Modify or create the necessary C# and XAML files following the Global Coding Rules.
+2. Add or update unit tests under `ToolManagementAppV2.Tests` for any new functionality.
+3. Run `dotnet test` to ensure all tests pass before committing.
+4. Commit with a concise message that reflects the change.
+
+### Pull Request Template
+
+**Title:** <short summary>
+
+**Description:**
+ - Explain the feature or fix implemented.
+ - Include the result of `dotnet test`.
+ - Note any environment limitations encountered.
