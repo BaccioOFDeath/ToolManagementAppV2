@@ -296,12 +296,30 @@
                         </Grid.RowDefinitions>
                         <GroupBox Header="Customer Details" Grid.Column="0" Grid.Row="0" Margin="5">
                             <StackPanel>
-                                <xctk:WatermarkTextBox x:Name="CustomerNameInput" Watermark="Name" Margin="5" />
-                                <xctk:WatermarkTextBox x:Name="CustomerEmailInput" Watermark="Email" Margin="5" />
-                                <xctk:WatermarkTextBox x:Name="CustomerContactInput" Watermark="Customer Contact" Margin="5" />
-                                <xctk:WatermarkTextBox x:Name="CustomerPhoneInput" Watermark="Phone" Margin="5" />
-                                <xctk:WatermarkTextBox x:Name="CustomerMobileInput" Watermark="Mobile" Margin="5" />
-                                <xctk:WatermarkTextBox x:Name="CustomerAddressInput" Watermark="Address" Margin="5" />
+                                <xctk:WatermarkTextBox x:Name="CustomerNameInput"
+                                                        Watermark="Name"
+                                                        Text="{Binding NewCustomerName, UpdateSourceTrigger=PropertyChanged}"
+                                                        Margin="5" />
+                                <xctk:WatermarkTextBox x:Name="CustomerEmailInput"
+                                                        Watermark="Email"
+                                                        Text="{Binding NewCustomerEmail, UpdateSourceTrigger=PropertyChanged}"
+                                                        Margin="5" />
+                                <xctk:WatermarkTextBox x:Name="CustomerContactInput"
+                                                        Watermark="Customer Contact"
+                                                        Text="{Binding NewCustomerContact, UpdateSourceTrigger=PropertyChanged}"
+                                                        Margin="5" />
+                                <xctk:WatermarkTextBox x:Name="CustomerPhoneInput"
+                                                        Watermark="Phone"
+                                                        Text="{Binding NewCustomerPhone, UpdateSourceTrigger=PropertyChanged}"
+                                                        Margin="5" />
+                                <xctk:WatermarkTextBox x:Name="CustomerMobileInput"
+                                                        Watermark="Mobile"
+                                                        Text="{Binding NewCustomerMobile, UpdateSourceTrigger=PropertyChanged}"
+                                                        Margin="5" />
+                                <xctk:WatermarkTextBox x:Name="CustomerAddressInput"
+                                                        Watermark="Address"
+                                                        Text="{Binding NewCustomerAddress, UpdateSourceTrigger=PropertyChanged}"
+                                                        Margin="5" />
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                     <Button Content="Add" Command="{Binding AddCustomerCommand}" Margin="5" />
                                     <Button Content="Update" Command="{Binding UpdateCustomerCommand}" Margin="5" />
@@ -312,7 +330,7 @@
                         <xctk:WatermarkTextBox x:Name="CustomerSearchInput" Grid.Column="1" Grid.Row="0"
                                               Margin="5" Width="300"
                                               Watermark="Search Customers..." TextChanged="CustomerSearchInput_TextChanged" />
-                        <ListView x:Name="CustomerList" Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Customers}" Margin="5">
+                        <ListView x:Name="CustomerList" Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Customers}" SelectedItem="{Binding SelectedCustomer, Mode=TwoWay}" Margin="5">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Company}" Width="150" />

@@ -75,5 +75,89 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void AddCustomerCommand_AddsCustomerAndClearsFields()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                IUserService userService = new UserService(db);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
+                ISettingsService settingsService = new SettingsService(db);
+
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService);
+
+                vm.NewCustomerName = "Acme";
+                vm.NewCustomerEmail = "info@acme.com";
+                vm.NewCustomerContact = "John";
+                vm.NewCustomerPhone = "111";
+                vm.NewCustomerMobile = "222";
+                vm.NewCustomerAddress = "Addr";
+
+                vm.AddCustomerCommand.Execute(null);
+
+                Assert.Single(vm.Customers);
+                var added = vm.Customers.First();
+                Assert.Equal("Acme", added.Company);
+                Assert.Equal(string.Empty, vm.NewCustomerName);
+                Assert.Equal(string.Empty, vm.NewCustomerEmail);
+                Assert.Equal(string.Empty, vm.NewCustomerContact);
+                Assert.Equal(string.Empty, vm.NewCustomerPhone);
+                Assert.Equal(string.Empty, vm.NewCustomerMobile);
+                Assert.Equal(string.Empty, vm.NewCustomerAddress);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void UpdateCustomerCommand_UpdatesSelectedCustomerFromBoundFields()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                IUserService userService = new UserService(db);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
+                ISettingsService settingsService = new SettingsService(db);
+
+                customerService.AddCustomer(new Customer { Company = "Old" });
+                var existing = customerService.GetAllCustomers().First();
+
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService);
+                vm.SelectedCustomer = vm.Customers.First();
+
+                vm.NewCustomerName = "New";
+                vm.NewCustomerEmail = "new@a.com";
+                vm.NewCustomerContact = "Bob";
+                vm.NewCustomerPhone = "123";
+                vm.NewCustomerMobile = "456";
+                vm.NewCustomerAddress = "Addr2";
+
+                vm.UpdateCustomerCommand.Execute(null);
+
+                var updated = customerService.GetCustomerByID(existing.CustomerID);
+                Assert.Equal("New", updated.Company);
+                Assert.Equal("new@a.com", updated.Email);
+                Assert.Equal("Bob", updated.Contact);
+                Assert.Equal("123", updated.Phone);
+                Assert.Equal("456", updated.Mobile);
+                Assert.Equal("Addr2", updated.Address);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }

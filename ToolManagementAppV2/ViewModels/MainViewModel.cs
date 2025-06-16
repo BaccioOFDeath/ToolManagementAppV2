@@ -443,10 +443,25 @@ namespace ToolManagementAppV2.ViewModels
                 Address = NewCustomerAddress
             });
             LoadCustomers();
+            NewCustomerName = string.Empty;
+            NewCustomerEmail = string.Empty;
+            NewCustomerContact = string.Empty;
+            NewCustomerPhone = string.Empty;
+            NewCustomerMobile = string.Empty;
+            NewCustomerAddress = string.Empty;
         }
 
         void UpdateCustomer()
         {
+            if (SelectedCustomer == null) return;
+
+            SelectedCustomer.Company = NewCustomerName;
+            SelectedCustomer.Email = NewCustomerEmail;
+            SelectedCustomer.Contact = NewCustomerContact;
+            SelectedCustomer.Phone = NewCustomerPhone;
+            SelectedCustomer.Mobile = NewCustomerMobile;
+            SelectedCustomer.Address = NewCustomerAddress;
+
             _customerService.UpdateCustomer(SelectedCustomer);
             LoadCustomers();
         }
