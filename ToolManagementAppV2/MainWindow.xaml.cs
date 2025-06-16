@@ -604,8 +604,8 @@ namespace ToolManagementAppV2
             var details = new Paragraph();
             void AddLine(string text) => details.Inlines.Add(new Run(text + "\n"));
             AddLine($"Rental ID: {r.RentalID}");
-            AddLine($"Tool ID: {r.ToolID}");
-            AddLine($"Customer ID: {r.CustomerID}");
+            AddLine($"Tool: {r.ToolNumber}");
+            AddLine($"Customer: {r.CustomerName}");
             AddLine($"Rental Date: {r.RentalDate:yyyy-MM-dd}");
             AddLine($"Due Date: {r.DueDate:yyyy-MM-dd}");
             if (r.ReturnDate.HasValue)

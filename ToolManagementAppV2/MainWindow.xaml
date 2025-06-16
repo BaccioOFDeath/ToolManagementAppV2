@@ -275,17 +275,14 @@
                             <StackPanel Orientation="Vertical" Margin="5">
 
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                    <xctk:WatermarkTextBox x:Name="ToolIDForRentalInput" Watermark="Tool ID" Width="150" Margin="5"/>
-                                    <xctk:WatermarkTextBox x:Name="CustomerIDForRentalInput" Watermark="Customer ID" Width="150" Margin="5"/>
-                                    <xctk:WatermarkTextBox x:Name="DueDateInput" Watermark="Due Date (YYYY-MM-DD)" Width="150" Margin="5"/>
                                     <Button Content="Rent Tool" Command="{Binding RentToolCommand}" Width="120" Margin="5"/>
                                     <Button Content="Return Tool" Command="{Binding ReturnToolCommand}" Width="120" Margin="5"/>
                                     <Button Content="Print Receipt" Click="PrintRentalReceipt_Click" Width="120" Margin="5"/>
                                 </StackPanel>
 
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                    <xctk:WatermarkTextBox x:Name="RentalIDInput" Watermark="Rental ID" Width="120" Margin="5"/>
-                                    <xctk:WatermarkTextBox x:Name="NewDueDateInput" Watermark="New Due Date (YYYY-MM-DD)" Width="150" Margin="5"/>
+                                    <xctk:WatermarkTextBox x:Name="RentalIDInput" Watermark="Rental ID" Width="120" Margin="5" IsReadOnly="True" Text="{Binding SelectedRental.RentalID}"/>
+                                    <DatePicker x:Name="NewDueDateInput" SelectedDate="{Binding NewDueDate, Mode=TwoWay}" Width="150" Margin="5"/>
                                     <Button Content="Extend Rental" Command="{Binding ExtendRentalCommand}" Width="150" Margin="5"/>
                                     <Button Content="Overdue Rentals" Command="{Binding LoadOverdueRentalsCommand}" Width="150" Margin="5"/>
                                 </StackPanel>
@@ -293,12 +290,12 @@
                             </StackPanel>
                         </GroupBox>
 
-                        <ListView x:Name="RentalsList" ItemsSource="{Binding ActiveRentals}" Grid.Row="1">
+                        <ListView x:Name="RentalsList" ItemsSource="{Binding ActiveRentals}" SelectedItem="{Binding SelectedRental, Mode=TwoWay}" Grid.Row="1">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Header="Rental ID" DisplayMemberBinding="{Binding RentalID}" Width="80"/>
-                                    <GridViewColumn Header="Tool ID" DisplayMemberBinding="{Binding ToolID}" Width="80"/>
-                                    <GridViewColumn Header="Customer ID" DisplayMemberBinding="{Binding CustomerID}" Width="80"/>
+                                    <GridViewColumn Header="Tool" DisplayMemberBinding="{Binding ToolNumber}" Width="120"/>
+                                    <GridViewColumn Header="Customer" DisplayMemberBinding="{Binding CustomerName}" Width="150"/>
                                     <GridViewColumn Header="Rental Date" DisplayMemberBinding="{Binding RentalDate, StringFormat=\{0:yyyy-MM-dd\}}" Width="120"/>
                                     <GridViewColumn Header="Due Date" DisplayMemberBinding="{Binding DueDate, StringFormat=\{0:yyyy-MM-dd\}}" Width="120"/>
                                     <GridViewColumn Header="Return Date" DisplayMemberBinding="{Binding ReturnDate, StringFormat=\{0:yyyy-MM-dd\}}" Width="120"/>
