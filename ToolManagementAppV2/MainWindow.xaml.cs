@@ -49,7 +49,7 @@ namespace ToolManagementAppV2
 
             try
             {
-                RefreshToolList();
+                ((MainViewModel)DataContext).LoadTools();
                 RefreshUserList();
                 RefreshCustomerList();
                 RefreshRentalList();
@@ -472,10 +472,12 @@ namespace ToolManagementAppV2
             try
             {
                 if (DataContext is MainViewModel vm)
+
                 {
                     vm.LoadTools();
                     vm.SearchCommand.Execute(null);
                 }
+
             }
             catch (Exception ex)
             {
@@ -743,7 +745,8 @@ namespace ToolManagementAppV2
             {
                 case "Search Tools":
                 case "Tool Management":
-                    RefreshToolList();
+                    if (DataContext is MainViewModel vm)
+                        vm.LoadTools();
                     break;
                 case "Customers":
                     RefreshCustomerList();
