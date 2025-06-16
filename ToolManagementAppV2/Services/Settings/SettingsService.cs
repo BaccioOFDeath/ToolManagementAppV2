@@ -7,7 +7,6 @@ namespace ToolManagementAppV2.Services.Settings
 {
     public class SettingsService : ISettingsService
     {
-        readonly string _connString;
         readonly DatabaseService _dbService;
         const string UpsertSql = @"
             INSERT INTO Settings (Key, Value) 
@@ -17,7 +16,6 @@ namespace ToolManagementAppV2.Services.Settings
         public SettingsService(DatabaseService dbService)
         {
             _dbService = dbService;
-            _connString = dbService.ConnectionString;
         }
 
         public void SaveSetting(string key, string value)
@@ -27,7 +25,8 @@ namespace ToolManagementAppV2.Services.Settings
                 new SQLiteParameter("@Key", key),
                 new SQLiteParameter("@Value", value)
             };
-            SqliteHelper.ExecuteNonQuery(_connString, UpsertSql, p);
+            using var conn = _dbService.CreateConnection();
+            SqliteHelper.ExecuteNonQuery(conn, UpsertSql, p);
         }
 
         public string GetSetting(string key)
@@ -80,7 +79,8 @@ namespace ToolManagementAppV2.Services.Settings
         {
             const string sql = "DELETE FROM Settings WHERE Key = @Key";
             var p = new[] { new SQLiteParameter("@Key", key) };
-            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
+            using var conn = _dbService.CreateConnection();
+            SqliteHelper.ExecuteNonQuery(conn, sql, p);
         }
     }
 }
