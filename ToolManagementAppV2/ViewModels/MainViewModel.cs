@@ -381,41 +381,34 @@ namespace ToolManagementAppV2.ViewModels
 
         void ChooseProfilePic() => UploadPhotoForUser((UserModel)Application.Current.Properties["CurrentUser"]);
 
+        protected virtual string? SelectAvatar()
+        {
+            var win = new AvatarSelectionWindow();
+            return win.ShowDialog() == true ? win.SelectedAvatarPath : null;
+        }
+
         void UploadPhotoForUser(UserModel u)
         {
-            if (!ShowFileDialog("Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg", out var src)) return;
-
-            string dest;
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            var avatarDir = Path.Combine(baseDir, "Resources", "Avatars");
-
-            if (src.StartsWith("pack://") || src.StartsWith(avatarDir, StringComparison.OrdinalIgnoreCase))
-            {
-                dest = src;
-            }
-            else
-            {
-                var folder = Path.Combine(baseDir, "UserPhotos");
-                Directory.CreateDirectory(folder);
-                dest = Path.Combine(folder, $"{Guid.NewGuid()}{Path.GetExtension(src)}");
-                File.Copy(src, dest, true);
-            }
+            var avatarPath = SelectAvatar();
+            if (string.IsNullOrEmpty(avatarPath))
+                return;
+            var relative = Path.Combine("Resources", "Avatars", Path.GetFileName(avatarPath)).Replace(Path.DirectorySeparatorChar, '/');
 
             var bmp = new BitmapImage();
             bmp.BeginInit();
-            bmp.UriSource = new Uri(dest, UriKind.Absolute);
+            bmp.UriSource = new Uri(avatarPath, UriKind.Absolute);
             bmp.CacheOption = BitmapCacheOption.OnLoad;
             bmp.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
             bmp.EndInit();
             bmp.Freeze();
 
-            u.UserPhotoPath = dest;
+            u.UserPhotoPath = relative;
             u.PhotoBitmap = bmp;
             _userService.UpdateUser(u);
 
             if (Application.Current.Properties["CurrentUser"] is UserModel cu && cu.UserID == u.UserID)
             {
-                cu.UserPhotoPath = dest;
+                cu.UserPhotoPath = relative;
                 cu.PhotoBitmap = bmp;
                 CurrentUserPhoto = bmp;
                 CurrentUserName = cu.UserName;

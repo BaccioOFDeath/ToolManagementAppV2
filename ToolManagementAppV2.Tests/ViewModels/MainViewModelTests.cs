@@ -75,5 +75,47 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void ChooseProfilePicCommand_SetsAvatarPath()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                IUserService userService = new UserService(db);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
+                ISettingsService settingsService = new SettingsService(db);
+
+                userService.AddUser(new User { UserName = "u", Password = "p", IsAdmin = true });
+                var user = userService.GetAllUsers().First();
+
+                var avatarDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Avatars");
+                var avatar = Directory.GetFiles(avatarDir, "*.png").First();
+
+                var vm = new TestMainViewModel(toolService, userService, customerService, rentalService, settingsService, avatar);
+
+                Application.Current.Properties["CurrentUser"] = user;
+                vm.ChooseProfilePicCommand.Execute(null);
+
+                var updated = userService.GetAllUsers().First();
+                Assert.StartsWith("Resources/Avatars/", updated.UserPhotoPath.Replace("\\", "/"));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        class TestMainViewModel : MainViewModel
+        {
+            readonly string _avatar;
+            public TestMainViewModel(IToolService t, IUserService u, ICustomerService c, IRentalService r, ISettingsService s, string avatar)
+                : base(t, u, c, r, s) => _avatar = avatar;
+            protected override string? SelectAvatar() => _avatar;
+        }
     }
 }
