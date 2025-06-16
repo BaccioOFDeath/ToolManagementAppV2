@@ -75,5 +75,50 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void AddToolCommand_PersistsNewToolValues()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                IUserService userService = new UserService(db);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
+                ISettingsService settingsService = new SettingsService(db);
+
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService);
+
+                vm.NewTool.ToolNumber = "TN1";
+                vm.NewTool.NameDescription = "Hammer";
+                vm.NewTool.PartNumber = "PN1";
+                vm.NewTool.Brand = "BrandA";
+                vm.NewTool.Location = "Shelf";
+                vm.NewTool.QuantityOnHand = 5;
+                vm.NewTool.Supplier = "ABC";
+                vm.NewTool.Notes = "Note";
+
+                vm.AddToolCommand.Execute(null);
+
+                var tools = toolService.GetAllTools();
+                Assert.Single(tools);
+                var tool = tools.First();
+                Assert.Equal("TN1", tool.ToolNumber);
+                Assert.Equal("Hammer", tool.NameDescription);
+                Assert.Equal("PN1", tool.PartNumber);
+                Assert.Equal("BrandA", tool.Brand);
+                Assert.Equal("Shelf", tool.Location);
+                Assert.Equal(5, tool.QuantityOnHand);
+                Assert.Equal("ABC", tool.Supplier);
+                Assert.Equal("Note", tool.Notes);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }
