@@ -425,7 +425,7 @@ namespace ToolManagementAppV2.ViewModels
 
 
 
-        void LoadCustomers()
+        public void LoadCustomers()
         {
             Customers.ReplaceRange(_customerService.GetAllCustomers());
         }
@@ -557,7 +557,7 @@ namespace ToolManagementAppV2.ViewModels
 
 
 
-        void LoadActiveRentals()
+        public void LoadActiveRentals()
         {
             ActiveRentals.ReplaceRange(_rentalService.GetActiveRentals());
             SelectedRental = null;
