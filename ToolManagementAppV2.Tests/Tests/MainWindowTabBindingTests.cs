@@ -9,7 +9,7 @@ namespace ToolManagementAppV2.Tests.Tests
 {
     public class MainWindowTabBindingTests
     {
-        [StaFact]
+        [Fact]
         public void SwitchingTabs_DoesNotBreakToolsListBinding()
         {
             var window = new MainWindow();
