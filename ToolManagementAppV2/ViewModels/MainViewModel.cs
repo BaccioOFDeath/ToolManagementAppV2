@@ -28,6 +28,7 @@ namespace ToolManagementAppV2.ViewModels
         readonly ICustomerService _customerService;
         readonly IRentalService _rentalService;
         readonly ISettingsService _settingsService;
+        readonly ActivityLogService _activityLogService;
 
         public ObservableCollection<ToolModel> Tools { get; } = new();
         public ObservableCollection<ToolModel> SearchResults { get; } = new();
@@ -160,6 +161,41 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
+        string _totalToolsSummary;
+        public string TotalToolsSummary
+        {
+            get => _totalToolsSummary;
+            private set => SetProperty(ref _totalToolsSummary, value);
+        }
+
+        string _totalCustomersSummary;
+        public string TotalCustomersSummary
+        {
+            get => _totalCustomersSummary;
+            private set => SetProperty(ref _totalCustomersSummary, value);
+        }
+
+        string _activeRentalsSummary;
+        public string ActiveRentalsSummary
+        {
+            get => _activeRentalsSummary;
+            private set => SetProperty(ref _activeRentalsSummary, value);
+        }
+
+        string _overdueRentalsSummary;
+        public string OverdueRentalsSummary
+        {
+            get => _overdueRentalsSummary;
+            private set => SetProperty(ref _overdueRentalsSummary, value);
+        }
+
+        string _activityLogsSummary;
+        public string ActivityLogsSummary
+        {
+            get => _activityLogsSummary;
+            private set => SetProperty(ref _activityLogsSummary, value);
+        }
+
         public string SearchTerm { get; set; }
         public string CustomerSearchTerm { get; set; }
         public bool IsLastAdmin =>
@@ -211,7 +247,8 @@ namespace ToolManagementAppV2.ViewModels
             IUserService userService,
             ICustomerService customerService,
             IRentalService rentalService,
-            ISettingsService settingsService)
+            ISettingsService settingsService,
+            ActivityLogService activityLogService)
         {
             Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images"));
             Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UserPhotos"));
@@ -220,7 +257,8 @@ namespace ToolManagementAppV2.ViewModels
             _userService = userService;
             _customerService = customerService;
             _rentalService = rentalService;
-           _settingsService = settingsService;
+            _settingsService = settingsService;
+            _activityLogService = activityLogService;
 
            SearchCommand = new RelayCommand(SearchTools);
             SearchCustomersCommand = new RelayCommand(SearchCustomers);
@@ -273,11 +311,13 @@ namespace ToolManagementAppV2.ViewModels
             LoadCustomers();
             LoadActiveRentals();
             LoadOverdueRentals();
+            UpdateSummaries();
         }
 
         public void LoadTools()
         {
             Tools.ReplaceRange(_toolService.GetAllTools());
+            UpdateSummaries();
         }
 
         void LoadCheckedOutTools()
@@ -465,6 +505,7 @@ namespace ToolManagementAppV2.ViewModels
         public void LoadCustomers()
         {
             Customers.ReplaceRange(_customerService.GetAllCustomers());
+            UpdateSummaries();
         }
 
         void AddCustomer()
@@ -615,11 +656,13 @@ namespace ToolManagementAppV2.ViewModels
         {
             ActiveRentals.ReplaceRange(_rentalService.GetActiveRentals());
             SelectedRental = null;
+            UpdateSummaries();
         }
 
         void LoadOverdueRentals()
         {
             OverdueRentals.ReplaceRange(_rentalService.GetOverdueRentals());
+            UpdateSummaries();
         }
 
         void ReturnSelectedRental()
@@ -634,6 +677,15 @@ namespace ToolManagementAppV2.ViewModels
             _rentalService.ExtendRental(SelectedRental.RentalID, NewDueDate);
             LoadActiveRentals();
             LoadOverdueRentals();
+        }
+
+        void UpdateSummaries()
+        {
+            TotalToolsSummary = $"Total Tools: {_toolService.GetAllTools().Count}";
+            TotalCustomersSummary = $"Total Customers: {_customerService.GetAllCustomers().Count}";
+            ActiveRentalsSummary = $"Active Rentals: {_rentalService.GetActiveRentals().Count}";
+            OverdueRentalsSummary = $"Overdue Rentals: {_rentalService.GetOverdueRentals().Count}";
+            ActivityLogsSummary = $"Recent Logs: {_activityLogService.GetRecentLogs(int.MaxValue).Count}";
         }
 
         void ShowRentalHistoryForSelectedTool()
