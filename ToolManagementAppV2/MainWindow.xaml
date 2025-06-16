@@ -278,6 +278,7 @@
                                     <Button Content="Return Tool" Command="{Binding ReturnToolCommand}" Width="120" Margin="5"/>
                                     <Button Content="Print Receipt" Click="PrintRentalReceipt_Click" Width="120" Margin="5"/>
                                     <Button Content="Tool History" Command="{Binding ViewSelectedRentalHistoryCommand}" Width="120" Margin="5"/>
+                                    <Button Content="Customer History" Command="{Binding ViewSelectedCustomerHistoryCommand}" Width="120" Margin="5"/>
                                 </StackPanel>
 
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
