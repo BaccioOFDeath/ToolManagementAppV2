@@ -106,9 +106,24 @@ namespace ToolManagementAppV2.Services.Core
         void EnsureColumn(string table, string column, string type)
         {
             if (SqliteHelper.ColumnExists(ConnectionString, table, column)) return;
-            using var conn = CreateConnection();
-            using var alter = new SQLiteCommand($"ALTER TABLE {table} ADD COLUMN {column} {type}", conn);
-            alter.ExecuteNonQuery();
+            try
+            {
+                using var conn = CreateConnection();
+                using var alter = new SQLiteCommand($"ALTER TABLE {table} ADD COLUMN {column} {type}", conn);
+                alter.ExecuteNonQuery();
+            }
+            catch (SQLiteException ex)
+            {
+                if (ex.Message.Contains("duplicate column name", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Column already exists due to a race condition; safe to ignore
+                }
+                else
+                {
+                    Console.WriteLine(ex);
+                    throw;
+                }
+            }
         }
 
         /// <summary>
