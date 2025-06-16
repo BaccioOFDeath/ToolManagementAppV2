@@ -16,6 +16,7 @@ using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.ViewModels.Rental;
 using ToolManagementAppV2.Views;
+using System.Windows.Controls;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -179,6 +180,14 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand ExtendRentalCommand { get; }
         public IRelayCommand ViewRentalHistoryCommand { get; }
 
+        public IRelayCommand OpenSearchToolsCommand { get; }
+        public IRelayCommand OpenManageToolsCommand { get; }
+        public IRelayCommand OpenRentalsCommand { get; }
+        public IRelayCommand OpenCustomersCommand { get; }
+        public IRelayCommand OpenReportsCommand { get; }
+        public IRelayCommand OpenSettingsCommand { get; }
+
+
         public MainViewModel(
             IToolService toolService,
             IUserService userService,
@@ -220,6 +229,14 @@ namespace ToolManagementAppV2.ViewModels
             ReturnToolCommand = new RelayCommand(ReturnSelectedRental, () => SelectedRental != null);
             ExtendRentalCommand = new RelayCommand(ExtendSelectedRental, () => SelectedRental != null);
             ViewRentalHistoryCommand = new RelayCommand(ShowRentalHistoryForSelectedTool, () => SelectedTool != null);
+
+            OpenSearchToolsCommand = new RelayCommand(() => SetTab("Tool Search"));
+            OpenManageToolsCommand = new RelayCommand(() => SetTab("Tool Management"));
+            OpenRentalsCommand = new RelayCommand(() => SetTab("Rentals"));
+            OpenCustomersCommand = new RelayCommand(() => SetTab("Customers"));
+            OpenReportsCommand = new RelayCommand(() => SetTab("Reports"));
+            OpenSettingsCommand = new RelayCommand(() => SetTab("Settings"));
+
 
             InitializeData();
             _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
@@ -555,6 +572,23 @@ namespace ToolManagementAppV2.ViewModels
             LoadOverdueRentals();
         }
 
+        void SetTab(string tabHeader)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                if (Application.Current.MainWindow is MainWindow mw)
+                {
+                    foreach (TabItem tab in mw.MyTabControl.Items)
+                    {
+                        if (tab.Header.ToString() == tabHeader)
+                        {
+                            mw.MyTabControl.SelectedItem = tab;
+                            break;
+                        }
+                    }
+                }
+            });
+        }
 
 
         public void LoadActiveRentals()
