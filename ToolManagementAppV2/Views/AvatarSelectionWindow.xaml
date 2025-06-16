@@ -37,10 +37,5 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <!-- STATUS BAR -->
-        <StatusBar DockPanel.Dock="Bottom" Background="LightGray" Height="25">
-            <StatusBarItem Content="Ready" />
-        </StatusBar>
-
     </DockPanel>
 </Window>
