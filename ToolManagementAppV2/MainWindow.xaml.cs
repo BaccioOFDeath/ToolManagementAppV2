@@ -118,78 +118,7 @@ namespace ToolManagementAppV2
             RefreshToolList();
         }
 
-        void AddButton_Click(object s, RoutedEventArgs e)
-        {
-            var toolNumber = ToolNumberInput.Text.Trim();
-            if (string.IsNullOrEmpty(toolNumber))
-            {
-                ShowMessage("Validation Error", "Tool Number is required.", MessageBoxImage.Warning);
-                return;
-            }
 
-            if (_toolService.GetAllTools().Any(x => x.ToolNumber.Equals(toolNumber, StringComparison.OrdinalIgnoreCase)))
-            {
-                ShowMessage("Duplicate Tool Number", "A tool with this Tool Number already exists.", MessageBoxImage.Warning);
-                return;
-            }
-
-            var tool = new Tool
-            {
-                ToolNumber = toolNumber,
-                NameDescription = ToolNameInput.Text.Trim(),
-                PartNumber = PartNumberInput.Text.Trim(),
-                Brand = BrandInput.Text.Trim(),
-                Location = LocationInput.Text.Trim(),
-                QuantityOnHand = int.TryParse(QuantityInput.Text, out var q) ? q : 0,
-                Supplier = SupplierInput.Text.Trim(),
-                PurchasedDate = DateTime.TryParse(PurchasedInput.Text, out var d) ? d : (DateTime?)null,
-                Notes = NotesInput.Text.Trim()
-            };
-
-            _toolService.AddTool(tool);
-            RefreshToolList();
-            ClearToolInputs();
-        }
-
-
-        void UpdateButton_Click(object s, RoutedEventArgs e)
-        {
-            if (!(ToolsList.SelectedItem is Tool t)) return;
-            t.ToolNumber = ToolNumberInput.Text.Trim();
-            t.NameDescription = ToolNameInput.Text.Trim();
-            t.PartNumber = PartNumberInput.Text.Trim();
-            t.Brand = BrandInput.Text.Trim();
-            t.Location = LocationInput.Text.Trim();
-            t.QuantityOnHand = int.TryParse(QuantityInput.Text, out var q) ? q : t.QuantityOnHand;
-            t.Supplier = SupplierInput.Text.Trim();
-            t.PurchasedDate = DateTime.TryParse(PurchasedInput.Text, out var d) ? d : t.PurchasedDate;
-            t.Notes = NotesInput.Text.Trim();
-            _toolService.UpdateTool(t);
-            RefreshToolList();
-            ClearToolInputs();
-        }
-
-        void ClearToolInputs()
-        {
-            ToolNumberInput.Text = "";
-            ToolNameInput.Text = "";
-            PartNumberInput.Text = "";
-            BrandInput.Text = "";
-            LocationInput.Text = "";
-            QuantityInput.Text = "";
-            SupplierInput.Text = "";
-            PurchasedInput.Text = "";
-            NotesInput.Text = "";
-        }
-
-        void DeleteButton_Click(object s, RoutedEventArgs e)
-        {
-            if (ToolsList.SelectedItem is Tool t)
-            {
-                _toolService.DeleteTool(t.ToolID);
-                RefreshToolList();
-            }
-        }
 
         void ChangeToolImage_Click(object s, RoutedEventArgs e)
         {
@@ -233,42 +162,6 @@ namespace ToolManagementAppV2
 
 
         // ---------- Customer & Rental ----------
-        void AddCustomerButton_Click(object s, RoutedEventArgs e)
-        {
-            var c = new Customer
-            {
-                Company = CustomerNameInput.Text.Trim(),
-                Email = CustomerEmailInput.Text.Trim(),
-                Contact = CustomerContactInput.Text.Trim(),
-                Phone = CustomerPhoneInput.Text.Trim(),
-                Mobile = CustomerMobileInput.Text.Trim(),
-                Address = CustomerAddressInput.Text.Trim()
-            };
-            _customerService.AddCustomer(c);
-            RefreshCustomerList();
-        }
-
-        void UpdateCustomerButton_Click(object s, RoutedEventArgs e)
-        {
-            if (!(CustomerList.SelectedItem is Customer c)) return;
-            c.Company = CustomerNameInput.Text.Trim();
-            c.Email = CustomerEmailInput.Text.Trim();
-            c.Contact = CustomerContactInput.Text.Trim();
-            c.Phone = CustomerPhoneInput.Text.Trim();
-            c.Mobile = CustomerMobileInput.Text.Trim();
-            c.Address = CustomerAddressInput.Text.Trim();
-            _customerService.UpdateCustomer(c);
-            RefreshCustomerList();
-        }
-
-        void DeleteCustomerButton_Click(object s, RoutedEventArgs e)
-        {
-            if (CustomerList.SelectedItem is Customer c)
-            {
-                _customerService.DeleteCustomer(c.CustomerID);
-                RefreshCustomerList();
-            }
-        }
 
         void CustomerList_SelectionChanged(object s, SelectionChangedEventArgs e)
         {
@@ -283,48 +176,6 @@ namespace ToolManagementAppV2
             }
         }
 
-        void RentToolButton_Click(object s, RoutedEventArgs e)
-        {
-            if (ToolsList.SelectedItem is Tool t && CustomerList.SelectedItem is Customer c)
-            {
-                try
-                {
-                    var now = DateTime.Now;
-                    _rentalService.RentTool(t.ToolID, c.CustomerID, now, now.AddDays(7));
-                    var user = _userService.GetCurrentUser();
-                    _activityLogService.LogAction(user.UserID, user.UserName, $"Rented tool {t.ToolID} to customer {c.CustomerID}");
-                    RefreshRentalList();
-                    RefreshToolList();
-                }
-                catch (InvalidOperationException ex)
-                {
-                    ShowMessage("Rental Error", ex.Message, MessageBoxImage.Warning);
-                }
-                catch (Exception ex)
-                {
-                    ShowError("Error renting tool", ex);
-                }
-            }
-        }
-
-        void ReturnToolButton_Click(object s, RoutedEventArgs e)
-        {
-            if (RentalsList.SelectedItem is Rental r)
-            {
-                try
-                {
-                    _rentalService.ReturnTool(r.RentalID, DateTime.Now);
-                    var user = _userService.GetCurrentUser();
-                    _activityLogService.LogAction(user.UserID, user.UserName, $"Returned rental {r.RentalID}");
-                    RefreshRentalList();
-                    RefreshToolList();
-                }
-                catch (Exception ex)
-                {
-                    ShowError("Error returning tool", ex);
-                }
-            }
-        }
 
         // ---------- User Management ----------
         void NewUserButton_Click(object s, RoutedEventArgs e)
@@ -392,23 +243,6 @@ namespace ToolManagementAppV2
         }
 
 
-        void UploadUserPhotoButton_Click(object s, RoutedEventArgs e)
-        {
-            if (DataContext is MainViewModel vm && vm.SelectedUser is User u)
-            {
-                var dlg = new AvatarSelectionWindow();
-                if (dlg.ShowDialog() == true) ApplyAvatar(u, dlg.SelectedAvatarPath);
-            }
-        }
-
-        void ChooseUserProfilePicButton_Click(object s, RoutedEventArgs e)
-        {
-            if (App.Current.Properties["CurrentUser"] is User u)
-            {
-                var dlg = new AvatarSelectionWindow();
-                if (dlg.ShowDialog() == true) ApplyAvatar(u, dlg.SelectedAvatarPath);
-            }
-        }
 
         void ApplyAvatar(User u, string path)
         {
@@ -790,38 +624,6 @@ namespace ToolManagementAppV2
         }
 
 
-        void LoadOverdueRentals_Click(object s, RoutedEventArgs e)
-        {
-            try
-            {
-                var overdue = _rentalService.GetOverdueRentals();
-                var msg = string.Join(Environment.NewLine, overdue.Select(r =>
-                    $"RentalID: {r.RentalID}, ToolID: {r.ToolID}, Due: {r.DueDate:yyyy-MM-dd}"));
-                ShowMessage("Overdue Rentals", msg, MessageBoxImage.Information);
-            }
-            catch (Exception ex)
-            {
-                ShowError("Error loading overdue rentals", ex);
-            }
-        }
-
-        void ExtendRentalButton_Click(object s, RoutedEventArgs e)
-        {
-            try
-            {
-                if (int.TryParse(RentalIDInput.Text, out var id) && DateTime.TryParse(NewDueDateInput.Text, out var due))
-                {
-                    _rentalService.ExtendRental(id, due);
-                    ShowMessage("Success", "Rental extended.", MessageBoxImage.Information);
-                    RefreshRentalList();
-                }
-                else ShowMessage("Error", "Invalid input.", MessageBoxImage.Error);
-            }
-            catch (Exception ex)
-            {
-                ShowError("Error extending rental", ex);
-            }
-        }
 
         void PrintRentalReceipt_Click(object s, RoutedEventArgs e)
         {
