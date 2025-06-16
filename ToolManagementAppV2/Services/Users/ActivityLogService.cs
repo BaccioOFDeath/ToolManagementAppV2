@@ -9,10 +9,12 @@ namespace ToolManagementAppV2.Services.Users
 {
     public class ActivityLogService
     {
-        readonly string _connString;
+        readonly DatabaseService _dbService;
 
-        public ActivityLogService(DatabaseService dbService) =>
-            _connString = dbService.ConnectionString;
+        public ActivityLogService(DatabaseService dbService)
+        {
+            _dbService = dbService;
+        }
 
         public void LogAction(int userID, string userName, string action)
         {
@@ -25,7 +27,8 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@UserName", userName),
                 new SQLiteParameter("@Action",   action)
             };
-            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
+            using var conn = _dbService.CreateConnection();
+            SqliteHelper.ExecuteNonQuery(conn, sql, p);
         }
 
         public List<ActivityLog> GetRecentLogs(int count = 50)
@@ -35,7 +38,8 @@ namespace ToolManagementAppV2.Services.Users
                  ORDER BY Timestamp DESC
                  LIMIT @Count";
             var p = new[] { new SQLiteParameter("@Count", count) };
-            return SqliteHelper.ExecuteReader(_connString, sql, p, MapLog);
+            using var conn = _dbService.CreateConnection();
+            return SqliteHelper.ExecuteReader(conn, sql, p, MapLog);
         }
 
         public void PurgeOldLogs(DateTime threshold)
@@ -44,7 +48,8 @@ namespace ToolManagementAppV2.Services.Users
                 DELETE FROM ActivityLogs
                  WHERE Timestamp < @Threshold";
             var p = new[] { new SQLiteParameter("@Threshold", threshold) };
-            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
+            using var conn = _dbService.CreateConnection();
+            SqliteHelper.ExecuteNonQuery(conn, sql, p);
         }
 
         ActivityLog MapLog(IDataRecord r)

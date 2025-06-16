@@ -210,5 +210,42 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void SelectingRental_EnablesCommandsAndSetsDueDate()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                IUserService userService = new UserService(db);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
+                ISettingsService settingsService = new SettingsService(db);
+
+                toolService.AddTool(new Tool { ToolNumber = "TN1", NameDescription = "Hammer", QuantityOnHand = 1 });
+                var tool = toolService.GetAllTools().First();
+                customerService.AddCustomer(new Customer { Company = "Cust" });
+                var cust = customerService.GetAllCustomers().First();
+
+                rentalService.RentTool(tool.ToolID.ToString(), cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(3));
+
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService);
+                vm.LoadActiveRentalsCommand.Execute(null);
+                var rental = vm.ActiveRentals.First();
+
+                vm.SelectedRental = rental;
+
+                Assert.True(vm.ReturnToolCommand.CanExecute(null));
+                Assert.True(vm.ExtendRentalCommand.CanExecute(null));
+                Assert.Equal(rental.DueDate, vm.NewDueDate);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }

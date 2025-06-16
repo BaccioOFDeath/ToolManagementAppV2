@@ -52,5 +52,19 @@ namespace ToolManagementAppV2.Models.Domain
             get => _status;
             set => SetProperty(ref _status, value);
         }
+
+        private string _toolNumber = string.Empty;
+        public string ToolNumber
+        {
+            get => _toolNumber;
+            set => SetProperty(ref _toolNumber, value);
+        }
+
+        private string _customerName = string.Empty;
+        public string CustomerName
+        {
+            get => _customerName;
+            set => SetProperty(ref _customerName, value);
+        }
     }
 }
