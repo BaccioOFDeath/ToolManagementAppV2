@@ -101,6 +101,7 @@ namespace ToolManagementAppV2.ViewModels
                     ((RelayCommand)ReturnToolCommand).NotifyCanExecuteChanged();
                     ((RelayCommand)ExtendRentalCommand).NotifyCanExecuteChanged();
                     ((RelayCommand)ViewSelectedRentalHistoryCommand).NotifyCanExecuteChanged();
+                    ((RelayCommand)ViewSelectedCustomerHistoryCommand).NotifyCanExecuteChanged();
                     if (value != null)
                         NewDueDate = value.DueDate;
                 }
@@ -231,6 +232,7 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand ExtendRentalCommand { get; }
         public IRelayCommand ViewRentalHistoryCommand { get; }
         public IRelayCommand ViewSelectedRentalHistoryCommand { get; }
+        public IRelayCommand ViewSelectedCustomerHistoryCommand { get; }
 
         public IRelayCommand OpenSearchToolsCommand { get; }
         public IRelayCommand OpenManageToolsCommand { get; }
@@ -284,6 +286,7 @@ namespace ToolManagementAppV2.ViewModels
             ExtendRentalCommand = new RelayCommand(ExtendSelectedRental, () => SelectedRental != null);
             ViewRentalHistoryCommand = new RelayCommand(ShowRentalHistoryForSelectedTool, () => SelectedTool != null);
             ViewSelectedRentalHistoryCommand = new RelayCommand(ShowRentalHistoryForSelectedRental, () => SelectedRental != null);
+            ViewSelectedCustomerHistoryCommand = new RelayCommand(ShowRentalHistoryForSelectedCustomer, () => SelectedRental != null);
 
             OpenSearchToolsCommand = new RelayCommand(() => SetTab("Tool Search"));
             OpenManageToolsCommand = new RelayCommand(() => SetTab("Tool Management"));
@@ -704,6 +707,20 @@ namespace ToolManagementAppV2.ViewModels
 
             var history = _rentalService.GetRentalHistoryForTool(SelectedRental.ToolID);
             var vm = new RentalHistoryViewModel(tool, history);
+            var win = new RentalHistoryWindow { DataContext = vm };
+            win.ShowDialog();
+        }
+
+        void ShowRentalHistoryForSelectedCustomer()
+        {
+            if (SelectedRental == null) return;
+
+            var customer = _customerService.GetCustomerByID(SelectedRental.CustomerID);
+            if (customer == null) return;
+
+            var history = _rentalService.GetRentalHistoryForCustomer(customer.CustomerID);
+            var displayTool = new ToolModel { ToolNumber = $"Customer: {customer.Company}", NameDescription = string.Empty };
+            var vm = new RentalHistoryViewModel(displayTool, history);
             var win = new RentalHistoryWindow { DataContext = vm };
             win.ShowDialog();
         }

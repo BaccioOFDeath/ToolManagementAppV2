@@ -209,6 +209,14 @@ namespace ToolManagementAppV2.Services.Rentals
             return SqliteHelper.ExecuteReader(conn, sql, p, MapRental);
         }
 
+        public List<Rental> GetRentalHistoryForCustomer(int customerID)
+        {
+            const string sql = BaseSelect + @" WHERE r.CustomerID = @CustomerID ORDER BY r.RentalDate DESC";
+            var p = new[] { new SQLiteParameter("@CustomerID", customerID) };
+            using var conn = _dbService.CreateConnection();
+            return SqliteHelper.ExecuteReader(conn, sql, p, MapRental);
+        }
+
         Rental MapRental(IDataRecord r) => new()
         {
             RentalID = Convert.ToInt32(r["RentalID"]),

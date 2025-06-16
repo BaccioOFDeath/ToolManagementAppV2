@@ -55,9 +55,9 @@ namespace ToolManagementAppV2.Services.Users
         {
             const string sql = @"
                 INSERT INTO Users
-                  (UserName, Password, UserPhotoPath, IsAdmin, Email, Phone, Address, Role)
+                  (UserName, Password, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role)
                 VALUES
-                  (@UserName,@Password,@Photo,@Admin,@Email,@Phone,@Address,@Role);
+                  (@UserName,@Password,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role);
                 SELECT last_insert_rowid();";
 
             using var conn = _dbService.CreateConnection();
@@ -77,6 +77,7 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@Admin",    user.IsAdmin ? 1 : 0),
                 new SQLiteParameter("@Email",    (object)user.Email ?? DBNull.Value),
                 new SQLiteParameter("@Phone",    (object)user.Phone ?? DBNull.Value),
+                new SQLiteParameter("@Mobile",   (object)user.Mobile ?? DBNull.Value),
                 new SQLiteParameter("@Address",  (object)user.Address ?? DBNull.Value),
                 new SQLiteParameter("@Role",     (object)user.Role ?? DBNull.Value)
             });
@@ -94,6 +95,7 @@ namespace ToolManagementAppV2.Services.Users
                   IsAdmin       = @Admin,
                   Email         = @Email,
                   Phone         = @Phone,
+                  Mobile        = @Mobile,
                   Address       = @Address,
                   Role          = @Role
                 WHERE UserID = @UserID";
@@ -113,6 +115,7 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@Admin",    user.IsAdmin ? 1 : 0),
                 new SQLiteParameter("@Email",    (object)user.Email ?? DBNull.Value),
                 new SQLiteParameter("@Phone",    (object)user.Phone ?? DBNull.Value),
+                new SQLiteParameter("@Mobile",   (object)user.Mobile ?? DBNull.Value),
                 new SQLiteParameter("@Address",  (object)user.Address ?? DBNull.Value),
                 new SQLiteParameter("@Role",     (object)user.Role ?? DBNull.Value)
             };
@@ -174,6 +177,7 @@ namespace ToolManagementAppV2.Services.Users
                 IsAdmin = Convert.ToInt32(rdr["IsAdmin"]) == 1,
                 Email = rdr["Email"]?.ToString(),
                 Phone = rdr["Phone"]?.ToString(),
+                Mobile = rdr["Mobile"]?.ToString(),
                 Address = rdr["Address"]?.ToString(),
                 Role = rdr["Role"]?.ToString()
             };
