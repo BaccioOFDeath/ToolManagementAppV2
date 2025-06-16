@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:ToolManagementAppV2.Utilities.Converters"
         Title="Tool Inventory Management – Login"
-        Height="650" Width="1600"
+        Height="750" Width="1600"
         WindowStartupLocation="CenterScreen"
         Background="White">
     <Window.Resources>

@@ -5,7 +5,7 @@
         xmlns:av="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="av"
         x:Class="ToolManagementAppV2.MainWindow"
         Title="Tool Inventory Management"
-        Height="650"
+        Height="750"
         Width="1600"
         WindowStartupLocation="CenterScreen">
     <DockPanel Margin="10">
