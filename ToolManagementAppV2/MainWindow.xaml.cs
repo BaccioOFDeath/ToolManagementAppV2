@@ -682,7 +682,7 @@ namespace ToolManagementAppV2
                 _printer.PrintTools(vm.CheckedOutTools, "My Checked-Out Tools", vm.CurrentUserName);
         }
 
-        void MyTabControl_SelectionChanged(object s, SelectionChangedEventArgs e)
+        public void MyTabControl_SelectionChanged(object s, SelectionChangedEventArgs e)
         {
             // Only respond when the tab selection actually changes.
             // The SelectionChanged event bubbles from child controls like
