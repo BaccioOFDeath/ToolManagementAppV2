@@ -19,12 +19,12 @@
                 Click="CheckOutButton_Click"
                 CommandParameter="{Binding ToolID}" />
             </DataTemplate>
-            <Style x:Key="ToolImageTooltipStyle" TargetType="ListViewItem">
+            <Style x:Key="ToolImageTooltipStyle" TargetType="Image">
                 <Setter Property="ToolTip">
                     <Setter.Value>
                         <Border BorderBrush="Gray" BorderThickness="1" Padding="2" Background="White">
                             <Image Width="400" Height="400" Stretch="Uniform"
-                       Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=Tool}"/>
+                                   Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=Tool}"/>
                         </Border>
                     </Setter.Value>
                 </Setter>
@@ -109,7 +109,7 @@
                         </GroupBox>
 
                         <GroupBox Header="Search Results" Grid.Row="1" Margin="0,0,0,10">
-                            <ListView x:Name="SearchResultsList" ItemContainerStyle="{StaticResource ToolImageTooltipStyle}"
+                            <ListView x:Name="SearchResultsList"
                       ItemsSource="{Binding SearchResults}" SelectedItem="{Binding SelectedTool, Mode=TwoWay}"
                       ScrollViewer.VerticalScrollBarVisibility="Auto">
                                 <ListView.View>
@@ -118,7 +118,7 @@
                                             <GridViewColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=Tool}"
-   Width="50" Height="50" Stretch="Uniform"/>
+                                                           Width="50" Height="50" Stretch="Uniform" Style="{StaticResource ToolImageTooltipStyle}"/>
                                                 </DataTemplate>
                                             </GridViewColumn.CellTemplate>
                                         </GridViewColumn>
@@ -151,7 +151,7 @@
                         </GroupBox>
 
                         <GroupBox Header="My Checked-Out Tools" Grid.Row="2" Margin="0,10,0,0">
-                            <ListView x:Name="CheckedOutToolsList" ItemContainerStyle="{StaticResource ToolImageTooltipStyle}" 
+                            <ListView x:Name="CheckedOutToolsList"
                       ItemsSource="{Binding CheckedOutTools}" SelectedItem="{Binding SelectedTool, Mode=TwoWay}">
                                 <ListView.View>
                                     <GridView>
@@ -159,7 +159,7 @@
                                             <GridViewColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=Tool}"
-                                                            Width="50" Height="50" Stretch="Uniform"/>
+                                                           Width="50" Height="50" Stretch="Uniform" Style="{StaticResource ToolImageTooltipStyle}"/>
                                                 </DataTemplate>
                                             </GridViewColumn.CellTemplate>
                                         </GridViewColumn>
@@ -239,7 +239,7 @@
                             </Grid>
                         </GroupBox>
 
-                        <ListView x:Name="ToolsList" Grid.Column="1" ItemContainerStyle="{StaticResource ToolImageTooltipStyle}" 
+                        <ListView x:Name="ToolsList" Grid.Column="1"
                   ItemsSource="{Binding Tools}" SelectedItem="{Binding SelectedTool, Mode=TwoWay}">
                             <ListView.View>
                                 <GridView>
@@ -267,7 +267,8 @@
                                     <GridViewColumn Header="Image" Width="100">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}}" Width="50" Height="50" Stretch="Uniform"/>
+                                                <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}}"
+                                                       Width="50" Height="50" Stretch="Uniform" Style="{StaticResource ToolImageTooltipStyle}"/>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
