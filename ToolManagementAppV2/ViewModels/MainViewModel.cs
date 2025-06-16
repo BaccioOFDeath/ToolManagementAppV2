@@ -385,39 +385,36 @@ namespace ToolManagementAppV2.ViewModels
 
         void UploadPhotoForUser(UserModel u)
         {
-            if (!ShowFileDialog("Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg", out var src)) return;
+            var win = new AvatarSelectionWindow();
+            if (win.ShowDialog() == true && !string.IsNullOrWhiteSpace(win.SelectedAvatarPath))
+            {
+                ApplyAvatar(u, win.SelectedAvatarPath);
+            }
+        }
 
-            string dest;
+        internal void ApplyAvatar(UserModel u, string avatarPath)
+        {
+            if (u == null || string.IsNullOrWhiteSpace(avatarPath)) return;
+
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            var avatarDir = Path.Combine(baseDir, "Resources", "Avatars");
-
-            if (src.StartsWith("pack://") || src.StartsWith(avatarDir, StringComparison.OrdinalIgnoreCase))
-            {
-                dest = src;
-            }
-            else
-            {
-                var folder = Path.Combine(baseDir, "UserPhotos");
-                Directory.CreateDirectory(folder);
-                dest = Path.Combine(folder, $"{Guid.NewGuid()}{Path.GetExtension(src)}");
-                File.Copy(src, dest, true);
-            }
+            var relative = Path.Combine("Resources", "Avatars", Path.GetFileName(avatarPath));
+            var full = Path.Combine(baseDir, relative);
 
             var bmp = new BitmapImage();
             bmp.BeginInit();
-            bmp.UriSource = new Uri(dest, UriKind.Absolute);
+            bmp.UriSource = new Uri(full, UriKind.Absolute);
             bmp.CacheOption = BitmapCacheOption.OnLoad;
             bmp.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
             bmp.EndInit();
             bmp.Freeze();
 
-            u.UserPhotoPath = dest;
+            u.UserPhotoPath = relative;
             u.PhotoBitmap = bmp;
             _userService.UpdateUser(u);
 
             if (Application.Current.Properties["CurrentUser"] is UserModel cu && cu.UserID == u.UserID)
             {
-                cu.UserPhotoPath = dest;
+                cu.UserPhotoPath = relative;
                 cu.PhotoBitmap = bmp;
                 CurrentUserPhoto = bmp;
                 CurrentUserName = cu.UserName;
@@ -445,10 +442,26 @@ namespace ToolManagementAppV2.ViewModels
                 Address = NewCustomerAddress
             });
             LoadCustomers();
+
+            NewCustomerName = string.Empty;
+            NewCustomerEmail = string.Empty;
+            NewCustomerContact = string.Empty;
+            NewCustomerPhone = string.Empty;
+            NewCustomerMobile = string.Empty;
+            NewCustomerAddress = string.Empty;
         }
 
         void UpdateCustomer()
         {
+            if (SelectedCustomer == null) return;
+
+            SelectedCustomer.Company = NewCustomerName;
+            SelectedCustomer.Email = NewCustomerEmail;
+            SelectedCustomer.Contact = NewCustomerContact;
+            SelectedCustomer.Phone = NewCustomerPhone;
+            SelectedCustomer.Mobile = NewCustomerMobile;
+            SelectedCustomer.Address = NewCustomerAddress;
+
             _customerService.UpdateCustomer(SelectedCustomer);
             LoadCustomers();
         }

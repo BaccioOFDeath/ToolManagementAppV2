@@ -152,14 +152,15 @@ namespace ToolManagementAppV2
 
         void CustomerList_SelectionChanged(object s, SelectionChangedEventArgs e)
         {
-            if (CustomerList.SelectedItem is Customer c)
+            if (DataContext is MainViewModel vm && CustomerList.SelectedItem is Customer c)
             {
-                CustomerNameInput.Text = c.Company;
-                CustomerEmailInput.Text = c.Email;
-                CustomerContactInput.Text = c.Contact;
-                CustomerPhoneInput.Text = c.Phone;
-                CustomerMobileInput.Text = c.Mobile;
-                CustomerAddressInput.Text = c.Address;
+                vm.SelectedCustomer = c;
+                vm.NewCustomerName = c.Company;
+                vm.NewCustomerEmail = c.Email;
+                vm.NewCustomerContact = c.Contact;
+                vm.NewCustomerPhone = c.Phone;
+                vm.NewCustomerMobile = c.Mobile;
+                vm.NewCustomerAddress = c.Address;
             }
         }
 
