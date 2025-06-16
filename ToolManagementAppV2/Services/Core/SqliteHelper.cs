@@ -23,10 +23,24 @@ namespace ToolManagementAppV2.Services.Core
             return cmd.ExecuteNonQuery();
         }
 
+        public static int ExecuteNonQuery(SQLiteConnection conn, string sql, SQLiteParameter[] parameters = null)
+        {
+            using var cmd = new SQLiteCommand(sql, conn);
+            if (parameters != null) cmd.Parameters.AddRange(parameters);
+            return cmd.ExecuteNonQuery();
+        }
+
         public static object ExecuteScalar(string connStr, string sql, SQLiteParameter[] parameters = null)
         {
             using var conn = new SQLiteConnection(connStr);
             conn.Open();
+            using var cmd = new SQLiteCommand(sql, conn);
+            if (parameters != null) cmd.Parameters.AddRange(parameters);
+            return cmd.ExecuteScalar();
+        }
+
+        public static object ExecuteScalar(SQLiteConnection conn, string sql, SQLiteParameter[] parameters = null)
+        {
             using var cmd = new SQLiteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
             return cmd.ExecuteScalar();
@@ -37,6 +51,17 @@ namespace ToolManagementAppV2.Services.Core
             var list = new List<T>();
             using var conn = new SQLiteConnection(connStr);
             conn.Open();
+            using var cmd = new SQLiteCommand(sql, conn);
+            if (parameters != null) cmd.Parameters.AddRange(parameters);
+            using var rdr = cmd.ExecuteReader();
+            while (rdr.Read())
+                list.Add(map(rdr));
+            return list;
+        }
+
+        public static List<T> ExecuteReader<T>(SQLiteConnection conn, string sql, SQLiteParameter[] parameters, Func<IDataRecord, T> map)
+        {
+            var list = new List<T>();
             using var cmd = new SQLiteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
             using var rdr = cmd.ExecuteReader();

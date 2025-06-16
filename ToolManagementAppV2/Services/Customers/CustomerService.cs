@@ -12,11 +12,11 @@ namespace ToolManagementAppV2.Services.Customers
 {
     public class CustomerService : ICustomerService
     {
-        readonly string _connString;
+        readonly DatabaseService _dbService;
 
         public CustomerService(DatabaseService dbService)
         {
-            _connString = dbService.ConnectionString;
+            _dbService = dbService;
         }
 
         public void ImportCustomersFromCsv(string filePath, IDictionary<string, string> map)
@@ -44,7 +44,8 @@ namespace ToolManagementAppV2.Services.Customers
         public List<CustomerModel> GetAllCustomers()
         {
             const string sql = "SELECT * FROM Customers";
-            return SqliteHelper.ExecuteReader(_connString, sql, null, MapCustomer);
+            using var conn = _dbService.CreateConnection();
+            return SqliteHelper.ExecuteReader(conn, sql, null, MapCustomer);
         }
 
         public List<CustomerModel> SearchCustomers(string searchTerm)
@@ -53,14 +54,16 @@ namespace ToolManagementAppV2.Services.Customers
                 SELECT * FROM Customers
                 WHERE Company LIKE @t OR Email LIKE @t OR Phone LIKE @t OR Mobile LIKE @t OR Address LIKE @t";
             var p = new[] { new SQLiteParameter("@t", $"%{searchTerm}%") };
-            return SqliteHelper.ExecuteReader(_connString, sql, p, MapCustomer);
+            using var conn = _dbService.CreateConnection();
+            return SqliteHelper.ExecuteReader(conn, sql, p, MapCustomer);
         }
 
         public CustomerModel GetCustomerByID(int customerID)
         {
             const string sql = "SELECT * FROM Customers WHERE CustomerID = @id";
             var p = new[] { new SQLiteParameter("@id", customerID) };
-            return SqliteHelper.ExecuteReader(_connString, sql, p, MapCustomer).FirstOrDefault();
+            using var conn = _dbService.CreateConnection();
+            return SqliteHelper.ExecuteReader(conn, sql, p, MapCustomer).FirstOrDefault();
         }
 
         public void AddCustomer(CustomerModel customer)
@@ -77,7 +80,8 @@ namespace ToolManagementAppV2.Services.Customers
                 new SQLiteParameter("@Mobile", customer.Mobile ?? ""),
                 new SQLiteParameter("@Address", customer.Address ?? "")
             };
-            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
+            using var conn = _dbService.CreateConnection();
+            SqliteHelper.ExecuteNonQuery(conn, sql, p);
         }
 
 
@@ -98,14 +102,16 @@ namespace ToolManagementAppV2.Services.Customers
                 new SQLiteParameter("@Address", customer.Address),
                 new SQLiteParameter("@CustomerID", customer.CustomerID)
             };
-            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
+            using var conn = _dbService.CreateConnection();
+            SqliteHelper.ExecuteNonQuery(conn, sql, p);
         }
 
         public void DeleteCustomer(int customerID)
         {
             const string sql = "DELETE FROM Customers WHERE CustomerID = @CustomerID";
             var p = new[] { new SQLiteParameter("@CustomerID", customerID) };
-            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
+            using var conn = _dbService.CreateConnection();
+            SqliteHelper.ExecuteNonQuery(conn, sql, p);
         }
 
         private bool CustomerExists(string contact, string phone, string mobile)
@@ -113,7 +119,8 @@ namespace ToolManagementAppV2.Services.Customers
             const string sql = @"
         SELECT COUNT(*) FROM Customers
          WHERE Contact = @Contact AND (Phone = @Phone OR Mobile = @Mobile)";
-            var count = Convert.ToInt32(SqliteHelper.ExecuteScalar(_connString, sql, new[]
+            using var conn = _dbService.CreateConnection();
+            var count = Convert.ToInt32(SqliteHelper.ExecuteScalar(conn, sql, new[]
             {
             new SQLiteParameter("@Contact", contact),
             new SQLiteParameter("@Phone", phone ?? ""),

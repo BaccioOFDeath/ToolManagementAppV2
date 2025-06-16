@@ -10,21 +10,30 @@ namespace ToolManagementAppV2.Services.Tools
 {
     public class ToolService : IToolService
     {
-        readonly string _connString;
+        readonly DatabaseService _dbService;
         const string AllToolsSql = "SELECT * FROM Tools";
         const string UpsertToolCsv = @"
             INSERT INTO Tools 
               (ToolNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, IsCheckedOut)
             VALUES (@ToolNumber,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Keywords,@Avail,@Rent,0)";
     
-        public ToolService(DatabaseService dbService) => _connString = dbService.ConnectionString;
+        public ToolService(DatabaseService dbService)
+        {
+            _dbService = dbService;
+        }
     
-        public List<ToolModel> GetAllTools() =>
-            SqliteHelper.ExecuteReader(_connString, AllToolsSql, null, MapTool);
+        public List<ToolModel> GetAllTools()
+        {
+            using var conn = _dbService.CreateConnection();
+            return SqliteHelper.ExecuteReader(conn, AllToolsSql, null, MapTool);
+        }
     
-        public ToolModel GetToolByID(string toolID) =>
-            SqliteHelper.ExecuteReader(_connString, "SELECT * FROM Tools WHERE ToolID=@ToolID",
+        public ToolModel GetToolByID(string toolID)
+        {
+            using var conn = _dbService.CreateConnection();
+            return SqliteHelper.ExecuteReader(conn, "SELECT * FROM Tools WHERE ToolID=@ToolID",
                 new[] { new SQLiteParameter("@ToolID", toolID) }, MapTool).FirstOrDefault();
+        }
     
         public List<ToolModel> SearchTools(string? searchText)
         {
@@ -50,7 +59,8 @@ namespace ToolManagementAppV2.Services.Tools
             var parameters = terms
                 .Select((t, i) => new SQLiteParameter("@p" + i, $"%{t}%"))
                 .ToArray();
-            return SqliteHelper.ExecuteReader(_connString, sb.ToString(), parameters, MapTool);
+            using var conn = _dbService.CreateConnection();
+            return SqliteHelper.ExecuteReader(conn, sb.ToString(), parameters, MapTool);
         }
     
         public void AddTool(ToolModel tool)
@@ -69,7 +79,8 @@ namespace ToolManagementAppV2.Services.Tools
                 new SQLiteParameter("@Avail", tool.QuantityOnHand),
                 new SQLiteParameter("@Rent", tool.RentedQuantity)
             };
-            SqliteHelper.ExecuteNonQuery(_connString, UpsertToolCsv, p);
+            using var conn = _dbService.CreateConnection();
+            SqliteHelper.ExecuteNonQuery(conn, UpsertToolCsv, p);
         }
     
         public void UpdateTool(ToolModel tool)
@@ -111,7 +122,8 @@ namespace ToolManagementAppV2.Services.Tools
                 new SQLiteParameter("@Time", (object)tool.CheckedOutTime ?? DBNull.Value),
                 new SQLiteParameter("@Img", (object)tool.ToolImagePath ?? DBNull.Value)
             };
-            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
+            using var conn = _dbService.CreateConnection();
+            SqliteHelper.ExecuteNonQuery(conn, sql, p);
         }
     
         public void UpdateToolQuantities(string toolID, int qtyChange, bool isRental)
@@ -125,17 +137,22 @@ namespace ToolManagementAppV2.Services.Tools
                 new SQLiteParameter("@ID", toolID),
                 new SQLiteParameter("@Q", qtyChange)
             };
-            if (SqliteHelper.ExecuteNonQuery(_connString, sql, p) == 0)
+            using var conn = _dbService.CreateConnection();
+            if (SqliteHelper.ExecuteNonQuery(conn, sql, p) == 0)
                 throw new InvalidOperationException("Quantity update failed.");
         }
     
-        public void DeleteTool(string toolID) =>
-            SqliteHelper.ExecuteNonQuery(_connString, "DELETE FROM Tools WHERE ToolID=@ID",
+        public void DeleteTool(string toolID)
+        {
+            using var conn = _dbService.CreateConnection();
+            SqliteHelper.ExecuteNonQuery(conn, "DELETE FROM Tools WHERE ToolID=@ID",
                 new[] { new SQLiteParameter("@ID", toolID) });
+        }
     
         public void ToggleToolCheckOutStatus(string toolID, string currentUser)
         {
-            var result = SqliteHelper.ExecuteScalar(_connString,
+            using var conn = _dbService.CreateConnection();
+            var result = SqliteHelper.ExecuteScalar(conn,
                 "SELECT IsCheckedOut FROM Tools WHERE ToolID=@ID",
                    new[] { new SQLiteParameter("@ID", toolID) });
     
@@ -146,7 +163,7 @@ namespace ToolManagementAppV2.Services.Tools
             var newStatus = isOut ? 0 : 1;
             var time = isOut ? (object)DBNull.Value : DateTime.Now;
             var by = isOut ? (object)DBNull.Value : currentUser;
-            SqliteHelper.ExecuteNonQuery(_connString, @"
+            SqliteHelper.ExecuteNonQuery(conn, @"
                 UPDATE Tools SET
                   IsCheckedOut = @Out,
                   CheckedOutBy = @By,
@@ -160,17 +177,23 @@ namespace ToolManagementAppV2.Services.Tools
             });
         }
     
-        public List<ToolModel> GetToolsCheckedOutBy(string userName) =>
-            SqliteHelper.ExecuteReader(_connString, "SELECT * FROM Tools WHERE CheckedOutBy=@User AND IsCheckedOut=1",
+        public List<ToolModel> GetToolsCheckedOutBy(string userName)
+        {
+            using var conn = _dbService.CreateConnection();
+            return SqliteHelper.ExecuteReader(conn, "SELECT * FROM Tools WHERE CheckedOutBy=@User AND IsCheckedOut=1",
                 new[] { new SQLiteParameter("@User", userName) }, MapTool);
+        }
     
-        public void UpdateToolImage(string toolID, string imagePath) =>
-            SqliteHelper.ExecuteNonQuery(_connString, "UPDATE Tools SET ToolImagePath=@Img WHERE ToolID=@ID",
+        public void UpdateToolImage(string toolID, string imagePath)
+        {
+            using var conn = _dbService.CreateConnection();
+            SqliteHelper.ExecuteNonQuery(conn, "UPDATE Tools SET ToolImagePath=@Img WHERE ToolID=@ID",
                 new[]
                 {
                     new SQLiteParameter("@Img", imagePath),
                     new SQLiteParameter("@ID", toolID)
                 });
+        }
     
         public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map)
         {
@@ -192,7 +215,8 @@ namespace ToolManagementAppV2.Services.Tools
         private bool ToolExists(string toolNumber)
         {
             const string sql = "SELECT COUNT(*) FROM Tools WHERE ToolNumber = @TN";
-            var count = Convert.ToInt32(SqliteHelper.ExecuteScalar(_connString, sql, new[] {
+            using var conn = _dbService.CreateConnection();
+            var count = Convert.ToInt32(SqliteHelper.ExecuteScalar(conn, sql, new[] {
                 new SQLiteParameter("@TN", toolNumber)
             }));
             return count > 0;

@@ -8,13 +8,11 @@ namespace ToolManagementAppV2.Services.Rentals
 {
     public class RentalService : IRentalService
     {
-        readonly string _connString;
         readonly DatabaseService _dbService;
 
         public RentalService(DatabaseService dbService)
         {
             _dbService = dbService;
-            _connString = dbService.ConnectionString;
         }
 
         // toolID is passed as a string even though the underlying column is INTEGER
@@ -173,12 +171,16 @@ namespace ToolManagementAppV2.Services.Rentals
                 new SQLiteParameter("@NewDueDate", newDueDate),
                 new SQLiteParameter("@RentalID", rentalID)
             };
-            if (SqliteHelper.ExecuteNonQuery(_connString, sql, p) == 0)
+            using var conn = _dbService.CreateConnection();
+            if (SqliteHelper.ExecuteNonQuery(conn, sql, p) == 0)
                 throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
         }
 
-        public List<Rental> GetActiveRentals() =>
-            SqliteHelper.ExecuteReader(_connString, "SELECT * FROM Rentals WHERE Status='Rented'", null, MapRental);
+        public List<Rental> GetActiveRentals()
+        {
+            using var conn = _dbService.CreateConnection();
+            return SqliteHelper.ExecuteReader(conn, "SELECT * FROM Rentals WHERE Status='Rented'", null, MapRental);
+        }
 
         public List<Rental> GetOverdueRentals()
         {
@@ -187,11 +189,15 @@ namespace ToolManagementAppV2.Services.Rentals
                  WHERE Status = 'Rented'
                    AND DueDate < @Today";
             var p = new[] { new SQLiteParameter("@Today", DateTime.Today) };
-            return SqliteHelper.ExecuteReader(_connString, sql, p, MapRental);
+            using var conn = _dbService.CreateConnection();
+            return SqliteHelper.ExecuteReader(conn, sql, p, MapRental);
         }
 
-        public List<Rental> GetAllRentals() =>
-            SqliteHelper.ExecuteReader(_connString, "SELECT * FROM Rentals", null, MapRental);
+        public List<Rental> GetAllRentals()
+        {
+            using var conn = _dbService.CreateConnection();
+            return SqliteHelper.ExecuteReader(conn, "SELECT * FROM Rentals", null, MapRental);
+        }
 
         public List<Rental> GetRentalHistoryForTool(string toolID)
         {
@@ -200,7 +206,8 @@ namespace ToolManagementAppV2.Services.Rentals
                  WHERE ToolID = @ToolID
               ORDER BY RentalDate DESC";
             var p = new[] { new SQLiteParameter("@ToolID", toolID) };
-            return SqliteHelper.ExecuteReader(_connString, sql, p, MapRental);
+            using var conn = _dbService.CreateConnection();
+            return SqliteHelper.ExecuteReader(conn, sql, p, MapRental);
         }
 
         Rental MapRental(IDataRecord r) => new()

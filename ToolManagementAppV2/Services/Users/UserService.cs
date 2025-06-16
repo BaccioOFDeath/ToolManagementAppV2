@@ -12,25 +12,30 @@ namespace ToolManagementAppV2.Services.Users
 {
     public class UserService : IUserService
     {
-        readonly string _connString;
         readonly DatabaseService _dbService;
 
         public UserService(DatabaseService dbService)
         {
             _dbService = dbService;
-            _connString = dbService.ConnectionString;
         }
 
-        public List<User> GetAllUsers() =>
-            SqliteHelper.ExecuteReader(_connString, "SELECT * FROM Users", null, MapUser);
+        public List<User> GetAllUsers()
+        {
+            using var conn = _dbService.CreateConnection();
+            return SqliteHelper.ExecuteReader(conn, "SELECT * FROM Users", null, MapUser);
+        }
 
-        public User GetUserByID(int userID) =>
-            SqliteHelper.ExecuteReader(_connString, "SELECT * FROM Users WHERE UserID=@ID",
+        public User GetUserByID(int userID)
+        {
+            using var conn = _dbService.CreateConnection();
+            return SqliteHelper.ExecuteReader(conn, "SELECT * FROM Users WHERE UserID=@ID",
                 new[] { new SQLiteParameter("@ID", userID) }, MapUser).FirstOrDefault();
+        }
 
         public User AuthenticateUser(string userName, string password)
         {
-            var users = SqliteHelper.ExecuteReader(_connString,
+            using var conn = _dbService.CreateConnection();
+            var users = SqliteHelper.ExecuteReader(conn,
                 "SELECT * FROM Users WHERE UserName=@UserName",
                 new[] { new SQLiteParameter("@UserName", userName) }, MapUser);
             var u = users.FirstOrDefault();
@@ -112,7 +117,8 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@Role",     (object)user.Role ?? DBNull.Value)
             };
 
-            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
+            using var conn = _dbService.CreateConnection();
+            SqliteHelper.ExecuteNonQuery(conn, sql, p);
             user.Password = hashed;
         }
 
@@ -130,7 +136,8 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@Pwd", hashed),
                 new SQLiteParameter("@ID",  userID)
             };
-            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
+            using var conn = _dbService.CreateConnection();
+            SqliteHelper.ExecuteNonQuery(conn, sql, p);
         }
 
         public bool TryDeleteUser(int userID)
@@ -152,7 +159,8 @@ namespace ToolManagementAppV2.Services.Users
         {
             var sql = "DELETE FROM Users WHERE UserID=@ID";
             var p = new[] { new SQLiteParameter("@ID", userID) };
-            SqliteHelper.ExecuteNonQuery(_connString, sql, p);
+            using var conn = _dbService.CreateConnection();
+            SqliteHelper.ExecuteNonQuery(conn, sql, p);
         }
 
         User MapUser(IDataRecord rdr)
