@@ -176,18 +176,20 @@ namespace ToolManagementAppV2.Services.Rentals
                 throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
         }
 
+        const string BaseSelect = @"SELECT r.*, t.ToolNumber, t.NameDescription, c.Company FROM Rentals r
+                                    JOIN Tools t ON r.ToolID = t.ToolID
+                                    JOIN Customers c ON r.CustomerID = c.CustomerID";
+
         public List<Rental> GetActiveRentals()
         {
             using var conn = _dbService.CreateConnection();
-            return SqliteHelper.ExecuteReader(conn, "SELECT * FROM Rentals WHERE Status='Rented'", null, MapRental);
+            var sql = BaseSelect + " WHERE r.Status='Rented'";
+            return SqliteHelper.ExecuteReader(conn, sql, null, MapRental);
         }
 
         public List<Rental> GetOverdueRentals()
         {
-            const string sql = @"
-                SELECT * FROM Rentals
-                 WHERE Status = 'Rented'
-                   AND DueDate < @Today";
+            const string sql = BaseSelect + @" WHERE r.Status = 'Rented' AND r.DueDate < @Today";
             var p = new[] { new SQLiteParameter("@Today", DateTime.Today) };
             using var conn = _dbService.CreateConnection();
             return SqliteHelper.ExecuteReader(conn, sql, p, MapRental);
@@ -196,15 +198,12 @@ namespace ToolManagementAppV2.Services.Rentals
         public List<Rental> GetAllRentals()
         {
             using var conn = _dbService.CreateConnection();
-            return SqliteHelper.ExecuteReader(conn, "SELECT * FROM Rentals", null, MapRental);
+            return SqliteHelper.ExecuteReader(conn, BaseSelect, null, MapRental);
         }
 
         public List<Rental> GetRentalHistoryForTool(string toolID)
         {
-            const string sql = @"
-                SELECT * FROM Rentals
-                 WHERE ToolID = @ToolID
-              ORDER BY RentalDate DESC";
+            const string sql = BaseSelect + @" WHERE r.ToolID = @ToolID ORDER BY r.RentalDate DESC";
             var p = new[] { new SQLiteParameter("@ToolID", toolID) };
             using var conn = _dbService.CreateConnection();
             return SqliteHelper.ExecuteReader(conn, sql, p, MapRental);
@@ -218,7 +217,9 @@ namespace ToolManagementAppV2.Services.Rentals
             RentalDate = Convert.ToDateTime(r["RentalDate"]),
             DueDate = Convert.ToDateTime(r["DueDate"]),
             ReturnDate = r["ReturnDate"] is DBNull ? null : Convert.ToDateTime(r["ReturnDate"]),
-            Status = r["Status"].ToString()
+            Status = r["Status"].ToString(),
+            ToolNumber = r["ToolNumber"].ToString(),
+            CustomerName = r["Company"].ToString()
         };
     }
 }

@@ -96,7 +96,12 @@ namespace ToolManagementAppV2.ViewModels
             set => SetProperty(ref _selectedRental, value);
         }
 
-        public DateTime NewDueDate { get; set; } = DateTime.Today.AddDays(7);
+        DateTime _newDueDate = DateTime.Today.AddDays(7);
+        public DateTime NewDueDate
+        {
+            get => _newDueDate;
+            set => SetProperty(ref _newDueDate, value);
+        }
 
         string _currentUserName;
         public string CurrentUserName
