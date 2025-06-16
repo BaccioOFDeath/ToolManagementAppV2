@@ -472,7 +472,12 @@ namespace ToolManagementAppV2
             try
             {
                 if (DataContext is MainViewModel vm)
+
+                {
                     vm.LoadTools();
+                    vm.SearchCommand.Execute(null);
+                }
+
             }
             catch (Exception ex)
             {
@@ -509,10 +514,11 @@ namespace ToolManagementAppV2
         {
             try
             {
-                var txt = SearchInput.Text;
-                SearchResultsList.ItemsSource = string.IsNullOrWhiteSpace(txt)
-                    ? _toolService.GetAllTools()
-                    : _toolService.SearchTools(txt);
+                if (DataContext is MainViewModel vm)
+                {
+                    vm.SearchTerm = SearchInput.Text;
+                    vm.SearchCommand.Execute(null);
+                }
             }
             catch (Exception ex)
             {
