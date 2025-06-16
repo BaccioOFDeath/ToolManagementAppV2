@@ -281,42 +281,8 @@ namespace ToolManagementAppV2
         {
             try
             {
-                var users = _userService.GetAllUsers();
-                foreach (var u in users)
-                {
-                    if (!string.IsNullOrWhiteSpace(u.UserPhotoPath))
-                    {
-                        try
-                        {
-                            Uri uri;
-                            if (u.UserPhotoPath.StartsWith("pack://"))
-                            {
-                                uri = new Uri(u.UserPhotoPath, UriKind.Absolute);
-                            }
-                            else
-                            {
-                                var fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, u.UserPhotoPath);
-                                if (!File.Exists(fullPath)) continue;
-                                uri = new Uri($"file:///{fullPath.Replace("\\", "/")}", UriKind.Absolute);
-                            }
-
-                            var bmp = new BitmapImage();
-                            bmp.BeginInit();
-                            bmp.CacheOption = BitmapCacheOption.OnLoad;
-                            bmp.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                            bmp.UriSource = uri;
-                            bmp.EndInit();
-                            u.PhotoBitmap = bmp;
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex);
-                            u.PhotoBitmap = null;
-                        }
-                    }
-                }
-                UserList.ItemsSource = users;
-                UserList.Items.Refresh();
+                if (DataContext is MainViewModel vm)
+                    vm.LoadUsers();
             }
             catch (Exception ex)
             {
@@ -477,7 +443,8 @@ namespace ToolManagementAppV2
         {
             try
             {
-                CustomerList.ItemsSource = _customerService.GetAllCustomers();
+                if (DataContext is MainViewModel vm)
+                    vm.LoadCustomers();
             }
             catch (Exception ex)
             {
@@ -489,7 +456,8 @@ namespace ToolManagementAppV2
         {
             try
             {
-                RentalsList.ItemsSource = _rentalService.GetActiveRentals();
+                if (DataContext is MainViewModel vm)
+                    vm.LoadActiveRentals();
             }
             catch (Exception ex)
             {
@@ -520,9 +488,8 @@ namespace ToolManagementAppV2
                 var txt = CustomerSearchInput.Text;
                 if (DataContext is MainViewModel vm)
                 {
-                    CustomerList.ItemsSource = string.IsNullOrWhiteSpace(txt)
-                        ? vm.SearchCustomers(string.Empty)
-                        : vm.SearchCustomers(txt);
+                    vm.CustomerSearchTerm = txt;
+                    vm.SearchCustomersCommand.Execute(null);
                 }
             }
             catch (Exception ex)
@@ -733,7 +700,10 @@ namespace ToolManagementAppV2
                 case "Search Tools":
                 case "Tool Management":
                     if (DataContext is MainViewModel vm)
+                    {
                         vm.LoadTools();
+                        vm.SearchCommand.Execute(null);
+                    }
                     break;
                 case "Customers":
                     RefreshCustomerList();

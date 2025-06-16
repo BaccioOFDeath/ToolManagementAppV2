@@ -356,7 +356,7 @@
                             <Button Content="Extend Rental" Command="{Binding ExtendRentalCommand}" Margin="5" />
                             <Button Content="Load Overdue Rentals" Command="{Binding LoadOverdueRentalsCommand}" Margin="5" />
                         </StackPanel>
-                        <ListView x:Name="RentalsList" ItemsSource="{Binding Rentals}" Grid.Row="2" Margin="10">
+                        <ListView x:Name="RentalsList" ItemsSource="{Binding ActiveRentals}" Grid.Row="2" Margin="10">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Header="Rental ID" DisplayMemberBinding="{Binding RentalID}" Width="100" />
