@@ -230,7 +230,7 @@ namespace ToolManagementAppV2.ViewModels
             LoadOverdueRentals();
         }
 
-        void LoadTools()
+        public void LoadTools()
         {
             Tools.ReplaceRange(_toolService.GetAllTools());
         }

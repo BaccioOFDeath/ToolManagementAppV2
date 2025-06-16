@@ -45,9 +45,11 @@ namespace ToolManagementAppV2
             _printer = new Printer(_settingsService);
             _reportService = new ReportService(_toolService, _rentalService, _activityLogService, _customerService, _userService);
 
+            DataContext = new MainViewModel(_toolService, _userService, _customerService, _rentalService, _settingsService);
+
             try
             {
-                RefreshToolList();
+                ((MainViewModel)DataContext).LoadTools();
                 RefreshUserList();
                 RefreshCustomerList();
                 RefreshRentalList();
@@ -58,7 +60,6 @@ namespace ToolManagementAppV2
                 ShowError("Initialization Error", ex);
             }
 
-            DataContext = new MainViewModel(_toolService, _userService, _customerService, _rentalService, _settingsService);
             RestrictTabsForNonAdmin();
         }
 
@@ -470,9 +471,8 @@ namespace ToolManagementAppV2
         {
             try
             {
-                var tools = _toolService.GetAllTools();
-                ToolsList.ItemsSource = tools;
-                SearchResultsList.ItemsSource = tools;
+                if (DataContext is MainViewModel vm)
+                    vm.LoadTools();
             }
             catch (Exception ex)
             {
@@ -739,7 +739,8 @@ namespace ToolManagementAppV2
             {
                 case "Search Tools":
                 case "Tool Management":
-                    RefreshToolList();
+                    if (DataContext is MainViewModel vm)
+                        vm.LoadTools();
                     break;
                 case "Customers":
                     RefreshCustomerList();
