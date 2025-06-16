@@ -145,21 +145,7 @@ namespace ToolManagementAppV2
             RefreshToolList();
         }
 
-        void ToolsList_SelectionChanged(object s, SelectionChangedEventArgs e)
-        {
-            if (ToolsList.SelectedItem is Tool t)
-            {
-                ToolNumberInput.Text = t.ToolNumber;
-                ToolNameInput.Text = t.NameDescription;
-                PartNumberInput.Text = t.PartNumber;
-                BrandInput.Text = t.Brand;
-                LocationInput.Text = t.Location;
-                QuantityInput.Text = t.QuantityOnHand.ToString();
-                SupplierInput.Text = t.Supplier;
-                PurchasedInput.Text = t.PurchasedDate?.ToString("yyyy-MM-dd");
-                NotesInput.Text = t.Notes;
-            }
-        }
+
 
 
         // ---------- Customer & Rental ----------
