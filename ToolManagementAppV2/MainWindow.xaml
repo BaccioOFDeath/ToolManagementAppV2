@@ -111,7 +111,7 @@
                   Margin="0,0,0,10" Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Auto">
                             <ListView.View>
                                 <GridView>
-                                    <GridViewColumn Header="Action" Width="80" CellTemplate="{StaticResource CheckOutButtonTemplate}"/>
+                                    <GridViewColumn Header="Action" Width="100" CellTemplate="{StaticResource CheckOutButtonTemplate}"/>
                                     <GridViewColumn Header="Tool #" DisplayMemberBinding="{Binding ToolNumber}" Width="120"/>
                                     <GridViewColumn Header="Name" DisplayMemberBinding="{Binding NameDescription}" Width="380"/>
                                     <GridViewColumn Header="Part #" DisplayMemberBinding="{Binding PartNumber}" Width="100"/>
@@ -149,7 +149,7 @@
                       ItemsSource="{Binding CheckedOutTools}" SelectedItem="{Binding SelectedTool, Mode=TwoWay}">
                                 <ListView.View>
                                     <GridView>
-                                        <GridViewColumn Header="Action" Width="80" CellTemplate="{StaticResource CheckOutButtonTemplate}"/>
+                                        <GridViewColumn Header="Action" Width="100" CellTemplate="{StaticResource CheckOutButtonTemplate}"/>
                                         <GridViewColumn Header="Tool ID" DisplayMemberBinding="{Binding ToolID}" Width="80"/>
                                         <GridViewColumn Header="Name" DisplayMemberBinding="{Binding NameDescription}" Width="300"/>
                                         <GridViewColumn Header="Checked Out By" DisplayMemberBinding="{Binding CheckedOutBy}" Width="150"/>
