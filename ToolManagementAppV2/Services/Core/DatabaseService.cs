@@ -7,6 +7,22 @@ namespace ToolManagementAppV2.Services.Core
     {
         public string ConnectionString { get; }
 
+        public SQLiteConnection CreateConnection()
+        {
+            var connStr = $"{ConnectionString}Pooling=True;Cache=Shared;";
+            var conn = new SQLiteConnection(connStr);
+            conn.Open();
+            using (var cmd = new SQLiteCommand("PRAGMA journal_mode=WAL;", conn))
+            {
+                cmd.ExecuteNonQuery();
+            }
+            using (var cmd = new SQLiteCommand("PRAGMA busy_timeout=5000;", conn))
+            {
+                cmd.ExecuteNonQuery();
+            }
+            return conn;
+        }
+
         public DatabaseService(string dbPath)
         {
             ConnectionString = $"Data Source={dbPath};Version=3;";
@@ -27,8 +43,7 @@ namespace ToolManagementAppV2.Services.Core
 
         void InitializeDatabase()
         {
-            using var conn = new SQLiteConnection(ConnectionString);
-            conn.Open();
+            using var conn = CreateConnection();
             var sql = @"
                 CREATE TABLE IF NOT EXISTS Tools (
                     ToolID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -91,8 +106,7 @@ namespace ToolManagementAppV2.Services.Core
         void EnsureColumn(string table, string column, string type)
         {
             if (SqliteHelper.ColumnExists(ConnectionString, table, column)) return;
-            using var conn = new SQLiteConnection(ConnectionString);
-            conn.Open();
+            using var conn = CreateConnection();
             using var alter = new SQLiteCommand($"ALTER TABLE {table} ADD COLUMN {column} {type}", conn);
             alter.ExecuteNonQuery();
         }
@@ -119,9 +133,8 @@ namespace ToolManagementAppV2.Services.Core
 
             try
             {
-                using var source = new SQLiteConnection(ConnectionString);
-                using var destination = new SQLiteConnection($"Data Source={backupFilePath};Version=3;");
-                source.Open();
+                using var source = CreateConnection();
+                using var destination = new SQLiteConnection($"Data Source={backupFilePath};Version=3;Pooling=True;Cache=Shared;");
                 destination.Open();
 
                 source.BackupDatabase(destination, "main", "main", -1, null, 0);

@@ -9,16 +9,19 @@ namespace ToolManagementAppV2.Services.Rentals
     public class RentalService : IRentalService
     {
         readonly string _connString;
+        readonly DatabaseService _dbService;
 
-        public RentalService(DatabaseService dbService) =>
+        public RentalService(DatabaseService dbService)
+        {
+            _dbService = dbService;
             _connString = dbService.ConnectionString;
+        }
 
         // toolID is passed as a string even though the underlying column is INTEGER
         // to keep consistency with ToolModel.ToolID
         public void RentTool(string toolID, int customerID, DateTime rentalDate, DateTime dueDate)
         {
-            using var conn = new SQLiteConnection(_connString);
-            conn.Open();
+            using var conn = _dbService.CreateConnection();
             using var tx = conn.BeginTransaction();
 
             try
@@ -59,8 +62,7 @@ namespace ToolManagementAppV2.Services.Rentals
 
         public void RentToolWithTransaction(string toolID, int customerID, DateTime rentalDate, DateTime dueDate)
         {
-            using var conn = new SQLiteConnection(_connString);
-            conn.Open();
+            using var conn = _dbService.CreateConnection();
             using var tx = conn.BeginTransaction();
             try
             {
@@ -96,8 +98,7 @@ namespace ToolManagementAppV2.Services.Rentals
 
         public void ReturnTool(int rentalID, DateTime returnDate)
         {
-            using var conn = new SQLiteConnection(_connString);
-            conn.Open();
+            using var conn = _dbService.CreateConnection();
             using var tx = conn.BeginTransaction();
             try
             {
@@ -128,8 +129,7 @@ namespace ToolManagementAppV2.Services.Rentals
 
         public void ReturnToolWithTransaction(int rentalID, DateTime returnDate)
         {
-            using var conn = new SQLiteConnection(_connString);
-            conn.Open();
+            using var conn = _dbService.CreateConnection();
             using var tx = conn.BeginTransaction();
             try
             {
