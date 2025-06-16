@@ -19,9 +19,8 @@ namespace ToolManagementAppV2.Tests.Services
                 var dbService = new DatabaseService(dbPath);
                 ISettingsService service = new SettingsService(dbService);
 
-                using (var conn = new SQLiteConnection(dbService.ConnectionString))
+                using (var conn = dbService.CreateConnection())
                 {
-                    conn.Open();
                     using var cmd = new SQLiteCommand("DROP TABLE Settings", conn);
                     cmd.ExecuteNonQuery();
                 }

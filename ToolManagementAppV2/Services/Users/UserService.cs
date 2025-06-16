@@ -13,9 +13,13 @@ namespace ToolManagementAppV2.Services.Users
     public class UserService : IUserService
     {
         readonly string _connString;
+        readonly DatabaseService _dbService;
 
-        public UserService(DatabaseService dbService) =>
+        public UserService(DatabaseService dbService)
+        {
+            _dbService = dbService;
             _connString = dbService.ConnectionString;
+        }
 
         public List<User> GetAllUsers() =>
             SqliteHelper.ExecuteReader(_connString, "SELECT * FROM Users", null, MapUser);
@@ -51,8 +55,7 @@ namespace ToolManagementAppV2.Services.Users
                   (@UserName,@Password,@Photo,@Admin,@Email,@Phone,@Address,@Role);
                 SELECT last_insert_rowid();";
 
-            using var conn = new SQLiteConnection(_connString);
-            conn.Open();
+            using var conn = _dbService.CreateConnection();
             using var cmd = new SQLiteCommand(sql, conn);
 
             var hashed = string.IsNullOrWhiteSpace(user.Password)

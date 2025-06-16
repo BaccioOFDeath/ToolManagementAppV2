@@ -8,13 +8,17 @@ namespace ToolManagementAppV2.Services.Settings
     public class SettingsService : ISettingsService
     {
         readonly string _connString;
+        readonly DatabaseService _dbService;
         const string UpsertSql = @"
             INSERT INTO Settings (Key, Value) 
             VALUES (@Key, @Value)
             ON CONFLICT(Key) DO UPDATE SET Value = @Value";
 
-        public SettingsService(DatabaseService dbService) =>
+        public SettingsService(DatabaseService dbService)
+        {
+            _dbService = dbService;
             _connString = dbService.ConnectionString;
+        }
 
         public void SaveSetting(string key, string value)
         {
@@ -29,8 +33,7 @@ namespace ToolManagementAppV2.Services.Settings
         public string GetSetting(string key)
         {
             const string sql = "SELECT Value FROM Settings WHERE Key = @Key";
-            using var conn = new SQLiteConnection(_connString);
-            conn.Open();
+            using var conn = _dbService.CreateConnection();
             using var cmd = new SQLiteCommand(sql, conn);
             cmd.Parameters.AddWithValue("@Key", key);
             return cmd.ExecuteScalar()?.ToString();
@@ -40,8 +43,7 @@ namespace ToolManagementAppV2.Services.Settings
         {
             var dict = new Dictionary<string, string>();
             const string sql = "SELECT Key, Value FROM Settings";
-            using var conn = new SQLiteConnection(_connString);
-            conn.Open();
+            using var conn = _dbService.CreateConnection();
             using var cmd = new SQLiteCommand(sql, conn);
             using var rdr = cmd.ExecuteReader();
             while (rdr.Read())
@@ -51,8 +53,7 @@ namespace ToolManagementAppV2.Services.Settings
 
         public void UpdateSettings(Dictionary<string, string> settings)
         {
-            using var conn = new SQLiteConnection(_connString);
-            conn.Open();
+            using var conn = _dbService.CreateConnection();
             using var tx = conn.BeginTransaction();
             try
             {
