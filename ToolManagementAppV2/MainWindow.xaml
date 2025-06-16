@@ -114,13 +114,22 @@
                       ScrollViewer.VerticalScrollBarVisibility="Auto">
                                 <ListView.View>
                                     <GridView>
-                                        <GridViewColumn Header="Action" Width="100" CellTemplate="{StaticResource CheckOutButtonTemplate}"/>
-                                        <GridViewColumn Header="Tool #" DisplayMemberBinding="{Binding ToolNumber}" Width="120"/>
-                                        <GridViewColumn Header="Name" DisplayMemberBinding="{Binding NameDescription}" Width="380"/>
-                                        <GridViewColumn Header="Part #" DisplayMemberBinding="{Binding PartNumber}" Width="100"/>
-                                        <GridViewColumn Header="Brand" DisplayMemberBinding="{Binding Brand}" Width="100"/>
-                                        <GridViewColumn Header="Qty" DisplayMemberBinding="{Binding QuantityOnHand}" Width="60"/>
-                                        <GridViewColumn Header="Supplier" DisplayMemberBinding="{Binding Supplier}" Width="100"/>
+                                        <GridViewColumn Header="Image" Width="auto">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=Tool}"
+   Width="50" Height="50" Stretch="Uniform"/>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        <GridViewColumn Header="Action" Width="auto" CellTemplate="{StaticResource CheckOutButtonTemplate}"/>
+                                        <GridViewColumn Header="Tool #" DisplayMemberBinding="{Binding ToolNumber}" Width="auto"/>
+                                        <GridViewColumn Header="Qty" DisplayMemberBinding="{Binding QuantityOnHand}" Width="40"/>
+                                        <GridViewColumn Header="Location" DisplayMemberBinding="{Binding Location}" Width="auto"/>
+                                        <GridViewColumn Header="Name" DisplayMemberBinding="{Binding NameDescription}" Width="auto"/>
+                                        <GridViewColumn Header="Part #" DisplayMemberBinding="{Binding PartNumber}" Width="auto"/>
+                                        <GridViewColumn Header="Brand" DisplayMemberBinding="{Binding Brand}" Width="auto"/>
+                                        <GridViewColumn Header="Supplier" DisplayMemberBinding="{Binding Supplier}" Width="auto"/>
                                         <GridViewColumn Header="Purchased" Width="100">
                                             <GridViewColumn.CellTemplate>
                                                 <DataTemplate>
@@ -128,21 +137,14 @@
                                                 </DataTemplate>
                                             </GridViewColumn.CellTemplate>
                                         </GridViewColumn>
-                                        <GridViewColumn Header="Notes" Width="250">
+                                        <GridViewColumn Header="Notes" Width="auto">
                                             <GridViewColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <TextBlock Text="{Binding Notes}" TextWrapping="Wrap"/>
                                                 </DataTemplate>
                                             </GridViewColumn.CellTemplate>
                                         </GridViewColumn>
-                                        <GridViewColumn Header="Image" Width="100">
-                                            <GridViewColumn.CellTemplate>
-                                                <DataTemplate>
-                                                    <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=Tool}"
-                                           Width="50" Height="50" Stretch="Uniform"/>
-                                                </DataTemplate>
-                                            </GridViewColumn.CellTemplate>
-                                        </GridViewColumn>
+                                        
                                     </GridView>
                                 </ListView.View>
                             </ListView>
@@ -153,8 +155,16 @@
                       ItemsSource="{Binding CheckedOutTools}" SelectedItem="{Binding SelectedTool, Mode=TwoWay}">
                                 <ListView.View>
                                     <GridView>
+                                        <GridViewColumn Header="Image" Width="auto">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=Tool}"
+                                                            Width="50" Height="50" Stretch="Uniform"/>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
                                         <GridViewColumn Header="Action" Width="100" CellTemplate="{StaticResource CheckOutButtonTemplate}"/>
-                                        <GridViewColumn Header="Tool ID" DisplayMemberBinding="{Binding ToolID}" Width="80"/>
+                                        <GridViewColumn Header="Tool Number" DisplayMemberBinding="{Binding ToolNumber}" Width="80"/>
                                         <GridViewColumn Header="Name" DisplayMemberBinding="{Binding NameDescription}" Width="300"/>
                                         <GridViewColumn Header="Checked Out By" DisplayMemberBinding="{Binding CheckedOutBy}" Width="150"/>
                                         <GridViewColumn Header="Checked Out Time" DisplayMemberBinding="{Binding CheckedOutTime, StringFormat=\{0:G\}}" Width="150"/>
