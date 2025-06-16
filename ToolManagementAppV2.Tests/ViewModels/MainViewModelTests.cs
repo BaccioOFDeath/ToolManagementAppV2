@@ -31,7 +31,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
                 toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Saw" });
 
-                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService);
+                ActivityLogService logService = new ActivityLogService(db);
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService, logService);
 
                 vm.SearchTerm = "Ham";
                 vm.SearchCommand.Execute(null);
@@ -62,7 +63,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
                 toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Saw" });
 
-                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService);
+                ActivityLogService logService = new ActivityLogService(db);
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService, logService);
 
                 vm.SearchTerm = string.Empty;
                 vm.SearchCommand.Execute(null);
@@ -89,7 +91,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IRentalService rentalService = new RentalService(db);
                 ISettingsService settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService);
+                ActivityLogService logService = new ActivityLogService(db);
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService, logService);
 
                 vm.NewTool.ToolNumber = "TN1";
                 vm.NewTool.NameDescription = "Hammer";
@@ -134,7 +137,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IRentalService rentalService = new RentalService(db);
                 ISettingsService settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService);
+                ActivityLogService logService = new ActivityLogService(db);
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService, logService);
 
                 vm.NewCustomerName = "ACME";
                 vm.NewCustomerEmail = "a@b.com";
@@ -185,7 +189,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 customerService.AddCustomer(new Customer { Company = "Old" });
                 var existing = customerService.GetAllCustomers().First();
 
-                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService);
+                ActivityLogService logService = new ActivityLogService(db);
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService, logService);
                 vm.SelectedCustomer = existing;
                 vm.NewCustomerName = "New";
                 vm.NewCustomerEmail = "e@e.com";
@@ -231,7 +236,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 rentalService.RentTool(tool.ToolID.ToString(), cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(3));
 
-                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService);
+                ActivityLogService logService = new ActivityLogService(db);
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService, logService);
                 vm.LoadActiveRentalsCommand.Execute(null);
                 var rental = vm.ActiveRentals.First();
 
@@ -240,6 +246,46 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 Assert.True(vm.ReturnToolCommand.CanExecute(null));
                 Assert.True(vm.ExtendRentalCommand.CanExecute(null));
                 Assert.Equal(rental.DueDate, vm.NewDueDate);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void SummaryProperties_ReturnExpectedCounts()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                IUserService userService = new UserService(db);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
+                ISettingsService settingsService = new SettingsService(db);
+                ActivityLogService logService = new ActivityLogService(db);
+
+                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
+                toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Saw", QuantityOnHand = 1 });
+                customerService.AddCustomer(new Customer { Company = "ACME" });
+                customerService.AddCustomer(new Customer { Company = "BETA" });
+                var tool = toolService.GetAllTools().First();
+                var cust = customerService.GetAllCustomers().First();
+                rentalService.RentTool(tool.ToolID.ToString(), cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool.ToolID.ToString(), cust.CustomerID, DateTime.Today.AddDays(-2), DateTime.Today.AddDays(-1));
+                logService.LogAction(1, "user", "action1");
+                logService.LogAction(2, "user", "action2");
+
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService, logService);
+
+                Assert.Equal("Total Tools: 2", vm.TotalToolsSummary);
+                Assert.Equal("Total Customers: 2", vm.TotalCustomersSummary);
+                Assert.Equal("Active Rentals: 2", vm.ActiveRentalsSummary);
+                Assert.Equal("Overdue Rentals: 1", vm.OverdueRentalsSummary);
+                Assert.Equal("Recent Logs: 2", vm.ActivityLogsSummary);
             }
             finally
             {

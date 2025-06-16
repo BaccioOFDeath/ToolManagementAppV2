@@ -45,7 +45,7 @@ namespace ToolManagementAppV2
             _printer = new Printer(_settingsService);
             _reportService = new ReportService(_toolService, _rentalService, _activityLogService, _customerService, _userService);
 
-            DataContext = new MainViewModel(_toolService, _userService, _customerService, _rentalService, _settingsService);
+            DataContext = new MainViewModel(_toolService, _userService, _customerService, _rentalService, _settingsService, _activityLogService);
 
             try
             {
