@@ -98,51 +98,55 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                            <xctk:WatermarkTextBox x:Name="SearchInput" Width="400" Margin="5" Watermark="Search Tools..." TextChanged="SearchInput_TextChanged" />
-                            <Button Content="Print Search" Click="PrintSearchResults_Click" Width="150" Margin="5"/>
-                            <Button Content="Print My Tools" Click="PrintMyCheckedOutTools_Click" Width="150" Margin="5"/>
-                            <Button Content="Rent Tool" Command="{Binding RentToolCommand}" Width="150" Margin="5"/>
-                            <Button Content="Rental History" Command="{Binding ViewRentalHistoryCommand}" Width="150" Margin="5"/>
-                        </StackPanel>
+                        <GroupBox Header="Search" Margin="0,0,0,10">
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <xctk:WatermarkTextBox x:Name="SearchInput" Width="400" Margin="5" Watermark="Search Tools..." TextChanged="SearchInput_TextChanged" />
+                                <Button Content="Print Search" Click="PrintSearchResults_Click" Width="150" Margin="5"/>
+                                <Button Content="Print My Tools" Click="PrintMyCheckedOutTools_Click" Width="150" Margin="5"/>
+                                <Button Content="Rent Tool" Command="{Binding RentToolCommand}" Width="150" Margin="5"/>
+                                <Button Content="Rental History" Command="{Binding ViewRentalHistoryCommand}" Width="150" Margin="5"/>
+                            </StackPanel>
+                        </GroupBox>
 
-                        <ListView x:Name="SearchResultsList" ItemContainerStyle="{StaticResource ToolImageTooltipStyle}" 
-                  ItemsSource="{Binding SearchResults}" SelectedItem="{Binding SelectedTool, Mode=TwoWay}" 
-                  Margin="0,0,0,10" Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Auto">
-                            <ListView.View>
-                                <GridView>
-                                    <GridViewColumn Header="Action" Width="100" CellTemplate="{StaticResource CheckOutButtonTemplate}"/>
-                                    <GridViewColumn Header="Tool #" DisplayMemberBinding="{Binding ToolNumber}" Width="120"/>
-                                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding NameDescription}" Width="380"/>
-                                    <GridViewColumn Header="Part #" DisplayMemberBinding="{Binding PartNumber}" Width="100"/>
-                                    <GridViewColumn Header="Brand" DisplayMemberBinding="{Binding Brand}" Width="100"/>
-                                    <GridViewColumn Header="Qty" DisplayMemberBinding="{Binding QuantityOnHand}" Width="60"/>
-                                    <GridViewColumn Header="Supplier" DisplayMemberBinding="{Binding Supplier}" Width="100"/>
-                                    <GridViewColumn Header="Purchased" Width="100">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding PurchasedDate, StringFormat=\{0:yyyy-MM-dd\}}" />
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                    <GridViewColumn Header="Notes" Width="250">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding Notes}" TextWrapping="Wrap"/>
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                    <GridViewColumn Header="Image" Width="100">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=Tool}" 
-                                       Width="50" Height="50" Stretch="Uniform"/>
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                </GridView>
-                            </ListView.View>
-                        </ListView>
+                        <GroupBox Header="Search Results" Grid.Row="1" Margin="0,0,0,10">
+                            <ListView x:Name="SearchResultsList" ItemContainerStyle="{StaticResource ToolImageTooltipStyle}"
+                      ItemsSource="{Binding SearchResults}" SelectedItem="{Binding SelectedTool, Mode=TwoWay}"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="Action" Width="100" CellTemplate="{StaticResource CheckOutButtonTemplate}"/>
+                                        <GridViewColumn Header="Tool #" DisplayMemberBinding="{Binding ToolNumber}" Width="120"/>
+                                        <GridViewColumn Header="Name" DisplayMemberBinding="{Binding NameDescription}" Width="380"/>
+                                        <GridViewColumn Header="Part #" DisplayMemberBinding="{Binding PartNumber}" Width="100"/>
+                                        <GridViewColumn Header="Brand" DisplayMemberBinding="{Binding Brand}" Width="100"/>
+                                        <GridViewColumn Header="Qty" DisplayMemberBinding="{Binding QuantityOnHand}" Width="60"/>
+                                        <GridViewColumn Header="Supplier" DisplayMemberBinding="{Binding Supplier}" Width="100"/>
+                                        <GridViewColumn Header="Purchased" Width="100">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding PurchasedDate, StringFormat=\{0:yyyy-MM-dd\}}" />
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        <GridViewColumn Header="Notes" Width="250">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Notes}" TextWrapping="Wrap"/>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        <GridViewColumn Header="Image" Width="100">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=Tool}"
+                                           Width="50" Height="50" Stretch="Uniform"/>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </GroupBox>
 
                         <GroupBox Header="My Checked-Out Tools" Grid.Row="2" Margin="0,10,0,0">
                             <ListView x:Name="CheckedOutToolsList" ItemContainerStyle="{StaticResource ToolImageTooltipStyle}" 
