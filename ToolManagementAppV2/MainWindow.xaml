@@ -311,7 +311,20 @@
                                 <GridView>
                                     <GridViewColumn Header="Rental ID" DisplayMemberBinding="{Binding RentalID}" Width="80"/>
                                     <GridViewColumn Header="Tool" DisplayMemberBinding="{Binding ToolNumber}" Width="120"/>
+                                    <GridViewColumn Header="Image" Width="100">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=Tool}" Width="50" Height="50" Stretch="Uniform" Style="{StaticResource ToolImageTooltipStyle}"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Header="Location" DisplayMemberBinding="{Binding ToolLocation}" Width="100"/>
                                     <GridViewColumn Header="Customer" DisplayMemberBinding="{Binding CustomerName}" Width="150"/>
+                                    <GridViewColumn Header="Contact" DisplayMemberBinding="{Binding CustomerContact}" Width="120"/>
+                                    <GridViewColumn Header="Email" DisplayMemberBinding="{Binding CustomerEmail}" Width="150"/>
+                                    <GridViewColumn Header="Phone" DisplayMemberBinding="{Binding CustomerPhone}" Width="120"/>
+                                    <GridViewColumn Header="Mobile" DisplayMemberBinding="{Binding CustomerMobile}" Width="120"/>
+                                    <GridViewColumn Header="Address" DisplayMemberBinding="{Binding CustomerAddress}" Width="200"/>
                                     <GridViewColumn Header="Rental Date" DisplayMemberBinding="{Binding RentalDate, StringFormat=\{0:yyyy-MM-dd\}}" Width="120"/>
                                     <GridViewColumn Header="Due Date" DisplayMemberBinding="{Binding DueDate, StringFormat=\{0:yyyy-MM-dd\}}" Width="120"/>
                                     <GridViewColumn Header="Return Date" DisplayMemberBinding="{Binding ReturnDate, StringFormat=\{0:yyyy-MM-dd\}}" Width="120"/>
