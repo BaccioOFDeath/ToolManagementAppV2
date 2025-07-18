@@ -193,5 +193,43 @@ namespace ToolManagementAppV2.Tests.Services
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void GetActiveRentals_ReturnsCustomerAndToolDetails()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+
+                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1, Location = "A1", ToolImagePath = "path" };
+                toolService.AddTool(tool);
+                var addedTool = toolService.GetAllTools().First();
+
+                var customer = new Customer { Company = "Acme", Contact = "Bob", Email = "b@c.com", Phone = "111", Mobile = "222", Address = "Addr" };
+                customerService.AddCustomer(customer);
+                var addedCust = customerService.GetAllCustomers().First();
+
+                rentalService.RentTool(addedTool.ToolID, addedCust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+
+                var rentals = rentalService.GetActiveRentals();
+                var r = rentals.First();
+                Assert.Equal("A1", r.ToolLocation);
+                Assert.Equal("path", r.ToolImagePath);
+                Assert.Equal("Bob", r.CustomerContact);
+                Assert.Equal("b@c.com", r.CustomerEmail);
+                Assert.Equal("111", r.CustomerPhone);
+                Assert.Equal("222", r.CustomerMobile);
+                Assert.Equal("Addr", r.CustomerAddress);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }
