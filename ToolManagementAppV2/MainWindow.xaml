@@ -7,7 +7,8 @@
         Title="Tool Inventory Management"
         Height="750"
         Width="1600"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        SizeChanged="MainWindow_SizeChanged">
     <DockPanel Margin="10">
         <!-- Global Resources -->
         <DockPanel.Resources>
