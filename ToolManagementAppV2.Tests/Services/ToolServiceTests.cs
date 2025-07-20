@@ -42,6 +42,35 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
+        public void AddTool_SetsGeneratedToolID()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                IToolService service = new ToolService(dbService);
+
+                var tool = new Tool
+                {
+                    ToolNumber = "TID1",
+                    NameDescription = "Test",
+                    Location = "Loc",
+                    Brand = "Brand",
+                    PartNumber = "PN"
+                };
+
+                service.AddTool(tool);
+
+                Assert.True(int.Parse(tool.ToolID) > 0);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public void ImportToolImages_UpdatesImagePathsAndReportsIssues()
         {
             var dbPath = Path.GetTempFileName();
