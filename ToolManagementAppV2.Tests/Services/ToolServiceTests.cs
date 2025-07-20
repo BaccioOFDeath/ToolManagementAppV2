@@ -74,5 +74,28 @@ namespace ToolManagementAppV2.Tests.Services
                 if (File.Exists(dbPath)) File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void GetAllTools_CachesResultsBetweenCalls()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var svc = new ToolService(db);
+                svc.AddTool(new Tool { ToolNumber = "T1", NameDescription = "A" });
+                var first = svc.GetAllTools();
+                using (var conn = db.CreateConnection())
+                {
+                    SqliteHelper.ExecuteNonQuery(conn, "INSERT INTO Tools (ToolNumber) VALUES ('T2')", null);
+                }
+                var second = svc.GetAllTools();
+                Assert.Single(second);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
     }
 }
