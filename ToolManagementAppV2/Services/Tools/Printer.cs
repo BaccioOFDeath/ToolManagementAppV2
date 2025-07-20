@@ -278,7 +278,7 @@ namespace ToolManagementAppV2.Services.Tools
 
             public override bool IsPageCountValid => _inner.IsPageCountValid;
             public override int PageCount => _inner.PageCount;
-            public override Size PageSize
+            public override System.Windows.Size PageSize
             {
                 get => _inner.PageSize;
                 set => _inner.PageSize = value;

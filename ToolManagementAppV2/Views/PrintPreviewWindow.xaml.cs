@@ -48,7 +48,7 @@ namespace ToolManagementAppV2.Views
             PreviewLogo.Source = bmp;
 
             DocViewer.Document = _document;
-            Owner = Application.Current.MainWindow;
+            Owner = System.Windows.Application.Current.MainWindow;
             ShowDialog();
         }
 
