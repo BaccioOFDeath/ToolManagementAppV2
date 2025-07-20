@@ -2,6 +2,8 @@
 using System;
 using System.IO;
 using System.Data;
+using System.Linq;
+using System.Collections.Generic;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Utilities.IO;
@@ -14,6 +16,7 @@ namespace ToolManagementAppV2.Services.Tools
     public class ToolService : IToolService
     {
         readonly DatabaseService _dbService;
+        List<ToolModel>? _cache;
         const string AllToolsSql = "SELECT * FROM Tools";
         const string UpsertToolCsv = @"
             INSERT INTO Tools 
@@ -27,12 +30,20 @@ namespace ToolManagementAppV2.Services.Tools
     
         public List<ToolModel> GetAllTools()
         {
+            if (_cache != null)
+                return _cache;
+
             using var conn = _dbService.CreateConnection();
-            return SqliteHelper.ExecuteReader(conn, AllToolsSql, null, MapTool);
+            _cache = SqliteHelper.ExecuteReader(conn, AllToolsSql, null, MapTool);
+            return _cache;
         }
     
         public ToolModel GetToolByID(string toolID)
         {
+            var cached = GetAllTools().FirstOrDefault(t => t.ToolID == toolID);
+            if (cached != null)
+                return cached;
+
             using var conn = _dbService.CreateConnection();
             return SqliteHelper.ExecuteReader(conn, "SELECT * FROM Tools WHERE ToolID=@ToolID",
                 new[] { new SQLiteParameter("@ToolID", toolID) }, MapTool).FirstOrDefault();
@@ -40,30 +51,22 @@ namespace ToolManagementAppV2.Services.Tools
     
         public List<ToolModel> SearchTools(string? searchText)
         {
+            var all = GetAllTools();
             if (string.IsNullOrWhiteSpace(searchText))
-                return GetAllTools();
-    
+                return new List<ToolModel>(all);
+
             var terms = searchText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            var sb = new StringBuilder("SELECT * FROM Tools");
-            if (terms.Any())
-            {
-                sb.Append(" WHERE ")
-                  .Append(string.Join(" AND ", terms.Select((t, i) =>
-                    "(ToolID LIKE @p" + i +
-                    " OR ToolNumber LIKE @p" + i +
-                    " OR NameDescription LIKE @p" + i +
-                    " OR Brand LIKE @p" + i +
-                    " OR PartNumber LIKE @p" + i +
-                    " OR Supplier LIKE @p" + i +
-                    " OR Location LIKE @p" + i +
-                    " OR Notes LIKE @p" + i +
-                    " OR Keywords LIKE @p" + i + ")")));
-            }
-            var parameters = terms
-                .Select((t, i) => new SQLiteParameter("@p" + i, $"%{t}%"))
-                .ToArray();
-            using var conn = _dbService.CreateConnection();
-            return SqliteHelper.ExecuteReader(conn, sb.ToString(), parameters, MapTool);
+            return all.Where(t => terms.All(term =>
+                (t.ToolID?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (t.ToolNumber?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (t.NameDescription?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (t.Brand?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (t.PartNumber?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (t.Supplier?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (t.Location?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (t.Notes?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (t.Keywords?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)
+            )).ToList();
         }
     
         public void AddTool(ToolModel tool)
@@ -84,6 +87,7 @@ namespace ToolManagementAppV2.Services.Tools
             };
             using var conn = _dbService.CreateConnection();
             SqliteHelper.ExecuteNonQuery(conn, UpsertToolCsv, p);
+            _cache = null;
         }
     
         public void UpdateTool(ToolModel tool)
@@ -127,6 +131,7 @@ namespace ToolManagementAppV2.Services.Tools
             };
             using var conn = _dbService.CreateConnection();
             SqliteHelper.ExecuteNonQuery(conn, sql, p);
+            _cache = null;
         }
     
         public void UpdateToolQuantities(string toolID, int qtyChange, bool isRental)
@@ -143,6 +148,7 @@ namespace ToolManagementAppV2.Services.Tools
             using var conn = _dbService.CreateConnection();
             if (SqliteHelper.ExecuteNonQuery(conn, sql, p) == 0)
                 throw new InvalidOperationException("Quantity update failed.");
+            _cache = null;
         }
     
         public void DeleteTool(string toolID)
@@ -150,6 +156,7 @@ namespace ToolManagementAppV2.Services.Tools
             using var conn = _dbService.CreateConnection();
             SqliteHelper.ExecuteNonQuery(conn, "DELETE FROM Tools WHERE ToolID=@ID",
                 new[] { new SQLiteParameter("@ID", toolID) });
+            _cache = null;
         }
     
         public void ToggleToolCheckOutStatus(string toolID, string currentUser)
@@ -178,6 +185,7 @@ namespace ToolManagementAppV2.Services.Tools
                 new SQLiteParameter("@Time", time),
                 new SQLiteParameter("@ID", toolID)
             });
+            _cache = null;
         }
     
         public List<ToolModel> GetToolsCheckedOutBy(string userName)
@@ -196,6 +204,7 @@ namespace ToolManagementAppV2.Services.Tools
                     new SQLiteParameter("@Img", imagePath),
                     new SQLiteParameter("@ID", toolID)
                 });
+            _cache = null;
         }
     
         public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map)
