@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Tools;
@@ -37,6 +38,40 @@ namespace ToolManagementAppV2.Tests.Services
             {
                 if (File.Exists(dbPath))
                     File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void ImportToolImages_UpdatesImagePathsAndReportsIssues()
+        {
+            var dbPath = Path.GetTempFileName();
+            var imgDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(imgDir);
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService svc = new ToolService(db);
+                svc.AddTool(new Tool { ToolNumber = "T1", NameDescription = "A" });
+                svc.AddTool(new Tool { ToolNumber = "T2", NameDescription = "B" });
+                svc.AddTool(new Tool { ToolNumber = "T1", NameDescription = "C" });
+
+                File.WriteAllText(Path.Combine(imgDir, "T1.jpg"), string.Empty);
+                File.WriteAllText(Path.Combine(imgDir, "T2.jpg"), string.Empty);
+                File.WriteAllText(Path.Combine(imgDir, "X.jpg"), string.Empty);
+
+                var result = svc.ImportToolImages(imgDir, t => t.ToolNumber);
+
+                var all = svc.GetAllTools();
+                var t2 = all.First(t => t.ToolNumber == "T2");
+                Assert.NotNull(t2.ToolImagePath);
+                Assert.Single(result.ConflictingFiles);
+                Assert.Single(result.UnmatchedFiles);
+                Assert.Equal(1, result.ImportedCount);
+            }
+            finally
+            {
+                if (Directory.Exists(imgDir)) Directory.Delete(imgDir, true);
+                if (File.Exists(dbPath)) File.Delete(dbPath);
             }
         }
     }
