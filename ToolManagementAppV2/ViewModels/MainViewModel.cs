@@ -327,7 +327,10 @@ namespace ToolManagementAppV2.ViewModels
 
         public void LoadTools()
         {
+            var selectedId = SelectedTool?.ToolID;
             Tools.ReplaceRange(_toolService.GetAllTools());
+            if (!string.IsNullOrEmpty(selectedId))
+                SelectedTool = Tools.FirstOrDefault(t => t.ToolID == selectedId);
             UpdateSummaries();
         }
 

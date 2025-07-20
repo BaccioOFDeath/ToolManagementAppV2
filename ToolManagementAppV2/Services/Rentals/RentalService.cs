@@ -9,10 +9,12 @@ namespace ToolManagementAppV2.Services.Rentals
     public class RentalService : IRentalService
     {
         readonly DatabaseService _dbService;
+        readonly IToolService _toolService;
 
-        public RentalService(DatabaseService dbService)
+        public RentalService(DatabaseService dbService, IToolService toolService)
         {
             _dbService = dbService;
+            _toolService = toolService;
         }
 
         // toolID is passed as a string even though the underlying column is INTEGER
@@ -43,12 +45,8 @@ namespace ToolManagementAppV2.Services.Rentals
                         new SQLiteParameter("@DueDate", dueDate)
                     });
 
-                SqliteHelper.ExecuteNonQuery(conn, tx,
-                    "UPDATE Tools SET AvailableQuantity = AvailableQuantity - 1, " +
-                    "RentedQuantity = RentedQuantity + 1 WHERE ToolID = @ToolID",
-                    new[] { new SQLiteParameter("@ToolID", toolID) });
-
                 tx.Commit();
+                _toolService.UpdateToolQuantities(toolID, 1, true);
             }
             catch (Exception ex)
             {
@@ -80,11 +78,8 @@ namespace ToolManagementAppV2.Services.Rentals
                         new SQLiteParameter("@DueDate", dueDate)
                     });
 
-                SqliteHelper.ExecuteNonQuery(conn, tx,
-                    "UPDATE Tools SET AvailableQuantity = AvailableQuantity - 1, RentedQuantity = RentedQuantity + 1 WHERE ToolID = @ToolID",
-                    new[] { new SQLiteParameter("@ToolID", toolID) });
-
                 tx.Commit();
+                _toolService.UpdateToolQuantities(toolID, 1, true);
             }
             catch (Exception ex)
             {
@@ -108,14 +103,16 @@ namespace ToolManagementAppV2.Services.Rentals
                         new SQLiteParameter("@RentalID", rentalID)
                     });
 
-                var toolRows = SqliteHelper.ExecuteNonQuery(conn, tx,
-                    "UPDATE Tools SET AvailableQuantity=AvailableQuantity+1, RentedQuantity=RentedQuantity-1 WHERE ToolID=(SELECT ToolID FROM Rentals WHERE RentalID=@RentalID)",
-                    new[] { new SQLiteParameter("@RentalID", rentalID) });
+                var cmd = new SQLiteCommand("SELECT ToolID FROM Rentals WHERE RentalID=@RentalID", conn, tx);
+                cmd.Parameters.AddWithValue("@RentalID", rentalID);
+                var toolIdObj = cmd.ExecuteScalar();
+                var toolID = toolIdObj?.ToString();
 
-                if (rentalRows == 0 || toolRows == 0)
+                if (rentalRows == 0 || string.IsNullOrEmpty(toolID))
                     throw new InvalidOperationException("Return operation failed.");
 
                 tx.Commit();
+                _toolService.UpdateToolQuantities(toolID, 1, false);
             }
             catch (Exception ex)
             {
@@ -146,11 +143,8 @@ namespace ToolManagementAppV2.Services.Rentals
                         new SQLiteParameter("@RentalID", rentalID)
                     });
 
-                SqliteHelper.ExecuteNonQuery(conn, tx,
-                    "UPDATE Tools SET AvailableQuantity=AvailableQuantity+1,RentedQuantity=RentedQuantity-1 WHERE ToolID=@ToolID",
-                    new[] { new SQLiteParameter("@ToolID", toolID) });
-
                 tx.Commit();
+                _toolService.UpdateToolQuantities(toolID, 1, false);
             }
             catch (Exception ex)
             {

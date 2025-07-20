@@ -139,7 +139,7 @@ namespace ToolManagementAppV2.Tests
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
                 ICustomerService customerService = new CustomerService(db);
-                IRentalService rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
 
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 0 });
                 var tool = toolService.GetAllTools().First();
@@ -168,7 +168,7 @@ namespace ToolManagementAppV2.Tests
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
                 ICustomerService customerService = new CustomerService(db);
-                IRentalService rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
 
                 toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Wrench", QuantityOnHand = 0 });
                 var tool = toolService.GetAllTools().First();
@@ -195,7 +195,7 @@ namespace ToolManagementAppV2.Tests
             try
             {
                 var db = new DatabaseService(dbPath);
-                IRentalService rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
 
                 var sw = new StringWriter();
                 var original = Console.Out;
@@ -217,7 +217,7 @@ namespace ToolManagementAppV2.Tests
             try
             {
                 var db = new DatabaseService(dbPath);
-                IRentalService rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
 
                 var sw = new StringWriter();
                 var original = Console.Out;

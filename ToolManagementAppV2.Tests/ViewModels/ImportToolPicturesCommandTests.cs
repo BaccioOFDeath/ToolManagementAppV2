@@ -52,7 +52,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var toolService = new TestToolService(db);
                 IUserService userService = new UserService(db);
                 ICustomerService custService = new CustomerService(db);
-                IRentalService rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
                 ISettingsService settingsService = new SettingsService(db);
                 ActivityLogService logService = new ActivityLogService(db);
                 var vm = new TestMainViewModel(toolService, userService, custService, rentalService, settingsService, logService, imgDir);

@@ -25,7 +25,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 IUserService userService = new UserService(db);
                 ICustomerService customerService = new CustomerService(db);
-                IRentalService rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
                 ISettingsService settingsService = new SettingsService(db);
                 ActivityLogService logService = new ActivityLogService(db);
                 var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService, logService);
@@ -53,7 +53,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 IUserService userService = new UserService(db);
                 ICustomerService customerService = new CustomerService(db);
-                IRentalService rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
                 ISettingsService settingsService = new SettingsService(db);
                 ActivityLogService logService = new ActivityLogService(db);
                 var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService, logService);
@@ -80,7 +80,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 IUserService userService = new UserService(db);
                 ICustomerService customerService = new CustomerService(db);
-                IRentalService rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
                 ISettingsService settingsService = new SettingsService(db);
                 ActivityLogService logService = new ActivityLogService(db);
                 var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService, logService);
@@ -122,7 +122,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 IUserService userService = new UserService(db);
                 ICustomerService customerService = new CustomerService(db);
-                IRentalService rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
                 ISettingsService settingsService = new SettingsService(db);
                 ActivityLogService logService = new ActivityLogService(db);
                 var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService, logService);
@@ -166,7 +166,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 IUserService userService = new UserService(db);
                 ICustomerService customerService = new CustomerService(db);
-                IRentalService rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
                 ISettingsService settingsService = new SettingsService(db);
                 customerService.AddCustomer(new Customer { Company = "Old" });
                 var existing = customerService.GetAllCustomers().First();
@@ -205,7 +205,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 IUserService userService = new UserService(db);
                 ICustomerService customerService = new CustomerService(db);
-                IRentalService rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
                 ISettingsService settingsService = new SettingsService(db);
                 ActivityLogService logService = new ActivityLogService(db);
                 toolService.AddTool(new Tool { ToolNumber = "TN1", NameDescription = "Hammer", QuantityOnHand = 1 });
@@ -238,7 +238,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 IUserService userService = new UserService(db);
                 ICustomerService customerService = new CustomerService(db);
-                IRentalService rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
                 ISettingsService settingsService = new SettingsService(db);
                 ActivityLogService logService = new ActivityLogService(db);
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
@@ -275,7 +275,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 IUserService userService = new UserService(db);
                 ICustomerService customerService = new CustomerService(db);
-                IRentalService rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
                 ISettingsService settingsService = new SettingsService(db);
                 ActivityLogService logService = new ActivityLogService(db);
                 toolService.AddTool(new Tool { ToolNumber = "TN1", NameDescription = "Hammer", QuantityOnHand = 1 });
@@ -289,6 +289,37 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 Assert.True(vm.ViewSelectedCustomerHistoryCommand.CanExecute(null));
                 var history = rentalService.GetRentalHistoryForCustomer(cust.CustomerID);
                 Assert.NotEmpty(history);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void LoadTools_PreservesSelectedTool()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                IUserService userService = new UserService(db);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
+                ISettingsService settingsService = new SettingsService(db);
+                ActivityLogService logService = new ActivityLogService(db);
+
+                toolService.AddTool(new Tool { ToolNumber = "T1" });
+                toolService.AddTool(new Tool { ToolNumber = "T2" });
+
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService, logService);
+                vm.LoadTools();
+                vm.SelectedTool = vm.Tools.First();
+                var id = vm.SelectedTool.ToolID;
+                vm.LoadTools();
+                Assert.Equal(id, vm.SelectedTool.ToolID);
             }
             finally
             {
