@@ -682,6 +682,46 @@ namespace ToolManagementAppV2
                 _printer.PrintTools(vm.CheckedOutTools, "My Checked-Out Tools", vm.CurrentUserName);
         }
 
+        ScrollViewer _searchScrollViewer;
+
+        void SearchResultsList_Loaded(object s, RoutedEventArgs e)
+        {
+            _searchScrollViewer = FindVisualChild<ScrollViewer>(SearchResultsList);
+        }
+
+        void SearchResultsList_SizeChanged(object s, SizeChangedEventArgs e)
+        {
+            if (DataContext is MainViewModel vm)
+            {
+                var width = e.NewSize.Width;
+                var itemWidth = Math.Clamp(width / 5 - 20, 120, 300);
+                vm.SearchTileWidth = itemWidth;
+            }
+        }
+
+        void SearchResultsList_PreviewMouseWheel(object s, MouseWheelEventArgs e)
+        {
+            if (_searchScrollViewer != null)
+            {
+                _searchScrollViewer.ScrollToHorizontalOffset(_searchScrollViewer.HorizontalOffset - e.Delta);
+                e.Handled = true;
+            }
+        }
+
+        static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T t)
+                    return t;
+                var result = FindVisualChild<T>(child);
+                if (result != null)
+                    return result;
+            }
+            return null;
+        }
+
         public void MyTabControl_SelectionChanged(object s, SelectionChangedEventArgs e)
         {
             // Only respond when the tab selection actually changes.

@@ -34,6 +34,13 @@ namespace ToolManagementAppV2.ViewModels
         public ObservableCollection<ToolModel> Tools { get; } = new();
         public ObservableCollection<ToolModel> SearchResults { get; } = new();
         public ObservableCollection<ToolModel> CheckedOutTools { get; } = new();
+
+        double _searchTileWidth = 200;
+        public double SearchTileWidth
+        {
+            get => _searchTileWidth;
+            set => SetProperty(ref _searchTileWidth, value);
+        }
         ToolModel _selectedTool;
         public ToolModel SelectedTool
         {

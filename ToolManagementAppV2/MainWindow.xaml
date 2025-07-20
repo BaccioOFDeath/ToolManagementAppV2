@@ -30,9 +30,13 @@
                 </Setter>
             </Style>
             <DataTemplate x:Key="ToolTileTemplate">
-                <StackPanel Orientation="Vertical" Width="200" Margin="10">
+                <StackPanel Orientation="Vertical"
+                            Width="{Binding DataContext.SearchTileWidth, RelativeSource={RelativeSource AncestorType=Window}}"
+                            Margin="10">
                     <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=Tool}"
-                           Width="180" Height="180" Stretch="Uniform" Style="{StaticResource ToolImageTooltipStyle}"/>
+                           Width="{Binding DataContext.SearchTileWidth, RelativeSource={RelativeSource AncestorType=Window}}"
+                           Height="{Binding DataContext.SearchTileWidth, RelativeSource={RelativeSource AncestorType=Window}}"
+                           Stretch="Uniform" Style="{StaticResource ToolImageTooltipStyle}"/>
                     <ContentControl Margin="0,5,0,0" Content="{Binding}" ContentTemplate="{StaticResource CheckOutButtonTemplate}"/>
                     <TextBlock Text="{Binding ToolNumber}" FontWeight="Bold" Margin="0,5,0,0" />
                     <TextBlock Text="{Binding NameDescription}" TextWrapping="Wrap"/>
@@ -123,7 +127,11 @@
                             <ListView x:Name="SearchResultsList"
                       ItemsSource="{Binding SearchResults}"
                       SelectedItem="{Binding SelectedTool, Mode=TwoWay}"
-                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                      ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                      Loaded="SearchResultsList_Loaded"
+                      SizeChanged="SearchResultsList_SizeChanged"
+                      PreviewMouseWheel="SearchResultsList_PreviewMouseWheel"
                       ItemTemplate="{StaticResource ToolTileTemplate}">
                                 <ListView.ItemsPanel>
                                     <ItemsPanelTemplate>
