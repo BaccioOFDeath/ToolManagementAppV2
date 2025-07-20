@@ -308,6 +308,7 @@ namespace ToolManagementAppV2.ViewModels
         void InitializeData()
         {
             LoadTools();
+            SearchTools();
             LoadCheckedOutTools();
             LoadUsers();
             LoadCurrentUser();
