@@ -100,7 +100,7 @@ namespace ToolManagementAppV2
 
         void PrintReport(FlowDocument doc, string title)
         {
-            var dlg = new PrintDialog();
+            var dlg = new System.Windows.Controls.PrintDialog();
             if (dlg.ShowDialog() == true)
                 dlg.PrintDocument(((IDocumentPaginatorSource)doc).DocumentPaginator, title);
         }
@@ -108,7 +108,7 @@ namespace ToolManagementAppV2
         // ---------- Tool Management ----------
         void CheckOutButton_Click(object s, RoutedEventArgs e)
         {
-            if (!(s is Button btn && btn.CommandParameter is string id)) return;
+            if (!(s is System.Windows.Controls.Button btn && btn.CommandParameter is string id)) return;
             if (!(App.Current.Properties["CurrentUser"] is User cu))
             {
                 ShowMessage("Error", "No current user found. Please log in again.", MessageBoxImage.Error);
@@ -301,25 +301,25 @@ namespace ToolManagementAppV2
                 return;
             }
             _activityLogService.LogAction(current.UserID, current.UserName, "User logged out");
-            Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            System.Windows.Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             Hide();
             if (new LoginWindow().ShowDialog() == true)
             {
-                Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
+                System.Windows.Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
                 var mw = new MainWindow();
-                Application.Current.MainWindow = mw;
+                System.Windows.Application.Current.MainWindow = mw;
                 mw.Show();
             }
-            else Application.Current.Shutdown();
+            else System.Windows.Application.Current.Shutdown();
             Close();
         }
 
         void RestartToLogin()
         {
-            Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
+            System.Windows.Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
             var login = new LoginWindow();
             if (login.ShowDialog() == true) new MainWindow().Show();
-            else Application.Current.Shutdown();
+            else System.Windows.Application.Current.Shutdown();
             Close();
         }
 
@@ -592,7 +592,7 @@ namespace ToolManagementAppV2
                 ShowMessage("Error", "No rental selected.", MessageBoxImage.Warning);
                 return;
             }
-            var doc = new FlowDocument { FontFamily = new FontFamily("Segoe UI"), FontSize = 12 };
+            var doc = new FlowDocument { FontFamily = new System.Windows.Media.FontFamily("Segoe UI"), FontSize = 12 };
             var header = new Paragraph(new Run("Rental Receipt"))
             {
                 FontSize = 16,
@@ -612,7 +612,7 @@ namespace ToolManagementAppV2
                 AddLine($"Return Date: {r.ReturnDate:yyyy-MM-dd}");
             doc.Blocks.Add(details);
 
-            var dlg = new PrintDialog();
+            var dlg = new System.Windows.Controls.PrintDialog();
             if (dlg.ShowDialog() == true)
                 dlg.PrintDocument(((IDocumentPaginatorSource)doc).DocumentPaginator, "Rental Receipt");
         }
@@ -651,7 +651,7 @@ namespace ToolManagementAppV2
 
         void PurgeLogsButton_Click(object s, RoutedEventArgs e)
         {
-            if (MessageBox.Show("Purge logs older than 30 days?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            if (System.Windows.MessageBox.Show("Purge logs older than 30 days?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
                 return;
             try
             {
@@ -725,12 +725,12 @@ namespace ToolManagementAppV2
 
         // ---------- Helpers ----------
         void ShowMessage(string title, string msg, MessageBoxImage icon)
-            => MessageBox.Show(msg, title, MessageBoxButton.OK, icon);
+            => System.Windows.MessageBox.Show(msg, title, MessageBoxButton.OK, icon);
 
         void ShowError(string title, Exception ex)
         {
             Console.WriteLine(ex);
-            MessageBox.Show(ex.Message, title, MessageBoxButton.OK, MessageBoxImage.Error);
+            System.Windows.MessageBox.Show(ex.Message, title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

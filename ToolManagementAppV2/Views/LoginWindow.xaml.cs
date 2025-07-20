@@ -57,7 +57,7 @@ namespace ToolManagementAppV2
             var users = _userService.GetAllUsers();
             if (users.Count == 0)
             {
-                MessageBox.Show(
+                System.Windows.MessageBox.Show(
                     "No users exist. A default admin account will be created (username: admin, password: admin).",
                     "Setup", MessageBoxButton.OK, MessageBoxImage.Information);
 
@@ -105,7 +105,7 @@ namespace ToolManagementAppV2
                     _userService.ChangeUserPassword(user.UserID, "admin");
                     user.Password = SecurityHelper.ComputeSha256Hash("admin");
                     LoadUsers();
-                    MessageBox.Show("Password has been reset to default. Please enter the new password to login.", "Password Reset", MessageBoxButton.OK, MessageBoxImage.Information);
+                    System.Windows.MessageBox.Show("Password has been reset to default. Please enter the new password to login.", "Password Reset", MessageBoxButton.OK, MessageBoxImage.Information);
                     continue;
                 }
 

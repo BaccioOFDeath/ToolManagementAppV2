@@ -18,7 +18,7 @@ namespace ToolManagementAppV2.Utilities.Converters
             {
                 Console.WriteLine(ex);
             }
-            return Binding.DoNothing;
+            return System.Windows.Data.Binding.DoNothing;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -35,7 +35,7 @@ namespace ToolManagementAppV2.Utilities.Converters
             {
                 Console.WriteLine(ex);
             }
-            return value is string or bool ? false : Binding.DoNothing;
+            return value is string or bool ? false : System.Windows.Data.Binding.DoNothing;
         }
     }
 }

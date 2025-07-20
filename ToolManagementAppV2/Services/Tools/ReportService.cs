@@ -108,7 +108,7 @@ namespace ToolManagementAppV2.Services.Tools
         {
             var doc = new FlowDocument
             {
-                FontFamily = new FontFamily("Segoe UI"),
+                FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
                 FontSize = 12,
                 PageWidth = 800
             };
