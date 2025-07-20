@@ -24,6 +24,24 @@ namespace ToolManagementAppV2.ViewModels
     public class MainViewModel : ObservableObject
     {
         readonly DispatcherTimer _refreshTimer;
+        bool _isAutoRefreshEnabled;
+        public bool IsAutoRefreshEnabled
+        {
+            get => _isAutoRefreshEnabled;
+            private set
+            {
+                if (SetProperty(ref _isAutoRefreshEnabled, value))
+                {
+                    if (value)
+                        _refreshTimer.Start();
+                    else
+                        _refreshTimer.Stop();
+                }
+            }
+        }
+
+        public void StartAutoRefresh() => IsAutoRefreshEnabled = true;
+        public void StopAutoRefresh() => IsAutoRefreshEnabled = false;
         readonly IToolService _toolService;
         readonly IUserService _userService;
         readonly ICustomerService _customerService;
@@ -309,7 +327,7 @@ namespace ToolManagementAppV2.ViewModels
             InitializeData();
             _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
             _refreshTimer.Tick += (_, __) => { LoadTools(); LoadCheckedOutTools(); };
-            _refreshTimer.Start();
+            IsAutoRefreshEnabled = true;
         }
 
         void InitializeData()

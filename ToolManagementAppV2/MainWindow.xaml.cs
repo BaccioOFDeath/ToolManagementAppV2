@@ -768,27 +768,49 @@ namespace ToolManagementAppV2
             switch (tab.Header)
             {
                 case "Search Tools":
-                case "Tool Management":
-                    if (DataContext is MainViewModel vm)
+                    if (DataContext is MainViewModel vmSearch)
                     {
-                        vm.LoadTools();
-                        vm.SearchCommand.Execute(null);
+                        vmSearch.LoadTools();
+                        vmSearch.SearchCommand.Execute(null);
+                        vmSearch.StartAutoRefresh();
+                    }
+                    break;
+                case "Tool Management":
+                    if (DataContext is MainViewModel vmManage)
+                    {
+                        vmManage.LoadTools();
+                        vmManage.SearchCommand.Execute(null);
+                        vmManage.StopAutoRefresh();
                     }
                     break;
                 case "Customers":
                     RefreshCustomerList();
+                    if (DataContext is MainViewModel vmCust)
+                        vmCust.StartAutoRefresh();
                     break;
                 case "Rentals":
                     RefreshRentalList();
+                    if (DataContext is MainViewModel vmRent)
+                        vmRent.StartAutoRefresh();
                     break;
                 case "Users":
                     RefreshUserList();
+                    if (DataContext is MainViewModel vmUser)
+                        vmUser.StartAutoRefresh();
                     break;
                 case "Settings":
                     LoadSettings();
+                    if (DataContext is MainViewModel vmSet)
+                        vmSet.StartAutoRefresh();
                     break;
                 case "Activity Logs":
                     RefreshLogsButton_Click(s, e);
+                    if (DataContext is MainViewModel vmLog)
+                        vmLog.StartAutoRefresh();
+                    break;
+                case "Dashboard":
+                    if (DataContext is MainViewModel vmDash)
+                        vmDash.StartAutoRefresh();
                     break;
             }
         }
