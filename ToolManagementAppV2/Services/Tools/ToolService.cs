@@ -19,9 +19,10 @@ namespace ToolManagementAppV2.Services.Tools
         List<ToolModel>? _cache;
         const string AllToolsSql = "SELECT * FROM Tools";
         const string UpsertToolCsv = @"
-            INSERT INTO Tools 
+            INSERT INTO Tools
               (ToolNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, IsCheckedOut)
-            VALUES (@ToolNumber,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Keywords,@Avail,@Rent,0)";
+            VALUES (@ToolNumber,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Keywords,@Avail,@Rent,0);
+            SELECT last_insert_rowid();";
     
         public ToolService(DatabaseService dbService)
         {
@@ -86,7 +87,9 @@ namespace ToolManagementAppV2.Services.Tools
                 new SQLiteParameter("@Rent", tool.RentedQuantity)
             };
             using var conn = _dbService.CreateConnection();
-            SqliteHelper.ExecuteNonQuery(conn, UpsertToolCsv, p);
+            var result = SqliteHelper.ExecuteScalar(conn, UpsertToolCsv, p);
+            if (result != null)
+                tool.ToolID = result.ToString();
             _cache = null;
         }
     
