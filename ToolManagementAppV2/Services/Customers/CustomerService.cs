@@ -70,18 +70,23 @@ namespace ToolManagementAppV2.Services.Customers
         {
             const string sql = @"
         INSERT INTO Customers (Company, Email, Contact, Phone, Mobile, Address)
-        VALUES (@Company, @Email, @Contact, @Phone, @Mobile, @Address)";
+        VALUES (@Company, @Email, @Contact, @Phone, @Mobile, @Address);
+        SELECT last_insert_rowid();";
+
             var p = new[]
             {
-                new SQLiteParameter("@Company", customer.Company ?? ""),
-                new SQLiteParameter("@Email", customer.Email ?? ""),
-                new SQLiteParameter("@Contact", customer.Contact ?? ""),
-                new SQLiteParameter("@Phone", customer.Phone ?? ""),
-                new SQLiteParameter("@Mobile", customer.Mobile ?? ""),
-                new SQLiteParameter("@Address", customer.Address ?? "")
+                new SQLiteParameter("@Company", customer.Company ?? string.Empty),
+                new SQLiteParameter("@Email",   customer.Email ?? string.Empty),
+                new SQLiteParameter("@Contact", customer.Contact ?? string.Empty),
+                new SQLiteParameter("@Phone",   customer.Phone ?? string.Empty),
+                new SQLiteParameter("@Mobile",  customer.Mobile ?? string.Empty),
+                new SQLiteParameter("@Address", customer.Address ?? string.Empty)
             };
+
             using var conn = _dbService.CreateConnection();
-            SqliteHelper.ExecuteNonQuery(conn, sql, p);
+            using var cmd = new SQLiteCommand(sql, conn);
+            cmd.Parameters.AddRange(p);
+            customer.CustomerID = Convert.ToInt32(cmd.ExecuteScalar());
         }
 
 

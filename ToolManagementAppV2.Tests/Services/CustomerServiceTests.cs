@@ -53,5 +53,26 @@ namespace ToolManagementAppV2.Tests.Services
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void AddCustomer_AssignsCustomerID()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                ICustomerService service = new CustomerService(dbService);
+
+                var customer = new Customer { Company = "Acme", Contact = "John" };
+                service.AddCustomer(customer);
+
+                Assert.NotEqual(0, customer.CustomerID);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }
