@@ -24,7 +24,7 @@ namespace ToolManagementAppV2.Utilities.Converters
             {
                 Console.WriteLine(ex);
             }
-            return Binding.DoNothing;
+            return System.Windows.Data.Binding.DoNothing;
         }
     }
 }

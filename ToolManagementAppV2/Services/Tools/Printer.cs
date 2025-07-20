@@ -65,13 +65,13 @@ namespace ToolManagementAppV2.Services.Tools
                 PagePadding = new Thickness(50),
                 PageWidth = 8.27 * 96,
                 PageHeight = 11.69 * 96,
-                FontFamily = new FontFamily("Calibri"),
+                FontFamily = new System.Windows.Media.FontFamily("Calibri"),
                 FontSize = 18
             };
 
             // Header: logo + title
             var headerContainer = new BlockUIContainer();
-            var headerStack = new StackPanel { Orientation = Orientation.Vertical };
+            var headerStack = new StackPanel { Orientation = System.Windows.Controls.Orientation.Vertical };
             AddCompanyLogo(headerStack, logoPath);
             AddTitle(headerStack, title);
             headerContainer.Child = headerStack;
@@ -93,7 +93,7 @@ namespace ToolManagementAppV2.Services.Tools
 
         private StackPanel CreateToolRow(ToolModel tool)
         {
-            var panel = new StackPanel { Orientation = Orientation.Vertical };
+            var panel = new StackPanel { Orientation = System.Windows.Controls.Orientation.Vertical };
             var grid = new Grid();
             // columns: image | details left | details right
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
@@ -119,7 +119,7 @@ namespace ToolManagementAppV2.Services.Tools
                 {
                     Width = 120,
                     Height = 120,
-                    Background = Brushes.LightGray,
+                    Background = System.Windows.Media.Brushes.LightGray,
                     CornerRadius = new CornerRadius(10)
                 };
                 Grid.SetColumn(ph, 0);
@@ -146,7 +146,7 @@ namespace ToolManagementAppV2.Services.Tools
             {
                 FontSize = 14,
                 TextWrapping = TextWrapping.Wrap,
-                HorizontalAlignment = HorizontalAlignment.Right,
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Right,
                 TextAlignment = TextAlignment.Right,
                 Margin = new Thickness(0, 0, 20, 0)
             };
@@ -173,7 +173,7 @@ namespace ToolManagementAppV2.Services.Tools
             panel.Children.Add(new System.Windows.Shapes.Rectangle
             {
                 Height = 1,
-                Fill = Brushes.LightGray
+                Fill = System.Windows.Media.Brushes.LightGray
             });
 
             return panel;
@@ -198,7 +198,7 @@ namespace ToolManagementAppV2.Services.Tools
                 Width = 120,
                 Height = 120,
                 CornerRadius = new CornerRadius(10),
-                Background = new ImageBrush(bmp) { Stretch = Stretch.UniformToFill },
+                Background = new System.Windows.Media.ImageBrush(bmp) { Stretch = Stretch.UniformToFill },
                 ClipToBounds = true
             };
         }
@@ -218,7 +218,7 @@ namespace ToolManagementAppV2.Services.Tools
             bmp.EndInit();
             bmp.Freeze();
 
-            host.Children.Add(new Image
+            host.Children.Add(new System.Windows.Controls.Image
             {
                 Source = bmp,
                 Width = 50,
@@ -261,14 +261,14 @@ namespace ToolManagementAppV2.Services.Tools
                     var ft = new FormattedText(
                         text,
                         CultureInfo.CurrentCulture,
-                        FlowDirection.LeftToRight,
+                        System.Windows.FlowDirection.LeftToRight,
                         _tf,
                         _fs,
-                        Brushes.Black);
+                        System.Windows.Media.Brushes.Black);
 
                     var x = (page.Size.Width - ft.Width) / 2;
                     var y = page.Size.Height - ft.Height - 50;
-                    dc.DrawText(ft, new Point(x, y));
+                    dc.DrawText(ft, new System.Windows.Point(x, y));
                 }
                 var cv = new ContainerVisual();
                 cv.Children.Add(page.Visual);
