@@ -46,7 +46,12 @@ namespace ToolManagementAppV2.Services.Rentals
                     });
 
                 tx.Commit();
-                _toolService.UpdateToolQuantities(toolID, 1, true);
+                var tool = _toolService.GetToolByID(toolID);
+                if (tool != null)
+                {
+                    tool.QuantityOnHand--;
+                    _toolService.UpdateTool(tool);
+                }
             }
             catch (Exception ex)
             {
@@ -79,7 +84,12 @@ namespace ToolManagementAppV2.Services.Rentals
                     });
 
                 tx.Commit();
-                _toolService.UpdateToolQuantities(toolID, 1, true);
+                var tool = _toolService.GetToolByID(toolID);
+                if (tool != null)
+                {
+                    tool.QuantityOnHand--;
+                    _toolService.UpdateTool(tool);
+                }
             }
             catch (Exception ex)
             {
@@ -112,7 +122,12 @@ namespace ToolManagementAppV2.Services.Rentals
                     throw new InvalidOperationException("Return operation failed.");
 
                 tx.Commit();
-                _toolService.UpdateToolQuantities(toolID, 1, false);
+                var tool = _toolService.GetToolByID(toolID);
+                if (tool != null)
+                {
+                    tool.QuantityOnHand++;
+                    _toolService.UpdateTool(tool);
+                }
             }
             catch (Exception ex)
             {
@@ -144,7 +159,12 @@ namespace ToolManagementAppV2.Services.Rentals
                     });
 
                 tx.Commit();
-                _toolService.UpdateToolQuantities(toolID, 1, false);
+                var tool = _toolService.GetToolByID(toolID);
+                if (tool != null)
+                {
+                    tool.QuantityOnHand++;
+                    _toolService.UpdateTool(tool);
+                }
             }
             catch (Exception ex)
             {
