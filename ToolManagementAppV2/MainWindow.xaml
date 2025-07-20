@@ -16,10 +16,12 @@
             <local:CheckOutStatusConverter x:Key="CheckOutStatusConverter"/>
             <local:NullToDefaultImageConverter x:Key="NullToDefaultImageConverter"/>
             <local:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+            <local:ZeroToDisabledConverter x:Key="ZeroToDisabledConverter"/>
             <DataTemplate x:Key="CheckOutButtonTemplate">
                 <Button Content="{Binding IsCheckedOut, Converter={StaticResource CheckOutStatusConverter}}"
                 Click="CheckOutButton_Click"
-                CommandParameter="{Binding ToolID}" />
+                CommandParameter="{Binding ToolID}"
+                IsEnabled="{Binding QuantityOnHand, Converter={StaticResource ZeroToDisabledConverter}}" />
             </DataTemplate>
             <Style x:Key="ToolImageTooltipStyle" TargetType="Image">
                 <Setter Property="ToolTip">
@@ -120,7 +122,10 @@
                                 <xctk:WatermarkTextBox x:Name="SearchInput" Width="400" Margin="5" Watermark="Search Tools..." TextChanged="SearchInput_TextChanged" />
                                 <Button Content="Print Search" Click="PrintSearchResults_Click" Width="150" Margin="5"/>
                                 <Button Content="Print My Tools" Click="PrintMyCheckedOutTools_Click" Width="150" Margin="5"/>
-                                <Button Content="Rent Tool" Command="{Binding RentToolCommand}" Width="150" Margin="5"/>
+                                <Button Content="Rent Tool"
+                                        Command="{Binding RentToolCommand}"
+                                        Width="150" Margin="5"
+                                        IsEnabled="{Binding SelectedTool.QuantityOnHand, Converter={StaticResource ZeroToDisabledConverter}}"/>
                                 <Button Content="Rental History" Command="{Binding ViewRentalHistoryCommand}" Width="150" Margin="5"/>
                             </StackPanel>
                         </GroupBox>

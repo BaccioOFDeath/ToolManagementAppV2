@@ -50,11 +50,21 @@ namespace ToolManagementAppV2
 
             try
             {
-                ((MainViewModel)DataContext).LoadTools();
-                RefreshUserList();
-                RefreshCustomerList();
-                RefreshRentalList();
-                LoadSettings();
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    try
+                    {
+                        ((MainViewModel)DataContext).LoadTools();
+                        RefreshUserList();
+                        RefreshCustomerList();
+                        RefreshRentalList();
+                        LoadSettings();
+                    }
+                    catch (Exception ex)
+                    {
+                        ShowError("Initialization Error", ex);
+                    }
+                }));
             }
             catch (Exception ex)
             {

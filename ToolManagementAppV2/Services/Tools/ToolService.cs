@@ -165,27 +165,34 @@ namespace ToolManagementAppV2.Services.Tools
         public void ToggleToolCheckOutStatus(string toolID, string currentUser)
         {
             using var conn = _dbService.CreateConnection();
-            var result = SqliteHelper.ExecuteScalar(conn,
-                "SELECT IsCheckedOut FROM Tools WHERE ToolID=@ID",
-                   new[] { new SQLiteParameter("@ID", toolID) });
-    
-            if (result == null)
+            var record = SqliteHelper.ExecuteReader(conn,
+                "SELECT IsCheckedOut, AvailableQuantity FROM Tools WHERE ToolID=@ID",
+                new[] { new SQLiteParameter("@ID", toolID) },
+                r => new { Out = Convert.ToInt32(r["IsCheckedOut"]) == 1, Qty = Convert.ToInt32(r["AvailableQuantity"]) }).FirstOrDefault();
+
+            if (record == null)
                 throw new InvalidOperationException($"Tool {toolID} not found.");
-    
-            var isOut = Convert.ToInt32(result) == 1;
-            var newStatus = isOut ? 0 : 1;
-            var time = isOut ? (object)DBNull.Value : DateTime.Now;
-            var by = isOut ? (object)DBNull.Value : currentUser;
+
+            if (!record.Out && record.Qty <= 0)
+                return;
+
+            var newStatus = record.Out ? 0 : 1;
+            var time = record.Out ? (object)DBNull.Value : DateTime.Now;
+            var by = record.Out ? (object)DBNull.Value : currentUser;
+            var qtyChange = record.Out ? 1 : -1;
+
             SqliteHelper.ExecuteNonQuery(conn, @"
                 UPDATE Tools SET
                   IsCheckedOut = @Out,
                   CheckedOutBy = @By,
-                  CheckedOutTime = @Time
+                  CheckedOutTime = @Time,
+                  AvailableQuantity = AvailableQuantity + @Q
                 WHERE ToolID = @ID", new[]
             {
                 new SQLiteParameter("@Out", newStatus),
                 new SQLiteParameter("@By", by),
                 new SQLiteParameter("@Time", time),
+                new SQLiteParameter("@Q", qtyChange),
                 new SQLiteParameter("@ID", toolID)
             });
             _cache = null;

@@ -5,18 +5,25 @@ namespace ToolManagementAppV2
 {
     public partial class App : System.Windows.Application
     {
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
-            // Prevent shutdown when the login window closes
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             base.OnStartup(e);
 
-            LoginWindow login = new LoginWindow();
-            bool? loginResult = login.ShowDialog();
+            var login = new LoginWindow();
+            login.Show();
 
-            if (loginResult == true)
+            var tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
+            void Handler(object s, System.EventArgs args)
             {
-                // Switch shutdown mode now that we are creating the main window
+                tcs.TrySetResult(login.DialogResult == true);
+                login.Closed -= Handler;
+            }
+            login.Closed += Handler;
+            bool result = await tcs.Task;
+
+            if (result)
+            {
                 ShutdownMode = ShutdownMode.OnMainWindowClose;
                 MainWindow mainWindow = new MainWindow();
                 Current.MainWindow = mainWindow;
