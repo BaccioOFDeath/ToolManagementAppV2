@@ -709,6 +709,19 @@ namespace ToolManagementAppV2
             }
         }
 
+        void MainWindow_SizeChanged(object s, SizeChangedEventArgs e)
+        {
+            if (DataContext is MainViewModel vm && SearchResultsList != null)
+            {
+                var width = SearchResultsList.ActualWidth;
+                if (width > 0)
+                {
+                    var itemWidth = Math.Clamp(width / 5 - 20, 120, 300);
+                    vm.SearchTileWidth = itemWidth;
+                }
+            }
+        }
+
         static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
