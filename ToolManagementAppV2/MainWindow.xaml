@@ -112,7 +112,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="200"/>
                         </Grid.RowDefinitions>
 
                         <GroupBox Header="Search" Margin="0,0,0,10">
