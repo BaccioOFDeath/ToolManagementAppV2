@@ -56,7 +56,7 @@ namespace ToolManagementAppV2.Views
         {
             if (_document == null) return;
 
-            var dlg = new PrintDialog();
+            var dlg = new System.Windows.Controls.PrintDialog();
             if (dlg.ShowDialog() != true) return;
 
             dlg.PrintDocument(((IDocumentPaginatorSource)_document).DocumentPaginator, _title);

@@ -100,7 +100,7 @@ namespace ToolManagementAppV2
 
         void PrintReport(FlowDocument doc, string title)
         {
-            var dlg = new PrintDialog();
+            var dlg = new System.Windows.Controls.PrintDialog();
             if (dlg.ShowDialog() == true)
                 dlg.PrintDocument(((IDocumentPaginatorSource)doc).DocumentPaginator, title);
         }
@@ -108,7 +108,7 @@ namespace ToolManagementAppV2
         // ---------- Tool Management ----------
         void CheckOutButton_Click(object s, RoutedEventArgs e)
         {
-            if (!(s is Button btn && btn.CommandParameter is string id)) return;
+            if (!(s is System.Windows.Controls.Button btn && btn.CommandParameter is string id)) return;
             if (!(App.Current.Properties["CurrentUser"] is User cu))
             {
                 ShowMessage("Error", "No current user found. Please log in again.", MessageBoxImage.Error);
@@ -592,7 +592,7 @@ namespace ToolManagementAppV2
                 ShowMessage("Error", "No rental selected.", MessageBoxImage.Warning);
                 return;
             }
-            var doc = new FlowDocument { FontFamily = new FontFamily("Segoe UI"), FontSize = 12 };
+            var doc = new FlowDocument { FontFamily = new System.Windows.Media.FontFamily("Segoe UI"), FontSize = 12 };
             var header = new Paragraph(new Run("Rental Receipt"))
             {
                 FontSize = 16,
@@ -612,7 +612,7 @@ namespace ToolManagementAppV2
                 AddLine($"Return Date: {r.ReturnDate:yyyy-MM-dd}");
             doc.Blocks.Add(details);
 
-            var dlg = new PrintDialog();
+            var dlg = new System.Windows.Controls.PrintDialog();
             if (dlg.ShowDialog() == true)
                 dlg.PrintDocument(((IDocumentPaginatorSource)doc).DocumentPaginator, "Rental Receipt");
         }
