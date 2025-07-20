@@ -327,5 +327,33 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void StartAndStopAutoRefresh_ToggleProperty()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                IUserService userService = new UserService(db);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
+                ISettingsService settingsService = new SettingsService(db);
+                ActivityLogService logService = new ActivityLogService(db);
+
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService, logService);
+                Assert.True(vm.IsAutoRefreshEnabled);
+                vm.StopAutoRefresh();
+                Assert.False(vm.IsAutoRefreshEnabled);
+                vm.StartAutoRefresh();
+                Assert.True(vm.IsAutoRefreshEnabled);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }
