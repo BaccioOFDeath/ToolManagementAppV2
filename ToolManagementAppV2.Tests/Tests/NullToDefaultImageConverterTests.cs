@@ -38,6 +38,16 @@ namespace ToolManagementAppV2.Tests
         }
 
         [Fact]
+        public void Convert_SamePath_ReturnsCachedInstance()
+        {
+            var converter = new NullToDefaultImageConverter();
+            var path = "Assets/Avatars/2.png";
+            var bmp1 = Assert.IsType<BitmapImage>(converter.Convert(path, typeof(BitmapImage), null, CultureInfo.InvariantCulture));
+            var bmp2 = Assert.IsType<BitmapImage>(converter.Convert(path, typeof(BitmapImage), null, CultureInfo.InvariantCulture));
+            Assert.Same(bmp1, bmp2);
+        }
+
+        [Fact]
         public void ConvertBack_BitmapImage_ReturnsUriString()
         {
             var converter = new NullToDefaultImageConverter();

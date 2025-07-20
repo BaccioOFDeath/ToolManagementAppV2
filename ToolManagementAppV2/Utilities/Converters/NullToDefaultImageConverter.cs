@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using System.IO;
+using System.Collections.Generic;
 
 namespace ToolManagementAppV2.Utilities.Converters
 {
@@ -12,6 +13,8 @@ namespace ToolManagementAppV2.Utilities.Converters
         private static BitmapImage _defaultUser;
         private static BitmapImage _defaultTool;
         private static BitmapImage _defaultLogo;
+        private static readonly Dictionary<string, BitmapImage> _imageCache =
+            new Dictionary<string, BitmapImage>(StringComparer.OrdinalIgnoreCase);
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -29,12 +32,16 @@ namespace ToolManagementAppV2.Utilities.Converters
 
                     if (!string.IsNullOrEmpty(absPath))
                     {
+                        if (_imageCache.TryGetValue(absPath, out var cached))
+                            return cached;
+
                         var image = new BitmapImage();
                         image.BeginInit();
                         image.CacheOption = BitmapCacheOption.OnLoad;
                         image.UriSource = new Uri(absPath, UriKind.Absolute);
                         image.EndInit();
                         image.Freeze();
+                        _imageCache[absPath] = image;
                         return image;
                     }
                 }
