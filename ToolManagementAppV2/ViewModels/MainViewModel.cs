@@ -5,7 +5,6 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System;
 using System.Windows;
-using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using ToolManagementAppV2.Models.Domain;
@@ -273,7 +272,7 @@ namespace ToolManagementAppV2.ViewModels
             DeleteToolCommand = new RelayCommand(DeleteTool, () => SelectedTool != null);
 
             LoadUsersCommand = new RelayCommand(LoadUsers);
-            ChooseProfilePicCommand = new RelayCommand(ChooseProfilePic, () => Application.Current.Properties["CurrentUser"] is UserModel);
+            ChooseProfilePicCommand = new RelayCommand(ChooseProfilePic, () => System.Windows.Application.Current.Properties["CurrentUser"] is UserModel);
             UploadUserPhotoCommand = new RelayCommand(() => UploadPhotoForUser(SelectedUser), () => SelectedUser != null);
 
             LoadCustomersCommand = new RelayCommand(LoadCustomers);
@@ -410,7 +409,7 @@ namespace ToolManagementAppV2.ViewModels
 
         void LoadCurrentUser()
         {
-            if (Application.Current.Properties["CurrentUser"] is UserModel cu)
+            if (System.Windows.Application.Current.Properties["CurrentUser"] is UserModel cu)
             {
                 CurrentUserName = cu.UserName;
 
@@ -476,7 +475,7 @@ namespace ToolManagementAppV2.ViewModels
             LoadCheckedOutTools();
         }
 
-        void ChooseProfilePic() => UploadPhotoForUser((UserModel)Application.Current.Properties["CurrentUser"]);
+        void ChooseProfilePic() => UploadPhotoForUser((UserModel)System.Windows.Application.Current.Properties["CurrentUser"]);
 
         void UploadPhotoForUser(UserModel u)
         {
@@ -507,7 +506,7 @@ namespace ToolManagementAppV2.ViewModels
             u.PhotoBitmap = bmp;
             _userService.UpdateUser(u);
 
-            if (Application.Current.Properties["CurrentUser"] is UserModel cu && cu.UserID == u.UserID)
+            if (System.Windows.Application.Current.Properties["CurrentUser"] is UserModel cu && cu.UserID == u.UserID)
             {
                 cu.UserPhotoPath = relative;
                 cu.PhotoBitmap = bmp;
@@ -653,9 +652,9 @@ namespace ToolManagementAppV2.ViewModels
 
         void SetTab(string tabHeader)
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
-                if (Application.Current.MainWindow is MainWindow mw)
+                if (System.Windows.Application.Current.MainWindow is MainWindow mw)
                 {
                     foreach (TabItem tab in mw.MyTabControl.Items)
                     {
@@ -745,14 +744,14 @@ namespace ToolManagementAppV2.ViewModels
 
         protected virtual bool ShowFileDialog(string filter, out string path)
         {
-            var dlg = new OpenFileDialog { Filter = filter };
+            var dlg = new Microsoft.Win32.OpenFileDialog { Filter = filter };
             if (dlg.ShowDialog() == true) { path = dlg.FileName; return true; }
             path = null; return false;
         }
 
         protected virtual bool ShowSaveDialog(string defaultName, out string path)
         {
-            var dlg = new SaveFileDialog { Filter = "CSV Files|*.csv", FileName = defaultName };
+            var dlg = new Microsoft.Win32.SaveFileDialog { Filter = "CSV Files|*.csv", FileName = defaultName };
             if (dlg.ShowDialog() == true) { path = dlg.FileName; return true; }
             path = null; return false;
         }
@@ -793,7 +792,7 @@ namespace ToolManagementAppV2.ViewModels
             return false;
         }
 
-        protected virtual void ShowInfo(string msg) => MessageBox.Show(msg, "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-        protected virtual void ShowWarning(string msg) => MessageBox.Show(msg, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+        protected virtual void ShowInfo(string msg) => System.Windows.MessageBox.Show(msg, "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+        protected virtual void ShowWarning(string msg) => System.Windows.MessageBox.Show(msg, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 }

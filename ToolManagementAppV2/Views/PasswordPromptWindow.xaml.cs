@@ -63,7 +63,7 @@ namespace ToolManagementAppV2
         {
             if (SelectedUser?.IsAdmin != true)
             {
-                MessageBox.Show(
+                System.Windows.MessageBox.Show(
                     "Password recovery is only available for admin users.",
                     "Not Allowed",
                     MessageBoxButton.OK,
@@ -72,7 +72,7 @@ namespace ToolManagementAppV2
                 return;
             }
 
-            var result = MessageBox.Show(
+            var result = System.Windows.MessageBox.Show(
                 "You have entered the wrong password multiple times. Reset to default and change it after login?",
                 "Reset Password",
                 MessageBoxButton.YesNo,
