@@ -74,6 +74,22 @@ namespace ToolManagementAppV2
             }
         }
 
+        void Window_Loaded(object s, RoutedEventArgs e)
+            => PreloadSearchTab();
+
+        void PreloadSearchTab()
+        {
+            var searchTab = MyTabControl.Items.OfType<TabItem>().FirstOrDefault(t => t.Header!.ToString() == "Tool Search");
+            if (searchTab == null)
+                return;
+
+            var current = MyTabControl.SelectedItem;
+            MyTabControl.SelectedItem = searchTab;
+            searchTab.UpdateLayout();
+            MyTabControl.UpdateLayout();
+            MyTabControl.SelectedItem = current;
+        }
+
         // ---------- Printing ----------
         void PrintInventoryReport_Click(object s, RoutedEventArgs e)
             => PrintReport(_reportService.GenerateInventoryReport(), "Inventory Report");
