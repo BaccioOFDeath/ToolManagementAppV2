@@ -1,4 +1,6 @@
+using System;
 ﻿using System.Collections.Generic;
+using ToolManagementAppV2.Models.ImportExport;
 using ToolManagementAppV2.Models;
 
 
@@ -17,5 +19,6 @@ namespace ToolManagementAppV2.Interfaces
         void UpdateToolImage(string toolID, string imagePath);
         List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map);
         void ExportToolsToCsv(string filePath);
+        ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, string> keySelector);
     }
 }

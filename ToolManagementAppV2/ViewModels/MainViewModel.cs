@@ -3,7 +3,9 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.IO;
+using System;
 using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using ToolManagementAppV2.Models.Domain;
@@ -213,6 +215,7 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand UpdateToolCommand { get; }
         public IRelayCommand ImportToolsCommand { get; }
         public IRelayCommand ExportToolsCommand { get; }
+        public IRelayCommand ImportToolPicturesCommand { get; }
         public IRelayCommand DeleteToolCommand { get; }
         public IRelayCommand LoadUsersCommand { get; }
         public IRelayCommand ChooseProfilePicCommand { get; }
@@ -266,6 +269,7 @@ namespace ToolManagementAppV2.ViewModels
             UpdateToolCommand = new RelayCommand(UpdateTool, () => SelectedTool != null);
             ImportToolsCommand = new RelayCommand(ImportTools);
             ExportToolsCommand = new RelayCommand(ExportTools);
+            ImportToolPicturesCommand = new RelayCommand(ImportToolPictures);
             DeleteToolCommand = new RelayCommand(DeleteTool, () => SelectedTool != null);
 
             LoadUsersCommand = new RelayCommand(LoadUsers);
@@ -375,6 +379,20 @@ namespace ToolManagementAppV2.ViewModels
             if (!ShowSaveDialog("tools_export.csv", out var path)) return;
             _toolService.ExportToolsToCsv(path);
             ShowInfo("Tools exported successfully.");
+        }
+
+        void ImportToolPictures()
+        {
+            if (!ShowFolderDialog(out var folder)) return;
+            if (!ShowImageImportOptions(out var selector)) return;
+            var result = _toolService.ImportToolImages(folder, selector);
+            var msg = $"{result.ImportedCount} images imported.";
+            if (result.ConflictingFiles.Count > 0)
+                msg += $" {result.ConflictingFiles.Count} conflicts.";
+            if (result.UnmatchedFiles.Count > 0)
+                msg += $" {result.UnmatchedFiles.Count} unmatched.";
+            ShowInfo(msg);
+            LoadTools();
         }
 
         void DeleteTool()
@@ -725,21 +743,21 @@ namespace ToolManagementAppV2.ViewModels
             win.ShowDialog();
         }
 
-        bool ShowFileDialog(string filter, out string path)
+        protected virtual bool ShowFileDialog(string filter, out string path)
         {
             var dlg = new OpenFileDialog { Filter = filter };
             if (dlg.ShowDialog() == true) { path = dlg.FileName; return true; }
             path = null; return false;
         }
 
-        bool ShowSaveDialog(string defaultName, out string path)
+        protected virtual bool ShowSaveDialog(string defaultName, out string path)
         {
             var dlg = new SaveFileDialog { Filter = "CSV Files|*.csv", FileName = defaultName };
             if (dlg.ShowDialog() == true) { path = dlg.FileName; return true; }
             path = null; return false;
         }
 
-        bool ShowMappingWindow(IEnumerable<string> headers, IEnumerable<string> fields, out Dictionary<string, string> map)
+        protected virtual bool ShowMappingWindow(IEnumerable<string> headers, IEnumerable<string> fields, out Dictionary<string, string> map)
         {
             var win = new ImportMappingWindow(headers, fields);
             if (win.ShowDialog() == true)
@@ -751,7 +769,31 @@ namespace ToolManagementAppV2.ViewModels
             return false;
         }
 
-        void ShowInfo(string msg) => MessageBox.Show(msg, "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-        void ShowWarning(string msg) => MessageBox.Show(msg, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+        protected virtual bool ShowFolderDialog(out string folder)
+        {
+            using var dlg = new System.Windows.Forms.FolderBrowserDialog();
+            if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                folder = dlg.SelectedPath;
+                return true;
+            }
+            folder = null;
+            return false;
+        }
+
+        protected virtual bool ShowImageImportOptions(out Func<ToolModel, string> selector)
+        {
+            var win = new ImageImportMappingWindow();
+            if (win.ShowDialog() == true)
+            {
+                selector = win.VM.BuildSelector();
+                return true;
+            }
+            selector = null;
+            return false;
+        }
+
+        protected virtual void ShowInfo(string msg) => MessageBox.Show(msg, "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+        protected virtual void ShowWarning(string msg) => MessageBox.Show(msg, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 }

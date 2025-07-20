@@ -1,6 +1,9 @@
 ﻿using System.Data.SQLite;
+using System;
+using System.IO;
 using System.Data;
 using ToolManagementAppV2.Services.Core;
+using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Utilities.IO;
 using ToolManagementAppV2.Models.ImportExport;
 using ToolManagementAppV2.Interfaces;
@@ -210,6 +213,56 @@ namespace ToolManagementAppV2.Services.Tools
         {
             var tools = GetAllTools();
             CsvHelperUtil.ExportToolsToCsv(filePath, tools);
+        }
+
+        public virtual ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, string> keySelector)
+        {
+            var result = new ImageImportResult();
+            if (string.IsNullOrWhiteSpace(folderPath) || keySelector == null)
+                return result;
+
+            var tools = GetAllTools();
+            var groups = tools
+                .GroupBy(t => (keySelector(t) ?? string.Empty).ToUpperInvariant())
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+            Directory.CreateDirectory(destDir);
+
+            var supported = new HashSet<string>(new[] { ".png", ".jpg", ".jpeg", ".bmp", ".gif" }, StringComparer.OrdinalIgnoreCase);
+
+            foreach (var file in Directory.EnumerateFiles(folderPath))
+            {
+                var ext = Path.GetExtension(file);
+                if (!supported.Contains(ext))
+                    continue;
+
+                var name = Path.GetFileNameWithoutExtension(file).ToUpperInvariant();
+                if (!groups.TryGetValue(name, out var list) || list.Count == 0)
+                {
+                    result.UnmatchedFiles.Add(file);
+                    continue;
+                }
+                if (list.Count > 1)
+                {
+                    result.ConflictingFiles.Add(file);
+                    continue;
+                }
+                var tool = list[0];
+                if (!string.IsNullOrEmpty(tool.ToolImagePath))
+                {
+                    result.ConflictingFiles.Add(file);
+                    continue;
+                }
+                var dest = Path.Combine(destDir, Path.GetFileName(file));
+                if (!File.Exists(dest))
+                    File.Copy(file, dest, true);
+                var relative = $"Images/{Path.GetFileName(dest)}";
+                UpdateToolImage(tool.ToolID, relative);
+                result.ImportedCount++;
+            }
+
+            return result;
         }
     
         private bool ToolExists(string toolNumber)
