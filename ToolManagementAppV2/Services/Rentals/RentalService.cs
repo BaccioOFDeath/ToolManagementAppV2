@@ -176,9 +176,20 @@ namespace ToolManagementAppV2.Services.Rentals
                 throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
         }
 
-        const string BaseSelect = @"SELECT r.*, t.ToolNumber, t.NameDescription, c.Company FROM Rentals r
-                                    JOIN Tools t ON r.ToolID = t.ToolID
-                                    JOIN Customers c ON r.CustomerID = c.CustomerID";
+        const string BaseSelect = @"SELECT r.*,
+                                    t.ToolNumber,
+                                    t.NameDescription,
+                                    t.Location AS ToolLocation,
+                                    t.ToolImagePath,
+                                    c.Company,
+                                    c.Contact,
+                                    c.Email,
+                                    c.Phone,
+                                    c.Mobile,
+                                    c.Address
+                                 FROM Rentals r
+                                 JOIN Tools t ON r.ToolID = t.ToolID
+                                 JOIN Customers c ON r.CustomerID = c.CustomerID";
 
         public List<Rental> GetActiveRentals()
         {
@@ -227,7 +238,14 @@ namespace ToolManagementAppV2.Services.Rentals
             ReturnDate = r["ReturnDate"] is DBNull ? null : Convert.ToDateTime(r["ReturnDate"]),
             Status = r["Status"].ToString(),
             ToolNumber = r["ToolNumber"].ToString(),
-            CustomerName = r["Company"].ToString()
+            CustomerName = r["Company"].ToString(),
+            CustomerContact = r["Contact"].ToString(),
+            CustomerEmail = r["Email"].ToString(),
+            CustomerPhone = r["Phone"].ToString(),
+            CustomerMobile = r["Mobile"].ToString(),
+            CustomerAddress = r["Address"].ToString(),
+            ToolImagePath = r["ToolImagePath"].ToString(),
+            ToolLocation = r["ToolLocation"].ToString()
         };
     }
 }
