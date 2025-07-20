@@ -29,6 +29,19 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+            <DataTemplate x:Key="ToolTileTemplate">
+                <Border BorderBrush="Gray" BorderThickness="1" Padding="5" Margin="5">
+                    <StackPanel Orientation="Vertical" Width="160">
+                        <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=Tool}"
+                               Width="140" Height="140" Stretch="Uniform" Style="{StaticResource ToolImageTooltipStyle}"/>
+                        <ContentControl Margin="0,5,0,0" Content="{Binding}" ContentTemplate="{StaticResource CheckOutButtonTemplate}"/>
+                        <TextBlock Text="{Binding ToolNumber}" FontWeight="Bold" Margin="0,5,0,0" />
+                        <TextBlock Text="{Binding NameDescription}" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding Location}" FontStyle="Italic"/>
+                        <TextBlock Text="{Binding QuantityOnHand, StringFormat='Qty: {0}'}"/>
+                    </StackPanel>
+                </Border>
+            </DataTemplate>
         </DockPanel.Resources>
 
         <!-- Header with Logo and Title -->
@@ -110,43 +123,15 @@
 
                         <GroupBox Header="Search Results" Grid.Row="1" Margin="0,0,0,10">
                             <ListView x:Name="SearchResultsList"
-                      ItemsSource="{Binding SearchResults}" SelectedItem="{Binding SelectedTool, Mode=TwoWay}"
-                      ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                <ListView.View>
-                                    <GridView>
-                                        <GridViewColumn Header="Image" Width="auto">
-                                            <GridViewColumn.CellTemplate>
-                                                <DataTemplate>
-                                                    <Image Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=Tool}"
-                                                           Width="50" Height="50" Stretch="Uniform" Style="{StaticResource ToolImageTooltipStyle}"/>
-                                                </DataTemplate>
-                                            </GridViewColumn.CellTemplate>
-                                        </GridViewColumn>
-                                        <GridViewColumn Header="Action" Width="auto" CellTemplate="{StaticResource CheckOutButtonTemplate}"/>
-                                        <GridViewColumn Header="Tool #" DisplayMemberBinding="{Binding ToolNumber}" Width="auto"/>
-                                        <GridViewColumn Header="Qty" DisplayMemberBinding="{Binding QuantityOnHand}" Width="40"/>
-                                        <GridViewColumn Header="Location" DisplayMemberBinding="{Binding Location}" Width="auto"/>
-                                        <GridViewColumn Header="Name" DisplayMemberBinding="{Binding NameDescription}" Width="auto"/>
-                                        <GridViewColumn Header="Part #" DisplayMemberBinding="{Binding PartNumber}" Width="auto"/>
-                                        <GridViewColumn Header="Brand" DisplayMemberBinding="{Binding Brand}" Width="auto"/>
-                                        <GridViewColumn Header="Supplier" DisplayMemberBinding="{Binding Supplier}" Width="auto"/>
-                                        <GridViewColumn Header="Purchased" Width="100">
-                                            <GridViewColumn.CellTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock Text="{Binding PurchasedDate, StringFormat=\{0:yyyy-MM-dd\}}" />
-                                                </DataTemplate>
-                                            </GridViewColumn.CellTemplate>
-                                        </GridViewColumn>
-                                        <GridViewColumn Header="Notes" Width="auto">
-                                            <GridViewColumn.CellTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock Text="{Binding Notes}" TextWrapping="Wrap"/>
-                                                </DataTemplate>
-                                            </GridViewColumn.CellTemplate>
-                                        </GridViewColumn>
-                                        
-                                    </GridView>
-                                </ListView.View>
+                      ItemsSource="{Binding SearchResults}"
+                      SelectedItem="{Binding SelectedTool, Mode=TwoWay}"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                      ItemTemplate="{StaticResource ToolTileTemplate}">
+                                <ListView.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel/>
+                                    </ItemsPanelTemplate>
+                                </ListView.ItemsPanel>
                             </ListView>
                         </GroupBox>
 
