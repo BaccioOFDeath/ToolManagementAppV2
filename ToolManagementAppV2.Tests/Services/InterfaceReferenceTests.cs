@@ -21,7 +21,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var db = new DatabaseService(dbPath);
                 IToolService toolSvc = new ToolService(db);
                 ICustomerService custSvc = new CustomerService(db);
-                IRentalService rentalSvc = new RentalService(db);
+                IRentalService rentalSvc = new RentalService(db, toolSvc);
                 IUserService userSvc = new UserService(db);
                 ISettingsService settingsSvc = new SettingsService(db);
 

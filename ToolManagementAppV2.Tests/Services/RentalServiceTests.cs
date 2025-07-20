@@ -22,7 +22,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
                 ICustomerService customerService = new CustomerService(db);
-                IRentalService rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
 
                 var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 5 };
                 toolService.AddTool(tool);
@@ -55,7 +55,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
                 ICustomerService customerService = new CustomerService(db);
-                IRentalService rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
 
                 var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 0 };
                 toolService.AddTool(tool);
@@ -84,7 +84,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
                 ICustomerService customerService = new CustomerService(db);
-                IRentalService rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
 
                 var tool = new Tool { ToolNumber = "T2", NameDescription = "Wrench", QuantityOnHand = 0 };
                 toolService.AddTool(tool);
@@ -111,7 +111,7 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                IRentalService rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
 
                 var ex = Record.Exception(() => rentalService.ReturnTool(1, DateTime.Today));
                 Assert.Null(ex);
@@ -130,7 +130,7 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                IRentalService rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
 
                 var ex = Record.Exception(() => rentalService.ReturnToolWithTransaction(1, DateTime.Today));
                 Assert.Null(ex);
@@ -149,7 +149,7 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                var rentalService = new RentalService(db);
+                var rentalService = new RentalService(db, toolService);
 
                 Assert.Throws<InvalidOperationException>(() =>
                     rentalService.ExtendRental(1, DateTime.Today.AddDays(1)));
@@ -170,7 +170,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var db = new DatabaseService(dbPath);
                 var toolService = new ToolService(db);
                 var customerService = new CustomerService(db);
-                var rentalService = new RentalService(db);
+                var rentalService = new RentalService(db, toolService);
 
                 var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 };
                 toolService.AddTool(tool);
@@ -203,7 +203,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var db = new DatabaseService(dbPath);
                 var toolService = new ToolService(db);
                 var customerService = new CustomerService(db);
-                var rentalService = new RentalService(db);
+                var rentalService = new RentalService(db, toolService);
 
                 var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1, Location = "A1", ToolImagePath = "path" };
                 toolService.AddTool(tool);
@@ -224,6 +224,43 @@ namespace ToolManagementAppV2.Tests.Services
                 Assert.Equal("111", r.CustomerPhone);
                 Assert.Equal("222", r.CustomerMobile);
                 Assert.Equal("Addr", r.CustomerAddress);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void RentAndReturnTool_UpdatesQuantities()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db, toolService);
+
+                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
+                var tool = toolService.GetAllTools().First();
+
+                customerService.AddCustomer(new Customer { Company = "Acme" });
+                var cust = customerService.GetAllCustomers().First();
+
+                rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+
+                var rented = toolService.GetToolByID(tool.ToolID);
+                Assert.Equal(0, rented.QuantityOnHand);
+                Assert.Equal(1, rented.RentedQuantity);
+
+                var rental = rentalService.GetAllRentals().First();
+                rentalService.ReturnTool(rental.RentalID, DateTime.Today);
+
+                var returned = toolService.GetToolByID(tool.ToolID);
+                Assert.Equal(1, returned.QuantityOnHand);
+                Assert.Equal(0, returned.RentedQuantity);
             }
             finally
             {

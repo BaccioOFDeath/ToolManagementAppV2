@@ -26,7 +26,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 IUserService userService = new UserService(db);
                 ICustomerService customerService = new CustomerService(db);
-                IRentalService rentalService = new RentalService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
                 ISettingsService settingsService = new SettingsService(db);
 
                 var user = new User { UserName = "u", Password = "p" };

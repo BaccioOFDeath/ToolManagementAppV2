@@ -38,7 +38,7 @@ namespace ToolManagementAppV2
             _db = new DatabaseService(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db"));
             _toolService = new ToolService(_db);
             _customerService = new CustomerService(_db);
-            _rentalService = new RentalService(_db);
+            _rentalService = new RentalService(_db, _toolService);
             _userService = new UserService(_db);
             _settingsService = new SettingsService(_db);
             _activityLogService = new ActivityLogService(_db);
