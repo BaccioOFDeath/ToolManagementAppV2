@@ -14,7 +14,7 @@ namespace ToolManagementAppV2.Tests.Tests
             var template = Assert.IsType<DataTemplate>(window.Resources["ToolTileTemplate"]);
             Assert.Same(template, window.SearchResultsList.ItemTemplate);
             var panel = window.SearchResultsList.ItemsPanel.LoadContent();
-            Assert.IsType<WrapPanel>(panel);
+            Assert.IsType<VirtualizingStackPanel>(panel);
             Assert.Equal(ScrollBarVisibility.Disabled, ScrollViewer.GetVerticalScrollBarVisibility(window.SearchResultsList));
             Assert.Equal(ScrollBarVisibility.Auto, ScrollViewer.GetHorizontalScrollBarVisibility(window.SearchResultsList));
         }

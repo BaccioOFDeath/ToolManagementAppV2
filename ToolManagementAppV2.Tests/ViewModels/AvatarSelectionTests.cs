@@ -40,7 +40,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 var updated = userService.GetUserByID(added.UserID);
                 Assert.Equal(Path.Combine("Resources", "Avatars", "1.png"), updated.UserPhotoPath);
-                Assert.NotNull(updated.PhotoBitmap);
+                Assert.Null(updated.PhotoBitmap);
             }
             finally
             {

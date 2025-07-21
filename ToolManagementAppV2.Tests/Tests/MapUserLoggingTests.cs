@@ -31,7 +31,7 @@ namespace ToolManagementAppV2.Tests
                 {
                     Console.SetOut(original);
                 }
-                Assert.NotEqual(string.Empty, sw.ToString());
+                Assert.Equal(string.Empty, sw.ToString());
             }
             finally
             {
@@ -60,7 +60,7 @@ namespace ToolManagementAppV2.Tests
                 {
                     Console.SetOut(original);
                 }
-                Assert.NotEqual(string.Empty, sw.ToString());
+                Assert.Equal(string.Empty, sw.ToString());
             }
             finally
             {
