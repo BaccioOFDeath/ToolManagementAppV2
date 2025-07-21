@@ -53,6 +53,11 @@ namespace ToolManagementAppV2.ViewModels
         public ObservableCollection<ToolModel> SearchResults { get; } = new();
         public ObservableCollection<ToolModel> CheckedOutTools { get; } = new();
 
+        public bool ToolsLoaded { get; private set; }
+        public bool UsersLoaded { get; private set; }
+        public bool CustomersLoaded { get; private set; }
+        public bool RentalsLoaded { get; private set; }
+
         double _searchTileWidth = 200;
         public double SearchTileWidth
         {
@@ -327,20 +332,12 @@ namespace ToolManagementAppV2.ViewModels
             InitializeData();
             _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
             _refreshTimer.Tick += (_, __) => { LoadTools(); LoadCheckedOutTools(); };
-            IsAutoRefreshEnabled = true;
+            IsAutoRefreshEnabled = false;
         }
 
         void InitializeData()
         {
-            LoadTools();
-            SearchTools();
-            LoadCheckedOutTools();
-            LoadUsers();
             LoadCurrentUser();
-            LoadCustomers();
-            LoadActiveRentals();
-            LoadOverdueRentals();
-            UpdateSummaries();
         }
 
         public void LoadTools()
@@ -349,6 +346,7 @@ namespace ToolManagementAppV2.ViewModels
             Tools.ReplaceRange(_toolService.GetAllTools());
             if (!string.IsNullOrEmpty(selectedId))
                 SelectedTool = Tools.FirstOrDefault(t => t.ToolID == selectedId);
+            ToolsLoaded = true;
             UpdateSummaries();
         }
 
@@ -434,6 +432,7 @@ namespace ToolManagementAppV2.ViewModels
             Users.ReplaceRange(_userService.GetAllUsers());
             SelectedUser = Users.FirstOrDefault();
             OnPropertyChanged(nameof(IsLastAdmin));
+            UsersLoaded = true;
         }
 
         void LoadCurrentUser()
@@ -500,8 +499,6 @@ namespace ToolManagementAppV2.ViewModels
                     CurrentUserPhoto = bmp;
                 }
             }
-
-            LoadCheckedOutTools();
         }
 
         void ChooseProfilePic() => UploadPhotoForUser((UserModel)System.Windows.Application.Current.Properties["CurrentUser"]);
@@ -551,6 +548,7 @@ namespace ToolManagementAppV2.ViewModels
         public void LoadCustomers()
         {
             Customers.ReplaceRange(_customerService.GetAllCustomers());
+            CustomersLoaded = true;
             UpdateSummaries();
         }
 
@@ -702,12 +700,14 @@ namespace ToolManagementAppV2.ViewModels
         {
             ActiveRentals.ReplaceRange(_rentalService.GetActiveRentals());
             SelectedRental = null;
+            RentalsLoaded = true;
             UpdateSummaries();
         }
 
         void LoadOverdueRentals()
         {
             OverdueRentals.ReplaceRange(_rentalService.GetOverdueRentals());
+            RentalsLoaded = true;
             UpdateSummaries();
         }
 

@@ -66,19 +66,7 @@ namespace ToolManagementAppV2
         }
 
         void Window_Loaded(object s, RoutedEventArgs e)
-            => PreloadSearchTab();
-
-        void PreloadSearchTab()
         {
-            var searchTab = MyTabControl.Items.OfType<TabItem>().FirstOrDefault(t => t.Header!.ToString() == "Tool Search");
-            if (searchTab == null)
-                return;
-
-            var current = MyTabControl.SelectedItem;
-            MyTabControl.SelectedItem = searchTab;
-            searchTab.UpdateLayout();
-            MyTabControl.UpdateLayout();
-            MyTabControl.SelectedItem = current;
         }
 
         // ---------- Printing ----------
@@ -758,36 +746,55 @@ namespace ToolManagementAppV2
 
             switch (tab.Header)
             {
-                case "Search Tools":
+                case "Tool Search":
                     if (DataContext is MainViewModel vmSearch)
                     {
-                        vmSearch.LoadTools();
-                        vmSearch.SearchCommand.Execute(null);
+                        if (!vmSearch.ToolsLoaded)
+                        {
+                            vmSearch.LoadTools();
+                            vmSearch.SearchCommand.Execute(null);
+                        }
+                        vmSearch.LoadCheckedOutTools();
                         vmSearch.StartAutoRefresh();
                     }
                     break;
                 case "Tool Management":
                     if (DataContext is MainViewModel vmManage)
                     {
-                        vmManage.LoadTools();
-                        vmManage.SearchCommand.Execute(null);
+                        if (!vmManage.ToolsLoaded)
+                        {
+                            vmManage.LoadTools();
+                            vmManage.SearchCommand.Execute(null);
+                        }
                         vmManage.StopAutoRefresh();
                     }
                     break;
                 case "Customers":
-                    RefreshCustomerList();
                     if (DataContext is MainViewModel vmCust)
+                    {
+                        if (!vmCust.CustomersLoaded)
+                            vmCust.LoadCustomers();
                         vmCust.StartAutoRefresh();
+                    }
                     break;
                 case "Rentals":
-                    RefreshRentalList();
                     if (DataContext is MainViewModel vmRent)
+                    {
+                        if (!vmRent.RentalsLoaded)
+                        {
+                            vmRent.LoadActiveRentals();
+                            vmRent.LoadOverdueRentals();
+                        }
                         vmRent.StartAutoRefresh();
+                    }
                     break;
                 case "Users":
-                    RefreshUserList();
                     if (DataContext is MainViewModel vmUser)
+                    {
+                        if (!vmUser.UsersLoaded)
+                            vmUser.LoadUsers();
                         vmUser.StartAutoRefresh();
+                    }
                     break;
                 case "Settings":
                     LoadSettings();
@@ -820,24 +827,12 @@ namespace ToolManagementAppV2
         {
             try
             {
-                var toolsTask = Task.Run(() => _toolService.GetAllTools());
-                var usersTask = Task.Run(() => _userService.GetAllUsers());
-                var customersTask = Task.Run(() => _customerService.GetAllCustomers());
-                var rentalsTask = Task.Run(() => _rentalService.GetActiveRentals());
                 var settingsTask = Task.Run(() => _settingsService.GetAllSettings());
 
-                await Task.WhenAll(toolsTask, usersTask, customersTask, rentalsTask, settingsTask);
+                await settingsTask;
 
                 await Dispatcher.InvokeAsync(() =>
                 {
-                    if (DataContext is MainViewModel vm)
-                    {
-                        vm.Tools.ReplaceRange(toolsTask.Result);
-                        vm.SearchCommand.Execute(null);
-                        vm.Users.ReplaceRange(usersTask.Result);
-                        vm.Customers.ReplaceRange(customersTask.Result);
-                        vm.ActiveRentals.ReplaceRange(rentalsTask.Result);
-                    }
                     ApplySettings(settingsTask.Result);
                 });
             }

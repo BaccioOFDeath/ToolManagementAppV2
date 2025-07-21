@@ -20,7 +20,7 @@ namespace ToolManagementAppV2.Tests.Tests
             Assert.Same(vm.Tools, window.ToolsList.ItemsSource);
 
             var tabControl = window.MyTabControl;
-            var searchTab = tabControl.Items.OfType<TabItem>().First(t => t.Header!.ToString() == "Search Tools");
+            var searchTab = tabControl.Items.OfType<TabItem>().First(t => t.Header!.ToString() == "Tool Search");
             var toolsTab = tabControl.Items.OfType<TabItem>().First(t => t.Header!.ToString() == "Tool Management");
 
             tabControl.SelectedItem = searchTab;
