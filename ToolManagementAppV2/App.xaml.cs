@@ -20,7 +20,9 @@ namespace ToolManagementAppV2
                 if (login.DialogResult != true)
                     mainWindow.Close();
             };
-            login.Show();
+            // Display the login window modally so that DialogResult can be set
+            // without throwing an InvalidOperationException when the user logs in.
+            login.ShowDialog();
         }
     }
 }
