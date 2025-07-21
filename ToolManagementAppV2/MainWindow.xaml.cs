@@ -17,6 +17,8 @@ using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Views;
 using ToolManagementAppV2.Utilities.Helpers;
 using System.Windows.Input;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ToolManagementAppV2
 {
@@ -48,28 +50,7 @@ namespace ToolManagementAppV2
 
             DataContext = new MainViewModel(_toolService, _userService, _customerService, _rentalService, _settingsService, _activityLogService);
 
-            try
-            {
-                Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    try
-                    {
-                        ((MainViewModel)DataContext).LoadTools();
-                        RefreshUserList();
-                        RefreshCustomerList();
-                        RefreshRentalList();
-                        LoadSettings();
-                    }
-                    catch (Exception ex)
-                    {
-                        ShowError("Initialization Error", ex);
-                    }
-                }));
-            }
-            catch (Exception ex)
-            {
-                ShowError("Initialization Error", ex);
-            }
+            Loaded += async (_, __) => await InitializeAsync();
 
             RestrictTabsForNonAdmin();
         }
@@ -833,6 +814,75 @@ namespace ToolManagementAppV2
         {
             Console.WriteLine(ex);
             System.Windows.MessageBox.Show(ex.Message, title, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        async Task InitializeAsync()
+        {
+            try
+            {
+                var toolsTask = Task.Run(() => _toolService.GetAllTools());
+                var usersTask = Task.Run(() => _userService.GetAllUsers());
+                var customersTask = Task.Run(() => _customerService.GetAllCustomers());
+                var rentalsTask = Task.Run(() => _rentalService.GetActiveRentals());
+                var settingsTask = Task.Run(() => _settingsService.GetAllSettings());
+
+                await Task.WhenAll(toolsTask, usersTask, customersTask, rentalsTask, settingsTask);
+
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    if (DataContext is MainViewModel vm)
+                    {
+                        vm.Tools.ReplaceRange(toolsTask.Result);
+                        vm.SearchCommand.Execute(null);
+                        vm.Users.ReplaceRange(usersTask.Result);
+                        vm.Customers.ReplaceRange(customersTask.Result);
+                        vm.ActiveRentals.ReplaceRange(rentalsTask.Result);
+                    }
+                    ApplySettings(settingsTask.Result);
+                });
+            }
+            catch (Exception ex)
+            {
+                await Dispatcher.InvokeAsync(() => ShowError("Initialization Error", ex));
+            }
+        }
+
+        void ApplySettings(Dictionary<string, string> settings)
+        {
+            try
+            {
+                BitmapImage bmp = null;
+                if (settings.TryGetValue("CompanyLogoPath", out var logoPath) && !string.IsNullOrWhiteSpace(logoPath))
+                {
+                    var full = Utilities.Helpers.PathHelper.GetAbsolutePath(logoPath);
+                    if (!string.IsNullOrEmpty(full) && File.Exists(full))
+                    {
+                        using var stream = new FileStream(full, FileMode.Open, FileAccess.Read, FileShare.Read);
+                        bmp = new BitmapImage();
+                        bmp.BeginInit();
+                        bmp.CacheOption = BitmapCacheOption.OnLoad;
+                        bmp.StreamSource = stream;
+                        bmp.EndInit();
+                        bmp.Freeze();
+                    }
+                }
+                if (bmp == null)
+                    bmp = new BitmapImage(new Uri("pack://application:,,,/Resources/DefaultLogo.png"));
+
+                LogoPreview.Source = bmp;
+                HeaderIcon.Source = bmp;
+
+                if (settings.TryGetValue("ApplicationName", out var app) && !string.IsNullOrWhiteSpace(app))
+                {
+                    Title = app;
+                    HeaderTitle.Text = app;
+                    ApplicationNameInput.Text = app;
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowError("Settings Error", ex);
+            }
         }
     }
 }
