@@ -142,7 +142,7 @@
                       ItemTemplate="{StaticResource ToolTileTemplate}">
                                 <ListView.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <VirtualizingStackPanel/>
+                                        <VirtualizingStackPanel Orientation="Horizontal"/>
                                     </ItemsPanelTemplate>
                                 </ListView.ItemsPanel>
                             </ListView>
