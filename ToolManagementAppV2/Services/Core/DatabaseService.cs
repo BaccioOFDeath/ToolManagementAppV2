@@ -1,5 +1,6 @@
-﻿using System.Data.SQLite;
+using System.Data.SQLite;
 using System.IO;
+using System;
 
 namespace ToolManagementAppV2.Services.Core
 {
@@ -101,6 +102,9 @@ namespace ToolManagementAppV2.Services.Core
                 );";
             using var cmd = new SQLiteCommand(sql, conn);
             cmd.ExecuteNonQuery();
+
+            EnsureIndex(conn, "Tools", "ToolNumber");
+            EnsureIndex(conn, "Users", "UserName");
         }
 
         void EnsureColumn(string table, string column, string type)
@@ -117,6 +121,29 @@ namespace ToolManagementAppV2.Services.Core
                 if (ex.Message.Contains("duplicate column name", StringComparison.OrdinalIgnoreCase))
                 {
                     // Column already exists due to a race condition; safe to ignore
+                }
+                else
+                {
+                    Console.WriteLine(ex);
+                    throw;
+                }
+            }
+        }
+
+        void EnsureIndex(SQLiteConnection conn, string table, string column)
+        {
+            var indexName = $"idx_{table}_{column}";
+            if (SqliteHelper.IndexExists(conn, indexName)) return;
+            try
+            {
+                using var cmd = new SQLiteCommand($"CREATE INDEX {indexName} ON {table}({column})", conn);
+                cmd.ExecuteNonQuery();
+            }
+            catch (SQLiteException ex)
+            {
+                if (ex.Message.Contains("already exists", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Index already exists due to a race condition; safe to ignore
                 }
                 else
                 {
