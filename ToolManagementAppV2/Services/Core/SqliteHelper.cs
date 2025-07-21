@@ -81,5 +81,20 @@ namespace ToolManagementAppV2.Services.Core
                     return true;
             return false;
         }
+
+        public static bool IndexExists(string connStr, string indexName)
+        {
+            using var conn = new SQLiteConnection(connStr);
+            conn.Open();
+            return IndexExists(conn, indexName);
+        }
+
+        public static bool IndexExists(SQLiteConnection conn, string indexName)
+        {
+            using var cmd = new SQLiteCommand("SELECT name FROM sqlite_master WHERE type='index' AND name=@name", conn);
+            cmd.Parameters.AddWithValue("@name", indexName);
+            using var rdr = cmd.ExecuteReader();
+            return rdr.Read();
+        }
     }
 }
