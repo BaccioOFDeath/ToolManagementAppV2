@@ -168,7 +168,7 @@ namespace ToolManagementAppV2.Services.Users
 
         User MapUser(IDataRecord rdr)
         {
-            var u = new User
+            return new User
             {
                 UserID = Convert.ToInt32(rdr["UserID"]),
                 UserName = rdr["UserName"].ToString(),
@@ -179,43 +179,9 @@ namespace ToolManagementAppV2.Services.Users
                 Phone = rdr["Phone"]?.ToString(),
                 Mobile = rdr["Mobile"]?.ToString(),
                 Address = rdr["Address"]?.ToString(),
-                Role = rdr["Role"]?.ToString()
+                Role = rdr["Role"]?.ToString(),
+                PhotoBitmap = null
             };
-
-            try
-            {
-                if (!string.IsNullOrWhiteSpace(u.UserPhotoPath))
-                {
-                    Uri uri;
-                    if (u.UserPhotoPath.StartsWith("pack://"))
-                        uri = new Uri(u.UserPhotoPath, UriKind.Absolute);
-                    else
-                    {
-                        var full = PathHelper.GetAbsolutePath(u.UserPhotoPath);
-                        if (string.IsNullOrEmpty(full) || !File.Exists(full))
-                        {
-                            u.PhotoBitmap = null;
-                            return u;
-                        }
-                        uri = new Uri(full, UriKind.Absolute);
-                    }
-
-                    var bmp = new BitmapImage();
-                    bmp.BeginInit();
-                    bmp.UriSource = uri;
-                    bmp.CacheOption = BitmapCacheOption.OnLoad;
-                    bmp.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                    bmp.EndInit();
-                    u.PhotoBitmap = bmp;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                u.PhotoBitmap = null;
-            }
-
-            return u;
         }
     }
 }
