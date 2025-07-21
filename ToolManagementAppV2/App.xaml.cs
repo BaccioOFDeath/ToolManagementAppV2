@@ -7,23 +7,20 @@ namespace ToolManagementAppV2
     {
         protected override void OnStartup(StartupEventArgs e)
         {
-            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            ShutdownMode = ShutdownMode.OnMainWindowClose;
             base.OnStartup(e);
 
-            var login = new LoginWindow();
-            bool? result = login.ShowDialog();
+            var mainWindow = new MainWindow();
+            Current.MainWindow = mainWindow;
+            mainWindow.Show();
 
-            if (result == true)
+            var login = new LoginWindow { Owner = mainWindow };
+            login.Closed += (s, args) =>
             {
-                ShutdownMode = ShutdownMode.OnMainWindowClose;
-                MainWindow mainWindow = new MainWindow();
-                Current.MainWindow = mainWindow;
-                mainWindow.Show();
-            }
-            else
-            {
-                Shutdown();
-            }
+                if (login.DialogResult != true)
+                    mainWindow.Close();
+            };
+            login.Show();
         }
     }
 }
