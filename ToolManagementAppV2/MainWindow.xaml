@@ -467,10 +467,11 @@
                                 <StackPanel Orientation="Horizontal" Margin="5">
                                     <TextBlock Text="Company Logo:" Width="200" VerticalAlignment="Center"/>
                                     <Image x:Name="LogoPreview" Width="100" Height="100" Stretch="Uniform" Margin="5"/>
-                                    <Button Content="Upload Logo" Click="UploadLogoButton_Click" Margin="5"/>
+                                    
                                 </StackPanel>
 
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="5">
+                                    <Button Content="Upload Logo" Click="UploadLogoButton_Click" Width="150" Margin="5"/>
                                     <Button Content="Save Settings" Click="SaveSettingsButton_Click" Width="150" Margin="5"/>
                                     <Button Content="Load Settings" Click="LoadAllSettingsButton_Click" Width="150" Margin="5"/>
                                 </StackPanel>
