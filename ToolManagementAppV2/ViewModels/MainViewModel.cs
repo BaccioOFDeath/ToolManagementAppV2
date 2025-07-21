@@ -350,7 +350,7 @@ namespace ToolManagementAppV2.ViewModels
             UpdateSummaries();
         }
 
-        void LoadCheckedOutTools()
+        public void LoadCheckedOutTools()
         {
             if (!string.IsNullOrWhiteSpace(CurrentUserName))
                 CheckedOutTools.ReplaceRange(_toolService.GetToolsCheckedOutBy(CurrentUserName));
@@ -704,7 +704,7 @@ namespace ToolManagementAppV2.ViewModels
             UpdateSummaries();
         }
 
-        void LoadOverdueRentals()
+        public void LoadOverdueRentals()
         {
             OverdueRentals.ReplaceRange(_rentalService.GetOverdueRentals());
             RentalsLoaded = true;
