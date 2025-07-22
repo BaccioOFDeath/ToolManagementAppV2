@@ -71,6 +71,27 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
+        public void AddTool_DuplicateToolNumber_Throws()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                IToolService service = new ToolService(dbService);
+
+                service.AddTool(new Tool { ToolNumber = "T1" });
+
+                var dup = new Tool { ToolNumber = "T1" };
+                Assert.Throws<InvalidOperationException>(() => service.AddTool(dup));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public void ImportToolImages_UpdatesImagePathsAndReportsIssues()
         {
             var dbPath = Path.GetTempFileName();

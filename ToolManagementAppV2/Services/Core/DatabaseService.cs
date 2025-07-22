@@ -103,7 +103,7 @@ namespace ToolManagementAppV2.Services.Core
             using var cmd = new SQLiteCommand(sql, conn);
             cmd.ExecuteNonQuery();
 
-            EnsureIndex(conn, "Tools", "ToolNumber");
+            EnsureIndex(conn, "Tools", "ToolNumber", true);
             EnsureIndex(conn, "Users", "UserName");
         }
 
@@ -130,13 +130,14 @@ namespace ToolManagementAppV2.Services.Core
             }
         }
 
-        void EnsureIndex(SQLiteConnection conn, string table, string column)
+        void EnsureIndex(SQLiteConnection conn, string table, string column, bool unique = false)
         {
             var indexName = $"idx_{table}_{column}";
             if (SqliteHelper.IndexExists(conn, indexName)) return;
             try
             {
-                using var cmd = new SQLiteCommand($"CREATE INDEX {indexName} ON {table}({column})", conn);
+                var uniqueSql = unique ? "UNIQUE" : string.Empty;
+                using var cmd = new SQLiteCommand($"CREATE {uniqueSql} INDEX {indexName} ON {table}({column})", conn);
                 cmd.ExecuteNonQuery();
             }
             catch (SQLiteException ex)
