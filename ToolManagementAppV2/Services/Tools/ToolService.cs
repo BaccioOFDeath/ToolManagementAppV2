@@ -234,16 +234,28 @@ namespace ToolManagementAppV2.Services.Tools
             CsvHelperUtil.ExportToolsToCsv(filePath, tools);
         }
 
-        public virtual ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, string> keySelector)
+        public virtual ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector)
         {
             var result = new ImageImportResult();
             if (string.IsNullOrWhiteSpace(folderPath) || keySelector == null)
                 return result;
 
             var tools = GetAllTools();
-            var groups = tools
-                .GroupBy(t => (keySelector(t) ?? string.Empty).ToUpperInvariant())
-                .ToDictionary(g => g.Key, g => g.ToList());
+            var groups = new Dictionary<string, List<ToolModel>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var tool in tools)
+            {
+                var keys = keySelector(tool);
+                if (keys == null) continue;
+                foreach (var key in keys)
+                {
+                    var k = (key ?? string.Empty).Trim().ToUpperInvariant();
+                    if (string.IsNullOrEmpty(k))
+                        continue;
+                    if (!groups.TryGetValue(k, out var list))
+                        groups[k] = list = new List<ToolModel>();
+                    list.Add(tool);
+                }
+            }
 
             var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
             Directory.CreateDirectory(destDir);

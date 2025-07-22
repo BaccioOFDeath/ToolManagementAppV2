@@ -16,15 +16,18 @@ namespace ToolManagementAppV2.ViewModels
         bool _useNameDescription;
         public bool UseNameDescription { get => _useNameDescription; set => SetProperty(ref _useNameDescription, value); }
 
-        public Func<ToolModel, string> BuildSelector()
+        public Func<ToolModel, IEnumerable<string>> BuildSelector()
         {
             return t =>
             {
-                var parts = new List<string>();
-                if (UseToolNumber) parts.Add(t.ToolNumber);
-                if (UsePartNumber) parts.Add(t.PartNumber);
-                if (UseNameDescription) parts.Add(t.NameDescription);
-                return string.Join("_", parts).Trim().ToUpperInvariant();
+                var keys = new List<string>();
+                if (UseToolNumber && !string.IsNullOrWhiteSpace(t.ToolNumber))
+                    keys.Add(t.ToolNumber.Trim().ToUpperInvariant());
+                if (UsePartNumber && !string.IsNullOrWhiteSpace(t.PartNumber))
+                    keys.Add(t.PartNumber.Trim().ToUpperInvariant());
+                if (UseNameDescription && !string.IsNullOrWhiteSpace(t.NameDescription))
+                    keys.Add(t.NameDescription.Trim().ToUpperInvariant());
+                return keys;
             };
         }
     }

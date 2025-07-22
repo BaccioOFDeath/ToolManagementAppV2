@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.IO;
 using System;
 using System.Windows;
@@ -809,7 +810,7 @@ namespace ToolManagementAppV2.ViewModels
             return false;
         }
 
-        protected virtual bool ShowImageImportOptions(out Func<ToolModel, string> selector)
+        protected virtual bool ShowImageImportOptions(out Func<ToolModel, IEnumerable<string>> selector)
         {
             var win = new ImageImportMappingWindow();
             if (win.ShowDialog() == true)

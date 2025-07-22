@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Customers;
@@ -18,7 +19,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     {
         public bool ImportCalled { get; private set; }
         public TestToolService(DatabaseService db) : base(db) { }
-        public override ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, string> keySelector)
+        public override ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector)
         {
             ImportCalled = true;
             return new ImageImportResult();
@@ -35,7 +36,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         protected override bool ShowFolderDialog(out string folder) { folder = _folder; return true; }
-        protected override bool ShowImageImportOptions(out Func<ToolModel, string> selector) { selector = t => t.ToolNumber; return true; }
+        protected override bool ShowImageImportOptions(out Func<ToolModel, IEnumerable<string>> selector) { selector = t => new[] { t.ToolNumber }; return true; }
         protected override void ShowInfo(string msg) { }
     }
 

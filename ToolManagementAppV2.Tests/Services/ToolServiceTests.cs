@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Tools;
@@ -88,7 +89,7 @@ namespace ToolManagementAppV2.Tests.Services
                 File.WriteAllText(Path.Combine(imgDir, "T2.jpg"), string.Empty);
                 File.WriteAllText(Path.Combine(imgDir, "X.jpg"), string.Empty);
 
-                var result = svc.ImportToolImages(imgDir, t => t.ToolNumber);
+                var result = svc.ImportToolImages(imgDir, t => new[] { t.ToolNumber });
 
                 var all = svc.GetAllTools();
                 var t2 = all.First(t => t.ToolNumber == "T2");
