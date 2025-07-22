@@ -8,6 +8,7 @@
         Height="750"
         Width="1600"
         WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
         SizeChanged="MainWindow_SizeChanged"
         Loaded="Window_Loaded">
     <DockPanel Margin="10">

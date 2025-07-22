@@ -98,8 +98,11 @@ namespace ToolManagementAppV2.ViewModels
             get => _selectedUser;
             set
             {
-                SetProperty(ref _selectedUser, value);
-                OnPropertyChanged(nameof(IsLastAdmin));
+                if (SetProperty(ref _selectedUser, value))
+                {
+                    OnPropertyChanged(nameof(IsLastAdmin));
+                    ((RelayCommand)UploadUserPhotoCommand).NotifyCanExecuteChanged();
+                }
             }
         }
 
