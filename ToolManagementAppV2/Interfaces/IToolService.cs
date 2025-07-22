@@ -19,7 +19,7 @@ namespace ToolManagementAppV2.Interfaces
         void UpdateToolImage(string toolID, string imagePath);
         List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map);
         void ExportToolsToCsv(string filePath);
-        ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, string> keySelector);
+        ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector);
         void UpdateToolQuantities(string toolID, int qtyChange, bool isRental);
     }
 }
