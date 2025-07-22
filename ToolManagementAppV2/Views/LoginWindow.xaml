@@ -4,6 +4,7 @@
         xmlns:local="clr-namespace:ToolManagementAppV2.Utilities.Converters"
         Title="Tool Inventory Management – Login"
         Height="750" Width="1600"
+        WindowState="Maximized"
         WindowStartupLocation="CenterScreen"
         Background="White">
     <Window.Resources>
