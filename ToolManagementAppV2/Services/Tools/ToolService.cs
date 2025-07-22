@@ -72,6 +72,8 @@ namespace ToolManagementAppV2.Services.Tools
     
         public void AddTool(ToolModel tool)
         {
+            if (ToolExists(tool.ToolNumber))
+                throw new InvalidOperationException($"Tool {tool.ToolNumber} already exists.");
             var p = new[]
             {
                 new SQLiteParameter("@ToolNumber", tool.ToolNumber),
@@ -95,6 +97,9 @@ namespace ToolManagementAppV2.Services.Tools
     
         public void UpdateTool(ToolModel tool)
         {
+            var dup = GetAllTools().Any(t => t.ToolNumber == tool.ToolNumber && t.ToolID != tool.ToolID);
+            if (dup)
+                throw new InvalidOperationException($"Tool {tool.ToolNumber} already exists.");
             const string sql = @"
                 UPDATE Tools SET
                   ToolNumber = @ToolNumber,
