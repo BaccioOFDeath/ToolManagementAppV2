@@ -474,35 +474,11 @@
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="5">
                                     <Button Content="Upload Logo" Click="UploadLogoButton_Click" Width="150" Margin="5"/>
                                     <Button Content="Save Settings" Click="SaveSettingsButton_Click" Width="150" Margin="5"/>
-                                    <Button Content="Load Settings" Click="LoadAllSettingsButton_Click" Width="150" Margin="5"/>
                                 </StackPanel>
 
                             </StackPanel>
                         </GroupBox>
 
-                        <GroupBox Header="Advanced Settings" Grid.Row="1">
-                            <StackPanel Margin="5">
-                                <ListView x:Name="SettingsList" Height="200" Margin="5">
-                                    <ListView.View>
-                                        <GridView>
-                                            <GridViewColumn Header="Key" DisplayMemberBinding="{Binding Key}" Width="200"/>
-                                            <GridViewColumn Header="Value" Width="200">
-                                                <GridViewColumn.CellTemplate>
-                                                    <DataTemplate>
-                                                        <TextBox Text="{Binding Value}" Width="180"/>
-                                                    </DataTemplate>
-                                                </GridViewColumn.CellTemplate>
-                                            </GridViewColumn>
-                                        </GridView>
-                                    </ListView.View>
-                                </ListView>
-
-                                <StackPanel Orientation="Horizontal" Margin="5">
-                                    <Button Content="Bulk Update" Click="BulkUpdateSettingsButton_Click" Width="120" Margin="5"/>
-                                    <Button Content="Delete Setting" Click="DeleteSettingButton_Click" Width="120" Margin="5"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </GroupBox>
                     </Grid>
                 </TabItem>
                 <TabItem Header="Import/Export">
