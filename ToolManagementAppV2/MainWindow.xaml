@@ -80,7 +80,13 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <TabControl x:Name="MyTabControl" Margin="5" Grid.Row="0" SelectionChanged="MyTabControl_SelectionChanged">
+            <Grid Grid.Row="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Thumb x:Name="TabPlacementThumb" Height="10" Cursor="SizeAll" DragDelta="TabPlacementThumb_DragDelta" />
+                <TabControl x:Name="MyTabControl" Margin="5" Grid.Row="1" SelectionChanged="MyTabControl_SelectionChanged" TabStripPlacement="{Binding TabPlacement}">
                 <TabItem Header="Dashboard">
                     <Grid Margin="10">
                         <Grid.RowDefinitions>
@@ -580,6 +586,7 @@
 
 
             </TabControl>
+            </Grid>
 
             <!-- Status Bar -->
             <StatusBar Grid.Row="1" Height="25" Background="LightGray">

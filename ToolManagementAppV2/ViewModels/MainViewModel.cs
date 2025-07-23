@@ -65,6 +65,13 @@ namespace ToolManagementAppV2.ViewModels
             get => _searchTileWidth;
             set => SetProperty(ref _searchTileWidth, value);
         }
+
+        Dock _tabPlacement = Dock.Top;
+        public Dock TabPlacement
+        {
+            get => _tabPlacement;
+            set => SetProperty(ref _tabPlacement, value);
+        }
         ToolModel _selectedTool;
         public ToolModel SelectedTool
         {

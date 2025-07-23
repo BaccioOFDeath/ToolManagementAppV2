@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Controls.Primitives;
 using System.Linq;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Customers;
@@ -666,6 +667,21 @@ namespace ToolManagementAppV2
                 {
                     var itemWidth = Math.Clamp(width / 5 - 20, 120, 300);
                     vm.SearchTileWidth = itemWidth;
+                }
+            }
+        }
+
+        void TabPlacementThumb_DragDelta(object s, System.Windows.Controls.Primitives.DragDeltaEventArgs e)
+        {
+            if (DataContext is MainViewModel vm)
+            {
+                if (Math.Abs(e.HorizontalChange) > Math.Abs(e.VerticalChange))
+                {
+                    vm.TabPlacement = e.HorizontalChange > 0 ? Dock.Right : Dock.Left;
+                }
+                else
+                {
+                    vm.TabPlacement = e.VerticalChange > 0 ? Dock.Bottom : Dock.Top;
                 }
             }
         }
