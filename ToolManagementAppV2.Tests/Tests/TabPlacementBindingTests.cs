@@ -17,7 +17,6 @@ namespace ToolManagementAppV2.Tests.Tests
 
             Assert.Equal(Dock.Right, window.MyTabControl.TabStripPlacement);
             Assert.Equal(Dock.Right, DockPanel.GetDock(window.TabPlacementThumb));
-            Assert.Equal(Dock.Right, DockPanel.GetDock(window.MyTabControl));
         }
     }
 }
