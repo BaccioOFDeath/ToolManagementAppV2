@@ -85,8 +85,8 @@
                     <Thumb x:Name="TabPlacementThumb" Width="10" Height="10" Cursor="SizeAll"
                            DragDelta="TabPlacementThumb_DragDelta"
                            DockPanel.Dock="{Binding TabPlacement}" />
-                    <TabControl x:Name="MyTabControl" Margin="5" SelectionChanged="MyTabControl_SelectionChanged"
-                                TabStripPlacement="{Binding TabPlacement}">
+                    <TabControl x:Name="MyTabControl" Margin="0" SelectionChanged="MyTabControl_SelectionChanged"
+                                TabStripPlacement="{Binding TabPlacement}" DockPanel.Dock="{Binding TabPlacement}">
                 <TabItem Header="Dashboard">
                     <Grid Margin="10">
                         <Grid.RowDefinitions>
