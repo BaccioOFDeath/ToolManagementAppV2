@@ -19,6 +19,7 @@ using ToolManagementAppV2.Utilities.Helpers;
 using System.Windows.Input;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using ToolManagementAppV2.Models.Domain;
 
 namespace ToolManagementAppV2
 {
