@@ -21,10 +21,7 @@ namespace ToolManagementAppV2.Services.Rentals
         // to keep consistency with ToolModel.ToolID
         public void RentTool(string toolID, int customerID, DateTime rentalDate, DateTime dueDate)
         {
-            using var conn = _dbService.CreateConnection();
-            using var tx = conn.BeginTransaction();
-
-            try
+            ExecuteWithTransaction((conn, tx) =>
             {
                 var availCmd = new SQLiteCommand(
                     "SELECT AvailableQuantity FROM Tools WHERE ToolID=@ToolID",
@@ -44,111 +41,29 @@ namespace ToolManagementAppV2.Services.Rentals
                         new SQLiteParameter("@RentalDate", rentalDate),
                         new SQLiteParameter("@DueDate", dueDate)
                     });
-
-                tx.Commit();
+            },
+            () =>
+            {
                 var tool = _toolService.GetToolByID(toolID);
                 if (tool != null)
                 {
                     tool.QuantityOnHand--;
                     _toolService.UpdateTool(tool);
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                tx.Rollback();
-                return;
-            }
-        }
-
-        public void RentToolWithTransaction(string toolID, int customerID, DateTime rentalDate, DateTime dueDate)
-        {
-            using var conn = _dbService.CreateConnection();
-            using var tx = conn.BeginTransaction();
-            try
-            {
-                var availCmd = new SQLiteCommand(
-                    "SELECT AvailableQuantity FROM Tools WHERE ToolID=@ToolID", conn, tx);
-                availCmd.Parameters.AddWithValue("@ToolID", toolID);
-                int avail = Convert.ToInt32(availCmd.ExecuteScalar() ?? 0);
-                if (avail < 1) throw new InvalidOperationException("Insufficient quantity.");
-
-                SqliteHelper.ExecuteNonQuery(conn, tx,
-                    "INSERT INTO Rentals (ToolID,CustomerID,RentalDate,DueDate,Status) VALUES(@ToolID,@CustomerID,@RentalDate,@DueDate,'Rented')",
-                    new[]
-                    {
-                        new SQLiteParameter("@ToolID", toolID),
-                        new SQLiteParameter("@CustomerID", customerID),
-                        new SQLiteParameter("@RentalDate", rentalDate),
-                        new SQLiteParameter("@DueDate", dueDate)
-                    });
-
-                tx.Commit();
-                var tool = _toolService.GetToolByID(toolID);
-                if (tool != null)
-                {
-                    tool.QuantityOnHand--;
-                    _toolService.UpdateTool(tool);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                tx.Rollback();
-                return;
-            }
+            });
         }
 
         public void ReturnTool(int rentalID, DateTime returnDate)
         {
-            using var conn = _dbService.CreateConnection();
-            using var tx = conn.BeginTransaction();
-            try
-            {
-                var rentalRows = SqliteHelper.ExecuteNonQuery(conn, tx,
-                    "UPDATE Rentals SET ReturnDate=@ReturnDate, Status='Returned' WHERE RentalID=@RentalID",
-                    new[]
-                    {
-                        new SQLiteParameter("@ReturnDate", returnDate),
-                        new SQLiteParameter("@RentalID", rentalID)
-                    });
-
-                var cmd = new SQLiteCommand("SELECT ToolID FROM Rentals WHERE RentalID=@RentalID", conn, tx);
-                cmd.Parameters.AddWithValue("@RentalID", rentalID);
-                var toolIdObj = cmd.ExecuteScalar();
-                var toolID = toolIdObj?.ToString();
-
-                if (rentalRows == 0 || string.IsNullOrEmpty(toolID))
-                    throw new InvalidOperationException("Return operation failed.");
-
-                tx.Commit();
-                var tool = _toolService.GetToolByID(toolID);
-                if (tool != null)
-                {
-                    tool.QuantityOnHand++;
-                    _toolService.UpdateTool(tool);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                tx.Rollback();
-                return;
-            }
-        }
-
-        public void ReturnToolWithTransaction(int rentalID, DateTime returnDate)
-        {
-            using var conn = _dbService.CreateConnection();
-            using var tx = conn.BeginTransaction();
-            try
+            string? toolID = null;
+            ExecuteWithTransaction((conn, tx) =>
             {
                 var selCmd = new SQLiteCommand(
                     "SELECT ToolID FROM Rentals WHERE RentalID=@RentalID AND Status='Rented'", conn, tx);
                 selCmd.Parameters.AddWithValue("@RentalID", rentalID);
                 var result = selCmd.ExecuteScalar();
                 if (result == null) throw new InvalidOperationException("Rental not found or already returned.");
-                string toolID = result.ToString();
+                toolID = result.ToString();
 
                 SqliteHelper.ExecuteNonQuery(conn, tx,
                     "UPDATE Rentals SET ReturnDate=@ReturnDate,Status='Returned' WHERE RentalID=@RentalID",
@@ -157,20 +72,32 @@ namespace ToolManagementAppV2.Services.Rentals
                         new SQLiteParameter("@ReturnDate", returnDate),
                         new SQLiteParameter("@RentalID", rentalID)
                     });
-
-                tx.Commit();
+            },
+            () =>
+            {
                 var tool = _toolService.GetToolByID(toolID);
                 if (tool != null)
                 {
                     tool.QuantityOnHand++;
                     _toolService.UpdateTool(tool);
                 }
+            });
+        }
+
+        void ExecuteWithTransaction(Action<SQLiteConnection, SQLiteTransaction> action, Action? postCommitAction = null)
+        {
+            using var conn = _dbService.CreateConnection();
+            using var tx = conn.BeginTransaction();
+            try
+            {
+                action(conn, tx);
+                tx.Commit();
+                postCommitAction?.Invoke();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
                 tx.Rollback();
-                return;
             }
         }
 

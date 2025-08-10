@@ -76,7 +76,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void RentToolWithTransaction_NoAvailability_DoesNotThrow()
+        public void RentTool_NoAvailability_DoesNotThrow_WithHelper()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -93,7 +93,7 @@ namespace ToolManagementAppV2.Tests.Services
                 customerService.AddCustomer(new Customer { Company = "Beta" });
                 var cust = customerService.GetAllCustomers().First();
 
-                var ex = Record.Exception(() => rentalService.RentToolWithTransaction(addedTool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1)));
+                var ex = Record.Exception(() => rentalService.RentTool(addedTool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1)));
                 Assert.Null(ex);
                 Assert.Empty(rentalService.GetAllRentals());
             }
@@ -111,6 +111,7 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
                 IRentalService rentalService = new RentalService(db, toolService);
 
                 var ex = Record.Exception(() => rentalService.ReturnTool(1, DateTime.Today));
@@ -124,15 +125,16 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void ReturnToolWithTransaction_InvalidRentalID_DoesNotThrow()
+        public void ReturnTool_InvalidRentalID_DoesNotThrow_WithHelper()
         {
             var dbPath = Path.GetTempFileName();
             try
             {
                 var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
                 IRentalService rentalService = new RentalService(db, toolService);
 
-                var ex = Record.Exception(() => rentalService.ReturnToolWithTransaction(1, DateTime.Today));
+                var ex = Record.Exception(() => rentalService.ReturnTool(1, DateTime.Today));
                 Assert.Null(ex);
             }
             finally
@@ -149,6 +151,7 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
                 var rentalService = new RentalService(db, toolService);
 
                 Assert.Throws<InvalidOperationException>(() =>
