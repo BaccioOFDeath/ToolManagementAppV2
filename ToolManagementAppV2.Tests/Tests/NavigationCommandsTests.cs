@@ -1,21 +1,21 @@
-using System.Windows.Controls;
 using ToolManagementAppV2;
 using ToolManagementAppV2.ViewModels;
+using ToolManagementAppV2.Views;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.Tests
 {
-    public class TabPlacementBindingTests
+    public class NavigationCommandsTests
     {
         [Fact]
-        public void ChangingTabPlacement_UpdatesTabStripPlacement()
+        public void OpenSearchToolsCommand_NavigatesToToolSearchPage()
         {
             var window = new MainWindow();
             var vm = Assert.IsType<MainViewModel>(window.DataContext);
 
-            vm.TabPlacement = Dock.Right;
+            vm.OpenSearchToolsCommand.Execute(null);
 
-            Assert.Equal(Dock.Right, window.MyTabControl.TabStripPlacement);
+            Assert.IsType<ToolSearchPage>(vm.CurrentPage);
         }
     }
 }
