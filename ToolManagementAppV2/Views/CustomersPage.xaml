@@ -1,7 +1,55 @@
 <Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      x:Class="ToolManagementAppV2.Views.CustomersPage">
-    <Grid>
-        <TextBlock Text="Customers" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="32"/>
+      x:Class="ToolManagementAppV2.Views.CustomersPage"
+      Background="{DynamicResource BackgroundBrush}">
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="3*"/>
+        </Grid.ColumnDefinitions>
+
+        <Border Background="{DynamicResource CardBackgroundBrush}"
+                Padding="10" Margin="0,0,10,0">
+            <StackPanel>
+                <TextBlock Text="Customers" FontSize="24"/>
+                <StackPanel Orientation="Horizontal">
+                    <TextBox Width="200" Text="{Binding CustomerSearchTerm, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Button Content="Search" Command="{Binding SearchCustomersCommand}"/>
+                </StackPanel>
+                <ListView ItemsSource="{Binding Customers}"
+                          SelectedItem="{Binding SelectedCustomer}"
+                          Background="{DynamicResource CardBackgroundBrush}"
+                          Foreground="{DynamicResource PrimaryTextBrush}">
+                    <ListView.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel/>
+                        </ItemsPanelTemplate>
+                    </ListView.ItemsPanel>
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Company" DisplayMemberBinding="{Binding Company}"/>
+                            <GridViewColumn Header="Email" DisplayMemberBinding="{Binding Email}"/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" Padding="10">
+            <StackPanel>
+                <TextBlock Text="Customer Details" FontSize="24"/>
+                <TextBox Text="{Binding NewCustomerName}"/>
+                <TextBox Text="{Binding NewCustomerEmail}"/>
+                <TextBox Text="{Binding NewCustomerContact}"/>
+                <TextBox Text="{Binding NewCustomerPhone}"/>
+                <TextBox Text="{Binding NewCustomerMobile}"/>
+                <TextBox Text="{Binding NewCustomerAddress}"/>
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Add" Command="{Binding AddCustomerCommand}"/>
+                    <Button Content="Update" Command="{Binding UpdateCustomerCommand}"/>
+                    <Button Content="Delete" Command="{Binding DeleteCustomerCommand}"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
     </Grid>
 </Page>
