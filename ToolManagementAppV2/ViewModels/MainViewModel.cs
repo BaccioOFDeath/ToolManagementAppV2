@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System;
 using System.Windows;
+using System.Linq;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using ToolManagementAppV2.Models.Domain;
@@ -52,6 +53,8 @@ namespace ToolManagementAppV2.ViewModels
 
         public ObservableCollection<ToolModel> Tools { get; } = new();
         public ObservableCollection<ToolModel> SearchResults { get; } = new();
+        public ObservableCollection<ToolModel> HandTools { get; } = new();
+        public ObservableCollection<ToolModel> PowerTools { get; } = new();
         public ObservableCollection<ToolModel> CheckedOutTools { get; } = new();
 
         public bool ToolsLoaded { get; private set; }
@@ -371,10 +374,12 @@ namespace ToolManagementAppV2.ViewModels
         public void LoadTools()
         {
             var selectedId = SelectedTool?.ToolID;
-            Tools.ReplaceRange(_toolService.GetAllTools());
+            var allTools = _toolService.GetAllTools();
+            Tools.ReplaceRange(allTools);
             if (!string.IsNullOrEmpty(selectedId))
                 SelectedTool = Tools.FirstOrDefault(t => t.ToolID == selectedId);
             ToolsLoaded = true;
+            CategorizeTools(allTools);
             UpdateSummaries();
         }
 
@@ -392,7 +397,20 @@ namespace ToolManagementAppV2.ViewModels
                 ? _toolService.GetAllTools()
                 : _toolService.SearchTools(SearchTerm);
             SearchResults.ReplaceRange(results);
+            CategorizeTools(results);
         }
+
+        void CategorizeTools(IEnumerable<ToolModel> tools)
+        {
+            HandTools.ReplaceRange(tools.Where(t => !IsPowerTool(t)));
+            PowerTools.ReplaceRange(tools.Where(IsPowerTool));
+        }
+
+        static bool IsPowerTool(ToolModel tool) =>
+            tool?.NameDescription?.Contains("power", StringComparison.OrdinalIgnoreCase) == true ||
+            tool?.NameDescription?.Contains("cordless", StringComparison.OrdinalIgnoreCase) == true ||
+            tool?.NameDescription?.Contains("electric", StringComparison.OrdinalIgnoreCase) == true ||
+            tool?.NameDescription?.Contains("drill", StringComparison.OrdinalIgnoreCase) == true;
 
         void AddTool()
         {
