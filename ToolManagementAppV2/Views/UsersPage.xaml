@@ -1,7 +1,11 @@
 <Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="clr-namespace:ToolManagementAppV2.Utilities.Converters"
       x:Class="ToolManagementAppV2.Views.UsersPage"
       Background="{DynamicResource BackgroundBrush}">
+    <Page.Resources>
+        <local:NullToDefaultImageConverter x:Key="NullToDefaultImageConverter"/>
+    </Page.Resources>
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*"/>
@@ -33,7 +37,7 @@
         <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" Padding="10">
             <StackPanel>
                 <TextBlock Text="User Details" FontSize="24" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                <Image Source="{Binding SelectedUser.PhotoBitmap}" Height="100" Width="100" Margin="0,0,0,10"/>
+                <Image Source="{Binding SelectedUser.UserPhotoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=User}" Height="100" Width="100" Margin="0,0,0,10"/>
                 <TextBox Text="{Binding SelectedUser.UserName}"
                          Foreground="{DynamicResource PrimaryTextBrush}"
                          Background="{DynamicResource CardBackgroundBrush}"
