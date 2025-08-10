@@ -71,6 +71,34 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public void SearchCommand_SortsResultsIntoCategories()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                IUserService userService = new UserService(db);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db, toolService);
+                ISettingsService settingsService = new SettingsService(db);
+                ActivityLogService logService = new ActivityLogService(db);
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, settingsService, logService);
+                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
+                toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Cordless Drill" });
+                vm.SearchTerm = string.Empty;
+                vm.SearchCommand.Execute(null);
+                Assert.Single(vm.HandTools);
+                Assert.Single(vm.PowerTools);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public void AddToolCommand_PersistsNewToolValues()
         {
             var dbPath = Path.GetTempFileName();
