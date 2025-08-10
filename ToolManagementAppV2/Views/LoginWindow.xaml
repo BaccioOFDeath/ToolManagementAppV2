@@ -47,14 +47,14 @@
                 </StackPanel>
 
                 <!-- User avatars -->
-                <ListBox x:Name="UsersListBox"
+                    <ListBox x:Name="UsersListBox"
                          Grid.Row="1"
                          HorizontalAlignment="Center"
                          BorderThickness="0"
                          Background="Transparent"
                          HorizontalContentAlignment="Center"
-                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                         ScrollViewer.VerticalScrollBarVisibility="Disabled"
                          MaxHeight="400">
                     <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem">
@@ -87,7 +87,7 @@
                     </ListBox.ItemContainerStyle>
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <WrapPanel HorizontalAlignment="Center"/>
+                            <VirtualizingStackPanel Orientation="Horizontal"/>
                         </ItemsPanelTemplate>
                     </ListBox.ItemsPanel>
                     <ListBox.ItemTemplate>
