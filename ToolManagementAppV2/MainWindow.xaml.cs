@@ -4,9 +4,7 @@ using System.Windows;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Services.Customers;
-using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Users;
-using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.ViewModels;
 
 namespace ToolManagementAppV2
@@ -20,12 +18,8 @@ namespace ToolManagementAppV2
             var db = new DatabaseService(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db"));
             var toolService = new ToolService(db);
             var customerService = new CustomerService(db);
-            var rentalService = new RentalService(db, toolService);
             var userService = new UserService(db);
-            var settingsService = new SettingsService(db);
-            var activityLogService = new ActivityLogService(db);
-
-            DataContext = new MainViewModel(toolService, userService, customerService, rentalService, settingsService, activityLogService);
+            DataContext = new MainViewModel(toolService, userService, customerService);
         }
     }
 }
