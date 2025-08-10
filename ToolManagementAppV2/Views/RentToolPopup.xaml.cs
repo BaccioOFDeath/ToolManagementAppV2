@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 
 namespace ToolManagementAppV2.Views
 {
@@ -8,16 +8,6 @@ namespace ToolManagementAppV2.Views
         {
             InitializeComponent();
         }
-
-        private void Confirm_Click(object sender, RoutedEventArgs e)
-        {
-            if (DataContext is ViewModels.Rental.RentToolPopupViewModel vm)
-                vm.Confirm();
-        }
-
-        private void Cancel_Click(object sender, RoutedEventArgs e)
-        {
-            Close();
-        }
     }
 }
+
