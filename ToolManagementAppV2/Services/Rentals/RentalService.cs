@@ -98,6 +98,7 @@ namespace ToolManagementAppV2.Services.Rentals
             {
                 Console.WriteLine(ex);
                 tx.Rollback();
+                throw;
             }
         }
 

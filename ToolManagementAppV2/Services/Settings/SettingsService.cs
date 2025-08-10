@@ -71,7 +71,7 @@ namespace ToolManagementAppV2.Services.Settings
             {
                 tx.Rollback();
                 Console.WriteLine(ex);
-                return;
+                throw;
             }
         }
 
