@@ -47,7 +47,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void RentTool_NoAvailability_DoesNotThrow()
+        public void RentTool_NoAvailability_Throws()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -64,8 +64,8 @@ namespace ToolManagementAppV2.Tests.Services
                 customerService.AddCustomer(new Customer { Company = "Acme" });
                 var cust = customerService.GetAllCustomers().First();
 
-                var ex = Record.Exception(() => rentalService.RentTool(addedTool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1)));
-                Assert.Null(ex);
+                Assert.Throws<InvalidOperationException>(() =>
+                    rentalService.RentTool(addedTool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1)));
                 Assert.Empty(rentalService.GetAllRentals());
             }
             finally
@@ -76,7 +76,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void RentTool_NoAvailability_DoesNotThrow_WithHelper()
+        public void RentTool_NoAvailability_Throws_WithHelper()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -93,8 +93,8 @@ namespace ToolManagementAppV2.Tests.Services
                 customerService.AddCustomer(new Customer { Company = "Beta" });
                 var cust = customerService.GetAllCustomers().First();
 
-                var ex = Record.Exception(() => rentalService.RentTool(addedTool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1)));
-                Assert.Null(ex);
+                Assert.Throws<InvalidOperationException>(() =>
+                    rentalService.RentTool(addedTool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1)));
                 Assert.Empty(rentalService.GetAllRentals());
             }
             finally
@@ -105,7 +105,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void ReturnTool_InvalidRentalID_DoesNotThrow()
+        public void ReturnTool_InvalidRentalID_Throws()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -114,8 +114,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var toolService = new ToolService(db);
                 IRentalService rentalService = new RentalService(db, toolService);
 
-                var ex = Record.Exception(() => rentalService.ReturnTool(1, DateTime.Today));
-                Assert.Null(ex);
+                Assert.Throws<InvalidOperationException>(() => rentalService.ReturnTool(1, DateTime.Today));
             }
             finally
             {
@@ -125,7 +124,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void ReturnTool_InvalidRentalID_DoesNotThrow_WithHelper()
+        public void ReturnTool_InvalidRentalID_Throws_WithHelper()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -134,8 +133,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var toolService = new ToolService(db);
                 IRentalService rentalService = new RentalService(db, toolService);
 
-                var ex = Record.Exception(() => rentalService.ReturnTool(1, DateTime.Today));
-                Assert.Null(ex);
+                Assert.Throws<InvalidOperationException>(() => rentalService.ReturnTool(1, DateTime.Today));
             }
             finally
             {

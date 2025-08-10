@@ -11,7 +11,7 @@ namespace ToolManagementAppV2.Tests.Services
     public class SettingsServiceTests
     {
         [Fact]
-        public void UpdateSettings_DoesNotThrowOnFailure()
+        public void UpdateSettings_ThrowsOnFailure()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -26,7 +26,7 @@ namespace ToolManagementAppV2.Tests.Services
                 }
 
                 var settings = new Dictionary<string, string> { ["Key1"] = "Value1" };
-                service.UpdateSettings(settings);
+                Assert.Throws<SQLiteException>(() => service.UpdateSettings(settings));
             }
             finally
             {

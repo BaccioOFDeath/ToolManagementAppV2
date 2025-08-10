@@ -50,6 +50,16 @@ namespace ToolManagementAppV2.Services.Settings
             return dict;
         }
 
+        /// <summary>
+        /// Updates or inserts multiple settings within a single transaction.
+        /// </summary>
+        /// <param name="settings">Key/value pairs to upsert.</param>
+        /// <exception cref="SQLiteException">
+        /// Thrown when a database error occurs. The original exception is propagated to the caller.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when a transaction cannot be started. The original exception is propagated to the caller.
+        /// </exception>
         public void UpdateSettings(Dictionary<string, string> settings)
         {
             using var conn = _dbService.CreateConnection();
@@ -71,7 +81,7 @@ namespace ToolManagementAppV2.Services.Settings
             {
                 tx.Rollback();
                 Console.WriteLine(ex);
-                return;
+                throw;
             }
         }
 
