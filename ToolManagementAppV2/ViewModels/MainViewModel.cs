@@ -66,11 +66,11 @@ namespace ToolManagementAppV2.ViewModels
             set => SetProperty(ref _searchTileWidth, value);
         }
 
-        Dock _tabPlacement = Dock.Top;
-        public Dock TabPlacement
+        Page _currentPage;
+        public Page CurrentPage
         {
-            get => _tabPlacement;
-            set => SetProperty(ref _tabPlacement, value);
+            get => _currentPage;
+            set => SetProperty(ref _currentPage, value);
         }
         ToolModel _selectedTool;
         public ToolModel SelectedTool
@@ -169,6 +169,13 @@ namespace ToolManagementAppV2.ViewModels
         {
             get => _currentUserPhoto;
             set => SetProperty(ref _currentUserPhoto, value);
+        }
+
+        bool _isCurrentUserAdmin;
+        public bool IsCurrentUserAdmin
+        {
+            get => _isCurrentUserAdmin;
+            private set => SetProperty(ref _isCurrentUserAdmin, value);
         }
 
         BitmapImage _headerLogo;
@@ -277,12 +284,16 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand ViewSelectedRentalHistoryCommand { get; }
         public IRelayCommand ViewSelectedCustomerHistoryCommand { get; }
 
+        public IRelayCommand OpenDashboardCommand { get; }
         public IRelayCommand OpenSearchToolsCommand { get; }
         public IRelayCommand OpenManageToolsCommand { get; }
         public IRelayCommand OpenRentalsCommand { get; }
         public IRelayCommand OpenCustomersCommand { get; }
-        public IRelayCommand OpenReportsCommand { get; }
+        public IRelayCommand OpenUsersCommand { get; }
         public IRelayCommand OpenSettingsCommand { get; }
+        public IRelayCommand OpenImportExportCommand { get; }
+        public IRelayCommand OpenActivityLogsCommand { get; }
+        public IRelayCommand OpenReportsCommand { get; }
 
 
         public MainViewModel(
@@ -332,13 +343,19 @@ namespace ToolManagementAppV2.ViewModels
             ViewSelectedRentalHistoryCommand = new RelayCommand(ShowRentalHistoryForSelectedRental, () => SelectedRental != null);
             ViewSelectedCustomerHistoryCommand = new RelayCommand(ShowRentalHistoryForSelectedCustomer, () => SelectedRental != null);
 
-            OpenSearchToolsCommand = new RelayCommand(() => SetTab("Tool Search"));
-            OpenManageToolsCommand = new RelayCommand(() => SetTab("Tool Management"));
-            OpenRentalsCommand = new RelayCommand(() => SetTab("Rentals"));
-            OpenCustomersCommand = new RelayCommand(() => SetTab("Customers"));
-            OpenReportsCommand = new RelayCommand(() => SetTab("Reports"));
-            OpenSettingsCommand = new RelayCommand(() => SetTab("Settings"));
+            OpenDashboardCommand = new RelayCommand(() => CurrentPage = new DashboardPage());
+            OpenSearchToolsCommand = new RelayCommand(() => CurrentPage = new ToolSearchPage());
+            OpenManageToolsCommand = new RelayCommand(() => CurrentPage = new ManageToolsPage());
+            OpenRentalsCommand = new RelayCommand(() => CurrentPage = new RentalsPage());
+            OpenCustomersCommand = new RelayCommand(() => CurrentPage = new CustomersPage());
+            OpenUsersCommand = new RelayCommand(() => CurrentPage = new UsersPage());
+            OpenSettingsCommand = new RelayCommand(() => CurrentPage = new SettingsPage());
+            OpenImportExportCommand = new RelayCommand(() => CurrentPage = new ImportExportPage());
+            OpenActivityLogsCommand = new RelayCommand(() => CurrentPage = new ActivityLogsPage());
+            OpenReportsCommand = new RelayCommand(() => CurrentPage = new ReportsPage());
 
+
+            CurrentPage = new DashboardPage();
 
             InitializeData();
             _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
@@ -451,6 +468,7 @@ namespace ToolManagementAppV2.ViewModels
             if (System.Windows.Application.Current.Properties["CurrentUser"] is UserModel cu)
             {
                 CurrentUserName = cu.UserName;
+                IsCurrentUserAdmin = cu.IsAdmin;
 
                 try
                 {
@@ -686,24 +704,6 @@ namespace ToolManagementAppV2.ViewModels
             LoadCheckedOutTools();
             LoadActiveRentals();
             LoadOverdueRentals();
-        }
-
-        void SetTab(string tabHeader)
-        {
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
-            {
-                if (System.Windows.Application.Current.MainWindow is MainWindow mw)
-                {
-                    foreach (TabItem tab in mw.MyTabControl.Items)
-                    {
-                        if (tab.Header.ToString() == tabHeader)
-                        {
-                            mw.MyTabControl.SelectedItem = tab;
-                            break;
-                        }
-                    }
-                }
-            });
         }
 
 
