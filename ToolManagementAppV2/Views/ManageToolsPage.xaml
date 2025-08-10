@@ -11,7 +11,7 @@
         <Border Background="{DynamicResource CardBackgroundBrush}"
                 Padding="10" Margin="0,0,10,0">
             <StackPanel>
-                <TextBlock Text="Tools" FontSize="24"/>
+                <TextBlock Text="Tools" FontSize="24" Foreground="{DynamicResource PrimaryTextBrush}"/>
                 <ListView ItemsSource="{Binding Tools}" SelectedItem="{Binding SelectedTool}"
                           Background="{DynamicResource CardBackgroundBrush}"
                           Foreground="{DynamicResource PrimaryTextBrush}">
@@ -32,15 +32,36 @@
 
         <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" Padding="10">
             <StackPanel>
-                <TextBlock Text="Tool Details" FontSize="24"/>
-                <TextBox Text="{Binding NewTool.ToolNumber}"/>
-                <TextBox Text="{Binding NewTool.NameDescription}"/>
-                <TextBox Text="{Binding NewTool.Location}"/>
-                <TextBox Text="{Binding NewTool.Brand}"/>
+                <TextBlock Text="Tool Details" FontSize="24" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                <TextBox Text="{Binding NewTool.ToolNumber}"
+                         Foreground="{DynamicResource PrimaryTextBrush}"
+                         Background="{DynamicResource CardBackgroundBrush}"
+                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
+                <TextBox Text="{Binding NewTool.NameDescription}"
+                         Foreground="{DynamicResource PrimaryTextBrush}"
+                         Background="{DynamicResource CardBackgroundBrush}"
+                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
+                <TextBox Text="{Binding NewTool.Location}"
+                         Foreground="{DynamicResource PrimaryTextBrush}"
+                         Background="{DynamicResource CardBackgroundBrush}"
+                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
+                <TextBox Text="{Binding NewTool.Brand}"
+                         Foreground="{DynamicResource PrimaryTextBrush}"
+                         Background="{DynamicResource CardBackgroundBrush}"
+                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
                 <StackPanel Orientation="Horizontal">
-                    <Button Content="Add" Command="{Binding AddToolCommand}"/>
-                    <Button Content="Update" Command="{Binding UpdateToolCommand}"/>
-                    <Button Content="Delete" Command="{Binding DeleteToolCommand}"/>
+                    <Button Content="Add" Command="{Binding AddToolCommand}"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
+                            Background="{DynamicResource AccentBrush}"
+                            BorderBrush="{DynamicResource AccentBrush}"/>
+                    <Button Content="Update" Command="{Binding UpdateToolCommand}"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
+                            Background="{DynamicResource AccentBrush}"
+                            BorderBrush="{DynamicResource AccentBrush}"/>
+                    <Button Content="Delete" Command="{Binding DeleteToolCommand}"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
+                            Background="{DynamicResource AccentBrush}"
+                            BorderBrush="{DynamicResource AccentBrush}"/>
                 </StackPanel>
             </StackPanel>
         </Border>

@@ -6,7 +6,7 @@
         <StackPanel Margin="10">
             <Border Background="{DynamicResource CardBackgroundBrush}" Padding="10">
                 <StackPanel>
-                    <TextBlock Text="Active Rentals" FontSize="24"/>
+                    <TextBlock Text="Active Rentals" FontSize="24" Foreground="{DynamicResource PrimaryTextBrush}"/>
                     <ListView ItemsSource="{Binding ActiveRentals}"
                               SelectedItem="{Binding SelectedRental}"
                               Background="{DynamicResource CardBackgroundBrush}"
@@ -29,7 +29,7 @@
 
             <Border Background="{DynamicResource CardBackgroundBrush}" Padding="10" Margin="0,10,0,0">
                 <StackPanel>
-                    <TextBlock Text="Overdue Rentals" FontSize="24"/>
+                    <TextBlock Text="Overdue Rentals" FontSize="24" Foreground="{DynamicResource PrimaryTextBrush}"/>
                     <ListView ItemsSource="{Binding OverdueRentals}"
                               SelectedItem="{Binding SelectedRental}"
                               Background="{DynamicResource CardBackgroundBrush}"
@@ -51,9 +51,18 @@
             </Border>
 
             <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                <Button Content="Return" Command="{Binding ReturnToolCommand}"/>
-                <Button Content="Extend" Command="{Binding ExtendRentalCommand}"/>
-                <Button Content="History" Command="{Binding ViewSelectedRentalHistoryCommand}"/>
+                <Button Content="Return" Command="{Binding ReturnToolCommand}"
+                        Foreground="{DynamicResource PrimaryTextBrush}"
+                        Background="{DynamicResource AccentBrush}"
+                        BorderBrush="{DynamicResource AccentBrush}"/>
+                <Button Content="Extend" Command="{Binding ExtendRentalCommand}"
+                        Foreground="{DynamicResource PrimaryTextBrush}"
+                        Background="{DynamicResource AccentBrush}"
+                        BorderBrush="{DynamicResource AccentBrush}"/>
+                <Button Content="History" Command="{Binding ViewSelectedRentalHistoryCommand}"
+                        Foreground="{DynamicResource PrimaryTextBrush}"
+                        Background="{DynamicResource AccentBrush}"
+                        BorderBrush="{DynamicResource AccentBrush}"/>
             </StackPanel>
         </StackPanel>
     </ScrollViewer>

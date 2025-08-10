@@ -11,7 +11,7 @@
         <Border Background="{DynamicResource CardBackgroundBrush}"
                 Padding="10" Margin="0,0,10,0">
             <StackPanel>
-                <TextBlock Text="Users" FontSize="24"/>
+                <TextBlock Text="Users" FontSize="24" Foreground="{DynamicResource PrimaryTextBrush}"/>
                 <ListView ItemsSource="{Binding Users}" SelectedItem="{Binding SelectedUser}"
                           Background="{DynamicResource CardBackgroundBrush}"
                           Foreground="{DynamicResource PrimaryTextBrush}">
@@ -32,12 +32,24 @@
 
         <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" Padding="10">
             <StackPanel>
-                <TextBlock Text="User Details" FontSize="24"/>
+                <TextBlock Text="User Details" FontSize="24" Foreground="{DynamicResource PrimaryTextBrush}"/>
                 <Image Source="{Binding SelectedUser.PhotoBitmap}" Height="100" Width="100" Margin="0,0,0,10"/>
-                <TextBox Text="{Binding SelectedUser.UserName}"/>
-                <TextBox Text="{Binding SelectedUser.Email}"/>
-                <TextBox Text="{Binding SelectedUser.Phone}"/>
-                <Button Content="Upload Photo" Command="{Binding UploadUserPhotoCommand}"/>
+                <TextBox Text="{Binding SelectedUser.UserName}"
+                         Foreground="{DynamicResource PrimaryTextBrush}"
+                         Background="{DynamicResource CardBackgroundBrush}"
+                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
+                <TextBox Text="{Binding SelectedUser.Email}"
+                         Foreground="{DynamicResource PrimaryTextBrush}"
+                         Background="{DynamicResource CardBackgroundBrush}"
+                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
+                <TextBox Text="{Binding SelectedUser.Phone}"
+                         Foreground="{DynamicResource PrimaryTextBrush}"
+                         Background="{DynamicResource CardBackgroundBrush}"
+                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
+                <Button Content="Upload Photo" Command="{Binding UploadUserPhotoCommand}"
+                        Foreground="{DynamicResource PrimaryTextBrush}"
+                        Background="{DynamicResource AccentBrush}"
+                        BorderBrush="{DynamicResource AccentBrush}"/>
             </StackPanel>
         </Border>
     </Grid>

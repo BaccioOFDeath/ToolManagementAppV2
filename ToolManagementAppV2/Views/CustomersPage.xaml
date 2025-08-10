@@ -11,10 +11,16 @@
         <Border Background="{DynamicResource CardBackgroundBrush}"
                 Padding="10" Margin="0,0,10,0">
             <StackPanel>
-                <TextBlock Text="Customers" FontSize="24"/>
+                <TextBlock Text="Customers" FontSize="24" Foreground="{DynamicResource PrimaryTextBrush}"/>
                 <StackPanel Orientation="Horizontal">
-                    <TextBox Width="200" Text="{Binding CustomerSearchTerm, UpdateSourceTrigger=PropertyChanged}"/>
-                    <Button Content="Search" Command="{Binding SearchCustomersCommand}"/>
+                    <TextBox Width="200" Text="{Binding CustomerSearchTerm, UpdateSourceTrigger=PropertyChanged}"
+                             Foreground="{DynamicResource PrimaryTextBrush}"
+                             Background="{DynamicResource CardBackgroundBrush}"
+                             BorderBrush="{DynamicResource PrimaryTextBrush}"/>
+                    <Button Content="Search" Command="{Binding SearchCustomersCommand}"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
+                            Background="{DynamicResource AccentBrush}"
+                            BorderBrush="{DynamicResource AccentBrush}"/>
                 </StackPanel>
                 <ListView ItemsSource="{Binding Customers}"
                           SelectedItem="{Binding SelectedCustomer}"
@@ -37,17 +43,44 @@
 
         <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" Padding="10">
             <StackPanel>
-                <TextBlock Text="Customer Details" FontSize="24"/>
-                <TextBox Text="{Binding NewCustomerName}"/>
-                <TextBox Text="{Binding NewCustomerEmail}"/>
-                <TextBox Text="{Binding NewCustomerContact}"/>
-                <TextBox Text="{Binding NewCustomerPhone}"/>
-                <TextBox Text="{Binding NewCustomerMobile}"/>
-                <TextBox Text="{Binding NewCustomerAddress}"/>
+                <TextBlock Text="Customer Details" FontSize="24" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                <TextBox Text="{Binding NewCustomerName}"
+                         Foreground="{DynamicResource PrimaryTextBrush}"
+                         Background="{DynamicResource CardBackgroundBrush}"
+                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
+                <TextBox Text="{Binding NewCustomerEmail}"
+                         Foreground="{DynamicResource PrimaryTextBrush}"
+                         Background="{DynamicResource CardBackgroundBrush}"
+                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
+                <TextBox Text="{Binding NewCustomerContact}"
+                         Foreground="{DynamicResource PrimaryTextBrush}"
+                         Background="{DynamicResource CardBackgroundBrush}"
+                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
+                <TextBox Text="{Binding NewCustomerPhone}"
+                         Foreground="{DynamicResource PrimaryTextBrush}"
+                         Background="{DynamicResource CardBackgroundBrush}"
+                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
+                <TextBox Text="{Binding NewCustomerMobile}"
+                         Foreground="{DynamicResource PrimaryTextBrush}"
+                         Background="{DynamicResource CardBackgroundBrush}"
+                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
+                <TextBox Text="{Binding NewCustomerAddress}"
+                         Foreground="{DynamicResource PrimaryTextBrush}"
+                         Background="{DynamicResource CardBackgroundBrush}"
+                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
                 <StackPanel Orientation="Horizontal">
-                    <Button Content="Add" Command="{Binding AddCustomerCommand}"/>
-                    <Button Content="Update" Command="{Binding UpdateCustomerCommand}"/>
-                    <Button Content="Delete" Command="{Binding DeleteCustomerCommand}"/>
+                    <Button Content="Add" Command="{Binding AddCustomerCommand}"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
+                            Background="{DynamicResource AccentBrush}"
+                            BorderBrush="{DynamicResource AccentBrush}"/>
+                    <Button Content="Update" Command="{Binding UpdateCustomerCommand}"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
+                            Background="{DynamicResource AccentBrush}"
+                            BorderBrush="{DynamicResource AccentBrush}"/>
+                    <Button Content="Delete" Command="{Binding DeleteCustomerCommand}"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
+                            Background="{DynamicResource AccentBrush}"
+                            BorderBrush="{DynamicResource AccentBrush}"/>
                 </StackPanel>
             </StackPanel>
         </Border>
