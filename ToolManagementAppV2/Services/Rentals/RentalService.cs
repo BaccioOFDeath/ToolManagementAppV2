@@ -19,6 +19,19 @@ namespace ToolManagementAppV2.Services.Rentals
 
         // toolID is passed as a string even though the underlying column is INTEGER
         // to keep consistency with ToolModel.ToolID
+        /// <summary>
+        /// Rents a tool to a customer within a transaction and updates inventory counts.
+        /// </summary>
+        /// <param name="toolID">Identifier of the tool to rent.</param>
+        /// <param name="customerID">Identifier of the customer renting the tool.</param>
+        /// <param name="rentalDate">Date the rental begins.</param>
+        /// <param name="dueDate">Date the rental is due.</param>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when insufficient quantity is available. The exception is propagated to the caller.
+        /// </exception>
+        /// <exception cref="SQLiteException">
+        /// Thrown when a database operation fails. The exception is propagated to the caller.
+        /// </exception>
         public void RentTool(string toolID, int customerID, DateTime rentalDate, DateTime dueDate)
         {
             ExecuteWithTransaction((conn, tx) =>
@@ -53,6 +66,17 @@ namespace ToolManagementAppV2.Services.Rentals
             });
         }
 
+        /// <summary>
+        /// Marks a rental as returned and restores inventory counts within a transaction.
+        /// </summary>
+        /// <param name="rentalID">Identifier of the rental to return.</param>
+        /// <param name="returnDate">Date the tool was returned.</param>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when the rental cannot be found or has already been returned. The exception is propagated to the caller.
+        /// </exception>
+        /// <exception cref="SQLiteException">
+        /// Thrown when a database operation fails. The exception is propagated to the caller.
+        /// </exception>
         public void ReturnTool(int rentalID, DateTime returnDate)
         {
             string? toolID = null;
@@ -84,6 +108,17 @@ namespace ToolManagementAppV2.Services.Rentals
             });
         }
 
+        /// <summary>
+        /// Executes the specified action within a database transaction and rolls back on error.
+        /// </summary>
+        /// <param name="action">Database operations to execute.</param>
+        /// <param name="postCommitAction">Optional action invoked after a successful commit.</param>
+        /// <exception cref="SQLiteException">
+        /// Thrown when a database operation fails. The original exception is rethrown after rollback.
+        /// </exception>
+        /// <exception cref="Exception">
+        /// Any exception thrown by <paramref name="action"/> is rethrown after rollback.
+        /// </exception>
         void ExecuteWithTransaction(Action<SQLiteConnection, SQLiteTransaction> action, Action? postCommitAction = null)
         {
             using var conn = _dbService.CreateConnection();
