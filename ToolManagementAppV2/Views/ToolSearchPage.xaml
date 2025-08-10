@@ -97,13 +97,16 @@
         </VisualStateGroup>
     </VisualStateManager.VisualStateGroups>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Auto">
         <StackPanel>
             <TextBlock x:Name="HandHeader" Text="Hand Tools" FontSize="24" Margin="10,0,10,5"/>
-            <ItemsControl x:Name="HandToolsList" ItemsSource="{Binding HandTools}">
+            <ItemsControl x:Name="HandToolsList" ItemsSource="{Binding HandTools}"
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                          ScrollViewer.VerticalScrollBarVisibility="Disabled">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <WrapPanel/>
+                        <VirtualizingStackPanel Orientation="Horizontal"/>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
@@ -112,10 +115,12 @@
             </ItemsControl>
 
             <TextBlock x:Name="PowerHeader" Text="Power Tools" FontSize="24" Margin="10,20,10,5"/>
-            <ItemsControl x:Name="PowerToolsList" ItemsSource="{Binding PowerTools}">
+            <ItemsControl x:Name="PowerToolsList" ItemsSource="{Binding PowerTools}"
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                          ScrollViewer.VerticalScrollBarVisibility="Disabled">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <WrapPanel/>
+                        <VirtualizingStackPanel Orientation="Horizontal"/>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
