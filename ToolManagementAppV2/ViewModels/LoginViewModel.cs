@@ -16,6 +16,14 @@ using ToolManagementAppV2.Views;
 
 namespace ToolManagementAppV2.ViewModels
 {
+    /// <summary>
+    /// View model that drives the login window. It loads users from the database,
+    /// creating a default "admin" account if none exist, and coordinates the
+    /// authentication workflow via <see cref="SelectUserCommand"/>. The process covers
+    /// default password generation and resets so future logins remain possible. When a
+    /// user successfully authenticates the <see cref="LoginSucceeded"/> event is raised
+    /// and the authenticated user is stored in <see cref="Application.Current"/>.
+    /// </summary>
     public class LoginViewModel : ObservableObject
     {
         readonly IUserService _userService;
@@ -33,8 +41,17 @@ namespace ToolManagementAppV2.ViewModels
         public BitmapImage CompanyLogo { get; }
         public string WindowTitle { get; }
 
+        /// <summary>
+        /// Command invoked when the user selects an account from the list. It calls
+        /// <see cref="OnUserSelected"/> to perform authentication, including prompting
+        /// for passwords and handling resets.
+        /// </summary>
         public ICommand SelectUserCommand { get; }
 
+        /// <summary>
+        /// Raised after <see cref="OnUserSelected"/> successfully authenticates a user
+        /// and stores the result in <see cref="Application.Current"/>.
+        /// </summary>
         public event EventHandler? LoginSucceeded;
 
         public LoginViewModel(string? dbPath = null)
@@ -102,6 +119,15 @@ namespace ToolManagementAppV2.ViewModels
             Users.ReplaceRange(users);
         }
 
+        /// <summary>
+        /// Executes the authentication workflow for the selected <paramref name="user"/>.
+        /// Ensures administrators always have a default password, allows first-time
+        /// non-admin users to log in with a generated password, prompts for existing
+        /// passwords and supports resetting credentials back to the default "admin".
+        /// Successful authentication stores the user in <see cref="Application.Current"/>
+        /// and raises <see cref="LoginSucceeded"/>.
+        /// </summary>
+        /// <param name="user">The account to authenticate.</param>
         void OnUserSelected(User user)
         {
             if (user == null) return;
