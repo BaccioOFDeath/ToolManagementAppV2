@@ -160,7 +160,7 @@ namespace ToolManagementAppV2.Tests
         }
 
         [Fact]
-        public void RentToolWithTransaction_LogsException()
+        public void RentTool_LogsException_WithHelper()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -178,7 +178,7 @@ namespace ToolManagementAppV2.Tests
                 var sw = new StringWriter();
                 var original = Console.Out;
                 Console.SetOut(sw);
-                rentalService.RentToolWithTransaction(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
                 Console.SetOut(original);
                 Assert.NotEqual(string.Empty, sw.ToString());
             }
@@ -195,6 +195,7 @@ namespace ToolManagementAppV2.Tests
             try
             {
                 var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
                 IRentalService rentalService = new RentalService(db, toolService);
 
                 var sw = new StringWriter();
@@ -211,18 +212,19 @@ namespace ToolManagementAppV2.Tests
         }
 
         [Fact]
-        public void ReturnToolWithTransaction_LogsException()
+        public void ReturnTool_LogsException_WithHelper()
         {
             var dbPath = Path.GetTempFileName();
             try
             {
                 var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
                 IRentalService rentalService = new RentalService(db, toolService);
 
                 var sw = new StringWriter();
                 var original = Console.Out;
                 Console.SetOut(sw);
-                rentalService.ReturnToolWithTransaction(1, DateTime.Today);
+                rentalService.ReturnTool(1, DateTime.Today);
                 Console.SetOut(original);
                 Assert.NotEqual(string.Empty, sw.ToString());
             }
