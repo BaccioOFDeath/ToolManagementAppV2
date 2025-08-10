@@ -2,12 +2,13 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       x:Class="ToolManagementAppV2.Views.ToolSearchPage"
       Loaded="Page_Loaded"
-      SizeChanged="Page_SizeChanged">
+      SizeChanged="Page_SizeChanged"
+      Background="{DynamicResource BackgroundBrush}">
     <Page.Resources>
         <!-- Card template with adaptive visuals and subtle animations -->
         <DataTemplate x:Key="ToolCardTemplate">
             <Grid Margin="5"
-                  Background="Gray"
+                  Background="{DynamicResource CardBackgroundBrush}"
                   Cursor="Hand"
                   Focusable="True"
                   Opacity="0">
@@ -52,9 +53,9 @@
                 </Grid.Triggers>
                 <Grid>
                     <Image Source="{Binding ToolImagePath}" Stretch="UniformToFill"/>
-                    <Border Background="#80000000" VerticalAlignment="Bottom" Height="40">
+                    <Border Background="{DynamicResource OverlayBrush}" VerticalAlignment="Bottom" Height="40">
                         <TextBlock Text="{Binding NameDescription}"
-                                   Foreground="White"
+                                   Foreground="{DynamicResource PrimaryTextBrush}"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"
                                    TextWrapping="Wrap"/>

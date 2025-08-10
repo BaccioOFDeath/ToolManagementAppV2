@@ -3,12 +3,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Tool Inventory Management"
         Height="750" Width="1600"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource BackgroundBrush}">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
     </Window.Resources>
     <DockPanel>
-        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Background="#DDD" Padding="10">
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Background="{DynamicResource AccentBrush}" Padding="10">
             <Button Content="Dashboard" Command="{Binding OpenDashboardCommand}" Margin="5"/>
             <Button Content="Tool Search" Command="{Binding OpenSearchToolsCommand}" Margin="5"/>
             <Button Content="Tool Management" Command="{Binding OpenManageToolsCommand}" Margin="5"

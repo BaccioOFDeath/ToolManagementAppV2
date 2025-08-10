@@ -1,15 +1,15 @@
-﻿<Window x:Class="ToolManagementAppV2.Views.PrintPreviewWindow"
+<Window x:Class="ToolManagementAppV2.Views.PrintPreviewWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Tool Inventory Management – Print Preview"
         Height="900" Width="900"
         WindowStartupLocation="CenterScreen"
-        Background="White">
+        Background="{DynamicResource BackgroundBrush}">
 
     <DockPanel Margin="10">
 
         <!-- HEADER -->
-        <Border DockPanel.Dock="Top" Background="#DDD" Padding="10">
+        <Border DockPanel.Dock="Top" Background="{DynamicResource AccentBrush}" Padding="10">
             <DockPanel>
                 <Image x:Name="PreviewLogo" Width="50" Height="50" Margin="10" />
                 <TextBlock x:Name="PreviewTitle"
@@ -18,25 +18,23 @@
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
                     <Button Content="Print"
                             Width="150" Height="45" FontSize="16" Margin="10"
-                            Background="#2D89EF" Foreground="White" FontWeight="SemiBold"
-                            BorderBrush="#1E5FAF" BorderThickness="1" Cursor="Hand"
+                            FontWeight="SemiBold"
                             Click="Print_Click"/>
                     <Button Content="Close"
                             Width="150" Height="45" FontSize="16" Margin="10"
-                            Background="#CD3C3C" Foreground="White" FontWeight="SemiBold"
-                            BorderBrush="#912528" BorderThickness="1" Cursor="Hand"
+                            FontWeight="SemiBold"
                             Click="Close_Click"/>
                 </StackPanel>
             </DockPanel>
         </Border>
 
         <!-- PREVIEW AREA -->
-        <Border DockPanel.Dock="Top" Margin="0,20,0,20" BorderBrush="#DDD" BorderThickness="1" CornerRadius="4" Background="White">
+        <Border DockPanel.Dock="Top" Margin="0,20,0,20" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" CornerRadius="4" Background="{DynamicResource BackgroundBrush}">
             <FlowDocumentReader x:Name="DocViewer" IsPrintEnabled="False" IsFindEnabled="True"/>
         </Border>
 
         <!-- STATUS BAR -->
-        <StatusBar DockPanel.Dock="Bottom" Background="LightGray" Height="30" FontSize="14">
+        <StatusBar DockPanel.Dock="Bottom" Background="{DynamicResource CardBackgroundBrush}" Height="30" FontSize="14">
             <StatusBarItem Content="Ready to print" />
             <StatusBarItem HorizontalAlignment="Right"
                            Content="{Binding ElementName=DocViewer, Path=ViewingMode, StringFormat='Mode: {0}'}"/>

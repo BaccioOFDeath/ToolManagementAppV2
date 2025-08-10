@@ -1,0 +1,24 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <!-- Netflix-inspired dark palette -->
+    <Color x:Key="BackgroundColor">#FF141414</Color>
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
+
+    <Color x:Key="AccentColor">#FFE50914</Color>
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
+
+    <Color x:Key="CardBackgroundColor">#FF1F1F1F</Color>
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource CardBackgroundColor}"/>
+
+    <SolidColorBrush x:Key="OverlayBrush" Color="#80000000"/>
+
+    <Color x:Key="PrimaryTextColor">#FFFFFFFF</Color>
+    <SolidColorBrush x:Key="PrimaryTextBrush" Color="{StaticResource PrimaryTextColor}"/>
+    <Color x:Key="SecondaryTextColor">#B3B3B3</Color>
+    <SolidColorBrush x:Key="SecondaryTextBrush" Color="{StaticResource SecondaryTextColor}"/>
+
+    <!-- Typography -->
+    <FontFamily x:Key="AppFontFamily">Segoe UI</FontFamily>
+    <sys:Double x:Key="AppFontSize">14</sys:Double>
+</ResourceDictionary>

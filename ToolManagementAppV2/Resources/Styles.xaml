@@ -1,24 +1,12 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- Theme Colors and Fonts -->
-    <Color x:Key="BackgroundColor">#FF121212</Color>
-    <!-- Application-wide dark background brush providing consistent contrast and easier maintenance -->
-    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
-    <Color x:Key="CardBackgroundColor">#AA1E1E1E</Color>
-    <!-- Semi-transparent surface for overlay cards; central resource ensures readable, maintainable theming -->
-    <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource CardBackgroundColor}"/>
-    <!-- Primary accent color for interactive controls; high contrast and centralization aid accessibility and maintenance -->
-    <SolidColorBrush x:Key="AccentBrush" Color="#FF3A8FB7"/>
-    <SolidColorBrush x:Key="ForegroundBrush" Color="White"/>
-    <FontFamily x:Key="AppFont">Segoe UI</FontFamily>
-
     <!-- Reusable focus visual style providing clear keyboard cues; defined once for accessibility and maintainability -->
     <Style x:Key="DefaultFocusVisual" TargetType="Control">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate>
-                    <Rectangle Stroke="{StaticResource AccentBrush}" StrokeThickness="2" Margin="2" StrokeDashArray="1 2"/>
+                    <Rectangle Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" Margin="2" StrokeDashArray="1 2"/>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -28,23 +16,35 @@
     <Style TargetType="Button">
         <Setter Property="Margin" Value="5"/>
         <Setter Property="Padding" Value="10,4"/>
-        <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
-        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource AppFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource AppFontSize}"/>
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
+    </Style>
+
+    <!-- Global TextBlock Style -->
+    <Style TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource AppFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource AppFontSize}"/>
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
     </Style>
 
     <!-- Base TextBox Style with Validation -->
     <Style TargetType="TextBox">
         <Setter Property="Margin" Value="5"/>
-        <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
-        <Setter Property="Background" Value="#22FFFFFF"/>
+        <Setter Property="FontFamily" Value="{DynamicResource AppFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource AppFontSize}"/>
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
         <Setter Property="Validation.ErrorTemplate">
             <Setter.Value>
                 <ControlTemplate>
                     <DockPanel LastChildFill="True">
-                        <Border BorderBrush="Red" BorderThickness="1">
+                        <Border BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1">
                             <AdornedElementPlaceholder/>
                         </Border>
                     </DockPanel>

@@ -4,12 +4,12 @@
         Title="Tool Inventory Management Rental History"
         Height="650" Width="1600"
         WindowStartupLocation="CenterScreen"
-        Background="White">
+        Background="{DynamicResource BackgroundBrush}">
 
     <DockPanel Margin="10">
 
         <!-- HEADER -->
-        <Border DockPanel.Dock="Top" Background="#DDD" Padding="10">
+        <Border DockPanel.Dock="Top" Background="{DynamicResource AccentBrush}" Padding="10">
             <TextBlock Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}"
                        FontWeight="Bold" FontSize="20" Margin="10" />
         </Border>
