@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using System.Windows.Media.Imaging;
 
 namespace ToolManagementAppV2.Models.Domain
 {
@@ -20,8 +19,6 @@ namespace ToolManagementAppV2.Models.Domain
         private bool _isAdmin;
         public bool IsAdmin { get => _isAdmin; set => SetProperty(ref _isAdmin, value); }
 
-        private BitmapImage _photoBitmap;
-        public BitmapImage PhotoBitmap { get => _photoBitmap; set => SetProperty(ref _photoBitmap, value); }
 
         private string _email;
         public string Email { get => _email; set => SetProperty(ref _email, value); }

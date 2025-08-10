@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Data.SQLite;
-using System.IO;
-using System.Windows.Media.Imaging;
 using System.Data;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
@@ -180,7 +178,6 @@ namespace ToolManagementAppV2.Services.Users
                 Mobile = rdr["Mobile"]?.ToString(),
                 Address = rdr["Address"]?.ToString(),
                 Role = rdr["Role"]?.ToString(),
-                PhotoBitmap = null
             };
         }
     }
