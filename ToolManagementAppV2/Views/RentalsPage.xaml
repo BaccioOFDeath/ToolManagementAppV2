@@ -1,7 +1,69 @@
 <Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      x:Class="ToolManagementAppV2.Views.RentalsPage">
-    <Grid>
-        <TextBlock Text="Rentals" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="32"/>
-    </Grid>
+      x:Class="ToolManagementAppV2.Views.RentalsPage"
+      Background="{DynamicResource BackgroundBrush}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="10">
+            <Border Background="{DynamicResource CardBackgroundBrush}" Padding="10">
+                <StackPanel>
+                    <TextBlock Text="Active Rentals" FontSize="24" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                    <ListView ItemsSource="{Binding ActiveRentals}"
+                              SelectedItem="{Binding SelectedRental}"
+                              Background="{DynamicResource CardBackgroundBrush}"
+                              Foreground="{DynamicResource PrimaryTextBrush}">
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel/>
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Tool" DisplayMemberBinding="{Binding ToolNumber}"/>
+                                <GridViewColumn Header="Customer" DisplayMemberBinding="{Binding CustomerName}"/>
+                                <GridViewColumn Header="Due" DisplayMemberBinding="{Binding DueDate, StringFormat={}{0:yyyy-MM-dd}}"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </StackPanel>
+            </Border>
+
+            <Border Background="{DynamicResource CardBackgroundBrush}" Padding="10" Margin="0,10,0,0">
+                <StackPanel>
+                    <TextBlock Text="Overdue Rentals" FontSize="24" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                    <ListView ItemsSource="{Binding OverdueRentals}"
+                              SelectedItem="{Binding SelectedRental}"
+                              Background="{DynamicResource CardBackgroundBrush}"
+                              Foreground="{DynamicResource PrimaryTextBrush}">
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel/>
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Tool" DisplayMemberBinding="{Binding ToolNumber}"/>
+                                <GridViewColumn Header="Customer" DisplayMemberBinding="{Binding CustomerName}"/>
+                                <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </StackPanel>
+            </Border>
+
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                <Button Content="Return" Command="{Binding ReturnToolCommand}"
+                        Foreground="{DynamicResource PrimaryTextBrush}"
+                        Background="{DynamicResource AccentBrush}"
+                        BorderBrush="{DynamicResource AccentBrush}"/>
+                <Button Content="Extend" Command="{Binding ExtendRentalCommand}"
+                        Foreground="{DynamicResource PrimaryTextBrush}"
+                        Background="{DynamicResource AccentBrush}"
+                        BorderBrush="{DynamicResource AccentBrush}"/>
+                <Button Content="History" Command="{Binding ViewSelectedRentalHistoryCommand}"
+                        Foreground="{DynamicResource PrimaryTextBrush}"
+                        Background="{DynamicResource AccentBrush}"
+                        BorderBrush="{DynamicResource AccentBrush}"/>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
 </Page>
