@@ -62,13 +62,6 @@ namespace ToolManagementAppV2.ViewModels
         public bool CustomersLoaded { get; private set; }
         public bool RentalsLoaded { get; private set; }
 
-        double _searchTileWidth = 200;
-        public double SearchTileWidth
-        {
-            get => _searchTileWidth;
-            set => SetProperty(ref _searchTileWidth, value);
-        }
-
         Page _currentPage;
         public Page CurrentPage
         {
