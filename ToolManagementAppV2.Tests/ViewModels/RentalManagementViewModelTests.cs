@@ -50,6 +50,41 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public void SelectedCustomer_PopulatesNewCustomerFields()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                ICustomerService customerService = new CustomerService(db);
+                customerService.AddCustomer(new ToolManagementAppV2.Models.Domain.Customer
+                {
+                    Company = "ACME",
+                    Email = "a@b.com",
+                    Contact = "John",
+                    Phone = "123",
+                    Mobile = "456",
+                    Address = "Addr"
+                });
+                var existing = customerService.GetAllCustomers().First();
+                var vm = new RentalManagementViewModel(customerService);
+                vm.SelectedCustomer = existing;
+
+                Assert.Equal("ACME", vm.NewCustomerName);
+                Assert.Equal("a@b.com", vm.NewCustomerEmail);
+                Assert.Equal("John", vm.NewCustomerContact);
+                Assert.Equal("123", vm.NewCustomerPhone);
+                Assert.Equal("456", vm.NewCustomerMobile);
+                Assert.Equal("Addr", vm.NewCustomerAddress);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public void UpdateCustomerCommand_UpdatesSelectedCustomer()
         {
             var dbPath = Path.GetTempFileName();

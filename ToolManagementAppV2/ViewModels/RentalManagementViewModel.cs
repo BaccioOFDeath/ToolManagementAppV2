@@ -24,6 +24,25 @@ namespace ToolManagementAppV2.ViewModels
                 {
                     ((RelayCommand)UpdateCustomerCommand).NotifyCanExecuteChanged();
                     ((RelayCommand)DeleteCustomerCommand).NotifyCanExecuteChanged();
+
+                    if (value != null)
+                    {
+                        NewCustomerName = value.Company;
+                        NewCustomerEmail = value.Email;
+                        NewCustomerContact = value.Contact;
+                        NewCustomerPhone = value.Phone;
+                        NewCustomerMobile = value.Mobile;
+                        NewCustomerAddress = value.Address;
+                    }
+                    else
+                    {
+                        NewCustomerName = string.Empty;
+                        NewCustomerEmail = string.Empty;
+                        NewCustomerContact = string.Empty;
+                        NewCustomerPhone = string.Empty;
+                        NewCustomerMobile = string.Empty;
+                        NewCustomerAddress = string.Empty;
+                    }
                 }
             }
         }
@@ -91,15 +110,18 @@ namespace ToolManagementAppV2.ViewModels
         void UpdateCustomer()
         {
             if (SelectedCustomer == null) return;
+            var updated = new CustomerModel
+            {
+                CustomerID = SelectedCustomer.CustomerID,
+                Company = NewCustomerName,
+                Email = NewCustomerEmail,
+                Contact = NewCustomerContact,
+                Phone = NewCustomerPhone,
+                Mobile = NewCustomerMobile,
+                Address = NewCustomerAddress
+            };
 
-            SelectedCustomer.Company = NewCustomerName;
-            SelectedCustomer.Email = NewCustomerEmail;
-            SelectedCustomer.Contact = NewCustomerContact;
-            SelectedCustomer.Phone = NewCustomerPhone;
-            SelectedCustomer.Mobile = NewCustomerMobile;
-            SelectedCustomer.Address = NewCustomerAddress;
-
-            _customerService.UpdateCustomer(SelectedCustomer);
+            _customerService.UpdateCustomer(updated);
             LoadCustomers();
         }
 
