@@ -103,7 +103,10 @@
             <TextBlock x:Name="HandHeader" Text="Hand Tools" FontSize="24" Margin="10,0,10,5"/>
             <ItemsControl x:Name="HandToolsList" ItemsSource="{Binding HandTools}"
                           ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                          ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                          ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                          ScrollViewer.CanContentScroll="True"
+                          VirtualizingStackPanel.IsVirtualizing="True"
+                          VirtualizingStackPanel.VirtualizationMode="Recycling">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <VirtualizingStackPanel Orientation="Horizontal"/>
@@ -117,7 +120,10 @@
             <TextBlock x:Name="PowerHeader" Text="Power Tools" FontSize="24" Margin="10,20,10,5"/>
             <ItemsControl x:Name="PowerToolsList" ItemsSource="{Binding PowerTools}"
                           ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                          ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                          ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                          ScrollViewer.CanContentScroll="True"
+                          VirtualizingStackPanel.IsVirtualizing="True"
+                          VirtualizingStackPanel.VirtualizationMode="Recycling">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <VirtualizingStackPanel Orientation="Horizontal"/>
