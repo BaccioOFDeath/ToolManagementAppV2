@@ -22,14 +22,25 @@ namespace ToolManagementAppV2.Services.Customers
         public void ImportCustomersFromCsv(string filePath, IDictionary<string, string> map)
         {
             var customers = CsvHelperUtil.LoadCustomersFromCsv(filePath, map);
-            foreach (var c in customers)
+            using var conn = _dbService.CreateConnection();
+            using var tran = conn.BeginTransaction();
+            try
             {
-                if (string.IsNullOrWhiteSpace(c.Company)) continue;
-                if (string.IsNullOrWhiteSpace(c.Contact)) continue;
-                if (string.IsNullOrWhiteSpace(c.Phone) && string.IsNullOrWhiteSpace(c.Mobile)) continue;
+                foreach (var c in customers)
+                {
+                    if (string.IsNullOrWhiteSpace(c.Company)) continue;
+                    if (string.IsNullOrWhiteSpace(c.Contact)) continue;
+                    if (string.IsNullOrWhiteSpace(c.Phone) && string.IsNullOrWhiteSpace(c.Mobile)) continue;
 
-                if (!CustomerExists(c.Contact, c.Phone, c.Mobile))
-                    AddCustomer(c);
+                    if (!CustomerExists(c.Contact, c.Phone, c.Mobile))
+                        InsertCustomer(conn, tran, c);
+                }
+                tran.Commit();
+            }
+            catch
+            {
+                tran.Rollback();
+                throw;
             }
         }
 
@@ -66,7 +77,18 @@ namespace ToolManagementAppV2.Services.Customers
             return SqliteHelper.ExecuteReader(conn, sql, p, MapCustomer).FirstOrDefault();
         }
 
+        /// <summary>
+        /// Adds a single customer to the database. Bulk import operations call the
+        /// underlying InsertCustomer method inside their own transaction scope, so
+        /// transaction management is handled by the caller in those scenarios.
+        /// </summary>
         public void AddCustomer(CustomerModel customer)
+        {
+            using var conn = _dbService.CreateConnection();
+            InsertCustomer(conn, null, customer);
+        }
+
+        void InsertCustomer(SQLiteConnection conn, SQLiteTransaction? tran, CustomerModel customer)
         {
             const string sql = @"
         INSERT INTO Customers (Company, Email, Contact, Phone, Mobile, Address)
@@ -83,8 +105,7 @@ namespace ToolManagementAppV2.Services.Customers
                 new SQLiteParameter("@Address", customer.Address ?? string.Empty)
             };
 
-            using var conn = _dbService.CreateConnection();
-            using var cmd = new SQLiteCommand(sql, conn);
+            using var cmd = new SQLiteCommand(sql, conn, tran);
             cmd.Parameters.AddRange(p);
             customer.CustomerID = Convert.ToInt32(cmd.ExecuteScalar());
         }
