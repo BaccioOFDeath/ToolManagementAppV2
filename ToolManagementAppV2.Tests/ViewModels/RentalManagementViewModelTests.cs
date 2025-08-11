@@ -132,5 +132,27 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void DeleteCustomerCommand_CanExecuteDependsOnSelection()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                ICustomerService customerService = new CustomerService(db);
+                var vm = new RentalManagementViewModel(customerService);
+                Assert.False(vm.DeleteCustomerCommand.CanExecute(null));
+                vm.SelectedCustomer = new ToolManagementAppV2.Models.Domain.Customer { Company = "ACME" };
+                Assert.True(vm.DeleteCustomerCommand.CanExecute(null));
+                vm.SelectedCustomer = null;
+                Assert.False(vm.DeleteCustomerCommand.CanExecute(null));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }

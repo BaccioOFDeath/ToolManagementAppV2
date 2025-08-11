@@ -21,7 +21,10 @@ namespace ToolManagementAppV2.ViewModels
             set
             {
                 if (SetProperty(ref _selectedCustomer, value))
+                {
                     ((RelayCommand)UpdateCustomerCommand).NotifyCanExecuteChanged();
+                    ((RelayCommand)DeleteCustomerCommand).NotifyCanExecuteChanged();
+                }
             }
         }
 
@@ -56,7 +59,7 @@ namespace ToolManagementAppV2.ViewModels
             AddCustomerCommand = new RelayCommand(AddCustomer);
             UpdateCustomerCommand = new RelayCommand(UpdateCustomer, () => SelectedCustomer != null);
             SearchCustomersCommand = new RelayCommand(SearchCustomers);
-            DeleteCustomerCommand = new RelayCommand(DeleteCustomer);
+            DeleteCustomerCommand = new RelayCommand(DeleteCustomer, () => SelectedCustomer != null);
         }
 
         public void LoadCustomers()
