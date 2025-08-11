@@ -13,6 +13,7 @@ namespace ToolManagementAppV2.ViewModels
         public ToolManagementViewModel ToolManagement { get; }
         public UserManagementViewModel UserManagement { get; }
         public RentalManagementViewModel RentalManagement { get; }
+        public RentalViewModel Rentals { get; }
 
         Page _currentPage;
         public Page CurrentPage
@@ -37,11 +38,12 @@ namespace ToolManagementAppV2.ViewModels
 
         public void RefreshCurrentUser() => OnPropertyChanged(nameof(IsCurrentUserAdmin));
 
-        public MainViewModel(IToolService toolService, IUserService userService, ICustomerService customerService)
+        public MainViewModel(IToolService toolService, IUserService userService, ICustomerService customerService, IRentalService rentalService)
         {
             ToolManagement = new ToolManagementViewModel(toolService);
             UserManagement = new UserManagementViewModel(userService);
             RentalManagement = new RentalManagementViewModel(customerService);
+            Rentals = new RentalViewModel(rentalService);
 
             OpenDashboardCommand = new RelayCommand(() => CurrentPage = new DashboardPage());
             OpenSearchToolsCommand = new RelayCommand(() =>
@@ -56,8 +58,8 @@ namespace ToolManagementAppV2.ViewModels
             });
             OpenRentalsCommand = new RelayCommand(() =>
             {
-                RentalManagement.LoadCustomers();
-                CurrentPage = new RentalsPage { DataContext = RentalManagement };
+                Rentals.LoadRentals();
+                CurrentPage = new RentalsPage { DataContext = Rentals };
             });
             OpenCustomersCommand = new RelayCommand(() =>
             {

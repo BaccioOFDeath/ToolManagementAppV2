@@ -6,6 +6,7 @@ using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Views;
+using ToolManagementAppV2.Services.Rentals;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.ViewModels
@@ -22,12 +23,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 IUserService userService = new UserService(db);
                 ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
 
-                var vm = new MainViewModel(toolService, userService, customerService);
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService);
 
                 Assert.NotNull(vm.ToolManagement);
                 Assert.NotNull(vm.UserManagement);
                 Assert.NotNull(vm.RentalManagement);
+                Assert.NotNull(vm.Rentals);
             }
             finally
             {
@@ -46,8 +49,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 IUserService userService = new UserService(db);
                 ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
 
-                var vm = new MainViewModel(toolService, userService, customerService);
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService);
                 vm.OpenDashboardCommand.Execute(null);
 
                 Assert.IsType<DashboardPage>(vm.CurrentPage);
