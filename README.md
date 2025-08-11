@@ -7,6 +7,7 @@ ToolManagementAppV2 is a WPF application following the MVVM pattern for managing
 
 ### Install .NET 8
 1. Visit the [.NET download page](https://dotnet.microsoft.com/download/dotnet/8.0).
+https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-8.0.413-windows-x64-installer
 2. Choose the SDK for your operating system and follow the installation instructions.
 3. Verify installation with:
    ```bash

@@ -5,7 +5,6 @@
       SizeChanged="Page_SizeChanged"
       Background="{DynamicResource BackgroundBrush}">
     <Page.Resources>
-        <!-- Card template with adaptive visuals and subtle animations -->
         <DataTemplate x:Key="ToolCardTemplate">
             <Grid Margin="5"
                   Background="{DynamicResource CardBackgroundBrush}"
@@ -16,7 +15,6 @@
                     <ScaleTransform x:Name="TileScale" ScaleX="1" ScaleY="1"/>
                 </Grid.RenderTransform>
                 <Grid.Triggers>
-                    <!-- Fade and scale when loaded -->
                     <EventTrigger RoutedEvent="FrameworkElement.Loaded">
                         <BeginStoryboard>
                             <Storyboard>
@@ -29,7 +27,6 @@
                             </Storyboard>
                         </BeginStoryboard>
                     </EventTrigger>
-                    <!-- Scale when tile gains focus -->
                     <EventTrigger RoutedEvent="UIElement.GotFocus">
                         <BeginStoryboard>
                             <Storyboard>
@@ -64,7 +61,6 @@
             </Grid>
         </DataTemplate>
 
-        <!-- Styles used for responsive tile sizing -->
         <Style x:Key="NarrowTileStyle" TargetType="ContentPresenter">
             <Setter Property="Width" Value="150"/>
             <Setter Property="Height" Value="220"/>
@@ -76,23 +72,31 @@
     </Page.Resources>
 
     <VisualStateManager.VisualStateGroups>
-        <!-- Adjust tile size and typography based on available width -->
         <VisualStateGroup x:Name="WidthStates">
             <VisualState x:Name="Narrow">
-                <VisualState.Setters>
-                    <Setter Target="HandToolsList.ItemContainerStyle" Value="{StaticResource NarrowTileStyle}"/>
-                    <Setter Target="PowerToolsList.ItemContainerStyle" Value="{StaticResource NarrowTileStyle}"/>
-                    <Setter Target="HandHeader.FontSize" Value="18"/>
-                    <Setter Target="PowerHeader.FontSize" Value="18"/>
-                </VisualState.Setters>
+                <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HandToolsList" Storyboard.TargetProperty="ItemContainerStyle">
+                        <DiscreteObjectKeyFrame Value="{StaticResource NarrowTileStyle}" KeyTime="0:0:0" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PowerToolsList" Storyboard.TargetProperty="ItemContainerStyle">
+                        <DiscreteObjectKeyFrame Value="{StaticResource NarrowTileStyle}" KeyTime="0:0:0" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <DoubleAnimation Storyboard.TargetName="HandHeader" Storyboard.TargetProperty="FontSize" To="18" Duration="0" />
+                    <DoubleAnimation Storyboard.TargetName="PowerHeader" Storyboard.TargetProperty="FontSize" To="18" Duration="0" />
+                </Storyboard>
             </VisualState>
+
             <VisualState x:Name="Wide">
-                <VisualState.Setters>
-                    <Setter Target="HandToolsList.ItemContainerStyle" Value="{StaticResource WideTileStyle}"/>
-                    <Setter Target="PowerToolsList.ItemContainerStyle" Value="{StaticResource WideTileStyle}"/>
-                    <Setter Target="HandHeader.FontSize" Value="24"/>
-                    <Setter Target="PowerHeader.FontSize" Value="24"/>
-                </VisualState.Setters>
+                <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HandToolsList" Storyboard.TargetProperty="ItemContainerStyle">
+                        <DiscreteObjectKeyFrame Value="{StaticResource WideTileStyle}" KeyTime="0:0:0" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PowerToolsList" Storyboard.TargetProperty="ItemContainerStyle">
+                        <DiscreteObjectKeyFrame Value="{StaticResource WideTileStyle}" KeyTime="0:0:0" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <DoubleAnimation Storyboard.TargetName="HandHeader" Storyboard.TargetProperty="FontSize" To="24" Duration="0" />
+                    <DoubleAnimation Storyboard.TargetName="PowerHeader" Storyboard.TargetProperty="FontSize" To="24" Duration="0" />
+                </Storyboard>
             </VisualState>
         </VisualStateGroup>
     </VisualStateManager.VisualStateGroups>
