@@ -1,18 +1,20 @@
-﻿using System.Windows;
+﻿// Views/PasswordPromptWindow.xaml.cs
+using System;
+using System.Windows;
 using System.Windows.Input;
 using ToolManagementAppV2.Models.Domain;
 
-namespace ToolManagementAppV2
+namespace ToolManagementAppV2.Views
 {
     public partial class PasswordPromptWindow : Window
     {
-        const int MaxAttempts = 2;
-        int _attemptCount;
+        private const int MaxAttempts = 2;
+        private int _attemptCount;
 
-        public string EnteredPassword { get; private set; }
+        public string EnteredPassword { get; private set; } = string.Empty;
         public bool IsPasswordResetRequested { get; private set; }
-        public Func<string, bool> ValidatePassword { get; set; }
-        public User SelectedUser { get; set; }
+        public Func<string, bool> ValidatePassword { get; set; } = _ => true;
+        public User? SelectedUser { get; set; }
 
         public PasswordPromptWindow()
         {
@@ -20,14 +22,17 @@ namespace ToolManagementAppV2
             Loaded += OnLoaded;
         }
 
-        void OnLoaded(object sender, RoutedEventArgs e)
+        private void OnLoaded(object sender, RoutedEventArgs e)
         {
             if (SelectedUser != null)
                 PromptTextBlock.Text = $"{SelectedUser.UserName}, please enter your password:";
+            else
+                PromptTextBlock.Text = "Please enter your password:";
+
             PasswordBox.Focus();
         }
 
-        void OK_Click(object sender, RoutedEventArgs e)
+        private void OK_Click(object sender, RoutedEventArgs e)
         {
             var pwd = PasswordBox.Password;
             if (ValidatePassword?.Invoke(pwd) == true)
@@ -40,12 +45,12 @@ namespace ToolManagementAppV2
             ShowError("Incorrect password. Please try again.");
         }
 
-        void Cancel_Click(object sender, RoutedEventArgs e)
+        private void Cancel_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
         }
 
-        void ShowError(string message)
+        private void ShowError(string message)
         {
             _attemptCount++;
             ErrorTextBlock.Text = message;
@@ -59,7 +64,7 @@ namespace ToolManagementAppV2
             PasswordBox.Focus();
         }
 
-        void ForgotPasswordTextBlock_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private void ForgotPasswordTextBlock_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (SelectedUser?.IsAdmin != true)
             {

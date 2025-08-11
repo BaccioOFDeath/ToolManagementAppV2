@@ -1,17 +1,17 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media.Imaging;
-using ToolManagementAppV2.Utilities.Helpers;
+using System.Windows.Controls; // WPF PrintDialog
 
 namespace ToolManagementAppV2.Views
 {
     public partial class PrintPreviewWindow : Window
     {
-        FlowDocument _document;
-        string _title;
-        string _logoPath;
+        private FlowDocument _document;
+        private string _title;
+        private string _logoPath;
 
         public PrintPreviewWindow()
         {
@@ -22,23 +22,12 @@ namespace ToolManagementAppV2.Views
         {
             _document = document ?? throw new ArgumentNullException(nameof(document));
             _title = title ?? throw new ArgumentNullException(nameof(title));
-            _logoPath = logoPath;
+            _logoPath = logoPath ?? "";
 
             Title = $"Print Preview – {_title}";
             PreviewTitle.Text = _title;
 
-            Uri logoUri;
-            if (!string.IsNullOrWhiteSpace(_logoPath))
-            {
-                var full = Utilities.Helpers.PathHelper.GetAbsolutePath(_logoPath);
-                logoUri = !string.IsNullOrEmpty(full) && File.Exists(full)
-                    ? new Uri(full, UriKind.Absolute)
-                    : new Uri("pack://application:,,,/Resources/DefaultLogo.png");
-            }
-            else
-            {
-                logoUri = new Uri("pack://application:,,,/Resources/DefaultLogo.png");
-            }
+            var logoUri = ResolveLogoUri(_logoPath);
             var bmp = new BitmapImage();
             bmp.BeginInit();
             bmp.CacheOption = BitmapCacheOption.OnLoad;
@@ -52,17 +41,33 @@ namespace ToolManagementAppV2.Views
             ShowDialog();
         }
 
-        void Print_Click(object sender, RoutedEventArgs e)
+        private static Uri ResolveLogoUri(string path)
         {
-            if (_document == null) return;
-
-            var dlg = new System.Windows.Controls.PrintDialog();
-            if (dlg.ShowDialog() != true) return;
-
-            dlg.PrintDocument(((IDocumentPaginatorSource)_document).DocumentPaginator, _title);
+            if (!string.IsNullOrWhiteSpace(path))
+            {
+                var full = Utilities.Helpers.PathHelper.GetAbsolutePath(path);
+                if (!string.IsNullOrEmpty(full) && File.Exists(full))
+                    return new Uri(full, UriKind.Absolute);
+            }
+            return new Uri("pack://application:,,,/Resources/DefaultLogo.png");
         }
 
-        void Close_Click(object sender, RoutedEventArgs e)
+        private void PageSetup_Click(object sender, RoutedEventArgs e)
+        {
+            DocViewer.FitToWidth();
+        }
+
+        private void Print_Click(object sender, RoutedEventArgs e)
+        {
+            if (_document == null) return;
+            var dlg = new System.Windows.Controls.PrintDialog();
+            if (dlg.ShowDialog() == true) // ✅ Correct nullable bool check
+            {
+                dlg.PrintDocument(((IDocumentPaginatorSource)_document).DocumentPaginator, _title);
+            }
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }

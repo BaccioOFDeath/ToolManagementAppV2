@@ -16,4 +16,19 @@
     <ItemsPanelTemplate x:Key="WrapPanelItems">
         <WrapPanel Orientation="Horizontal" ItemWidth="260" ItemHeight="100"/>
     </ItemsPanelTemplate>
+    <DataTemplate x:Key="ToolCardTemplate">
+        <Grid Width="220" Margin="6">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="140"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Border Background="#0e1420" CornerRadius="8" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1">
+                <Image Stretch="UniformToFill" Source="{Binding ToolImagePath}"/>
+            </Border>
+            <StackPanel Grid.Row="1" Margin="0,6,0,0">
+                <TextBlock Text="{Binding NameDescription}" FontWeight="SemiBold" FontSize="13"/>
+                <TextBlock Text="{Binding ToolNumber}" Foreground="{StaticResource ForegroundMutedBrush}" FontSize="12"/>
+            </StackPanel>
+        </Grid>
+    </DataTemplate>
 </ResourceDictionary>

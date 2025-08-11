@@ -1,87 +1,107 @@
-<Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+<!-- Views/ManageToolsPage.xaml -->
+<Page x:Class="ToolManagementAppV2.Views.ManageToolsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      x:Class="ToolManagementAppV2.Views.ManageToolsPage"
-      Background="{DynamicResource BackgroundBrush}">
-    <Grid Margin="10">
+      Background="{StaticResource BackgroundBrush}">
+    <Grid Margin="8">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*"/>
             <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
 
-        <Border Background="{DynamicResource CardBackgroundBrush}"
-                Padding="10" Margin="0,0,10,0">
-            <StackPanel>
-                <TextBlock Text="Tools" FontSize="24" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                <ListView ItemsSource="{Binding Tools}" SelectedItem="{Binding SelectedTool}"
-                          Background="{DynamicResource CardBackgroundBrush}"
-                          Foreground="{DynamicResource PrimaryTextBrush}">
+        <Border Style="{StaticResource Card}" Margin="0,0,8,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="Tools" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <ListView Grid.Row="1"
+                          ItemsSource="{Binding Tools}"
+                          SelectedItem="{Binding SelectedTool}"
+                          Background="{StaticResource SurfaceBrush}"
+                          BorderBrush="{StaticResource BorderBrushAlt}">
                     <ListView.ItemsPanel>
                         <ItemsPanelTemplate>
                             <VirtualizingStackPanel/>
                         </ItemsPanelTemplate>
                     </ListView.ItemsPanel>
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
+                        </Style>
+                    </ListView.ItemContainerStyle>
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Header="Number" DisplayMemberBinding="{Binding ToolNumber}"/>
-                            <GridViewColumn Header="Name" DisplayMemberBinding="{Binding NameDescription}"/>
+                            <GridViewColumn Header="Number" DisplayMemberBinding="{Binding ToolNumber}" Width="140"/>
+                            <GridViewColumn Header="Name" DisplayMemberBinding="{Binding NameDescription}" Width="280"/>
+                            <GridViewColumn Header="Brand" DisplayMemberBinding="{Binding Brand}" Width="160"/>
+                            <GridViewColumn Header="Location" DisplayMemberBinding="{Binding Location}" Width="180"/>
                         </GridView>
                     </ListView.View>
                 </ListView>
-            </StackPanel>
+            </Grid>
         </Border>
 
-        <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" Padding="10">
-            <StackPanel>
-                <TextBlock Text="Tool Details" FontSize="24" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                <TextBox Text="{Binding SelectedTool.ToolNumber}"
-                         Foreground="{DynamicResource PrimaryTextBrush}"
-                         Background="{DynamicResource CardBackgroundBrush}"
-                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
-                <TextBox Text="{Binding SelectedTool.NameDescription}"
-                         Foreground="{DynamicResource PrimaryTextBrush}"
-                         Background="{DynamicResource CardBackgroundBrush}"
-                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
-                <TextBox Text="{Binding SelectedTool.Location}"
-                         Foreground="{DynamicResource PrimaryTextBrush}"
-                         Background="{DynamicResource CardBackgroundBrush}"
-                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
-                <TextBox Text="{Binding SelectedTool.Brand}"
-                         Foreground="{DynamicResource PrimaryTextBrush}"
-                         Background="{DynamicResource CardBackgroundBrush}"
-                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
-                <StackPanel Orientation="Horizontal">
-                    <Button Content="Update" Command="{Binding UpdateToolCommand}"
-                            Foreground="{DynamicResource PrimaryTextBrush}"
-                            Background="{DynamicResource AccentBrush}"
-                            BorderBrush="{DynamicResource AccentBrush}"/>
-                    <Button Content="Delete" Command="{Binding DeleteToolCommand}"
-                            Foreground="{DynamicResource PrimaryTextBrush}"
-                            Background="{DynamicResource AccentBrush}"
-                            BorderBrush="{DynamicResource AccentBrush}"/>
+        <Border Grid.Column="1" Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="Tool Details" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Tool Number" VerticalAlignment="Center" Foreground="{StaticResource ForegroundMutedBrush}"/>
+                    <TextBox   Grid.Row="0" Grid.Column="1" Text="{Binding SelectedTool.ToolNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Name" VerticalAlignment="Center" Foreground="{StaticResource ForegroundMutedBrush}"/>
+                    <TextBox   Grid.Row="1" Grid.Column="1" Text="{Binding SelectedTool.NameDescription, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Brand" VerticalAlignment="Center" Foreground="{StaticResource ForegroundMutedBrush}"/>
+                    <TextBox   Grid.Row="2" Grid.Column="1" Text="{Binding SelectedTool.Brand, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"/>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Location" VerticalAlignment="Center" Foreground="{StaticResource ForegroundMutedBrush}"/>
+                    <TextBox   Grid.Row="3" Grid.Column="1" Text="{Binding SelectedTool.Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"/>
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Part #" VerticalAlignment="Center" Foreground="{StaticResource ForegroundMutedBrush}"/>
+                    <TextBox   Grid.Row="4" Grid.Column="1" Text="{Binding SelectedTool.PartNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"/>
+
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Supplier" VerticalAlignment="Center" Foreground="{StaticResource ForegroundMutedBrush}"/>
+                    <TextBox   Grid.Row="5" Grid.Column="1" Text="{Binding SelectedTool.Supplier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"/>
+
+                    <StackPanel Grid.Row="6" Grid.ColumnSpan="2" Orientation="Vertical" Margin="0,8,0,0">
+                        <TextBlock Text="Notes" Foreground="{StaticResource ForegroundMutedBrush}"/>
+                        <TextBox Text="{Binding SelectedTool.Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="90" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" />
+                    </StackPanel>
+                </Grid>
+
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                    <Button Style="{StaticResource PrimaryButton}" Content="Update" Command="{Binding UpdateToolCommand}"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="New" Command="{Binding NewToolCommand}" Margin="8,0,0,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Delete" Command="{Binding DeleteToolCommand}" Margin="8,0,0,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Rent" Command="{Binding OpenRentalsCommand}" Margin="8,0,0,0"/>
                 </StackPanel>
-                <Separator Margin="0,10,0,10"/>
-                <TextBlock Text="Add New Tool" FontSize="24" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                <TextBox Text="{Binding NewTool.ToolNumber}"
-                         Foreground="{DynamicResource PrimaryTextBrush}"
-                         Background="{DynamicResource CardBackgroundBrush}"
-                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
-                <TextBox Text="{Binding NewTool.NameDescription}"
-                         Foreground="{DynamicResource PrimaryTextBrush}"
-                         Background="{DynamicResource CardBackgroundBrush}"
-                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
-                <TextBox Text="{Binding NewTool.Location}"
-                         Foreground="{DynamicResource PrimaryTextBrush}"
-                         Background="{DynamicResource CardBackgroundBrush}"
-                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
-                <TextBox Text="{Binding NewTool.Brand}"
-                         Foreground="{DynamicResource PrimaryTextBrush}"
-                         Background="{DynamicResource CardBackgroundBrush}"
-                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
-                <Button Content="Add" Command="{Binding AddToolCommand}"
-                        Foreground="{DynamicResource PrimaryTextBrush}"
-                        Background="{DynamicResource AccentBrush}"
-                        BorderBrush="{DynamicResource AccentBrush}"/>
-            </StackPanel>
+            </Grid>
         </Border>
     </Grid>
 </Page>

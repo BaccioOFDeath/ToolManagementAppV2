@@ -4,7 +4,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="{StaticResource BackgroundBrush}">
     <ScrollViewer>
-        <StackPanel>
+        <StackPanel Margin="8">
             <Border Style="{StaticResource Card}">
                 <StackPanel>
                     <TextBlock Text="Database" FontWeight="SemiBold" Margin="0,0,0,8"/>
