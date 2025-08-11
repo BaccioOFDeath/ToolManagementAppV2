@@ -9,6 +9,7 @@ using ToolManagementAppV2.ViewModels;
 using Xunit;
 using ToolManagementAppV2.Services.Rentals;
 
+
 namespace ToolManagementAppV2.Tests.ViewModels
 {
     public class MainViewModelCurrentUserTests
@@ -27,8 +28,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var userService = new UserService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
+                var activityLogService = new ActivityLogService(db);
 
-                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService());
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService(), activityLogService);
 
                 bool raised = false;
                 vm.PropertyChanged += (s, e) =>
@@ -64,4 +66,3 @@ class StubFileDialogService : ToolManagementAppV2.Interfaces.IFileDialogService
 {
     public string OpenFile(string filter) => null;
 }
-
