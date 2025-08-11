@@ -5,7 +5,7 @@ namespace ToolManagementAppV2.Services.Core
 {
     public class FileDialogService : IFileDialogService
     {
-        public string OpenFile(string filter)
+        public string? OpenFile(string filter)
         {
             var dlg = new Microsoft.Win32.OpenFileDialog
             {
