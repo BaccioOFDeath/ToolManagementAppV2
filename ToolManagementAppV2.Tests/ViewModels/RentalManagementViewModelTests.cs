@@ -82,5 +82,55 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void SearchCustomersCommand_FiltersCustomers()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                ICustomerService customerService = new CustomerService(db);
+                customerService.AddCustomer(new ToolManagementAppV2.Models.Domain.Customer { Company = "Alpha" });
+                customerService.AddCustomer(new ToolManagementAppV2.Models.Domain.Customer { Company = "Beta" });
+                var vm = new RentalManagementViewModel(customerService);
+                vm.CustomerSearchTerm = "Beta";
+                vm.SearchCustomersCommand.Execute(null);
+                Assert.Single(vm.Customers);
+                Assert.Equal("Beta", vm.Customers.First().Company);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void DeleteCustomerCommand_RemovesSelectedCustomer()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                ICustomerService customerService = new CustomerService(db);
+                customerService.AddCustomer(new ToolManagementAppV2.Models.Domain.Customer { Company = "ACME" });
+                customerService.AddCustomer(new ToolManagementAppV2.Models.Domain.Customer { Company = "Beta" });
+                var vm = new RentalManagementViewModel(customerService);
+                vm.SearchCustomersCommand.Execute(null);
+                vm.SelectedCustomer = vm.Customers.First(c => c.Company == "ACME");
+                vm.DeleteCustomerCommand.Execute(null);
+                var remaining = customerService.GetAllCustomers();
+                Assert.Single(remaining);
+                Assert.DoesNotContain(remaining, c => c.Company == "ACME");
+                Assert.Single(vm.Customers);
+                Assert.DoesNotContain(vm.Customers, c => c.Company == "ACME");
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }

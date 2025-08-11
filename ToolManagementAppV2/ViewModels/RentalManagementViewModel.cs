@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
 
@@ -36,14 +38,25 @@ namespace ToolManagementAppV2.ViewModels
         public string NewCustomerAddress { get => _newCustomerAddress; set => SetProperty(ref _newCustomerAddress, value); }
         string _newCustomerAddress;
 
+        private string _customerSearchTerm;
+        public string CustomerSearchTerm
+        {
+            get => _customerSearchTerm;
+            set => SetProperty(ref _customerSearchTerm, value);
+        }
+
         public IRelayCommand AddCustomerCommand { get; }
         public IRelayCommand UpdateCustomerCommand { get; }
+        public IRelayCommand SearchCustomersCommand { get; }
+        public IRelayCommand DeleteCustomerCommand { get; }
 
         public RentalManagementViewModel(ICustomerService customerService)
         {
             _customerService = customerService;
             AddCustomerCommand = new RelayCommand(AddCustomer);
             UpdateCustomerCommand = new RelayCommand(UpdateCustomer, () => SelectedCustomer != null);
+            SearchCustomersCommand = new RelayCommand(SearchCustomers);
+            DeleteCustomerCommand = new RelayCommand(DeleteCustomer);
         }
 
         public void LoadCustomers()
@@ -85,6 +98,33 @@ namespace ToolManagementAppV2.ViewModels
 
             _customerService.UpdateCustomer(SelectedCustomer);
             LoadCustomers();
+        }
+
+        void SearchCustomers()
+        {
+            var all = _customerService.GetAllCustomers();
+            if (!string.IsNullOrWhiteSpace(CustomerSearchTerm))
+            {
+                all = all.Where(c =>
+                    (c.Company?.Contains(CustomerSearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.Email?.Contains(CustomerSearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.Contact?.Contains(CustomerSearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.Phone?.Contains(CustomerSearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.Mobile?.Contains(CustomerSearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.Address?.Contains(CustomerSearchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
+                    .ToList();
+            }
+            Customers.ReplaceRange(all);
+        }
+
+        void DeleteCustomer()
+        {
+            if (SelectedCustomer == null)
+                return;
+
+            _customerService.DeleteCustomer(SelectedCustomer.CustomerID);
+            SearchCustomers();
+            SelectedCustomer = null;
         }
     }
 }
