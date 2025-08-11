@@ -1,3 +1,4 @@
+// MainWindow.xaml.cs
 using System;
 using System.IO;
 using System.Windows;
@@ -20,9 +21,10 @@ namespace ToolManagementAppV2
             var toolService = new ToolService(db);
             var customerService = new CustomerService(db);
             var userService = new UserService(db);
-            var rentalService = new RentalService(db);
+            var rentalService = new RentalService(db, toolService);
             var activityLogService = new ActivityLogService(db);
             var fileDialogService = new FileDialogService();
+
             DataContext = new MainViewModel(toolService, userService, customerService, rentalService, fileDialogService, activityLogService);
         }
     }

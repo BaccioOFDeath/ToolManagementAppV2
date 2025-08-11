@@ -1,44 +1,27 @@
-﻿using System.Data;
+﻿// Services/Rentals/RentalService.cs
+using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Data.SQLite;
+using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
-using ToolManagementAppV2.Interfaces;
 
 namespace ToolManagementAppV2.Services.Rentals
 {
     public class RentalService : IRentalService
     {
-        readonly DatabaseService _dbService;
-        readonly IToolService _toolService;
-        private DatabaseService db;
+        private readonly DatabaseService _dbService;
+        private readonly IToolService? _toolService;
 
         public RentalService(DatabaseService dbService, IToolService? toolService = null)
         {
             _dbService = dbService ?? throw new ArgumentNullException(nameof(dbService));
-            _toolService = toolService;
-        }
-
-
-        public RentalService(DatabaseService db)
-        {
-            this.db = db;
+            _toolService = toolService; // may be null if inventory sync not desired
         }
 
         // toolID is passed as a string even though the underlying column is INTEGER
         // to keep consistency with ToolModel.ToolID
-        /// <summary>
-        /// Rents a tool to a customer within a transaction and updates inventory counts.
-        /// </summary>
-        /// <param name="toolID">Identifier of the tool to rent.</param>
-        /// <param name="customerID">Identifier of the customer renting the tool.</param>
-        /// <param name="rentalDate">Date the rental begins.</param>
-        /// <param name="dueDate">Date the rental is due.</param>
-        /// <exception cref="InvalidOperationException">
-        /// Thrown when insufficient quantity is available. The exception is propagated to the caller.
-        /// </exception>
-        /// <exception cref="SQLiteException">
-        /// Thrown when a database operation fails. The exception is propagated to the caller.
-        /// </exception>
         public void RentTool(string toolID, int customerID, DateTime rentalDate, DateTime dueDate)
         {
             ExecuteWithTransaction((conn, tx) =>
@@ -64,6 +47,7 @@ namespace ToolManagementAppV2.Services.Rentals
             },
             () =>
             {
+                if (_toolService == null) return;
                 var tool = _toolService.GetToolByID(toolID);
                 if (tool != null)
                 {
@@ -73,17 +57,6 @@ namespace ToolManagementAppV2.Services.Rentals
             });
         }
 
-        /// <summary>
-        /// Marks a rental as returned and restores inventory counts within a transaction.
-        /// </summary>
-        /// <param name="rentalID">Identifier of the rental to return.</param>
-        /// <param name="returnDate">Date the tool was returned.</param>
-        /// <exception cref="InvalidOperationException">
-        /// Thrown when the rental cannot be found or has already been returned. The exception is propagated to the caller.
-        /// </exception>
-        /// <exception cref="SQLiteException">
-        /// Thrown when a database operation fails. The exception is propagated to the caller.
-        /// </exception>
         public void ReturnTool(int rentalID, DateTime returnDate)
         {
             string? toolID = null;
@@ -106,6 +79,7 @@ namespace ToolManagementAppV2.Services.Rentals
             },
             () =>
             {
+                if (_toolService == null || string.IsNullOrWhiteSpace(toolID)) return;
                 var tool = _toolService.GetToolByID(toolID);
                 if (tool != null)
                 {
@@ -115,17 +89,23 @@ namespace ToolManagementAppV2.Services.Rentals
             });
         }
 
-        /// <summary>
-        /// Executes the specified action within a database transaction and rolls back on error.
-        /// </summary>
-        /// <param name="action">Database operations to execute.</param>
-        /// <param name="postCommitAction">Optional action invoked after a successful commit.</param>
-        /// <exception cref="SQLiteException">
-        /// Thrown when a database operation fails. The original exception is rethrown after rollback.
-        /// </exception>
-        /// <exception cref="Exception">
-        /// Any exception thrown by <paramref name="action"/> is rethrown after rollback.
-        /// </exception>
+        public void ExtendRental(int rentalID, DateTime newDueDate)
+        {
+            const string sql = @"
+                UPDATE Rentals
+                   SET DueDate = @NewDueDate
+                 WHERE RentalID = @RentalID AND Status = 'Rented'";
+                    var p = new[]
+                    {
+                        new SQLiteParameter("@NewDueDate", newDueDate),
+                        new SQLiteParameter("@RentalID", rentalID)
+                    };
+                    using var conn = _dbService.CreateConnection();
+                    if (SqliteHelper.ExecuteNonQuery(conn, sql, p) == 0)
+                        throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
+        }
+
+
         void ExecuteWithTransaction(Action<SQLiteConnection, SQLiteTransaction> action, Action? postCommitAction = null)
         {
             using var conn = _dbService.CreateConnection();
@@ -136,28 +116,11 @@ namespace ToolManagementAppV2.Services.Rentals
                 tx.Commit();
                 postCommitAction?.Invoke();
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine(ex);
                 tx.Rollback();
                 throw;
             }
-        }
-
-        public void ExtendRental(int rentalID, DateTime newDueDate)
-        {
-            const string sql = @"
-                UPDATE Rentals
-                   SET DueDate = @NewDueDate
-                 WHERE RentalID = @RentalID AND Status = 'Rented'";
-            var p = new[]
-            {
-                new SQLiteParameter("@NewDueDate", newDueDate),
-                new SQLiteParameter("@RentalID", rentalID)
-            };
-            using var conn = _dbService.CreateConnection();
-            if (SqliteHelper.ExecuteNonQuery(conn, sql, p) == 0)
-                throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
         }
 
         const string BaseSelect = @"SELECT r.*,

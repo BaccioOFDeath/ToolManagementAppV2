@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using ToolManagementAppV2.Models.Domain;
 
 namespace ToolManagementAppV2.ViewModels.Rental
@@ -10,10 +11,13 @@ namespace ToolManagementAppV2.ViewModels.Rental
         public ObservableCollection<RentalModel> History { get; }
         public string ToolDisplayName { get; }
 
-        public RentalHistoryViewModel(ToolModel tool, IEnumerable<RentalModel> history)
+        public RentalHistoryViewModel(ToolModel? tool, IEnumerable<RentalModel>? history)
         {
-            ToolDisplayName = $"{tool.ToolNumber} - {tool.NameDescription}";
-            History = new ObservableCollection<RentalModel>(history);
+            ToolDisplayName = tool != null
+                ? $"{tool.ToolNumber} - {tool.NameDescription}"
+                : "Rental History";
+
+            History = new ObservableCollection<RentalModel>(history ?? Enumerable.Empty<RentalModel>());
         }
     }
 }

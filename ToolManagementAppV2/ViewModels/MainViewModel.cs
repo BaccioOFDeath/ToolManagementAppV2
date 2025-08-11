@@ -1,12 +1,18 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
-using ToolManagementAppV2.Views;
-using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.Services.Core;
+using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.ViewModels.Rental;
+using ToolManagementAppV2.Views;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -20,11 +26,45 @@ namespace ToolManagementAppV2.ViewModels
         public ActivityLogsViewModel ActivityLogs { get; }
         public ReportsViewModel Reports { get; }
 
-        Page _currentPage;
+        private Page _currentPage;
         public Page CurrentPage
         {
             get => _currentPage;
-            set => SetProperty(ref _currentPage, value);
+            set
+            {
+                if (SetProperty(ref _currentPage, value))
+                    CurrentPageTitle = value?.Title ?? value?.GetType().Name ?? "Dashboard";
+            }
+        }
+
+        private string _currentPageTitle = "Dashboard";
+        public string CurrentPageTitle
+        {
+            get => _currentPageTitle;
+            private set => SetProperty(ref _currentPageTitle, value);
+        }
+
+        private string _globalSearchText = string.Empty;
+        public string GlobalSearchText
+        {
+            get => _globalSearchText;
+            set => SetProperty(ref _globalSearchText, value);
+        }
+
+        public bool IsCurrentUserAdmin =>
+            System.Windows.Application.Current.Properties["CurrentUser"] is User u && u.IsAdmin;
+
+        public string CurrentUserName =>
+            (System.Windows.Application.Current.Properties["CurrentUser"] as User)?.UserName ?? "Guest";
+
+        public string CurrentUserRole =>
+            IsCurrentUserAdmin ? "Admin" : "User";
+
+        public void RefreshCurrentUser()
+        {
+            OnPropertyChanged(nameof(IsCurrentUserAdmin));
+            OnPropertyChanged(nameof(CurrentUserName));
+            OnPropertyChanged(nameof(CurrentUserRole));
         }
 
         public IRelayCommand OpenDashboardCommand { get; }
@@ -37,59 +77,179 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand OpenImportExportCommand { get; }
         public IRelayCommand OpenActivityLogsCommand { get; }
         public IRelayCommand OpenReportsCommand { get; }
+        public IRelayCommand ExitCommand { get; }
+        public IRelayCommand GlobalSearchCommand { get; }
 
-        public bool IsCurrentUserAdmin =>
-            System.Windows.Application.Current.Properties["CurrentUser"] is User u && u.IsAdmin;
+        public IRelayCommand OpenRentalHistoryWindowCommand { get; }
+        public IRelayCommand OpenPrintPreviewWindowCommand { get; }
+        public IRelayCommand OpenPrintLabelWindowCommand { get; }
+        public IRelayCommand OpenScannerStatusWindowCommand { get; }
+        public IRelayCommand OpenSettingsWindowCommand { get; }
+        public IRelayCommand OpenPasswordPromptWindowCommand { get; }
+        public IRelayCommand OpenImportMappingWindowCommand { get; }
+        public IRelayCommand OpenImageImportMappingWindowCommand { get; }
+        public IRelayCommand OpenRentToolPopupWindowCommand { get; }
 
-        public void RefreshCurrentUser() => OnPropertyChanged(nameof(IsCurrentUserAdmin));
-
-        public MainViewModel(IToolService toolService, IUserService userService, ICustomerService customerService, IRentalService rentalService, IFileDialogService fileDialogService, ActivityLogService activityLogService)
+        public MainViewModel(IToolService toolService,
+                             IUserService userService,
+                             ICustomerService customerService,
+                             IRentalService rentalService,
+                             IFileDialogService fileDialogService,
+                             ActivityLogService activityLogService)
         {
             ToolManagement = new ToolManagementViewModel(toolService);
             UserManagement = new UserManagementViewModel(userService, fileDialogService);
             RentalManagement = new RentalManagementViewModel(customerService);
             Rentals = new RentalViewModel(rentalService);
             ImportExport = new ImportExportViewModel(toolService, fileDialogService);
-            ActivityLogs = new ActivityLogsViewModel(activityLogService);
             Reports = new ReportsViewModel(new ReportService(toolService, rentalService, activityLogService, customerService, userService));
+            ActivityLogs = new ActivityLogsViewModel(activityLogService);
 
-            OpenDashboardCommand = new RelayCommand(() => CurrentPage = new DashboardPage());
+            OpenDashboardCommand = new RelayCommand(() =>
+            {
+                var page = new DashboardPage { Title = "Dashboard" };
+                CurrentPage = page;
+            });
+
             OpenSearchToolsCommand = new RelayCommand(() =>
             {
                 ToolManagement.LoadTools();
-                CurrentPage = new ToolSearchPage { DataContext = ToolManagement };
+                var page = new ToolSearchPage { DataContext = ToolManagement, Title = "Search Tools" };
+                // If your ToolManagement VM supports a query setter, apply GlobalSearchText there.
+                CurrentPage = page;
             });
+
             OpenManageToolsCommand = new RelayCommand(() =>
             {
                 ToolManagement.LoadTools();
-                CurrentPage = new ManageToolsPage { DataContext = ToolManagement };
+                var page = new ManageToolsPage { DataContext = ToolManagement, Title = "Manage Tools" };
+                CurrentPage = page;
             });
+
             OpenRentalsCommand = new RelayCommand(() =>
             {
                 Rentals.LoadRentals();
-                CurrentPage = new RentalsPage { DataContext = Rentals };
+                var page = new RentalsPage { DataContext = Rentals, Title = "Manage Rentals" };
+                CurrentPage = page;
             });
+
             OpenCustomersCommand = new RelayCommand(() =>
             {
                 RentalManagement.LoadCustomers();
-                CurrentPage = new CustomersPage { DataContext = RentalManagement };
+                var page = new CustomersPage { DataContext = RentalManagement, Title = "Customers" };
+                CurrentPage = page;
             });
+
             OpenUsersCommand = new RelayCommand(() =>
             {
                 UserManagement.LoadUsers();
-                CurrentPage = new UsersPage { DataContext = UserManagement };
+                var page = new UsersPage { DataContext = UserManagement, Title = "Users" };
+                CurrentPage = page;
             });
+
             OpenSettingsCommand = new RelayCommand(() =>
-                CurrentPage = new SettingsPage { DataContext = new SettingsViewModel() });
+            {
+                var page = new SettingsPage { DataContext = new SettingsViewModel(), Title = "Settings" };
+                CurrentPage = page;
+            });
+
             OpenImportExportCommand = new RelayCommand(() =>
-                CurrentPage = new ImportExportPage { DataContext = ImportExport });
+            {
+                var page = new ImportExportPage { DataContext = ImportExport, Title = "Import / Export" };
+                CurrentPage = page;
+            });
+
             OpenActivityLogsCommand = new RelayCommand(() =>
             {
                 ActivityLogs.LoadLogs();
-                CurrentPage = new ActivityLogsPage { DataContext = ActivityLogs };
+                var page = new ActivityLogsPage { DataContext = ActivityLogs, Title = "Activity Logs" };
+                CurrentPage = page;
             });
+
             OpenReportsCommand = new RelayCommand(() =>
-                CurrentPage = new ReportsPage { DataContext = Reports });
+            {
+                var page = new ReportsPage { DataContext = Reports, Title = "Reports" };
+                CurrentPage = page;
+            });
+
+            GlobalSearchCommand = new RelayCommand(() =>
+            {
+                OpenSearchToolsCommand.Execute(null);
+                // If needed, trigger ToolManagement.SearchCommand here once you wire GlobalSearchText -> VM
+                // ToolManagement.SearchCommand?.Execute(null);
+            });
+
+            ExitCommand = new RelayCommand(() =>
+            {
+                try { System.Windows.Application.Current.Shutdown(); }
+                catch { System.Environment.Exit(0); }
+            });
+
+            OpenRentalHistoryWindowCommand = new RelayCommand(() =>
+            {
+                // Constructor requires (Tool tool, IEnumerable<Rental> history)
+                var vm = new RentalHistoryViewModel(null, Enumerable.Empty<Models.Domain.Rental>());
+                var win = new RentalHistoryWindow { DataContext = vm };
+                win.ShowDialog();
+            });
+
+            OpenPrintPreviewWindowCommand = new RelayCommand(() =>
+            {
+                var doc = new FlowDocument(new Paragraph(new Run("Preview document")));
+                var win = new PrintPreviewWindow();
+                win.ShowPreview(doc, "Print Preview", "");
+            });
+
+            OpenPrintLabelWindowCommand = new RelayCommand(() =>
+            {
+                // Avoid missing VM type by opening the window directly
+                var win = new PrintLabelWindow();
+                win.ShowDialog();
+            });
+
+            OpenScannerStatusWindowCommand = new RelayCommand(() =>
+            {
+                // Avoid missing VM type by opening the window directly
+                var win = new ScannerStatusWindow();
+                win.ShowDialog();
+            });
+
+            OpenSettingsWindowCommand = new RelayCommand(() =>
+            {
+                var win = new SettingsWindow { DataContext = new SettingsViewModel() };
+                win.ShowDialog();
+            });
+
+            OpenPasswordPromptWindowCommand = new RelayCommand(() =>
+            {
+                var win = new PasswordPromptWindow { SelectedUser = System.Windows.Application.Current.Properties["CurrentUser"] as User };
+                win.ShowDialog();
+            });
+
+            OpenImportMappingWindowCommand = new RelayCommand(() =>
+            {
+                // Constructor requires (IEnumerable<string> headers, IEnumerable<string> data)
+                var headers = new List<string>();
+                var data = new List<string>();
+                var win = new ImportMappingWindow(headers, data);
+                win.ShowDialog();
+            });
+
+            OpenImageImportMappingWindowCommand = new RelayCommand(() =>
+            {
+                var win = new ImageImportMappingWindow { DataContext = new ImageImportMappingViewModel() };
+                win.ShowDialog();
+            });
+
+            OpenRentToolPopupWindowCommand = new RelayCommand(() =>
+            {
+                // Constructor requires (Tool tool, IEnumerable<Customer> customers)
+                var vm = new RentToolPopupViewModel(null, Enumerable.Empty<Customer>());
+                var win = new RentToolPopupWindow { DataContext = vm };
+                win.ShowDialog();
+            });
+
+            OpenDashboardCommand.Execute(null);
         }
     }
 }

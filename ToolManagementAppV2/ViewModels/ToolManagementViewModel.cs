@@ -25,7 +25,7 @@ namespace ToolManagementAppV2.ViewModels
             set => SetProperty(ref _newTool, value);
         }
 
-        private string _searchTerm;
+        private string _searchTerm = string.Empty;
         public string SearchTerm
         {
             get => _searchTerm;
@@ -43,6 +43,21 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand AddToolCommand { get; }
         public IRelayCommand UpdateToolCommand { get; }
         public IRelayCommand DeleteToolCommand { get; }
+
+        // Writable for TwoWay binding from XAML. Mirrors SearchTerm and triggers search.
+        private string _searchText = string.Empty;
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                if (SetProperty(ref _searchText, value))
+                {
+                    SearchTerm = value;
+                    SearchCommand.Execute(null);
+                }
+            }
+        }
 
         public ToolManagementViewModel(IToolService toolService)
         {
@@ -63,9 +78,10 @@ namespace ToolManagementAppV2.ViewModels
 
         void SearchTools()
         {
-            var results = string.IsNullOrWhiteSpace(SearchTerm)
+            var term = string.IsNullOrWhiteSpace(SearchTerm) ? string.Empty : SearchTerm.Trim();
+            var results = string.IsNullOrEmpty(term)
                 ? _toolService.GetAllTools()
-                : _toolService.SearchTools(SearchTerm);
+                : _toolService.SearchTools(term);
             SearchResults.ReplaceRange(results);
             CategorizeTools(results);
         }
@@ -80,9 +96,7 @@ namespace ToolManagementAppV2.ViewModels
 
         void UpdateTool()
         {
-            if (SelectedTool == null)
-                return;
-
+            if (SelectedTool == null) return;
             _toolService.UpdateTool(SelectedTool);
             LoadTools();
             SearchTools();
@@ -91,9 +105,7 @@ namespace ToolManagementAppV2.ViewModels
 
         void DeleteTool()
         {
-            if (SelectedTool == null)
-                return;
-
+            if (SelectedTool == null) return;
             _toolService.DeleteTool(SelectedTool.ToolID);
             LoadTools();
             SearchTools();
