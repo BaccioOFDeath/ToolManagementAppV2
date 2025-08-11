@@ -81,6 +81,30 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void CommandsDisabledWhenNoUserSelected()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IUserService userService = new UserService(db);
+                var vm = new UserManagementViewModel(userService, new StubFileDialogService());
+                userService.AddUser(new User { UserName = "user1", Password = "pw" });
+                vm.LoadUsers();
+                Assert.False(vm.UpdateUserCommand.CanExecute(null));
+                Assert.False(vm.DeleteUserCommand.CanExecute(null));
+                vm.SelectedUser = vm.Users.First();
+                Assert.True(vm.UpdateUserCommand.CanExecute(null));
+                Assert.True(vm.DeleteUserCommand.CanExecute(null));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }
 

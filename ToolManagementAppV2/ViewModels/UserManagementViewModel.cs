@@ -17,7 +17,14 @@ namespace ToolManagementAppV2.ViewModels
         public UserModel SelectedUser
         {
             get => _selectedUser;
-            set => SetProperty(ref _selectedUser, value);
+            set
+            {
+                if (SetProperty(ref _selectedUser, value))
+                {
+                    ((RelayCommand)UpdateUserCommand).NotifyCanExecuteChanged();
+                    ((RelayCommand)DeleteUserCommand).NotifyCanExecuteChanged();
+                }
+            }
         }
 
         public IRelayCommand LoadUsersCommand { get; }
@@ -31,8 +38,8 @@ namespace ToolManagementAppV2.ViewModels
             _fileDialogService = fileDialogService;
             LoadUsersCommand = new RelayCommand(LoadUsers);
             UploadUserPhotoCommand = new RelayCommand(UploadUserPhoto);
-            UpdateUserCommand = new RelayCommand(UpdateUser);
-            DeleteUserCommand = new RelayCommand(DeleteUser);
+            UpdateUserCommand = new RelayCommand(UpdateUser, () => SelectedUser != null);
+            DeleteUserCommand = new RelayCommand(DeleteUser, () => SelectedUser != null);
         }
 
         public void LoadUsers()
