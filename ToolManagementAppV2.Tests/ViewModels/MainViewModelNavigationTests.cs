@@ -25,7 +25,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
 
-                var vm = new MainViewModel(toolService, userService, customerService, rentalService);
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService());
 
                 Assert.NotNull(vm.ToolManagement);
                 Assert.NotNull(vm.UserManagement);
@@ -51,7 +51,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
 
-                var vm = new MainViewModel(toolService, userService, customerService, rentalService);
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService());
                 vm.OpenDashboardCommand.Execute(null);
 
                 Assert.IsType<DashboardPage>(vm.CurrentPage);
@@ -63,4 +63,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
             }
         }
     }
+}
+
+class StubFileDialogService : ToolManagementAppV2.Interfaces.IFileDialogService
+{
+    public string OpenFile(string filter) => null;
 }
