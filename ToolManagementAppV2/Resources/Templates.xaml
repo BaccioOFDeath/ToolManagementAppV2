@@ -1,0 +1,19 @@
+<!-- Resources/Templates.xaml -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DataTemplate x:Key="StatCardTemplate">
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="{Binding Title}" FontSize="13" Foreground="{StaticResource ForegroundMutedBrush}"/>
+                <TextBlock Grid.Row="1" Text="{Binding Value}" FontSize="26" FontWeight="SemiBold"/>
+            </Grid>
+        </Border>
+    </DataTemplate>
+    <ItemsPanelTemplate x:Key="WrapPanelItems">
+        <WrapPanel Orientation="Horizontal" ItemWidth="260" ItemHeight="100"/>
+    </ItemsPanelTemplate>
+</ResourceDictionary>

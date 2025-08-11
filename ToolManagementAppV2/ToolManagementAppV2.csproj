@@ -99,6 +99,11 @@
     <None Remove="Resources\DefaultUserPhoto.png" />
   </ItemGroup>
 
+ <ItemGroup>
+   <Page Remove="Resources\Colors.xaml" />
+   <Page Remove="Resources\Templates.xaml" />
+ </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="CsvHelper" Version="33.0.1" />
@@ -229,6 +234,11 @@
     <Content Include="Resources\Avatars\9.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Resource Include="Resources\Templates.xaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Resource>
     <Resource Include="Resources\DefaultLogo.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
@@ -237,6 +247,10 @@
     </Resource>
     <Resource Include="Resources\DefaultUserPhoto.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Colors.xaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Generator>MSBuild:Compile</Generator>
     </Resource>
     <Resource Include="Resources\Styles.xaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

@@ -1,0 +1,20 @@
+<!-- Resources/Colors.xaml -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="Col.Background">#0F141A</Color>
+    <Color x:Key="Col.Surface">#111820</Color>
+    <Color x:Key="Col.SurfaceAlt">#1B2430</Color>
+    <Color x:Key="Col.Border">#1E2A36</Color>
+    <Color x:Key="Col.BorderAlt">#2A3542</Color>
+    <Color x:Key="Col.Fg">#E6F0F5</Color>
+    <Color x:Key="Col.FgMuted">#93A4B3</Color>
+    <Color x:Key="Col.Success">#2ECC71</Color>
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource Col.Background}"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="SurfaceAltBrush" Color="{StaticResource Col.SurfaceAlt}"/>
+    <SolidColorBrush x:Key="BorderBrushBase" Color="{StaticResource Col.Border}"/>
+    <SolidColorBrush x:Key="BorderBrushAlt" Color="{StaticResource Col.BorderAlt}"/>
+    <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource Col.Fg}"/>
+    <SolidColorBrush x:Key="ForegroundMutedBrush" Color="{StaticResource Col.FgMuted}"/>
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Col.Success}"/>
+</ResourceDictionary>
