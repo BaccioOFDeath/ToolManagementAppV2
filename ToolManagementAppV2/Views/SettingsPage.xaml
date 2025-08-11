@@ -1,7 +1,28 @@
 <Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      x:Class="ToolManagementAppV2.Views.SettingsPage">
-    <Grid>
-        <TextBlock Text="Settings" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="32"/>
+      x:Class="ToolManagementAppV2.Views.SettingsPage"
+      Background="{DynamicResource BackgroundBrush}">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="Application Name:" Grid.Row="0" Grid.Column="0" Margin="0,0,10,10"
+                   Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center"/>
+        <TextBox Text="{Binding ApplicationName}" Grid.Row="0" Grid.Column="1" Margin="0,0,0,10"
+                 Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource PrimaryTextBrush}"/>
+        <TextBlock Text="Company Logo:" Grid.Row="1" Grid.Column="0" Margin="0,0,10,10"
+                   Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center"/>
+        <TextBox Text="{Binding CompanyLogoPath}" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10"
+                 Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource PrimaryTextBrush}"/>
+        <TextBlock Text="Default Rental Duration:" Grid.Row="2" Grid.Column="0" Margin="0,0,10,0"
+                   Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center"/>
+        <TextBox Text="{Binding DefaultRentalDuration}" Grid.Row="2" Grid.Column="1"
+                 Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource PrimaryTextBrush}"/>
     </Grid>
 </Page>

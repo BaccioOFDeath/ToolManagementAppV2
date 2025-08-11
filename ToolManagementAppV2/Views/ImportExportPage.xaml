@@ -1,7 +1,15 @@
 <Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      x:Class="ToolManagementAppV2.Views.ImportExportPage">
-    <Grid>
-        <TextBlock Text="Import/Export" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="32"/>
-    </Grid>
+      x:Class="ToolManagementAppV2.Views.ImportExportPage"
+      Background="{DynamicResource BackgroundBrush}">
+    <StackPanel Margin="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Button Content="Import Tools" Command="{Binding ImportCommand}"
+                Width="150" Margin="0,0,0,10"
+                Background="{DynamicResource CardBackgroundBrush}"
+                Foreground="{DynamicResource PrimaryTextBrush}"/>
+        <Button Content="Export Tools" Command="{Binding ExportCommand}"
+                Width="150"
+                Background="{DynamicResource CardBackgroundBrush}"
+                Foreground="{DynamicResource PrimaryTextBrush}"/>
+    </StackPanel>
 </Page>

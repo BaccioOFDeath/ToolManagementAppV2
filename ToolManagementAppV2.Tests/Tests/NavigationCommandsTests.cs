@@ -37,9 +37,10 @@ namespace ToolManagementAppV2.Tests.Tests
                 IUserService userService = new UserService(db);
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
+                var activityLogService = new ActivityLogService(db);
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
 
-                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService());
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService(), activityLogService);
                 vm.OpenSearchToolsCommand.Execute(null);
 
                 var page = Assert.IsType<ToolSearchPage>(vm.CurrentPage);

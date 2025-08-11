@@ -5,6 +5,8 @@ using System.Windows.Controls;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Views;
+using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.Services.Tools;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -14,6 +16,9 @@ namespace ToolManagementAppV2.ViewModels
         public UserManagementViewModel UserManagement { get; }
         public RentalManagementViewModel RentalManagement { get; }
         public RentalViewModel Rentals { get; }
+        public ImportExportViewModel ImportExport { get; }
+        public ActivityLogsViewModel ActivityLogs { get; }
+        public ReportsViewModel Reports { get; }
 
         Page _currentPage;
         public Page CurrentPage
@@ -38,12 +43,15 @@ namespace ToolManagementAppV2.ViewModels
 
         public void RefreshCurrentUser() => OnPropertyChanged(nameof(IsCurrentUserAdmin));
 
-        public MainViewModel(IToolService toolService, IUserService userService, ICustomerService customerService, IRentalService rentalService, IFileDialogService fileDialogService)
+        public MainViewModel(IToolService toolService, IUserService userService, ICustomerService customerService, IRentalService rentalService, IFileDialogService fileDialogService, ActivityLogService activityLogService)
         {
             ToolManagement = new ToolManagementViewModel(toolService);
             UserManagement = new UserManagementViewModel(userService, fileDialogService);
             RentalManagement = new RentalManagementViewModel(customerService);
             Rentals = new RentalViewModel(rentalService);
+            ImportExport = new ImportExportViewModel(toolService, fileDialogService);
+            ActivityLogs = new ActivityLogsViewModel(activityLogService);
+            Reports = new ReportsViewModel(new ReportService(toolService, rentalService, activityLogService, customerService, userService));
 
             OpenDashboardCommand = new RelayCommand(() => CurrentPage = new DashboardPage());
             OpenSearchToolsCommand = new RelayCommand(() =>
@@ -74,11 +82,14 @@ namespace ToolManagementAppV2.ViewModels
             OpenSettingsCommand = new RelayCommand(() =>
                 CurrentPage = new SettingsPage { DataContext = new SettingsViewModel() });
             OpenImportExportCommand = new RelayCommand(() =>
-                CurrentPage = new ImportExportPage());
+                CurrentPage = new ImportExportPage { DataContext = ImportExport });
             OpenActivityLogsCommand = new RelayCommand(() =>
-                CurrentPage = new ActivityLogsPage());
+            {
+                ActivityLogs.LoadLogs();
+                CurrentPage = new ActivityLogsPage { DataContext = ActivityLogs };
+            });
             OpenReportsCommand = new RelayCommand(() =>
-                CurrentPage = new ReportsPage());
+                CurrentPage = new ReportsPage { DataContext = Reports });
         }
     }
 }

@@ -9,6 +9,7 @@ using ToolManagementAppV2.Views;
 using ToolManagementAppV2.Services.Rentals;
 using Xunit;
 
+
 namespace ToolManagementAppV2.Tests.ViewModels
 {
     public class MainViewModelNavigationTests
@@ -24,13 +25,17 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IUserService userService = new UserService(db);
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
+                var activityLogService = new ActivityLogService(db);
 
-                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService());
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService(), activityLogService);
 
                 Assert.NotNull(vm.ToolManagement);
                 Assert.NotNull(vm.UserManagement);
                 Assert.NotNull(vm.RentalManagement);
                 Assert.NotNull(vm.Rentals);
+                Assert.NotNull(vm.ImportExport);
+                Assert.NotNull(vm.ActivityLogs);
+                Assert.NotNull(vm.Reports);
             }
             finally
             {
@@ -50,11 +55,92 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IUserService userService = new UserService(db);
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
+                var activityLogService = new ActivityLogService(db);
 
-                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService());
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService(), activityLogService);
                 vm.OpenDashboardCommand.Execute(null);
 
                 Assert.IsType<DashboardPage>(vm.CurrentPage);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void OpenImportExportCommand_SetsDataContext()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                IUserService userService = new UserService(db);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
+                var activityLogService = new ActivityLogService(db);
+
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService(), activityLogService);
+                vm.OpenImportExportCommand.Execute(null);
+
+                var page = Assert.IsType<ImportExportPage>(vm.CurrentPage);
+                Assert.IsType<ImportExportViewModel>(page.DataContext);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void OpenActivityLogsCommand_LoadsLogs()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var activityLogService = new ActivityLogService(db);
+                activityLogService.LogAction(1, "user", "action");
+                IToolService toolService = new ToolService(db);
+                IUserService userService = new UserService(db);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
+
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService(), activityLogService);
+                vm.OpenActivityLogsCommand.Execute(null);
+
+                var page = Assert.IsType<ActivityLogsPage>(vm.CurrentPage);
+                var logsVm = Assert.IsType<ActivityLogsViewModel>(page.DataContext);
+                Assert.NotEmpty(logsVm.Logs);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void OpenReportsCommand_SetsDataContext()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var activityLogService = new ActivityLogService(db);
+                IToolService toolService = new ToolService(db);
+                IUserService userService = new UserService(db);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
+
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService(), activityLogService);
+                vm.OpenReportsCommand.Execute(null);
+
+                var page = Assert.IsType<ReportsPage>(vm.CurrentPage);
+                Assert.IsType<ReportsViewModel>(page.DataContext);
             }
             finally
             {
