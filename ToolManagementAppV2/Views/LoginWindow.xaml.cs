@@ -10,7 +10,12 @@ namespace ToolManagementAppV2
         {
             InitializeComponent();
             var vm = new LoginViewModel();
-            vm.LoginSucceeded += (_, __) => DialogResult = true;
+            vm.LoginSucceeded += (_, __) =>
+            {
+                if (Application.Current.MainWindow?.DataContext is MainViewModel main)
+                    main.RefreshCurrentUser();
+                DialogResult = true;
+            };
             DataContext = vm;
         }
     }
