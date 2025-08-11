@@ -135,13 +135,14 @@ namespace ToolManagementAppV2.ViewModels
             if (user.IsAdmin && string.IsNullOrWhiteSpace(user.Password))
             {
                 _userService.ChangeUserPassword(user.UserID, "admin");
-                user.Password = SecurityHelper.ComputeSha256Hash("admin");
+                var refreshed = _userService.GetUserByID(user.UserID);
+                user.Password = refreshed.Password;
+                user.Salt = refreshed.Salt;
             }
 
-            var defaultHash = SecurityHelper.ComputeSha256Hash("newpassword");
             if (!user.IsAdmin &&
                 (string.IsNullOrWhiteSpace(user.Password) ||
-                 user.Password.Equals(defaultHash, StringComparison.OrdinalIgnoreCase)))
+                 SecurityHelper.VerifyPassword("newpassword", user.Salt, user.Password)))
             {
                 Application.Current.Properties["CurrentUser"] = user;
                 LoginSucceeded?.Invoke(this, EventArgs.Empty);
@@ -162,7 +163,9 @@ namespace ToolManagementAppV2.ViewModels
                 if (prompt.IsPasswordResetRequested)
                 {
                     _userService.ChangeUserPassword(user.UserID, "admin");
-                    user.Password = SecurityHelper.ComputeSha256Hash("admin");
+                    var refreshed = _userService.GetUserByID(user.UserID);
+                    user.Password = refreshed.Password;
+                    user.Salt = refreshed.Salt;
                     LoadUsers();
                     MessageBox.Show("Password has been reset to default. Please enter the new password to login.",
                         "Password Reset", MessageBoxButton.OK, MessageBoxImage.Information);

@@ -35,6 +35,7 @@ namespace ToolManagementAppV2.Services.Core
             EnsureColumn("Tools", "CheckedOutTime", "DATETIME");
             EnsureColumn("Tools", "Keywords", "TEXT");
             EnsureColumn("Users", "Password", "TEXT");
+            EnsureColumn("Users", "Salt", "TEXT");
             EnsureColumn("Users", "Email", "TEXT");
             EnsureColumn("Users", "Phone", "TEXT");
             EnsureColumn("Users", "Mobile", "TEXT");
@@ -66,7 +67,14 @@ namespace ToolManagementAppV2.Services.Core
                     UserID INTEGER PRIMARY KEY AUTOINCREMENT,
                     UserName TEXT NOT NULL,
                     UserPhotoPath TEXT,
-                    IsAdmin INTEGER NOT NULL DEFAULT 0
+                    Password TEXT,
+                    Salt TEXT,
+                    IsAdmin INTEGER NOT NULL DEFAULT 0,
+                    Email TEXT,
+                    Phone TEXT,
+                    Mobile TEXT,
+                    Address TEXT,
+                    Role TEXT
                 );
                 CREATE TABLE IF NOT EXISTS Customers (
                     CustomerID INTEGER PRIMARY KEY AUTOINCREMENT,
