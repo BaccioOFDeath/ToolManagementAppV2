@@ -1,7 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Windows;
 using System.Windows.Controls;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Views;
 
 namespace ToolManagementAppV2.ViewModels
@@ -29,6 +31,11 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand OpenImportExportCommand { get; }
         public IRelayCommand OpenActivityLogsCommand { get; }
         public IRelayCommand OpenReportsCommand { get; }
+
+        public bool IsCurrentUserAdmin =>
+            Application.Current.Properties["CurrentUser"] is User u && u.IsAdmin;
+
+        public void RefreshCurrentUser() => OnPropertyChanged(nameof(IsCurrentUserAdmin));
 
         public MainViewModel(IToolService toolService, IUserService userService, ICustomerService customerService)
         {
