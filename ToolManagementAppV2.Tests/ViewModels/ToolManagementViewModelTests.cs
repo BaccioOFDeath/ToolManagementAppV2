@@ -93,5 +93,55 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void UpdateToolCommand_UpdatesExistingTool()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                var vm = new ToolManagementViewModel(toolService);
+                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer" };
+                toolService.AddTool(tool);
+                vm.LoadTools();
+                vm.SelectedTool = vm.Tools.First();
+                vm.SelectedTool.NameDescription = "Updated Hammer";
+                vm.UpdateToolCommand.Execute(null);
+                var updated = toolService.GetAllTools().First();
+                Assert.Equal("Updated Hammer", updated.NameDescription);
+                Assert.Equal("Updated Hammer", vm.Tools.First().NameDescription);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void DeleteToolCommand_RemovesTool()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                var vm = new ToolManagementViewModel(toolService);
+                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer" };
+                toolService.AddTool(tool);
+                vm.LoadTools();
+                vm.SelectedTool = vm.Tools.First();
+                vm.DeleteToolCommand.Execute(null);
+                Assert.Empty(toolService.GetAllTools());
+                Assert.Empty(vm.Tools);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }

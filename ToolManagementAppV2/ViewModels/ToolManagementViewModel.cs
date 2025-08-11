@@ -32,20 +32,32 @@ namespace ToolManagementAppV2.ViewModels
             set => SetProperty(ref _searchTerm, value);
         }
 
+        private ToolModel _selectedTool;
+        public ToolModel SelectedTool
+        {
+            get => _selectedTool;
+            set => SetProperty(ref _selectedTool, value);
+        }
+
         public IRelayCommand SearchCommand { get; }
         public IRelayCommand AddToolCommand { get; }
+        public IRelayCommand UpdateToolCommand { get; }
+        public IRelayCommand DeleteToolCommand { get; }
 
         public ToolManagementViewModel(IToolService toolService)
         {
             _toolService = toolService;
             SearchCommand = new RelayCommand(SearchTools);
             AddToolCommand = new RelayCommand(AddTool);
+            UpdateToolCommand = new RelayCommand(UpdateTool);
+            DeleteToolCommand = new RelayCommand(DeleteTool);
         }
 
         public void LoadTools()
         {
             var all = _toolService.GetAllTools();
             Tools.ReplaceRange(all);
+            SearchResults.ReplaceRange(all);
             CategorizeTools(all);
         }
 
@@ -62,7 +74,30 @@ namespace ToolManagementAppV2.ViewModels
         {
             _toolService.AddTool(NewTool);
             LoadTools();
+            SearchTools();
             NewTool = new ToolModel();
+        }
+
+        void UpdateTool()
+        {
+            if (SelectedTool == null)
+                return;
+
+            _toolService.UpdateTool(SelectedTool);
+            LoadTools();
+            SearchTools();
+            SelectedTool = null;
+        }
+
+        void DeleteTool()
+        {
+            if (SelectedTool == null)
+                return;
+
+            _toolService.DeleteTool(SelectedTool.ToolID);
+            LoadTools();
+            SearchTools();
+            SelectedTool = null;
         }
 
         void CategorizeTools(IEnumerable<ToolModel> tools)
