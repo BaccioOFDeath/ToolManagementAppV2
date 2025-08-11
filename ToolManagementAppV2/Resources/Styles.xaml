@@ -1,7 +1,8 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- Reusable focus visual style providing clear keyboard cues for accessibility and maintainability -->
+    <!-- Reusable focus visual style providing clear keyboard cues for accessibility and
+         maintainability -->
     <Style x:Key="DefaultFocusVisual" TargetType="Control">
         <Setter Property="Template">
             <Setter.Value>
