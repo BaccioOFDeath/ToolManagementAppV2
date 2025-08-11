@@ -38,8 +38,25 @@ namespace ToolManagementAppV2.Services.Users
                 new[] { new SQLiteParameter("@UserName", userName) }, MapUser);
             var u = users.FirstOrDefault();
             if (u == null) return null;
-            var hashed = SecurityHelper.ComputeSha256Hash(password ?? string.Empty);
-            return u.Password == hashed ? u : null;
+
+            if (string.IsNullOrWhiteSpace(u.Salt) && SecurityHelper.IsSha256Hash(u.Password))
+            {
+                var legacy = SecurityHelper.ComputeSha256HashLegacy(password ?? string.Empty);
+                if (u.Password != legacy) return null;
+                var upgraded = SecurityHelper.HashPassword(password ?? string.Empty, out var salt);
+                var p = new[]
+                {
+                    new SQLiteParameter("@Pwd", upgraded),
+                    new SQLiteParameter("@Salt", salt),
+                    new SQLiteParameter("@ID", u.UserID)
+                };
+                SqliteHelper.ExecuteNonQuery(conn, "UPDATE Users SET Password=@Pwd, Salt=@Salt WHERE UserID=@ID", p);
+                u.Password = upgraded;
+                u.Salt = salt;
+                return u;
+            }
+
+            return SecurityHelper.VerifyPassword(password ?? string.Empty, u.Salt, u.Password) ? u : null;
         }
 
         public User GetCurrentUser()
@@ -53,24 +70,34 @@ namespace ToolManagementAppV2.Services.Users
         {
             const string sql = @"
                 INSERT INTO Users
-                  (UserName, Password, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role)
+                  (UserName, Password, Salt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role)
                 VALUES
-                  (@UserName,@Password,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role);
+                  (@UserName,@Password,@Salt,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role);
                 SELECT last_insert_rowid();";
 
             using var conn = _dbService.CreateConnection();
             using var cmd = new SQLiteCommand(sql, conn);
 
-            var hashed = string.IsNullOrWhiteSpace(user.Password)
-                ? string.Empty
-                : SecurityHelper.IsSha256Hash(user.Password)
-                    ? user.Password
-                    : SecurityHelper.ComputeSha256Hash(user.Password);
+            string hashed = string.Empty;
+            string salt = string.Empty;
+            if (!string.IsNullOrWhiteSpace(user.Password))
+            {
+                if (!string.IsNullOrWhiteSpace(user.Salt))
+                {
+                    hashed = user.Password;
+                    salt = user.Salt;
+                }
+                else
+                {
+                    hashed = SecurityHelper.HashPassword(user.Password, out salt);
+                }
+            }
 
             cmd.Parameters.AddRange(new[]
             {
                 new SQLiteParameter("@UserName", user.UserName),
                 new SQLiteParameter("@Password", hashed),
+                new SQLiteParameter("@Salt",     salt),
                 new SQLiteParameter("@Photo",    (object)user.UserPhotoPath ?? DBNull.Value),
                 new SQLiteParameter("@Admin",    user.IsAdmin ? 1 : 0),
                 new SQLiteParameter("@Email",    (object)user.Email ?? DBNull.Value),
@@ -81,6 +108,7 @@ namespace ToolManagementAppV2.Services.Users
             });
             user.UserID = Convert.ToInt32(cmd.ExecuteScalar());
             user.Password = hashed;
+            user.Salt = salt;
         }
 
         public void UpdateUser(User user)
@@ -89,6 +117,7 @@ namespace ToolManagementAppV2.Services.Users
                 UPDATE Users SET
                   UserName      = @UserName,
                   Password      = @Password,
+                  Salt          = @Salt,
                   UserPhotoPath = @Photo,
                   IsAdmin       = @Admin,
                   Email         = @Email,
@@ -98,17 +127,19 @@ namespace ToolManagementAppV2.Services.Users
                   Role          = @Role
                 WHERE UserID = @UserID";
 
-            var hashed = string.IsNullOrWhiteSpace(user.Password)
-                ? string.Empty
-                : SecurityHelper.IsSha256Hash(user.Password)
-                    ? user.Password
-                    : SecurityHelper.ComputeSha256Hash(user.Password);
+            string hashed = user.Password;
+            string salt = user.Salt;
+            if (!string.IsNullOrWhiteSpace(user.Password) && string.IsNullOrWhiteSpace(user.Salt))
+            {
+                hashed = SecurityHelper.HashPassword(user.Password, out salt);
+            }
 
             var p = new[]
             {
                 new SQLiteParameter("@UserID",   user.UserID),
                 new SQLiteParameter("@UserName", user.UserName),
                 new SQLiteParameter("@Password", hashed),
+                new SQLiteParameter("@Salt",     salt),
                 new SQLiteParameter("@Photo",    (object)user.UserPhotoPath ?? DBNull.Value),
                 new SQLiteParameter("@Admin",    user.IsAdmin ? 1 : 0),
                 new SQLiteParameter("@Email",    (object)user.Email ?? DBNull.Value),
@@ -121,20 +152,23 @@ namespace ToolManagementAppV2.Services.Users
             using var conn = _dbService.CreateConnection();
             SqliteHelper.ExecuteNonQuery(conn, sql, p);
             user.Password = hashed;
+            user.Salt = salt;
         }
 
         public void ChangeUserPassword(int userID, string newPassword)
         {
-            var sql = "UPDATE Users SET Password=@Pwd WHERE UserID=@ID";
-            var hashed = string.IsNullOrWhiteSpace(newPassword)
-                ? string.Empty
-                : SecurityHelper.IsSha256Hash(newPassword)
-                    ? newPassword
-                    : SecurityHelper.ComputeSha256Hash(newPassword);
+            var sql = "UPDATE Users SET Password=@Pwd, Salt=@Salt WHERE UserID=@ID";
+            string hashed = string.Empty;
+            string salt = string.Empty;
+            if (!string.IsNullOrWhiteSpace(newPassword))
+            {
+                hashed = SecurityHelper.HashPassword(newPassword, out salt);
+            }
 
             var p = new[]
             {
                 new SQLiteParameter("@Pwd", hashed),
+                new SQLiteParameter("@Salt", salt),
                 new SQLiteParameter("@ID",  userID)
             };
             using var conn = _dbService.CreateConnection();
@@ -171,6 +205,7 @@ namespace ToolManagementAppV2.Services.Users
                 UserID = Convert.ToInt32(rdr["UserID"]),
                 UserName = rdr["UserName"].ToString(),
                 Password = rdr["Password"].ToString(),
+                Salt = rdr["Salt"]?.ToString(),
                 UserPhotoPath = rdr["UserPhotoPath"]?.ToString(),
                 IsAdmin = Convert.ToInt32(rdr["IsAdmin"]) == 1,
                 Email = rdr["Email"]?.ToString(),
