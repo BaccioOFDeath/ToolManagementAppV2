@@ -70,6 +70,11 @@ namespace ToolManagementAppV2.Services.Tools
             )).ToList();
         }
     
+        /// <summary>
+        /// Adds a single tool to the database. ImportToolsFromCsv reuses the
+        /// underlying InsertTool method within a caller-managed transaction when
+        /// performing bulk inserts.
+        /// </summary>
         public void AddTool(ToolModel tool)
         {
             if (ToolExists(tool.ToolNumber))

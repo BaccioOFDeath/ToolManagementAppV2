@@ -77,6 +77,11 @@ namespace ToolManagementAppV2.Services.Customers
             return SqliteHelper.ExecuteReader(conn, sql, p, MapCustomer).FirstOrDefault();
         }
 
+        /// <summary>
+        /// Adds a single customer to the database. Bulk import operations call the
+        /// underlying InsertCustomer method inside their own transaction scope, so
+        /// transaction management is handled by the caller in those scenarios.
+        /// </summary>
         public void AddCustomer(CustomerModel customer)
         {
             using var conn = _dbService.CreateConnection();
