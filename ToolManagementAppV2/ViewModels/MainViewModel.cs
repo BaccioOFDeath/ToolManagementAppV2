@@ -37,15 +37,39 @@ namespace ToolManagementAppV2.ViewModels
             RentalManagement = new RentalManagementViewModel(customerService);
 
             OpenDashboardCommand = new RelayCommand(() => CurrentPage = new DashboardPage());
-            OpenSearchToolsCommand = new RelayCommand(() => CurrentPage = new ToolSearchPage());
-            OpenManageToolsCommand = new RelayCommand(() => CurrentPage = new ManageToolsPage());
-            OpenRentalsCommand = new RelayCommand(() => CurrentPage = new RentalsPage());
-            OpenCustomersCommand = new RelayCommand(() => CurrentPage = new CustomersPage());
-            OpenUsersCommand = new RelayCommand(() => CurrentPage = new UsersPage());
-            OpenSettingsCommand = new RelayCommand(() => CurrentPage = new SettingsPage());
-            OpenImportExportCommand = new RelayCommand(() => CurrentPage = new ImportExportPage());
-            OpenActivityLogsCommand = new RelayCommand(() => CurrentPage = new ActivityLogsPage());
-            OpenReportsCommand = new RelayCommand(() => CurrentPage = new ReportsPage());
+            OpenSearchToolsCommand = new RelayCommand(() =>
+            {
+                ToolManagement.LoadTools();
+                CurrentPage = new ToolSearchPage { DataContext = ToolManagement };
+            });
+            OpenManageToolsCommand = new RelayCommand(() =>
+            {
+                ToolManagement.LoadTools();
+                CurrentPage = new ManageToolsPage { DataContext = ToolManagement };
+            });
+            OpenRentalsCommand = new RelayCommand(() =>
+            {
+                RentalManagement.LoadCustomers();
+                CurrentPage = new RentalsPage { DataContext = RentalManagement };
+            });
+            OpenCustomersCommand = new RelayCommand(() =>
+            {
+                RentalManagement.LoadCustomers();
+                CurrentPage = new CustomersPage { DataContext = RentalManagement };
+            });
+            OpenUsersCommand = new RelayCommand(() =>
+            {
+                UserManagement.LoadUsers();
+                CurrentPage = new UsersPage { DataContext = UserManagement };
+            });
+            OpenSettingsCommand = new RelayCommand(() =>
+                CurrentPage = new SettingsPage { DataContext = new SettingsViewModel() });
+            OpenImportExportCommand = new RelayCommand(() =>
+                CurrentPage = new ImportExportPage());
+            OpenActivityLogsCommand = new RelayCommand(() =>
+                CurrentPage = new ActivityLogsPage());
+            OpenReportsCommand = new RelayCommand(() =>
+                CurrentPage = new ReportsPage());
         }
     }
 }
