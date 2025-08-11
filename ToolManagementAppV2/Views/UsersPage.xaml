@@ -46,14 +46,24 @@
                          Foreground="{DynamicResource PrimaryTextBrush}"
                          Background="{DynamicResource CardBackgroundBrush}"
                          BorderBrush="{DynamicResource PrimaryTextBrush}"/>
-                <TextBox Text="{Binding SelectedUser.Phone}"
-                         Foreground="{DynamicResource PrimaryTextBrush}"
-                         Background="{DynamicResource CardBackgroundBrush}"
-                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
+                  <TextBox Text="{Binding SelectedUser.Phone}"
+                           Foreground="{DynamicResource PrimaryTextBrush}"
+                           Background="{DynamicResource CardBackgroundBrush}"
+                           BorderBrush="{DynamicResource PrimaryTextBrush}"/>
                 <Button Content="Upload Photo" Command="{Binding UploadUserPhotoCommand}"
                         Foreground="{DynamicResource PrimaryTextBrush}"
                         Background="{DynamicResource AccentBrush}"
                         BorderBrush="{DynamicResource AccentBrush}"/>
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Update" Command="{Binding UpdateUserCommand}"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
+                            Background="{DynamicResource AccentBrush}"
+                            BorderBrush="{DynamicResource AccentBrush}"/>
+                    <Button Content="Delete" Command="{Binding DeleteUserCommand}"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
+                            Background="{DynamicResource AccentBrush}"
+                            BorderBrush="{DynamicResource AccentBrush}"/>
+                </StackPanel>
             </StackPanel>
         </Border>
     </Grid>
