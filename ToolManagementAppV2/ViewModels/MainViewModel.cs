@@ -38,10 +38,10 @@ namespace ToolManagementAppV2.ViewModels
 
         public void RefreshCurrentUser() => OnPropertyChanged(nameof(IsCurrentUserAdmin));
 
-        public MainViewModel(IToolService toolService, IUserService userService, ICustomerService customerService, IRentalService rentalService)
+        public MainViewModel(IToolService toolService, IUserService userService, ICustomerService customerService, IRentalService rentalService, IFileDialogService fileDialogService)
         {
             ToolManagement = new ToolManagementViewModel(toolService);
-            UserManagement = new UserManagementViewModel(userService);
+            UserManagement = new UserManagementViewModel(userService, fileDialogService);
             RentalManagement = new RentalManagementViewModel(customerService);
             Rentals = new RentalViewModel(rentalService);
 

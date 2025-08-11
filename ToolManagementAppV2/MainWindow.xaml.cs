@@ -21,7 +21,8 @@ namespace ToolManagementAppV2
             var customerService = new CustomerService(db);
             var userService = new UserService(db);
             var rentalService = new RentalService(db);
-            DataContext = new MainViewModel(toolService, userService, customerService, rentalService);
+            var fileDialogService = new FileDialogService();
+            DataContext = new MainViewModel(toolService, userService, customerService, rentalService, fileDialogService);
         }
     }
 }

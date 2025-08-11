@@ -28,7 +28,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var vm = new MainViewModel(toolService, userService, customerService, rentalService);
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService());
 
                 bool raised = false;
                 vm.PropertyChanged += (s, e) =>
@@ -58,5 +58,10 @@ namespace ToolManagementAppV2.Tests.ViewModels
             }
         }
     }
+}
+
+class StubFileDialogService : ToolManagementAppV2.Interfaces.IFileDialogService
+{
+    public string OpenFile(string filter) => null;
 }
 
