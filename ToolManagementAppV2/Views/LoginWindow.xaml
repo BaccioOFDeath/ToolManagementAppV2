@@ -2,14 +2,16 @@
 <Window x:Class="ToolManagementAppV2.LoginWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="{Binding WindowTitle}" Width="900" Height="560" WindowStartupLocation="CenterScreen"
+        Title="{Binding WindowTitle}"
+        Width="900" Height="560"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
         Background="{StaticResource BackgroundBrush}">
     <Window.InputBindings>
-        <!-- Enter to login with SelectedUser -->
         <KeyBinding Key="Enter" Command="{Binding SelectUserCommand}" CommandParameter="{Binding SelectedUser}"/>
     </Window.InputBindings>
 
-    <Grid Margin="16" >
+    <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -41,8 +43,6 @@
                         <VirtualizingStackPanel Orientation="Horizontal"/>
                     </ItemsPanelTemplate>
                 </ListBox.ItemsPanel>
-
-                <!-- Each card is a Button so click or Enter activates SelectUserCommand with that user -->
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Button Command="{Binding DataContext.SelectUserCommand, RelativeSource={RelativeSource AncestorType=Window}}"

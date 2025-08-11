@@ -11,11 +11,14 @@ namespace ToolManagementAppV2
         {
             InitializeComponent();
 
-            if (DataContext == null)
-                DataContext = new LoginViewModel(); // optional: your App may set this already
+            if (DataContext is not LoginViewModel vm)
+            {
+                vm = new LoginViewModel();
+                DataContext = vm;
+            }
 
-            if (DataContext is LoginViewModel vm)
-                vm.LoginSucceeded += OnLoginSucceeded;
+            vm.LoginSucceeded += OnLoginSucceeded;
+            Closed += (_, __) => vm.LoginSucceeded -= OnLoginSucceeded;
         }
 
         private void OnLoginSucceeded(object? sender, EventArgs e)
