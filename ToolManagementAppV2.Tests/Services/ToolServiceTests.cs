@@ -1,4 +1,5 @@
 using System;
+using System.Data.SQLite;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
@@ -145,6 +146,31 @@ namespace ToolManagementAppV2.Tests.Services
             }
             finally
             {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void ImportToolsFromCsv_PartialFailure_RollsBack()
+        {
+            var dbPath = Path.GetTempFileName();
+            var csvPath = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(csvPath, "ToolNumber\nT1\nT1");
+                var dbService = new DatabaseService(dbPath);
+                var service = new ToolService(dbService);
+                var map = new Dictionary<string, string>
+                {
+                    {"ToolNumber", "ToolNumber"}
+                };
+
+                Assert.Throws<SQLiteException>(() => service.ImportToolsFromCsv(csvPath, map));
+                Assert.Empty(service.GetAllTools());
+            }
+            finally
+            {
+                if (File.Exists(csvPath)) File.Delete(csvPath);
                 if (File.Exists(dbPath)) File.Delete(dbPath);
             }
         }

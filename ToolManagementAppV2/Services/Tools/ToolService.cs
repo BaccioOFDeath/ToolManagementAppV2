@@ -74,24 +74,8 @@ namespace ToolManagementAppV2.Services.Tools
         {
             if (ToolExists(tool.ToolNumber))
                 throw new InvalidOperationException($"Tool {tool.ToolNumber} already exists.");
-            var p = new[]
-            {
-                new SQLiteParameter("@ToolNumber", tool.ToolNumber),
-                new SQLiteParameter("@Desc", (object)tool.NameDescription ?? DBNull.Value),
-                new SQLiteParameter("@Loc", tool.Location),
-                new SQLiteParameter("@Brand", tool.Brand),
-                new SQLiteParameter("@PN", tool.PartNumber),
-                new SQLiteParameter("@Sup", (object)tool.Supplier ?? DBNull.Value),
-                new SQLiteParameter("@PD", (object)tool.PurchasedDate ?? DBNull.Value),
-                new SQLiteParameter("@Notes", (object)tool.Notes ?? DBNull.Value),
-                new SQLiteParameter("@Keywords", (object)tool.Keywords ?? DBNull.Value),
-                new SQLiteParameter("@Avail", tool.QuantityOnHand),
-                new SQLiteParameter("@Rent", tool.RentedQuantity)
-            };
             using var conn = _dbService.CreateConnection();
-            var result = SqliteHelper.ExecuteScalar(conn, UpsertToolCsv, p);
-            if (result != null)
-                tool.ToolID = result.ToString();
+            InsertTool(conn, null, tool);
             _cache = null;
         }
     
@@ -225,12 +209,47 @@ namespace ToolManagementAppV2.Services.Tools
         public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map)
         {
             var tools = CsvHelperUtil.LoadToolsFromCsv(filePath, map, out var invalidRows);
-            foreach (var tool in tools)
+            using var conn = _dbService.CreateConnection();
+            using var tran = conn.BeginTransaction();
+            try
             {
-                if (!ToolExists(tool.ToolNumber))
-                    AddTool(tool);
+                foreach (var tool in tools)
+                {
+                    if (!ToolExists(tool.ToolNumber))
+                        InsertTool(conn, tran, tool);
+                }
+                tran.Commit();
+                _cache = null;
+                return invalidRows;
             }
-            return invalidRows;
+            catch
+            {
+                tran.Rollback();
+                throw;
+            }
+        }
+
+        void InsertTool(SQLiteConnection conn, SQLiteTransaction? tran, ToolModel tool)
+        {
+            var p = new[]
+            {
+                new SQLiteParameter("@ToolNumber", tool.ToolNumber),
+                new SQLiteParameter("@Desc", (object)tool.NameDescription ?? DBNull.Value),
+                new SQLiteParameter("@Loc", tool.Location),
+                new SQLiteParameter("@Brand", tool.Brand),
+                new SQLiteParameter("@PN", tool.PartNumber),
+                new SQLiteParameter("@Sup", (object)tool.Supplier ?? DBNull.Value),
+                new SQLiteParameter("@PD", (object)tool.PurchasedDate ?? DBNull.Value),
+                new SQLiteParameter("@Notes", (object)tool.Notes ?? DBNull.Value),
+                new SQLiteParameter("@Keywords", (object)tool.Keywords ?? DBNull.Value),
+                new SQLiteParameter("@Avail", tool.QuantityOnHand),
+                new SQLiteParameter("@Rent", tool.RentedQuantity)
+            };
+            using var cmd = new SQLiteCommand(UpsertToolCsv, conn, tran);
+            cmd.Parameters.AddRange(p);
+            var result = cmd.ExecuteScalar();
+            if (result != null)
+                tool.ToolID = result.ToString();
         }
     
         public void ExportToolsToCsv(string filePath)

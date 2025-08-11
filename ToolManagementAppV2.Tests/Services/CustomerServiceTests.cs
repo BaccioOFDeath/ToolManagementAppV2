@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Data.SQLite;
 using System.IO;
 using System.Linq;
 using ToolManagementAppV2.Models.Domain;
@@ -72,6 +74,37 @@ namespace ToolManagementAppV2.Tests.Services
             {
                 if (File.Exists(dbPath))
                     File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void ImportCustomersFromCsv_PartialFailure_RollsBack()
+        {
+            var dbPath = Path.GetTempFileName();
+            var csvPath = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(csvPath, "Company,Contact,Phone\nAcme,John,1\nAcme,Jane,2");
+                var dbService = new DatabaseService(dbPath);
+                using (var conn = dbService.CreateConnection())
+                {
+                    SqliteHelper.ExecuteNonQuery(conn, "CREATE UNIQUE INDEX idx_customers_company ON Customers(Company)", null);
+                }
+                var service = new CustomerService(dbService);
+                var map = new Dictionary<string, string>
+                {
+                    {"Company", "Company"},
+                    {"Contact", "Contact"},
+                    {"Phone", "Phone"}
+                };
+
+                Assert.Throws<SQLiteException>(() => service.ImportCustomersFromCsv(csvPath, map));
+                Assert.Empty(service.GetAllCustomers());
+            }
+            finally
+            {
+                if (File.Exists(csvPath)) File.Delete(csvPath);
+                if (File.Exists(dbPath)) File.Delete(dbPath);
             }
         }
     }
