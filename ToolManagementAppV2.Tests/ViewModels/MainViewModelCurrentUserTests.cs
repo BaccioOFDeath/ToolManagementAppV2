@@ -7,6 +7,7 @@ using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.ViewModels;
 using Xunit;
+using ToolManagementAppV2.Services.Rentals;
 
 namespace ToolManagementAppV2.Tests.ViewModels
 {
@@ -25,8 +26,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var toolService = new ToolService(db);
                 var userService = new UserService(db);
                 var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
 
-                var vm = new MainViewModel(toolService, userService, customerService);
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService);
 
                 bool raised = false;
                 vm.PropertyChanged += (s, e) =>

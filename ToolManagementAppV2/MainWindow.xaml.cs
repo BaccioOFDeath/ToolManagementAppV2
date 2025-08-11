@@ -5,6 +5,7 @@ using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.ViewModels;
 
 namespace ToolManagementAppV2
@@ -19,7 +20,8 @@ namespace ToolManagementAppV2
             var toolService = new ToolService(db);
             var customerService = new CustomerService(db);
             var userService = new UserService(db);
-            DataContext = new MainViewModel(toolService, userService, customerService);
+            var rentalService = new RentalService(db);
+            DataContext = new MainViewModel(toolService, userService, customerService, rentalService);
         }
     }
 }
