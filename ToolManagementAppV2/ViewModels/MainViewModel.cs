@@ -39,7 +39,7 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand OpenReportsCommand { get; }
 
         public bool IsCurrentUserAdmin =>
-            Application.Current.Properties["CurrentUser"] is User u && u.IsAdmin;
+            System.Windows.Application.Current.Properties["CurrentUser"] is User u && u.IsAdmin;
 
         public void RefreshCurrentUser() => OnPropertyChanged(nameof(IsCurrentUserAdmin));
 

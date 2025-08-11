@@ -6,6 +6,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Settings;
@@ -107,7 +108,7 @@ namespace ToolManagementAppV2.ViewModels
             var users = _userService.GetAllUsers();
             if (users.Count == 0)
             {
-                MessageBox.Show(
+                System.Windows.MessageBox.Show(
                     "No users exist. A default admin account will be created (username: admin, password: admin).",
                     "Setup", MessageBoxButton.OK, MessageBoxImage.Information);
 
@@ -144,7 +145,7 @@ namespace ToolManagementAppV2.ViewModels
                 (string.IsNullOrWhiteSpace(user.Password) ||
                  SecurityHelper.VerifyPassword("newpassword", user.Salt, user.Password)))
             {
-                Application.Current.Properties["CurrentUser"] = user;
+                System.Windows.Application.Current.Properties["CurrentUser"] = user;
                 LoginSucceeded?.Invoke(this, EventArgs.Empty);
                 return;
             }
@@ -167,7 +168,7 @@ namespace ToolManagementAppV2.ViewModels
                     user.Password = refreshed.Password;
                     user.Salt = refreshed.Salt;
                     LoadUsers();
-                    MessageBox.Show("Password has been reset to default. Please enter the new password to login.",
+                    System.Windows.MessageBox.Show("Password has been reset to default. Please enter the new password to login.",
                         "Password Reset", MessageBoxButton.OK, MessageBoxImage.Information);
                     continue;
                 }
@@ -175,7 +176,7 @@ namespace ToolManagementAppV2.ViewModels
                 var credential = _userService.AuthenticateUser(user.UserName, prompt.EnteredPassword);
                 if (credential != null)
                 {
-                    Application.Current.Properties["CurrentUser"] = credential;
+                    System.Windows.Application.Current.Properties["CurrentUser"] = credential;
                     LoginSucceeded?.Invoke(this, EventArgs.Empty);
                     passwordValidated = true;
                 }

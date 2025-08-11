@@ -7,7 +7,7 @@ namespace ToolManagementAppV2.Services.Core
     {
         public string OpenFile(string filter)
         {
-            var dlg = new OpenFileDialog
+            var dlg = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = filter
             };

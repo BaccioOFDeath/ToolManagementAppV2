@@ -10,11 +10,18 @@ namespace ToolManagementAppV2.Services.Rentals
     {
         readonly DatabaseService _dbService;
         readonly IToolService _toolService;
+        private DatabaseService db;
 
-        public RentalService(DatabaseService dbService, IToolService toolService)
+        public RentalService(DatabaseService dbService, IToolService? toolService = null)
         {
-            _dbService = dbService;
+            _dbService = dbService ?? throw new ArgumentNullException(nameof(dbService));
             _toolService = toolService;
+        }
+
+
+        public RentalService(DatabaseService db)
+        {
+            this.db = db;
         }
 
         // toolID is passed as a string even though the underlying column is INTEGER

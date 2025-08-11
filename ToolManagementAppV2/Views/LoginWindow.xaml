@@ -13,11 +13,9 @@
     </Window.Resources>
 
     <Grid>
-        <!-- Full-bleed background image -->
         <Image Source="pack://application:,,,/Resources/DefaultToolImage.png"
                Stretch="UniformToFill"/>
 
-        <!-- Translucent centered login card -->
         <Border Background="{DynamicResource CardBackgroundBrush}"
                 Padding="40"
                 CornerRadius="10"
@@ -29,7 +27,6 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- Header -->
                 <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,20">
                     <Image Width="80" Height="80" Margin="0,0,0,10"
                            Source="{Binding CompanyLogo}"/>
@@ -46,9 +43,7 @@
                                HorizontalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- User avatars -->
-                    <ListBox
-                         Grid.Row="1"
+                <ListBox Grid.Row="1"
                          HorizontalAlignment="Center"
                          BorderThickness="0"
                          Background="Transparent"
@@ -70,6 +65,7 @@
                                     <ScaleTransform ScaleX="0.8" ScaleY="0.8"/>
                                 </Setter.Value>
                             </Setter>
+                            <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
                             <Style.Triggers>
                                 <EventTrigger RoutedEvent="Loaded">
                                     <BeginStoryboard>
@@ -84,7 +80,6 @@
                                     </BeginStoryboard>
                                 </EventTrigger>
                             </Style.Triggers>
-                            <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
                         </Style>
                     </ListBox.ItemContainerStyle>
                     <ListBox.ItemsPanel>
@@ -95,8 +90,7 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Width="120" Margin="5">
-                                <Button
-                                        Command="{Binding DataContext.SelectUserCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                <Button Command="{Binding DataContext.SelectUserCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                         CommandParameter="{Binding}"
                                         Background="Transparent"
                                         BorderThickness="0"
@@ -123,4 +117,3 @@
         </Border>
     </Grid>
 </Window>
-
