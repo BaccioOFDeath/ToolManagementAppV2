@@ -33,6 +33,34 @@
         <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" Padding="10">
             <StackPanel>
                 <TextBlock Text="Tool Details" FontSize="24" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                <TextBox Text="{Binding SelectedTool.ToolNumber}"
+                         Foreground="{DynamicResource PrimaryTextBrush}"
+                         Background="{DynamicResource CardBackgroundBrush}"
+                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
+                <TextBox Text="{Binding SelectedTool.NameDescription}"
+                         Foreground="{DynamicResource PrimaryTextBrush}"
+                         Background="{DynamicResource CardBackgroundBrush}"
+                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
+                <TextBox Text="{Binding SelectedTool.Location}"
+                         Foreground="{DynamicResource PrimaryTextBrush}"
+                         Background="{DynamicResource CardBackgroundBrush}"
+                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
+                <TextBox Text="{Binding SelectedTool.Brand}"
+                         Foreground="{DynamicResource PrimaryTextBrush}"
+                         Background="{DynamicResource CardBackgroundBrush}"
+                         BorderBrush="{DynamicResource PrimaryTextBrush}"/>
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Update" Command="{Binding UpdateToolCommand}"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
+                            Background="{DynamicResource AccentBrush}"
+                            BorderBrush="{DynamicResource AccentBrush}"/>
+                    <Button Content="Delete" Command="{Binding DeleteToolCommand}"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
+                            Background="{DynamicResource AccentBrush}"
+                            BorderBrush="{DynamicResource AccentBrush}"/>
+                </StackPanel>
+                <Separator Margin="0,10,0,10"/>
+                <TextBlock Text="Add New Tool" FontSize="24" Foreground="{DynamicResource PrimaryTextBrush}"/>
                 <TextBox Text="{Binding NewTool.ToolNumber}"
                          Foreground="{DynamicResource PrimaryTextBrush}"
                          Background="{DynamicResource CardBackgroundBrush}"
@@ -49,20 +77,10 @@
                          Foreground="{DynamicResource PrimaryTextBrush}"
                          Background="{DynamicResource CardBackgroundBrush}"
                          BorderBrush="{DynamicResource PrimaryTextBrush}"/>
-                <StackPanel Orientation="Horizontal">
-                    <Button Content="Add" Command="{Binding AddToolCommand}"
-                            Foreground="{DynamicResource PrimaryTextBrush}"
-                            Background="{DynamicResource AccentBrush}"
-                            BorderBrush="{DynamicResource AccentBrush}"/>
-                    <Button Content="Update" Command="{Binding UpdateToolCommand}"
-                            Foreground="{DynamicResource PrimaryTextBrush}"
-                            Background="{DynamicResource AccentBrush}"
-                            BorderBrush="{DynamicResource AccentBrush}"/>
-                    <Button Content="Delete" Command="{Binding DeleteToolCommand}"
-                            Foreground="{DynamicResource PrimaryTextBrush}"
-                            Background="{DynamicResource AccentBrush}"
-                            BorderBrush="{DynamicResource AccentBrush}"/>
-                </StackPanel>
+                <Button Content="Add" Command="{Binding AddToolCommand}"
+                        Foreground="{DynamicResource PrimaryTextBrush}"
+                        Background="{DynamicResource AccentBrush}"
+                        BorderBrush="{DynamicResource AccentBrush}"/>
             </StackPanel>
         </Border>
     </Grid>
