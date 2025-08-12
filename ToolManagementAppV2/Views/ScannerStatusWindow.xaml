@@ -29,7 +29,9 @@
                         <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
                         <DataGridTextColumn Header="IP" Binding="{Binding Ip}" Width="180"/>
                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="160"/>
-                        <DataGridTextColumn Header="Last Seen" Binding="{Binding LastSeen, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="220"/>
+                        <DataGridTextColumn Header="Last Seen"
+                                            Binding="{Binding LastSeen, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
+                                            Width="220"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </Border>
