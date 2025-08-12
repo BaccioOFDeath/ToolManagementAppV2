@@ -72,11 +72,11 @@ namespace ToolManagementAppV2.ViewModels.Rental
         {
             string? path = null;
 
-            if (Application.Current != null)
+            if (System.Windows.Application.Current != null)
             {
                 try
                 {
-                    var dlg = new SaveFileDialog
+                    var dlg = new Microsoft.Win32.SaveFileDialog
                     {
                         Filter = "CSV Files|*.csv",
                         FileName = "rental_history.csv"
@@ -114,8 +114,8 @@ namespace ToolManagementAppV2.ViewModels.Rental
 
         void CloseWindow()
         {
-            if (Application.Current == null) return;
-            var window = Application.Current.Windows
+            if (System.Windows.Application.Current == null) return;
+            var window = System.Windows.Application.Current.Windows
                 .OfType<Window>()
                 .FirstOrDefault(w => w.DataContext == this);
             window?.Close();

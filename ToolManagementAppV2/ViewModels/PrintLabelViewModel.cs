@@ -56,7 +56,7 @@ namespace ToolManagementAppV2.ViewModels
         private void Print()
         {
             var doc = BuildDocument();
-            var dlg = new PrintDialog();
+            var dlg = new System.Windows.Controls.PrintDialog();
             if (dlg.ShowDialog() == true)
                 dlg.PrintDocument(((IDocumentPaginatorSource)doc).DocumentPaginator, "Tool Labels");
         }
@@ -66,7 +66,7 @@ namespace ToolManagementAppV2.ViewModels
             var doc = new FlowDocument();
             foreach (var t in Items)
             {
-                var sp = new StackPanel { Orientation = Orientation.Vertical };
+                var sp = new StackPanel { Orientation = System.Windows.Controls.Orientation.Vertical };
                 sp.Children.Add(new TextBlock { Text = t.ToolNumber });
                 sp.Children.Add(new TextBlock { Text = t.NameDescription });
                 sp.Children.Add(new TextBlock { Text = t.Location });
