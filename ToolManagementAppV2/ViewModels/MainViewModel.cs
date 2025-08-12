@@ -176,9 +176,10 @@ namespace ToolManagementAppV2.ViewModels
 
             GlobalSearchCommand = new RelayCommand(() =>
             {
+                ToolManagement.SearchText = GlobalSearchText;
                 OpenSearchToolsCommand.Execute(null);
-                // If needed, trigger ToolManagement.SearchCommand here once you wire GlobalSearchText -> VM
-                // ToolManagement.SearchCommand?.Execute(null);
+                ToolManagement.SearchCommand?.Execute(null);
+                GlobalSearchText = string.Empty;
             });
 
             ExitCommand = new RelayCommand(() =>
