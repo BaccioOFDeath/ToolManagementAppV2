@@ -18,7 +18,7 @@ namespace ToolManagementAppV2.Tests.Tests
             {
                 var db = new DatabaseService(dbPath);
                 var customerService = new CustomerService(db);
-                var vm = new RentalManagementViewModel(customerService);
+                var vm = new CustomerManagementViewModel(customerService);
                 var page = new CustomersPage { DataContext = vm };
 
                 var grid = (Grid)page.Content;

@@ -9,7 +9,7 @@ using ToolManagementAppV2.Views;
 
 namespace ToolManagementAppV2.ViewModels
 {
-    public class RentalManagementViewModel : ObservableObject
+    public class CustomerManagementViewModel : ObservableObject
     {
         private readonly ICustomerService _customerService;
 
@@ -75,7 +75,7 @@ namespace ToolManagementAppV2.ViewModels
 
         public Func<CustomerModel?> AddCustomerDialog { get; set; }
 
-        public RentalManagementViewModel(ICustomerService customerService)
+        public CustomerManagementViewModel(ICustomerService customerService)
         {
         
             _customerService = customerService;

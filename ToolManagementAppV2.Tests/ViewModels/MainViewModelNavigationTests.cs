@@ -33,7 +33,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 Assert.NotNull(vm.ToolManagement);
                 Assert.NotNull(vm.UserManagement);
-                Assert.NotNull(vm.RentalManagement);
+                Assert.NotNull(vm.CustomerManagement);
                 Assert.NotNull(vm.Rentals);
                 Assert.NotNull(vm.ManageRentals);
                 Assert.NotNull(vm.ImportExport);
