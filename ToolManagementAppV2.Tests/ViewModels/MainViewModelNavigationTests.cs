@@ -1,4 +1,6 @@
 using System.IO;
+using System.Linq;
+using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Services.Users;
@@ -168,6 +170,40 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 var page = Assert.IsType<ManageRentalsPage>(vm.CurrentPage);
                 Assert.IsType<ManageRentalsViewModel>(page.DataContext);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void GlobalSearchCommand_NavigatesAndExecutesSearch()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                IUserService userService = new UserService(db);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
+                var activityLogService = new ActivityLogService(db);
+
+                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
+                toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Saw" });
+
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService(), activityLogService);
+                vm.GlobalSearchText = "Ham";
+
+                vm.GlobalSearchCommand.Execute(null);
+
+                var page = Assert.IsType<ToolSearchPage>(vm.CurrentPage);
+                Assert.Equal("Ham", vm.ToolManagement.SearchText);
+                Assert.Empty(vm.GlobalSearchText);
+                Assert.Single(vm.ToolManagement.SearchResults);
+                Assert.Equal("Hammer", vm.ToolManagement.SearchResults.First().NameDescription);
             }
             finally
             {
