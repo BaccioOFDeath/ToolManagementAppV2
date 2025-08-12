@@ -30,7 +30,7 @@ namespace ToolManagementAppV2.Services.Users
                 new[] { new SQLiteParameter("@ID", userID) }, MapUser).FirstOrDefault();
         }
 
-        public User AuthenticateUser(string userName, string password)
+        public User? AuthenticateUser(string userName, string password)
         {
             using var conn = _dbService.CreateConnection();
             var users = SqliteHelper.ExecuteReader(conn,
