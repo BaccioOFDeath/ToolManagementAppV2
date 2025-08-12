@@ -70,4 +70,33 @@ public class UserAuthenticationTests
                 File.Delete(dbPath);
         }
     }
+
+    [Fact]
+    public void AuthenticateUser_EmptySalt_ReturnsNull()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService);
+
+            var user = new User { UserName = "emptysalt", Password = "secret", IsAdmin = false };
+            userService.AddUser(user);
+
+            using (var conn = dbService.CreateConnection())
+            using (var cmd = new SQLiteCommand("UPDATE Users SET Salt='' WHERE UserID=@ID", conn))
+            {
+                cmd.Parameters.AddWithValue("@ID", user.UserID);
+                cmd.ExecuteNonQuery();
+            }
+
+            var auth = userService.AuthenticateUser("emptysalt", "secret");
+            Assert.Null(auth);
+        }
+        finally
+        {
+            if (File.Exists(dbPath))
+                File.Delete(dbPath);
+        }
+    }
 }
