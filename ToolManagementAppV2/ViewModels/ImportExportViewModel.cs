@@ -50,7 +50,7 @@ namespace ToolManagementAppV2.ViewModels
 
         void ExportTools()
         {
-            var path = _fileDialogService.OpenFile("CSV Files|*.csv");
+            var path = _fileDialogService.SaveFile("CSV Files|*.csv");
             if (string.IsNullOrEmpty(path)) return;
             try
             {
@@ -80,7 +80,7 @@ namespace ToolManagementAppV2.ViewModels
 
         void ExportCustomers()
         {
-            var path = _fileDialogService.OpenFile("CSV Files|*.csv");
+            var path = _fileDialogService.SaveFile("CSV Files|*.csv");
             if (string.IsNullOrEmpty(path)) return;
             try
             {

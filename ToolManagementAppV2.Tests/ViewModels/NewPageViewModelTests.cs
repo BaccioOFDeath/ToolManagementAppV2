@@ -151,6 +151,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     class StubFileDialogService : IFileDialogService
     {
         public string OpenFile(string filter) => "path.csv";
+        public string SaveFile(string filter) => "path.csv";
     }
 
     class StubToolService : IToolService

@@ -13,5 +13,14 @@ namespace ToolManagementAppV2.Services.Core
             };
             return dlg.ShowDialog() == true ? dlg.FileName : null;
         }
+
+        public string? SaveFile(string filter)
+        {
+            var dlg = new SaveFileDialog
+            {
+                Filter = filter
+            };
+            return dlg.ShowDialog() == true ? dlg.FileName : null;
+        }
     }
 }
