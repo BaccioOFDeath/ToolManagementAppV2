@@ -178,7 +178,7 @@ namespace ToolManagementAppV2.ViewModels
                 CreatedAt = user.CreatedAt
             };
 
-            UsersEditWindow win = null;
+            UsersEditWindow? win = null;
             win = new UsersEditWindow(clone,
                 onSave: () =>
                 {
