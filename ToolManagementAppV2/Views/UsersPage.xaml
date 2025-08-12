@@ -20,6 +20,8 @@
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
                     <Button Style="{StaticResource PrimaryButton}" Content="Add User" Command="{Binding AddUserCommand}" Margin="0,0,8,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Edit User" Command="{Binding EditUserCommand}" Margin="0,0,8,0"/>
+                    <Button x:Name="UploadPhotoButton" Style="{StaticResource PrimaryButton}" Content="Upload Photo" Command="{Binding UploadUserPhotoCommand}" Margin="0,0,8,0"/>
+                    <Button x:Name="UpdateUserButton" Style="{StaticResource PrimaryButton}" Content="Update User" Command="{Binding UpdateUserCommand}" Margin="0,0,8,0"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
                     <TextBox Width="260" Text="{Binding UserSearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>

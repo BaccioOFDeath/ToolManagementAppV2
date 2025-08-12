@@ -87,6 +87,10 @@ namespace ToolManagementAppV2.ViewModels
             {
                 SelectedUser.UserPhotoPath = path;
                 _userService.UpdateUser(SelectedUser);
+                var idxAll = _allUsers.IndexOf(SelectedUser);
+                if (idxAll >= 0) _allUsers[idxAll] = SelectedUser;
+                var idx = Users.IndexOf(SelectedUser);
+                if (idx >= 0) Users[idx] = SelectedUser;
             }
         }
 
@@ -94,6 +98,10 @@ namespace ToolManagementAppV2.ViewModels
         {
             if (SelectedUser == null) return;
             _userService.UpdateUser(SelectedUser);
+            var idxAll = _allUsers.IndexOf(SelectedUser);
+            if (idxAll >= 0) _allUsers[idxAll] = SelectedUser;
+            var idx = Users.IndexOf(SelectedUser);
+            if (idx >= 0) Users[idx] = SelectedUser;
         }
 
         public void AddUser()
