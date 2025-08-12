@@ -151,6 +151,58 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void SearchAndClearUsers_WorkAsExpected()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IUserService userService = new UserService(db);
+                var vm = new UserManagementViewModel(userService, new StubFileDialogService());
+                userService.AddUser(new User { UserName = "alice", Password = "pw" });
+                userService.AddUser(new User { UserName = "bob", Password = "pw" });
+                vm.LoadUsers();
+
+                vm.UserSearchText = "alice";
+                vm.SearchUsersCommand.Execute(null);
+                Assert.Single(vm.Users);
+                Assert.Equal("alice", vm.Users.First().UserName);
+
+                vm.ClearUserSearchCommand.Execute(null);
+                Assert.Equal(2, vm.Users.Count);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void DeleteUserFromRowCommand_RemovesUser()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IUserService userService = new UserService(db);
+                var vm = new UserManagementViewModel(userService, new StubFileDialogService());
+                userService.AddUser(new User { UserName = "user1", Password = "pw" });
+                userService.AddUser(new User { UserName = "user2", Password = "pw" });
+                vm.LoadUsers();
+                var toDelete = vm.Users.First();
+                vm.DeleteUserFromRowCommand.Execute(toDelete);
+                Assert.Single(vm.Users);
+                Assert.Equal("user2", vm.Users.First().UserName);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }
 
