@@ -95,9 +95,55 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 vm.LoadUsers();
                 Assert.False(vm.UpdateUserCommand.CanExecute(null));
                 Assert.False(vm.DeleteUserCommand.CanExecute(null));
+                Assert.False(vm.ResetPasswordCommand.CanExecute(null));
                 vm.SelectedUser = vm.Users.First();
                 Assert.True(vm.UpdateUserCommand.CanExecute(null));
                 Assert.True(vm.DeleteUserCommand.CanExecute(null));
+                Assert.True(vm.ResetPasswordCommand.CanExecute(null));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void AddUserCommand_AddsUser()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IUserService userService = new UserService(db);
+                var vm = new UserManagementViewModel(userService, new StubFileDialogService());
+                vm.AddUserCommand.Execute(null);
+                Assert.Single(vm.Users);
+                Assert.Single(userService.GetAllUsers());
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void ResetPasswordCommand_ChangesPassword()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IUserService userService = new UserService(db);
+                var vm = new UserManagementViewModel(userService, new StubFileDialogService());
+                userService.AddUser(new User { UserName = "user1", Password = "pw" });
+                vm.LoadUsers();
+                vm.SelectedUser = vm.Users.First();
+                var oldPwd = vm.SelectedUser.Password;
+                vm.ResetPasswordCommand.Execute(null);
+                var updated = userService.GetAllUsers().First();
+                Assert.NotEqual(oldPwd, updated.Password);
             }
             finally
             {
