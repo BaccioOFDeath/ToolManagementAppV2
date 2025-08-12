@@ -189,7 +189,7 @@ namespace ToolManagementAppV2.ViewModels
             {
                 // Constructor requires (Tool tool, IEnumerable<Rental> history)
                 var vm = new RentalHistoryViewModel(null, Enumerable.Empty<Models.Domain.Rental>());
-                var win = new RentalHistoryWindow { DataContext = vm };
+                var win = new RentalHistoryWindow(vm);
                 win.ShowDialog();
             });
 
