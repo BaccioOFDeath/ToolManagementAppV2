@@ -24,10 +24,9 @@ namespace ToolManagementAppV2.Tests.Views
 
                     Action onSave = () => window?.Close();
                     Action onCancel = () => window?.Close();
-                    Action onBrowse = () => { };
                     Action onRemove = () => { };
 
-                    window = new UsersEditWindow(user, onSave, onCancel, onBrowse, onRemove);
+                    window = new UsersEditWindow(user, onSave, onCancel, onRemove);
                     window.Closed += (_, __) => closed = true;
 
                     Assert.IsType<UsersEditViewModel>(window.DataContext);

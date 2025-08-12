@@ -210,11 +210,6 @@ namespace ToolManagementAppV2.ViewModels
                     win.DialogResult = true;
                 },
                 onCancel: () => win.Close(),
-                onBrowseAvatar: () =>
-                {
-                    var path = _fileDialogService.OpenFile("Image Files|*.png;*.jpg;*.jpeg;*.bmp|All Files|*.*");
-                    if (!string.IsNullOrEmpty(path)) clone.UserPhotoPath = path;
-                },
                 onRemoveAvatar: () => clone.UserPhotoPath = null);
 
             try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch { }
