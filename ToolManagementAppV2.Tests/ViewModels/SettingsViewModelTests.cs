@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using ToolManagementAppV2.ViewModels;
+using ToolManagementAppV2.Interfaces;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.ViewModels
@@ -11,7 +12,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public void Constructor_InitializesThemeDefaults()
         {
-            var vm = new SettingsViewModel(new StubFileDialogService(), new StubSettingsService());
+            var vm = new SettingsViewModel(new StubFileDialogService(), new StubSettingsService(), new StubDialogService());
             Assert.Contains("Light", vm.ThemeOptions);
             Assert.Equal("Light", vm.Theme);
         }
@@ -22,7 +23,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
             try
             {
-                var vm = new SettingsViewModel(new StubFileDialogService(), new StubSettingsService()) { ConnectionString = path };
+                var vm = new SettingsViewModel(new StubFileDialogService(), new StubSettingsService(), new StubDialogService()) { ConnectionString = path };
                 var success = vm.TestDbConnection(out var message);
                 Assert.True(success);
                 Assert.Equal("Connection successful.", message);
@@ -37,7 +38,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public void TestDbConnection_InvalidPath_ReturnsErrorMessage()
         {
-            var vm = new SettingsViewModel(new StubFileDialogService(), new StubSettingsService())
+            var vm = new SettingsViewModel(new StubFileDialogService(), new StubSettingsService(), new StubDialogService())
             {
                 ConnectionString = "/nonexistent/path/db.sqlite"
             };
@@ -49,7 +50,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public void BrowseCompanyLogoCommand_SetsPath()
         {
             var fileDialog = new StubFileDialogService { OpenPath = "logo.png" };
-            var vm = new SettingsViewModel(fileDialog, new StubSettingsService());
+            var vm = new SettingsViewModel(fileDialog, new StubSettingsService(), new StubDialogService());
             vm.BrowseCompanyLogoCommand.Execute(null);
             Assert.Equal("logo.png", vm.CompanyLogoPath);
         }
@@ -58,7 +59,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public void SaveCompanyLogoCommand_PersistsPath()
         {
             var settings = new StubSettingsService();
-            var vm = new SettingsViewModel(new StubFileDialogService(), settings)
+            var vm = new SettingsViewModel(new StubFileDialogService(), settings, new StubDialogService())
             {
                 CompanyLogoPath = "logo.png"
             };
@@ -90,6 +91,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Dictionary<string, string> GetAllSettings() => new();
         public void UpdateSettings(Dictionary<string, string> settings) { }
         public void DeleteSetting(string key) { }
+    }
+
+    class StubDialogService : IDialogService
+    {
+        public void ShowInfo(string message, string title) { }
+        public bool ShowConfirmation(string message, string title) => true;
     }
 }
 

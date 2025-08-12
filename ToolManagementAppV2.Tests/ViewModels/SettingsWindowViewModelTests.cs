@@ -1,5 +1,6 @@
 using System;
 using ToolManagementAppV2.ViewModels;
+using ToolManagementAppV2.Interfaces;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.ViewModels
@@ -9,7 +10,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public void Constructor_CreatesSettingsPageAndUsesProvidedViewModel()
         {
-            var settingsVm = new SettingsViewModel(new StubFileDialogService(), new StubSettingsService());
+            var settingsVm = new SettingsViewModel(new StubFileDialogService(), new StubSettingsService(), new StubDialogService());
             var vm = new SettingsWindowViewModel(settingsVm, () => { });
             Assert.NotNull(vm.SettingsPageContent);
             Assert.Same(settingsVm, vm.SettingsViewModel);
@@ -19,7 +20,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public void Commands_InvokeProvidedActions()
         {
             bool saved = false, closed = false;
-            var vm = new SettingsWindowViewModel(new SettingsViewModel(new StubFileDialogService(), new StubSettingsService()), () => closed = true, () => saved = true);
+            var vm = new SettingsWindowViewModel(new SettingsViewModel(new StubFileDialogService(), new StubSettingsService(), new StubDialogService()), () => closed = true, () => saved = true);
             vm.SaveSettingsCommand.Execute(null);
             vm.CloseCommand.Execute(null);
             Assert.True(saved);
@@ -40,6 +41,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Dictionary<string, string> GetAllSettings() => new();
         public void UpdateSettings(Dictionary<string, string> settings) { }
         public void DeleteSetting(string key) { }
+    }
+
+    class StubDialogService : IDialogService
+    {
+        public void ShowInfo(string message, string title) { }
+        public bool ShowConfirmation(string message, string title) => true;
     }
 }
 

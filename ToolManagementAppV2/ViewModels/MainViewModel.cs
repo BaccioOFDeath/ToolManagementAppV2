@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
+using ToolManagementAppV2.Services;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Settings;
@@ -170,7 +171,7 @@ namespace ToolManagementAppV2.ViewModels
                 var settingsService = new SettingsService(db);
                 var page = new SettingsPage
                 {
-                    DataContext = new SettingsViewModel(fileDialogService, settingsService),
+                    DataContext = new SettingsViewModel(fileDialogService, settingsService, new DialogService()),
                     Title = "Settings"
                 };
                 CurrentPage = page;
@@ -246,7 +247,7 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenPasswordPromptWindowCommand = new RelayCommand(() =>
             {
-                var win = new PasswordPromptWindow { SelectedUser = System.Windows.Application.Current.Properties["CurrentUser"] as User };
+                var win = new PasswordPromptWindow(new DialogService()) { SelectedUser = System.Windows.Application.Current.Properties["CurrentUser"] as User };
                 win.ShowDialog();
             });
 
