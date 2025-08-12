@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using ToolManagementAppV2.ViewModels;
 
 namespace ToolManagementAppV2.Views
 {
@@ -22,6 +23,8 @@ namespace ToolManagementAppV2.Views
         public SettingsWindow()
         {
             InitializeComponent();
+            var settingsVm = new SettingsViewModel();
+            DataContext = new SettingsWindowViewModel(settingsVm, () => Close());
         }
     }
 }

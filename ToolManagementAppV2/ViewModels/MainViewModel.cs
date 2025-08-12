@@ -216,7 +216,7 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenSettingsWindowCommand = new RelayCommand(() =>
             {
-                var win = new SettingsWindow { DataContext = new SettingsViewModel() };
+                var win = new SettingsWindow();
                 win.ShowDialog();
             });
 
