@@ -167,8 +167,15 @@ namespace ToolManagementAppV2.ViewModels
                 Brand = SelectedTool.Brand,
                 Location = SelectedTool.Location,
                 QuantityOnHand = SelectedTool.QuantityOnHand,
+                RentedQuantity = SelectedTool.RentedQuantity,
                 Supplier = SelectedTool.Supplier,
-                Notes = SelectedTool.Notes
+                PurchasedDate = SelectedTool.PurchasedDate,
+                Notes = SelectedTool.Notes,
+                Keywords = SelectedTool.Keywords,
+                IsCheckedOut = SelectedTool.IsCheckedOut,
+                CheckedOutBy = SelectedTool.CheckedOutBy,
+                CheckedOutTime = SelectedTool.CheckedOutTime,
+                ToolImagePath = SelectedTool.ToolImagePath
             };
 
             var updated = EditToolDialog?.Invoke(clone);

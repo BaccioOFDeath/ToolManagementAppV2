@@ -136,7 +136,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
-                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer" };
+                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer", ToolImagePath = "img1.png" };
                 toolService.AddTool(tool);
                 vm.LoadTools();
                 vm.SelectedTool = vm.Tools.First();
@@ -149,6 +149,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var updated = toolService.GetAllTools().First();
                 Assert.Equal("Updated Hammer", updated.NameDescription);
                 Assert.Equal("Updated Hammer", vm.Tools.First().NameDescription);
+                Assert.Equal("img1.png", updated.ToolImagePath);
+                Assert.Equal("img1.png", vm.Tools.First().ToolImagePath);
             }
             finally
             {
