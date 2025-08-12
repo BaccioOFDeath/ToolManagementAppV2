@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
+using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.Views;
 using ToolManagementAppV2.Services;
 
@@ -99,13 +100,43 @@ namespace ToolManagementAppV2.ViewModels
         {
             var newUser = new UserModel { UserName = $"user{Users.Count + 1}" };
 
+            if (!TryPromptForPassword(newUser, out var entered))
+                return;
+
+            // If the user leaves the prompt blank, assign a hashed "changeme" password
+            // so the account is initialized with a known placeholder that must be changed.
+            if (string.IsNullOrWhiteSpace(entered))
+            {
+                const string defaultPwd = "changeme";
+                newUser.Password = SecurityHelper.HashPassword(defaultPwd, out var salt);
+                newUser.Salt = salt;
+            }
+            else
+            {
+                newUser.Password = entered;
+            }
+
+            _userService.AddUser(newUser);
+            _allUsers.Add(newUser);
+            Users.Add(newUser);
+            SelectedUser = newUser;
+        }
+
+        protected virtual bool TryPromptForPassword(UserModel newUser, out string password)
+        {
+            password = null;
+
             if (System.Windows.Application.Current != null)
             {
                 try
                 {
-                    var prompt = new Views.PasswordPromptWindow(new DialogService()) { SelectedUser = newUser };
+                    var prompt = new PasswordPromptWindow(new DialogService()) { SelectedUser = newUser };
                     if (prompt.ShowDialog() == true)
-                        newUser.Password = prompt.EnteredPassword;
+                    {
+                        password = prompt.EnteredPassword;
+                        return true;
+                    }
+                    return false;
                 }
                 catch
                 {
@@ -113,10 +144,7 @@ namespace ToolManagementAppV2.ViewModels
                 }
             }
 
-            _userService.AddUser(newUser);
-            _allUsers.Add(newUser);
-            Users.Add(newUser);
-            SelectedUser = newUser;
+            return true;
         }
 
         void SearchUsers()
