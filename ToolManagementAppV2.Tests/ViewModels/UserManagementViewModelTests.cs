@@ -1,5 +1,6 @@
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
@@ -51,6 +52,40 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 vm.UploadUserPhotoCommand.Execute(null);
                 var updated = userService.GetAllUsers().First();
                 Assert.Equal("path/to/image.png", updated.UserPhotoPath);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void UpdateUserAndUploadPhoto_UpdateCollections()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IUserService userService = new UserService(db);
+                var fileSvc = new StubFileDialogService { FileToReturn = "img.png" };
+                var vm = new UserManagementViewModel(userService, fileSvc);
+                userService.AddUser(new User { UserName = "user1", Password = "pw" });
+                vm.LoadUsers();
+                vm.SelectedUser = vm.Users.First();
+
+                vm.SelectedUser.Email = "test@example.com";
+                vm.UpdateUserCommand.Execute(null);
+
+                vm.UploadUserPhotoCommand.Execute(null);
+
+                var field = typeof(UserManagementViewModel).GetField("_allUsers", BindingFlags.NonPublic | BindingFlags.Instance);
+                var allUsers = (System.Collections.Generic.List<User>)field!.GetValue(vm);
+
+                Assert.Equal("test@example.com", vm.Users.First().Email);
+                Assert.Equal("test@example.com", allUsers.First().Email);
+                Assert.Equal("img.png", vm.Users.First().UserPhotoPath);
+                Assert.Equal("img.png", allUsers.First().UserPhotoPath);
             }
             finally
             {
