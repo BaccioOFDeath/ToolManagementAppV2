@@ -36,43 +36,95 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void ImportExportViewModel_ImportToolsCommand_InvokesService()
+        public void ImportExportViewModel_ImportToolsCommand_LogsSuccess()
         {
             var toolService = new StubToolService();
             var customerService = new StubCustomerService();
             var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
             vm.ImportToolsCommand.Execute(null);
             Assert.True(toolService.ImportCalled);
+            Assert.Single(vm.ImportExportLogs);
+            Assert.StartsWith("Successfully imported tools", vm.ImportExportLogs[0]);
         }
 
         [Fact]
-        public void ImportExportViewModel_ExportToolsCommand_InvokesService()
+        public void ImportExportViewModel_ExportToolsCommand_LogsSuccess()
         {
             var toolService = new StubToolService();
             var customerService = new StubCustomerService();
             var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
             vm.ExportToolsCommand.Execute(null);
             Assert.True(toolService.ExportCalled);
+            Assert.Single(vm.ImportExportLogs);
+            Assert.StartsWith("Successfully exported tools", vm.ImportExportLogs[0]);
         }
 
         [Fact]
-        public void ImportExportViewModel_ImportCustomersCommand_InvokesService()
+        public void ImportExportViewModel_ImportCustomersCommand_LogsSuccess()
         {
             var toolService = new StubToolService();
             var customerService = new StubCustomerService();
             var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
             vm.ImportCustomersCommand.Execute(null);
             Assert.True(customerService.ImportCalled);
+            Assert.Single(vm.ImportExportLogs);
+            Assert.StartsWith("Successfully imported customers", vm.ImportExportLogs[0]);
         }
 
         [Fact]
-        public void ImportExportViewModel_ExportCustomersCommand_InvokesService()
+        public void ImportExportViewModel_ExportCustomersCommand_LogsSuccess()
         {
             var toolService = new StubToolService();
             var customerService = new StubCustomerService();
             var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
             vm.ExportCustomersCommand.Execute(null);
             Assert.True(customerService.ExportCalled);
+            Assert.Single(vm.ImportExportLogs);
+            Assert.StartsWith("Successfully exported customers", vm.ImportExportLogs[0]);
+        }
+
+        [Fact]
+        public void ImportExportViewModel_ImportToolsCommand_LogsFailure()
+        {
+            var toolService = new FailToolService();
+            var customerService = new StubCustomerService();
+            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
+            vm.ImportToolsCommand.Execute(null);
+            Assert.Single(vm.ImportExportLogs);
+            Assert.StartsWith("Failed to import tools", vm.ImportExportLogs[0]);
+        }
+
+        [Fact]
+        public void ImportExportViewModel_ExportToolsCommand_LogsFailure()
+        {
+            var toolService = new FailToolService();
+            var customerService = new StubCustomerService();
+            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
+            vm.ExportToolsCommand.Execute(null);
+            Assert.Single(vm.ImportExportLogs);
+            Assert.StartsWith("Failed to export tools", vm.ImportExportLogs[0]);
+        }
+
+        [Fact]
+        public void ImportExportViewModel_ImportCustomersCommand_LogsFailure()
+        {
+            var toolService = new StubToolService();
+            var customerService = new FailCustomerService();
+            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
+            vm.ImportCustomersCommand.Execute(null);
+            Assert.Single(vm.ImportExportLogs);
+            Assert.StartsWith("Failed to import customers", vm.ImportExportLogs[0]);
+        }
+
+        [Fact]
+        public void ImportExportViewModel_ExportCustomersCommand_LogsFailure()
+        {
+            var toolService = new StubToolService();
+            var customerService = new FailCustomerService();
+            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
+            vm.ExportCustomersCommand.Execute(null);
+            Assert.Single(vm.ImportExportLogs);
+            Assert.StartsWith("Failed to export customers", vm.ImportExportLogs[0]);
         }
 
         [Fact]
@@ -124,6 +176,23 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public void UpdateToolQuantities(string toolID, int qtyChange, bool isRental) => throw new System.NotImplementedException();
     }
 
+    class FailToolService : IToolService
+    {
+        public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map) => throw new System.Exception("fail");
+        public void ExportToolsToCsv(string filePath) => throw new System.Exception("fail");
+        public List<ToolModel> GetAllTools() => new();
+        public void AddTool(ToolModel tool) => throw new System.NotImplementedException();
+        public void UpdateTool(ToolModel tool) => throw new System.NotImplementedException();
+        public void DeleteTool(string toolID) => throw new System.NotImplementedException();
+        public ToolModel GetToolByID(string toolID) => throw new System.NotImplementedException();
+        public List<ToolModel> SearchTools(string? searchText) => new();
+        public void ToggleToolCheckOutStatus(string toolID, string currentUser) => throw new System.NotImplementedException();
+        public List<ToolModel> GetToolsCheckedOutBy(string userName) => new();
+        public void UpdateToolImage(string toolID, string imagePath) => throw new System.NotImplementedException();
+        public ImageImportResult ImportToolImages(string folderPath, System.Func<ToolModel, IEnumerable<string>> keySelector) => new();
+        public void UpdateToolQuantities(string toolID, int qtyChange, bool isRental) => throw new System.NotImplementedException();
+    }
+
     class StubRentalService : IRentalService
     {
         public void RentTool(string toolID, int customerID, System.DateTime rentalDate, System.DateTime dueDate) => throw new System.NotImplementedException();
@@ -142,6 +211,18 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public bool ExportCalled { get; private set; }
         public void ImportCustomersFromCsv(string filePath, IDictionary<string, string> map) => ImportCalled = true;
         public void ExportCustomersToCsv(string filePath) => ExportCalled = true;
+        public void AddCustomer(Customer customer) => throw new System.NotImplementedException();
+        public void UpdateCustomer(Customer customer) => throw new System.NotImplementedException();
+        public void DeleteCustomer(int customerID) => throw new System.NotImplementedException();
+        public Customer GetCustomerByID(int customerID) => throw new System.NotImplementedException();
+        public List<Customer> GetAllCustomers() => new();
+        public List<Customer> SearchCustomers(string searchTerm) => new();
+    }
+
+    class FailCustomerService : ICustomerService
+    {
+        public void ImportCustomersFromCsv(string filePath, IDictionary<string, string> map) => throw new System.Exception("fail");
+        public void ExportCustomersToCsv(string filePath) => throw new System.Exception("fail");
         public void AddCustomer(Customer customer) => throw new System.NotImplementedException();
         public void UpdateCustomer(Customer customer) => throw new System.NotImplementedException();
         public void DeleteCustomer(int customerID) => throw new System.NotImplementedException();
