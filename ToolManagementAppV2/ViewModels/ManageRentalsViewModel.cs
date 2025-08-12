@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows;
+using System.Windows.Documents;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.ViewModels.Rental;
@@ -169,7 +171,49 @@ namespace ToolManagementAppV2.ViewModels
         {
             if (SelectedRental == null)
                 return;
-            // TODO: Implement printing logic if needed
+            var doc = new FlowDocument
+            {
+                PagePadding = new Thickness(40),
+                FontFamily = new System.Windows.Media.FontFamily("Calibri"),
+                FontSize = 16
+            };
+
+            doc.Blocks.Add(new Paragraph(new Bold(new Run("Rental Information")))
+            {
+                FontSize = 22,
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0, 0, 0, 20)
+            });
+
+            var table = new Table();
+            table.Columns.Add(new TableColumn { Width = new GridLength(150) });
+            table.Columns.Add(new TableColumn());
+            var group = new TableRowGroup();
+            table.RowGroups.Add(group);
+
+            void AddRow(string label, string value)
+            {
+                var row = new TableRow();
+                row.Cells.Add(new TableCell(new Paragraph(new Run(label))
+                {
+                    FontWeight = FontWeights.Bold
+                }));
+                row.Cells.Add(new TableCell(new Paragraph(new Run(value ?? string.Empty))));
+                group.Rows.Add(row);
+            }
+
+            AddRow("Rental #:", SelectedRental.RentalID.ToString());
+            AddRow("Tool #:", SelectedRental.ToolNumber);
+            AddRow("Customer:", SelectedRental.CustomerName);
+            AddRow("Rental Date:", SelectedRental.RentalDate.ToString("yyyy-MM-dd HH:mm"));
+            AddRow("Due Date:", SelectedRental.DueDate.ToString("yyyy-MM-dd HH:mm"));
+            AddRow("Return Date:", SelectedRental.ReturnDate?.ToString("yyyy-MM-dd HH:mm") ?? "N/A");
+            AddRow("Status:", SelectedRental.Status ?? string.Empty);
+
+            doc.Blocks.Add(table);
+
+            var preview = new PrintPreviewWindow();
+            preview.ShowPreview(doc, $"Rental {SelectedRental.RentalID}", string.Empty);
         }
 
         void DeleteRental()
