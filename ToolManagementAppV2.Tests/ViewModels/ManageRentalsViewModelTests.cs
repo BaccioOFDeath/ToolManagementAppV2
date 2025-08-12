@@ -95,5 +95,23 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void CloseCommand_DoesNotThrowWithoutWindow()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var rentalService = new RentalService(db);
+                var vm = new ManageRentalsViewModel(rentalService);
+                vm.CloseCommand.Execute(null);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }
