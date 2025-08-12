@@ -24,7 +24,7 @@ namespace ToolManagementAppV2.Utilities.Converters
         /// <c>null</c> when <c>false</c>. Returns <see cref="Binding.DoNothing"/>
         /// for non-boolean inputs.
         /// </summary>
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             try
             {
