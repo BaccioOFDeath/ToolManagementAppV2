@@ -4,7 +4,18 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="{StaticResource BackgroundBrush}">
     <Grid Margin="8">
-        <Border Style="{StaticResource Card}" Padding="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Style="{StaticResource Card}" Padding="12">
+            <Button Style="{StaticResource PrimaryButton}"
+                    Content="Refresh"
+                    Command="{Binding RefreshCommand}"/>
+        </Border>
+
+        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
             <DataGrid ItemsSource="{Binding Logs}" IsReadOnly="True" AutoGenerateColumns="True"/>
         </Border>
     </Grid>
