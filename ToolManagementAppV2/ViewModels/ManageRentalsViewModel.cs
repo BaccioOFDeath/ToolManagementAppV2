@@ -72,8 +72,16 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
+        private bool _isFilterPanelVisible;
+        public bool IsFilterPanelVisible
+        {
+            get => _isFilterPanelVisible;
+            set => SetProperty(ref _isFilterPanelVisible, value);
+        }
+
         public IRelayCommand ApplyFilterCommand { get; }
         public IRelayCommand ClearFilterCommand { get; }
+        public IRelayCommand ToggleFilterPanelCommand { get; }
         public IRelayCommand CheckInCommand { get; }
         public IRelayCommand ExtendCommand { get; }
         public IRelayCommand OpenHistoryCommand { get; }
@@ -86,6 +94,7 @@ namespace ToolManagementAppV2.ViewModels
 
             ApplyFilterCommand = new RelayCommand(ApplyFilter);
             ClearFilterCommand = new RelayCommand(ClearFilter);
+            ToggleFilterPanelCommand = new RelayCommand(() => IsFilterPanelVisible = !IsFilterPanelVisible);
             CheckInCommand = new RelayCommand(CheckIn, () => SelectedRental != null);
             ExtendCommand = new RelayCommand(Extend, () => SelectedRental != null);
             OpenHistoryCommand = new RelayCommand(OpenHistory, () => SelectedRental != null);
@@ -120,6 +129,7 @@ namespace ToolManagementAppV2.ViewModels
                 filtered = filtered.Where(r => string.Equals(r.Status, SelectedStatus, StringComparison.OrdinalIgnoreCase));
 
             Rentals.ReplaceRange(filtered);
+            IsFilterPanelVisible = false;
         }
 
         void ClearFilter()
@@ -129,6 +139,7 @@ namespace ToolManagementAppV2.ViewModels
             FilterTo = null;
             SelectedStatus = StatusOptions.First();
             Rentals.ReplaceRange(_allRentals);
+            IsFilterPanelVisible = false;
         }
 
         void CheckIn()
