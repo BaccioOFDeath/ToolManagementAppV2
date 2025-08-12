@@ -8,6 +8,9 @@ namespace ToolManagementAppV2.ViewModels
 {
     public class ToolEditViewModel : ObservableObject
     {
+        /// <summary>
+        /// Service used to display file dialogs for selecting tool images.
+        /// </summary>
         private readonly IFileDialogService _fileDialog;
 
         public ToolModel Tool { get; }
@@ -15,9 +18,23 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand SaveCommand { get; }
         public IRelayCommand CancelCommand { get; }
 
+        /// <summary>
+        /// Opens a file dialog to select an image and updates <see cref="Tool.ToolImagePath"/>.
+        /// </summary>
         public IRelayCommand BrowseImageCommand { get; }
+
+        /// <summary>
+        /// Clears the current <see cref="Tool.ToolImagePath"/> and removes the preview.
+        /// </summary>
         public IRelayCommand RemoveImageCommand { get; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ToolEditViewModel"/> class.
+        /// </summary>
+        /// <param name="tool">The tool being edited.</param>
+        /// <param name="onSave">Action invoked to persist the tool changes.</param>
+        /// <param name="onCancel">Action invoked when editing is canceled.</param>
+        /// <param name="fileDialog">Service used for browsing image files.</param>
         public ToolEditViewModel(ToolModel tool, Action onSave, Action onCancel, IFileDialogService fileDialog)
         {
             Tool = tool;
