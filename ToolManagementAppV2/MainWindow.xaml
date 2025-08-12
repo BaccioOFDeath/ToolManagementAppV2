@@ -62,7 +62,7 @@
                         <Separator/>
 
                         <TextBlock Text="Administration" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
-                        <Button Style="{StaticResource NavButton}" Content="Settings" Command="{Binding OpenSettingsWindowCommand}" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
+                        <Button Style="{StaticResource NavButton}" Content="Settings" Command="{Binding OpenSettingsCommand}" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
 
                         <Separator/>
 

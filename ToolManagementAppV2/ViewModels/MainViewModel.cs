@@ -95,7 +95,6 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand OpenPrintPreviewWindowCommand { get; }
         public IRelayCommand OpenPrintLabelWindowCommand { get; }
         public IRelayCommand OpenScannerStatusWindowCommand { get; }
-        public IRelayCommand OpenSettingsWindowCommand { get; }
         public IRelayCommand OpenPasswordPromptWindowCommand { get; }
         public IRelayCommand OpenImportMappingWindowCommand { get; }
         public IRelayCommand OpenImageImportMappingWindowCommand { get; }
@@ -236,12 +235,6 @@ namespace ToolManagementAppV2.ViewModels
             {
                 // Avoid missing VM type by opening the window directly
                 var win = new ScannerStatusWindow();
-                win.ShowDialog();
-            });
-
-            OpenSettingsWindowCommand = new RelayCommand(() =>
-            {
-                var win = new SettingsWindow();
                 win.ShowDialog();
             });
 
