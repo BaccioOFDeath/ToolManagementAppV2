@@ -37,6 +37,9 @@ namespace ToolManagementAppV2.Utilities.Helpers
 
         public static bool VerifyPassword(string password, string salt, string hash)
         {
+            if (string.IsNullOrEmpty(salt))
+                return false;
+
             var computed = HashPassword(password, salt);
             return computed == hash;
         }
