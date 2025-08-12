@@ -70,9 +70,9 @@ namespace ToolManagementAppV2.Services.Users
         {
             const string sql = @"
                 INSERT INTO Users
-                  (UserName, Password, Salt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role)
+                  (UserName, Password, Salt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt)
                 VALUES
-                  (@UserName,@Password,@Salt,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role);
+                  (@UserName,@Password,@Salt,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role,@IsActive,@CreatedAt);
                 SELECT last_insert_rowid();";
 
             using var conn = _dbService.CreateConnection();
@@ -93,6 +93,8 @@ namespace ToolManagementAppV2.Services.Users
                 }
             }
 
+            if (user.CreatedAt == default)
+                user.CreatedAt = DateTime.UtcNow;
             cmd.Parameters.AddRange(new[]
             {
                 new SQLiteParameter("@UserName", user.UserName),
@@ -104,7 +106,9 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@Phone",    (object)user.Phone ?? DBNull.Value),
                 new SQLiteParameter("@Mobile",   (object)user.Mobile ?? DBNull.Value),
                 new SQLiteParameter("@Address",  (object)user.Address ?? DBNull.Value),
-                new SQLiteParameter("@Role",     (object)user.Role ?? DBNull.Value)
+                new SQLiteParameter("@Role",     (object)user.Role ?? DBNull.Value),
+                new SQLiteParameter("@IsActive", user.IsActive ? 1 : 0),
+                new SQLiteParameter("@CreatedAt", user.CreatedAt)
             });
             user.UserID = Convert.ToInt32(cmd.ExecuteScalar());
             user.Password = hashed;
@@ -124,7 +128,8 @@ namespace ToolManagementAppV2.Services.Users
                   Phone         = @Phone,
                   Mobile        = @Mobile,
                   Address       = @Address,
-                  Role          = @Role
+                  Role          = @Role,
+                  IsActive      = @IsActive
                 WHERE UserID = @UserID";
 
             string hashed = user.Password;
@@ -146,7 +151,8 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@Phone",    (object)user.Phone ?? DBNull.Value),
                 new SQLiteParameter("@Mobile",   (object)user.Mobile ?? DBNull.Value),
                 new SQLiteParameter("@Address",  (object)user.Address ?? DBNull.Value),
-                new SQLiteParameter("@Role",     (object)user.Role ?? DBNull.Value)
+                new SQLiteParameter("@Role",     (object)user.Role ?? DBNull.Value),
+                new SQLiteParameter("@IsActive", user.IsActive ? 1 : 0)
             };
 
             using var conn = _dbService.CreateConnection();
@@ -213,6 +219,8 @@ namespace ToolManagementAppV2.Services.Users
                 Mobile = rdr["Mobile"]?.ToString(),
                 Address = rdr["Address"]?.ToString(),
                 Role = rdr["Role"]?.ToString(),
+                IsActive = Convert.ToInt32(rdr["IsActive"]) == 1,
+                CreatedAt = rdr["CreatedAt"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(rdr["CreatedAt"])
             };
         }
     }
