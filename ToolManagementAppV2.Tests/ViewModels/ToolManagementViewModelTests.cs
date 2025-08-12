@@ -3,6 +3,8 @@ using System.Linq;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Customers;
+using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.ViewModels;
 using Xunit;
@@ -19,7 +21,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
-                var vm = new ToolManagementViewModel(toolService);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
                 toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Saw" });
                 vm.SearchTerm = "Ham";
@@ -42,13 +46,38 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
-                var vm = new ToolManagementViewModel(toolService);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
                 toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Cordless Drill" });
                 vm.SearchTerm = string.Empty;
                 vm.SearchCommand.Execute(null);
                 Assert.Single(vm.HandTools);
                 Assert.Single(vm.PowerTools);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void SearchCommand_FiltersToolsBySelectedCategory()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                var vm = new ToolManagementViewModel(toolService);
+                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" });
+                toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Saw", Brand = "BrandB" });
+                vm.SelectedCategory = "BrandA";
+                vm.SearchCommand.Execute(null);
+                Assert.Single(vm.SearchResults);
+                Assert.Equal("BrandA", vm.SearchResults.First().Brand);
             }
             finally
             {
@@ -65,7 +94,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
-                var vm = new ToolManagementViewModel(toolService);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
                 vm.NewTool.ToolNumber = "TN1";
                 vm.NewTool.NameDescription = "Hammer";
                 vm.NewTool.PartNumber = "PN1";
@@ -74,7 +105,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 vm.NewTool.QuantityOnHand = 5;
                 vm.NewTool.Supplier = "ABC";
                 vm.NewTool.Notes = "Note";
-                vm.AddToolCommand.Execute(null);
+                vm.NewToolCommand.Execute(null);
                 var tools = toolService.GetAllTools();
                 Assert.Single(tools);
                 var tool = tools.First();
@@ -102,7 +133,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
-                var vm = new ToolManagementViewModel(toolService);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
                 var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer" };
                 toolService.AddTool(tool);
                 vm.LoadTools();
@@ -128,7 +161,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
-                var vm = new ToolManagementViewModel(toolService);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
                 var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer" };
                 toolService.AddTool(tool);
                 vm.LoadTools();
@@ -136,6 +171,33 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 vm.DeleteToolCommand.Execute(null);
                 Assert.Empty(toolService.GetAllTools());
                 Assert.Empty(vm.Tools);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void OpenRentalsCommand_CanExecuteDependsOnSelectedTool()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
+
+                Assert.False(vm.OpenRentalsCommand.CanExecute(null));
+
+                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
+                vm.LoadTools();
+                vm.SelectedTool = vm.Tools.First();
+
+                Assert.True(vm.OpenRentalsCommand.CanExecute(null));
             }
             finally
             {

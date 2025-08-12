@@ -17,7 +17,10 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBox Grid.Column="0" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
-                <ComboBox Grid.Column="1" ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}" Margin="8,0,0,0"/>
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding Categories}"
+                          SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
+                          Margin="8,0,0,0"/>
                 <Button Grid.Column="2" Style="{StaticResource PrimaryButton}" Content="Search" Command="{Binding SearchCommand}" Margin="8,0,0,0"/>
             </Grid>
         </Border>

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Windows.Documents;
+using System.Linq;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Models.Domain;
@@ -76,7 +76,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void ReportsViewModel_GenerateSummaryReport_SetsDocument()
+        public void ReportsViewModel_RunReport_PopulatesResults()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -84,8 +84,10 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var db = new DatabaseService(dbPath);
                 var reportService = new ReportService(new StubToolService(), new StubRentalService(), new ActivityLogService(db), new StubCustomerService(), new StubUserService());
                 var vm = new ReportsViewModel(reportService);
-                vm.GenerateSummaryReportCommand.Execute(null);
-                Assert.NotNull(vm.CurrentReport);
+                vm.SelectedReport = vm.ReportTypes.First();
+                vm.RunReportCommand.Execute(null);
+                Assert.NotNull(vm.ReportResults);
+                Assert.True(vm.ReportResults.Rows.Count > 0);
             }
             finally
             {
