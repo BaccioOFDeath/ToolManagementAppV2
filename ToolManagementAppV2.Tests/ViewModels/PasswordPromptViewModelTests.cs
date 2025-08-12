@@ -1,4 +1,6 @@
 using ToolManagementAppV2.ViewModels;
+using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Models.Domain;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.ViewModels
@@ -10,7 +12,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             bool success = false;
             string? error = null;
-            var vm = new PasswordPromptViewModel(() => success = true, () => { }, m => error = m)
+            var vm = new PasswordPromptViewModel(new StubDialogService(), () => success = true, () => { }, m => error = m)
             {
                 ValidatePassword = p => p == "secret"
             };
@@ -27,7 +29,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             bool success = false;
             string? error = null;
-            var vm = new PasswordPromptViewModel(() => success = true, () => { }, m => error = m)
+            var vm = new PasswordPromptViewModel(new StubDialogService(), () => success = true, () => { }, m => error = m)
             {
                 ValidatePassword = p => p == "secret"
             };
@@ -38,5 +40,47 @@ namespace ToolManagementAppV2.Tests.ViewModels
             Assert.False(success);
             Assert.Equal("Incorrect password. Please try again.", error);
         }
+
+        [Fact]
+        public void ResetPasswordCommand_ShowsInfo_ForNonAdmin()
+        {
+            var dialog = new StubDialogService();
+            bool success = false;
+            var vm = new PasswordPromptViewModel(dialog, () => success = true, () => { }, _ => { })
+            {
+                SelectedUser = new User { IsAdmin = false }
+            };
+
+            vm.ResetPasswordCommand.Execute(null);
+
+            Assert.True(dialog.InfoShown);
+            Assert.False(success);
+            Assert.False(vm.IsPasswordResetRequested);
+        }
+
+        [Fact]
+        public void ResetPasswordCommand_SetsFlag_WhenConfirmed()
+        {
+            var dialog = new StubDialogService { ConfirmationResult = true };
+            bool success = false;
+            var vm = new PasswordPromptViewModel(dialog, () => success = true, () => { }, _ => { })
+            {
+                SelectedUser = new User { IsAdmin = true }
+            };
+
+            vm.ResetPasswordCommand.Execute(null);
+
+            Assert.True(success);
+            Assert.True(vm.IsPasswordResetRequested);
+        }
+    }
+
+    class StubDialogService : IDialogService
+    {
+        public bool InfoShown { get; private set; }
+        public bool ConfirmationResult { get; set; }
+
+        public void ShowInfo(string message, string title) => InfoShown = true;
+        public bool ShowConfirmation(string message, string title) => ConfirmationResult;
     }
 }

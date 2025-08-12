@@ -1,7 +1,6 @@
 ﻿// Views/PasswordPromptWindow.xaml.cs
 using System;
 using System.Windows;
-using System.Windows.Input;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services;
@@ -13,7 +12,6 @@ namespace ToolManagementAppV2.Views
     {
         private const int MaxAttempts = 2;
         private int _attemptCount;
-        readonly IDialogService _dialogService;
 
         public PasswordPromptViewModel VM => (PasswordPromptViewModel)DataContext;
         public string EnteredPassword => VM.EnteredPassword;
@@ -36,8 +34,8 @@ namespace ToolManagementAppV2.Views
         public PasswordPromptWindow(IDialogService dialogService)
         {
             InitializeComponent();
-            _dialogService = dialogService;
             DataContext = new PasswordPromptViewModel(
+                dialogService,
                 () => { DialogResult = true; },
                 () => { DialogResult = false; },
                 ShowError);
@@ -67,30 +65,12 @@ namespace ToolManagementAppV2.Views
             ErrorTextBlock.Text = message;
             ErrorTextBlock.Visibility = Visibility.Visible;
 
-            ForgotPasswordTextBlock.Visibility = _attemptCount >= MaxAttempts
+            ForgotPasswordButton.Visibility = _attemptCount >= MaxAttempts
                 ? Visibility.Visible
                 : Visibility.Collapsed;
 
             PasswordBox.Clear();
             PasswordBox.Focus();
-        }
-
-        private void ForgotPasswordTextBlock_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            if (SelectedUser?.IsAdmin != true)
-            {
-                _dialogService.ShowInfo(
-                    "Password recovery is only available for admin users.",
-                    "Not Allowed");
-                return;
-            }
-
-            if (!_dialogService.ShowConfirmation(
-                "You have entered the wrong password multiple times. Reset to default and change it after login?",
-                "Reset Password")) return;
-
-            IsPasswordResetRequested = true;
-            DialogResult = true;
         }
     }
 }
