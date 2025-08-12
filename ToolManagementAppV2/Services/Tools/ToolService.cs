@@ -20,8 +20,8 @@ namespace ToolManagementAppV2.Services.Tools
         const string AllToolsSql = "SELECT * FROM Tools";
         const string UpsertToolCsv = @"
             INSERT INTO Tools
-              (ToolNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, IsCheckedOut)
-            VALUES (@ToolNumber,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Keywords,@Avail,@Rent,0);
+              (ToolNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, ToolImagePath, IsCheckedOut)
+            VALUES (@ToolNumber,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Keywords,@Avail,@Rent,@Img,0);
             SELECT last_insert_rowid();";
     
         public ToolService(DatabaseService dbService)
@@ -248,7 +248,8 @@ namespace ToolManagementAppV2.Services.Tools
                 new SQLiteParameter("@Notes", (object)tool.Notes ?? DBNull.Value),
                 new SQLiteParameter("@Keywords", (object)tool.Keywords ?? DBNull.Value),
                 new SQLiteParameter("@Avail", tool.QuantityOnHand),
-                new SQLiteParameter("@Rent", tool.RentedQuantity)
+                new SQLiteParameter("@Rent", tool.RentedQuantity),
+                new SQLiteParameter("@Img", (object)tool.ToolImagePath ?? DBNull.Value)
             };
             using var cmd = new SQLiteCommand(UpsertToolCsv, conn, tran);
             cmd.Parameters.AddRange(p);
