@@ -13,7 +13,7 @@ namespace ToolManagementAppV2.Utilities.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            return value is int i ? i : Binding.DoNothing;
         }
     }
 }

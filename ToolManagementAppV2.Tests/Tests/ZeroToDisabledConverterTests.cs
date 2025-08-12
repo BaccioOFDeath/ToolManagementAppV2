@@ -30,10 +30,19 @@ namespace ToolManagementAppV2.Tests
         }
 
         [Fact]
-        public void ConvertBack_Throws()
+        public void ConvertBack_Bool_ReturnsBindingDoNothing()
         {
             var c = new ZeroToDisabledConverter();
-            Assert.Throws<NotImplementedException>(() => c.ConvertBack(true, typeof(int), null, CultureInfo.InvariantCulture));
+            var result = c.ConvertBack(true, typeof(int), null, CultureInfo.InvariantCulture);
+            Assert.Equal(System.Windows.Data.Binding.DoNothing, result);
+        }
+
+        [Fact]
+        public void ConvertBack_Int_ReturnsSameValue()
+        {
+            var c = new ZeroToDisabledConverter();
+            var result = c.ConvertBack(3, typeof(int), null, CultureInfo.InvariantCulture);
+            Assert.Equal(3, result);
         }
     }
 }
