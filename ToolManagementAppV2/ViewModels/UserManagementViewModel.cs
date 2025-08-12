@@ -37,6 +37,7 @@ namespace ToolManagementAppV2.ViewModels
                     ((RelayCommand)UpdateUserCommand).NotifyCanExecuteChanged();
                     ((RelayCommand)DeleteUserCommand).NotifyCanExecuteChanged();
                     ((RelayCommand)ResetPasswordCommand).NotifyCanExecuteChanged();
+                    ((RelayCommand)EditUserCommand).NotifyCanExecuteChanged();
                 }
             }
         }
