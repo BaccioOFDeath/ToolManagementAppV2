@@ -53,11 +53,34 @@ namespace ToolManagementAppV2.Tests.Tests
                 var page = new ManageRentalsPage { DataContext = vm };
 
                 var grid = (Grid)page.Content;
-                var stack = (StackPanel)grid.Children[0];
-                var toolbar = (ToolBar)stack.Children[1];
-                var button = (Button)toolbar.Items[0];
+                var toolbar = (ToolBar)grid.Children[0];
+                var button = (Button)toolbar.Items[1];
 
                 Assert.Equal(vm.CheckInCommand, button.Command);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void Toolbar_FilterButton_BindsToToggleFilterPanelCommand()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var rentalService = new RentalService(db);
+                var vm = new ManageRentalsViewModel(rentalService);
+                var page = new ManageRentalsPage { DataContext = vm };
+
+                var grid = (Grid)page.Content;
+                var toolbar = (ToolBar)grid.Children[0];
+                var button = (Button)toolbar.Items[0];
+
+                Assert.Equal(vm.ToggleFilterPanelCommand, button.Command);
             }
             finally
             {
