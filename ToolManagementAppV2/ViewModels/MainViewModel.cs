@@ -7,6 +7,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using Forms = System.Windows.Forms;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services;
@@ -88,6 +89,8 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand OpenImportExportCommand { get; }
         public IRelayCommand OpenActivityLogsCommand { get; }
         public IRelayCommand OpenReportsCommand { get; }
+        public IRelayCommand OpenImportMappingWindowCommand { get; }
+        public IRelayCommand OpenImageImportMappingWindowCommand { get; }
         public IRelayCommand ExitCommand { get; }
         public IRelayCommand GlobalSearchCommand { get; }
 
@@ -95,10 +98,6 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand OpenPrintPreviewWindowCommand { get; }
         public IRelayCommand OpenPrintLabelWindowCommand { get; }
         public IRelayCommand OpenScannerStatusWindowCommand { get; }
-        public IRelayCommand OpenPasswordPromptWindowCommand { get; }
-        public IRelayCommand OpenImportMappingWindowCommand { get; }
-        public IRelayCommand OpenImageImportMappingWindowCommand { get; }
-        public IRelayCommand OpenRentToolPopupWindowCommand { get; }
 
         public MainViewModel(IToolService toolService,
                              IUserService userService,
@@ -195,6 +194,41 @@ namespace ToolManagementAppV2.ViewModels
                 CurrentPage = page;
             });
 
+            OpenImportMappingWindowCommand = new RelayCommand(() =>
+            {
+                var path = fileDialogService.OpenFile("CSV Files|*.csv");
+                if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+                    return;
+
+                var headers = File.ReadLines(path).First().Split(',');
+                var properties = typeof(ToolModel).GetProperties().Select(p => p.Name);
+                var win = new ImportMappingWindow(headers, properties);
+                if (win.ShowDialog() == true)
+                {
+                    var map = win.VM.Mappings.ToDictionary(m => m.SelectedColumn, m => m.PropertyName);
+                    var invalid = _toolService.ImportToolsFromCsv(path, map);
+                    var msg = invalid.Count == 0
+                        ? "Successfully imported tools."
+                        : $"Imported with {invalid.Count} invalid rows.";
+                    MessageBox.Show(msg, "Import Tools");
+                }
+            });
+
+            OpenImageImportMappingWindowCommand = new RelayCommand(() =>
+            {
+                using var dlg = new Forms.FolderBrowserDialog();
+                if (dlg.ShowDialog() != Forms.DialogResult.OK)
+                    return;
+                var win = new ImageImportMappingWindow();
+                if (win.ShowDialog() == true)
+                {
+                    var result = _toolService.ImportToolImages(dlg.SelectedPath, win.VM.BuildSelector());
+                    MessageBox.Show(
+                        $"Imported {result.ImportedCount} images. Unmatched: {result.UnmatchedFiles.Count}, Conflicts: {result.ConflictingFiles.Count}",
+                        "Import Images");
+                }
+            });
+
             GlobalSearchCommand = new RelayCommand(() =>
             {
                 ToolManagement.SearchText = GlobalSearchText;
@@ -235,35 +269,6 @@ namespace ToolManagementAppV2.ViewModels
             {
                 // Avoid missing VM type by opening the window directly
                 var win = new ScannerStatusWindow();
-                win.ShowDialog();
-            });
-
-            OpenPasswordPromptWindowCommand = new RelayCommand(() =>
-            {
-                var win = new PasswordPromptWindow(new DialogService()) { SelectedUser = System.Windows.Application.Current.Properties["CurrentUser"] as User };
-                win.ShowDialog();
-            });
-
-            OpenImportMappingWindowCommand = new RelayCommand(() =>
-            {
-                // Constructor requires (IEnumerable<string> headers, IEnumerable<string> data)
-                var headers = new List<string>();
-                var data = new List<string>();
-                var win = new ImportMappingWindow(headers, data);
-                win.ShowDialog();
-            });
-
-            OpenImageImportMappingWindowCommand = new RelayCommand(() =>
-            {
-                var win = new ImageImportMappingWindow();
-                win.ShowDialog();
-            });
-
-            OpenRentToolPopupWindowCommand = new RelayCommand(() =>
-            {
-                // Constructor requires (Tool tool, IEnumerable<Customer> customers)
-                var vm = new RentToolPopupViewModel(null, Enumerable.Empty<Customer>());
-                var win = new RentToolPopupWindow { DataContext = vm };
                 win.ShowDialog();
             });
 
