@@ -210,4 +210,5 @@ class StubFileDialogService : IFileDialogService
 {
     public string FileToReturn { get; set; }
     public string OpenFile(string filter) => FileToReturn;
+    public string SaveFile(string filter) => FileToReturn;
 }

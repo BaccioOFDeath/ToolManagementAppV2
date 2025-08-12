@@ -60,4 +60,5 @@ namespace ToolManagementAppV2.Tests.Tests
 class StubFileDialogService : IFileDialogService
 {
     public string OpenFile(string filter) => null;
+    public string SaveFile(string filter) => null;
 }
