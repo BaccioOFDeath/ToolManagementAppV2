@@ -200,8 +200,15 @@ namespace ToolManagementAppV2.ViewModels
                 if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
                     return;
 
-                var headers = File.ReadLines(path).First().Split(',');
-                var properties = typeof(ToolModel).GetProperties().Select(p => p.Name);
+                var headers = File.ReadLines(path)
+                                   .First()
+                                   .Split(',')
+                                   .Select(h => h.Trim())
+                                   .ToList();
+                var properties = typeof(ToolModel)
+                                    .GetProperties()
+                                    .Select(p => p.Name)
+                                    .ToList();
                 var win = new ImportMappingWindow(headers, properties);
                 if (win.ShowDialog() == true)
                 {
