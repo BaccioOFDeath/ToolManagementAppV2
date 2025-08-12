@@ -1,5 +1,6 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.ViewModels.Rental;
 using Xunit;
@@ -9,20 +10,47 @@ namespace ToolManagementAppV2.Tests.ViewModels
     public class RentalHistoryViewModelTests
     {
         [Fact]
-        public void Constructor_SetsDisplayNameAndHistory()
+        public void SearchCommand_FiltersHistory()
         {
-            var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer" };
-            var rentals = new List<Rental>
+            var history = new List<Rental>
             {
-                new Rental { RentalID = 1, ToolID = tool.ToolID, CustomerID = 1 },
-                new Rental { RentalID = 2, ToolID = tool.ToolID, CustomerID = 2 }
+                new Rental { RentalID = 1, ToolNumber = "T1", CustomerName = "Alice", Status = "Rented", RentalDate=DateTime.Today, DueDate=DateTime.Today },
+                new Rental { RentalID = 2, ToolNumber = "T2", CustomerName = "Bob", Status = "Returned", RentalDate=DateTime.Today, DueDate=DateTime.Today }
             };
+            var vm = new RentalHistoryViewModel(null, history);
 
-            var vm = new RentalHistoryViewModel(tool, rentals);
+            vm.SearchText = "T1";
+            vm.SearchCommand.Execute(null);
 
-            Assert.Equal("T1 - Hammer", vm.ToolDisplayName);
-            Assert.Equal(2, vm.History.Count);
-            Assert.Equal(rentals.First().RentalID, vm.History[0].RentalID);
+            Assert.Single(vm.History);
+            Assert.Equal(1, vm.History[0].RentalID);
+        }
+
+        [Fact]
+        public void ExportCsvCommand_CreatesFile()
+        {
+            var history = new List<Rental>
+            {
+                new Rental { RentalID = 1, ToolNumber = "T1", CustomerName = "Alice", Status = "Rented", RentalDate=DateTime.Today, DueDate=DateTime.Today }
+            };
+            var vm = new RentalHistoryViewModel(null, history);
+
+            var original = Environment.CurrentDirectory;
+            var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(tempDir);
+            Environment.CurrentDirectory = tempDir;
+            try
+            {
+                vm.ExportCsvCommand.Execute(null);
+                var expected = Path.Combine(tempDir, "rental_history.csv");
+                Assert.True(File.Exists(expected));
+            }
+            finally
+            {
+                Environment.CurrentDirectory = original;
+                if (Directory.Exists(tempDir))
+                    Directory.Delete(tempDir, true);
+            }
         }
     }
 }

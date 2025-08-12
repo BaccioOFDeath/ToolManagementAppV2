@@ -123,7 +123,7 @@ namespace ToolManagementAppV2.ViewModels
                 NameDescription = SelectedRental.ToolNumber
             };
             var vm = new RentalHistoryViewModel(tool, history);
-            var win = new RentalHistoryWindow { DataContext = vm, Title = $"Rental History - {tool.ToolNumber}" };
+            var win = new RentalHistoryWindow(vm) { Title = $"Rental History - {tool.ToolNumber}" };
             win.ShowDialog();
         }
     }
