@@ -23,7 +23,8 @@ namespace ToolManagementAppV2.Views
         public SettingsWindow()
         {
             InitializeComponent();
-            DataContext = new SettingsWindowViewModel(() => Close());
+            var settingsVm = new SettingsViewModel();
+            DataContext = new SettingsWindowViewModel(settingsVm, () => Close());
         }
     }
 }
