@@ -236,5 +236,61 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void ViewDetailsCommand_InvokesDialog()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
+                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer" };
+                toolService.AddTool(tool);
+                vm.LoadTools();
+                vm.SelectedTool = vm.Tools.First();
+                bool called = false;
+                Tool? passed = null;
+                vm.ViewDetailsDialog = t => { called = true; passed = t; };
+                vm.ViewDetailsCommand.Execute(null);
+                Assert.True(called);
+                Assert.Equal(vm.SelectedTool, passed);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void ViewDetailsCommand_CanExecuteDependsOnSelectedTool()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
+
+                Assert.False(vm.ViewDetailsCommand.CanExecute(null));
+
+                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
+                vm.LoadTools();
+                vm.SelectedTool = vm.Tools.First();
+
+                Assert.True(vm.ViewDetailsCommand.CanExecute(null));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }

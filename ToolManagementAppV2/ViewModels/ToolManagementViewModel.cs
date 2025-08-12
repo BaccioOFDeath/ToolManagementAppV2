@@ -52,6 +52,7 @@ namespace ToolManagementAppV2.ViewModels
                 {
                     ((RelayCommand)OpenRentalsCommand).NotifyCanExecuteChanged();
                     ((RelayCommand)EditToolCommand).NotifyCanExecuteChanged();
+                    ((RelayCommand)ViewDetailsCommand).NotifyCanExecuteChanged();
                 }
             }
         }
@@ -79,8 +80,10 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand EditToolCommand { get; }
         public IRelayCommand DeleteToolCommand { get; }
         public IRelayCommand OpenRentalsCommand { get; }
+        public IRelayCommand ViewDetailsCommand { get; }
 
         public Func<ToolModel, ToolModel?> EditToolDialog { get; set; }
+        public Action<ToolModel>? ViewDetailsDialog { get; set; }
 
         // Writable for TwoWay binding from XAML. Mirrors SearchTerm and triggers search.
         private string _searchText = string.Empty;
@@ -108,7 +111,9 @@ namespace ToolManagementAppV2.ViewModels
             EditToolCommand = new RelayCommand(EditTool, () => SelectedTool != null);
             DeleteToolCommand = new RelayCommand(DeleteTool);
             OpenRentalsCommand = new RelayCommand(OpenRentals, () => SelectedTool != null);
+            ViewDetailsCommand = new RelayCommand(ViewDetails, () => SelectedTool != null);
             EditToolDialog = DefaultEditToolDialog;
+            ViewDetailsDialog = DefaultViewDetailsDialog;
         }
 
         public void LoadTools()
@@ -175,6 +180,12 @@ namespace ToolManagementAppV2.ViewModels
             SelectedTool = Tools.FirstOrDefault(t => t.ToolID == updated.ToolID);
         }
 
+        void ViewDetails()
+        {
+            if (SelectedTool == null) return;
+            ViewDetailsDialog?.Invoke(SelectedTool);
+        }
+
         void DeleteTool()
         {
             if (SelectedTool == null) return;
@@ -235,6 +246,14 @@ namespace ToolManagementAppV2.ViewModels
                 onCancel: () => win.DialogResult = false);
             try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch { }
             try { return win.ShowDialog() == true ? tool : null; } catch { return null; }
+        }
+
+        void DefaultViewDetailsDialog(ToolModel tool)
+        {
+            ToolDetailsWindow win = null!;
+            win = new ToolDetailsWindow(tool);
+            try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch { }
+            try { win.ShowDialog(); } catch { }
         }
     }
 }

@@ -4,16 +4,12 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="{StaticResource BackgroundBrush}">
     <Grid Margin="8">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*"/>
-            <ColumnDefinition Width="3*"/>
-        </Grid.ColumnDefinitions>
-
-        <Border Style="{StaticResource Card}" Margin="0,0,8,0">
+        <Border Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <TextBlock Text="Tools" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
@@ -43,62 +39,10 @@
                         </GridView>
                     </ListView.View>
                 </ListView>
-            </Grid>
-        </Border>
-
-        <Border Grid.Column="1" Style="{StaticResource Card}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <TextBlock Text="Tool Details" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
-
-                <Grid Grid.Row="1">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="180"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Tool Number" VerticalAlignment="Center" Foreground="{StaticResource ForegroundMutedBrush}"/>
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedTool.ToolNumber}" Margin="8,4"/>
-
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Name" VerticalAlignment="Center" Foreground="{StaticResource ForegroundMutedBrush}"/>
-                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedTool.NameDescription}" Margin="8,4"/>
-
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Brand" VerticalAlignment="Center" Foreground="{StaticResource ForegroundMutedBrush}"/>
-                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedTool.Brand}" Margin="8,4"/>
-
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Location" VerticalAlignment="Center" Foreground="{StaticResource ForegroundMutedBrush}"/>
-                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedTool.Location}" Margin="8,4"/>
-
-                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Part #" VerticalAlignment="Center" Foreground="{StaticResource ForegroundMutedBrush}"/>
-                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SelectedTool.PartNumber}" Margin="8,4"/>
-
-                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Supplier" VerticalAlignment="Center" Foreground="{StaticResource ForegroundMutedBrush}"/>
-                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding SelectedTool.Supplier}" Margin="8,4"/>
-
-                    <StackPanel Grid.Row="6" Grid.ColumnSpan="2" Orientation="Vertical" Margin="0,8,0,0">
-                        <TextBlock Text="Notes" Foreground="{StaticResource ForegroundMutedBrush}"/>
-                        <ScrollViewer Height="90" VerticalScrollBarVisibility="Auto">
-                            <TextBlock Text="{Binding SelectedTool.Notes}" TextWrapping="Wrap"/>
-                        </ScrollViewer>
-                    </StackPanel>
-                </Grid>
 
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
                     <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditToolCommand}"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="View Details" Command="{Binding ViewDetailsCommand}" Margin="8,0,0,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="New" Command="{Binding NewToolCommand}" Margin="8,0,0,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Delete" Command="{Binding DeleteToolCommand}" Margin="8,0,0,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Rent" Command="{Binding OpenRentalsCommand}" Margin="8,0,0,0"/>
