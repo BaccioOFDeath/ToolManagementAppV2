@@ -73,6 +73,37 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
+        public void AddTool_WithImagePath_PersistsPath()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                IToolService service = new ToolService(dbService);
+
+                var tool = new Tool
+                {
+                    ToolNumber = "TIMG",
+                    NameDescription = "With Image",
+                    Location = "Loc",
+                    Brand = "Brand",
+                    PartNumber = "PN",
+                    ToolImagePath = "Images/test.jpg"
+                };
+
+                service.AddTool(tool);
+                var stored = service.GetAllTools().Single();
+
+                Assert.Equal("Images/test.jpg", stored.ToolImagePath);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public void AddTool_DuplicateToolNumber_Throws()
         {
             var dbPath = Path.GetTempFileName();
