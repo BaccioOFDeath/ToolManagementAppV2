@@ -49,7 +49,10 @@ namespace ToolManagementAppV2.ViewModels
             set
             {
                 if (SetProperty(ref _selectedTool, value))
+                {
                     ((RelayCommand)OpenRentalsCommand).NotifyCanExecuteChanged();
+                    ((RelayCommand)EditToolCommand).NotifyCanExecuteChanged();
+                }
             }
         }
 
@@ -73,9 +76,11 @@ namespace ToolManagementAppV2.ViewModels
 
         public IRelayCommand SearchCommand { get; }
         public IRelayCommand NewToolCommand { get; }
-        public IRelayCommand UpdateToolCommand { get; }
+        public IRelayCommand EditToolCommand { get; }
         public IRelayCommand DeleteToolCommand { get; }
         public IRelayCommand OpenRentalsCommand { get; }
+
+        public Func<ToolModel, ToolModel?> EditToolDialog { get; set; }
 
         // Writable for TwoWay binding from XAML. Mirrors SearchTerm and triggers search.
         private string _searchText = string.Empty;
@@ -100,10 +105,10 @@ namespace ToolManagementAppV2.ViewModels
             SearchCommand = new RelayCommand(FilterTools);
             NewToolCommand = new RelayCommand(AddTool);
             _customerService = customerService;
-
-            UpdateToolCommand = new RelayCommand(UpdateTool);
+            EditToolCommand = new RelayCommand(EditTool, () => SelectedTool != null);
             DeleteToolCommand = new RelayCommand(DeleteTool);
             OpenRentalsCommand = new RelayCommand(OpenRentals, () => SelectedTool != null);
+            EditToolDialog = DefaultEditToolDialog;
         }
 
         public void LoadTools()
@@ -144,13 +149,30 @@ namespace ToolManagementAppV2.ViewModels
             NewTool = new ToolModel();
         }
 
-        void UpdateTool()
+        void EditTool()
         {
             if (SelectedTool == null) return;
-            _toolService.UpdateTool(SelectedTool);
+
+            var clone = new ToolModel
+            {
+                ToolID = SelectedTool.ToolID,
+                ToolNumber = SelectedTool.ToolNumber,
+                PartNumber = SelectedTool.PartNumber,
+                NameDescription = SelectedTool.NameDescription,
+                Brand = SelectedTool.Brand,
+                Location = SelectedTool.Location,
+                QuantityOnHand = SelectedTool.QuantityOnHand,
+                Supplier = SelectedTool.Supplier,
+                Notes = SelectedTool.Notes
+            };
+
+            var updated = EditToolDialog?.Invoke(clone);
+            if (updated == null) return;
+
+            _toolService.UpdateTool(updated);
             LoadTools();
             FilterTools();
-            SelectedTool = null;
+            SelectedTool = Tools.FirstOrDefault(t => t.ToolID == updated.ToolID);
         }
 
         void DeleteTool()
@@ -203,6 +225,16 @@ namespace ToolManagementAppV2.ViewModels
                                    .ToList();
             categories.Insert(0, "All");
             Categories.ReplaceRange(categories);
+        }
+
+        ToolModel? DefaultEditToolDialog(ToolModel tool)
+        {
+            ToolEditWindow win = null!;
+            win = new ToolEditWindow(tool,
+                onSave: () => win.DialogResult = true,
+                onCancel: () => win.DialogResult = false);
+            try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch { }
+            try { return win.ShowDialog() == true ? tool : null; } catch { return null; }
         }
     }
 }

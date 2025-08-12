@@ -126,7 +126,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void UpdateToolCommand_UpdatesExistingTool()
+        public void EditToolCommand_UpdatesExistingTool_WhenDialogReturnsTool()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -140,11 +140,42 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 toolService.AddTool(tool);
                 vm.LoadTools();
                 vm.SelectedTool = vm.Tools.First();
-                vm.SelectedTool.NameDescription = "Updated Hammer";
-                vm.UpdateToolCommand.Execute(null);
+                vm.EditToolDialog = t =>
+                {
+                    t.NameDescription = "Updated Hammer";
+                    return t;
+                };
+                vm.EditToolCommand.Execute(null);
                 var updated = toolService.GetAllTools().First();
                 Assert.Equal("Updated Hammer", updated.NameDescription);
                 Assert.Equal("Updated Hammer", vm.Tools.First().NameDescription);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void EditToolCommand_DoesNothing_WhenDialogReturnsNull()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
+                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer" };
+                toolService.AddTool(tool);
+                vm.LoadTools();
+                vm.SelectedTool = vm.Tools.First();
+                vm.EditToolDialog = _ => null;
+                vm.EditToolCommand.Execute(null);
+                var unchanged = toolService.GetAllTools().First();
+                Assert.Equal("Hammer", unchanged.NameDescription);
             }
             finally
             {
