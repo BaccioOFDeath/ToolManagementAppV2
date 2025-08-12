@@ -98,7 +98,7 @@ namespace ToolManagementAppV2.ViewModels
                              IFileDialogService fileDialogService,
                              ActivityLogService activityLogService)
         {
-            ToolManagement = new ToolManagementViewModel(toolService);
+            ToolManagement = new ToolManagementViewModel(toolService, customerService, rentalService);
             UserManagement = new UserManagementViewModel(userService, fileDialogService);
             RentalManagement = new RentalManagementViewModel(customerService);
             Rentals = new RentalViewModel(rentalService);
