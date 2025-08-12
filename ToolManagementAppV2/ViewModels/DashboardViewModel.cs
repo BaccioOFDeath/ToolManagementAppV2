@@ -36,30 +36,30 @@ namespace ToolManagementAppV2.ViewModels
                                   IRelayCommand openRentalsCommand,
                                   IRelayCommand openImportExportCommand)
         {
-            _toolService = toolService;
-            _rentalService = rentalService;
-            _customerService = customerService;
-            _userService = userService;
-            _activityLogService = activityLogService;
-            _openManageToolsCommand = openManageToolsCommand;
-            _openRentalsCommand = openRentalsCommand;
-            _openImportExportCommand = openImportExportCommand;
+            _toolService = toolService ?? throw new ArgumentNullException(nameof(toolService));
+            _rentalService = rentalService ?? throw new ArgumentNullException(nameof(rentalService));
+            _customerService = customerService ?? throw new ArgumentNullException(nameof(customerService));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _activityLogService = activityLogService ?? throw new ArgumentNullException(nameof(activityLogService));
+            _openManageToolsCommand = openManageToolsCommand ?? throw new ArgumentNullException(nameof(openManageToolsCommand));
+            _openRentalsCommand = openRentalsCommand ?? throw new ArgumentNullException(nameof(openRentalsCommand));
+            _openImportExportCommand = openImportExportCommand ?? throw new ArgumentNullException(nameof(openImportExportCommand));
 
             NewToolCommand = new RelayCommand(() =>
             {
-                try { _openManageToolsCommand?.Execute(null); }
+                try { _openManageToolsCommand.Execute(null); }
                 catch (Exception ex) { Console.WriteLine(ex); }
             });
 
             OpenRentalsCommand = new RelayCommand(() =>
             {
-                try { _openRentalsCommand?.Execute(null); }
+                try { _openRentalsCommand.Execute(null); }
                 catch (Exception ex) { Console.WriteLine(ex); }
             });
 
             OpenImportExportCommand = new RelayCommand(() =>
             {
-                try { _openImportExportCommand?.Execute(null); }
+                try { _openImportExportCommand.Execute(null); }
                 catch (Exception ex) { Console.WriteLine(ex); }
             });
 

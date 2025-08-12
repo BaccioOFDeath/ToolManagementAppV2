@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using CommunityToolkit.Mvvm.Input;
 using ToolManagementAppV2.Interfaces;
@@ -49,6 +50,49 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 Assert.True(newTool);
                 Assert.True(rentals);
                 Assert.True(import);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Theory]
+        [InlineData("toolService")]
+        [InlineData("rentalService")]
+        [InlineData("customerService")]
+        [InlineData("userService")]
+        [InlineData("activityLogService")]
+        [InlineData("openManageToolsCommand")]
+        [InlineData("openRentalsCommand")]
+        [InlineData("openImportExportCommand")]
+        public void Constructor_ThrowsArgumentNull(string nullParam)
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                IUserService userService = new UserService(db);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
+                var activityLogService = new ActivityLogService(db);
+                IRelayCommand manageCmd = new RelayCommand(() => { });
+                IRelayCommand rentalsCmd = new RelayCommand(() => { });
+                IRelayCommand importCmd = new RelayCommand(() => { });
+
+                var ex = Assert.Throws<ArgumentNullException>(() => new DashboardViewModel(
+                    nullParam == "toolService" ? null : toolService,
+                    nullParam == "rentalService" ? null : rentalService,
+                    nullParam == "customerService" ? null : customerService,
+                    nullParam == "userService" ? null : userService,
+                    nullParam == "activityLogService" ? null : activityLogService,
+                    nullParam == "openManageToolsCommand" ? null : manageCmd,
+                    nullParam == "openRentalsCommand" ? null : rentalsCmd,
+                    nullParam == "openImportExportCommand" ? null : importCmd));
+
+                Assert.Equal(nullParam, ex.ParamName);
             }
             finally
             {
