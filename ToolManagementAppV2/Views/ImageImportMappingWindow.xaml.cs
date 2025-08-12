@@ -8,21 +8,11 @@ namespace ToolManagementAppV2.Views
         public ImageImportMappingWindow()
         {
             InitializeComponent();
-            DataContext = new ImageImportMappingViewModel();
+            DataContext = new ImageImportMappingViewModel(
+                () => { DialogResult = true; Close(); },
+                () => { DialogResult = false; Close(); });
         }
 
         public ImageImportMappingViewModel VM => (ImageImportMappingViewModel)DataContext;
-
-        private void Ok_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = true;
-            Close();
-        }
-
-        private void Cancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-            Close();
-        }
     }
 }

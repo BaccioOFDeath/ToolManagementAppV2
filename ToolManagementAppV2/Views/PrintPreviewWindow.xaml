@@ -25,9 +25,17 @@
                                VerticalAlignment="Center"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
-                    <Button Style="{StaticResource PrimaryButton}" Content="Page Setup" Click="PageSetup_Click"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Print" Margin="8,0,0,0" Click="Print_Click"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Close" Margin="8,0,0,0" Click="Close_Click"/>
+                    <Button Style="{StaticResource PrimaryButton}"
+                            Content="Page Setup"
+                            Command="{Binding PageSetupCommand}"/>
+                    <Button Style="{StaticResource PrimaryButton}"
+                            Content="Print"
+                            Margin="8,0,0,0"
+                            Command="{Binding PrintCommand}"/>
+                    <Button Style="{StaticResource PrimaryButton}"
+                            Content="Close"
+                            Margin="8,0,0,0"
+                            Command="{Binding CloseCommand}"/>
                 </StackPanel>
             </DockPanel>
         </Border>

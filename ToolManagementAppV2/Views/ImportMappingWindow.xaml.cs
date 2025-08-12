@@ -12,23 +12,13 @@ namespace ToolManagementAppV2.Views
         public ImportMappingWindow(IEnumerable<string> headers, IEnumerable<string> propertyNames)
         {
             InitializeComponent();
-            DataContext = new ImportMappingViewModel(headers, propertyNames);
+            DataContext = new ImportMappingViewModel(
+                headers,
+                propertyNames,
+                () => { DialogResult = true; Close(); },
+                () => { DialogResult = false; Close(); });
         }
 
         public ImportMappingViewModel VM => (ImportMappingViewModel)DataContext;
-
-        private void Ok_Click(object sender, RoutedEventArgs e)
-        {
-            if (VM.Mappings.Any(m => string.IsNullOrEmpty(m.SelectedColumn)))
-                return;
-            DialogResult = true;
-            Close();
-        }
-
-        private void Cancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-            Close();
-        }
     }
 }

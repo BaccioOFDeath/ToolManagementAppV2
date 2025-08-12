@@ -39,8 +39,15 @@
         </Border>
 
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Style="{StaticResource PrimaryButton}" Content="OK" Width="140" Click="Ok_Click"/>
-            <Button Style="{StaticResource PrimaryButton}" Content="Cancel" Width="140" Margin="8,0,0,0" Click="Cancel_Click"/>
+            <Button Style="{StaticResource PrimaryButton}"
+                    Content="OK"
+                    Width="140"
+                    Command="{Binding OkCommand}"/>
+            <Button Style="{StaticResource PrimaryButton}"
+                    Content="Cancel"
+                    Width="140"
+                    Margin="8,0,0,0"
+                    Command="{Binding CancelCommand}"/>
         </StackPanel>
     </DockPanel>
 </Window>

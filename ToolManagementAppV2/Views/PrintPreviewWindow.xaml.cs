@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media.Imaging;
 using System.Windows.Controls; // WPF PrintDialog
+using ToolManagementAppV2.ViewModels;
 
 namespace ToolManagementAppV2.Views
 {
@@ -16,6 +17,7 @@ namespace ToolManagementAppV2.Views
         public PrintPreviewWindow()
         {
             InitializeComponent();
+            DataContext = new PrintPreviewViewModel(OnPageSetup, OnPrint, Close);
         }
 
         public void ShowPreview(FlowDocument document, string title, string logoPath)
@@ -52,24 +54,19 @@ namespace ToolManagementAppV2.Views
             return new Uri("pack://application:,,,/Resources/DefaultLogo.png");
         }
 
-        private void PageSetup_Click(object sender, RoutedEventArgs e)
+        private void OnPageSetup()
         {
             DocViewer.FitToWidth();
         }
 
-        private void Print_Click(object sender, RoutedEventArgs e)
+        private void OnPrint()
         {
             if (_document == null) return;
             var dlg = new System.Windows.Controls.PrintDialog();
-            if (dlg.ShowDialog() == true) // ✅ Correct nullable bool check
+            if (dlg.ShowDialog() == true)
             {
                 dlg.PrintDocument(((IDocumentPaginatorSource)_document).DocumentPaginator, _title);
             }
-        }
-
-        private void Close_Click(object sender, RoutedEventArgs e)
-        {
-            Close();
         }
     }
 }
