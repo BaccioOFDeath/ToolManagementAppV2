@@ -28,6 +28,10 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 vm.UpdateUserCommand.Execute(null);
                 var updated = userService.GetAllUsers().First();
                 Assert.Equal("test@example.com", updated.Email);
+                var field = typeof(UserManagementViewModel).GetField("_allUsers", BindingFlags.NonPublic | BindingFlags.Instance);
+                var allUsers = (System.Collections.Generic.List<User>)field!.GetValue(vm);
+                Assert.Equal("test@example.com", vm.Users.First().Email);
+                Assert.Equal("test@example.com", allUsers.First().Email);
             }
             finally
             {
@@ -52,6 +56,10 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 vm.UploadUserPhotoCommand.Execute(null);
                 var updated = userService.GetAllUsers().First();
                 Assert.Equal("path/to/image.png", updated.UserPhotoPath);
+                var field = typeof(UserManagementViewModel).GetField("_allUsers", BindingFlags.NonPublic | BindingFlags.Instance);
+                var allUsers = (System.Collections.Generic.List<User>)field!.GetValue(vm);
+                Assert.Equal("path/to/image.png", vm.Users.First().UserPhotoPath);
+                Assert.Equal("path/to/image.png", allUsers.First().UserPhotoPath);
             }
             finally
             {
