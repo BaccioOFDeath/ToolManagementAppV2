@@ -33,6 +33,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 Assert.NotNull(vm.UserManagement);
                 Assert.NotNull(vm.RentalManagement);
                 Assert.NotNull(vm.Rentals);
+                Assert.NotNull(vm.ManageRentals);
                 Assert.NotNull(vm.ImportExport);
                 Assert.NotNull(vm.ActivityLogs);
                 Assert.NotNull(vm.Reports);
@@ -141,6 +142,32 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 var page = Assert.IsType<ReportsPage>(vm.CurrentPage);
                 Assert.IsType<ReportsViewModel>(page.DataContext);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void OpenRentalsCommand_NavigatesToManageRentalsPage()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                IUserService userService = new UserService(db);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
+                var activityLogService = new ActivityLogService(db);
+
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService(), activityLogService);
+                vm.OpenRentalsCommand.Execute(null);
+
+                var page = Assert.IsType<ManageRentalsPage>(vm.CurrentPage);
+                Assert.IsType<ManageRentalsViewModel>(page.DataContext);
             }
             finally
             {

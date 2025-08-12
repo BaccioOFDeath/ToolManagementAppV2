@@ -22,6 +22,7 @@ namespace ToolManagementAppV2.ViewModels
         public UserManagementViewModel UserManagement { get; }
         public RentalManagementViewModel RentalManagement { get; }
         public RentalViewModel Rentals { get; }
+        public ManageRentalsViewModel ManageRentals { get; }
         public ImportExportViewModel ImportExport { get; }
         public ActivityLogsViewModel ActivityLogs { get; }
         public ReportsViewModel Reports { get; }
@@ -101,6 +102,7 @@ namespace ToolManagementAppV2.ViewModels
             UserManagement = new UserManagementViewModel(userService, fileDialogService);
             RentalManagement = new RentalManagementViewModel(customerService);
             Rentals = new RentalViewModel(rentalService);
+            ManageRentals = new ManageRentalsViewModel(rentalService);
             ImportExport = new ImportExportViewModel(toolService, customerService, fileDialogService);
             Reports = new ReportsViewModel(new ReportService(toolService, rentalService, activityLogService, customerService, userService));
             ActivityLogs = new ActivityLogsViewModel(activityLogService);
@@ -128,8 +130,8 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenRentalsCommand = new RelayCommand(() =>
             {
-                Rentals.LoadRentals();
-                var page = new RentalsPage { DataContext = Rentals, Title = "Manage Rentals" };
+                ManageRentals.LoadRentals();
+                var page = new ManageRentalsPage { DataContext = ManageRentals, Title = "Manage Rentals" };
                 CurrentPage = page;
             });
 
