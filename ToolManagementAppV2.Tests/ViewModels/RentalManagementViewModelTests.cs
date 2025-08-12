@@ -3,6 +3,7 @@ using System.Linq;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.ViewModels;
 using Xunit;
 
@@ -11,20 +12,25 @@ namespace ToolManagementAppV2.Tests.ViewModels
     public class RentalManagementViewModelTests
     {
         [Fact]
-        public void AddCustomerCommand_PersistsNewCustomerValues()
+        public void AddCustomerCommand_UsesDialogValues()
         {
             var dbPath = Path.GetTempFileName();
             try
             {
                 var db = new DatabaseService(dbPath);
                 ICustomerService customerService = new CustomerService(db);
-                var vm = new RentalManagementViewModel(customerService);
-                vm.NewCustomerName = "ACME";
-                vm.NewCustomerEmail = "a@b.com";
-                vm.NewCustomerContact = "John";
-                vm.NewCustomerPhone = "123";
-                vm.NewCustomerMobile = "456";
-                vm.NewCustomerAddress = "Addr";
+                var vm = new RentalManagementViewModel(customerService)
+                {
+                    AddCustomerDialog = () => new CustomerModel
+                    {
+                        Company = "ACME",
+                        Email = "a@b.com",
+                        Contact = "John",
+                        Phone = "123",
+                        Mobile = "456",
+                        Address = "Addr"
+                    }
+                };
                 vm.AddCustomerCommand.Execute(null);
                 var customers = customerService.GetAllCustomers();
                 Assert.Single(customers);
@@ -35,12 +41,29 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 Assert.Equal("123", c.Phone);
                 Assert.Equal("456", c.Mobile);
                 Assert.Equal("Addr", c.Address);
-                Assert.True(string.IsNullOrEmpty(vm.NewCustomerName));
-                Assert.True(string.IsNullOrEmpty(vm.NewCustomerEmail));
-                Assert.True(string.IsNullOrEmpty(vm.NewCustomerContact));
-                Assert.True(string.IsNullOrEmpty(vm.NewCustomerPhone));
-                Assert.True(string.IsNullOrEmpty(vm.NewCustomerMobile));
-                Assert.True(string.IsNullOrEmpty(vm.NewCustomerAddress));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void AddCustomerCommand_CancelledDialog_DoesNotAdd()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                ICustomerService customerService = new CustomerService(db);
+                var vm = new RentalManagementViewModel(customerService)
+                {
+                    AddCustomerDialog = () => null
+                };
+                vm.AddCustomerCommand.Execute(null);
+                var customers = customerService.GetAllCustomers();
+                Assert.Empty(customers);
             }
             finally
             {

@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
+using ToolManagementAppV2.Views;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -72,9 +73,13 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand SearchCustomersCommand { get; }
         public IRelayCommand DeleteCustomerCommand { get; }
 
+        public Func<CustomerModel?> AddCustomerDialog { get; set; }
+
         public RentalManagementViewModel(ICustomerService customerService)
         {
+        
             _customerService = customerService;
+            AddCustomerDialog = DefaultAddCustomerDialog;
             AddCustomerCommand = new RelayCommand(AddCustomer);
             UpdateCustomerCommand = new RelayCommand(UpdateCustomer, () => SelectedCustomer != null);
             SearchCustomersCommand = new RelayCommand(SearchCustomers);
@@ -89,15 +94,10 @@ namespace ToolManagementAppV2.ViewModels
 
         void AddCustomer()
         {
-            _customerService.AddCustomer(new CustomerModel
-            {
-                Company = NewCustomerName,
-                Email = NewCustomerEmail,
-                Contact = NewCustomerContact,
-                Phone = NewCustomerPhone,
-                Mobile = NewCustomerMobile,
-                Address = NewCustomerAddress
-            });
+            var customer = AddCustomerDialog?.Invoke();
+            if (customer == null) return;
+
+            _customerService.AddCustomer(customer);
             LoadCustomers();
             NewCustomerName = string.Empty;
             NewCustomerEmail = string.Empty;
@@ -105,6 +105,17 @@ namespace ToolManagementAppV2.ViewModels
             NewCustomerPhone = string.Empty;
             NewCustomerMobile = string.Empty;
             NewCustomerAddress = string.Empty;
+        }
+
+        CustomerModel? DefaultAddCustomerDialog()
+        {
+            var customer = new CustomerModel();
+            CustomerEditWindow win = null!;
+            win = new CustomerEditWindow(customer,
+                onSave: () => win.DialogResult = true,
+                onCancel: () => win.DialogResult = false);
+            try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch { }
+            try { return win.ShowDialog() == true ? customer : null; } catch { return null; }
         }
 
         void UpdateCustomer()
