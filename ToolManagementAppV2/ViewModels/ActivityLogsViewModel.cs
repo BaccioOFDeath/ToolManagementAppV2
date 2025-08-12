@@ -18,6 +18,7 @@ namespace ToolManagementAppV2.ViewModels
         {
             _service = service;
             RefreshCommand = new RelayCommand(LoadLogs);
+            LoadLogs();
         }
 
         public void LoadLogs()

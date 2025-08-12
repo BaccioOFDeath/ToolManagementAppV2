@@ -6,12 +6,16 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
+using ToolManagementAppV2.ViewModels.Rental;
+using ToolManagementAppV2.Views;
 
 namespace ToolManagementAppV2.ViewModels
 {
     public class ToolManagementViewModel : ObservableObject
     {
         private readonly IToolService _toolService;
+        private readonly ICustomerService _customerService;
+        private readonly IRentalService _rentalService;
 
         public ObservableCollection<ToolModel> Tools { get; } = new();
         public ObservableCollection<ToolModel> SearchResults { get; } = new();
@@ -42,7 +46,11 @@ namespace ToolManagementAppV2.ViewModels
         public ToolModel SelectedTool
         {
             get => _selectedTool;
-            set => SetProperty(ref _selectedTool, value);
+            set
+            {
+                if (SetProperty(ref _selectedTool, value))
+                    ((RelayCommand)OpenRentalsCommand).NotifyCanExecuteChanged();
+            }
         }
 
         private string _selectedCategory = "All";
@@ -64,9 +72,10 @@ namespace ToolManagementAppV2.ViewModels
         }
 
         public IRelayCommand SearchCommand { get; }
-        public IRelayCommand AddToolCommand { get; }
+        public IRelayCommand NewToolCommand { get; }
         public IRelayCommand UpdateToolCommand { get; }
         public IRelayCommand DeleteToolCommand { get; }
+        public IRelayCommand OpenRentalsCommand { get; }
 
         // Writable for TwoWay binding from XAML. Mirrors SearchTerm and triggers search.
         private string _searchText = string.Empty;
@@ -83,13 +92,18 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        public ToolManagementViewModel(IToolService toolService)
+        public ToolManagementViewModel(IToolService toolService,
+                                       ICustomerService customerService,
+                                       IRentalService rentalService)
         {
             _toolService = toolService;
             SearchCommand = new RelayCommand(FilterTools);
             AddToolCommand = new RelayCommand(AddTool);
+            _customerService = customerService;
+
             UpdateToolCommand = new RelayCommand(UpdateTool);
             DeleteToolCommand = new RelayCommand(DeleteTool);
+            OpenRentalsCommand = new RelayCommand(OpenRentals, () => SelectedTool != null);
         }
 
         public void LoadTools()
@@ -146,6 +160,26 @@ namespace ToolManagementAppV2.ViewModels
             LoadTools();
             FilterTools();
             SelectedTool = null;
+        }
+
+        void OpenRentals()
+        {
+            if (SelectedTool == null) return;
+
+            var customers = _customerService.GetAllCustomers();
+            var vm = new RentToolPopupViewModel(SelectedTool, customers);
+            var win = new RentToolPopupWindow { DataContext = vm };
+            vm.RequestClose += (_, _) => win.Close();
+            win.ShowDialog();
+
+            if (vm.SelectedCustomerResult != null)
+            {
+                _rentalService.RentTool(SelectedTool.ToolID,
+                    vm.SelectedCustomerResult.CustomerID,
+                    DateTime.Today,
+                    vm.SelectedDueDateResult);
+                LoadTools();
+            }
         }
 
         void CategorizeTools(IEnumerable<ToolModel> tools)

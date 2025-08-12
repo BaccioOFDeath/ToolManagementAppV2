@@ -10,7 +10,7 @@
         </Grid.RowDefinitions>
         <Border Style="{StaticResource Card}">
             <StackPanel Orientation="Horizontal">
-                <TextBox Width="260" Text="{Binding CustomerSearch, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBox Width="260" Text="{Binding CustomerSearchTerm, UpdateSourceTrigger=PropertyChanged}"/>
                 <Button Style="{StaticResource PrimaryButton}" Content="Find" Command="{Binding SearchCustomersCommand}" Margin="8,0,0,0"/>
                 <Button Style="{StaticResource PrimaryButton}" Content="Add" Command="{Binding AddCustomerCommand}" Margin="8,0,0,0"/>
             </StackPanel>

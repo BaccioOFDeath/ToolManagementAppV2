@@ -98,7 +98,7 @@ namespace ToolManagementAppV2.ViewModels
                              IFileDialogService fileDialogService,
                              ActivityLogService activityLogService)
         {
-            ToolManagement = new ToolManagementViewModel(toolService);
+            ToolManagement = new ToolManagementViewModel(toolService, customerService, rentalService);
             UserManagement = new UserManagementViewModel(userService, fileDialogService);
             RentalManagement = new RentalManagementViewModel(customerService);
             Rentals = new RentalViewModel(rentalService);
@@ -176,9 +176,10 @@ namespace ToolManagementAppV2.ViewModels
 
             GlobalSearchCommand = new RelayCommand(() =>
             {
+                ToolManagement.SearchText = GlobalSearchText;
                 OpenSearchToolsCommand.Execute(null);
-                // If needed, trigger ToolManagement.SearchCommand here once you wire GlobalSearchText -> VM
-                // ToolManagement.SearchCommand?.Execute(null);
+                ToolManagement.SearchCommand?.Execute(null);
+                GlobalSearchText = string.Empty;
             });
 
             ExitCommand = new RelayCommand(() =>
