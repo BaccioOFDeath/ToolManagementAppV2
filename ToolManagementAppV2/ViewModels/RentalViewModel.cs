@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.Views;
@@ -21,6 +22,13 @@ namespace ToolManagementAppV2.ViewModels
         public ObservableCollection<RentalModel> ActiveRentals { get; } = new();
         public ObservableCollection<RentalModel> OverdueRentals { get; } = new();
 
+        private string _rentalSearch = string.Empty;
+        public string RentalSearch
+        {
+            get => _rentalSearch;
+            set => SetProperty(ref _rentalSearch, value);
+        }
+
         private RentalModel _selectedRental;
         public RentalModel SelectedRental
         {
@@ -39,6 +47,8 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand ReturnToolCommand { get; }
         public IRelayCommand ExtendRentalCommand { get; }
         public IRelayCommand ViewSelectedRentalHistoryCommand { get; }
+        public IRelayCommand SearchRentalsCommand { get; }
+        public IRelayCommand NewRentalCommand { get; }
 
         public RentalViewModel(IRentalService rentalService)
         {
@@ -46,6 +56,8 @@ namespace ToolManagementAppV2.ViewModels
             ReturnToolCommand = new RelayCommand(ReturnTool, () => SelectedRental != null);
             ExtendRentalCommand = new RelayCommand(ExtendRental, () => SelectedRental != null);
             ViewSelectedRentalHistoryCommand = new RelayCommand(ViewHistory, () => SelectedRental != null);
+            SearchRentalsCommand = new RelayCommand(SearchRentals);
+            NewRentalCommand = new RelayCommand(NewRental);
         }
 
         /// <summary>Loads active and overdue rentals from the service.</summary>
@@ -53,6 +65,30 @@ namespace ToolManagementAppV2.ViewModels
         {
             ActiveRentals.ReplaceRange(_rentalService.GetActiveRentals());
             OverdueRentals.ReplaceRange(_rentalService.GetOverdueRentals());
+        }
+
+        void SearchRentals()
+        {
+            var all = _rentalService.GetAllRentals();
+            if (!string.IsNullOrWhiteSpace(RentalSearch))
+            {
+                var term = RentalSearch.Trim();
+                all = all.Where(r =>
+                    (r.ToolNumber?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (r.CustomerName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))
+                    .ToList();
+            }
+
+            ActiveRentals.ReplaceRange(all.Where(r => r.Status == "Rented" && r.DueDate >= DateTime.Today));
+            OverdueRentals.ReplaceRange(all.Where(r => r.Status == "Rented" && r.DueDate < DateTime.Today));
+        }
+
+        void NewRental()
+        {
+            var vm = new RentToolPopupViewModel(null, Enumerable.Empty<CustomerModel>());
+            var win = new RentToolPopupWindow { DataContext = vm, Title = "New Rental" };
+            win.ShowDialog();
+            LoadRentals();
         }
 
         void ReturnTool()

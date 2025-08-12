@@ -49,5 +49,46 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void SearchRentals_FiltersByToolNumber()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+
+                var tool1 = new Tool { ToolID = "T1", ToolNumber = "T1" };
+                var tool2 = new Tool { ToolID = "T2", ToolNumber = "T2" };
+                toolService.AddTool(tool1);
+                toolService.AddTool(tool2);
+                var customer = new Customer { Company = "C1" };
+                customerService.AddCustomer(customer);
+                var cust = customerService.GetAllCustomers().First();
+
+                rentalService.RentTool("T1", cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool("T2", cust.CustomerID, DateTime.Today.AddDays(-10), DateTime.Today.AddDays(-5));
+
+                var vm = new RentalViewModel(rentalService);
+
+                vm.RentalSearch = "T1";
+                vm.SearchRentalsCommand.Execute(null);
+                Assert.Single(vm.ActiveRentals);
+                Assert.Empty(vm.OverdueRentals);
+
+                vm.RentalSearch = "T2";
+                vm.SearchRentalsCommand.Execute(null);
+                Assert.Single(vm.OverdueRentals);
+                Assert.Empty(vm.ActiveRentals);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }
