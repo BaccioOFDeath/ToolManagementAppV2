@@ -66,7 +66,7 @@ namespace ToolManagementAppV2.Tests.Tests
         }
 
         [Fact]
-        public void Toolbar_FilterButton_BindsToToggleFilterPanelCommand()
+        public void Toolbar_FilterButton_BindsToOpenFilterWindowCommand()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -80,7 +80,7 @@ namespace ToolManagementAppV2.Tests.Tests
                 var toolbar = (ToolBar)grid.Children[0];
                 var button = (Button)toolbar.Items[0];
 
-                Assert.Equal(vm.ToggleFilterPanelCommand, button.Command);
+                Assert.Equal(vm.OpenFilterWindowCommand, button.Command);
             }
             finally
             {
