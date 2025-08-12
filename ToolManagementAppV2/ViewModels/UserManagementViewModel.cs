@@ -36,8 +36,6 @@ namespace ToolManagementAppV2.ViewModels
                 if (SetProperty(ref _selectedUser, value))
                 {
                     ((RelayCommand)UpdateUserCommand).NotifyCanExecuteChanged();
-                    ((RelayCommand)DeleteUserCommand).NotifyCanExecuteChanged();
-                    ((RelayCommand)ResetPasswordCommand).NotifyCanExecuteChanged();
                     ((RelayCommand)EditUserCommand).NotifyCanExecuteChanged();
                 }
             }
@@ -46,9 +44,7 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand LoadUsersCommand { get; }
         public IRelayCommand UploadUserPhotoCommand { get; }
         public IRelayCommand UpdateUserCommand { get; }
-        public IRelayCommand DeleteUserCommand { get; }
         public IRelayCommand AddUserCommand { get; }
-        public IRelayCommand ResetPasswordCommand { get; }
 
         public IRelayCommand SearchUsersCommand { get; }
         public IRelayCommand ClearUserSearchCommand { get; }
@@ -65,9 +61,7 @@ namespace ToolManagementAppV2.ViewModels
             LoadUsersCommand = new RelayCommand(LoadUsers);
             UploadUserPhotoCommand = new RelayCommand(UploadUserPhoto);
             UpdateUserCommand = new RelayCommand(UpdateUser, () => SelectedUser != null);
-            DeleteUserCommand = new RelayCommand(DeleteSelectedUser, () => SelectedUser != null);
             AddUserCommand = new RelayCommand(AddUser);
-            ResetPasswordCommand = new RelayCommand(ResetPassword, () => SelectedUser != null);
 
             SearchUsersCommand = new RelayCommand(SearchUsers);
             ClearUserSearchCommand = new RelayCommand(ClearUserSearch);
@@ -101,12 +95,6 @@ namespace ToolManagementAppV2.ViewModels
             _userService.UpdateUser(SelectedUser);
         }
 
-        void DeleteSelectedUser()
-        {
-            if (SelectedUser == null) return;
-            DeleteUser(SelectedUser);
-        }
-
         public void AddUser()
         {
             var newUser = new UserModel { UserName = $"user{Users.Count + 1}" };
@@ -129,12 +117,6 @@ namespace ToolManagementAppV2.ViewModels
             _allUsers.Add(newUser);
             Users.Add(newUser);
             SelectedUser = newUser;
-        }
-
-        void ResetPassword()
-        {
-            if (SelectedUser == null) return;
-            ResetPasswordFor(SelectedUser);
         }
 
         void SearchUsers()
