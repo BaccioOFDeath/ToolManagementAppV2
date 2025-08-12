@@ -90,7 +90,11 @@
                 <DockPanel>
                     <TextBlock Text="{Binding CurrentPageTitle}" DockPanel.Dock="Left" FontSize="20" FontWeight="SemiBold"/>
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBox Width="260" Text="{Binding GlobalSearchText, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBox x:Name="GlobalSearchTextBox" Width="260" Text="{Binding GlobalSearchText, UpdateSourceTrigger=PropertyChanged}">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding GlobalSearchCommand}"/>
+                            </TextBox.InputBindings>
+                        </TextBox>
                         <Button Style="{StaticResource PrimaryButton}" Content="Search" Command="{Binding GlobalSearchCommand}" Margin="8,0,0,0"/>
                     </StackPanel>
                 </DockPanel>
