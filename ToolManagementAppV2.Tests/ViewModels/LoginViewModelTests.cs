@@ -6,6 +6,7 @@ using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.ViewModels;
+using ToolManagementAppV2.Interfaces;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.ViewModels
@@ -25,7 +26,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var userService = new UserService(dbService);
                 userService.AddUser(new User { UserName = "user", Password = "newpassword", IsAdmin = false });
 
-                var vm = new LoginViewModel(dbPath);
+                var vm = new LoginViewModel(new StubDialogService(), dbPath);
                 bool success = false;
                 vm.LoginSucceeded += (_, __) => success = true;
 
@@ -42,5 +43,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 Application.Current.Properties.Remove("CurrentUser");
             }
         }
+    }
+
+    class StubDialogService : IDialogService
+    {
+        public void ShowInfo(string message, string title) { }
+        public bool ShowConfirmation(string message, string title) => true;
     }
 }

@@ -29,6 +29,7 @@ namespace ToolManagementAppV2.ViewModels
     {
         readonly IUserService _userService;
         readonly ISettingsService _settingsService;
+        readonly IDialogService _dialogService;
 
         public ObservableCollection<User> Users { get; } = new();
 
@@ -55,12 +56,13 @@ namespace ToolManagementAppV2.ViewModels
         /// </summary>
         public event EventHandler? LoginSucceeded;
 
-        public LoginViewModel(string? dbPath = null)
+        public LoginViewModel(IDialogService dialogService, string? dbPath = null)
         {
             dbPath ??= Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db");
             var dbService = new DatabaseService(dbPath);
             _settingsService = new SettingsService(dbService);
             _userService = new UserService(dbService);
+            _dialogService = dialogService;
 
             CompanyLogo = LoadLogo();
             WindowTitle = GetWindowTitle();
@@ -108,9 +110,9 @@ namespace ToolManagementAppV2.ViewModels
             var users = _userService.GetAllUsers();
             if (users.Count == 0)
             {
-                System.Windows.MessageBox.Show(
+                _dialogService.ShowInfo(
                     "No users exist. A default admin account will be created (username: admin, password: admin).",
-                    "Setup", MessageBoxButton.OK, MessageBoxImage.Information);
+                    "Setup");
 
                 var admin = new User { UserName = "admin", Password = "admin", IsAdmin = true };
                 _userService.AddUser(admin);
@@ -153,7 +155,7 @@ namespace ToolManagementAppV2.ViewModels
             var passwordValidated = false;
             while (!passwordValidated)
             {
-                var prompt = new PasswordPromptWindow
+                var prompt = new PasswordPromptWindow(_dialogService)
                 {
                     SelectedUser = user,
                     ValidatePassword = pwd => _userService.AuthenticateUser(user.UserName, pwd) != null
@@ -168,8 +170,8 @@ namespace ToolManagementAppV2.ViewModels
                     user.Password = refreshed.Password;
                     user.Salt = refreshed.Salt;
                     LoadUsers();
-                    System.Windows.MessageBox.Show("Password has been reset to default. Please enter the new password to login.",
-                        "Password Reset", MessageBoxButton.OK, MessageBoxImage.Information);
+                    _dialogService.ShowInfo("Password has been reset to default. Please enter the new password to login.",
+                        "Password Reset");
                     continue;
                 }
 

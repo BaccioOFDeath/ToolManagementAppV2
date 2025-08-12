@@ -7,6 +7,7 @@ using System.Linq;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.Views;
+using ToolManagementAppV2.Services;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -114,7 +115,7 @@ namespace ToolManagementAppV2.ViewModels
             {
                 try
                 {
-                    var prompt = new Views.PasswordPromptWindow { SelectedUser = newUser };
+                    var prompt = new Views.PasswordPromptWindow(new DialogService()) { SelectedUser = newUser };
                     if (prompt.ShowDialog() == true)
                         newUser.Password = prompt.EnteredPassword;
                 }

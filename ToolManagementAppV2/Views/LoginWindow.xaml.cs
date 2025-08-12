@@ -2,6 +2,7 @@
 using System;
 using System.Windows;
 using ToolManagementAppV2.ViewModels;
+using ToolManagementAppV2.Services;
 
 namespace ToolManagementAppV2
 {
@@ -13,7 +14,7 @@ namespace ToolManagementAppV2
 
             if (DataContext is not LoginViewModel vm)
             {
-                vm = new LoginViewModel();
+                vm = new LoginViewModel(new DialogService());
                 DataContext = vm;
             }
 

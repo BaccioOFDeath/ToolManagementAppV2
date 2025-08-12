@@ -11,21 +11,20 @@ namespace ToolManagementAppV2.ViewModels
     {
         readonly IFileDialogService _fileDialog;
         readonly ISettingsService _settingsService;
+        readonly IDialogService _dialogService;
 
-        public SettingsViewModel(IFileDialogService fileDialog, ISettingsService settingsService)
+        public SettingsViewModel(IFileDialogService fileDialog, ISettingsService settingsService, IDialogService dialogService)
         {
             _fileDialog = fileDialog;
             _settingsService = settingsService;
+            _dialogService = dialogService;
 
             ThemeOptions = new ObservableCollection<string> { "Light", "Dark" };
             _theme = ThemeOptions[0];
             TestDbCommand = new RelayCommand(() =>
             {
                 var success = TestDbConnection(out var message);
-                System.Windows.MessageBox.Show(message,
-                    "Database Connection",
-                    System.Windows.MessageBoxButton.OK,
-                    success ? System.Windows.MessageBoxImage.Information : System.Windows.MessageBoxImage.Error);
+                _dialogService.ShowInfo(message, "Database Connection");
             });
             BrowseCompanyLogoCommand = new RelayCommand(BrowseCompanyLogo);
             SaveCompanyLogoCommand = new RelayCommand(SaveCompanyLogo);

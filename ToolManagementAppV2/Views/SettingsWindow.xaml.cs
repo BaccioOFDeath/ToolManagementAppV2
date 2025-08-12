@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Settings;
+using ToolManagementAppV2.Services;
 using ToolManagementAppV2.ViewModels;
 
 namespace ToolManagementAppV2.Views
@@ -20,7 +21,8 @@ namespace ToolManagementAppV2.Views
             var db = new DatabaseService(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db"));
             var settingsService = new SettingsService(db);
             var fileDialog = new FileDialogService();
-            var settingsVm = new SettingsViewModel(fileDialog, settingsService);
+            var dialog = new DialogService();
+            var settingsVm = new SettingsViewModel(fileDialog, settingsService, dialog);
 
             DataContext = new SettingsWindowViewModel(
                 settingsVm,

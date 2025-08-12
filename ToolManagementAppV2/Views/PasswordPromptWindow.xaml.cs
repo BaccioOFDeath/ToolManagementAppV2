@@ -2,7 +2,9 @@
 using System;
 using System.Windows;
 using System.Windows.Input;
+using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
+using ToolManagementAppV2.Services;
 using ToolManagementAppV2.ViewModels;
 
 namespace ToolManagementAppV2.Views
@@ -11,6 +13,7 @@ namespace ToolManagementAppV2.Views
     {
         private const int MaxAttempts = 2;
         private int _attemptCount;
+        readonly IDialogService _dialogService;
 
         public PasswordPromptViewModel VM => (PasswordPromptViewModel)DataContext;
         public string EnteredPassword => VM.EnteredPassword;
@@ -30,15 +33,18 @@ namespace ToolManagementAppV2.Views
             set => VM.SelectedUser = value;
         }
 
-        public PasswordPromptWindow()
+        public PasswordPromptWindow(IDialogService dialogService)
         {
             InitializeComponent();
+            _dialogService = dialogService;
             DataContext = new PasswordPromptViewModel(
                 () => { DialogResult = true; },
                 () => { DialogResult = false; },
                 ShowError);
             Loaded += OnLoaded;
         }
+
+        public PasswordPromptWindow() : this(new DialogService()) { }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
@@ -68,23 +74,15 @@ namespace ToolManagementAppV2.Views
         {
             if (SelectedUser?.IsAdmin != true)
             {
-                System.Windows.MessageBox.Show(
+                _dialogService.ShowInfo(
                     "Password recovery is only available for admin users.",
-                    "Not Allowed",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
+                    "Not Allowed");
                 return;
             }
 
-            var result = System.Windows.MessageBox.Show(
+            if (!_dialogService.ShowConfirmation(
                 "You have entered the wrong password multiple times. Reset to default and change it after login?",
-                "Reset Password",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question
-            );
-
-            if (result != MessageBoxResult.Yes) return;
+                "Reset Password")) return;
 
             IsPasswordResetRequested = true;
             DialogResult = true;
