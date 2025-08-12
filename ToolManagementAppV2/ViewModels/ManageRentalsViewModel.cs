@@ -75,6 +75,7 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand ApplyFilterCommand { get; }
         public IRelayCommand ClearFilterCommand { get; }
         public IRelayCommand OpenFilterWindowCommand { get; }
+        public IRelayCommand CloseCommand { get; }
         public IRelayCommand CheckInCommand { get; }
         public IRelayCommand ExtendCommand { get; }
         public IRelayCommand OpenHistoryCommand { get; }
@@ -88,6 +89,7 @@ namespace ToolManagementAppV2.ViewModels
             ApplyFilterCommand = new RelayCommand(ApplyFilter);
             ClearFilterCommand = new RelayCommand(ClearFilter);
             OpenFilterWindowCommand = new RelayCommand(OpenFilterWindow);
+            CloseCommand = new RelayCommand(CloseFilterWindow);
             CheckInCommand = new RelayCommand(CheckIn, () => SelectedRental != null);
             ExtendCommand = new RelayCommand(Extend, () => SelectedRental != null);
             OpenHistoryCommand = new RelayCommand(OpenHistory, () => SelectedRental != null);
@@ -138,6 +140,15 @@ namespace ToolManagementAppV2.ViewModels
             var win = new RentalsFilterWindow { DataContext = this };
             try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch { }
             try { win.ShowDialog(); } catch { }
+        }
+
+        void CloseFilterWindow()
+        {
+            if (System.Windows.Application.Current == null) return;
+            var window = System.Windows.Application.Current.Windows
+                .OfType<Window>()
+                .FirstOrDefault(w => w.DataContext == this);
+            window?.Close();
         }
 
         void CheckIn()

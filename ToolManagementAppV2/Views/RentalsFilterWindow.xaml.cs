@@ -11,7 +11,5 @@ namespace ToolManagementAppV2.Views
         {
             InitializeComponent();
         }
-
-        void OnClose(object sender, RoutedEventArgs e) => Close();
     }
 }
