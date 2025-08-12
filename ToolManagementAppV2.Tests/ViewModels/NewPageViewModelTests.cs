@@ -36,12 +36,43 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void ImportExportViewModel_ExportCommand_InvokesService()
+        public void ImportExportViewModel_ImportToolsCommand_InvokesService()
         {
             var toolService = new StubToolService();
-            var vm = new ImportExportViewModel(toolService, new StubFileDialogService());
-            vm.ExportCommand.Execute(null);
+            var customerService = new StubCustomerService();
+            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
+            vm.ImportToolsCommand.Execute(null);
+            Assert.True(toolService.ImportCalled);
+        }
+
+        [Fact]
+        public void ImportExportViewModel_ExportToolsCommand_InvokesService()
+        {
+            var toolService = new StubToolService();
+            var customerService = new StubCustomerService();
+            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
+            vm.ExportToolsCommand.Execute(null);
             Assert.True(toolService.ExportCalled);
+        }
+
+        [Fact]
+        public void ImportExportViewModel_ImportCustomersCommand_InvokesService()
+        {
+            var toolService = new StubToolService();
+            var customerService = new StubCustomerService();
+            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
+            vm.ImportCustomersCommand.Execute(null);
+            Assert.True(customerService.ImportCalled);
+        }
+
+        [Fact]
+        public void ImportExportViewModel_ExportCustomersCommand_InvokesService()
+        {
+            var toolService = new StubToolService();
+            var customerService = new StubCustomerService();
+            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
+            vm.ExportCustomersCommand.Execute(null);
+            Assert.True(customerService.ExportCalled);
         }
 
         [Fact]
@@ -70,9 +101,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
     class StubToolService : IToolService
     {
+        public bool ImportCalled { get; private set; }
         public bool ExportCalled { get; private set; }
+        public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map)
+        {
+            ImportCalled = true;
+            return new();
+        }
         public void ExportToolsToCsv(string filePath) => ExportCalled = true;
-        public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map) => new();
         public List<ToolModel> GetAllTools() => new();
         public void AddTool(ToolModel tool) => throw new System.NotImplementedException();
         public void UpdateTool(ToolModel tool) => throw new System.NotImplementedException();
@@ -100,14 +136,16 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
     class StubCustomerService : ICustomerService
     {
+        public bool ImportCalled { get; private set; }
+        public bool ExportCalled { get; private set; }
+        public void ImportCustomersFromCsv(string filePath, IDictionary<string, string> map) => ImportCalled = true;
+        public void ExportCustomersToCsv(string filePath) => ExportCalled = true;
         public void AddCustomer(Customer customer) => throw new System.NotImplementedException();
         public void UpdateCustomer(Customer customer) => throw new System.NotImplementedException();
         public void DeleteCustomer(int customerID) => throw new System.NotImplementedException();
         public Customer GetCustomerByID(int customerID) => throw new System.NotImplementedException();
         public List<Customer> GetAllCustomers() => new();
         public List<Customer> SearchCustomers(string searchTerm) => new();
-        public void ImportCustomersFromCsv(string filePath, IDictionary<string, string> map) => throw new System.NotImplementedException();
-        public void ExportCustomersToCsv(string filePath) => throw new System.NotImplementedException();
     }
 
     class StubUserService : IUserService

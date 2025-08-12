@@ -8,17 +8,25 @@ namespace ToolManagementAppV2.ViewModels
     public class ImportExportViewModel : ObservableObject
     {
         private readonly IToolService _toolService;
+        private readonly ICustomerService _customerService;
         private readonly IFileDialogService _fileDialogService;
 
-        public IRelayCommand ImportCommand { get; }
-        public IRelayCommand ExportCommand { get; }
+        public IRelayCommand ImportToolsCommand { get; }
+        public IRelayCommand ExportToolsCommand { get; }
+        public IRelayCommand ImportCustomersCommand { get; }
+        public IRelayCommand ExportCustomersCommand { get; }
 
-        public ImportExportViewModel(IToolService toolService, IFileDialogService fileDialogService)
+        public ImportExportViewModel(IToolService toolService,
+                                     ICustomerService customerService,
+                                     IFileDialogService fileDialogService)
         {
             _toolService = toolService;
+            _customerService = customerService;
             _fileDialogService = fileDialogService;
-            ImportCommand = new RelayCommand(ImportTools);
-            ExportCommand = new RelayCommand(ExportTools);
+            ImportToolsCommand = new RelayCommand(ImportTools);
+            ExportToolsCommand = new RelayCommand(ExportTools);
+            ImportCustomersCommand = new RelayCommand(ImportCustomers);
+            ExportCustomersCommand = new RelayCommand(ExportCustomers);
         }
 
         void ImportTools()
@@ -33,6 +41,20 @@ namespace ToolManagementAppV2.ViewModels
             var path = _fileDialogService.OpenFile("CSV Files|*.csv");
             if (!string.IsNullOrEmpty(path))
                 _toolService.ExportToolsToCsv(path);
+        }
+
+        void ImportCustomers()
+        {
+            var path = _fileDialogService.OpenFile("CSV Files|*.csv");
+            if (!string.IsNullOrEmpty(path))
+                _customerService.ImportCustomersFromCsv(path, new Dictionary<string, string>());
+        }
+
+        void ExportCustomers()
+        {
+            var path = _fileDialogService.OpenFile("CSV Files|*.csv");
+            if (!string.IsNullOrEmpty(path))
+                _customerService.ExportCustomersToCsv(path);
         }
     }
 }
