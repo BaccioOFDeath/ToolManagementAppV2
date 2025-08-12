@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System;
 using System.Collections.ObjectModel;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Services.Core;
@@ -18,7 +19,14 @@ namespace ToolManagementAppV2.ViewModels
 
             ThemeOptions = new ObservableCollection<string> { "Light", "Dark" };
             _theme = ThemeOptions[0];
-            TestDbCommand = new RelayCommand(TestDbConnection);
+            TestDbCommand = new RelayCommand(() =>
+            {
+                var success = TestDbConnection(out var message);
+                System.Windows.MessageBox.Show(message,
+                    "Database Connection",
+                    System.Windows.MessageBoxButton.OK,
+                    success ? System.Windows.MessageBoxImage.Information : System.Windows.MessageBoxImage.Error);
+            });
             BrowseCompanyLogoCommand = new RelayCommand(BrowseCompanyLogo);
             SaveCompanyLogoCommand = new RelayCommand(SaveCompanyLogo);
         }
@@ -64,10 +72,20 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand BrowseCompanyLogoCommand { get; }
         public IRelayCommand SaveCompanyLogoCommand { get; }
 
-        void TestDbConnection()
+        internal bool TestDbConnection(out string message)
         {
-            var db = new DatabaseService(ConnectionString);
-            using var conn = db.CreateConnection();
+            try
+            {
+                var db = new DatabaseService(ConnectionString);
+                using var conn = db.CreateConnection();
+                message = "Connection successful.";
+                return true;
+            }
+            catch (Exception ex)
+            {
+                message = $"Connection failed: {ex.Message}";
+                return false;
+            }
         }
 
         void BrowseCompanyLogo()

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 using ToolManagementAppV2.ViewModels;
 using Xunit;
 
@@ -16,19 +17,33 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void TestDbCommand_CreatesDatabaseFile()
+        public void TestDbConnection_CreatesDatabaseFile()
         {
             var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
             try
             {
                 var vm = new SettingsViewModel(new StubFileDialogService(), new StubSettingsService()) { ConnectionString = path };
-                vm.TestDbCommand.Execute(null);
+                var success = vm.TestDbConnection(out var message);
+                Assert.True(success);
+                Assert.Equal("Connection successful.", message);
                 Assert.True(File.Exists(path));
             }
             finally
             {
                 if (File.Exists(path)) File.Delete(path);
             }
+        }
+
+        [Fact]
+        public void TestDbConnection_InvalidPath_ReturnsErrorMessage()
+        {
+            var vm = new SettingsViewModel(new StubFileDialogService(), new StubSettingsService())
+            {
+                ConnectionString = "/nonexistent/path/db.sqlite"
+            };
+            var success = vm.TestDbConnection(out var message);
+            Assert.False(success);
+            Assert.Contains("Connection failed", message);
         }
         [Fact]
         public void BrowseCompanyLogoCommand_SetsPath()
