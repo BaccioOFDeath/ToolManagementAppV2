@@ -23,6 +23,7 @@ namespace ToolManagementAppV2.ViewModels
                 {
                     ((RelayCommand)UpdateUserCommand).NotifyCanExecuteChanged();
                     ((RelayCommand)DeleteUserCommand).NotifyCanExecuteChanged();
+                    ((RelayCommand)ResetPasswordCommand).NotifyCanExecuteChanged();
                 }
             }
         }
@@ -31,6 +32,8 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand UploadUserPhotoCommand { get; }
         public IRelayCommand UpdateUserCommand { get; }
         public IRelayCommand DeleteUserCommand { get; }
+        public IRelayCommand AddUserCommand { get; }
+        public IRelayCommand ResetPasswordCommand { get; }
 
         public UserManagementViewModel(IUserService userService, IFileDialogService fileDialogService)
         {
@@ -40,6 +43,8 @@ namespace ToolManagementAppV2.ViewModels
             UploadUserPhotoCommand = new RelayCommand(UploadUserPhoto);
             UpdateUserCommand = new RelayCommand(UpdateUser, () => SelectedUser != null);
             DeleteUserCommand = new RelayCommand(DeleteUser, () => SelectedUser != null);
+            AddUserCommand = new RelayCommand(AddUser);
+            ResetPasswordCommand = new RelayCommand(ResetPassword, () => SelectedUser != null);
         }
 
         public void LoadUsers()
@@ -73,6 +78,38 @@ namespace ToolManagementAppV2.ViewModels
                 Users.Remove(SelectedUser);
                 SelectedUser = null;
             }
+        }
+
+        public void AddUser()
+        {
+            var newUser = new UserModel { UserName = $"user{Users.Count + 1}" };
+
+            if (System.Windows.Application.Current != null)
+            {
+                try
+                {
+                    var prompt = new Views.PasswordPromptWindow { SelectedUser = newUser };
+                    if (prompt.ShowDialog() == true)
+                        newUser.Password = prompt.EnteredPassword;
+                }
+                catch
+                {
+                    // Ignore UI errors in non-interactive environments
+                }
+            }
+
+            _userService.AddUser(newUser);
+            Users.Add(newUser);
+            SelectedUser = newUser;
+        }
+
+        public void ResetPassword()
+        {
+            if (SelectedUser == null) return;
+            _userService.ChangeUserPassword(SelectedUser.UserID, "admin");
+            var refreshed = _userService.GetUserByID(SelectedUser.UserID);
+            SelectedUser.Password = refreshed.Password;
+            SelectedUser.Salt = refreshed.Salt;
         }
     }
 }
