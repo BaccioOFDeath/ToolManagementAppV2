@@ -41,6 +41,8 @@ namespace ToolManagementAppV2.Services.Core
             EnsureColumn("Users", "Mobile", "TEXT");
             EnsureColumn("Users", "Address", "TEXT");
             EnsureColumn("Users", "Role", "TEXT");
+            EnsureColumn("Users", "IsActive", "INTEGER");
+            EnsureColumn("Users", "CreatedAt", "DATETIME");
         }
 
         void InitializeDatabase()
@@ -74,7 +76,9 @@ namespace ToolManagementAppV2.Services.Core
                     Phone TEXT,
                     Mobile TEXT,
                     Address TEXT,
-                    Role TEXT
+                    Role TEXT,
+                    IsActive INTEGER NOT NULL DEFAULT 1,
+                    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
                 CREATE TABLE IF NOT EXISTS Customers (
                     CustomerID INTEGER PRIMARY KEY AUTOINCREMENT,

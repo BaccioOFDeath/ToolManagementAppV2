@@ -16,7 +16,7 @@ namespace ToolManagementAppV2.Services.Core
 
         public string? SaveFile(string filter)
         {
-            var dlg = new SaveFileDialog
+            var dlg = new Microsoft.Win32.SaveFileDialog
             {
                 Filter = filter
             };

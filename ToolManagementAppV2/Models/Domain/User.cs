@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ToolManagementAppV2.Models.Domain
 {
@@ -22,7 +23,6 @@ namespace ToolManagementAppV2.Models.Domain
         private bool _isAdmin;
         public bool IsAdmin { get => _isAdmin; set => SetProperty(ref _isAdmin, value); }
 
-
         private string _email;
         public string Email { get => _email; set => SetProperty(ref _email, value); }
 
@@ -37,5 +37,11 @@ namespace ToolManagementAppV2.Models.Domain
 
         private string _role;
         public string Role { get => _role; set => SetProperty(ref _role, value); }
+
+        private bool _isActive = true;
+        public bool IsActive { get => _isActive; set => SetProperty(ref _isActive, value); }
+
+        private DateTime _createdAt;
+        public DateTime CreatedAt { get => _createdAt; set => SetProperty(ref _createdAt, value); }
     }
 }
