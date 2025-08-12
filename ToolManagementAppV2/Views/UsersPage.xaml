@@ -53,23 +53,6 @@
                     <DataGridTextColumn Header="Mobile" Binding="{Binding Mobile}" Width="140"/>
                     <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive}" Width="100"/>
                     <DataGridTextColumn Header="Created" Binding="{Binding CreatedAt, StringFormat=\{0:yyyy-MM-dd\}}" Width="140"/>
-                    <DataGridTemplateColumn Header="Actions" Width="120">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <Button Style="{StaticResource PrimaryButton}"
-                                            Content="Edit"
-                                            Command="{Binding DataContext.EditUserFromRowCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                            CommandParameter="{Binding}"
-                                            Margin="0,0,8,0"/>
-                                    <Button Style="{StaticResource PrimaryButton}"
-                                            Content="Reset PW"
-                                            Command="{Binding DataContext.ResetPasswordFromRowCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                            CommandParameter="{Binding}"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
                 </DataGrid.Columns>
                 <DataGrid.ContextMenu>
                     <ContextMenu>
