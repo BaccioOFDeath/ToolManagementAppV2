@@ -63,7 +63,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService(), activityLogService);
                 vm.OpenDashboardCommand.Execute(null);
 
-                Assert.IsType<DashboardPage>(vm.CurrentPage);
+                var page = Assert.IsType<DashboardPage>(vm.CurrentPage);
+                Assert.IsType<DashboardViewModel>(page.DataContext);
             }
             finally
             {
