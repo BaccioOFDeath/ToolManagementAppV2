@@ -261,7 +261,7 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenImageImportMappingWindowCommand = new RelayCommand(() =>
             {
-                var win = new ImageImportMappingWindow { DataContext = new ImageImportMappingViewModel() };
+                var win = new ImageImportMappingWindow();
                 win.ShowDialog();
             });
 

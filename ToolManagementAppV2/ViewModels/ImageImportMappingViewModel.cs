@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using ToolManagementAppV2.Models.Domain;
@@ -15,6 +16,15 @@ namespace ToolManagementAppV2.ViewModels
 
         bool _useNameDescription;
         public bool UseNameDescription { get => _useNameDescription; set => SetProperty(ref _useNameDescription, value); }
+
+        public IRelayCommand OkCommand { get; }
+        public IRelayCommand CancelCommand { get; }
+
+        public ImageImportMappingViewModel(Action onOk, Action onCancel)
+        {
+            OkCommand = new RelayCommand(onOk);
+            CancelCommand = new RelayCommand(onCancel);
+        }
 
         public Func<ToolModel, IEnumerable<string>> BuildSelector()
         {

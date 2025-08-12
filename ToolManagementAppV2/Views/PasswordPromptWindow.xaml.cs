@@ -3,6 +3,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 using ToolManagementAppV2.Models.Domain;
+using ToolManagementAppV2.ViewModels;
 
 namespace ToolManagementAppV2.Views
 {
@@ -11,14 +12,31 @@ namespace ToolManagementAppV2.Views
         private const int MaxAttempts = 2;
         private int _attemptCount;
 
-        public string EnteredPassword { get; private set; } = string.Empty;
-        public bool IsPasswordResetRequested { get; private set; }
-        public Func<string, bool> ValidatePassword { get; set; } = _ => true;
-        public User? SelectedUser { get; set; }
+        public PasswordPromptViewModel VM => (PasswordPromptViewModel)DataContext;
+        public string EnteredPassword => VM.EnteredPassword;
+        public bool IsPasswordResetRequested
+        {
+            get => VM.IsPasswordResetRequested;
+            set => VM.IsPasswordResetRequested = value;
+        }
+        public Func<string, bool> ValidatePassword
+        {
+            get => VM.ValidatePassword;
+            set => VM.ValidatePassword = value;
+        }
+        public User? SelectedUser
+        {
+            get => VM.SelectedUser;
+            set => VM.SelectedUser = value;
+        }
 
         public PasswordPromptWindow()
         {
             InitializeComponent();
+            DataContext = new PasswordPromptViewModel(
+                () => { DialogResult = true; },
+                () => { DialogResult = false; },
+                ShowError);
             Loaded += OnLoaded;
         }
 
@@ -30,24 +48,6 @@ namespace ToolManagementAppV2.Views
                 PromptTextBlock.Text = "Please enter your password:";
 
             PasswordBox.Focus();
-        }
-
-        private void OK_Click(object sender, RoutedEventArgs e)
-        {
-            var pwd = PasswordBox.Password;
-            if (ValidatePassword?.Invoke(pwd) == true)
-            {
-                EnteredPassword = pwd;
-                DialogResult = true;
-                return;
-            }
-
-            ShowError("Incorrect password. Please try again.");
-        }
-
-        private void Cancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
         }
 
         private void ShowError(string message)

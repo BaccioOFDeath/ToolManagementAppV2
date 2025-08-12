@@ -1,16 +1,19 @@
-﻿using System.IO;
+using System;
+using System.IO;
+using System.Linq;
 using System.Windows;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.ViewModels;
 
 
 namespace ToolManagementAppV2.Views
 {
     public partial class AvatarSelectionWindow : Window
     {
-        public string SelectedAvatarPath { get; private set; }
-        public Uri[] Avatars { get; private set; } = Array.Empty<Uri>();
+        public AvatarSelectionViewModel VM => (AvatarSelectionViewModel)DataContext;
+        public string SelectedAvatarPath => VM.SelectedAvatarPath;
 
         public AvatarSelectionWindow()
         {
@@ -24,22 +27,14 @@ namespace ToolManagementAppV2.Views
                 Title = $"{appName} – Select Avatar";
 
             var avatarDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Avatars");
+            var avatars = Array.Empty<Uri>();
             if (Directory.Exists(avatarDir))
-                Avatars = Directory
+                avatars = Directory
                     .EnumerateFiles(avatarDir, "*.png")
                     .Select(path => new Uri(path, UriKind.Absolute))
                     .ToArray();
 
-            DataContext = this;
-        }
-
-        private void AvatarButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is FrameworkElement fe && fe.Tag is Uri uri)
-            {
-                SelectedAvatarPath = uri.LocalPath;
-                DialogResult = true;
-            }
+            DataContext = new AvatarSelectionViewModel(avatars, () => DialogResult = true);
         }
     }
 }

@@ -1,5 +1,9 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
+using System.Linq;
+using System;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -28,7 +32,14 @@ namespace ToolManagementAppV2.ViewModels
         public IReadOnlyList<string> ColumnHeaders { get; }
         public ObservableCollection<FieldMapping> Mappings { get; }
 
-        public ImportMappingViewModel(IEnumerable<string> headers, IEnumerable<string> properties)
+        public IRelayCommand OkCommand { get; }
+        public IRelayCommand CancelCommand { get; }
+
+        public ImportMappingViewModel(
+            IEnumerable<string> headers,
+            IEnumerable<string> properties,
+            Action onOk,
+            Action onCancel)
         {
             var headerList = (headers ?? Enumerable.Empty<string>()).ToList();
             ColumnHeaders = headerList;
@@ -37,6 +48,15 @@ namespace ToolManagementAppV2.ViewModels
                 (properties ?? Enumerable.Empty<string>())
                     .Select(prop => new FieldMapping(prop, ColumnHeaders))
             );
+
+            OkCommand = new RelayCommand(() =>
+            {
+                if (Mappings.Any(m => string.IsNullOrEmpty(m.SelectedColumn)))
+                    return;
+                onOk();
+            });
+
+            CancelCommand = new RelayCommand(onCancel);
         }
     }
 }
