@@ -18,6 +18,12 @@ namespace ToolManagementAppV2.ViewModels
 {
     public class MainViewModel : ObservableObject
     {
+        readonly IToolService _toolService;
+        readonly IUserService _userService;
+        readonly ICustomerService _customerService;
+        readonly IRentalService _rentalService;
+        readonly ActivityLogService _activityLogService;
+
         public ToolManagementViewModel ToolManagement { get; }
         public UserManagementViewModel UserManagement { get; }
         public RentalManagementViewModel RentalManagement { get; }
@@ -98,18 +104,25 @@ namespace ToolManagementAppV2.ViewModels
                              IFileDialogService fileDialogService,
                              ActivityLogService activityLogService)
         {
-            ToolManagement = new ToolManagementViewModel(toolService);
-            UserManagement = new UserManagementViewModel(userService, fileDialogService);
-            RentalManagement = new RentalManagementViewModel(customerService);
-            Rentals = new RentalViewModel(rentalService);
-            ManageRentals = new ManageRentalsViewModel(rentalService);
-            ImportExport = new ImportExportViewModel(toolService, customerService, fileDialogService);
-            Reports = new ReportsViewModel(new ReportService(toolService, rentalService, activityLogService, customerService, userService));
-            ActivityLogs = new ActivityLogsViewModel(activityLogService);
+            _toolService = toolService;
+            _userService = userService;
+            _customerService = customerService;
+            _rentalService = rentalService;
+            _activityLogService = activityLogService;
+
+            ToolManagement = new ToolManagementViewModel(_toolService);
+            UserManagement = new UserManagementViewModel(_userService, fileDialogService);
+            RentalManagement = new RentalManagementViewModel(_customerService);
+            Rentals = new RentalViewModel(_rentalService);
+            ManageRentals = new ManageRentalsViewModel(_rentalService);
+            ImportExport = new ImportExportViewModel(_toolService, _customerService, fileDialogService);
+            Reports = new ReportsViewModel(new ReportService(_toolService, _rentalService, _activityLogService, _customerService, _userService));
+            ActivityLogs = new ActivityLogsViewModel(_activityLogService);
 
             OpenDashboardCommand = new RelayCommand(() =>
             {
-                var page = new DashboardPage { Title = "Dashboard" };
+                var vm = new DashboardViewModel(_toolService, _rentalService, _customerService, _userService, _activityLogService, OpenManageToolsCommand, OpenRentalsCommand, OpenImportExportCommand);
+                var page = new DashboardPage { DataContext = vm, Title = "Dashboard" };
                 CurrentPage = page;
             });
 
