@@ -178,6 +178,26 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void AddUserCommand_CancelledPrompt_DoesNotAddUser()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IUserService userService = new UserService(db);
+                var vm = new CancelPromptUserManagementViewModel(userService, new StubFileDialogService());
+                vm.AddUserCommand.Execute(null);
+                Assert.Empty(vm.Users);
+                Assert.Empty(userService.GetAllUsers());
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }
 
@@ -186,4 +206,16 @@ class StubFileDialogService : IFileDialogService
     public string FileToReturn { get; set; }
     public string OpenFile(string filter) => FileToReturn;
     public string SaveFile(string filter) => FileToReturn;
+}
+
+class CancelPromptUserManagementViewModel : UserManagementViewModel
+{
+    public CancelPromptUserManagementViewModel(IUserService userService, IFileDialogService fileDialogService)
+        : base(userService, fileDialogService) { }
+
+    protected override bool TryPromptForPassword(UserModel newUser, out string password)
+    {
+        password = null;
+        return false;
+    }
 }
