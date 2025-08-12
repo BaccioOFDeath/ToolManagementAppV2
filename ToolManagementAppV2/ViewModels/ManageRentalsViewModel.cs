@@ -136,7 +136,7 @@ namespace ToolManagementAppV2.ViewModels
         void OpenFilterWindow()
         {
             var win = new RentalsFilterWindow { DataContext = this };
-            try { win.Owner = Application.Current?.MainWindow; } catch { }
+            try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch { }
             try { win.ShowDialog(); } catch { }
         }
 
