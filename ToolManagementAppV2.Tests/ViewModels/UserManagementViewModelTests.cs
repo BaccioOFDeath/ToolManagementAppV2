@@ -36,29 +36,6 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void DeleteUserCommand_RemovesUser()
-        {
-            var dbPath = Path.GetTempFileName();
-            try
-            {
-                var db = new DatabaseService(dbPath);
-                IUserService userService = new UserService(db);
-                var vm = new UserManagementViewModel(userService, new StubFileDialogService());
-                userService.AddUser(new User { UserName = "user1", Password = "pw" });
-                vm.LoadUsers();
-                vm.SelectedUser = vm.Users.First();
-                vm.DeleteUserCommand.Execute(null);
-                Assert.Empty(userService.GetAllUsers());
-                Assert.Empty(vm.Users);
-            }
-            finally
-            {
-                if (File.Exists(dbPath))
-                    File.Delete(dbPath);
-            }
-        }
-
-        [Fact]
         public void UploadUserPhotoCommand_SetsPhotoPathAndPersists()
         {
             var dbPath = Path.GetTempFileName();
@@ -94,13 +71,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 userService.AddUser(new User { UserName = "user1", Password = "pw" });
                 vm.LoadUsers();
                 Assert.False(vm.UpdateUserCommand.CanExecute(null));
-                Assert.False(vm.DeleteUserCommand.CanExecute(null));
-                Assert.False(vm.ResetPasswordCommand.CanExecute(null));
                 Assert.False(vm.EditUserCommand.CanExecute(null));
                 vm.SelectedUser = vm.Users.First();
                 Assert.True(vm.UpdateUserCommand.CanExecute(null));
-                Assert.True(vm.DeleteUserCommand.CanExecute(null));
-                Assert.True(vm.ResetPasswordCommand.CanExecute(null));
                 Assert.True(vm.EditUserCommand.CanExecute(null));
             }
             finally
@@ -131,7 +104,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void ResetPasswordCommand_ChangesPassword()
+        public void ResetPasswordFromRowCommand_ChangesPassword()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -141,9 +114,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var vm = new UserManagementViewModel(userService, new StubFileDialogService());
                 userService.AddUser(new User { UserName = "user1", Password = "pw" });
                 vm.LoadUsers();
-                vm.SelectedUser = vm.Users.First();
-                var oldPwd = vm.SelectedUser.Password;
-                vm.ResetPasswordCommand.Execute(null);
+                var user = vm.Users.First();
+                var oldPwd = user.Password;
+                vm.ResetPasswordFromRowCommand.Execute(user);
                 var updated = userService.GetAllUsers().First();
                 Assert.NotEqual(oldPwd, updated.Password);
             }
