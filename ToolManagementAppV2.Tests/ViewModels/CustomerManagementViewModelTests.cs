@@ -9,7 +9,7 @@ using Xunit;
 
 namespace ToolManagementAppV2.Tests.ViewModels
 {
-    public class RentalManagementViewModelTests
+    public class CustomerManagementViewModelTests
     {
         [Fact]
         public void AddCustomerCommand_UsesDialogValues()
@@ -19,7 +19,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 ICustomerService customerService = new CustomerService(db);
-                var vm = new RentalManagementViewModel(customerService)
+                var vm = new CustomerManagementViewModel(customerService)
                 {
                     AddCustomerDialog = () => new CustomerModel
                     {
@@ -57,7 +57,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 ICustomerService customerService = new CustomerService(db);
-                var vm = new RentalManagementViewModel(customerService)
+                var vm = new CustomerManagementViewModel(customerService)
                 {
                     AddCustomerDialog = () => null
                 };
@@ -90,7 +90,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     Address = "Addr"
                 });
                 var existing = customerService.GetAllCustomers().First();
-                var vm = new RentalManagementViewModel(customerService);
+                var vm = new CustomerManagementViewModel(customerService);
                 vm.SelectedCustomer = existing;
 
                 Assert.Equal("ACME", vm.NewCustomerName);
@@ -117,7 +117,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 ICustomerService customerService = new CustomerService(db);
                 customerService.AddCustomer(new ToolManagementAppV2.Models.Domain.Customer { Company = "Old" });
                 var existing = customerService.GetAllCustomers().First();
-                var vm = new RentalManagementViewModel(customerService);
+                var vm = new CustomerManagementViewModel(customerService);
                 vm.SelectedCustomer = existing;
                 vm.NewCustomerName = "New";
                 vm.NewCustomerEmail = "e@e.com";
@@ -151,7 +151,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 ICustomerService customerService = new CustomerService(db);
                 customerService.AddCustomer(new ToolManagementAppV2.Models.Domain.Customer { Company = "Alpha" });
                 customerService.AddCustomer(new ToolManagementAppV2.Models.Domain.Customer { Company = "Beta" });
-                var vm = new RentalManagementViewModel(customerService);
+                var vm = new CustomerManagementViewModel(customerService);
                 vm.CustomerSearchTerm = "Beta";
                 vm.SearchCustomersCommand.Execute(null);
                 Assert.Single(vm.Customers);
@@ -174,7 +174,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 ICustomerService customerService = new CustomerService(db);
                 customerService.AddCustomer(new ToolManagementAppV2.Models.Domain.Customer { Company = "ACME" });
                 customerService.AddCustomer(new ToolManagementAppV2.Models.Domain.Customer { Company = "Beta" });
-                var vm = new RentalManagementViewModel(customerService);
+                var vm = new CustomerManagementViewModel(customerService);
                 vm.SearchCustomersCommand.Execute(null);
                 vm.SelectedCustomer = vm.Customers.First(c => c.Company == "ACME");
                 vm.DeleteCustomerCommand.Execute(null);
@@ -199,7 +199,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 ICustomerService customerService = new CustomerService(db);
-                var vm = new RentalManagementViewModel(customerService);
+                var vm = new CustomerManagementViewModel(customerService);
                 Assert.False(vm.DeleteCustomerCommand.CanExecute(null));
                 vm.SelectedCustomer = new ToolManagementAppV2.Models.Domain.Customer { Company = "ACME" };
                 Assert.True(vm.DeleteCustomerCommand.CanExecute(null));
