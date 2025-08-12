@@ -8,19 +8,21 @@ namespace ToolManagementAppV2.ViewModels
 {
     public class SettingsWindowViewModel : ObservableObject
     {
-        public SettingsViewModel SettingsViewModel { get; }
+        public object SettingsViewModel { get; }
         public Page SettingsPageContent { get; }
 
         public IRelayCommand SaveSettingsCommand { get; }
         public IRelayCommand CloseCommand { get; }
 
-        public SettingsWindowViewModel(SettingsViewModel settingsViewModel, Action closeAction, Action saveAction = null)
+        public SettingsWindowViewModel(object settingsViewModel, Action closeAction, Action saveAction = null)
         {
+            if (settingsViewModel == null) throw new ArgumentNullException(nameof(settingsViewModel));
+            if (closeAction == null) throw new ArgumentNullException(nameof(closeAction));
+
             SettingsViewModel = settingsViewModel;
             SettingsPageContent = new SettingsPage { DataContext = SettingsViewModel };
             SaveSettingsCommand = new RelayCommand(() => saveAction?.Invoke());
-            CloseCommand = new RelayCommand(() => closeAction?.Invoke());
+            CloseCommand = new RelayCommand(() => closeAction());
         }
     }
 }
-
