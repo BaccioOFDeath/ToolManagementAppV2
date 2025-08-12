@@ -20,13 +20,37 @@
 
                 <ScrollViewer Grid.Row="1">
                     <StackPanel x:Name="LeftMenuStack" Orientation="Vertical" Margin="12,0,12,8">
-                        <TextBlock Text="Main" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
+                        <TextBlock Text="Operations" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
                         <Button Style="{StaticResource NavButton}" Content="Dashboard" Command="{Binding OpenDashboardCommand}"/>
                         <Button Style="{StaticResource NavButton}" Content="Search Tools" Command="{Binding OpenSearchToolsCommand}"/>
+
+                        <Separator/>
+
+                        <TextBlock Text="Workshop" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
                         <Button Style="{StaticResource NavButton}" Content="Manage Tools" Command="{Binding OpenManageToolsCommand}" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
-                        <Button Style="{StaticResource NavButton}" Content="Manage Rentals" Command="{Binding OpenRentalsCommand}"/>
                         <Button Style="{StaticResource NavButton}" Content="Customers" Command="{Binding OpenCustomersCommand}"/>
                         <Button Style="{StaticResource NavButton}" Content="Users" Command="{Binding OpenUsersCommand}" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
+
+                        <Separator/>
+
+                        <TextBlock Text="Rentals" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
+                        <Button Style="{StaticResource NavButton}" Content="Manage Rentals" Command="{Binding OpenRentalsCommand}"/>
+                        <Button Style="{StaticResource NavButton}" Content="Rental History" Command="{Binding OpenRentalHistoryWindowCommand}"/>
+
+                        <Separator/>
+
+                        <TextBlock Text="Printing" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
+                        <Button Style="{StaticResource NavButton}" Content="Print Preview" Command="{Binding OpenPrintPreviewWindowCommand}"/>
+                        <Button Style="{StaticResource NavButton}" Content="Print Labels" Command="{Binding OpenPrintLabelWindowCommand}"/>
+
+                        <Separator/>
+
+                        <TextBlock Text="Diagnostics" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
+                        <Button Style="{StaticResource NavButton}" Content="Scanner Status" Command="{Binding OpenScannerStatusWindowCommand}"/>
+
+                        <Separator/>
+
+                        <TextBlock Text="Insights" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
                         <Button Style="{StaticResource NavButton}" Content="Reports" Command="{Binding OpenReportsCommand}"/>
                         <Button Style="{StaticResource NavButton}" Content="Activity Logs" Command="{Binding OpenActivityLogsCommand}"/>
 
@@ -37,20 +61,8 @@
 
                         <Separator/>
 
-                        <TextBlock Text="Windows" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
-                        <Button Style="{StaticResource NavButton}" Content="Rental History" Command="{Binding OpenRentalHistoryWindowCommand}"/>
-                        <Button Style="{StaticResource NavButton}" Content="Print Preview" Command="{Binding OpenPrintPreviewWindowCommand}"/>
-                        <Button Style="{StaticResource NavButton}" Content="Print Labels" Command="{Binding OpenPrintLabelWindowCommand}"/>
-                        <Button Style="{StaticResource NavButton}" Content="Scanner Status" Command="{Binding OpenScannerStatusWindowCommand}"/>
+                        <TextBlock Text="Administration" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
                         <Button Style="{StaticResource NavButton}" Content="Settings" Command="{Binding OpenSettingsWindowCommand}" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
-
-                        <Separator/>
-
-                        <TextBlock Text="Utilities" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
-                        <Button Style="{StaticResource NavButton}" Content="Password Prompt" Command="{Binding OpenPasswordPromptWindowCommand}"/>
-                        <Button Style="{StaticResource NavButton}" Content="Import Mapping" Command="{Binding OpenImportMappingWindowCommand}" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
-                        <Button Style="{StaticResource NavButton}" Content="Image Import Mapping" Command="{Binding OpenImageImportMappingWindowCommand}" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
-                        <Button Style="{StaticResource NavButton}" Content="Rent Tool Popup" Command="{Binding OpenRentToolPopupWindowCommand}"/>
 
                         <Separator/>
 
