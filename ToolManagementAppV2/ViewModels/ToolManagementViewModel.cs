@@ -98,7 +98,7 @@ namespace ToolManagementAppV2.ViewModels
         {
             _toolService = toolService;
             SearchCommand = new RelayCommand(FilterTools);
-            AddToolCommand = new RelayCommand(AddTool);
+            NewToolCommand = new RelayCommand(AddTool);
             _customerService = customerService;
 
             UpdateToolCommand = new RelayCommand(UpdateTool);

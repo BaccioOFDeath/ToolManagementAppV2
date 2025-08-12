@@ -87,7 +87,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void AddToolCommand_PersistsNewToolValues()
+        public void NewToolCommand_PersistsNewToolValues()
         {
             var dbPath = Path.GetTempFileName();
             try
