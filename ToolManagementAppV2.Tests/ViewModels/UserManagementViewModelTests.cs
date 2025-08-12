@@ -96,10 +96,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 Assert.False(vm.UpdateUserCommand.CanExecute(null));
                 Assert.False(vm.DeleteUserCommand.CanExecute(null));
                 Assert.False(vm.ResetPasswordCommand.CanExecute(null));
+                Assert.False(vm.EditUserCommand.CanExecute(null));
                 vm.SelectedUser = vm.Users.First();
                 Assert.True(vm.UpdateUserCommand.CanExecute(null));
                 Assert.True(vm.DeleteUserCommand.CanExecute(null));
                 Assert.True(vm.ResetPasswordCommand.CanExecute(null));
+                Assert.True(vm.EditUserCommand.CanExecute(null));
             }
             finally
             {

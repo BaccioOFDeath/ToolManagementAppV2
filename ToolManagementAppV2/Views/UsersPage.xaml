@@ -19,14 +19,14 @@
             <DockPanel LastChildFill="False">
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
                     <Button Style="{StaticResource PrimaryButton}" Content="Add User" Command="{Binding AddUserCommand}" Margin="0,0,8,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Edit User" Command="{Binding EditUserCommand}" Margin="0,0,8,0" IsEnabled="{Binding SelectedUser}"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Edit User" Command="{Binding EditUserCommand}" Margin="0,0,8,0"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
                     <TextBox Width="260" Text="{Binding UserSearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Search" Command="{Binding SearchUsersCommand}" Margin="0,0,8,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Clear" Command="{Binding ClearUserSearchCommand}" Margin="0,0,8,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Reset Password" Command="{Binding ResetPasswordCommand}" Margin="0,0,8,0" IsEnabled="{Binding SelectedUser}"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Delete User" Command="{Binding DeleteUserCommand}" IsEnabled="{Binding SelectedUser}"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Reset Password" Command="{Binding ResetPasswordCommand}" Margin="0,0,8,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Delete User" Command="{Binding DeleteUserCommand}"/>
                 </StackPanel>
             </DockPanel>
         </Border>
