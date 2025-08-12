@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,6 +11,7 @@ using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Rentals;
+using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.ViewModels.Rental;
@@ -163,7 +166,13 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenSettingsCommand = new RelayCommand(() =>
             {
-                var page = new SettingsPage { DataContext = new SettingsViewModel(), Title = "Settings" };
+                var db = new DatabaseService(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db"));
+                var settingsService = new SettingsService(db);
+                var page = new SettingsPage
+                {
+                    DataContext = new SettingsViewModel(fileDialogService, settingsService),
+                    Title = "Settings"
+                };
                 CurrentPage = page;
             });
 
