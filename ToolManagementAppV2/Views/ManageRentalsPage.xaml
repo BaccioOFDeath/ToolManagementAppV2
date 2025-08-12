@@ -10,7 +10,7 @@
         </Grid.RowDefinitions>
 
         <ToolBar HorizontalAlignment="Right">
-            <Button Style="{StaticResource PrimaryButton}" Content="Filter" Command="{Binding ToggleFilterPanelCommand}"/>
+            <Button Style="{StaticResource PrimaryButton}" Content="Filter" Command="{Binding OpenFilterWindowCommand}"/>
             <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="8,0,0,0"/>
         </ToolBar>
 
@@ -41,26 +41,6 @@
             </DataGrid>
         </Border>
 
-        <Border Grid.RowSpan="2"
-                Background="#80000000"
-                Visibility="{Binding IsFilterPanelVisible, Converter={StaticResource BoolToVis}}">
-            <Border Width="600"
-                    Style="{StaticResource Card}"
-                    Padding="12"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center">
-                <StackPanel>
-                    <TextBox Width="260" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
-                    <DatePicker SelectedDate="{Binding FilterFrom}" Margin="0,8,0,0"/>
-                    <DatePicker SelectedDate="{Binding FilterTo}" Margin="0,8,0,0"/>
-                    <ComboBox Width="180" ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus}" Margin="0,8,0,0"/>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
-                        <Button Style="{StaticResource PrimaryButton}" Content="Filter" Command="{Binding ApplyFilterCommand}"/>
-                        <Button Style="{StaticResource PrimaryButton}" Content="Clear" Command="{Binding ClearFilterCommand}" Margin="8,0,0,0"/>
-                        <Button Style="{StaticResource PrimaryButton}" Content="Close" Command="{Binding ToggleFilterPanelCommand}" Margin="8,0,0,0"/>
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-        </Border>
+        <!-- Filter overlay removed; filtering handled by RentalsFilterWindow -->
     </Grid>
 </Page>
