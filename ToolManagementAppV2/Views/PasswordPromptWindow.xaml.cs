@@ -56,6 +56,11 @@ namespace ToolManagementAppV2.Views
             PasswordBox.Focus();
         }
 
+        private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            VM.EnteredPassword = PasswordBox.Password;
+        }
+
         private void ShowError(string message)
         {
             _attemptCount++;
