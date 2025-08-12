@@ -2,21 +2,63 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ToolManagementAppV2.Interfaces;
 
 namespace ToolManagementAppV2.ViewModels
 {
     public class ToolEditViewModel : ObservableObject
     {
+        /// <summary>
+        /// Service used to display file dialogs for selecting tool images.
+        /// </summary>
+        private readonly IFileDialogService _fileDialog;
+
         public ToolModel Tool { get; }
 
         public IRelayCommand SaveCommand { get; }
         public IRelayCommand CancelCommand { get; }
 
-        public ToolEditViewModel(ToolModel tool, Action onSave, Action onCancel)
+        /// <summary>
+        /// Opens a file dialog to select an image and updates <see cref="Tool.ToolImagePath"/>.
+        /// </summary>
+        public IRelayCommand BrowseImageCommand { get; }
+
+        /// <summary>
+        /// Clears the current <see cref="Tool.ToolImagePath"/> and removes the preview.
+        /// </summary>
+        public IRelayCommand RemoveImageCommand { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ToolEditViewModel"/> class.
+        /// </summary>
+        /// <param name="tool">The tool being edited.</param>
+        /// <param name="onSave">Action invoked to persist the tool changes.</param>
+        /// <param name="onCancel">Action invoked when editing is canceled.</param>
+        /// <param name="fileDialog">Service used for browsing image files.</param>
+        public ToolEditViewModel(ToolModel tool, Action onSave, Action onCancel, IFileDialogService fileDialog)
         {
             Tool = tool;
+            _fileDialog = fileDialog;
+
             SaveCommand = new RelayCommand(onSave);
             CancelCommand = new RelayCommand(onCancel);
+
+            BrowseImageCommand = new RelayCommand(BrowseImage);
+            RemoveImageCommand = new RelayCommand(RemoveImage);
+        }
+
+        void BrowseImage()
+        {
+            var path = _fileDialog.OpenFile("Image Files|*.png;*.jpg;*.jpeg;*.bmp|All Files|*.*");
+            if (!string.IsNullOrEmpty(path))
+            {
+                Tool.ToolImagePath = path;
+            }
+        }
+
+        void RemoveImage()
+        {
+            Tool.ToolImagePath = string.Empty;
         }
     }
 }
