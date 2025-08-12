@@ -159,7 +159,12 @@ namespace ToolManagementAppV2.ViewModels
             OpenUsersCommand = new RelayCommand(() =>
             {
                 UserManagement.LoadUsers();
-                var page = new UsersPage { DataContext = UserManagement, Title = "Users" };
+                var page = new UsersPage
+                {
+                    // UsersPage expects a UserManagementViewModel as its DataContext
+                    DataContext = UserManagement,
+                    Title = "Users"
+                };
                 CurrentPage = page;
             });
 
