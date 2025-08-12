@@ -18,6 +18,12 @@ namespace ToolManagementAppV2.ViewModels
         public ObservableCollection<ToolModel> HandTools { get; } = new();
         public ObservableCollection<ToolModel> PowerTools { get; } = new();
 
+        /// <summary>
+        /// List of available tool categories derived from distinct brands
+        /// in the current tool set; rebuilt whenever tools are loaded or filtered.
+        /// </summary>
+        public ObservableCollection<string> Categories { get; } = new();
+
         private ToolModel _newTool = new();
         public ToolModel NewTool
         {
@@ -37,6 +43,24 @@ namespace ToolManagementAppV2.ViewModels
         {
             get => _selectedTool;
             set => SetProperty(ref _selectedTool, value);
+        }
+
+        private string _selectedCategory = "All";
+
+        /// <summary>
+        /// Currently selected category used to filter <see cref="SearchResults"/>.
+        /// Changing the value triggers <see cref="SearchCommand"/> to reapply the filter.
+        /// </summary>
+        public string SelectedCategory
+        {
+            get => _selectedCategory;
+            set
+            {
+                if (SetProperty(ref _selectedCategory, value))
+                {
+                    SearchCommand.Execute(null);
+                }
+            }
         }
 
         public IRelayCommand SearchCommand { get; }
@@ -62,7 +86,7 @@ namespace ToolManagementAppV2.ViewModels
         public ToolManagementViewModel(IToolService toolService)
         {
             _toolService = toolService;
-            SearchCommand = new RelayCommand(SearchTools);
+            SearchCommand = new RelayCommand(FilterTools);
             AddToolCommand = new RelayCommand(AddTool);
             UpdateToolCommand = new RelayCommand(UpdateTool);
             DeleteToolCommand = new RelayCommand(DeleteTool);
@@ -74,14 +98,26 @@ namespace ToolManagementAppV2.ViewModels
             Tools.ReplaceRange(all);
             SearchResults.ReplaceRange(all);
             CategorizeTools(all);
+            LoadCategories(all);
         }
 
-        void SearchTools()
+        /// <summary>
+        /// Applies text and category filters to the tool list.
+        /// Invoked by <see cref="SearchCommand"/> whenever the search text or
+        /// <see cref="SelectedCategory"/> changes and recomputes <see cref="Categories"/>.
+        /// </summary>
+        void FilterTools()
         {
             var term = string.IsNullOrWhiteSpace(SearchTerm) ? string.Empty : SearchTerm.Trim();
-            var results = string.IsNullOrEmpty(term)
-                ? _toolService.GetAllTools()
+            var all = _toolService.GetAllTools();
+            LoadCategories(all);
+            IEnumerable<ToolModel> results = string.IsNullOrEmpty(term)
+                ? all
                 : _toolService.SearchTools(term);
+            if (!string.IsNullOrEmpty(SelectedCategory) && SelectedCategory != "All")
+            {
+                results = results.Where(t => string.Equals(t.Brand, SelectedCategory, StringComparison.OrdinalIgnoreCase));
+            }
             SearchResults.ReplaceRange(results);
             CategorizeTools(results);
         }
@@ -90,7 +126,7 @@ namespace ToolManagementAppV2.ViewModels
         {
             _toolService.AddTool(NewTool);
             LoadTools();
-            SearchTools();
+            FilterTools();
             NewTool = new ToolModel();
         }
 
@@ -99,7 +135,7 @@ namespace ToolManagementAppV2.ViewModels
             if (SelectedTool == null) return;
             _toolService.UpdateTool(SelectedTool);
             LoadTools();
-            SearchTools();
+            FilterTools();
             SelectedTool = null;
         }
 
@@ -108,7 +144,7 @@ namespace ToolManagementAppV2.ViewModels
             if (SelectedTool == null) return;
             _toolService.DeleteTool(SelectedTool.ToolID);
             LoadTools();
-            SearchTools();
+            FilterTools();
             SelectedTool = null;
         }
 
@@ -123,5 +159,16 @@ namespace ToolManagementAppV2.ViewModels
             tool?.NameDescription?.Contains("cordless", StringComparison.OrdinalIgnoreCase) == true ||
             tool?.NameDescription?.Contains("electric", StringComparison.OrdinalIgnoreCase) == true ||
             tool?.NameDescription?.Contains("drill", StringComparison.OrdinalIgnoreCase) == true;
+
+        void LoadCategories(IEnumerable<ToolModel> tools)
+        {
+            var categories = tools.Select(t => t.Brand)
+                                   .Where(b => !string.IsNullOrWhiteSpace(b))
+                                   .Distinct()
+                                   .OrderBy(b => b)
+                                   .ToList();
+            categories.Insert(0, "All");
+            Categories.ReplaceRange(categories);
+        }
     }
 }

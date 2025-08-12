@@ -58,6 +58,29 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public void SearchCommand_FiltersToolsBySelectedCategory()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                var vm = new ToolManagementViewModel(toolService);
+                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" });
+                toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Saw", Brand = "BrandB" });
+                vm.SelectedCategory = "BrandA";
+                vm.SearchCommand.Execute(null);
+                Assert.Single(vm.SearchResults);
+                Assert.Equal("BrandA", vm.SearchResults.First().Brand);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public void AddToolCommand_PersistsNewToolValues()
         {
             var dbPath = Path.GetTempFileName();
