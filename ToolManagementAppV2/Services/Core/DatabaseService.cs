@@ -1,8 +1,10 @@
 using System.Data.SQLite;
 using System.IO;
 using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ToolManagementAppV2.Interfaces;
 
 namespace ToolManagementAppV2.Services.Core
 {
@@ -10,7 +12,7 @@ namespace ToolManagementAppV2.Services.Core
     /// Provides SQLite database access for the application. Instances should be
     /// disposed when no longer needed to release pooled connections.
     /// </summary>
-    public class DatabaseService : IDisposable
+    public class DatabaseService : IDisposable, IDatabaseBackupService
     {
         public string ConnectionString { get; }
         private readonly ILogger<DatabaseService> _logger;
@@ -243,5 +245,12 @@ namespace ToolManagementAppV2.Services.Core
                 throw new IOException("Failed to backup database.", ex);
             }
         }
+
+        /// <summary>
+        /// Asynchronously creates a backup of the current database.
+        /// </summary>
+        /// <param name="backupFilePath">Destination path for the backup file.</param>
+        public Task BackupDatabaseAsync(string backupFilePath)
+            => Task.Run(() => BackupDatabase(backupFilePath));
     }
 }

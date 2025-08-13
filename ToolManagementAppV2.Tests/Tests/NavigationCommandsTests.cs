@@ -44,7 +44,7 @@ namespace ToolManagementAppV2.Tests.Tests
                 var settingsService = new SettingsService(db);
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService);
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db);
                 vm.OpenSearchToolsCommand.Execute(null);
 
                 var page = Assert.IsType<ToolSearchPage>(vm.CurrentPage);

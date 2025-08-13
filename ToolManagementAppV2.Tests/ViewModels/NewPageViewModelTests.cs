@@ -12,6 +12,7 @@ using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.ViewModels;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace ToolManagementAppV2.Tests.ViewModels
 {
@@ -41,7 +42,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             var toolService = new StubToolService();
             var customerService = new StubCustomerService();
-            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
+            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService());
             vm.ImportToolsCommand.Execute(null);
             Assert.True(toolService.ImportCalled);
             Assert.Single(vm.ImportExportLogs);
@@ -53,7 +54,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             var toolService = new StubToolService();
             var customerService = new StubCustomerService();
-            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
+            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService());
             vm.ExportToolsCommand.Execute(null);
             Assert.True(toolService.ExportCalled);
             Assert.Single(vm.ImportExportLogs);
@@ -65,7 +66,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             var toolService = new StubToolService();
             var customerService = new StubCustomerService();
-            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
+            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService());
             vm.ImportCustomersCommand.Execute(null);
             Assert.True(customerService.ImportCalled);
             Assert.Single(vm.ImportExportLogs);
@@ -77,7 +78,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             var toolService = new StubToolService();
             var customerService = new StubCustomerService();
-            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
+            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService());
             vm.ExportCustomersCommand.Execute(null);
             Assert.True(customerService.ExportCalled);
             Assert.Single(vm.ImportExportLogs);
@@ -85,11 +86,20 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public async Task ImportExportViewModel_BackupDatabaseCommand_LogsSuccess()
+        {
+            var vm = new ImportExportViewModel(new StubToolService(), new StubCustomerService(), new StubFileDialogService(), new StubDatabaseBackupService());
+            await vm.BackupDatabaseCommand.ExecuteAsync(null);
+            Assert.Single(vm.ImportExportLogs);
+            Assert.StartsWith("Successfully backed up database", vm.ImportExportLogs[0]);
+        }
+
+        [Fact]
         public void ImportExportViewModel_ImportToolsCommand_LogsFailure()
         {
             var toolService = new FailToolService();
             var customerService = new StubCustomerService();
-            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
+            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService());
             vm.ImportToolsCommand.Execute(null);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Failed to import tools", vm.ImportExportLogs[0]);
@@ -100,7 +110,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             var toolService = new FailToolService();
             var customerService = new StubCustomerService();
-            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
+            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService());
             vm.ExportToolsCommand.Execute(null);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Failed to export tools", vm.ImportExportLogs[0]);
@@ -111,7 +121,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             var toolService = new StubToolService();
             var customerService = new FailCustomerService();
-            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
+            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService());
             vm.ImportCustomersCommand.Execute(null);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Failed to import customers", vm.ImportExportLogs[0]);
@@ -122,7 +132,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             var toolService = new StubToolService();
             var customerService = new FailCustomerService();
-            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService());
+            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService());
             vm.ExportCustomersCommand.Execute(null);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Failed to export customers", vm.ImportExportLogs[0]);
@@ -231,6 +241,16 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Customer GetCustomerByID(int customerID) => throw new System.NotImplementedException();
         public List<Customer> GetAllCustomers() => new();
         public List<Customer> SearchCustomers(string searchTerm) => new();
+    }
+
+    class StubDatabaseBackupService : IDatabaseBackupService
+    {
+        public bool Called { get; private set; }
+        public Task BackupDatabaseAsync(string backupFilePath)
+        {
+            Called = true;
+            return Task.CompletedTask;
+        }
     }
 
     class StubUserService : IUserService

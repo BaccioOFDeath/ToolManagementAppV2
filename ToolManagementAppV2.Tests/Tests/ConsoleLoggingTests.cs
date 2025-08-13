@@ -16,6 +16,7 @@ using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.Models.Domain;
 using Xunit;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ToolManagementAppV2.Tests
 {
@@ -111,7 +112,7 @@ namespace ToolManagementAppV2.Tests
         }
 
         [Fact]
-        public void BackupDatabase_LogsException()
+        public async Task BackupDatabaseAsync_LogsException()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -120,7 +121,7 @@ namespace ToolManagementAppV2.Tests
                 var sw = new StringWriter();
                 var original = Console.Out;
                 Console.SetOut(sw);
-                Assert.Throws<IOException>(() => db.BackupDatabase("invalid|path.db"));
+                await Assert.ThrowsAsync<IOException>(() => db.BackupDatabaseAsync("invalid|path.db"));
                 Console.SetOut(original);
                 Assert.NotEqual(string.Empty, sw.ToString());
             }

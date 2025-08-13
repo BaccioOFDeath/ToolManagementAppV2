@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -14,6 +15,7 @@ namespace ToolManagementAppV2.ViewModels
         private readonly IToolService _toolService;
         private readonly ICustomerService _customerService;
         private readonly IFileDialogService _fileDialogService;
+        private readonly IDatabaseBackupService _databaseService;
         private readonly ILogger<ImportExportViewModel> _logger;
 
         public IRelayCommand ImportToolsCommand { get; }
@@ -21,21 +23,33 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand ImportCustomersCommand { get; }
         public IRelayCommand ExportCustomersCommand { get; }
 
+        /// <summary>
+        /// Command that triggers an asynchronous database backup.
+        /// </summary>
+        /// <remarks>
+        /// The backup work executes off the UI thread via <see cref="BackupDatabaseAsync"/>,
+        /// keeping the interface responsive while the operation runs.
+        /// </remarks>
+        public IAsyncRelayCommand BackupDatabaseCommand { get; }
+
         public ObservableCollection<string> ImportExportLogs { get; } = new();
 
         public ImportExportViewModel(IToolService toolService,
                                      ICustomerService customerService,
                                      IFileDialogService fileDialogService,
+                                     IDatabaseBackupService databaseService,
                                      ILogger<ImportExportViewModel>? logger = null)
         {
             _toolService = toolService;
             _customerService = customerService;
             _fileDialogService = fileDialogService;
+            _databaseService = databaseService;
             _logger = logger ?? NullLogger<ImportExportViewModel>.Instance;
             ImportToolsCommand = new RelayCommand(ImportTools);
             ExportToolsCommand = new RelayCommand(ExportTools);
             ImportCustomersCommand = new RelayCommand(ImportCustomers);
             ExportCustomersCommand = new RelayCommand(ExportCustomers);
+            BackupDatabaseCommand = new AsyncRelayCommand(BackupDatabaseAsync);
         }
 
         void ImportTools()
@@ -99,6 +113,30 @@ namespace ToolManagementAppV2.ViewModels
             {
                 _logger.LogError(ex, "Failed to export customers to {Path}", path);
                 ImportExportLogs.Add($"Failed to export customers to {path}: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Prompts the user for a destination file and backs up the database asynchronously.
+        /// </summary>
+        /// <remarks>
+        /// The backup is performed using asynchronous I/O, allowing the UI thread to remain responsive
+        /// while the file copy completes in the background.
+        /// </remarks>
+        /// <returns>A <see cref="Task"/> representing the asynchronous backup operation.</returns>
+        async Task BackupDatabaseAsync()
+        {
+            var path = _fileDialogService.SaveFile("SQLite Database|*.db");
+            if (string.IsNullOrEmpty(path)) return;
+            try
+            {
+                await _databaseService.BackupDatabaseAsync(path);
+                ImportExportLogs.Add($"Successfully backed up database to {path}.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to backup database to {Path}", path);
+                ImportExportLogs.Add($"Failed to backup database to {path}: {ex.Message}");
             }
         }
     }

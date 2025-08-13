@@ -33,7 +33,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService);
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db);
 
                 bool raised = false;
                 vm.PropertyChanged += (s, e) =>

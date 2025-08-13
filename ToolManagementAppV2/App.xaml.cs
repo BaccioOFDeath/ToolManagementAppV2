@@ -30,7 +30,7 @@ namespace ToolManagementAppV2
             var fileDialogService = new FileDialogService();
             var settingsService = new SettingsService(db);
 
-            var mainVm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, fileDialogService, activityLogService, settingsService);
+            var mainVm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, fileDialogService, activityLogService, settingsService, db);
             var main = new MainWindow(mainVm, db);
 
             Current.MainWindow = main;

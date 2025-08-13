@@ -108,6 +108,7 @@ namespace ToolManagementAppV2.ViewModels
                              IFileDialogService fileDialogService,
                              ActivityLogService activityLogService,
                              ISettingsService settingsService,
+                             IDatabaseBackupService databaseService,
                              ILogger<MainViewModel>? logger = null,
                              Func<bool>? showLoginWindow = null)
         {
@@ -132,7 +133,7 @@ namespace ToolManagementAppV2.ViewModels
             UserManagement = new UserManagementViewModel(userService, fileDialogService);
             CustomerManagement = new CustomerManagementViewModel(customerService, new DialogService());
             ManageRentals = new ManageRentalsViewModel(rentalService, new DialogService());
-            ImportExport = new ImportExportViewModel(toolService, customerService, fileDialogService);
+            ImportExport = new ImportExportViewModel(toolService, customerService, fileDialogService, databaseService);
             Reports = new ReportsViewModel(new ReportService(toolService, rentalService, activityLogService, customerService, userService));
             ActivityLogs = new ActivityLogsViewModel(activityLogService);
 
