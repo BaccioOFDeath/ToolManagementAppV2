@@ -50,5 +50,37 @@ namespace ToolManagementAppV2.Tests.Views
                 throw threadException;
             }
         }
+
+        [Fact]
+        public void SwitchUserButton_BoundToSwitchUserCommand()
+        {
+            Exception? threadException = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var window = new ToolManagementAppV2.MainWindow();
+                    var button = (Button)window.FindName("SwitchUserButton");
+                    Assert.NotNull(button);
+
+                    var vm = Assert.IsType<MainViewModel>(window.DataContext);
+                    Assert.Same(vm.SwitchUserCommand, button.Command);
+                }
+                catch (Exception ex)
+                {
+                    threadException = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadException != null)
+            {
+                throw threadException;
+            }
+        }
     }
 }
