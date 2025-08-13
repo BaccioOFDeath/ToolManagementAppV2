@@ -122,7 +122,7 @@ namespace ToolManagementAppV2.ViewModels
             _settingsService = settingsService;
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<MainViewModel>.Instance;
-            _showLoginWindow = showLoginWindow ?? (() =>
+            _showLoginWindow = showLoginWindow ?? new Func<bool>(() =>
             {
                 var login = new LoginWindow(_userContext, _userService, _settingsService, _dialogService)
                 {

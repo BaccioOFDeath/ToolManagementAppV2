@@ -4,6 +4,8 @@ using System.IO;
 using System.Windows;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Services;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
@@ -41,13 +43,15 @@ namespace ToolManagementAppV2
             var fileDialogService = new FileDialogService();
             var settingsService = new SettingsService(db);
 
-            var mainVm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, fileDialogService, activityLogService, settingsService, db);
+            IDialogService dialogService = new DialogService();
+
+            var mainVm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, fileDialogService, activityLogService, settingsService, db, dialogService);
             var main = new MainWindow(mainVm, db);
 
             Current.MainWindow = main;
             main.Show(); // stays visible behind login
 
-            var login = new LoginWindow(userContext, userService, settingsService)
+            var login = new LoginWindow(userContext, userService, settingsService, dialogService)
             {
                 Owner = main,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
