@@ -17,7 +17,7 @@ namespace ToolManagementAppV2.Tests
             try
             {
                 var db = new DatabaseService(dbPath);
-                IUserService service = new UserService(db);
+                IUserService service = new UserService(db, new ApplicationUserContext());
                 service.AddUser(new User { UserName = "u", Password = "p", UserPhotoPath = "pack://application:,,,/Resources/NoImage.png" });
 
                 var sw = new StringWriter();
@@ -46,7 +46,7 @@ namespace ToolManagementAppV2.Tests
             try
             {
                 var db = new DatabaseService(dbPath);
-                IUserService service = new UserService(db);
+                IUserService service = new UserService(db, new ApplicationUserContext());
                 service.AddUser(new User { UserName = "u", Password = "p", UserPhotoPath = "invalid|path.png" });
 
                 var sw = new StringWriter();

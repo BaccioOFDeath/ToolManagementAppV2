@@ -11,10 +11,12 @@ namespace ToolManagementAppV2.Services.Users
     public class UserService : IUserService
     {
         readonly DatabaseService _dbService;
+        readonly IUserContext _context;
 
-        public UserService(DatabaseService dbService)
+        public UserService(DatabaseService dbService, IUserContext context)
         {
             _dbService = dbService;
+            _context = context;
         }
 
         public List<User> GetAllUsers()
@@ -61,7 +63,7 @@ namespace ToolManagementAppV2.Services.Users
 
         public User GetCurrentUser()
         {
-            if (System.Windows.Application.Current.Properties["CurrentUser"] is User u)
+            if (_context.CurrentUser is User u)
                 return GetUserByID(u.UserID);
             return null;
         }

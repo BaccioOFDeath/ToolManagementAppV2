@@ -17,7 +17,7 @@ public class UserAuthenticationTests
         try
         {
             var dbService = new DatabaseService(dbPath);
-            IUserService userService = new UserService(dbService);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
             var user = new User { UserName = "test", Password = "secret", IsAdmin = false };
             userService.AddUser(user);
@@ -45,7 +45,7 @@ public class UserAuthenticationTests
         try
         {
             var dbService = new DatabaseService(dbPath);
-            IUserService userService = new UserService(dbService);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
             var legacy = SecurityHelper.ComputeSha256HashLegacy("secret");
             using (var conn = dbService.CreateConnection())
@@ -78,7 +78,7 @@ public class UserAuthenticationTests
         try
         {
             var dbService = new DatabaseService(dbPath);
-            IUserService userService = new UserService(dbService);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
             var user = new User { UserName = "emptysalt", Password = "secret", IsAdmin = false };
             userService.AddUser(user);

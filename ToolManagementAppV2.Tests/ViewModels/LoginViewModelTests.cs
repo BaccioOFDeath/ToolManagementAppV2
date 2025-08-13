@@ -23,7 +23,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var dbService = new DatabaseService(dbPath);
-                var userService = new UserService(dbService);
+                var userService = new UserService(dbService, new ApplicationUserContext());
                 userService.AddUser(new User { UserName = "user", Password = "newpassword", IsAdmin = false });
 
                 var vm = new LoginViewModel(new StubDialogService(), dbPath);

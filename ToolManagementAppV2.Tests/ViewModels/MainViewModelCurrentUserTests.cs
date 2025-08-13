@@ -25,7 +25,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 var toolService = new ToolService(db);
-                var userService = new UserService(db);
+                var userService = new UserService(db, new ApplicationUserContext());
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var activityLogService = new ActivityLogService(db);

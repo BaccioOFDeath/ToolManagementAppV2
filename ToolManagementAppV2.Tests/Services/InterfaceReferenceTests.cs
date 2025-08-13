@@ -22,7 +22,7 @@ namespace ToolManagementAppV2.Tests.Services
                 IToolService toolSvc = new ToolService(db);
                 ICustomerService custSvc = new CustomerService(db);
                 IRentalService rentalSvc = new RentalService(db, toolSvc);
-                IUserService userSvc = new UserService(db);
+                IUserService userSvc = new UserService(db, new ApplicationUserContext());
                 ISettingsService settingsSvc = new SettingsService(db);
 
                 Assert.NotNull(toolSvc);

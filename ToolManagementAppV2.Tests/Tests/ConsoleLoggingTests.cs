@@ -84,7 +84,7 @@ namespace ToolManagementAppV2.Tests
             try
             {
                 var db = new DatabaseService(dbPath);
-                IUserService userService = new UserService(db);
+                IUserService userService = new UserService(db, new ApplicationUserContext());
                 userService.AddUser(new User { UserName = "u", Password = "p", UserPhotoPath = "pack://application:,,,/Resources/NoFile.png" });
                 var window = (MainWindow)FormatterServices.GetUninitializedObject(typeof(MainWindow));
                 var list = new ListView();
