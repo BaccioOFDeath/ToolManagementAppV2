@@ -6,7 +6,7 @@ namespace ToolManagementAppV2.Utilities.Helpers
 {
     public static class PathHelper
     {
-        private static readonly ILogger Logger = App.LoggerFactory.CreateLogger<PathHelper>();
+        private static readonly ILogger Logger = App.LoggerFactory.CreateLogger(nameof(PathHelper));
 
         /// <summary>
         /// Resolves <paramref name="path"/> against the application's base directory
