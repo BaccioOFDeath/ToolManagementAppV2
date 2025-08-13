@@ -190,7 +190,9 @@ namespace ToolManagementAppV2.Services.Users
             if (user == null) return false;
             if (user.IsAdmin)
             {
-                var adminCount = GetAllUsers().Count(u => u.IsAdmin);
+                const string sql = "SELECT COUNT(*) FROM Users WHERE IsAdmin = 1";
+                using var conn = _dbService.CreateConnection();
+                var adminCount = Convert.ToInt32(SqliteHelper.ExecuteScalar(conn, sql));
                 if (adminCount <= 1) return false;
             }
             DeleteUserInternal(userID);
