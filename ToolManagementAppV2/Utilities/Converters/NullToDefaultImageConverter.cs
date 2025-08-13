@@ -5,6 +5,7 @@ using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using System.IO;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 
 namespace ToolManagementAppV2.Utilities.Converters
 {
@@ -15,6 +16,7 @@ namespace ToolManagementAppV2.Utilities.Converters
         private static BitmapImage _defaultLogo;
         private static readonly Dictionary<string, BitmapImage> _imageCache =
             new Dictionary<string, BitmapImage>(StringComparer.OrdinalIgnoreCase);
+        private static readonly ILogger Logger = App.LoggerFactory.CreateLogger<NullToDefaultImageConverter>();
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -47,7 +49,7 @@ namespace ToolManagementAppV2.Utilities.Converters
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex);
+                    Logger.LogError(ex, "Failed to load image from {Path}", path);
                     // fall-through to default
                 }
             }
@@ -82,7 +84,7 @@ namespace ToolManagementAppV2.Utilities.Converters
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Logger.LogError(ex, "Failed to load resource {FileName}", fileName);
                 return new BitmapImage(); // empty fallback
             }
         }
@@ -99,7 +101,7 @@ namespace ToolManagementAppV2.Utilities.Converters
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Logger.LogError(ex, "ConvertBack failed");
             }
 
             return System.Windows.Data.Binding.DoNothing;

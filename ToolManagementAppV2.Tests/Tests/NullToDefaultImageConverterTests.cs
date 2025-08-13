@@ -4,6 +4,10 @@ using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using ToolManagementAppV2.Utilities.Converters;
 using ToolManagementAppV2.Utilities.Helpers;
+using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
+using System.Reflection;
+using ToolManagementAppV2;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests
@@ -72,6 +76,27 @@ namespace ToolManagementAppV2.Tests
             var converter = new NullToDefaultImageConverter();
             var result = converter.ConvertBack(42, typeof(string), null, CultureInfo.InvariantCulture);
             Assert.Equal(Binding.DoNothing, result);
+        }
+
+        [Fact]
+        public void LoadFromResource_InvalidFile_LogsError()
+        {
+            var logs = new List<LogEntry>();
+            var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
+            var originalFactory = App.LoggerFactory;
+            App.LoggerFactory = factory;
+            try
+            {
+                var converter = new NullToDefaultImageConverter();
+                var method = typeof(NullToDefaultImageConverter).GetMethod("LoadFromResource", BindingFlags.NonPublic | BindingFlags.Instance);
+                method!.Invoke(converter, new object[] { "NoSuchFile.png" });
+            }
+            finally
+            {
+                App.LoggerFactory = originalFactory;
+                factory.Dispose();
+            }
+            Assert.NotEmpty(logs);
         }
     }
 }

@@ -1,5 +1,8 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
+using ToolManagementAppV2;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
@@ -20,18 +23,20 @@ namespace ToolManagementAppV2.Tests
                 IUserService service = new UserService(db, new ApplicationUserContext());
                 service.AddUser(new User { UserName = "u", Password = "p", UserPhotoPath = "pack://application:,,,/Resources/NoImage.png" });
 
-                var sw = new StringWriter();
-                var original = Console.Out;
-                Console.SetOut(sw);
+                var logs = new List<LogEntry>();
+                var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
+                var originalFactory = App.LoggerFactory;
+                App.LoggerFactory = factory;
                 try
                 {
                     service.GetAllUsers();
                 }
                 finally
                 {
-                    Console.SetOut(original);
+                    App.LoggerFactory = originalFactory;
+                    factory.Dispose();
                 }
-                Assert.Equal(string.Empty, sw.ToString());
+                Assert.Empty(logs);
             }
             finally
             {
@@ -49,18 +54,20 @@ namespace ToolManagementAppV2.Tests
                 IUserService service = new UserService(db, new ApplicationUserContext());
                 service.AddUser(new User { UserName = "u", Password = "p", UserPhotoPath = "invalid|path.png" });
 
-                var sw = new StringWriter();
-                var original = Console.Out;
-                Console.SetOut(sw);
+                var logs = new List<LogEntry>();
+                var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
+                var originalFactory = App.LoggerFactory;
+                App.LoggerFactory = factory;
                 try
                 {
                     service.GetAllUsers();
                 }
                 finally
                 {
-                    Console.SetOut(original);
+                    App.LoggerFactory = originalFactory;
+                    factory.Dispose();
                 }
-                Assert.Equal(string.Empty, sw.ToString());
+                Assert.Empty(logs);
             }
             finally
             {

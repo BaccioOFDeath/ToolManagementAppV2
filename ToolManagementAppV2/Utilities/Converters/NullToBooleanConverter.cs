@@ -2,6 +2,7 @@
 using System;
 using System.Globalization;
 using System.Windows.Data;
+using Microsoft.Extensions.Logging;
 
 namespace ToolManagementAppV2.Utilities.Converters
 {
@@ -12,6 +13,7 @@ namespace ToolManagementAppV2.Utilities.Converters
     /// </summary>
     public class NullToBooleanConverter : IValueConverter
     {
+        private static readonly ILogger Logger = App.LoggerFactory.CreateLogger<NullToBooleanConverter>();
         /// <summary>
         /// Returns <c>true</c> if <paramref name="value"/> is not <c>null</c>;
         /// otherwise returns <c>false</c>.
@@ -33,7 +35,7 @@ namespace ToolManagementAppV2.Utilities.Converters
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Logger.LogError(ex, "ConvertBack failed");
             }
             return System.Windows.Data.Binding.DoNothing;
         }

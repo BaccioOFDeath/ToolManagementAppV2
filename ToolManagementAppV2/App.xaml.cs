@@ -2,6 +2,8 @@
 using System;
 using System.IO;
 using System.Windows;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
@@ -14,10 +16,19 @@ namespace ToolManagementAppV2
 {
     public partial class App : System.Windows.Application
     {
+        public static ILoggerFactory LoggerFactory { get; set; } = NullLoggerFactory.Instance;
+
         protected override void OnStartup(StartupEventArgs e)
         {
             ShutdownMode = ShutdownMode.OnMainWindowClose;
             base.OnStartup(e);
+
+            LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
+            {
+                var logFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app.log");
+                builder.AddDebug();
+                builder.AddFile(logFile);
+            });
 
             // Boot main window and data context FIRST so it shows behind login
             var db = new DatabaseService(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db"));
@@ -56,6 +67,12 @@ namespace ToolManagementAppV2
             if (main.WindowState == WindowState.Minimized) main.WindowState = WindowState.Normal;
             main.Activate();
             main.Focus();
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            LoggerFactory.Dispose();
+            base.OnExit(e);
         }
     }
 }
