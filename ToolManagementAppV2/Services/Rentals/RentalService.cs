@@ -77,18 +77,45 @@ namespace ToolManagementAppV2.Services.Rentals
 
         public void ExtendRental(int rentalID, DateTime newDueDate)
         {
-            const string sql = @"
-                UPDATE Rentals
-                   SET DueDate = @NewDueDate
-                 WHERE RentalID = @RentalID AND Status = 'Rented'";
-                    var p = new[]
+            ExecuteWithTransaction((conn, tx) =>
+            {
+                var selectCmd = new SQLiteCommand(
+                    "SELECT ToolID, DueDate FROM Rentals WHERE RentalID=@RentalID AND Status='Rented'",
+                    conn, tx);
+                selectCmd.Parameters.AddWithValue("@RentalID", rentalID);
+                using var reader = selectCmd.ExecuteReader();
+                if (!reader.Read())
+                    throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
+
+                int toolID = Convert.ToInt32(reader["ToolID"]);
+                DateTime oldDueDate = Convert.ToDateTime(reader["DueDate"]);
+
+                var updateCmd = new SQLiteCommand(
+                    "UPDATE Rentals SET DueDate=@NewDueDate WHERE RentalID=@RentalID AND Status='Rented'",
+                    conn, tx);
+                updateCmd.Parameters.AddWithValue("@NewDueDate", newDueDate);
+                updateCmd.Parameters.AddWithValue("@RentalID", rentalID);
+                if (updateCmd.ExecuteNonQuery() == 0)
+                    throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
+
+                if (_toolService != null)
+                {
+                    // When extending a rental, inventory counts shift only if the
+                    // due date crosses "today". Moving from an overdue date
+                    // (oldDueDate <= today) to a future date makes the tool
+                    // rented again, decreasing available quantity. Moving from a
+                    // future date to today or earlier means the tool is now
+                    // considered overdue and becomes available for others.
+                    if (oldDueDate <= DateTime.Today && newDueDate > DateTime.Today)
                     {
-                        new SQLiteParameter("@NewDueDate", newDueDate),
-                        new SQLiteParameter("@RentalID", rentalID)
-                    };
-                    using var conn = _dbService.CreateConnection();
-                    if (SqliteHelper.ExecuteNonQuery(conn, sql, p) == 0)
-                        throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
+                        _toolService.UpdateToolQuantities(toolID, 1, true, conn, tx);
+                    }
+                    else if (oldDueDate > DateTime.Today && newDueDate <= DateTime.Today)
+                    {
+                        _toolService.UpdateToolQuantities(toolID, 1, false, conn, tx);
+                    }
+                }
+            });
         }
 
         public void DeleteRental(int rentalID)
