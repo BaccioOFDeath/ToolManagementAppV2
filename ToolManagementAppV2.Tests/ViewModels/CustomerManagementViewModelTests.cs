@@ -73,6 +73,43 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public async Task AddCustomerCommand_ClearsNewCustomerFields()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                ICustomerService customerService = new CustomerService(db);
+                var dialog = new StubDialogService
+                {
+                    AddCustomerResult = new CustomerModel { Company = "ACME" }
+                };
+                var vm = new CustomerManagementViewModel(customerService, dialog);
+
+                vm.NewCustomerName = "Temp";
+                vm.NewCustomerEmail = "e";
+                vm.NewCustomerContact = "c";
+                vm.NewCustomerPhone = "p";
+                vm.NewCustomerMobile = "m";
+                vm.NewCustomerAddress = "a";
+
+                await vm.AddCustomerCommand.ExecuteAsync(null);
+
+                Assert.Equal(string.Empty, vm.NewCustomerName);
+                Assert.Equal(string.Empty, vm.NewCustomerEmail);
+                Assert.Equal(string.Empty, vm.NewCustomerContact);
+                Assert.Equal(string.Empty, vm.NewCustomerPhone);
+                Assert.Equal(string.Empty, vm.NewCustomerMobile);
+                Assert.Equal(string.Empty, vm.NewCustomerAddress);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public void SelectedCustomer_PopulatesNewCustomerFields()
         {
             var dbPath = Path.GetTempFileName();
@@ -99,6 +136,42 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 Assert.Equal("123", vm.NewCustomerPhone);
                 Assert.Equal("456", vm.NewCustomerMobile);
                 Assert.Equal("Addr", vm.NewCustomerAddress);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void SelectedCustomer_Null_ClearsNewCustomerFields()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                ICustomerService customerService = new CustomerService(db);
+                customerService.AddCustomer(new ToolManagementAppV2.Models.Domain.Customer
+                {
+                    Company = "ACME",
+                    Email = "a@b.com",
+                    Contact = "John",
+                    Phone = "123",
+                    Mobile = "456",
+                    Address = "Addr"
+                });
+                var existing = customerService.GetAllCustomers().First();
+                var vm = new CustomerManagementViewModel(customerService, new StubDialogService());
+                vm.SelectedCustomer = existing;
+                vm.SelectedCustomer = null;
+
+                Assert.Equal(string.Empty, vm.NewCustomerName);
+                Assert.Equal(string.Empty, vm.NewCustomerEmail);
+                Assert.Equal(string.Empty, vm.NewCustomerContact);
+                Assert.Equal(string.Empty, vm.NewCustomerPhone);
+                Assert.Equal(string.Empty, vm.NewCustomerMobile);
+                Assert.Equal(string.Empty, vm.NewCustomerAddress);
             }
             finally
             {
