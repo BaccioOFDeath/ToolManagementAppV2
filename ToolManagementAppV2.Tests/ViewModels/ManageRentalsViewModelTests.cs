@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Services.Customers;
@@ -16,7 +17,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     public class ManageRentalsViewModelTests
     {
         [Fact]
-        public void ApplyFilter_FiltersByStatus()
+        public async Task ApplyFilter_FiltersByStatus()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -40,7 +41,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 rentalService.ReturnTool(all[1].RentalID, DateTime.Today);
 
                 var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
-                vm.LoadRentals();
+                await vm.LoadRentalsAsync();
 
                 Assert.Equal(2, vm.Rentals.Count);
 
@@ -61,7 +62,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void ApplyFilter_FiltersBySearchText()
+        public async Task ApplyFilter_FiltersBySearchText()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -83,7 +84,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 rentalService.RentTool(tool2.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
-                vm.LoadRentals();
+                await vm.LoadRentalsAsync();
 
                 vm.SearchText = "Alpha";
                 vm.ApplyFilterCommand.Execute(null);
@@ -117,7 +118,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void DeleteRentalCommand_RemovesRental()
+        public async Task DeleteRentalCommand_RemovesRental()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -136,10 +137,10 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
-                vm.LoadRentals();
+                await vm.LoadRentalsAsync();
                 vm.SelectedRental = vm.Rentals.First();
 
-                vm.DeleteRentalCommand.Execute(null);
+                await vm.DeleteRentalCommand.ExecuteAsync(null);
 
                 Assert.Empty(vm.Rentals);
                 Assert.Empty(rentalService.GetAllRentals());
@@ -150,7 +151,75 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
-    }
+
+        [Fact]
+        public async Task CheckInCommand_UpdatesRentalStatus()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+
+                var tool = new Tool { ToolNumber = "T1" };
+                toolService.AddTool(tool);
+                var customer = new Customer { Company = "C1" };
+                customerService.AddCustomer(customer);
+                var cust = customerService.GetAllCustomers().First();
+
+                rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+
+                var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
+                await vm.LoadRentalsAsync();
+                vm.SelectedRental = vm.Rentals.First();
+
+                await vm.CheckInCommand.ExecuteAsync(null);
+
+                Assert.Equal("Returned", vm.Rentals.First().Status);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task ExtendCommand_ExtendsDueDate()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+
+                var tool = new Tool { ToolNumber = "T1" };
+                toolService.AddTool(tool);
+                var customer = new Customer { Company = "C1" };
+                customerService.AddCustomer(customer);
+                var cust = customerService.GetAllCustomers().First();
+
+                rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+
+                var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
+                await vm.LoadRentalsAsync();
+                vm.SelectedRental = vm.Rentals.First();
+                var oldDue = vm.SelectedRental.DueDate;
+
+                await vm.ExtendCommand.ExecuteAsync(null);
+
+                Assert.Equal(oldDue.AddDays(7), vm.Rentals.First().DueDate);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 
     class StubDialogService : IDialogService
