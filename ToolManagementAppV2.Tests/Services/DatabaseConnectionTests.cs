@@ -37,6 +37,32 @@ namespace ToolManagementAppV2.Tests.Services
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void WalModeAndBusyTimeoutConfigured()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                using var conn = dbService.CreateConnection();
+                using (var cmd = new SQLiteCommand("PRAGMA journal_mode;", conn))
+                {
+                    var mode = Convert.ToString(cmd.ExecuteScalar());
+                    Assert.Equal("wal", mode?.ToLowerInvariant());
+                }
+                using (var cmd = new SQLiteCommand("PRAGMA busy_timeout;", conn))
+                {
+                    var timeout = Convert.ToInt32(cmd.ExecuteScalar());
+                    Assert.Equal(5000, timeout);
+                }
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }
 
