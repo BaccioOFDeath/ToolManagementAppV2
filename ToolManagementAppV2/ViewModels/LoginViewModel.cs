@@ -138,8 +138,11 @@ namespace ToolManagementAppV2.ViewModels
             {
                 _userService.ChangeUserPassword(user.UserID, "admin");
                 var refreshed = _userService.GetUserByID(user.UserID);
-                user.Password = refreshed.Password;
-                user.Salt = refreshed.Salt;
+                if (refreshed != null)
+                {
+                    user.Password = refreshed.Password;
+                    user.Salt = refreshed.Salt;
+                }
             }
 
             if (!user.IsAdmin &&
@@ -166,8 +169,11 @@ namespace ToolManagementAppV2.ViewModels
                 {
                     _userService.ChangeUserPassword(user.UserID, "admin");
                     var refreshed = _userService.GetUserByID(user.UserID);
-                    user.Password = refreshed.Password;
-                    user.Salt = refreshed.Salt;
+                    if (refreshed != null)
+                    {
+                        user.Password = refreshed.Password;
+                        user.Salt = refreshed.Salt;
+                    }
                     LoadUsers();
                     _dialogService.ShowInfo("Password has been reset to default. Please enter the new password to login.",
                         "Password Reset");

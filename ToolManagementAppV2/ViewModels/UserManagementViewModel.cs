@@ -227,8 +227,11 @@ namespace ToolManagementAppV2.ViewModels
             if (user == null) return;
             _userService.ChangeUserPassword(user.UserID, "admin");
             var refreshed = _userService.GetUserByID(user.UserID);
-            user.Password = refreshed.Password;
-            user.Salt = refreshed.Salt;
+            if (refreshed != null)
+            {
+                user.Password = refreshed.Password;
+                user.Salt = refreshed.Salt;
+            }
         }
 
         void DeleteUser(UserModel user)

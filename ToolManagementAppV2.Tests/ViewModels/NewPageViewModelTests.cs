@@ -256,13 +256,22 @@ namespace ToolManagementAppV2.Tests.ViewModels
     class StubUserService : IUserService
     {
         public List<User> GetAllUsers() => new();
-        public User GetUserByID(int userID) => throw new System.NotImplementedException();
-        public User AuthenticateUser(string userName, string password) => throw new System.NotImplementedException();
-        public User GetCurrentUser() => throw new System.NotImplementedException();
-        public void AddUser(User user) => throw new System.NotImplementedException();
-        public void UpdateUser(User user) => throw new System.NotImplementedException();
-        public bool TryDeleteUser(int userID) => throw new System.NotImplementedException();
-        public bool DeleteUser(int userID) => throw new System.NotImplementedException();
-        public void ChangeUserPassword(int userID, string newPassword) => throw new System.NotImplementedException();
+        public Task<List<User>> GetAllUsersAsync() => Task.FromResult(new List<User>());
+        public User? GetUserByID(int userID) => null;
+        public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult<User?>(null);
+        public User? AuthenticateUser(string userName, string password) => null;
+        public Task<User?> AuthenticateUserAsync(string userName, string password) => Task.FromResult<User?>(null);
+        public User? GetCurrentUser() => null;
+        public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
+        public void AddUser(User user) { }
+        public Task AddUserAsync(User user) => Task.CompletedTask;
+        public void UpdateUser(User user) { }
+        public Task UpdateUserAsync(User user) => Task.CompletedTask;
+        public bool TryDeleteUser(int userID) => false;
+        public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
+        public bool DeleteUser(int userID) => false;
+        public Task<bool> DeleteUserAsync(int userID) => Task.FromResult(false);
+        public void ChangeUserPassword(int userID, string newPassword) { }
+        public Task ChangeUserPasswordAsync(int userID, string newPassword) => Task.CompletedTask;
     }
 }
