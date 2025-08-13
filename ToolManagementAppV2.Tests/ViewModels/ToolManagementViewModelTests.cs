@@ -277,7 +277,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
-                var dialog = new StubDialogService();
+                var dialog = new StubDialogService { ConfirmationResult = true };
                 var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
                 var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer" };
                 toolService.AddTool(tool);
@@ -286,6 +286,33 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 await vm.DeleteToolCommand.ExecuteAsync(null);
                 Assert.Empty(toolService.GetAllTools());
                 Assert.Empty(vm.Tools);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task DeleteToolCommand_Cancelled_DoesNotRemoveTool()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var dialog = new StubDialogService { ConfirmationResult = false };
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
+                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer" };
+                toolService.AddTool(tool);
+                await vm.LoadToolsAsync();
+                vm.SelectedTool = vm.Tools.First();
+                await vm.DeleteToolCommand.ExecuteAsync(null);
+                Assert.Single(toolService.GetAllTools());
+                Assert.Single(vm.Tools);
             }
             finally
             {

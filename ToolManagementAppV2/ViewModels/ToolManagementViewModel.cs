@@ -227,6 +227,12 @@ namespace ToolManagementAppV2.ViewModels
         async Task DeleteToolAsync()
         {
             if (SelectedTool == null) return;
+            var confirm = _dialogService.ShowConfirmation(
+                $"Delete tool '{SelectedTool.NameDescription}'?",
+                "Confirm Delete");
+            if (!confirm)
+                return;
+
             await _toolService.DeleteToolAsync(SelectedTool.ToolID);
             await LoadToolsAsync();
             await FilterToolsAsync();
