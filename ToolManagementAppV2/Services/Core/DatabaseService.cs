@@ -1,12 +1,15 @@
 using System.Data.SQLite;
 using System.IO;
 using System;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.Services.Core
 {
     public class DatabaseService
     {
         public string ConnectionString { get; }
+        private readonly ILogger<DatabaseService> _logger;
 
         public SQLiteConnection CreateConnection()
         {
@@ -24,9 +27,10 @@ namespace ToolManagementAppV2.Services.Core
             return conn;
         }
 
-        public DatabaseService(string dbPath)
+        public DatabaseService(string dbPath, ILogger<DatabaseService>? logger = null)
         {
             ConnectionString = $"Data Source={dbPath};Version=3;";
+            _logger = logger ?? NullLogger<DatabaseService>.Instance;
             InitializeDatabase();
             EnsureColumn("Tools", "ToolNumber", "TEXT");
             EnsureColumn("Tools", "NameDescription", "TEXT");
@@ -136,7 +140,7 @@ namespace ToolManagementAppV2.Services.Core
                 }
                 else
                 {
-                    Console.WriteLine(ex);
+                    _logger.LogError(ex, "Failed to ensure column {Column} on table {Table}", column, table);
                     throw;
                 }
             }
@@ -160,7 +164,7 @@ namespace ToolManagementAppV2.Services.Core
                 }
                 else
                 {
-                    Console.WriteLine(ex);
+                    _logger.LogError(ex, "Failed to ensure index on {Table}.{Column}", table, column);
                     throw;
                 }
             }
@@ -196,7 +200,7 @@ namespace ToolManagementAppV2.Services.Core
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                _logger.LogError(ex, "Failed to backup database");
                 throw new IOException("Failed to backup database.", ex);
             }
         }

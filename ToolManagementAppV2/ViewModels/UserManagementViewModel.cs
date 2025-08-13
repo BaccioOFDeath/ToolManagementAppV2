@@ -9,6 +9,8 @@ using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.Views;
 using ToolManagementAppV2.Services;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -16,6 +18,7 @@ namespace ToolManagementAppV2.ViewModels
     {
         private readonly IUserService _userService;
         private readonly IFileDialogService _fileDialogService;
+        private readonly ILogger<UserManagementViewModel> _logger;
 
         private List<UserModel> _allUsers = new();
 
@@ -55,10 +58,11 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand ResetPasswordFromRowCommand { get; }
         public IRelayCommand DeleteUserFromRowCommand { get; }
 
-        public UserManagementViewModel(IUserService userService, IFileDialogService fileDialogService)
+        public UserManagementViewModel(IUserService userService, IFileDialogService fileDialogService, ILogger<UserManagementViewModel>? logger = null)
         {
             _userService = userService;
             _fileDialogService = fileDialogService;
+            _logger = logger ?? NullLogger<UserManagementViewModel>.Instance;
             LoadUsersCommand = new RelayCommand(LoadUsers);
             UploadUserPhotoCommand = new RelayCommand(UploadUserPhoto);
             UpdateUserCommand = new RelayCommand(UpdateUser, () => SelectedUser != null);
@@ -146,9 +150,9 @@ namespace ToolManagementAppV2.ViewModels
                     }
                     return false;
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Ignore UI errors in non-interactive environments
+                    _logger.LogError(ex, "Failed to prompt for password");
                 }
             }
 
@@ -212,8 +216,10 @@ namespace ToolManagementAppV2.ViewModels
                 onCancel: () => win.Close(),
                 onRemoveAvatar: () => clone.UserPhotoPath = null);
 
-            try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch { }
-            try { win.ShowDialog(); } catch { }
+            try { win.Owner = System.Windows.Application.Current?.MainWindow; }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for UsersEditWindow"); }
+            try { win.ShowDialog(); }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to show UsersEditWindow"); }
         }
 
         void ResetPasswordFor(UserModel user)

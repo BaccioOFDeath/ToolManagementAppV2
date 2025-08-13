@@ -5,6 +5,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -12,6 +14,7 @@ namespace ToolManagementAppV2.ViewModels
     {
         readonly IUserService _userService;
         readonly IFileDialogService _fileDialog;
+        readonly ILogger<UsersViewModel> _logger;
 
         public ObservableCollection<User> Users { get; } = new ObservableCollection<User>();
 
@@ -27,10 +30,11 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand DeleteUserCommand { get; }
         public IRelayCommand NewUserCommand { get; }
 
-        public UsersViewModel(IUserService userService, IFileDialogService fileDialog)
+        public UsersViewModel(IUserService userService, IFileDialogService fileDialog, ILogger<UsersViewModel>? logger = null)
         {
             _userService = userService;
             _fileDialog = fileDialog;
+            _logger = logger ?? NullLogger<UsersViewModel>.Instance;
 
             BrowseUserPhotoCommand = new RelayCommand(BrowseUserPhoto);
             SaveUserCommand = new RelayCommand(SaveUser);
@@ -68,7 +72,7 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                _logger.LogError(ex, "Failed to save user");
             }
         }
 
@@ -82,7 +86,7 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                _logger.LogError(ex, "Failed to delete user");
             }
         }
 

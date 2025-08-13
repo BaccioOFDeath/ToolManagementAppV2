@@ -8,16 +8,20 @@ using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Utilities.IO;
 using ToolManagementAppV2.Interfaces;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.Services.Customers
 {
     public class CustomerService : ICustomerService
     {
         readonly DatabaseService _dbService;
+        readonly ILogger<CustomerService> _logger;
 
-        public CustomerService(DatabaseService dbService)
+        public CustomerService(DatabaseService dbService, ILogger<CustomerService>? logger = null)
         {
             _dbService = dbService;
+            _logger = logger ?? NullLogger<CustomerService>.Instance;
         }
 
         public void ImportCustomersFromCsv(string filePath, IDictionary<string, string> map)
@@ -38,8 +42,9 @@ namespace ToolManagementAppV2.Services.Customers
                 }
                 tran.Commit();
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed to import customers from CSV");
                 tran.Rollback();
                 throw;
             }

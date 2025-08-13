@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.Services.Rentals
 {
@@ -14,11 +16,13 @@ namespace ToolManagementAppV2.Services.Rentals
     {
         private readonly DatabaseService _dbService;
         private readonly IToolService? _toolService;
+        private readonly ILogger<RentalService> _logger;
 
-        public RentalService(DatabaseService dbService, IToolService? toolService = null)
+        public RentalService(DatabaseService dbService, IToolService? toolService = null, ILogger<RentalService>? logger = null)
         {
             _dbService = dbService ?? throw new ArgumentNullException(nameof(dbService));
             _toolService = toolService; // may be null if inventory sync not desired
+            _logger = logger ?? NullLogger<RentalService>.Instance;
         }
 
         public void RentTool(int toolID, int customerID, DateTime rentalDate, DateTime dueDate)
@@ -107,8 +111,9 @@ namespace ToolManagementAppV2.Services.Rentals
                 tx.Commit();
                 postCommitAction?.Invoke();
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Database transaction failed");
                 tx.Rollback();
                 throw;
             }

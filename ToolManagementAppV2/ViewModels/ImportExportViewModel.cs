@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System;
 using ToolManagementAppV2.Interfaces;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -12,6 +14,7 @@ namespace ToolManagementAppV2.ViewModels
         private readonly IToolService _toolService;
         private readonly ICustomerService _customerService;
         private readonly IFileDialogService _fileDialogService;
+        private readonly ILogger<ImportExportViewModel> _logger;
 
         public IRelayCommand ImportToolsCommand { get; }
         public IRelayCommand ExportToolsCommand { get; }
@@ -22,11 +25,13 @@ namespace ToolManagementAppV2.ViewModels
 
         public ImportExportViewModel(IToolService toolService,
                                      ICustomerService customerService,
-                                     IFileDialogService fileDialogService)
+                                     IFileDialogService fileDialogService,
+                                     ILogger<ImportExportViewModel>? logger = null)
         {
             _toolService = toolService;
             _customerService = customerService;
             _fileDialogService = fileDialogService;
+            _logger = logger ?? NullLogger<ImportExportViewModel>.Instance;
             ImportToolsCommand = new RelayCommand(ImportTools);
             ExportToolsCommand = new RelayCommand(ExportTools);
             ImportCustomersCommand = new RelayCommand(ImportCustomers);
@@ -44,6 +49,7 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed to import tools from {Path}", path);
                 ImportExportLogs.Add($"Failed to import tools from {path}: {ex.Message}");
             }
         }
@@ -59,6 +65,7 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed to export tools to {Path}", path);
                 ImportExportLogs.Add($"Failed to export tools to {path}: {ex.Message}");
             }
         }
@@ -74,6 +81,7 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed to import customers from {Path}", path);
                 ImportExportLogs.Add($"Failed to import customers from {path}: {ex.Message}");
             }
         }
@@ -89,6 +97,7 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed to export customers to {Path}", path);
                 ImportExportLogs.Add($"Failed to export customers to {path}: {ex.Message}");
             }
         }
