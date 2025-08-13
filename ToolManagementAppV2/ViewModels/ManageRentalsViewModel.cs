@@ -8,7 +8,6 @@ using System.Windows;
 using System.Windows.Documents;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
-using ToolManagementAppV2.Views;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -229,8 +228,7 @@ namespace ToolManagementAppV2.ViewModels
 
             doc.Blocks.Add(table);
 
-            var preview = new PrintPreviewWindow();
-            preview.ShowPreview(doc, $"Rental {SelectedRental.RentalID}", string.Empty);
+            _dialogService.ShowPrintPreview(doc, $"Rental {SelectedRental.RentalID}", string.Empty);
         }
 
         void DeleteRental()

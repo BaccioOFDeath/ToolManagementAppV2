@@ -5,13 +5,14 @@ using System.Windows.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ToolManagementAppV2.Models.Domain;
-using ToolManagementAppV2.Views;
+using ToolManagementAppV2.Interfaces;
 
 namespace ToolManagementAppV2.ViewModels
 {
     public class PrintLabelViewModel : ObservableObject
     {
         private readonly System.Action _closeAction;
+        private readonly IDialogService _dialogService;
 
         public ObservableCollection<string> Templates { get; }
 
@@ -35,8 +36,9 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand PrintCommand { get; }
         public IRelayCommand CloseCommand { get; }
 
-        public PrintLabelViewModel(System.Action closeAction)
+        public PrintLabelViewModel(IDialogService dialogService, System.Action closeAction)
         {
+            _dialogService = dialogService;
             _closeAction = closeAction;
             Templates = new ObservableCollection<string> { "Standard", "Compact" };
             _selectedTemplate = Templates.First();
@@ -49,8 +51,7 @@ namespace ToolManagementAppV2.ViewModels
         private void Preview()
         {
             var doc = BuildDocument();
-            var preview = new PrintPreviewWindow();
-            preview.ShowPreview(doc, "Tool Labels", string.Empty);
+            _dialogService.ShowPrintPreview(doc, "Tool Labels", string.Empty);
         }
 
         private void Print()

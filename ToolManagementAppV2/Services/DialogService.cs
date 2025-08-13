@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Documents;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.ViewModels.Rental;
@@ -96,6 +98,58 @@ namespace ToolManagementAppV2.Services
             catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for RentalHistoryWindow"); }
             try { win.ShowDialog(); }
             catch (Exception ex) { _logger.LogError(ex, "Failed to show RentalHistoryWindow"); }
+        }
+
+        public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> propertyNames)
+        {
+            var win = new ImportMappingWindow(headers, propertyNames);
+            try { win.Owner = System.Windows.Application.Current?.MainWindow; }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for ImportMappingWindow"); }
+            try
+            {
+                if (win.ShowDialog() == true)
+                {
+                    return win.VM.Mappings.ToDictionary(m => m.SelectedColumn, m => m.PropertyName);
+                }
+            }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to show ImportMappingWindow"); }
+            return null;
+        }
+
+        public Func<ToolModel, IEnumerable<string>>? ShowImageImportMapping()
+        {
+            var win = new ImageImportMappingWindow();
+            try { win.Owner = System.Windows.Application.Current?.MainWindow; }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for ImageImportMappingWindow"); }
+            try { return win.ShowDialog() == true ? win.VM.BuildSelector() : null; }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to show ImageImportMappingWindow"); return null; }
+        }
+
+        public void ShowPrintPreview(FlowDocument document, string title, string description)
+        {
+            var win = new PrintPreviewWindow();
+            try { win.Owner = System.Windows.Application.Current?.MainWindow; }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for PrintPreviewWindow"); }
+            try { win.ShowPreview(document, title, description); }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to show PrintPreviewWindow"); }
+        }
+
+        public void ShowPrintLabelDialog()
+        {
+            var win = new PrintLabelWindow(this);
+            try { win.Owner = System.Windows.Application.Current?.MainWindow; }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for PrintLabelWindow"); }
+            try { win.ShowDialog(); }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to show PrintLabelWindow"); }
+        }
+
+        public void ShowScannerStatus()
+        {
+            var win = new ScannerStatusWindow();
+            try { win.Owner = System.Windows.Application.Current?.MainWindow; }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for ScannerStatusWindow"); }
+            try { win.ShowDialog(); }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to show ScannerStatusWindow"); }
         }
     }
 }

@@ -8,6 +8,7 @@ using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Settings;
+using ToolManagementAppV2.Services;
 using ToolManagementAppV2.ViewModels;
 
 namespace ToolManagementAppV2
@@ -52,8 +53,9 @@ namespace ToolManagementAppV2
                 var activityLogService = new ActivityLogService(_ownedDb);
                 var fileDialogService = new FileDialogService();
                 var settingsService = new SettingsService(_ownedDb);
+                var dialogService = new DialogService();
 
-                DataContext = new MainViewModel(toolService, userService, userContext, customerService, rentalService, fileDialogService, activityLogService, settingsService, _ownedDb);
+                DataContext = new MainViewModel(toolService, userService, userContext, customerService, rentalService, fileDialogService, activityLogService, settingsService, _ownedDb, dialogService);
             }
 
             Closed += (_, __) => _ownedDb?.Dispose();

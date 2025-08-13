@@ -11,6 +11,7 @@ using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Views;
 using Xunit;
+using System.Collections.Generic;
 
 namespace ToolManagementAppV2.Tests.Tests
 {
@@ -44,7 +45,7 @@ namespace ToolManagementAppV2.Tests.Tests
                 var settingsService = new SettingsService(db);
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db);
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 vm.OpenSearchToolsCommand.Execute(null);
 
                 var page = Assert.IsType<ToolSearchPage>(vm.CurrentPage);
@@ -65,4 +66,14 @@ class StubFileDialogService : IFileDialogService
 {
     public string OpenFile(string filter) => null;
     public string SaveFile(string filter) => null;
+}
+
+class StubDialogService : IDialogService
+{
+    public void ShowInfo(string message, string title) { }
+    public bool ShowConfirmation(string message, string title) => false;
+    public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
+    public void ShowToolDetails(ToolModel tool) { }
+    public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+    public CustomerModel? ShowAddCustomerDialog() => null;
 }

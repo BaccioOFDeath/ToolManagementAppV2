@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Collections.Generic;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Tools;
@@ -34,7 +35,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db);
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
 
                 Assert.NotNull(vm.ToolManagement);
                 Assert.NotNull(vm.UserManagement);
@@ -66,7 +67,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db);
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 vm.OpenDashboardCommand.Execute(null);
 
                 var page = Assert.IsType<DashboardPage>(vm.CurrentPage);
@@ -94,7 +95,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db);
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 vm.OpenImportExportCommand.Execute(null);
 
                 var page = Assert.IsType<ImportExportPage>(vm.CurrentPage);
@@ -123,7 +124,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IRentalService rentalService = new RentalService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db);
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 vm.OpenActivityLogsCommand.Execute(null);
 
                 var page = Assert.IsType<ActivityLogsPage>(vm.CurrentPage);
@@ -152,7 +153,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IRentalService rentalService = new RentalService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db);
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 vm.OpenReportsCommand.Execute(null);
 
                 var page = Assert.IsType<ReportsPage>(vm.CurrentPage);
@@ -181,7 +182,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db);
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 vm.OpenSettingsCommand.Execute(null);
 
                 var page = Assert.IsType<SettingsPage>(vm.CurrentPage);
@@ -214,7 +215,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db);
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 vm.OpenRentalsCommand.Execute(null);
 
                 var page = Assert.IsType<ManageRentalsPage>(vm.CurrentPage);
@@ -245,7 +246,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
                 toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Saw" });
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db);
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 vm.GlobalSearchText = "Ham";
 
                 vm.GlobalSearchCommand.Execute(null);
@@ -278,7 +279,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db);
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 vm.OpenImportMappingWindowCommand.Execute(null);
             }
             finally
@@ -303,7 +304,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db);
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 Assert.NotNull(vm.OpenImageImportMappingWindowCommand);
             }
             finally
@@ -319,4 +320,14 @@ class StubFileDialogService : ToolManagementAppV2.Interfaces.IFileDialogService
 {
     public string OpenFile(string filter) => null;
     public string SaveFile(string filter) => null;
+}
+
+class StubDialogService : IDialogService
+{
+    public void ShowInfo(string message, string title) { }
+    public bool ShowConfirmation(string message, string title) => false;
+    public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
+    public void ShowToolDetails(ToolModel tool) { }
+    public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+    public CustomerModel? ShowAddCustomerDialog() => null;
 }

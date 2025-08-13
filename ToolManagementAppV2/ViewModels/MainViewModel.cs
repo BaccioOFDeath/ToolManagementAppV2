@@ -14,7 +14,6 @@ using ToolManagementAppV2.Services;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Services.Users;
-using ToolManagementAppV2.ViewModels.Rental;
 using ToolManagementAppV2.Views;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -30,6 +29,7 @@ namespace ToolManagementAppV2.ViewModels
         readonly IRentalService _rentalService;
         readonly ActivityLogService _activityLogService;
         readonly ISettingsService _settingsService;
+        readonly IDialogService _dialogService;
         readonly ILogger<MainViewModel> _logger;
         readonly Func<bool> _showLoginWindow;
 
@@ -109,6 +109,7 @@ namespace ToolManagementAppV2.ViewModels
                              ActivityLogService activityLogService,
                              ISettingsService settingsService,
                              IDatabaseBackupService databaseService,
+                             IDialogService dialogService,
                              ILogger<MainViewModel>? logger = null,
                              Func<bool>? showLoginWindow = null)
         {
@@ -119,20 +120,21 @@ namespace ToolManagementAppV2.ViewModels
             _rentalService = rentalService;
             _activityLogService = activityLogService;
             _settingsService = settingsService;
+            _dialogService = dialogService;
             _logger = logger ?? NullLogger<MainViewModel>.Instance;
             _showLoginWindow = showLoginWindow ?? (() =>
             {
-                var login = new LoginWindow(_userContext, _userService, _settingsService)
+                var login = new LoginWindow(_userContext, _userService, _settingsService, _dialogService)
                 {
                     Owner = Application.Current.MainWindow
                 };
                 return login.ShowDialog() == true;
             });
 
-            ToolManagement = new ToolManagementViewModel(toolService, customerService, rentalService, new DialogService());
+            ToolManagement = new ToolManagementViewModel(toolService, customerService, rentalService, _dialogService);
             UserManagement = new UserManagementViewModel(userService, fileDialogService);
-            CustomerManagement = new CustomerManagementViewModel(customerService, new DialogService());
-            ManageRentals = new ManageRentalsViewModel(rentalService, new DialogService());
+            CustomerManagement = new CustomerManagementViewModel(customerService, _dialogService);
+            ManageRentals = new ManageRentalsViewModel(rentalService, _dialogService);
             ImportExport = new ImportExportViewModel(toolService, customerService, fileDialogService, databaseService);
             Reports = new ReportsViewModel(new ReportService(toolService, rentalService, activityLogService, customerService, userService));
             ActivityLogs = new ActivityLogsViewModel(activityLogService);
@@ -188,10 +190,10 @@ namespace ToolManagementAppV2.ViewModels
             OpenSettingsCommand = new RelayCommand(() =>
             {
                 var page = new SettingsPage
-                {
-                    DataContext = new SettingsViewModel(fileDialogService, _settingsService, new DialogService()),
-                    Title = "Settings"
-                };
+                    {
+                        DataContext = new SettingsViewModel(fileDialogService, _settingsService, _dialogService),
+                        Title = "Settings"
+                    };
                 CurrentPage = page;
             });
 
@@ -229,10 +231,9 @@ namespace ToolManagementAppV2.ViewModels
                                     .GetProperties()
                                     .Select(p => p.Name)
                                     .ToList();
-                var win = new ImportMappingWindow(headers, properties);
-                if (win.ShowDialog() == true)
+                var map = _dialogService.ShowImportMapping(headers, properties);
+                if (map != null)
                 {
-                    var map = win.VM.Mappings.ToDictionary(m => m.SelectedColumn, m => m.PropertyName);
                     var invalid = _toolService.ImportToolsFromCsv(path, map);
                     var msg = invalid.Count == 0
                         ? "Successfully imported tools."
@@ -246,10 +247,10 @@ namespace ToolManagementAppV2.ViewModels
                 using var dlg = new Forms.FolderBrowserDialog();
                 if (dlg.ShowDialog() != Forms.DialogResult.OK)
                     return;
-                var win = new ImageImportMappingWindow();
-                if (win.ShowDialog() == true)
+                var selector = _dialogService.ShowImageImportMapping();
+                if (selector != null)
                 {
-                    var result = _toolService.ImportToolImages(dlg.SelectedPath, win.VM.BuildSelector());
+                    var result = _toolService.ImportToolImages(dlg.SelectedPath, selector);
                     System.Windows.MessageBox.Show(
                         $"Imported {result.ImportedCount} images. Unmatched: {result.UnmatchedFiles.Count}, Conflicts: {result.ConflictingFiles.Count}",
                         "Import Images");
@@ -285,31 +286,23 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenRentalHistoryWindowCommand = new RelayCommand(() =>
             {
-                // Constructor requires (Tool tool, IEnumerable<Rental> history)
-                var vm = new RentalHistoryViewModel(null, Enumerable.Empty<Models.Domain.Rental>());
-                var win = new RentalHistoryWindow(vm);
-                win.ShowDialog();
+                _dialogService.ShowRentalHistory(new ToolModel(), Enumerable.Empty<RentalModel>());
             });
 
             OpenPrintPreviewWindowCommand = new RelayCommand(() =>
             {
                 var doc = new FlowDocument(new Paragraph(new Run("Preview document")));
-                var win = new PrintPreviewWindow();
-                win.ShowPreview(doc, "Print Preview", "");
+                _dialogService.ShowPrintPreview(doc, "Print Preview", string.Empty);
             });
 
             OpenPrintLabelWindowCommand = new RelayCommand(() =>
             {
-                // Avoid missing VM type by opening the window directly
-                var win = new PrintLabelWindow();
-                win.ShowDialog();
+                _dialogService.ShowPrintLabelDialog();
             });
 
             OpenScannerStatusWindowCommand = new RelayCommand(() =>
             {
-                // Avoid missing VM type by opening the window directly
-                var win = new ScannerStatusWindow();
-                win.ShowDialog();
+                _dialogService.ShowScannerStatus();
             });
 
             OpenDashboardCommand.Execute(null);
