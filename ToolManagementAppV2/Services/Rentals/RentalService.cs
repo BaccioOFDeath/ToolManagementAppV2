@@ -42,22 +42,13 @@ namespace ToolManagementAppV2.Services.Rentals
                         new SQLiteParameter("@RentalDate", rentalDate),
                         new SQLiteParameter("@DueDate", dueDate)
                     });
-            },
-            () =>
-            {
-                if (_toolService == null) return;
-                var tool = _toolService.GetToolByID(toolID);
-                if (tool != null)
-                {
-                    tool.QuantityOnHand--;
-                    _toolService.UpdateTool(tool);
-                }
+
+                _toolService?.UpdateToolQuantities(toolID, 1, true, conn, tx);
             });
         }
 
         public void ReturnTool(int rentalID, DateTime returnDate)
         {
-            int? toolID = null;
             ExecuteWithTransaction((conn, tx) =>
             {
                 var selCmd = new SQLiteCommand(
@@ -65,7 +56,7 @@ namespace ToolManagementAppV2.Services.Rentals
                 selCmd.Parameters.AddWithValue("@RentalID", rentalID);
                 var result = selCmd.ExecuteScalar();
                 if (result == null) throw new InvalidOperationException("Rental not found or already returned.");
-                toolID = Convert.ToInt32(result);
+                var toolID = Convert.ToInt32(result);
 
                 SqliteHelper.ExecuteNonQuery(conn, tx,
                     "UPDATE Rentals SET ReturnDate=@ReturnDate,Status='Returned' WHERE RentalID=@RentalID",
@@ -74,16 +65,8 @@ namespace ToolManagementAppV2.Services.Rentals
                         new SQLiteParameter("@ReturnDate", returnDate),
                         new SQLiteParameter("@RentalID", rentalID)
                     });
-            },
-            () =>
-            {
-                if (_toolService == null || toolID == null) return;
-                var tool = _toolService.GetToolByID(toolID.Value);
-                if (tool != null)
-                {
-                    tool.QuantityOnHand++;
-                    _toolService.UpdateTool(tool);
-                }
+
+                _toolService?.UpdateToolQuantities(toolID, 1, false, conn, tx);
             });
         }
 
