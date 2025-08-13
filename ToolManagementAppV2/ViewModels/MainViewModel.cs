@@ -121,7 +121,10 @@ namespace ToolManagementAppV2.ViewModels
             _logger = logger ?? NullLogger<MainViewModel>.Instance;
             _showLoginWindow = showLoginWindow ?? (() =>
             {
-                var login = new LoginWindow(_userContext) { Owner = Application.Current.MainWindow };
+                var login = new LoginWindow(_userContext, _userService, _settingsService)
+                {
+                    Owner = Application.Current.MainWindow
+                };
                 return login.ShowDialog() == true;
             });
 

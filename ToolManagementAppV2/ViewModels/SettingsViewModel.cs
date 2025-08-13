@@ -83,7 +83,7 @@ namespace ToolManagementAppV2.ViewModels
         {
             try
             {
-                var db = new DatabaseService(ConnectionString);
+                using var db = new DatabaseService(ConnectionString);
                 using var conn = db.CreateConnection();
                 message = "Connection successful.";
                 return true;

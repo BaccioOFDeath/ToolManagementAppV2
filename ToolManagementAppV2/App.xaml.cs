@@ -30,15 +30,13 @@ namespace ToolManagementAppV2
             var fileDialogService = new FileDialogService();
             var settingsService = new SettingsService(db);
 
-            var main = new MainWindow
-            {
-                DataContext = new MainViewModel(toolService, userService, userContext, customerService, rentalService, fileDialogService, activityLogService, settingsService)
-            };
+            var mainVm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, fileDialogService, activityLogService, settingsService);
+            var main = new MainWindow(mainVm, db);
 
             Current.MainWindow = main;
             main.Show(); // stays visible behind login
 
-            var login = new LoginWindow(userContext)
+            var login = new LoginWindow(userContext, userService, settingsService)
             {
                 Owner = main,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner

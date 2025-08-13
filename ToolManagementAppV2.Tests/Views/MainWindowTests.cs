@@ -5,6 +5,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using ToolManagementAppV2.ViewModels;
 using Xunit;
+using System.IO;
+using System.Runtime.Serialization;
+using ToolManagementAppV2.Services.Core;
 
 namespace ToolManagementAppV2.Tests.Views
 {
@@ -80,6 +83,51 @@ namespace ToolManagementAppV2.Tests.Views
             if (threadException != null)
             {
                 throw threadException;
+            }
+        }
+
+        [Fact]
+        public void DisposesOwnedDatabaseServiceWhenClosed()
+        {
+            Exception? threadException = null;
+            var disposed = false;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var db = new TestDb(() => disposed = true);
+                    var vm = (MainViewModel)FormatterServices.GetUninitializedObject(typeof(MainViewModel));
+                    var window = new ToolManagementAppV2.MainWindow(vm, db);
+                    window.Close();
+                }
+                catch (Exception ex)
+                {
+                    threadException = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadException != null)
+            {
+                throw threadException;
+            }
+
+            Assert.True(disposed);
+        }
+
+        class TestDb : DatabaseService
+        {
+            readonly Action _onDispose;
+            public TestDb(Action onDispose) : base(Path.GetTempFileName()) => _onDispose = onDispose;
+
+            protected override void Dispose(bool disposing)
+            {
+                base.Dispose(disposing);
+                if (disposing) _onDispose();
             }
         }
     }

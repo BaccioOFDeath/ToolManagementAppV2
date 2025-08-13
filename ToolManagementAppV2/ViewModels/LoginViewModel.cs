@@ -8,7 +8,6 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
-using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Utilities.Extensions;
@@ -57,12 +56,10 @@ namespace ToolManagementAppV2.ViewModels
         /// </summary>
         public event EventHandler? LoginSucceeded;
 
-        public LoginViewModel(IDialogService dialogService, IUserContext userContext, string? dbPath = null)
+        public LoginViewModel(IUserService userService, ISettingsService settingsService, IDialogService dialogService, IUserContext userContext)
         {
-            dbPath ??= Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db");
-            var dbService = new DatabaseService(dbPath);
-            _settingsService = new SettingsService(dbService);
-            _userService = new UserService(dbService, userContext);
+            _settingsService = settingsService;
+            _userService = userService;
             _dialogService = dialogService;
             _userContext = userContext;
 

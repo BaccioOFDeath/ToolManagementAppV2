@@ -27,3 +27,10 @@ This project adheres to the rules in `AGENTS.md`, including:
 - Running `dotnet test` before commits and updating tests for new functionality.
 - Summarizing changes and referencing test results in pull requests.
 
+### Resource Management
+`DatabaseService` implements `IDisposable` and should be disposed when no longer in use.
+`MainWindow` accepts an optional `DatabaseService` in its constructor when an external
+`MainViewModel` is supplied; pass the instance to have the window dispose it on close.
+Otherwise, register the service with a DI container so scoped lifetimes handle disposal
+automatically, or explicitly call `Dispose`/`using` in the application startup and tests.
+

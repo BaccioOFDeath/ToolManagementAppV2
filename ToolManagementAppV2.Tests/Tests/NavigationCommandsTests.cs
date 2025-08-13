@@ -25,6 +25,7 @@ namespace ToolManagementAppV2.Tests.Tests
             vm.OpenSearchToolsCommand.Execute(null);
 
             Assert.IsType<ToolSearchPage>(vm.CurrentPage);
+            window.Close();
         }
 
         [Fact]
@@ -33,7 +34,7 @@ namespace ToolManagementAppV2.Tests.Tests
             var dbPath = Path.GetTempFileName();
             try
             {
-                var db = new DatabaseService(dbPath);
+                using var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);

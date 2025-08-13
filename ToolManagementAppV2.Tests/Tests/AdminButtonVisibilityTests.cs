@@ -29,6 +29,7 @@ namespace ToolManagementAppV2.Tests.Tests
                     .Any(b => b.Visibility == Visibility.Visible);
 
                 Assert.False(anyVisible);
+                window.Close();
             }
             finally
             {
