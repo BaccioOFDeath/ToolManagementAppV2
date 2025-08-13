@@ -35,14 +35,15 @@ namespace ToolManagementAppV2.Tests.Tests
             {
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
-                IUserService userService = new UserService(db, new ApplicationUserContext());
+                var userContext = new ApplicationUserContext();
+                IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
 
-                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService);
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService);
                 vm.OpenSearchToolsCommand.Execute(null);
 
                 var page = Assert.IsType<ToolSearchPage>(vm.CurrentPage);

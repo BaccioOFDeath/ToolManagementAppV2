@@ -25,6 +25,7 @@ namespace ToolManagementAppV2.ViewModels
     {
         readonly IToolService _toolService;
         readonly IUserService _userService;
+        readonly IUserContext _userContext;
         readonly ICustomerService _customerService;
         readonly IRentalService _rentalService;
         readonly ActivityLogService _activityLogService;
@@ -65,14 +66,11 @@ namespace ToolManagementAppV2.ViewModels
             set => SetProperty(ref _globalSearchText, value);
         }
 
-        public bool IsCurrentUserAdmin =>
-            System.Windows.Application.Current.Properties["CurrentUser"] is User u && u.IsAdmin;
+        public bool IsCurrentUserAdmin => _userContext.IsAdmin;
 
-        public string CurrentUserName =>
-            (System.Windows.Application.Current.Properties["CurrentUser"] as User)?.UserName ?? "Guest";
+        public string CurrentUserName => _userContext.UserName;
 
-        public string CurrentUserRole =>
-            IsCurrentUserAdmin ? "Admin" : "User";
+        public string CurrentUserRole => _userContext.Role;
 
         public void RefreshCurrentUser()
         {
@@ -104,6 +102,7 @@ namespace ToolManagementAppV2.ViewModels
 
         public MainViewModel(IToolService toolService,
                              IUserService userService,
+                             IUserContext userContext,
                              ICustomerService customerService,
                              IRentalService rentalService,
                              IFileDialogService fileDialogService,
@@ -114,6 +113,7 @@ namespace ToolManagementAppV2.ViewModels
         {
             _toolService = toolService;
             _userService = userService;
+            _userContext = userContext;
             _customerService = customerService;
             _rentalService = rentalService;
             _activityLogService = activityLogService;
@@ -121,7 +121,7 @@ namespace ToolManagementAppV2.ViewModels
             _logger = logger ?? NullLogger<MainViewModel>.Instance;
             _showLoginWindow = showLoginWindow ?? (() =>
             {
-                var login = new LoginWindow { Owner = Application.Current.MainWindow };
+                var login = new LoginWindow(_userContext) { Owner = Application.Current.MainWindow };
                 return login.ShowDialog() == true;
             });
 

@@ -24,24 +24,23 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var dbService = new DatabaseService(dbPath);
-                var userService = new UserService(dbService, new ApplicationUserContext());
+                var userContext = new ApplicationUserContext();
+                var userService = new UserService(dbService, userContext);
                 userService.AddUser(new User { UserName = "user", Password = "newpassword", IsAdmin = false });
 
-                var vm = new LoginViewModel(new StubDialogService(), dbPath);
+                var vm = new LoginViewModel(new StubDialogService(), userContext, dbPath);
                 bool success = false;
                 vm.LoginSucceeded += (_, __) => success = true;
 
                 vm.SelectUserCommand.Execute(vm.Users.First());
 
                 Assert.True(success);
-                var current = Application.Current.Properties["CurrentUser"] as User;
-                Assert.NotNull(current);
-                Assert.Equal("user", current.UserName);
+                Assert.NotNull(userContext.CurrentUser);
+                Assert.Equal("user", userContext.UserName);
             }
             finally
             {
                 if (File.Exists(dbPath)) File.Delete(dbPath);
-                Application.Current.Properties.Remove("CurrentUser");
             }
         }
     }

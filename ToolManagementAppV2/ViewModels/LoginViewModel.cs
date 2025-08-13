@@ -30,6 +30,7 @@ namespace ToolManagementAppV2.ViewModels
         readonly IUserService _userService;
         readonly ISettingsService _settingsService;
         readonly IDialogService _dialogService;
+        readonly IUserContext _userContext;
 
         public ObservableCollection<User> Users { get; } = new();
 
@@ -52,17 +53,18 @@ namespace ToolManagementAppV2.ViewModels
 
         /// <summary>
         /// Raised after <see cref="OnUserSelected"/> successfully authenticates a user
-        /// and stores the result in <see cref="Application.Current"/>.
+        /// and stores the result in <see cref="IUserContext"/>.
         /// </summary>
         public event EventHandler? LoginSucceeded;
 
-        public LoginViewModel(IDialogService dialogService, string? dbPath = null)
+        public LoginViewModel(IDialogService dialogService, IUserContext userContext, string? dbPath = null)
         {
             dbPath ??= Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db");
             var dbService = new DatabaseService(dbPath);
             _settingsService = new SettingsService(dbService);
-            _userService = new UserService(dbService, new ApplicationUserContext());
+            _userService = new UserService(dbService, userContext);
             _dialogService = dialogService;
+            _userContext = userContext;
 
             CompanyLogo = LoadLogo();
             WindowTitle = GetWindowTitle();
@@ -127,7 +129,7 @@ namespace ToolManagementAppV2.ViewModels
         /// Ensures administrators always have a default password, allows first-time
         /// non-admin users to log in with a generated password, prompts for existing
         /// passwords and supports resetting credentials back to the default "admin".
-        /// Successful authentication stores the user in <see cref="Application.Current"/>
+        /// Successful authentication stores the user in the shared context
         /// and raises <see cref="LoginSucceeded"/>.
         /// </summary>
         /// <param name="user">The account to authenticate.</param>
@@ -147,7 +149,7 @@ namespace ToolManagementAppV2.ViewModels
                 (string.IsNullOrWhiteSpace(user.Password) ||
                  SecurityHelper.VerifyPassword("newpassword", user.Salt, user.Password)))
             {
-                System.Windows.Application.Current.Properties["CurrentUser"] = user;
+                _userContext.CurrentUser = user;
                 LoginSucceeded?.Invoke(this, EventArgs.Empty);
                 return;
             }
@@ -178,7 +180,7 @@ namespace ToolManagementAppV2.ViewModels
                 var credential = _userService.AuthenticateUser(user.UserName, prompt.EnteredPassword);
                 if (credential != null)
                 {
-                    System.Windows.Application.Current.Properties["CurrentUser"] = credential;
+                    _userContext.CurrentUser = credential;
                     LoginSucceeded?.Invoke(this, EventArgs.Empty);
                     passwordValidated = true;
                 }

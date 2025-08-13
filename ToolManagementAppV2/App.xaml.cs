@@ -32,13 +32,13 @@ namespace ToolManagementAppV2
 
             var main = new MainWindow
             {
-                DataContext = new MainViewModel(toolService, userService, customerService, rentalService, fileDialogService, activityLogService, settingsService)
+                DataContext = new MainViewModel(toolService, userService, userContext, customerService, rentalService, fileDialogService, activityLogService, settingsService)
             };
 
             Current.MainWindow = main;
             main.Show(); // stays visible behind login
 
-            var login = new LoginWindow
+            var login = new LoginWindow(userContext)
             {
                 Owner = main,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
