@@ -16,6 +16,8 @@ using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.ViewModels.Rental;
 using ToolManagementAppV2.Views;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -27,6 +29,7 @@ namespace ToolManagementAppV2.ViewModels
         readonly IRentalService _rentalService;
         readonly ActivityLogService _activityLogService;
         readonly ISettingsService _settingsService;
+        readonly ILogger<MainViewModel> _logger;
 
         public ToolManagementViewModel ToolManagement { get; }
         public UserManagementViewModel UserManagement { get; }
@@ -103,7 +106,8 @@ namespace ToolManagementAppV2.ViewModels
                              IRentalService rentalService,
                              IFileDialogService fileDialogService,
                              ActivityLogService activityLogService,
-                             ISettingsService settingsService)
+                             ISettingsService settingsService,
+                             ILogger<MainViewModel>? logger = null)
         {
             _toolService = toolService;
             _userService = userService;
@@ -111,6 +115,7 @@ namespace ToolManagementAppV2.ViewModels
             _rentalService = rentalService;
             _activityLogService = activityLogService;
             _settingsService = settingsService;
+            _logger = logger ?? NullLogger<MainViewModel>.Instance;
 
             ToolManagement = new ToolManagementViewModel(toolService, customerService, rentalService, new DialogService());
             UserManagement = new UserManagementViewModel(userService, fileDialogService);
@@ -250,7 +255,11 @@ namespace ToolManagementAppV2.ViewModels
             ExitCommand = new RelayCommand(() =>
             {
                 try { System.Windows.Application.Current.Shutdown(); }
-                catch { System.Environment.Exit(0); }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to shutdown application");
+                    System.Environment.Exit(0);
+                }
             });
 
             OpenRentalHistoryWindowCommand = new RelayCommand(() =>

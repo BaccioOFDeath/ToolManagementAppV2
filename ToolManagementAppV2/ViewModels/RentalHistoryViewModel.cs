@@ -10,12 +10,15 @@ using System.Windows;
 using Microsoft.Win32;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Utilities.Extensions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.ViewModels.Rental
 {
     public class RentalHistoryViewModel : ObservableObject
     {
         private readonly List<RentalModel> _allHistory;
+        private readonly ILogger<RentalHistoryViewModel> _logger;
 
         public ObservableCollection<RentalModel> History { get; }
         public string ToolDisplayName { get; }
@@ -38,7 +41,7 @@ namespace ToolManagementAppV2.ViewModels.Rental
         public IRelayCommand ExportCsvCommand { get; }
         public IRelayCommand CloseCommand { get; }
 
-        public RentalHistoryViewModel(ToolModel? tool, IEnumerable<RentalModel>? history)
+        public RentalHistoryViewModel(ToolModel? tool, IEnumerable<RentalModel>? history, ILogger<RentalHistoryViewModel>? logger = null)
         {
             ToolDisplayName = tool != null
                 ? $"{tool.ToolNumber} - {tool.NameDescription}"
@@ -46,6 +49,7 @@ namespace ToolManagementAppV2.ViewModels.Rental
 
             _allHistory = (history ?? Enumerable.Empty<RentalModel>()).ToList();
             History = new ObservableCollection<RentalModel>(_allHistory);
+            _logger = logger ?? NullLogger<RentalHistoryViewModel>.Instance;
 
             SearchCommand = new RelayCommand(ExecuteSearch);
             ExportCsvCommand = new RelayCommand(ExportCsv);
@@ -84,9 +88,9 @@ namespace ToolManagementAppV2.ViewModels.Rental
                     if (dlg.ShowDialog() == true)
                         path = dlg.FileName;
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // ignore dialog errors in non-interactive environments
+                    _logger.LogError(ex, "Failed to show save file dialog for rental history export");
                 }
             }
 

@@ -4,6 +4,8 @@ using System;
 using System.Collections.ObjectModel;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Services.Core;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -12,12 +14,14 @@ namespace ToolManagementAppV2.ViewModels
         readonly IFileDialogService _fileDialog;
         readonly ISettingsService _settingsService;
         readonly IDialogService _dialogService;
+        readonly ILogger<SettingsViewModel> _logger;
 
-        public SettingsViewModel(IFileDialogService fileDialog, ISettingsService settingsService, IDialogService dialogService)
+        public SettingsViewModel(IFileDialogService fileDialog, ISettingsService settingsService, IDialogService dialogService, ILogger<SettingsViewModel>? logger = null)
         {
             _fileDialog = fileDialog;
             _settingsService = settingsService;
             _dialogService = dialogService;
+            _logger = logger ?? NullLogger<SettingsViewModel>.Instance;
 
             var logoPath = _settingsService.GetSetting("CompanyLogoPath");
             if (!string.IsNullOrWhiteSpace(logoPath))
@@ -86,6 +90,7 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Database connection test failed");
                 message = $"Connection failed: {ex.Message}";
                 return false;
             }

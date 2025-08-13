@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.Services;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -17,6 +19,7 @@ namespace ToolManagementAppV2.ViewModels
         private readonly ICustomerService _customerService;
         private readonly IRentalService _rentalService;
         private readonly IDialogService _dialogService;
+        private readonly ILogger<ToolManagementViewModel> _logger;
 
         public ObservableCollection<ToolModel> Tools { get; } = new();
         public ObservableCollection<ToolModel> SearchResults { get; } = new();
@@ -101,12 +104,14 @@ namespace ToolManagementAppV2.ViewModels
         public ToolManagementViewModel(IToolService toolService,
                                        ICustomerService customerService,
                                        IRentalService rentalService,
-                                       IDialogService dialogService)
+                                       IDialogService dialogService,
+                                       ILogger<ToolManagementViewModel>? logger = null)
         {
             _toolService = toolService;
             _customerService = customerService;
             _rentalService = rentalService;
             _dialogService = dialogService;
+            _logger = logger ?? NullLogger<ToolManagementViewModel>.Instance;
             SearchCommand = new AsyncRelayCommand(FilterToolsAsync);
             NewToolCommand = new AsyncRelayCommand(AddToolAsync);
             EditToolCommand = new AsyncRelayCommand(EditToolAsync, () => SelectedTool != null);
@@ -156,10 +161,12 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (InvalidOperationException ex)
             {
+                _logger.LogError(ex, "Failed to add tool due to invalid operation");
                 _dialogService.ShowInfo(ex.Message, "Error");
             }
             catch (ArgumentException ex)
             {
+                _logger.LogError(ex, "Failed to add tool due to invalid argument");
                 _dialogService.ShowInfo(ex.Message, "Error");
             }
         }

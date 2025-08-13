@@ -6,6 +6,8 @@ using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Users;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -19,6 +21,7 @@ namespace ToolManagementAppV2.ViewModels
         readonly IRelayCommand _openManageToolsCommand;
         readonly IRelayCommand _openRentalsCommand;
         readonly IRelayCommand _openImportExportCommand;
+        readonly ILogger<DashboardViewModel> _logger;
 
         public ObservableCollection<StatCard> StatCards { get; } = new();
         public ObservableCollection<ActivityLog> RecentActivity { get; } = new();
@@ -34,7 +37,8 @@ namespace ToolManagementAppV2.ViewModels
                                   ActivityLogService activityLogService,
                                   IRelayCommand openManageToolsCommand,
                                   IRelayCommand openRentalsCommand,
-                                  IRelayCommand openImportExportCommand)
+                                  IRelayCommand openImportExportCommand,
+                                  ILogger<DashboardViewModel>? logger = null)
         {
             _toolService = toolService ?? throw new ArgumentNullException(nameof(toolService));
             _rentalService = rentalService ?? throw new ArgumentNullException(nameof(rentalService));
@@ -44,23 +48,24 @@ namespace ToolManagementAppV2.ViewModels
             _openManageToolsCommand = openManageToolsCommand ?? throw new ArgumentNullException(nameof(openManageToolsCommand));
             _openRentalsCommand = openRentalsCommand ?? throw new ArgumentNullException(nameof(openRentalsCommand));
             _openImportExportCommand = openImportExportCommand ?? throw new ArgumentNullException(nameof(openImportExportCommand));
+            _logger = logger ?? NullLogger<DashboardViewModel>.Instance;
 
             NewToolCommand = new RelayCommand(() =>
             {
                 try { _openManageToolsCommand.Execute(null); }
-                catch (Exception ex) { Console.WriteLine(ex); }
+                catch (Exception ex) { _logger.LogError(ex, "Failed to open manage tools page"); }
             });
 
             OpenRentalsCommand = new RelayCommand(() =>
             {
                 try { _openRentalsCommand.Execute(null); }
-                catch (Exception ex) { Console.WriteLine(ex); }
+                catch (Exception ex) { _logger.LogError(ex, "Failed to open rentals page"); }
             });
 
             OpenImportExportCommand = new RelayCommand(() =>
             {
                 try { _openImportExportCommand.Execute(null); }
-                catch (Exception ex) { Console.WriteLine(ex); }
+                catch (Exception ex) { _logger.LogError(ex, "Failed to open import/export page"); }
             });
 
             LoadStats();
@@ -79,7 +84,7 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                _logger.LogError(ex, "Failed to load dashboard statistics");
             }
         }
 
@@ -93,7 +98,7 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                _logger.LogError(ex, "Failed to load recent activity");
             }
         }
     }

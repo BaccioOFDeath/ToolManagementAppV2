@@ -11,6 +11,8 @@ using ToolManagementAppV2.Utilities.IO;
 using ToolManagementAppV2.Models.ImportExport;
 using ToolManagementAppV2.Interfaces;
 using System.Text;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.Services.Tools
 {
@@ -25,9 +27,12 @@ namespace ToolManagementAppV2.Services.Tools
             VALUES (@ToolNumber,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Keywords,@Avail,@Rent,@Img,0);
             SELECT last_insert_rowid();";
     
-        public ToolService(DatabaseService dbService)
+        readonly ILogger<ToolService> _logger;
+
+        public ToolService(DatabaseService dbService, ILogger<ToolService>? logger = null)
         {
             _dbService = dbService;
+            _logger = logger ?? NullLogger<ToolService>.Instance;
         }
     
         public List<ToolModel> GetAllTools()
@@ -244,8 +249,9 @@ namespace ToolManagementAppV2.Services.Tools
                 _cache = null;
                 return invalidRows;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed to import tools from CSV");
                 tran.Rollback();
                 throw;
             }

@@ -2,20 +2,24 @@
 using System;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Interfaces;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.Services.Settings
 {
     public class SettingsService : ISettingsService
     {
         readonly DatabaseService _dbService;
+        readonly ILogger<SettingsService> _logger;
         const string UpsertSql = @"
             INSERT INTO Settings (Key, Value) 
             VALUES (@Key, @Value)
             ON CONFLICT(Key) DO UPDATE SET Value = @Value";
 
-        public SettingsService(DatabaseService dbService)
+        public SettingsService(DatabaseService dbService, ILogger<SettingsService>? logger = null)
         {
             _dbService = dbService;
+            _logger = logger ?? NullLogger<SettingsService>.Instance;
         }
 
         public void SaveSetting(string key, string value)
@@ -80,7 +84,7 @@ namespace ToolManagementAppV2.Services.Settings
             catch (Exception ex)
             {
                 tx.Rollback();
-                Console.WriteLine(ex);
+                _logger.LogError(ex, "Failed to update settings");
                 throw;
             }
         }
