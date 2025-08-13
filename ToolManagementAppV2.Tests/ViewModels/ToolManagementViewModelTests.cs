@@ -95,6 +95,34 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public async Task Categories_Update_WhenToolsCollectionChanges()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var dialog = new StubDialogService();
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
+                toolService.AddTool(new Tool { ToolNumber = "T1", Brand = "BrandA" });
+                await vm.LoadToolsAsync();
+
+                Assert.Contains("BrandA", vm.Categories);
+
+                vm.Tools.Add(new Tool { ToolNumber = "T2", Brand = "BrandB" });
+
+                Assert.Contains("BrandB", vm.Categories);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public async Task AddTool_ShowsDialog_OnError()
         {
             var dbPath = Path.GetTempFileName();
