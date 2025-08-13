@@ -63,7 +63,7 @@ namespace ToolManagementAppV2.Tests.Services
 
                 service.AddTool(tool);
 
-                Assert.True(int.Parse(tool.ToolID) > 0);
+                Assert.True(tool.ToolID > 0);
             }
             finally
             {

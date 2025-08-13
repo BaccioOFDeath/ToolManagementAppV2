@@ -167,14 +167,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public List<ToolModel> GetAllTools() => new();
         public void AddTool(ToolModel tool) => throw new System.NotImplementedException();
         public void UpdateTool(ToolModel tool) => throw new System.NotImplementedException();
-        public void DeleteTool(string toolID) => throw new System.NotImplementedException();
-        public ToolModel GetToolByID(string toolID) => throw new System.NotImplementedException();
+        public void DeleteTool(int toolID) => throw new System.NotImplementedException();
+        public ToolModel GetToolByID(int toolID) => throw new System.NotImplementedException();
         public List<ToolModel> SearchTools(string? searchText) => new();
-        public void ToggleToolCheckOutStatus(string toolID, string currentUser) => throw new System.NotImplementedException();
+        public void ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new System.NotImplementedException();
         public List<ToolModel> GetToolsCheckedOutBy(string userName) => new();
-        public void UpdateToolImage(string toolID, string imagePath) => throw new System.NotImplementedException();
+        public void UpdateToolImage(int toolID, string imagePath) => throw new System.NotImplementedException();
         public ImageImportResult ImportToolImages(string folderPath, System.Func<ToolModel, IEnumerable<string>> keySelector) => new();
-        public void UpdateToolQuantities(string toolID, int qtyChange, bool isRental) => throw new System.NotImplementedException();
+        public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental) => throw new System.NotImplementedException();
     }
 
     class FailToolService : IToolService
@@ -184,25 +184,25 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public List<ToolModel> GetAllTools() => new();
         public void AddTool(ToolModel tool) => throw new System.NotImplementedException();
         public void UpdateTool(ToolModel tool) => throw new System.NotImplementedException();
-        public void DeleteTool(string toolID) => throw new System.NotImplementedException();
-        public ToolModel GetToolByID(string toolID) => throw new System.NotImplementedException();
+        public void DeleteTool(int toolID) => throw new System.NotImplementedException();
+        public ToolModel GetToolByID(int toolID) => throw new System.NotImplementedException();
         public List<ToolModel> SearchTools(string? searchText) => new();
-        public void ToggleToolCheckOutStatus(string toolID, string currentUser) => throw new System.NotImplementedException();
+        public void ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new System.NotImplementedException();
         public List<ToolModel> GetToolsCheckedOutBy(string userName) => new();
-        public void UpdateToolImage(string toolID, string imagePath) => throw new System.NotImplementedException();
+        public void UpdateToolImage(int toolID, string imagePath) => throw new System.NotImplementedException();
         public ImageImportResult ImportToolImages(string folderPath, System.Func<ToolModel, IEnumerable<string>> keySelector) => new();
-        public void UpdateToolQuantities(string toolID, int qtyChange, bool isRental) => throw new System.NotImplementedException();
+        public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental) => throw new System.NotImplementedException();
     }
 
     class StubRentalService : IRentalService
     {
-        public void RentTool(string toolID, int customerID, System.DateTime rentalDate, System.DateTime dueDate) => throw new System.NotImplementedException();
+        public void RentTool(int toolID, int customerID, System.DateTime rentalDate, System.DateTime dueDate) => throw new System.NotImplementedException();
         public void ReturnTool(int rentalID, System.DateTime returnDate) => throw new System.NotImplementedException();
         public void ExtendRental(int rentalID, System.DateTime newDueDate) => throw new System.NotImplementedException();
         public List<Rental> GetActiveRentals() => new();
         public List<Rental> GetOverdueRentals() => new();
         public List<Rental> GetAllRentals() => new();
-        public List<Rental> GetRentalHistoryForTool(string toolID) => new();
+        public List<Rental> GetRentalHistoryForTool(int toolID) => new();
         public List<Rental> GetRentalHistoryForCustomer(int customerID) => new();
     }
 

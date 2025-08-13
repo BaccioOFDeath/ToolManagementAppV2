@@ -24,16 +24,16 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool1 = new Tool { ToolID = "T1", ToolNumber = "T1" };
-                var tool2 = new Tool { ToolID = "T2", ToolNumber = "T2" };
+                var tool1 = new Tool { ToolNumber = "T1" };
+                var tool2 = new Tool { ToolNumber = "T2" };
                 toolService.AddTool(tool1);
                 toolService.AddTool(tool2);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool("T1", cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
-                rentalService.RentTool("T2", cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool1.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool2.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
                 var all = rentalService.GetAllRentals();
                 rentalService.ReturnTool(all[1].RentalID, DateTime.Today);
 
@@ -69,16 +69,16 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool1 = new Tool { ToolID = "T1", ToolNumber = "Alpha" };
-                var tool2 = new Tool { ToolID = "T2", ToolNumber = "Beta" };
+                var tool1 = new Tool { ToolNumber = "Alpha" };
+                var tool2 = new Tool { ToolNumber = "Beta" };
                 toolService.AddTool(tool1);
                 toolService.AddTool(tool2);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool("T1", cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
-                rentalService.RentTool("T2", cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool1.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool2.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var vm = new ManageRentalsViewModel(rentalService);
                 vm.LoadRentals();
@@ -125,13 +125,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool = new Tool { ToolID = "T1", ToolNumber = "T1" };
+                var tool = new Tool { ToolNumber = "T1" };
                 toolService.AddTool(tool);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool("T1", cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var vm = new ManageRentalsViewModel(rentalService);
                 vm.LoadRentals();

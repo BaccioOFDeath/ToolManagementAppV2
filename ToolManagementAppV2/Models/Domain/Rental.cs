@@ -11,8 +11,8 @@ namespace ToolManagementAppV2.Models.Domain
             set => SetProperty(ref _rentalID, value);
         }
 
-        private string _toolID = string.Empty;
-        public string ToolID
+        private int _toolID;
+        public int ToolID
         {
             get => _toolID;
             set => SetProperty(ref _toolID, value);

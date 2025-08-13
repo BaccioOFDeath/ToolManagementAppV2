@@ -35,10 +35,10 @@ namespace ToolManagementAppV2.Tests.Tests
         {
             var page = new ToolSearchPage();
             page.HandToolsList.ItemsSource = Enumerable.Range(0, 1000)
-                .Select(i => new Tool { ToolID = i.ToString(), NameDescription = $"Tool {i}" })
+                .Select(i => new Tool { ToolID = i, NameDescription = $"Tool {i}" })
                 .ToList();
             page.PowerToolsList.ItemsSource = Enumerable.Range(0, 1000)
-                .Select(i => new Tool { ToolID = i.ToString(), NameDescription = $"Power {i}" })
+                .Select(i => new Tool { ToolID = i, NameDescription = $"Power {i}" })
                 .ToList();
 
             page.HandToolsList.Measure(new Size(800, 300));

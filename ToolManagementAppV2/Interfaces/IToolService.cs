@@ -10,16 +10,16 @@ namespace ToolManagementAppV2.Interfaces
     {
         void AddTool(ToolModel tool);
         void UpdateTool(ToolModel tool);
-        void DeleteTool(string toolID);
-        ToolModel GetToolByID(string toolID);
+        void DeleteTool(int toolID);
+        ToolModel GetToolByID(int toolID);
         List<ToolModel> GetAllTools();
         List<ToolModel> SearchTools(string? searchText);
-        void ToggleToolCheckOutStatus(string toolID, string currentUser);
+        void ToggleToolCheckOutStatus(int toolID, string currentUser);
         List<ToolModel> GetToolsCheckedOutBy(string userName);
-        void UpdateToolImage(string toolID, string imagePath);
+        void UpdateToolImage(int toolID, string imagePath);
         List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map);
         void ExportToolsToCsv(string filePath);
         ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector);
-        void UpdateToolQuantities(string toolID, int qtyChange, bool isRental);
+        void UpdateToolQuantities(int toolID, int qtyChange, bool isRental);
     }
 }
