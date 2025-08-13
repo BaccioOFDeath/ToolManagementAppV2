@@ -38,12 +38,7 @@ namespace ToolManagementAppV2.ViewModels
                     }
                     else
                     {
-                        NewCustomerName = string.Empty;
-                        NewCustomerEmail = string.Empty;
-                        NewCustomerContact = string.Empty;
-                        NewCustomerPhone = string.Empty;
-                        NewCustomerMobile = string.Empty;
-                        NewCustomerAddress = string.Empty;
+                        ClearNewCustomerFields();
                     }
                 }
             }
@@ -98,12 +93,7 @@ namespace ToolManagementAppV2.ViewModels
 
             await _customerService.AddCustomerAsync(customer);
             await LoadCustomersAsync();
-            NewCustomerName = string.Empty;
-            NewCustomerEmail = string.Empty;
-            NewCustomerContact = string.Empty;
-            NewCustomerPhone = string.Empty;
-            NewCustomerMobile = string.Empty;
-            NewCustomerAddress = string.Empty;
+            ClearNewCustomerFields();
         }
 
         async Task UpdateCustomerAsync()
@@ -139,6 +129,16 @@ namespace ToolManagementAppV2.ViewModels
                     .ToList();
             }
             Customers.ReplaceRange(all);
+        }
+
+        private void ClearNewCustomerFields()
+        {
+            NewCustomerName = string.Empty;
+            NewCustomerEmail = string.Empty;
+            NewCustomerContact = string.Empty;
+            NewCustomerPhone = string.Empty;
+            NewCustomerMobile = string.Empty;
+            NewCustomerAddress = string.Empty;
         }
 
         async Task DeleteCustomerAsync()
