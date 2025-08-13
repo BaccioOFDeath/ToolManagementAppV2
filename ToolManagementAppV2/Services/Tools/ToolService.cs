@@ -133,7 +133,8 @@ namespace ToolManagementAppV2.Services.Tools
             _cache = null;
         }
     
-        public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental)
+        public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental,
+            SQLiteConnection? conn = null, SQLiteTransaction? tx = null)
         {
             if (qtyChange <= 0) throw new ArgumentException("Quantity change must be positive.", nameof(qtyChange));
             var sql = isRental
@@ -144,9 +145,22 @@ namespace ToolManagementAppV2.Services.Tools
                 new SQLiteParameter("@ID", toolID),
                 new SQLiteParameter("@Q", qtyChange)
             };
-            using var conn = _dbService.CreateConnection();
-            if (SqliteHelper.ExecuteNonQuery(conn, sql, p) == 0)
-                throw new InvalidOperationException("Quantity update failed.");
+
+            if (conn != null)
+            {
+                int rows = tx != null
+                    ? SqliteHelper.ExecuteNonQuery(conn, tx, sql, p)
+                    : SqliteHelper.ExecuteNonQuery(conn, sql, p);
+                if (rows == 0)
+                    throw new InvalidOperationException("Quantity update failed.");
+            }
+            else
+            {
+                using var c = _dbService.CreateConnection();
+                if (SqliteHelper.ExecuteNonQuery(c, sql, p) == 0)
+                    throw new InvalidOperationException("Quantity update failed.");
+            }
+
             _cache = null;
         }
     

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Data.SQLite;
 using System.IO;
 using System.Linq;
 using ToolManagementAppV2.Interfaces;
@@ -174,7 +175,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public List<ToolModel> GetToolsCheckedOutBy(string userName) => new();
         public void UpdateToolImage(int toolID, string imagePath) => throw new System.NotImplementedException();
         public ImageImportResult ImportToolImages(string folderPath, System.Func<ToolModel, IEnumerable<string>> keySelector) => new();
-        public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental) => throw new System.NotImplementedException();
+        public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null) => throw new System.NotImplementedException();
     }
 
     class FailToolService : IToolService
@@ -191,7 +192,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public List<ToolModel> GetToolsCheckedOutBy(string userName) => new();
         public void UpdateToolImage(int toolID, string imagePath) => throw new System.NotImplementedException();
         public ImageImportResult ImportToolImages(string folderPath, System.Func<ToolModel, IEnumerable<string>> keySelector) => new();
-        public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental) => throw new System.NotImplementedException();
+        public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null) => throw new System.NotImplementedException();
     }
 
     class StubRentalService : IRentalService

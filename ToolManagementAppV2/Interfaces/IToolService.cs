@@ -1,8 +1,8 @@
 using System;
-﻿using System.Collections.Generic;
-using ToolManagementAppV2.Models.ImportExport;
+using System.Collections.Generic;
+using System.Data.SQLite;
 using ToolManagementAppV2.Models;
-
+using ToolManagementAppV2.Models.ImportExport;
 
 namespace ToolManagementAppV2.Interfaces
 {
@@ -20,6 +20,8 @@ namespace ToolManagementAppV2.Interfaces
         List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map);
         void ExportToolsToCsv(string filePath);
         ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector);
-        void UpdateToolQuantities(int toolID, int qtyChange, bool isRental);
+        void UpdateToolQuantities(int toolID, int qtyChange, bool isRental,
+            SQLiteConnection? conn = null, SQLiteTransaction? tx = null);
     }
 }
+
