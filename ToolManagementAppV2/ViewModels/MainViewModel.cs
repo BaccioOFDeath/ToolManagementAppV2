@@ -30,6 +30,7 @@ namespace ToolManagementAppV2.ViewModels
         readonly ActivityLogService _activityLogService;
         readonly ISettingsService _settingsService;
         readonly ILogger<MainViewModel> _logger;
+        readonly Func<bool> _showLoginWindow;
 
         public ToolManagementViewModel ToolManagement { get; }
         public UserManagementViewModel UserManagement { get; }
@@ -94,6 +95,7 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand OpenImageImportMappingWindowCommand { get; }
         public IRelayCommand ExitCommand { get; }
         public IRelayCommand GlobalSearchCommand { get; }
+        public IRelayCommand SwitchUserCommand { get; }
 
         public IRelayCommand OpenRentalHistoryWindowCommand { get; }
         public IRelayCommand OpenPrintPreviewWindowCommand { get; }
@@ -107,7 +109,8 @@ namespace ToolManagementAppV2.ViewModels
                              IFileDialogService fileDialogService,
                              ActivityLogService activityLogService,
                              ISettingsService settingsService,
-                             ILogger<MainViewModel>? logger = null)
+                             ILogger<MainViewModel>? logger = null,
+                             Func<bool>? showLoginWindow = null)
         {
             _toolService = toolService;
             _userService = userService;
@@ -116,6 +119,11 @@ namespace ToolManagementAppV2.ViewModels
             _activityLogService = activityLogService;
             _settingsService = settingsService;
             _logger = logger ?? NullLogger<MainViewModel>.Instance;
+            _showLoginWindow = showLoginWindow ?? (() =>
+            {
+                var login = new LoginWindow { Owner = Application.Current.MainWindow };
+                return login.ShowDialog() == true;
+            });
 
             ToolManagement = new ToolManagementViewModel(toolService, customerService, rentalService, new DialogService());
             UserManagement = new UserManagementViewModel(userService, fileDialogService);
@@ -250,6 +258,15 @@ namespace ToolManagementAppV2.ViewModels
                 OpenSearchToolsCommand.Execute(null);
                 ToolManagement.SearchCommand?.Execute(null);
                 GlobalSearchText = string.Empty;
+            });
+
+            SwitchUserCommand = new RelayCommand(() =>
+            {
+                if (_showLoginWindow())
+                {
+                    RefreshCurrentUser();
+                    OpenDashboardCommand.Execute(null);
+                }
             });
 
             ExitCommand = new RelayCommand(() =>
