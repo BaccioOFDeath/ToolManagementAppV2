@@ -151,16 +151,30 @@ namespace ToolManagementAppV2.ViewModels
         async Task FilterToolsAsync()
         {
             var term = string.IsNullOrWhiteSpace(SearchTerm) ? string.Empty : SearchTerm.Trim();
-            var all = await _toolService.GetAllToolsAsync();
-            IEnumerable<ToolModel> results = string.IsNullOrEmpty(term)
-                ? all
-                : await _toolService.SearchToolsAsync(term);
+            IEnumerable<ToolModel> source;
+
+            if (!string.IsNullOrEmpty(term))
+            {
+                source = await _toolService.SearchToolsAsync(term);
+            }
+            else
+            {
+                if (Tools.Count == 0)
+                {
+                    var all = await _toolService.GetAllToolsAsync();
+                    Tools.ReplaceRange(all);
+                }
+                source = Tools;
+            }
+
             if (!string.IsNullOrEmpty(SelectedCategory) && SelectedCategory != "All")
             {
-                results = results.Where(t => string.Equals(t.Brand, SelectedCategory, StringComparison.OrdinalIgnoreCase));
+                source = source.Where(t => string.Equals(t.Brand, SelectedCategory, StringComparison.OrdinalIgnoreCase));
             }
-            SearchResults.ReplaceRange(results);
-            CategorizeTools(results);
+
+            SearchResults.ReplaceRange(source);
+            CategorizeTools(source);
+            LoadCategories(source, suppressSearch: true);
         }
 
         async Task AddToolAsync()
@@ -264,7 +278,7 @@ namespace ToolManagementAppV2.ViewModels
 
         static bool IsPowerTool(ToolModel tool) => tool?.IsPowerTool == true;
 
-        void LoadCategories(IEnumerable<ToolModel> tools)
+        void LoadCategories(IEnumerable<ToolModel> tools, bool suppressSearch = false)
         {
             var categories = tools.Select(t => t.Brand)
                                    .Where(b => !string.IsNullOrWhiteSpace(b))
@@ -276,7 +290,15 @@ namespace ToolManagementAppV2.ViewModels
 
             if (!Categories.Contains(SelectedCategory))
             {
-                SelectedCategory = "All";
+                if (suppressSearch)
+                {
+                    _selectedCategory = "All";
+                    OnPropertyChanged(nameof(SelectedCategory));
+                }
+                else
+                {
+                    SelectedCategory = "All";
+                }
             }
         }
 

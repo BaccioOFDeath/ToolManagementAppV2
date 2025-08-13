@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Data.SQLite;
 using ToolManagementAppV2.Models.Domain;
+using ToolManagementAppV2.Models;
+using ToolManagementAppV2.Models.ImportExport;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Services.Customers;
@@ -405,6 +408,104 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 if (File.Exists(dbPath))
                     File.Delete(dbPath);
             }
+        }
+
+        [Fact]
+        public async Task FilterToolsAsync_UsesSearchService_WhenTermProvided()
+        {
+            var tools = new List<ToolModel>
+            {
+                new Tool { ToolNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" },
+                new Tool { ToolNumber = "T2", NameDescription = "Saw", Brand = "BrandB" }
+            };
+            var toolService = new CountingToolService(tools);
+            var vm = new ToolManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
+            vm.SearchTerm = "Ham";
+            await vm.SearchCommand.ExecuteAsync(null);
+            Assert.Equal(1, toolService.SearchToolsAsyncCalls);
+            Assert.Equal(0, toolService.GetAllToolsAsyncCalls);
+        }
+
+        [Fact]
+        public async Task FilterToolsAsync_ReusesCache_WhenNoSearchTerm()
+        {
+            var tools = new List<ToolModel>
+            {
+                new Tool { ToolNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" }
+            };
+            var toolService = new CountingToolService(tools);
+            var vm = new ToolManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
+
+            await vm.SearchCommand.ExecuteAsync(null);
+            Assert.Equal(1, toolService.GetAllToolsAsyncCalls);
+            Assert.Equal(0, toolService.SearchToolsAsyncCalls);
+
+            await vm.SearchCommand.ExecuteAsync(null);
+            Assert.Equal(1, toolService.GetAllToolsAsyncCalls);
+        }
+
+        class CountingToolService : IToolService
+        {
+            public int GetAllToolsAsyncCalls { get; private set; }
+            public int SearchToolsAsyncCalls { get; private set; }
+            readonly List<ToolModel> _tools;
+            public CountingToolService(IEnumerable<ToolModel> tools) => _tools = tools.ToList();
+
+            public List<ToolModel> GetAllTools()
+            {
+                GetAllToolsAsyncCalls++;
+                return _tools.ToList();
+            }
+
+            public Task<List<ToolModel>> GetAllToolsAsync()
+            {
+                GetAllToolsAsyncCalls++;
+                return Task.FromResult(_tools.ToList());
+            }
+
+            public List<ToolModel> SearchTools(string? searchText)
+            {
+                SearchToolsAsyncCalls++;
+                return _tools.ToList();
+            }
+
+            public Task<List<ToolModel>> SearchToolsAsync(string? searchText)
+            {
+                SearchToolsAsyncCalls++;
+                if (string.IsNullOrWhiteSpace(searchText))
+                    return Task.FromResult(_tools.ToList());
+                var term = searchText.Trim();
+                var results = _tools.Where(t =>
+                    (t.ToolNumber?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (t.NameDescription?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (t.Brand?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (t.PartNumber?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))
+                    .ToList();
+                return Task.FromResult(results);
+            }
+
+            public void AddTool(ToolModel tool) => throw new NotImplementedException();
+            public Task AddToolAsync(ToolModel tool) => throw new NotImplementedException();
+            public void UpdateTool(ToolModel tool) => throw new NotImplementedException();
+            public Task UpdateToolAsync(ToolModel tool) => throw new NotImplementedException();
+            public void DeleteTool(int toolID) => throw new NotImplementedException();
+            public Task DeleteToolAsync(int toolID) => throw new NotImplementedException();
+            public ToolModel GetToolByID(int toolID) => throw new NotImplementedException();
+            public Task<ToolModel> GetToolByIDAsync(int toolID) => throw new NotImplementedException();
+            public void ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new NotImplementedException();
+            public Task ToggleToolCheckOutStatusAsync(int toolID, string currentUser) => throw new NotImplementedException();
+            public List<ToolModel> GetToolsCheckedOutBy(string userName) => throw new NotImplementedException();
+            public Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName) => throw new NotImplementedException();
+            public void UpdateToolImage(int toolID, string imagePath) => throw new NotImplementedException();
+            public Task UpdateToolImageAsync(int toolID, string imagePath) => throw new NotImplementedException();
+            public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map) => throw new NotImplementedException();
+            public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map) => throw new NotImplementedException();
+            public void ExportToolsToCsv(string filePath) => throw new NotImplementedException();
+            public Task ExportToolsToCsvAsync(string filePath) => throw new NotImplementedException();
+            public ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector) => throw new NotImplementedException();
+            public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector) => throw new NotImplementedException();
+            public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null) => throw new NotImplementedException();
+            public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null) => throw new NotImplementedException();
         }
     }
 }
