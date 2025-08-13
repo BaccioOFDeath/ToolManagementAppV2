@@ -129,7 +129,7 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenSearchToolsCommand = new RelayCommand(() =>
             {
-                ToolManagement.LoadTools();
+                ToolManagement.LoadToolsAsync();
                 var page = new ToolSearchPage { DataContext = ToolManagement, Title = "Search Tools" };
                 // If your ToolManagement VM supports a query setter, apply GlobalSearchText there.
                 CurrentPage = page;
@@ -137,7 +137,7 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenManageToolsCommand = new RelayCommand(() =>
             {
-                ToolManagement.LoadTools();
+                ToolManagement.LoadToolsAsync();
                 var page = new ManageToolsPage { DataContext = ToolManagement, Title = "Manage Tools" };
                 CurrentPage = page;
             });
@@ -151,7 +151,7 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenCustomersCommand = new RelayCommand(() =>
             {
-                CustomerManagement.LoadCustomers();
+                CustomerManagement.LoadCustomersAsync();
                 var page = new CustomersPage { DataContext = CustomerManagement, Title = "Customers" };
                 CurrentPage = page;
             });

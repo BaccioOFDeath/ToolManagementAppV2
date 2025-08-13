@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Documents;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
+using ToolManagementAppV2.Views;
 
 namespace ToolManagementAppV2.ViewModels
 {

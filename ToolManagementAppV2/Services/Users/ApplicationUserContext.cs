@@ -10,14 +10,14 @@ namespace ToolManagementAppV2.Services.Users
 
         public User? CurrentUser
         {
-            get => Application.Current?.Properties[Key] as User;
+            get => System.Windows.Application.Current?.Properties[Key] as User;
             set
             {
-                if (Application.Current == null) return;
+                if (System.Windows.Application.Current == null) return;
                 if (value == null)
-                    Application.Current.Properties.Remove(Key);
+                    System.Windows.Application.Current.Properties.Remove(Key);
                 else
-                    Application.Current.Properties[Key] = value;
+                    System.Windows.Application.Current.Properties[Key] = value;
             }
         }
     }
