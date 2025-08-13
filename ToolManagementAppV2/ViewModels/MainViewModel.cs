@@ -32,7 +32,6 @@ namespace ToolManagementAppV2.ViewModels
         public ToolManagementViewModel ToolManagement { get; }
         public UserManagementViewModel UserManagement { get; }
         public CustomerManagementViewModel CustomerManagement { get; }
-        public RentalViewModel Rentals { get; }
         public ManageRentalsViewModel ManageRentals { get; }
         public ImportExportViewModel ImportExport { get; }
         public ActivityLogsViewModel ActivityLogs { get; }
@@ -114,7 +113,6 @@ namespace ToolManagementAppV2.ViewModels
             ToolManagement = new ToolManagementViewModel(toolService, customerService, rentalService);
             UserManagement = new UserManagementViewModel(userService, fileDialogService);
             CustomerManagement = new CustomerManagementViewModel(customerService);
-            Rentals = new RentalViewModel(rentalService);
             ManageRentals = new ManageRentalsViewModel(rentalService);
             ImportExport = new ImportExportViewModel(toolService, customerService, fileDialogService);
             Reports = new ReportsViewModel(new ReportService(toolService, rentalService, activityLogService, customerService, userService));
