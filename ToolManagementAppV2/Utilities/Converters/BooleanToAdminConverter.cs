@@ -2,11 +2,13 @@
 using System;
 using System.Globalization;
 using System.Windows.Data;
+using Microsoft.Extensions.Logging;
 
 namespace ToolManagementAppV2.Utilities.Converters
 {
     public class BooleanToAdminConverter : IValueConverter
     {
+        private static readonly ILogger Logger = App.LoggerFactory.CreateLogger<BooleanToAdminConverter>();
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             try
@@ -16,7 +18,7 @@ namespace ToolManagementAppV2.Utilities.Converters
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Logger.LogError(ex, "Convert failed");
             }
             return System.Windows.Data.Binding.DoNothing;
         }
@@ -33,7 +35,7 @@ namespace ToolManagementAppV2.Utilities.Converters
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Logger.LogError(ex, "ConvertBack failed");
             }
             return value is string or bool ? false : System.Windows.Data.Binding.DoNothing;
         }

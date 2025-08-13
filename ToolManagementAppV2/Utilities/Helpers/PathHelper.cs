@@ -1,10 +1,13 @@
 ﻿using System;
 using System.IO;
+using Microsoft.Extensions.Logging;
 
 namespace ToolManagementAppV2.Utilities.Helpers
 {
     public static class PathHelper
     {
+        private static readonly ILogger Logger = App.LoggerFactory.CreateLogger<PathHelper>();
+
         /// <summary>
         /// Resolves <paramref name="path"/> against the application's base directory
         /// and ensures the resulting absolute path stays within that directory.
@@ -32,7 +35,7 @@ namespace ToolManagementAppV2.Utilities.Helpers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Logger.LogError(ex, "Failed to resolve path {Path}", path);
                 return null;
             }
         }
