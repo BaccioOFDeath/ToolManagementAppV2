@@ -19,6 +19,10 @@ namespace ToolManagementAppV2.ViewModels
             _settingsService = settingsService;
             _dialogService = dialogService;
 
+            var logoPath = _settingsService.GetSetting("CompanyLogoPath");
+            if (!string.IsNullOrWhiteSpace(logoPath))
+                CompanyLogoPath = logoPath;
+
             ThemeOptions = new ObservableCollection<string> { "Light", "Dark" };
             _theme = ThemeOptions[0];
             TestDbCommand = new RelayCommand(() =>
