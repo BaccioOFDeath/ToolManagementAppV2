@@ -1,4 +1,6 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.Collections;
 
 namespace ToolManagementAppV2.Utilities.Extensions
 {
@@ -6,9 +8,12 @@ namespace ToolManagementAppV2.Utilities.Extensions
     {
         public static void ReplaceRange<T>(this ObservableCollection<T> collection, IEnumerable<T> items)
         {
-            collection.Clear();
-            foreach (var i in items)
-                collection.Add(i);
+            using (collection.SuspendNotifications())
+            {
+                collection.Clear();
+                foreach (var i in items)
+                    collection.Add(i);
+            }
         }
 
         public static void AddRange<T>(this ObservableCollection<T> collection, IEnumerable<T> items)
@@ -18,3 +23,4 @@ namespace ToolManagementAppV2.Utilities.Extensions
         }
     }
 }
+
