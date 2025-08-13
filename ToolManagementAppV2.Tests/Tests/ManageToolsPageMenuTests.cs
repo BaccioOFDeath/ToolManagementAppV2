@@ -84,6 +84,7 @@ namespace ToolManagementAppV2.Tests.Tests
             public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
             public void ShowToolDetails(ToolModel tool) { }
             public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+            public CustomerModel? ShowAddCustomerDialog() => null;
         }
     }
 }

@@ -6,13 +6,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
-using ToolManagementAppV2.Views;
 
 namespace ToolManagementAppV2.ViewModels
 {
     public class CustomerManagementViewModel : ObservableObject
     {
         private readonly ICustomerService _customerService;
+        private readonly IDialogService _dialogService;
 
         public ObservableCollection<CustomerModel> Customers { get; } = new();
 
@@ -74,13 +74,11 @@ namespace ToolManagementAppV2.ViewModels
         public IAsyncRelayCommand SearchCustomersCommand { get; }
         public IAsyncRelayCommand DeleteCustomerCommand { get; }
 
-        public Func<CustomerModel?> AddCustomerDialog { get; set; }
-
-        public CustomerManagementViewModel(ICustomerService customerService)
+        public CustomerManagementViewModel(ICustomerService customerService, IDialogService dialogService)
         {
-        
+
             _customerService = customerService;
-            AddCustomerDialog = DefaultAddCustomerDialog;
+            _dialogService = dialogService;
             AddCustomerCommand = new AsyncRelayCommand(AddCustomerAsync);
             UpdateCustomerCommand = new AsyncRelayCommand(UpdateCustomerAsync, () => SelectedCustomer != null);
             SearchCustomersCommand = new AsyncRelayCommand(SearchCustomersAsync);
@@ -95,7 +93,7 @@ namespace ToolManagementAppV2.ViewModels
 
         async Task AddCustomerAsync()
         {
-            var customer = AddCustomerDialog?.Invoke();
+            var customer = _dialogService.ShowAddCustomerDialog();
             if (customer == null) return;
 
             await _customerService.AddCustomerAsync(customer);
@@ -106,17 +104,6 @@ namespace ToolManagementAppV2.ViewModels
             NewCustomerPhone = string.Empty;
             NewCustomerMobile = string.Empty;
             NewCustomerAddress = string.Empty;
-        }
-
-        CustomerModel? DefaultAddCustomerDialog()
-        {
-            var customer = new CustomerModel();
-            CustomerEditWindow win = null!;
-            win = new CustomerEditWindow(customer,
-                onSave: () => win.DialogResult = true,
-                onCancel: () => win.DialogResult = false);
-            try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch { }
-            try { return win.ShowDialog() == true ? customer : null; } catch { return null; }
         }
 
         async Task UpdateCustomerAsync()

@@ -20,9 +20,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 ICustomerService customerService = new CustomerService(db);
-                var vm = new CustomerManagementViewModel(customerService)
+                var dialog = new StubDialogService
                 {
-                    AddCustomerDialog = () => new CustomerModel
+                    AddCustomerResult = new CustomerModel
                     {
                         Company = "ACME",
                         Email = "a@b.com",
@@ -32,6 +32,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                         Address = "Addr"
                     }
                 };
+                var vm = new CustomerManagementViewModel(customerService, dialog);
                 await vm.AddCustomerCommand.ExecuteAsync(null);
                 var customers = customerService.GetAllCustomers();
                 Assert.Single(customers);
@@ -58,10 +59,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 ICustomerService customerService = new CustomerService(db);
-                var vm = new CustomerManagementViewModel(customerService)
-                {
-                    AddCustomerDialog = () => null
-                };
+                var dialog = new StubDialogService { AddCustomerResult = null };
+                var vm = new CustomerManagementViewModel(customerService, dialog);
                 await vm.AddCustomerCommand.ExecuteAsync(null);
                 var customers = customerService.GetAllCustomers();
                 Assert.Empty(customers);
@@ -91,7 +90,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     Address = "Addr"
                 });
                 var existing = customerService.GetAllCustomers().First();
-                var vm = new CustomerManagementViewModel(customerService);
+                var vm = new CustomerManagementViewModel(customerService, new StubDialogService());
                 vm.SelectedCustomer = existing;
 
                 Assert.Equal("ACME", vm.NewCustomerName);
@@ -118,7 +117,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 ICustomerService customerService = new CustomerService(db);
                 customerService.AddCustomer(new ToolManagementAppV2.Models.Domain.Customer { Company = "Old" });
                 var existing = customerService.GetAllCustomers().First();
-                var vm = new CustomerManagementViewModel(customerService);
+                var vm = new CustomerManagementViewModel(customerService, new StubDialogService());
                 vm.SelectedCustomer = existing;
                 vm.NewCustomerName = "New";
                 vm.NewCustomerEmail = "e@e.com";
@@ -152,7 +151,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 ICustomerService customerService = new CustomerService(db);
                 customerService.AddCustomer(new ToolManagementAppV2.Models.Domain.Customer { Company = "Alpha" });
                 customerService.AddCustomer(new ToolManagementAppV2.Models.Domain.Customer { Company = "Beta" });
-                var vm = new CustomerManagementViewModel(customerService);
+                var vm = new CustomerManagementViewModel(customerService, new StubDialogService());
                 vm.CustomerSearchTerm = "Beta";
                 await vm.SearchCustomersCommand.ExecuteAsync(null);
                 Assert.Single(vm.Customers);
@@ -175,7 +174,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 ICustomerService customerService = new CustomerService(db);
                 customerService.AddCustomer(new ToolManagementAppV2.Models.Domain.Customer { Company = "ACME" });
                 customerService.AddCustomer(new ToolManagementAppV2.Models.Domain.Customer { Company = "Beta" });
-                var vm = new CustomerManagementViewModel(customerService);
+                var vm = new CustomerManagementViewModel(customerService, new StubDialogService());
                 await vm.SearchCustomersCommand.ExecuteAsync(null);
                 vm.SelectedCustomer = vm.Customers.First(c => c.Company == "ACME");
                 await vm.DeleteCustomerCommand.ExecuteAsync(null);
@@ -200,7 +199,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 ICustomerService customerService = new CustomerService(db);
-                var vm = new CustomerManagementViewModel(customerService);
+                var vm = new CustomerManagementViewModel(customerService, new StubDialogService());
                 Assert.False(vm.DeleteCustomerCommand.CanExecute(null));
                 vm.SelectedCustomer = new ToolManagementAppV2.Models.Domain.Customer { Company = "ACME" };
                 Assert.True(vm.DeleteCustomerCommand.CanExecute(null));
@@ -213,5 +212,17 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+    }
+
+    class StubDialogService : IDialogService
+    {
+        public CustomerModel? AddCustomerResult;
+
+        public void ShowInfo(string message, string title) { }
+        public bool ShowConfirmation(string message, string title) => false;
+        public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
+        public void ShowToolDetails(ToolModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+        public CustomerModel? ShowAddCustomerDialog() => AddCustomerResult;
     }
 }
