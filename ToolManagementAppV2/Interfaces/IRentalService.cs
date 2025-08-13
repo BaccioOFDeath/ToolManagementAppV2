@@ -16,7 +16,7 @@ namespace ToolManagementAppV2.Interfaces
         /// <param name="customerID">Identifier of the customer renting the tool.</param>
         /// <param name="rentalDate">The date the rental begins.</param>
         /// <param name="dueDate">The date the tool is due to be returned.</param>
-        void RentTool(string toolID, int customerID, DateTime rentalDate, DateTime dueDate);
+        void RentTool(int toolID, int customerID, DateTime rentalDate, DateTime dueDate);
 
         /// <summary>
         /// Returns a rented tool within a database transaction.
@@ -31,7 +31,7 @@ namespace ToolManagementAppV2.Interfaces
         List<Rental> GetActiveRentals();
         List<Rental> GetOverdueRentals();
         List<Rental> GetAllRentals();
-        List<Rental> GetRentalHistoryForTool(string toolID);
+        List<Rental> GetRentalHistoryForTool(int toolID);
         List<Rental> GetRentalHistoryForCustomer(int customerID);
     }
 }

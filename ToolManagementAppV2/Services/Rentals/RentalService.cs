@@ -20,9 +20,7 @@ namespace ToolManagementAppV2.Services.Rentals
             _toolService = toolService; // may be null if inventory sync not desired
         }
 
-        // toolID is passed as a string even though the underlying column is INTEGER
-        // to keep consistency with ToolModel.ToolID
-        public void RentTool(string toolID, int customerID, DateTime rentalDate, DateTime dueDate)
+        public void RentTool(int toolID, int customerID, DateTime rentalDate, DateTime dueDate)
         {
             ExecuteWithTransaction((conn, tx) =>
             {
@@ -59,7 +57,7 @@ namespace ToolManagementAppV2.Services.Rentals
 
         public void ReturnTool(int rentalID, DateTime returnDate)
         {
-            string? toolID = null;
+            int? toolID = null;
             ExecuteWithTransaction((conn, tx) =>
             {
                 var selCmd = new SQLiteCommand(
@@ -67,7 +65,7 @@ namespace ToolManagementAppV2.Services.Rentals
                 selCmd.Parameters.AddWithValue("@RentalID", rentalID);
                 var result = selCmd.ExecuteScalar();
                 if (result == null) throw new InvalidOperationException("Rental not found or already returned.");
-                toolID = result.ToString();
+                toolID = Convert.ToInt32(result);
 
                 SqliteHelper.ExecuteNonQuery(conn, tx,
                     "UPDATE Rentals SET ReturnDate=@ReturnDate,Status='Returned' WHERE RentalID=@RentalID",
@@ -79,8 +77,8 @@ namespace ToolManagementAppV2.Services.Rentals
             },
             () =>
             {
-                if (_toolService == null || string.IsNullOrWhiteSpace(toolID)) return;
-                var tool = _toolService.GetToolByID(toolID);
+                if (_toolService == null || toolID == null) return;
+                var tool = _toolService.GetToolByID(toolID.Value);
                 if (tool != null)
                 {
                     tool.QuantityOnHand++;
@@ -168,7 +166,7 @@ namespace ToolManagementAppV2.Services.Rentals
             return SqliteHelper.ExecuteReader(conn, BaseSelect, null, MapRental);
         }
 
-        public List<Rental> GetRentalHistoryForTool(string toolID)
+        public List<Rental> GetRentalHistoryForTool(int toolID)
         {
             const string sql = BaseSelect + @" WHERE r.ToolID = @ToolID ORDER BY r.RentalDate DESC";
             var p = new[] { new SQLiteParameter("@ToolID", toolID) };
@@ -187,7 +185,7 @@ namespace ToolManagementAppV2.Services.Rentals
         Rental MapRental(IDataRecord r) => new()
         {
             RentalID = Convert.ToInt32(r["RentalID"]),
-            ToolID = r["ToolID"].ToString(),
+            ToolID = Convert.ToInt32(r["ToolID"]),
             CustomerID = Convert.ToInt32(r["CustomerID"]),
             RentalDate = Convert.ToDateTime(r["RentalDate"]),
             DueDate = Convert.ToDateTime(r["DueDate"]),

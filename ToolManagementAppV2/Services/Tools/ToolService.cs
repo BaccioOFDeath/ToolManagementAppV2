@@ -39,7 +39,7 @@ namespace ToolManagementAppV2.Services.Tools
             return _cache;
         }
     
-        public ToolModel GetToolByID(string toolID)
+        public ToolModel GetToolByID(int toolID)
         {
             var cached = GetAllTools().FirstOrDefault(t => t.ToolID == toolID);
             if (cached != null)
@@ -58,7 +58,7 @@ namespace ToolManagementAppV2.Services.Tools
 
             var terms = searchText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             return all.Where(t => terms.All(term =>
-                (t.ToolID?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                t.ToolID.ToString().Contains(term, StringComparison.OrdinalIgnoreCase) ||
                 (t.ToolNumber?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                 (t.NameDescription?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                 (t.Brand?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
@@ -133,7 +133,7 @@ namespace ToolManagementAppV2.Services.Tools
             _cache = null;
         }
     
-        public void UpdateToolQuantities(string toolID, int qtyChange, bool isRental)
+        public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental)
         {
             if (qtyChange <= 0) throw new ArgumentException("Quantity change must be positive.", nameof(qtyChange));
             var sql = isRental
@@ -150,7 +150,7 @@ namespace ToolManagementAppV2.Services.Tools
             _cache = null;
         }
     
-        public void DeleteTool(string toolID)
+        public void DeleteTool(int toolID)
         {
             using var conn = _dbService.CreateConnection();
             SqliteHelper.ExecuteNonQuery(conn, "DELETE FROM Tools WHERE ToolID=@ID",
@@ -158,7 +158,7 @@ namespace ToolManagementAppV2.Services.Tools
             _cache = null;
         }
     
-        public void ToggleToolCheckOutStatus(string toolID, string currentUser)
+        public void ToggleToolCheckOutStatus(int toolID, string currentUser)
         {
             using var conn = _dbService.CreateConnection();
             var record = SqliteHelper.ExecuteReader(conn,
@@ -201,7 +201,7 @@ namespace ToolManagementAppV2.Services.Tools
                 new[] { new SQLiteParameter("@User", userName) }, MapTool);
         }
     
-        public void UpdateToolImage(string toolID, string imagePath)
+        public void UpdateToolImage(int toolID, string imagePath)
         {
             using var conn = _dbService.CreateConnection();
             SqliteHelper.ExecuteNonQuery(conn, "UPDATE Tools SET ToolImagePath=@Img WHERE ToolID=@ID",
@@ -257,7 +257,7 @@ namespace ToolManagementAppV2.Services.Tools
             cmd.Parameters.AddRange(p);
             var result = cmd.ExecuteScalar();
             if (result != null)
-                tool.ToolID = result.ToString();
+                tool.ToolID = Convert.ToInt32(result);
         }
     
         public void ExportToolsToCsv(string filePath)
@@ -342,7 +342,7 @@ namespace ToolManagementAppV2.Services.Tools
     
         ToolModel MapTool(IDataRecord r) => new()
         {
-            ToolID = r["ToolID"].ToString(),
+            ToolID = Convert.ToInt32(r["ToolID"]),
             ToolNumber = r["ToolNumber"].ToString(),
             PartNumber = r["PartNumber"].ToString(),
             NameDescription = r["NameDescription"].ToString(),

@@ -4,8 +4,8 @@ namespace ToolManagementAppV2.Models.Domain
 {
     public class Tool : ObservableObject
     {
-        private string _toolID = string.Empty;
-        public string ToolID
+        private int _toolID;
+        public int ToolID
         {
             get => _toolID;
             set => SetProperty(ref _toolID, value);
