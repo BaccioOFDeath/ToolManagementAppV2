@@ -6,6 +6,7 @@ using System.Windows;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Interfaces;
 using Xunit;
@@ -23,12 +24,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
             var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
             try
             {
-                var dbService = new DatabaseService(dbPath);
+                using var dbService = new DatabaseService(dbPath);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(dbService, userContext);
+                var settingsService = new SettingsService(dbService);
                 userService.AddUser(new User { UserName = "user", Password = "newpassword", IsAdmin = false });
 
-                var vm = new LoginViewModel(new StubDialogService(), userContext, dbPath);
+                var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext);
                 bool success = false;
                 vm.LoginSucceeded += (_, __) => success = true;
 

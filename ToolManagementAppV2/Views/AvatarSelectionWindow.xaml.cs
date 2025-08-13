@@ -20,7 +20,7 @@ namespace ToolManagementAppV2.Views
             InitializeComponent();
 
             var dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db");
-            var dbService = new DatabaseService(dbPath);
+            using var dbService = new DatabaseService(dbPath);
             var settingsService = new SettingsService(dbService);
             var appName = settingsService.GetSetting("ApplicationName");
             if (!string.IsNullOrWhiteSpace(appName))

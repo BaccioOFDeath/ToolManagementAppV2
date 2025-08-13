@@ -1,8 +1,13 @@
+using System;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2;
+using ToolManagementAppV2.Services.Core;
+using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.Services.Settings;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.Tests
@@ -12,19 +17,30 @@ namespace ToolManagementAppV2.Tests.Tests
         [Fact]
         public void UsersListBox_UsesHorizontalStackPanel()
         {
-            var window = new LoginWindow();
+            var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
+            using var db = new DatabaseService(dbPath);
+            var userContext = new ApplicationUserContext();
+            var userService = new UserService(db, userContext);
+            var settingsService = new SettingsService(db);
+            var window = new LoginWindow(userContext, userService, settingsService);
             var panel = window.UsersListBox.ItemsPanel.LoadContent();
             var stackPanel = Assert.IsType<VirtualizingStackPanel>(panel);
             Assert.Equal(Orientation.Horizontal, stackPanel.Orientation);
             Assert.Equal(ScrollBarVisibility.Auto, ScrollViewer.GetHorizontalScrollBarVisibility(window.UsersListBox));
             Assert.Equal(ScrollBarVisibility.Disabled, ScrollViewer.GetVerticalScrollBarVisibility(window.UsersListBox));
             Assert.True(VirtualizingStackPanel.GetIsVirtualizing(window.UsersListBox));
+            window.Close();
         }
 
         [Fact]
         public void UsersListBox_VirtualizesLargeCollections()
         {
-            var window = new LoginWindow();
+            var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
+            using var db = new DatabaseService(dbPath);
+            var userContext = new ApplicationUserContext();
+            var userService = new UserService(db, userContext);
+            var settingsService = new SettingsService(db);
+            var window = new LoginWindow(userContext, userService, settingsService);
             window.UsersListBox.ItemsSource = Enumerable.Range(0, 1000)
                 .Select(i => new User { UserID = i, UserName = $"User {i}" })
                 .ToList();
@@ -35,6 +51,7 @@ namespace ToolManagementAppV2.Tests.Tests
 
             Assert.NotNull(window.UsersListBox.ItemContainerGenerator.ContainerFromIndex(0));
             Assert.Null(window.UsersListBox.ItemContainerGenerator.ContainerFromIndex(999));
+            window.Close();
         }
     }
 }

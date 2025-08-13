@@ -6,10 +6,15 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.Services.Core
 {
-    public class DatabaseService
+    /// <summary>
+    /// Provides SQLite database access for the application. Instances should be
+    /// disposed when no longer needed to release pooled connections.
+    /// </summary>
+    public class DatabaseService : IDisposable
     {
         public string ConnectionString { get; }
         private readonly ILogger<DatabaseService> _logger;
+        bool _disposed;
 
         public SQLiteConnection CreateConnection()
         {
@@ -48,6 +53,27 @@ namespace ToolManagementAppV2.Services.Core
             EnsureColumn("Users", "Role", "TEXT");
             EnsureColumn("Users", "IsActive", "INTEGER");
             EnsureColumn("Users", "CreatedAt", "DATETIME");
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed) return;
+            if (disposing)
+            {
+                SQLiteConnection.ClearAllPools();
+            }
+            _disposed = true;
+        }
+
+        ~DatabaseService()
+        {
+            Dispose(false);
         }
 
         void ConfigureDatabase()
