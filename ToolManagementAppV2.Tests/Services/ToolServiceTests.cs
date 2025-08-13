@@ -115,7 +115,27 @@ namespace ToolManagementAppV2.Tests.Services
                 service.AddTool(new Tool { ToolNumber = "T1" });
 
                 var dup = new Tool { ToolNumber = "T1" };
-                Assert.Throws<InvalidOperationException>(() => service.AddTool(dup));
+                var ex = Assert.Throws<InvalidOperationException>(() => service.AddTool(dup));
+                Assert.Contains("T1", ex.Message);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void AddTool_NullToolNumber_ThrowsArgumentException()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                IToolService service = new ToolService(dbService);
+
+                var tool = new Tool { ToolNumber = "" };
+                Assert.Throws<ArgumentException>(() => service.AddTool(tool));
             }
             finally
             {

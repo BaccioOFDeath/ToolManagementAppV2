@@ -71,7 +71,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
-                var vm = new ToolManagementViewModel(toolService);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" });
                 toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Saw", Brand = "BrandB" });
                 vm.SelectedCategory = "BrandA";
@@ -84,6 +86,38 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 if (File.Exists(dbPath))
                     File.Delete(dbPath);
             }
+        }
+
+        [Fact]
+        public void AddTool_ShowsDialog_OnError()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var dialog = new StubDialogService();
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
+                vm.NewTool.ToolNumber = string.Empty;
+                vm.NewToolCommand.Execute(null);
+                Assert.True(dialog.InfoShown);
+                Assert.Empty(toolService.GetAllTools());
+                Assert.Equal(string.Empty, vm.NewTool.ToolNumber);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        class StubDialogService : IDialogService
+        {
+            public bool InfoShown;
+            public void ShowInfo(string message, string title) => InfoShown = true;
+            public bool ShowConfirmation(string message, string title) => false;
         }
 
         [Fact]

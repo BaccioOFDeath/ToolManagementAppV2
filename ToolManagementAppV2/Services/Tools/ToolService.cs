@@ -77,6 +77,8 @@ namespace ToolManagementAppV2.Services.Tools
         /// </summary>
         public void AddTool(ToolModel tool)
         {
+            if (string.IsNullOrWhiteSpace(tool?.ToolNumber))
+                throw new ArgumentException("ToolNumber is required.", nameof(tool));
             if (ToolExists(tool.ToolNumber))
                 throw new InvalidOperationException($"Tool {tool.ToolNumber} already exists.");
             using var conn = _dbService.CreateConnection();
@@ -328,6 +330,8 @@ namespace ToolManagementAppV2.Services.Tools
     
         private bool ToolExists(string toolNumber)
         {
+            if (string.IsNullOrWhiteSpace(toolNumber))
+                return false;
             const string sql = "SELECT COUNT(*) FROM Tools WHERE ToolNumber = @TN";
             using var conn = _dbService.CreateConnection();
             var count = Convert.ToInt32(SqliteHelper.ExecuteScalar(conn, sql, new[] {

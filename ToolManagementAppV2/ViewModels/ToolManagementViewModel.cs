@@ -8,6 +8,7 @@ using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.ViewModels.Rental;
 using ToolManagementAppV2.Views;
+using ToolManagementAppV2.Services;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -16,6 +17,7 @@ namespace ToolManagementAppV2.ViewModels
         private readonly IToolService _toolService;
         private readonly ICustomerService _customerService;
         private readonly IRentalService _rentalService;
+        private readonly IDialogService _dialogService;
 
         public ObservableCollection<ToolModel> Tools { get; } = new();
         public ObservableCollection<ToolModel> SearchResults { get; } = new();
@@ -102,12 +104,15 @@ namespace ToolManagementAppV2.ViewModels
 
         public ToolManagementViewModel(IToolService toolService,
                                        ICustomerService customerService,
-                                       IRentalService rentalService)
+                                       IRentalService rentalService,
+                                       IDialogService? dialogService = null)
         {
             _toolService = toolService;
+            _customerService = customerService;
+            _rentalService = rentalService;
+            _dialogService = dialogService ?? new DialogService();
             SearchCommand = new RelayCommand(FilterTools);
             NewToolCommand = new RelayCommand(AddTool);
-            _customerService = customerService;
             EditToolCommand = new RelayCommand(EditTool, () => SelectedTool != null);
             DeleteToolCommand = new RelayCommand(DeleteTool);
             OpenRentalsCommand = new RelayCommand(OpenRentals, () => SelectedTool != null);
@@ -148,10 +153,21 @@ namespace ToolManagementAppV2.ViewModels
 
         void AddTool()
         {
-            _toolService.AddTool(NewTool);
-            LoadTools();
-            FilterTools();
-            NewTool = new ToolModel();
+            try
+            {
+                _toolService.AddTool(NewTool);
+                LoadTools();
+                FilterTools();
+                NewTool = new ToolModel();
+            }
+            catch (InvalidOperationException ex)
+            {
+                _dialogService.ShowInfo(ex.Message, "Error");
+            }
+            catch (ArgumentException ex)
+            {
+                _dialogService.ShowInfo(ex.Message, "Error");
+            }
         }
 
         void EditTool()
