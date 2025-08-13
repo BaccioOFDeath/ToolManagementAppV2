@@ -7,6 +7,8 @@ using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Models.Domain;
+using ToolManagementAppV2.Interfaces;
+using System.Collections.Generic;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.ViewModels
@@ -37,7 +39,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var all = rentalService.GetAllRentals();
                 rentalService.ReturnTool(all[1].RentalID, DateTime.Today);
 
-                var vm = new ManageRentalsViewModel(rentalService);
+                var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 vm.LoadRentals();
 
                 Assert.Equal(2, vm.Rentals.Count);
@@ -80,7 +82,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 rentalService.RentTool(tool1.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
                 rentalService.RentTool(tool2.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
-                var vm = new ManageRentalsViewModel(rentalService);
+                var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 vm.LoadRentals();
 
                 vm.SearchText = "Alpha";
@@ -104,7 +106,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 var rentalService = new RentalService(db);
-                var vm = new ManageRentalsViewModel(rentalService);
+                var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 vm.CloseCommand.Execute(null);
             }
             finally
@@ -133,7 +135,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
-                var vm = new ManageRentalsViewModel(rentalService);
+                var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 vm.LoadRentals();
                 vm.SelectedRental = vm.Rentals.First();
 
@@ -148,5 +150,16 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+    }
+    }
+
+    class StubDialogService : IDialogService
+    {
+        public void ShowInfo(string message, string title) { }
+        public bool ShowConfirmation(string message, string title) => false;
+        public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
+        public void ShowToolDetails(ToolModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+        public CustomerModel? ShowAddCustomerDialog() => null;
     }
 }

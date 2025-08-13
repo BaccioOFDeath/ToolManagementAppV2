@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ToolManagementAppV2.ViewModels;
 
 namespace ToolManagementAppV2.Interfaces
 {
@@ -11,5 +12,8 @@ namespace ToolManagementAppV2.Interfaces
         void ShowToolDetails(ToolModel tool);
         (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers);
         CustomerModel? ShowAddCustomerDialog();
+
+        void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
+        void ShowRentalHistory(ToolModel tool, IEnumerable<RentalModel> history) { }
     }
 }
