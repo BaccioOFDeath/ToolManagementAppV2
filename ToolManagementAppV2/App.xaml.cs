@@ -7,6 +7,7 @@ using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.ViewModels;
 
 namespace ToolManagementAppV2
@@ -26,10 +27,11 @@ namespace ToolManagementAppV2
             var rentalService = new RentalService(db, toolService);
             var activityLogService = new ActivityLogService(db);
             var fileDialogService = new FileDialogService();
+            var settingsService = new SettingsService(db);
 
             var main = new MainWindow
             {
-                DataContext = new MainViewModel(toolService, userService, customerService, rentalService, fileDialogService, activityLogService)
+                DataContext = new MainViewModel(toolService, userService, customerService, rentalService, fileDialogService, activityLogService, settingsService)
             };
 
             Current.MainWindow = main;

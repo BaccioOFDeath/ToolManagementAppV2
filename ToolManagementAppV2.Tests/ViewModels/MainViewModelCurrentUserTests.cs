@@ -8,6 +8,7 @@ using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.ViewModels;
 using Xunit;
 using ToolManagementAppV2.Services.Rentals;
+using ToolManagementAppV2.Services.Settings;
 
 
 namespace ToolManagementAppV2.Tests.ViewModels
@@ -29,8 +30,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var activityLogService = new ActivityLogService(db);
+                var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService(), activityLogService);
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService);
 
                 bool raised = false;
                 vm.PropertyChanged += (s, e) =>
