@@ -53,10 +53,18 @@
                                     <RowDefinition Height="140"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <Border Background="#0e1420" CornerRadius="8" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1">
+                                <Border Background="#0e1420"
+                                        CornerRadius="8"
+                                        BorderBrush="{StaticResource BorderBrushAlt}"
+                                        BorderThickness="1"
+                                        ClipToBounds="True">
                                     <Image Stretch="UniformToFill" Source="{Binding UserPhotoPath}"/>
                                 </Border>
-                                <TextBlock Grid.Row="1" Text="{Binding UserName}" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                                <TextBlock Grid.Row="1"
+                                           Text="{Binding UserName}"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,6,0,0"
+                                           Foreground="{StaticResource ForegroundMutedBrush}"/>
                             </Grid>
                         </Button>
                     </DataTemplate>
