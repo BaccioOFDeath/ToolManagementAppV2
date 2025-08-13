@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Windows;
+using System.Collections.Generic;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Tools;
@@ -42,7 +43,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 };
 
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
-                    new StubFileDialogService(), activityLogService, settingsService, db, null, stubLogin);
+                    new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService(), null, stubLogin);
 
                 userContext.CurrentUser = new User { UserName = "old", IsAdmin = false };
                 vm.RefreshCurrentUser();
@@ -64,5 +65,15 @@ namespace ToolManagementAppV2.Tests.ViewModels
     {
         public string OpenFile(string filter) => null;
         public string SaveFile(string filter) => null;
+    }
+
+    class StubDialogService : IDialogService
+    {
+        public void ShowInfo(string message, string title) { }
+        public bool ShowConfirmation(string message, string title) => false;
+        public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
+        public void ShowToolDetails(ToolModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+        public CustomerModel? ShowAddCustomerDialog() => null;
     }
 }

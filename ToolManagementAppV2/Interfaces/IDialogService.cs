@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Windows.Documents;
 using ToolManagementAppV2.ViewModels;
 
 namespace ToolManagementAppV2.Interfaces
@@ -15,5 +16,10 @@ namespace ToolManagementAppV2.Interfaces
 
         void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
         void ShowRentalHistory(ToolModel tool, IEnumerable<RentalModel> history) { }
+        Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties) => null;
+        Func<ToolModel, IEnumerable<string>>? ShowImageImportMapping() => null;
+        void ShowPrintPreview(FlowDocument document, string title, string description) { }
+        void ShowPrintLabelDialog() { }
+        void ShowScannerStatus() { }
     }
 }
