@@ -228,6 +228,25 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
+        public void DeleteRental_InvalidRentalID_Throws()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var rentalService = new RentalService(db, toolService);
+
+                Assert.Throws<InvalidOperationException>(() => rentalService.DeleteRental(1));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public void GetActiveRentals_ReturnsCustomerAndToolDetails()
         {
             var dbPath = Path.GetTempFileName();
