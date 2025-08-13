@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
@@ -118,15 +119,28 @@ namespace ToolManagementAppV2.ViewModels
             DeleteToolCommand = new AsyncRelayCommand(DeleteToolAsync);
             OpenRentalsCommand = new AsyncRelayCommand(OpenRentalsAsync, () => SelectedTool != null);
             ViewDetailsCommand = new RelayCommand(ViewDetails, () => SelectedTool != null);
+            // Ensure no duplicate event subscriptions when the view model is
+            // constructed multiple times or the collection persists across
+            // instances.
+            Tools.CollectionChanged -= Tools_CollectionChanged;
+            Tools.CollectionChanged += Tools_CollectionChanged;
         }
 
         public async Task LoadToolsAsync()
         {
             var all = await _toolService.GetAllToolsAsync();
+            // Temporarily detach to prevent intermediate collection changes
+            // from firing the handler and potentially resulting in duplicate
+            // subscriptions.
+            Tools.CollectionChanged -= Tools_CollectionChanged;
             Tools.ReplaceRange(all);
             SearchResults.ReplaceRange(all);
             CategorizeTools(all);
-            LoadCategories(all);
+            LoadCategories(Tools);
+            // Remove again in case the handler was reattached during the load
+            // process, then attach once to guarantee a single subscription.
+            Tools.CollectionChanged -= Tools_CollectionChanged;
+            Tools.CollectionChanged += Tools_CollectionChanged;
         }
 
         /// <summary>
@@ -138,7 +152,6 @@ namespace ToolManagementAppV2.ViewModels
         {
             var term = string.IsNullOrWhiteSpace(SearchTerm) ? string.Empty : SearchTerm.Trim();
             var all = await _toolService.GetAllToolsAsync();
-            LoadCategories(all);
             IEnumerable<ToolModel> results = string.IsNullOrEmpty(term)
                 ? all
                 : await _toolService.SearchToolsAsync(term);
@@ -254,7 +267,14 @@ namespace ToolManagementAppV2.ViewModels
                                    .ToList();
             categories.Insert(0, "All");
             Categories.ReplaceRange(categories);
+
+            if (!Categories.Contains(SelectedCategory))
+            {
+                SelectedCategory = "All";
+            }
         }
+
+        void Tools_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => LoadCategories(Tools);
 
     }
 }
