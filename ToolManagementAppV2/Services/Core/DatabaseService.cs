@@ -13,24 +13,25 @@ namespace ToolManagementAppV2.Services.Core
 
         public SQLiteConnection CreateConnection()
         {
-            var connStr = $"{ConnectionString}Pooling=True;Cache=Shared;";
-            var conn = new SQLiteConnection(connStr);
+            var conn = new SQLiteConnection(ConnectionString);
             conn.Open();
-            using (var cmd = new SQLiteCommand("PRAGMA journal_mode=WAL;", conn))
-            {
-                cmd.ExecuteNonQuery();
-            }
-            using (var cmd = new SQLiteCommand("PRAGMA busy_timeout=5000;", conn))
-            {
-                cmd.ExecuteNonQuery();
-            }
             return conn;
         }
 
         public DatabaseService(string dbPath, ILogger<DatabaseService>? logger = null)
         {
-            ConnectionString = $"Data Source={dbPath};Version=3;";
+            var builder = new SQLiteConnectionStringBuilder
+            {
+                DataSource = dbPath,
+                Version = 3,
+                Pooling = true,
+                BusyTimeout = 5000,
+                JournalMode = SQLiteJournalModeEnum.Wal
+            };
+            builder["Cache"] = "Shared";
+            ConnectionString = builder.ToString();
             _logger = logger ?? NullLogger<DatabaseService>.Instance;
+            ConfigureDatabase();
             InitializeDatabase();
             EnsureColumn("Tools", "ToolNumber", "TEXT");
             EnsureColumn("Tools", "NameDescription", "TEXT");
@@ -47,6 +48,16 @@ namespace ToolManagementAppV2.Services.Core
             EnsureColumn("Users", "Role", "TEXT");
             EnsureColumn("Users", "IsActive", "INTEGER");
             EnsureColumn("Users", "CreatedAt", "DATETIME");
+        }
+
+        void ConfigureDatabase()
+        {
+            using var conn = new SQLiteConnection(ConnectionString);
+            conn.Open();
+            using var cmd = new SQLiteCommand("PRAGMA journal_mode=WAL;", conn);
+            cmd.ExecuteNonQuery();
+            using var timeout = new SQLiteCommand("PRAGMA busy_timeout=5000;", conn);
+            timeout.ExecuteNonQuery();
         }
 
         void InitializeDatabase()
