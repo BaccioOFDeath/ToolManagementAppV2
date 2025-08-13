@@ -27,6 +27,7 @@ namespace ToolManagementAppV2.Interfaces
         /// <param name="returnDate">The date the tool is returned.</param>
         void ReturnTool(int rentalID, DateTime returnDate);
         void ExtendRental(int rentalID, DateTime newDueDate);
+        void DeleteRental(int rentalID);
         List<Rental> GetActiveRentals();
         List<Rental> GetOverdueRentals();
         List<Rental> GetAllRentals();

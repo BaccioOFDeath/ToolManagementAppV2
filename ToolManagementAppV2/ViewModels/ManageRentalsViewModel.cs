@@ -240,7 +240,7 @@ namespace ToolManagementAppV2.ViewModels
         {
             if (SelectedRental == null)
                 return;
-
+            _rentalService.DeleteRental(SelectedRental.RentalID);
             _allRentals.Remove(SelectedRental);
             Rentals.Remove(SelectedRental);
         }
