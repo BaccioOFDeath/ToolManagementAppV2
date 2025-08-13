@@ -26,7 +26,7 @@ namespace ToolManagementAppV2.Services.Users
             return SqliteHelper.ExecuteReader(conn, "SELECT * FROM Users", null, MapUser);
         }
 
-        public User GetUserByID(int userID)
+        public User? GetUserByID(int userID)
         {
             using var conn = _dbService.CreateConnection();
             return SqliteHelper.ExecuteReader(conn, "SELECT * FROM Users WHERE UserID=@ID",
@@ -62,7 +62,7 @@ namespace ToolManagementAppV2.Services.Users
             return SecurityHelper.VerifyPassword(password ?? string.Empty, u.Salt, u.Password) ? u : null;
         }
 
-        public User GetCurrentUser()
+        public User? GetCurrentUser()
         {
             if (_context.CurrentUser is User u)
                 return GetUserByID(u.UserID);
@@ -230,9 +230,9 @@ namespace ToolManagementAppV2.Services.Users
         }
 
         public Task<List<User>> GetAllUsersAsync() => Task.Run(GetAllUsers);
-        public Task<User> GetUserByIDAsync(int userID) => Task.Run(() => GetUserByID(userID));
-        public Task<User> AuthenticateUserAsync(string userName, string password) => Task.Run(() => AuthenticateUser(userName, password));
-        public Task<User> GetCurrentUserAsync() => Task.Run(GetCurrentUser);
+        public Task<User?> GetUserByIDAsync(int userID) => Task.Run(() => GetUserByID(userID));
+        public Task<User?> AuthenticateUserAsync(string userName, string password) => Task.Run(() => AuthenticateUser(userName, password));
+        public Task<User?> GetCurrentUserAsync() => Task.Run(GetCurrentUser);
         public Task AddUserAsync(User user) => Task.Run(() => AddUser(user));
         public Task UpdateUserAsync(User user) => Task.Run(() => UpdateUser(user));
         public Task<bool> TryDeleteUserAsync(int userID) => Task.Run(() => TryDeleteUser(userID));

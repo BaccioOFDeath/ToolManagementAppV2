@@ -16,7 +16,7 @@ namespace ToolManagementAppV2.Tests.Services
             var dbPath = Path.GetTempFileName();
             try
             {
-                var dbService = new DatabaseService(dbPath);
+                using var dbService = new DatabaseService(dbPath);
                 IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
                 var user = new User { UserName = "u", Password = "p", Mobile = "111" };
@@ -38,7 +38,7 @@ namespace ToolManagementAppV2.Tests.Services
             var dbPath = Path.GetTempFileName();
             try
             {
-                var dbService = new DatabaseService(dbPath);
+                using var dbService = new DatabaseService(dbPath);
                 IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
                 var user = new User { UserName = "u", Password = "p", Mobile = "1" };
@@ -49,7 +49,8 @@ namespace ToolManagementAppV2.Tests.Services
                 userService.UpdateUser(added);
 
                 var updated = userService.GetUserByID(added.UserID);
-                Assert.Equal("2", updated.Mobile);
+                Assert.NotNull(updated);
+                Assert.Equal("2", updated!.Mobile);
             }
             finally
             {
