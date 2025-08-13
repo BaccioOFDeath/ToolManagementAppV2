@@ -208,18 +208,18 @@ namespace ToolManagementAppV2.Services.Users
         {
             return new User
             {
-                UserID = Convert.ToInt32(rdr["UserID"]),
+                UserID = rdr["UserID"] != DBNull.Value ? Convert.ToInt32(rdr["UserID"]) : 0,
                 UserName = rdr["UserName"].ToString(),
                 Password = rdr["Password"].ToString(),
                 Salt = rdr["Salt"]?.ToString(),
                 UserPhotoPath = rdr["UserPhotoPath"]?.ToString(),
-                IsAdmin = Convert.ToInt32(rdr["IsAdmin"]) == 1,
+                IsAdmin = rdr["IsAdmin"] != DBNull.Value && Convert.ToInt32(rdr["IsAdmin"]) == 1,
                 Email = rdr["Email"]?.ToString(),
                 Phone = rdr["Phone"]?.ToString(),
                 Mobile = rdr["Mobile"]?.ToString(),
                 Address = rdr["Address"]?.ToString(),
                 Role = rdr["Role"]?.ToString(),
-                IsActive = Convert.ToInt32(rdr["IsActive"]) == 1,
+                IsActive = rdr["IsActive"] != DBNull.Value && Convert.ToInt32(rdr["IsActive"]) == 1,
                 CreatedAt = rdr["CreatedAt"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(rdr["CreatedAt"])
             };
         }
