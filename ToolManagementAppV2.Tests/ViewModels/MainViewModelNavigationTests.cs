@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using ToolManagementAppV2.Models.Domain;
@@ -149,6 +150,35 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 if (File.Exists(dbPath))
                     File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void OpenSettingsCommand_NavigatesToSettingsPage()
+        {
+            var dbPath = Path.GetTempFileName();
+            var tempDb = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db");
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                IUserService userService = new UserService(db);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
+                var activityLogService = new ActivityLogService(db);
+
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService(), activityLogService);
+                vm.OpenSettingsCommand.Execute(null);
+
+                var page = Assert.IsType<SettingsPage>(vm.CurrentPage);
+                Assert.IsType<SettingsViewModel>(page.DataContext);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+                if (File.Exists(tempDb))
+                    File.Delete(tempDb);
             }
         }
 
