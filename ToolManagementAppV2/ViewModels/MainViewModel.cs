@@ -82,7 +82,7 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand OpenDashboardCommand { get; }
         public IRelayCommand OpenSearchToolsCommand { get; }
         public IRelayCommand OpenManageToolsCommand { get; }
-        public IRelayCommand OpenRentalsCommand { get; }
+        public IAsyncRelayCommand OpenRentalsCommand { get; }
         public IRelayCommand OpenCustomersCommand { get; }
         public IRelayCommand OpenUsersCommand { get; }
         public IRelayCommand OpenSettingsCommand { get; }
@@ -161,9 +161,9 @@ namespace ToolManagementAppV2.ViewModels
                 CurrentPage = page;
             });
 
-            OpenRentalsCommand = new RelayCommand(() =>
+            OpenRentalsCommand = new AsyncRelayCommand(async () =>
             {
-                ManageRentals.LoadRentals();
+                await ManageRentals.LoadRentalsAsync();
                 var page = new ManageRentalsPage { DataContext = ManageRentals, Title = "Manage Rentals" };
                 CurrentPage = page;
             });

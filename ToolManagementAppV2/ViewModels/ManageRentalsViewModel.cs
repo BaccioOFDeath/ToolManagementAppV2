@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Documents;
 using ToolManagementAppV2.Interfaces;
@@ -62,11 +63,11 @@ namespace ToolManagementAppV2.ViewModels
             {
                 if (SetProperty(ref _selectedRental, value))
                 {
-                    ((RelayCommand)CheckInCommand).NotifyCanExecuteChanged();
-                    ((RelayCommand)ExtendCommand).NotifyCanExecuteChanged();
-                    ((RelayCommand)OpenHistoryCommand).NotifyCanExecuteChanged();
-                    ((RelayCommand)PrintRentalCommand).NotifyCanExecuteChanged();
-                    ((RelayCommand)DeleteRentalCommand).NotifyCanExecuteChanged();
+                    CheckInCommand.NotifyCanExecuteChanged();
+                    ExtendCommand.NotifyCanExecuteChanged();
+                    OpenHistoryCommand.NotifyCanExecuteChanged();
+                    PrintRentalCommand.NotifyCanExecuteChanged();
+                    DeleteRentalCommand.NotifyCanExecuteChanged();
                 }
             }
         }
@@ -75,11 +76,11 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand ClearFilterCommand { get; }
         public IRelayCommand OpenFilterWindowCommand { get; }
         public IRelayCommand CloseCommand { get; }
-        public IRelayCommand CheckInCommand { get; }
-        public IRelayCommand ExtendCommand { get; }
-        public IRelayCommand OpenHistoryCommand { get; }
+        public IAsyncRelayCommand CheckInCommand { get; }
+        public IAsyncRelayCommand ExtendCommand { get; }
+        public IAsyncRelayCommand OpenHistoryCommand { get; }
         public IRelayCommand PrintRentalCommand { get; }
-        public IRelayCommand DeleteRentalCommand { get; }
+        public IAsyncRelayCommand DeleteRentalCommand { get; }
 
         public ManageRentalsViewModel(IRentalService rentalService, IDialogService dialogService)
         {
@@ -90,17 +91,17 @@ namespace ToolManagementAppV2.ViewModels
             ClearFilterCommand = new RelayCommand(ClearFilter);
             OpenFilterWindowCommand = new RelayCommand(OpenFilterWindow);
             CloseCommand = new RelayCommand(CloseFilterWindow);
-            CheckInCommand = new RelayCommand(CheckIn, () => SelectedRental != null);
-            ExtendCommand = new RelayCommand(Extend, () => SelectedRental != null);
-            OpenHistoryCommand = new RelayCommand(OpenHistory, () => SelectedRental != null);
+            CheckInCommand = new AsyncRelayCommand(CheckInAsync, () => SelectedRental != null);
+            ExtendCommand = new AsyncRelayCommand(ExtendAsync, () => SelectedRental != null);
+            OpenHistoryCommand = new AsyncRelayCommand(OpenHistoryAsync, () => SelectedRental != null);
             PrintRentalCommand = new RelayCommand(PrintRental, () => SelectedRental != null);
-            DeleteRentalCommand = new RelayCommand(DeleteRental, () => SelectedRental != null);
+            DeleteRentalCommand = new AsyncRelayCommand(DeleteRentalAsync, () => SelectedRental != null);
         }
 
         /// <summary>Loads all rentals from the service.</summary>
-        public void LoadRentals()
+        public async Task LoadRentalsAsync()
         {
-            _allRentals = _rentalService.GetAllRentals();
+            _allRentals = await _rentalService.GetAllRentalsAsync();
             Rentals.ReplaceRange(_allRentals);
         }
 
@@ -149,31 +150,31 @@ namespace ToolManagementAppV2.ViewModels
             window?.Close();
         }
 
-        void CheckIn()
+        async Task CheckInAsync()
         {
             if (SelectedRental == null)
                 return;
 
-            _rentalService.ReturnTool(SelectedRental.RentalID, DateTime.Today);
-            LoadRentals();
+            await _rentalService.ReturnToolAsync(SelectedRental.RentalID, DateTime.Today);
+            await LoadRentalsAsync();
         }
 
-        void Extend()
+        async Task ExtendAsync()
         {
             if (SelectedRental == null)
                 return;
 
             var newDueDate = SelectedRental.DueDate.AddDays(7);
-            _rentalService.ExtendRental(SelectedRental.RentalID, newDueDate);
-            LoadRentals();
+            await _rentalService.ExtendRentalAsync(SelectedRental.RentalID, newDueDate);
+            await LoadRentalsAsync();
         }
 
-        void OpenHistory()
+        async Task OpenHistoryAsync()
         {
             if (SelectedRental == null)
                 return;
 
-            var history = _rentalService.GetRentalHistoryForTool(SelectedRental.ToolID);
+            var history = await _rentalService.GetRentalHistoryForToolAsync(SelectedRental.ToolID);
             var tool = new ToolModel
             {
                 ToolID = SelectedRental.ToolID,
@@ -231,11 +232,11 @@ namespace ToolManagementAppV2.ViewModels
             _dialogService.ShowPrintPreview(doc, $"Rental {SelectedRental.RentalID}", string.Empty);
         }
 
-        void DeleteRental()
+        async Task DeleteRentalAsync()
         {
             if (SelectedRental == null)
                 return;
-            _rentalService.DeleteRental(SelectedRental.RentalID);
+            await _rentalService.DeleteRentalAsync(SelectedRental.RentalID);
             _allRentals.Remove(SelectedRental);
             Rentals.Remove(SelectedRental);
         }

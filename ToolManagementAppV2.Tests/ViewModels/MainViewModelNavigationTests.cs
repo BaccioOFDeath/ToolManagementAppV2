@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Tools;
@@ -201,7 +202,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void OpenRentalsCommand_NavigatesToManageRentalsPage()
+        public async Task OpenRentalsCommand_NavigatesToManageRentalsPage()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -216,7 +217,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var settingsService = new SettingsService(db);
 
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
-                vm.OpenRentalsCommand.Execute(null);
+                await vm.OpenRentalsCommand.ExecuteAsync(null);
 
                 var page = Assert.IsType<ManageRentalsPage>(vm.CurrentPage);
                 Assert.IsType<ManageRentalsViewModel>(page.DataContext);
