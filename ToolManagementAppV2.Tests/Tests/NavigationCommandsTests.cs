@@ -7,6 +7,7 @@ using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Views;
 using Xunit;
@@ -38,9 +39,10 @@ namespace ToolManagementAppV2.Tests.Tests
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
                 var activityLogService = new ActivityLogService(db);
+                var settingsService = new SettingsService(db);
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
 
-                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService(), activityLogService);
+                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService);
                 vm.OpenSearchToolsCommand.Execute(null);
 
                 var page = Assert.IsType<ToolSearchPage>(vm.CurrentPage);

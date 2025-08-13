@@ -11,9 +11,7 @@ using Forms = System.Windows.Forms;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services;
-using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Rentals;
-using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.ViewModels.Rental;
@@ -28,6 +26,7 @@ namespace ToolManagementAppV2.ViewModels
         readonly ICustomerService _customerService;
         readonly IRentalService _rentalService;
         readonly ActivityLogService _activityLogService;
+        readonly ISettingsService _settingsService;
 
         public ToolManagementViewModel ToolManagement { get; }
         public UserManagementViewModel UserManagement { get; }
@@ -103,12 +102,15 @@ namespace ToolManagementAppV2.ViewModels
                              ICustomerService customerService,
                              IRentalService rentalService,
                              IFileDialogService fileDialogService,
-                             ActivityLogService activityLogService)
-        {_toolService = toolService;
+                             ActivityLogService activityLogService,
+                             ISettingsService settingsService)
+        {
+            _toolService = toolService;
             _userService = userService;
             _customerService = customerService;
             _rentalService = rentalService;
             _activityLogService = activityLogService;
+            _settingsService = settingsService;
 
             ToolManagement = new ToolManagementViewModel(toolService, customerService, rentalService);
             UserManagement = new UserManagementViewModel(userService, fileDialogService);
@@ -168,11 +170,9 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenSettingsCommand = new RelayCommand(() =>
             {
-                var db = new DatabaseService(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db"));
-                var settingsService = new SettingsService(db);
                 var page = new SettingsPage
                 {
-                    DataContext = new SettingsViewModel(fileDialogService, settingsService, new DialogService()),
+                    DataContext = new SettingsViewModel(fileDialogService, _settingsService, new DialogService()),
                     Title = "Settings"
                 };
                 CurrentPage = page;
