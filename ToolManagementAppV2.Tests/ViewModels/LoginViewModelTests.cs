@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -49,5 +50,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
     {
         public void ShowInfo(string message, string title) { }
         public bool ShowConfirmation(string message, string title) => true;
+        public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
+        public void ShowToolDetails(ToolModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
     }
 }

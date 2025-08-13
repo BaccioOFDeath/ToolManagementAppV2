@@ -7,8 +7,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
-using ToolManagementAppV2.ViewModels.Rental;
-using ToolManagementAppV2.Views;
 using ToolManagementAppV2.Services;
 
 namespace ToolManagementAppV2.ViewModels
@@ -85,9 +83,6 @@ namespace ToolManagementAppV2.ViewModels
         public IAsyncRelayCommand OpenRentalsCommand { get; }
         public IRelayCommand ViewDetailsCommand { get; }
 
-        public Func<ToolModel, ToolModel?> EditToolDialog { get; set; }
-        public Action<ToolModel>? ViewDetailsDialog { get; set; }
-
         // Writable for TwoWay binding from XAML. Mirrors SearchTerm and triggers search.
         private string _searchText = string.Empty;
         public string SearchText
@@ -106,20 +101,18 @@ namespace ToolManagementAppV2.ViewModels
         public ToolManagementViewModel(IToolService toolService,
                                        ICustomerService customerService,
                                        IRentalService rentalService,
-                                       IDialogService? dialogService = null)
+                                       IDialogService dialogService)
         {
             _toolService = toolService;
             _customerService = customerService;
             _rentalService = rentalService;
-            _dialogService = dialogService ?? new DialogService();
+            _dialogService = dialogService;
             SearchCommand = new AsyncRelayCommand(FilterToolsAsync);
             NewToolCommand = new AsyncRelayCommand(AddToolAsync);
             EditToolCommand = new AsyncRelayCommand(EditToolAsync, () => SelectedTool != null);
             DeleteToolCommand = new AsyncRelayCommand(DeleteToolAsync);
             OpenRentalsCommand = new AsyncRelayCommand(OpenRentalsAsync, () => SelectedTool != null);
             ViewDetailsCommand = new RelayCommand(ViewDetails, () => SelectedTool != null);
-            EditToolDialog = DefaultEditToolDialog;
-            ViewDetailsDialog = DefaultViewDetailsDialog;
         }
 
         public async Task LoadToolsAsync()
@@ -195,7 +188,7 @@ namespace ToolManagementAppV2.ViewModels
                 ToolImagePath = SelectedTool.ToolImagePath
             };
 
-            var updated = EditToolDialog?.Invoke(clone);
+            var updated = _dialogService.ShowEditToolDialog(clone);
             if (updated == null) return;
 
             await _toolService.UpdateToolAsync(updated);
@@ -207,7 +200,7 @@ namespace ToolManagementAppV2.ViewModels
         void ViewDetails()
         {
             if (SelectedTool == null) return;
-            ViewDetailsDialog?.Invoke(SelectedTool);
+            _dialogService.ShowToolDetails(SelectedTool);
         }
 
         async Task DeleteToolAsync()
@@ -224,17 +217,14 @@ namespace ToolManagementAppV2.ViewModels
             if (SelectedTool == null) return;
 
             var customers = await _customerService.GetAllCustomersAsync();
-            var vm = new RentToolPopupViewModel(SelectedTool, customers);
-            var win = new RentToolPopupWindow { DataContext = vm };
-            vm.RequestClose += (_, _) => win.Close();
-            win.ShowDialog();
-
-            if (vm.SelectedCustomerResult != null)
+            var result = _dialogService.ShowRentToolDialog(SelectedTool, customers);
+            if (result != null)
             {
+                var (customer, dueDate) = result.Value;
                 await _rentalService.RentToolAsync(SelectedTool.ToolID,
-                    vm.SelectedCustomerResult.CustomerID,
+                    customer.CustomerID,
                     DateTime.Today,
-                    vm.SelectedDueDateResult);
+                    dueDate);
                 await LoadToolsAsync();
             }
         }
@@ -262,22 +252,5 @@ namespace ToolManagementAppV2.ViewModels
             Categories.ReplaceRange(categories);
         }
 
-        ToolModel? DefaultEditToolDialog(ToolModel tool)
-        {
-            ToolEditWindow win = null!;
-            win = new ToolEditWindow(tool,
-                onSave: () => win.DialogResult = true,
-                onCancel: () => win.DialogResult = false);
-            try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch { }
-            try { return win.ShowDialog() == true ? tool : null; } catch { return null; }
-        }
-
-        void DefaultViewDetailsDialog(ToolModel tool)
-        {
-            ToolDetailsWindow win = null!;
-            win = new ToolDetailsWindow(tool);
-            try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch { }
-            try { win.ShowDialog(); } catch { }
-        }
     }
 }

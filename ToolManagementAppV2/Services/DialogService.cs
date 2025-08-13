@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.ViewModels.Rental;
 using ToolManagementAppV2.Views;
 
 namespace ToolManagementAppV2.Services
@@ -15,6 +18,39 @@ namespace ToolManagementAppV2.Services
         {
             var dialog = new ConfirmDialogWindow(message) { Title = title };
             return dialog.ShowDialog() == true;
+        }
+
+        public ToolModel? ShowEditToolDialog(ToolModel tool)
+        {
+            ToolEditWindow win = null!;
+            win = new ToolEditWindow(tool,
+                onSave: () => win.DialogResult = true,
+                onCancel: () => win.DialogResult = false);
+            try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch { }
+            try { return win.ShowDialog() == true ? tool : null; } catch { return null; }
+        }
+
+        public void ShowToolDetails(ToolModel tool)
+        {
+            ToolDetailsWindow win = null!;
+            win = new ToolDetailsWindow(tool);
+            try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch { }
+            try { win.ShowDialog(); } catch { }
+        }
+
+        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers)
+        {
+            var vm = new RentToolPopupViewModel(tool, customers);
+            var win = new RentToolPopupWindow { DataContext = vm };
+            vm.RequestClose += (_, _) => win.Close();
+            win.ShowDialog();
+
+            if (vm.SelectedCustomerResult != null)
+            {
+                return (vm.SelectedCustomerResult, vm.SelectedDueDateResult);
+            }
+
+            return null;
         }
     }
 }

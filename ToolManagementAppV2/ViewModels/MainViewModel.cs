@@ -112,7 +112,7 @@ namespace ToolManagementAppV2.ViewModels
             _activityLogService = activityLogService;
             _settingsService = settingsService;
 
-            ToolManagement = new ToolManagementViewModel(toolService, customerService, rentalService);
+            ToolManagement = new ToolManagementViewModel(toolService, customerService, rentalService, new DialogService());
             UserManagement = new UserManagementViewModel(userService, fileDialogService);
             CustomerManagement = new CustomerManagementViewModel(customerService);
             ManageRentals = new ManageRentalsViewModel(rentalService);
