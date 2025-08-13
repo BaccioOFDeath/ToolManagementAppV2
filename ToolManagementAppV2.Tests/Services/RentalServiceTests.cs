@@ -1,7 +1,11 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
+using System.Data.SQLite;
+using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Models.Domain;
+using ToolManagementAppV2.Models.ImportExport;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
@@ -319,6 +323,65 @@ namespace ToolManagementAppV2.Tests.Services
                 if (File.Exists(dbPath))
                     File.Delete(dbPath);
             }
+        }
+
+        [Fact]
+        public void ExtendRental_Failure_RollsBack()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db, toolService);
+
+                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
+                var tool = toolService.GetAllTools().First();
+
+                customerService.AddCustomer(new Customer { Company = "Acme" });
+                var cust = customerService.GetAllCustomers().First();
+
+                rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today.AddDays(-2), DateTime.Today.AddDays(-1));
+                var rental = rentalService.GetAllRentals().First();
+                var originalDue = rental.DueDate;
+
+                var failingToolService = new FailingToolService();
+                var rentalService2 = new RentalService(db, failingToolService);
+
+                Assert.Throws<InvalidOperationException>(() =>
+                    rentalService2.ExtendRental(rental.RentalID, DateTime.Today.AddDays(1)));
+
+                var after = rentalService2.GetAllRentals().First();
+                Assert.Equal(originalDue, after.DueDate);
+
+                var toolAfter = toolService.GetToolByID(tool.ToolID);
+                Assert.Equal(0, toolAfter.QuantityOnHand);
+                Assert.Equal(1, toolAfter.RentedQuantity);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        class FailingToolService : IToolService
+        {
+            public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map) => throw new NotImplementedException();
+            public void ExportToolsToCsv(string filePath) => throw new NotImplementedException();
+            public List<ToolModel> GetAllTools() => new();
+            public void AddTool(ToolModel tool) => throw new NotImplementedException();
+            public void UpdateTool(ToolModel tool) => throw new NotImplementedException();
+            public void DeleteTool(int toolID) => throw new NotImplementedException();
+            public ToolModel GetToolByID(int toolID) => throw new NotImplementedException();
+            public List<ToolModel> SearchTools(string? searchText) => new();
+            public void ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new NotImplementedException();
+            public List<ToolModel> GetToolsCheckedOutBy(string userName) => new();
+            public void UpdateToolImage(int toolID, string imagePath) => throw new NotImplementedException();
+            public ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector) => new();
+            public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null)
+                => throw new InvalidOperationException("fail");
         }
     }
 }
