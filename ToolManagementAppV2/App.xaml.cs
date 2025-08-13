@@ -22,7 +22,8 @@ namespace ToolManagementAppV2
             var db = new DatabaseService(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db"));
             var toolService = new ToolService(db);
             var customerService = new CustomerService(db);
-            var userService = new UserService(db);
+            var userContext = new ApplicationUserContext();
+            var userService = new UserService(db, userContext);
             var rentalService = new RentalService(db, toolService);
             var activityLogService = new ActivityLogService(db);
             var fileDialogService = new FileDialogService();

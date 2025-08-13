@@ -61,7 +61,7 @@ namespace ToolManagementAppV2.ViewModels
             dbPath ??= Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db");
             var dbService = new DatabaseService(dbPath);
             _settingsService = new SettingsService(dbService);
-            _userService = new UserService(dbService);
+            _userService = new UserService(dbService, new ApplicationUserContext());
             _dialogService = dialogService;
 
             CompanyLogo = LoadLogo();

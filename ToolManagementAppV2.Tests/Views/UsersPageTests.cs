@@ -28,7 +28,7 @@ namespace ToolManagementAppV2.Tests.Views
                     try
                     {
                         var db = new DatabaseService(dbPath);
-                        IUserService userService = new UserService(db);
+                        IUserService userService = new UserService(db, new ApplicationUserContext());
                         var fileSvc = new StubFileDialogService { FileToReturn = "img.png" };
                         var vm = new UserManagementViewModel(userService, fileSvc);
                         userService.AddUser(new User { UserName = "user1", Password = "pw" });

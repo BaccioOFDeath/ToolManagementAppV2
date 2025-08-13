@@ -25,7 +25,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
-                IUserService userService = new UserService(db);
+                IUserService userService = new UserService(db, new ApplicationUserContext());
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
                 var activityLogService = new ActivityLogService(db);
@@ -55,7 +55,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
-                IUserService userService = new UserService(db);
+                IUserService userService = new UserService(db, new ApplicationUserContext());
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
                 var activityLogService = new ActivityLogService(db);
@@ -81,7 +81,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
-                IUserService userService = new UserService(db);
+                IUserService userService = new UserService(db, new ApplicationUserContext());
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
                 var activityLogService = new ActivityLogService(db);
@@ -109,7 +109,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 activityLogService.LogAction(1, "user", "action");
                 IToolService toolService = new ToolService(db);
-                IUserService userService = new UserService(db);
+                IUserService userService = new UserService(db, new ApplicationUserContext());
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
 
@@ -136,7 +136,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var db = new DatabaseService(dbPath);
                 var activityLogService = new ActivityLogService(db);
                 IToolService toolService = new ToolService(db);
-                IUserService userService = new UserService(db);
+                IUserService userService = new UserService(db, new ApplicationUserContext());
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
 
@@ -162,7 +162,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
-                IUserService userService = new UserService(db);
+                IUserService userService = new UserService(db, new ApplicationUserContext());
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
                 var activityLogService = new ActivityLogService(db);
@@ -190,7 +190,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
-                IUserService userService = new UserService(db);
+                IUserService userService = new UserService(db, new ApplicationUserContext());
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
                 var activityLogService = new ActivityLogService(db);
@@ -216,7 +216,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
-                IUserService userService = new UserService(db);
+                IUserService userService = new UserService(db, new ApplicationUserContext());
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
                 var activityLogService = new ActivityLogService(db);
@@ -250,7 +250,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
-                IUserService userService = new UserService(db);
+                IUserService userService = new UserService(db, new ApplicationUserContext());
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
                 var activityLogService = new ActivityLogService(db);
@@ -273,7 +273,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IToolService toolService = new ToolService(db);
-                IUserService userService = new UserService(db);
+                IUserService userService = new UserService(db, new ApplicationUserContext());
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
                 var activityLogService = new ActivityLogService(db);

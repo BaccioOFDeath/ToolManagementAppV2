@@ -15,7 +15,7 @@ public class UserDeletionTests
         try
         {
             var dbService = new DatabaseService(dbPath);
-            IUserService userService = new UserService(dbService);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
             var admin = new User { UserName = "admin", Password = "pw", IsAdmin = true };
             userService.AddUser(admin);
