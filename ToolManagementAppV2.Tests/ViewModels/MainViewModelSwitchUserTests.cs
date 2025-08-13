@@ -42,7 +42,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 };
 
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
-                    new StubFileDialogService(), activityLogService, settingsService, null, stubLogin);
+                    new StubFileDialogService(), activityLogService, settingsService, db, null, stubLogin);
 
                 userContext.CurrentUser = new User { UserName = "old", IsAdmin = false };
                 vm.RefreshCurrentUser();

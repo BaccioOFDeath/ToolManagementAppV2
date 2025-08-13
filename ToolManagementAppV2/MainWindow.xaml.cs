@@ -53,7 +53,7 @@ namespace ToolManagementAppV2
                 var fileDialogService = new FileDialogService();
                 var settingsService = new SettingsService(_ownedDb);
 
-                DataContext = new MainViewModel(toolService, userService, userContext, customerService, rentalService, fileDialogService, activityLogService, settingsService);
+                DataContext = new MainViewModel(toolService, userService, userContext, customerService, rentalService, fileDialogService, activityLogService, settingsService, _ownedDb);
             }
 
             Closed += (_, __) => _ownedDb?.Dispose();
