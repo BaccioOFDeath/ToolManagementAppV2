@@ -7,6 +7,7 @@ using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Interfaces;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace ToolManagementAppV2.Tests.Services
 {
@@ -104,6 +105,24 @@ namespace ToolManagementAppV2.Tests.Services
             finally
             {
                 if (File.Exists(csvPath)) File.Delete(csvPath);
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task GetAllCustomersAsync_ReturnsCustomers()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                ICustomerService service = new CustomerService(dbService);
+                service.AddCustomer(new Customer { Company = "Acme", Contact = "J" });
+                var customers = await service.GetAllCustomersAsync();
+                Assert.Single(customers);
+            }
+            finally
+            {
                 if (File.Exists(dbPath)) File.Delete(dbPath);
             }
         }

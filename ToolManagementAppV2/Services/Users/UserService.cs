@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.SQLite;
 using System.Data;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Utilities.Helpers;
@@ -225,5 +226,15 @@ namespace ToolManagementAppV2.Services.Users
                 CreatedAt = rdr["CreatedAt"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(rdr["CreatedAt"])
             };
         }
+
+        public Task<List<User>> GetAllUsersAsync() => Task.Run(GetAllUsers);
+        public Task<User> GetUserByIDAsync(int userID) => Task.Run(() => GetUserByID(userID));
+        public Task<User> AuthenticateUserAsync(string userName, string password) => Task.Run(() => AuthenticateUser(userName, password));
+        public Task<User> GetCurrentUserAsync() => Task.Run(GetCurrentUser);
+        public Task AddUserAsync(User user) => Task.Run(() => AddUser(user));
+        public Task UpdateUserAsync(User user) => Task.Run(() => UpdateUser(user));
+        public Task<bool> TryDeleteUserAsync(int userID) => Task.Run(() => TryDeleteUser(userID));
+        public Task<bool> DeleteUserAsync(int userID) => Task.Run(() => DeleteUser(userID));
+        public Task ChangeUserPasswordAsync(int userID, string newPassword) => Task.Run(() => ChangeUserPassword(userID, newPassword));
     }
 }

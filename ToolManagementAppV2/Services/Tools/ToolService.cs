@@ -4,6 +4,7 @@ using System.IO;
 using System.Data;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Utilities.IO;
@@ -373,5 +374,19 @@ namespace ToolManagementAppV2.Services.Tools
             ToolImagePath = r["ToolImagePath"]?.ToString(),
             Keywords = r["Keywords"]?.ToString()
         };
+
+        public Task AddToolAsync(ToolModel tool) => Task.Run(() => AddTool(tool));
+        public Task UpdateToolAsync(ToolModel tool) => Task.Run(() => UpdateTool(tool));
+        public Task DeleteToolAsync(int toolID) => Task.Run(() => DeleteTool(toolID));
+        public Task<ToolModel> GetToolByIDAsync(int toolID) => Task.Run(() => GetToolByID(toolID));
+        public Task<List<ToolModel>> GetAllToolsAsync() => Task.Run(GetAllTools);
+        public Task<List<ToolModel>> SearchToolsAsync(string? searchText) => Task.Run(() => SearchTools(searchText));
+        public Task ToggleToolCheckOutStatusAsync(int toolID, string currentUser) => Task.Run(() => ToggleToolCheckOutStatus(toolID, currentUser));
+        public Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName) => Task.Run(() => GetToolsCheckedOutBy(userName));
+        public Task UpdateToolImageAsync(int toolID, string imagePath) => Task.Run(() => UpdateToolImage(toolID, imagePath));
+        public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map) => Task.Run(() => ImportToolsFromCsv(filePath, map));
+        public Task ExportToolsToCsvAsync(string filePath) => Task.Run(() => ExportToolsToCsv(filePath));
+        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector) => Task.Run(() => ImportToolImages(folderPath, keySelector));
+        public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null) => Task.Run(() => UpdateToolQuantities(toolID, qtyChange, isRental, conn, tx));
     }
 }

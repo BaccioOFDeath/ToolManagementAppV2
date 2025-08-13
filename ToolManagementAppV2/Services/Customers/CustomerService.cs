@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using System.IO;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Utilities.IO;
@@ -166,5 +167,14 @@ namespace ToolManagementAppV2.Services.Customers
             Mobile = r["Mobile"].ToString(),
             Address = r["Address"].ToString()
         };
+
+        public Task AddCustomerAsync(CustomerModel customer) => Task.Run(() => AddCustomer(customer));
+        public Task UpdateCustomerAsync(CustomerModel customer) => Task.Run(() => UpdateCustomer(customer));
+        public Task DeleteCustomerAsync(int customerID) => Task.Run(() => DeleteCustomer(customerID));
+        public Task<CustomerModel> GetCustomerByIDAsync(int customerID) => Task.Run(() => GetCustomerByID(customerID));
+        public Task<List<CustomerModel>> GetAllCustomersAsync() => Task.Run(GetAllCustomers);
+        public Task<List<CustomerModel>> SearchCustomersAsync(string searchTerm) => Task.Run(() => SearchCustomers(searchTerm));
+        public Task ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map) => Task.Run(() => ImportCustomersFromCsv(filePath, map));
+        public Task ExportCustomersToCsvAsync(string filePath) => Task.Run(() => ExportCustomersToCsv(filePath));
     }
 }

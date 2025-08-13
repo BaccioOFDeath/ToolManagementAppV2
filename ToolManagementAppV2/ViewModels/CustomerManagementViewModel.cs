@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.Views;
@@ -23,8 +24,8 @@ namespace ToolManagementAppV2.ViewModels
             {
                 if (SetProperty(ref _selectedCustomer, value))
                 {
-                    ((RelayCommand)UpdateCustomerCommand).NotifyCanExecuteChanged();
-                    ((RelayCommand)DeleteCustomerCommand).NotifyCanExecuteChanged();
+                    ((AsyncRelayCommand)UpdateCustomerCommand).NotifyCanExecuteChanged();
+                    ((AsyncRelayCommand)DeleteCustomerCommand).NotifyCanExecuteChanged();
 
                     if (value != null)
                     {
@@ -68,10 +69,10 @@ namespace ToolManagementAppV2.ViewModels
             set => SetProperty(ref _customerSearchTerm, value);
         }
 
-        public IRelayCommand AddCustomerCommand { get; }
-        public IRelayCommand UpdateCustomerCommand { get; }
-        public IRelayCommand SearchCustomersCommand { get; }
-        public IRelayCommand DeleteCustomerCommand { get; }
+        public IAsyncRelayCommand AddCustomerCommand { get; }
+        public IAsyncRelayCommand UpdateCustomerCommand { get; }
+        public IAsyncRelayCommand SearchCustomersCommand { get; }
+        public IAsyncRelayCommand DeleteCustomerCommand { get; }
 
         public Func<CustomerModel?> AddCustomerDialog { get; set; }
 
@@ -80,25 +81,25 @@ namespace ToolManagementAppV2.ViewModels
         
             _customerService = customerService;
             AddCustomerDialog = DefaultAddCustomerDialog;
-            AddCustomerCommand = new RelayCommand(AddCustomer);
-            UpdateCustomerCommand = new RelayCommand(UpdateCustomer, () => SelectedCustomer != null);
-            SearchCustomersCommand = new RelayCommand(SearchCustomers);
-            DeleteCustomerCommand = new RelayCommand(DeleteCustomer, () => SelectedCustomer != null);
+            AddCustomerCommand = new AsyncRelayCommand(AddCustomerAsync);
+            UpdateCustomerCommand = new AsyncRelayCommand(UpdateCustomerAsync, () => SelectedCustomer != null);
+            SearchCustomersCommand = new AsyncRelayCommand(SearchCustomersAsync);
+            DeleteCustomerCommand = new AsyncRelayCommand(DeleteCustomerAsync, () => SelectedCustomer != null);
         }
 
-        public void LoadCustomers()
+        public async Task LoadCustomersAsync()
         {
-            var all = _customerService.GetAllCustomers();
+            var all = await _customerService.GetAllCustomersAsync();
             Customers.ReplaceRange(all);
         }
 
-        void AddCustomer()
+        async Task AddCustomerAsync()
         {
             var customer = AddCustomerDialog?.Invoke();
             if (customer == null) return;
 
-            _customerService.AddCustomer(customer);
-            LoadCustomers();
+            await _customerService.AddCustomerAsync(customer);
+            await LoadCustomersAsync();
             NewCustomerName = string.Empty;
             NewCustomerEmail = string.Empty;
             NewCustomerContact = string.Empty;
@@ -118,7 +119,7 @@ namespace ToolManagementAppV2.ViewModels
             try { return win.ShowDialog() == true ? customer : null; } catch { return null; }
         }
 
-        void UpdateCustomer()
+        async Task UpdateCustomerAsync()
         {
             if (SelectedCustomer == null) return;
             var updated = new CustomerModel
@@ -132,13 +133,13 @@ namespace ToolManagementAppV2.ViewModels
                 Address = NewCustomerAddress
             };
 
-            _customerService.UpdateCustomer(updated);
-            LoadCustomers();
+            await _customerService.UpdateCustomerAsync(updated);
+            await LoadCustomersAsync();
         }
 
-        void SearchCustomers()
+        async Task SearchCustomersAsync()
         {
-            var all = _customerService.GetAllCustomers();
+            var all = await _customerService.GetAllCustomersAsync();
             if (!string.IsNullOrWhiteSpace(CustomerSearchTerm))
             {
                 all = all.Where(c =>
@@ -153,13 +154,13 @@ namespace ToolManagementAppV2.ViewModels
             Customers.ReplaceRange(all);
         }
 
-        void DeleteCustomer()
+        async Task DeleteCustomerAsync()
         {
             if (SelectedCustomer == null)
                 return;
 
-            _customerService.DeleteCustomer(SelectedCustomer.CustomerID);
-            SearchCustomers();
+            await _customerService.DeleteCustomerAsync(SelectedCustomer.CustomerID);
+            await SearchCustomersAsync();
             SelectedCustomer = null;
         }
     }
