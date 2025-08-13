@@ -119,18 +119,27 @@ namespace ToolManagementAppV2.ViewModels
             DeleteToolCommand = new AsyncRelayCommand(DeleteToolAsync);
             OpenRentalsCommand = new AsyncRelayCommand(OpenRentalsAsync, () => SelectedTool != null);
             ViewDetailsCommand = new RelayCommand(ViewDetails, () => SelectedTool != null);
-
+            // Ensure no duplicate event subscriptions when the view model is
+            // constructed multiple times or the collection persists across
+            // instances.
+            Tools.CollectionChanged -= Tools_CollectionChanged;
             Tools.CollectionChanged += Tools_CollectionChanged;
         }
 
         public async Task LoadToolsAsync()
         {
             var all = await _toolService.GetAllToolsAsync();
+            // Temporarily detach to prevent intermediate collection changes
+            // from firing the handler and potentially resulting in duplicate
+            // subscriptions.
             Tools.CollectionChanged -= Tools_CollectionChanged;
             Tools.ReplaceRange(all);
             SearchResults.ReplaceRange(all);
             CategorizeTools(all);
             LoadCategories(Tools);
+            // Remove again in case the handler was reattached during the load
+            // process, then attach once to guarantee a single subscription.
+            Tools.CollectionChanged -= Tools_CollectionChanged;
             Tools.CollectionChanged += Tools_CollectionChanged;
         }
 
