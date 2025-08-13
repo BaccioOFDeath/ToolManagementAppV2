@@ -44,6 +44,7 @@ namespace ToolManagementAppV2.Services.Core
             EnsureColumn("Tools", "CheckedOutBy", "TEXT");
             EnsureColumn("Tools", "CheckedOutTime", "DATETIME");
             EnsureColumn("Tools", "Keywords", "TEXT");
+            EnsureColumn("Tools", "IsPowerTool", "INTEGER");
             EnsureColumn("Users", "Password", "TEXT");
             EnsureColumn("Users", "Salt", "TEXT");
             EnsureColumn("Users", "Email", "TEXT");
@@ -102,6 +103,7 @@ namespace ToolManagementAppV2.Services.Core
                     Notes TEXT,
                     AvailableQuantity INTEGER NOT NULL DEFAULT 0,
                     RentedQuantity INTEGER NOT NULL DEFAULT 0,
+                    IsPowerTool INTEGER NOT NULL DEFAULT 0,
                     IsCheckedOut INTEGER NOT NULL DEFAULT 0,
                     CheckedOutBy TEXT,
                     CheckedOutTime DATETIME

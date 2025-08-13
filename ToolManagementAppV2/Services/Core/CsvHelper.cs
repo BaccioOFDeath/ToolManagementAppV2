@@ -43,7 +43,8 @@ namespace ToolManagementAppV2.Utilities.IO
                     Supplier = GetMapped(cols, headers, map, "Supplier"),
                     PurchasedDate = TryParseDate(GetMapped(cols, headers, map, "PurchasedDate")),
                     Notes = GetMapped(cols, headers, map, "Notes"),
-                    QuantityOnHand = TryParseInt(GetMapped(cols, headers, map, "AvailableQuantity"))
+                    QuantityOnHand = TryParseInt(GetMapped(cols, headers, map, "AvailableQuantity")),
+                    IsPowerTool = TryParseBool(GetMapped(cols, headers, map, "IsPowerTool"))
                 });
             }
 
@@ -54,7 +55,7 @@ namespace ToolManagementAppV2.Utilities.IO
         {
             var lines = new List<string>
             {
-                "ToolNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity"
+                "ToolNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowerTool"
             };
             lines.AddRange(tools.Select(t =>
                 string.Join(",",
@@ -66,7 +67,8 @@ namespace ToolManagementAppV2.Utilities.IO
                     Quote(t.Supplier),
                     Quote(t.PurchasedDate?.ToString("yyyy-MM-dd")),
                     Quote(t.Notes),
-                    Quote(t.QuantityOnHand.ToString()))));
+                    Quote(t.QuantityOnHand.ToString()),
+                    Quote(t.IsPowerTool ? "1" : "0"))));
             File.WriteAllLines(filePath, lines);
         }
 
@@ -125,6 +127,9 @@ namespace ToolManagementAppV2.Utilities.IO
 
         private static int TryParseInt(string input) =>
             int.TryParse(input, out var result) ? result : 0;
+
+        private static bool TryParseBool(string input) =>
+            input != null && (input.Equals("1") || bool.TryParse(input, out var b) && b);
 
         private static DateTime? TryParseDate(string input) =>
             DateTime.TryParse(input, out var result) ? result : null;

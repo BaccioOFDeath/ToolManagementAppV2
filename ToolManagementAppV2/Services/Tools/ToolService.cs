@@ -23,8 +23,8 @@ namespace ToolManagementAppV2.Services.Tools
         const string AllToolsSql = "SELECT * FROM Tools";
         const string UpsertToolCsv = @"
             INSERT INTO Tools
-              (ToolNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, ToolImagePath, IsCheckedOut)
-            VALUES (@ToolNumber,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Keywords,@Avail,@Rent,@Img,0);
+              (ToolNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, ToolImagePath, IsCheckedOut, IsPowerTool)
+            VALUES (@ToolNumber,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Keywords,@Avail,@Rent,@Img,0,@Power);
             SELECT last_insert_rowid();";
     
         readonly ILogger<ToolService> _logger;
@@ -110,6 +110,7 @@ namespace ToolManagementAppV2.Services.Tools
                   Keywords = @Keywords,
                   AvailableQuantity = @Avail,
                   RentedQuantity = @Rent,
+                  IsPowerTool = @Power,
                   IsCheckedOut = @Out,
                   CheckedOutBy = @By,
                   CheckedOutTime = @Time,
@@ -129,6 +130,7 @@ namespace ToolManagementAppV2.Services.Tools
                 new SQLiteParameter("@Keywords", (object)tool.Keywords ?? DBNull.Value),
                 new SQLiteParameter("@Avail", tool.QuantityOnHand),
                 new SQLiteParameter("@Rent", tool.RentedQuantity),
+                new SQLiteParameter("@Power", tool.IsPowerTool ? 1 : 0),
                 new SQLiteParameter("@Out", tool.IsCheckedOut ? 1 : 0),
                 new SQLiteParameter("@By", (object)tool.CheckedOutBy ?? DBNull.Value),
                 new SQLiteParameter("@Time", (object)tool.CheckedOutTime ?? DBNull.Value),
@@ -272,7 +274,8 @@ namespace ToolManagementAppV2.Services.Tools
                 new SQLiteParameter("@Keywords", (object)tool.Keywords ?? DBNull.Value),
                 new SQLiteParameter("@Avail", tool.QuantityOnHand),
                 new SQLiteParameter("@Rent", tool.RentedQuantity),
-                new SQLiteParameter("@Img", (object)tool.ToolImagePath ?? DBNull.Value)
+                new SQLiteParameter("@Img", (object)tool.ToolImagePath ?? DBNull.Value),
+                new SQLiteParameter("@Power", tool.IsPowerTool ? 1 : 0)
             };
             using var cmd = new SQLiteCommand(UpsertToolCsv, conn, tran);
             cmd.Parameters.AddRange(p);
@@ -378,7 +381,8 @@ namespace ToolManagementAppV2.Services.Tools
             CheckedOutBy = r["CheckedOutBy"].ToString(),
             CheckedOutTime = r["CheckedOutTime"] is DBNull ? (DateTime?)null : Convert.ToDateTime(r["CheckedOutTime"]),
             ToolImagePath = r["ToolImagePath"]?.ToString(),
-            Keywords = r["Keywords"]?.ToString()
+            Keywords = r["Keywords"]?.ToString(),
+            IsPowerTool = Convert.ToInt32(r["IsPowerTool"]) == 1
         };
 
         public Task AddToolAsync(ToolModel tool) => Task.Run(() => AddTool(tool));

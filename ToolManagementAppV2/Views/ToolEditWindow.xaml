@@ -27,6 +27,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
@@ -48,7 +49,9 @@
             <TextBlock Grid.Row="5" Grid.Column="0" Text="Supplier" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Tool.Supplier, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-            <StackPanel Grid.Row="6" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
+            <CheckBox Grid.Row="6" Grid.ColumnSpan="2" Content="Power Tool" IsChecked="{Binding Tool.IsPowerTool}" Margin="0,0,0,8"/>
+
+            <StackPanel Grid.Row="7" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
                 <Image Width="100" Height="100" Stretch="Uniform"
                        Source="{Binding Tool.ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=tool}"/>
                 <StackPanel Orientation="Vertical" Margin="8,0,0,0">
@@ -57,7 +60,7 @@
                 </StackPanel>
             </StackPanel>
 
-            <StackPanel Grid.Row="7" Grid.ColumnSpan="2" Orientation="Vertical">
+            <StackPanel Grid.Row="8" Grid.ColumnSpan="2" Orientation="Vertical">
                 <TextBlock Text="Notes" Margin="0,0,0,4"/>
                 <TextBox Text="{Binding Tool.Notes, UpdateSourceTrigger=PropertyChanged}" Height="90" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
             </StackPanel>

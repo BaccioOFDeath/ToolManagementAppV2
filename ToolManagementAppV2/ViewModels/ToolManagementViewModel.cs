@@ -189,6 +189,7 @@ namespace ToolManagementAppV2.ViewModels
                 PurchasedDate = SelectedTool.PurchasedDate,
                 Notes = SelectedTool.Notes,
                 Keywords = SelectedTool.Keywords,
+                IsPowerTool = SelectedTool.IsPowerTool,
                 IsCheckedOut = SelectedTool.IsCheckedOut,
                 CheckedOutBy = SelectedTool.CheckedOutBy,
                 CheckedOutTime = SelectedTool.CheckedOutTime,
@@ -242,11 +243,7 @@ namespace ToolManagementAppV2.ViewModels
             PowerTools.ReplaceRange(tools.Where(IsPowerTool));
         }
 
-        static bool IsPowerTool(ToolModel tool) =>
-            tool?.NameDescription?.Contains("power", StringComparison.OrdinalIgnoreCase) == true ||
-            tool?.NameDescription?.Contains("cordless", StringComparison.OrdinalIgnoreCase) == true ||
-            tool?.NameDescription?.Contains("electric", StringComparison.OrdinalIgnoreCase) == true ||
-            tool?.NameDescription?.Contains("drill", StringComparison.OrdinalIgnoreCase) == true;
+        static bool IsPowerTool(ToolModel tool) => tool?.IsPowerTool == true;
 
         void LoadCategories(IEnumerable<ToolModel> tools)
         {
