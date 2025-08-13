@@ -20,5 +20,11 @@ namespace ToolManagementAppV2.Services.Users
                     System.Windows.Application.Current.Properties[Key] = value;
             }
         }
+
+        public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
+
+        public string UserName => CurrentUser?.UserName ?? "Guest";
+
+        public string Role => IsAdmin ? "Admin" : "User";
     }
 }

@@ -27,7 +27,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 var toolService = new ToolService(db);
-                var userService = new UserService(db, new ApplicationUserContext());
+                var userContext = new ApplicationUserContext();
+                var userService = new UserService(db, userContext);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var activityLogService = new ActivityLogService(db);
@@ -36,14 +37,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var newUser = new User { UserName = "newuser", IsAdmin = true };
                 Func<bool> stubLogin = () =>
                 {
-                    Application.Current.Properties["CurrentUser"] = newUser;
+                    userContext.CurrentUser = newUser;
                     return true;
                 };
 
-                var vm = new MainViewModel(toolService, userService, customerService, rentalService,
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
                     new StubFileDialogService(), activityLogService, settingsService, null, stubLogin);
 
-                Application.Current.Properties["CurrentUser"] = new User { UserName = "old", IsAdmin = false };
+                userContext.CurrentUser = new User { UserName = "old", IsAdmin = false };
                 vm.RefreshCurrentUser();
 
                 vm.SwitchUserCommand.Execute(null);
@@ -55,7 +56,6 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 if (File.Exists(dbPath))
                     File.Delete(dbPath);
-                Application.Current.Properties.Remove("CurrentUser");
             }
         }
     }

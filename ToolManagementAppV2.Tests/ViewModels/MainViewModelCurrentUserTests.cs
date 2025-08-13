@@ -26,13 +26,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 var toolService = new ToolService(db);
-                var userService = new UserService(db, new ApplicationUserContext());
+                var userContext = new ApplicationUserContext();
+                var userService = new UserService(db, userContext);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService);
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService);
 
                 bool raised = false;
                 vm.PropertyChanged += (s, e) =>
@@ -41,14 +42,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
                         raised = true;
                 };
 
-                Application.Current.Properties["CurrentUser"] = new User { UserName = "admin", IsAdmin = true };
+                userContext.CurrentUser = new User { UserName = "admin", IsAdmin = true };
                 vm.RefreshCurrentUser();
 
                 Assert.True(raised);
                 Assert.True(vm.IsCurrentUserAdmin);
 
                 raised = false;
-                Application.Current.Properties["CurrentUser"] = new User { UserName = "user", IsAdmin = false };
+                userContext.CurrentUser = new User { UserName = "user", IsAdmin = false };
                 vm.RefreshCurrentUser();
 
                 Assert.True(raised);
@@ -58,7 +59,6 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 if (File.Exists(dbPath))
                     File.Delete(dbPath);
-                Application.Current.Properties.Remove("CurrentUser");
             }
         }
     }
