@@ -113,5 +113,40 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void DeleteRentalCommand_RemovesRental()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+
+                var tool = new Tool { ToolID = "T1", ToolNumber = "T1" };
+                toolService.AddTool(tool);
+                var customer = new Customer { Company = "C1" };
+                customerService.AddCustomer(customer);
+                var cust = customerService.GetAllCustomers().First();
+
+                rentalService.RentTool("T1", cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+
+                var vm = new ManageRentalsViewModel(rentalService);
+                vm.LoadRentals();
+                vm.SelectedRental = vm.Rentals.First();
+
+                vm.DeleteRentalCommand.Execute(null);
+
+                Assert.Empty(vm.Rentals);
+                Assert.Empty(rentalService.GetAllRentals());
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }

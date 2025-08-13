@@ -196,6 +196,38 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
+        public void DeleteRental_RemovesRecord()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db, toolService);
+
+                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 };
+                toolService.AddTool(tool);
+                var addedTool = toolService.GetAllTools().First();
+
+                customerService.AddCustomer(new Customer { Company = "Acme" });
+                var cust = customerService.GetAllCustomers().First();
+
+                rentalService.RentTool(addedTool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                var rental = rentalService.GetAllRentals().First();
+
+                rentalService.DeleteRental(rental.RentalID);
+
+                Assert.Empty(rentalService.GetAllRentals());
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public void GetActiveRentals_ReturnsCustomerAndToolDetails()
         {
             var dbPath = Path.GetTempFileName();

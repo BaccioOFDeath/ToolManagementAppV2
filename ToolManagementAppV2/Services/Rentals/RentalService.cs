@@ -105,6 +105,15 @@ namespace ToolManagementAppV2.Services.Rentals
                         throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
         }
 
+        public void DeleteRental(int rentalID)
+        {
+            const string sql = "DELETE FROM Rentals WHERE RentalID = @RentalID";
+            var p = new[] { new SQLiteParameter("@RentalID", rentalID) };
+            using var conn = _dbService.CreateConnection();
+            if (SqliteHelper.ExecuteNonQuery(conn, sql, p) == 0)
+                throw new InvalidOperationException("Rental not found.");
+        }
+
 
         void ExecuteWithTransaction(Action<SQLiteConnection, SQLiteTransaction> action, Action? postCommitAction = null)
         {
