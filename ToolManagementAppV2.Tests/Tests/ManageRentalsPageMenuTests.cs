@@ -1,10 +1,12 @@
 using System.IO;
 using System.Linq;
 using System.Windows.Controls;
+using System.Collections.Generic;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Views;
+using ToolManagementAppV2.Interfaces;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.Tests
@@ -19,7 +21,7 @@ namespace ToolManagementAppV2.Tests.Tests
             {
                 var db = new DatabaseService(dbPath);
                 var rentalService = new RentalService(db);
-                var vm = new ManageRentalsViewModel(rentalService);
+                var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 var page = new ManageRentalsPage { DataContext = vm };
 
                 var grid = (Grid)page.Content;
@@ -49,7 +51,7 @@ namespace ToolManagementAppV2.Tests.Tests
             {
                 var db = new DatabaseService(dbPath);
                 var rentalService = new RentalService(db);
-                var vm = new ManageRentalsViewModel(rentalService);
+                var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 var page = new ManageRentalsPage { DataContext = vm };
 
                 var grid = (Grid)page.Content;
@@ -73,7 +75,7 @@ namespace ToolManagementAppV2.Tests.Tests
             {
                 var db = new DatabaseService(dbPath);
                 var rentalService = new RentalService(db);
-                var vm = new ManageRentalsViewModel(rentalService);
+                var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 var page = new ManageRentalsPage { DataContext = vm };
 
                 var grid = (Grid)page.Content;
@@ -88,5 +90,15 @@ namespace ToolManagementAppV2.Tests.Tests
                     File.Delete(dbPath);
             }
         }
+    }
+
+    class StubDialogService : IDialogService
+    {
+        public void ShowInfo(string message, string title) { }
+        public bool ShowConfirmation(string message, string title) => false;
+        public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
+        public void ShowToolDetails(ToolModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+        public CustomerModel? ShowAddCustomerDialog() => null;
     }
 }

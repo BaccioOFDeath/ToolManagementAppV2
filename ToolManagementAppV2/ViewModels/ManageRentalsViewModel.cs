@@ -8,8 +8,6 @@ using System.Windows;
 using System.Windows.Documents;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
-using ToolManagementAppV2.ViewModels.Rental;
-using ToolManagementAppV2.Views;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -20,6 +18,7 @@ namespace ToolManagementAppV2.ViewModels
     public class ManageRentalsViewModel : ObservableObject
     {
         private readonly IRentalService _rentalService;
+        private readonly IDialogService _dialogService;
         private List<RentalModel> _allRentals = new();
 
         public ObservableCollection<RentalModel> Rentals { get; } = new();
@@ -82,9 +81,10 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand PrintRentalCommand { get; }
         public IRelayCommand DeleteRentalCommand { get; }
 
-        public ManageRentalsViewModel(IRentalService rentalService)
+        public ManageRentalsViewModel(IRentalService rentalService, IDialogService dialogService)
         {
             _rentalService = rentalService;
+            _dialogService = dialogService;
 
             ApplyFilterCommand = new RelayCommand(ApplyFilter);
             ClearFilterCommand = new RelayCommand(ClearFilter);
@@ -137,9 +137,7 @@ namespace ToolManagementAppV2.ViewModels
 
         void OpenFilterWindow()
         {
-            var win = new RentalsFilterWindow { DataContext = this };
-            try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch { }
-            try { win.ShowDialog(); } catch { }
+            _dialogService.ShowRentalsFilter(this);
         }
 
         void CloseFilterWindow()
@@ -182,9 +180,7 @@ namespace ToolManagementAppV2.ViewModels
                 ToolNumber = SelectedRental.ToolNumber,
                 NameDescription = SelectedRental.ToolNumber
             };
-            var vm = new RentalHistoryViewModel(tool, history);
-            var win = new RentalHistoryWindow(vm) { Title = $"Rental History - {tool.ToolNumber}" };
-            win.ShowDialog();
+            _dialogService.ShowRentalHistory(tool, history);
         }
 
         void PrintRental()

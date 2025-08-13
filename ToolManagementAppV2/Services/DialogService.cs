@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.ViewModels.Rental;
 using ToolManagementAppV2.Views;
 
@@ -62,6 +63,21 @@ namespace ToolManagementAppV2.Services
                 onCancel: () => win.DialogResult = false);
             try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch { }
             try { return win.ShowDialog() == true ? customer : null; } catch { return null; }
+        }
+
+        public void ShowRentalsFilter(ManageRentalsViewModel viewModel)
+        {
+            var win = new RentalsFilterWindow { DataContext = viewModel };
+            try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch { }
+            try { win.ShowDialog(); } catch { }
+        }
+
+        public void ShowRentalHistory(ToolModel tool, IEnumerable<RentalModel> history)
+        {
+            var vm = new RentalHistoryViewModel(tool, history);
+            var win = new RentalHistoryWindow(vm) { Title = $"Rental History - {tool.ToolNumber}" };
+            try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch { }
+            try { win.ShowDialog(); } catch { }
         }
     }
 }
