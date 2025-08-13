@@ -10,5 +10,6 @@ namespace ToolManagementAppV2.Interfaces
         ToolModel? ShowEditToolDialog(ToolModel tool);
         void ShowToolDetails(ToolModel tool);
         (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers);
+        CustomerModel? ShowAddCustomerDialog();
     }
 }

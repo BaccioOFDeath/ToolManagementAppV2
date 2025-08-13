@@ -131,6 +131,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             public ToolModel? ShowEditToolDialog(ToolModel tool) => EditToolHandler?.Invoke(tool);
             public void ShowToolDetails(ToolModel tool) => ViewDetailsHandler?.Invoke(tool);
             public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+            public CustomerModel? ShowAddCustomerDialog() => null;
         }
 
         [Fact]

@@ -52,5 +52,16 @@ namespace ToolManagementAppV2.Services
 
             return null;
         }
+
+        public CustomerModel? ShowAddCustomerDialog()
+        {
+            var customer = new CustomerModel();
+            CustomerEditWindow win = null!;
+            win = new CustomerEditWindow(customer,
+                onSave: () => win.DialogResult = true,
+                onCancel: () => win.DialogResult = false);
+            try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch { }
+            try { return win.ShowDialog() == true ? customer : null; } catch { return null; }
+        }
     }
 }
