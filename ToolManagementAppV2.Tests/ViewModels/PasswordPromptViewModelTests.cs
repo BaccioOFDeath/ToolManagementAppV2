@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
@@ -82,5 +84,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
         public void ShowInfo(string message, string title) => InfoShown = true;
         public bool ShowConfirmation(string message, string title) => ConfirmationResult;
+        public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
+        public void ShowToolDetails(ToolModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
     }
 }

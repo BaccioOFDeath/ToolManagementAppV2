@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ToolManagementAppV2.Models.Domain;
@@ -24,7 +26,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
+                var dialog = new StubDialogService();
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
                 toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Saw" });
                 vm.SearchTerm = "Ham";
@@ -49,7 +52,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
+                var dialog = new StubDialogService();
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
                 toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Cordless Drill" });
                 vm.SearchTerm = string.Empty;
@@ -74,7 +78,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
+                var dialog = new StubDialogService();
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" });
                 toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Saw", Brand = "BrandB" });
                 vm.SelectedCategory = "BrandA";
@@ -117,8 +122,15 @@ namespace ToolManagementAppV2.Tests.ViewModels
         class StubDialogService : IDialogService
         {
             public bool InfoShown;
+            public bool ConfirmationResult;
+            public Func<ToolModel, ToolModel?>? EditToolHandler;
+            public Action<ToolModel>? ViewDetailsHandler;
+
             public void ShowInfo(string message, string title) => InfoShown = true;
-            public bool ShowConfirmation(string message, string title) => false;
+            public bool ShowConfirmation(string message, string title) => ConfirmationResult;
+            public ToolModel? ShowEditToolDialog(ToolModel tool) => EditToolHandler?.Invoke(tool);
+            public void ShowToolDetails(ToolModel tool) => ViewDetailsHandler?.Invoke(tool);
+            public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
         }
 
         [Fact]
@@ -131,7 +143,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
+                var dialog = new StubDialogService();
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
                 vm.NewTool.ToolNumber = "TN1";
                 vm.NewTool.NameDescription = "Hammer";
                 vm.NewTool.PartNumber = "PN1";
@@ -170,12 +183,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
+                var dialog = new StubDialogService();
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
                 var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer", ToolImagePath = "img1.png" };
                 toolService.AddTool(tool);
                 await vm.LoadToolsAsync();
                 vm.SelectedTool = vm.Tools.First();
-                vm.EditToolDialog = t =>
+                dialog.EditToolHandler = t =>
                 {
                     t.NameDescription = "Updated Hammer";
                     return t;
@@ -204,12 +218,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
+                var dialog = new StubDialogService();
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
                 var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer" };
                 toolService.AddTool(tool);
                 await vm.LoadToolsAsync();
                 vm.SelectedTool = vm.Tools.First();
-                vm.EditToolDialog = _ => null;
+                dialog.EditToolHandler = _ => null;
                 await vm.EditToolCommand.ExecuteAsync(null);
                 var unchanged = toolService.GetAllTools().First();
                 Assert.Equal("Hammer", unchanged.NameDescription);
@@ -231,7 +246,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
+                var dialog = new StubDialogService();
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
                 var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer" };
                 toolService.AddTool(tool);
                 await vm.LoadToolsAsync();
@@ -257,7 +273,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
+                var dialog = new StubDialogService();
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
 
                 Assert.False(vm.OpenRentalsCommand.CanExecute(null));
 
@@ -284,14 +301,15 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
+                var dialog = new StubDialogService();
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
                 var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer" };
                 toolService.AddTool(tool);
                 await vm.LoadToolsAsync();
                 vm.SelectedTool = vm.Tools.First();
                 bool called = false;
                 Tool? passed = null;
-                vm.ViewDetailsDialog = t => { called = true; passed = t; };
+                dialog.ViewDetailsHandler = t => { called = true; passed = t; };
                 vm.ViewDetailsCommand.Execute(null);
                 Assert.True(called);
                 Assert.Equal(vm.SelectedTool, passed);
@@ -313,7 +331,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IToolService toolService = new ToolService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService);
+                var dialog = new StubDialogService();
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
 
                 Assert.False(vm.ViewDetailsCommand.CanExecute(null));
 
