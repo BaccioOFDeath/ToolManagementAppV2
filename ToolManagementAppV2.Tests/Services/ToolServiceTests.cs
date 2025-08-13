@@ -8,6 +8,7 @@ using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Interfaces;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace ToolManagementAppV2.Tests.Services
 {
@@ -174,6 +175,24 @@ namespace ToolManagementAppV2.Tests.Services
             finally
             {
                 if (Directory.Exists(imgDir)) Directory.Delete(imgDir, true);
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task GetAllToolsAsync_ReturnsTools()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                IToolService service = new ToolService(dbService);
+                service.AddTool(new Tool { ToolNumber = "T1" });
+                var tools = await service.GetAllToolsAsync();
+                Assert.Single(tools);
+            }
+            finally
+            {
                 if (File.Exists(dbPath)) File.Delete(dbPath);
             }
         }

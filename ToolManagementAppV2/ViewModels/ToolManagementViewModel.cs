@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.ViewModels.Rental;
@@ -52,8 +53,8 @@ namespace ToolManagementAppV2.ViewModels
             {
                 if (SetProperty(ref _selectedTool, value))
                 {
-                    ((RelayCommand)OpenRentalsCommand).NotifyCanExecuteChanged();
-                    ((RelayCommand)EditToolCommand).NotifyCanExecuteChanged();
+                    ((AsyncRelayCommand)OpenRentalsCommand).NotifyCanExecuteChanged();
+                    ((AsyncRelayCommand)EditToolCommand).NotifyCanExecuteChanged();
                     ((RelayCommand)ViewDetailsCommand).NotifyCanExecuteChanged();
                 }
             }
@@ -77,11 +78,11 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        public IRelayCommand SearchCommand { get; }
-        public IRelayCommand NewToolCommand { get; }
-        public IRelayCommand EditToolCommand { get; }
-        public IRelayCommand DeleteToolCommand { get; }
-        public IRelayCommand OpenRentalsCommand { get; }
+        public IAsyncRelayCommand SearchCommand { get; }
+        public IAsyncRelayCommand NewToolCommand { get; }
+        public IAsyncRelayCommand EditToolCommand { get; }
+        public IAsyncRelayCommand DeleteToolCommand { get; }
+        public IAsyncRelayCommand OpenRentalsCommand { get; }
         public IRelayCommand ViewDetailsCommand { get; }
 
         public Func<ToolModel, ToolModel?> EditToolDialog { get; set; }
@@ -111,19 +112,19 @@ namespace ToolManagementAppV2.ViewModels
             _customerService = customerService;
             _rentalService = rentalService;
             _dialogService = dialogService ?? new DialogService();
-            SearchCommand = new RelayCommand(FilterTools);
-            NewToolCommand = new RelayCommand(AddTool);
-            EditToolCommand = new RelayCommand(EditTool, () => SelectedTool != null);
-            DeleteToolCommand = new RelayCommand(DeleteTool);
-            OpenRentalsCommand = new RelayCommand(OpenRentals, () => SelectedTool != null);
+            SearchCommand = new AsyncRelayCommand(FilterToolsAsync);
+            NewToolCommand = new AsyncRelayCommand(AddToolAsync);
+            EditToolCommand = new AsyncRelayCommand(EditToolAsync, () => SelectedTool != null);
+            DeleteToolCommand = new AsyncRelayCommand(DeleteToolAsync);
+            OpenRentalsCommand = new AsyncRelayCommand(OpenRentalsAsync, () => SelectedTool != null);
             ViewDetailsCommand = new RelayCommand(ViewDetails, () => SelectedTool != null);
             EditToolDialog = DefaultEditToolDialog;
             ViewDetailsDialog = DefaultViewDetailsDialog;
         }
 
-        public void LoadTools()
+        public async Task LoadToolsAsync()
         {
-            var all = _toolService.GetAllTools();
+            var all = await _toolService.GetAllToolsAsync();
             Tools.ReplaceRange(all);
             SearchResults.ReplaceRange(all);
             CategorizeTools(all);
@@ -135,14 +136,14 @@ namespace ToolManagementAppV2.ViewModels
         /// Invoked by <see cref="SearchCommand"/> whenever the search text or
         /// <see cref="SelectedCategory"/> changes and recomputes <see cref="Categories"/>.
         /// </summary>
-        void FilterTools()
+        async Task FilterToolsAsync()
         {
             var term = string.IsNullOrWhiteSpace(SearchTerm) ? string.Empty : SearchTerm.Trim();
-            var all = _toolService.GetAllTools();
+            var all = await _toolService.GetAllToolsAsync();
             LoadCategories(all);
             IEnumerable<ToolModel> results = string.IsNullOrEmpty(term)
                 ? all
-                : _toolService.SearchTools(term);
+                : await _toolService.SearchToolsAsync(term);
             if (!string.IsNullOrEmpty(SelectedCategory) && SelectedCategory != "All")
             {
                 results = results.Where(t => string.Equals(t.Brand, SelectedCategory, StringComparison.OrdinalIgnoreCase));
@@ -151,13 +152,13 @@ namespace ToolManagementAppV2.ViewModels
             CategorizeTools(results);
         }
 
-        void AddTool()
+        async Task AddToolAsync()
         {
             try
             {
-                _toolService.AddTool(NewTool);
-                LoadTools();
-                FilterTools();
+                await _toolService.AddToolAsync(NewTool);
+                await LoadToolsAsync();
+                await FilterToolsAsync();
                 NewTool = new ToolModel();
             }
             catch (InvalidOperationException ex)
@@ -170,7 +171,7 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        void EditTool()
+        async Task EditToolAsync()
         {
             if (SelectedTool == null) return;
 
@@ -197,9 +198,9 @@ namespace ToolManagementAppV2.ViewModels
             var updated = EditToolDialog?.Invoke(clone);
             if (updated == null) return;
 
-            _toolService.UpdateTool(updated);
-            LoadTools();
-            FilterTools();
+            await _toolService.UpdateToolAsync(updated);
+            await LoadToolsAsync();
+            await FilterToolsAsync();
             SelectedTool = Tools.FirstOrDefault(t => t.ToolID == updated.ToolID);
         }
 
@@ -209,20 +210,20 @@ namespace ToolManagementAppV2.ViewModels
             ViewDetailsDialog?.Invoke(SelectedTool);
         }
 
-        void DeleteTool()
+        async Task DeleteToolAsync()
         {
             if (SelectedTool == null) return;
-            _toolService.DeleteTool(SelectedTool.ToolID);
-            LoadTools();
-            FilterTools();
+            await _toolService.DeleteToolAsync(SelectedTool.ToolID);
+            await LoadToolsAsync();
+            await FilterToolsAsync();
             SelectedTool = null;
         }
 
-        void OpenRentals()
+        async Task OpenRentalsAsync()
         {
             if (SelectedTool == null) return;
 
-            var customers = _customerService.GetAllCustomers();
+            var customers = await _customerService.GetAllCustomersAsync();
             var vm = new RentToolPopupViewModel(SelectedTool, customers);
             var win = new RentToolPopupWindow { DataContext = vm };
             vm.RequestClose += (_, _) => win.Close();
@@ -230,11 +231,11 @@ namespace ToolManagementAppV2.ViewModels
 
             if (vm.SelectedCustomerResult != null)
             {
-                _rentalService.RentTool(SelectedTool.ToolID,
+                await _rentalService.RentToolAsync(SelectedTool.ToolID,
                     vm.SelectedCustomerResult.CustomerID,
                     DateTime.Today,
                     vm.SelectedDueDateResult);
-                LoadTools();
+                await LoadToolsAsync();
             }
         }
 

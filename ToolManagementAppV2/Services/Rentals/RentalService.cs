@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
@@ -184,5 +185,15 @@ namespace ToolManagementAppV2.Services.Rentals
             ToolImagePath = r["ToolImagePath"].ToString(),
             ToolLocation = r["ToolLocation"].ToString()
         };
+
+        public Task RentToolAsync(int toolID, int customerID, DateTime rentalDate, DateTime dueDate) => Task.Run(() => RentTool(toolID, customerID, rentalDate, dueDate));
+        public Task ReturnToolAsync(int rentalID, DateTime returnDate) => Task.Run(() => ReturnTool(rentalID, returnDate));
+        public Task ExtendRentalAsync(int rentalID, DateTime newDueDate) => Task.Run(() => ExtendRental(rentalID, newDueDate));
+        public Task DeleteRentalAsync(int rentalID) => Task.Run(() => DeleteRental(rentalID));
+        public Task<List<Rental>> GetActiveRentalsAsync() => Task.Run(GetActiveRentals);
+        public Task<List<Rental>> GetOverdueRentalsAsync() => Task.Run(GetOverdueRentals);
+        public Task<List<Rental>> GetAllRentalsAsync() => Task.Run(GetAllRentals);
+        public Task<List<Rental>> GetRentalHistoryForToolAsync(int toolID) => Task.Run(() => GetRentalHistoryForTool(toolID));
+        public Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID) => Task.Run(() => GetRentalHistoryForCustomer(customerID));
     }
 }

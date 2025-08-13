@@ -6,13 +6,14 @@ using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.ViewModels;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace ToolManagementAppV2.Tests.ViewModels
 {
     public class CustomerManagementViewModelTests
     {
         [Fact]
-        public void AddCustomerCommand_UsesDialogValues()
+        public async Task AddCustomerCommand_UsesDialogValues()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -31,7 +32,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                         Address = "Addr"
                     }
                 };
-                vm.AddCustomerCommand.Execute(null);
+                await vm.AddCustomerCommand.ExecuteAsync(null);
                 var customers = customerService.GetAllCustomers();
                 Assert.Single(customers);
                 var c = customers.First();
@@ -50,7 +51,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void AddCustomerCommand_CancelledDialog_DoesNotAdd()
+        public async Task AddCustomerCommand_CancelledDialog_DoesNotAdd()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -61,7 +62,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 {
                     AddCustomerDialog = () => null
                 };
-                vm.AddCustomerCommand.Execute(null);
+                await vm.AddCustomerCommand.ExecuteAsync(null);
                 var customers = customerService.GetAllCustomers();
                 Assert.Empty(customers);
             }
@@ -108,7 +109,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void UpdateCustomerCommand_UpdatesSelectedCustomer()
+        public async Task UpdateCustomerCommand_UpdatesSelectedCustomer()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -125,7 +126,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 vm.NewCustomerPhone = "9";
                 vm.NewCustomerMobile = "8";
                 vm.NewCustomerAddress = "Addr";
-                vm.UpdateCustomerCommand.Execute(null);
+                await vm.UpdateCustomerCommand.ExecuteAsync(null);
                 var updated = customerService.GetCustomerByID(existing.CustomerID);
                 Assert.Equal("New", updated.Company);
                 Assert.Equal("e@e.com", updated.Email);
@@ -142,7 +143,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void SearchCustomersCommand_FiltersCustomers()
+        public async Task SearchCustomersCommand_FiltersCustomers()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -153,7 +154,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 customerService.AddCustomer(new ToolManagementAppV2.Models.Domain.Customer { Company = "Beta" });
                 var vm = new CustomerManagementViewModel(customerService);
                 vm.CustomerSearchTerm = "Beta";
-                vm.SearchCustomersCommand.Execute(null);
+                await vm.SearchCustomersCommand.ExecuteAsync(null);
                 Assert.Single(vm.Customers);
                 Assert.Equal("Beta", vm.Customers.First().Company);
             }
@@ -165,7 +166,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void DeleteCustomerCommand_RemovesSelectedCustomer()
+        public async Task DeleteCustomerCommand_RemovesSelectedCustomer()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -175,9 +176,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 customerService.AddCustomer(new ToolManagementAppV2.Models.Domain.Customer { Company = "ACME" });
                 customerService.AddCustomer(new ToolManagementAppV2.Models.Domain.Customer { Company = "Beta" });
                 var vm = new CustomerManagementViewModel(customerService);
-                vm.SearchCustomersCommand.Execute(null);
+                await vm.SearchCustomersCommand.ExecuteAsync(null);
                 vm.SelectedCustomer = vm.Customers.First(c => c.Company == "ACME");
-                vm.DeleteCustomerCommand.Execute(null);
+                await vm.DeleteCustomerCommand.ExecuteAsync(null);
                 var remaining = customerService.GetAllCustomers();
                 Assert.Single(remaining);
                 Assert.DoesNotContain(remaining, c => c.Company == "ACME");
