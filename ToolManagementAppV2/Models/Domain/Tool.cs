@@ -100,6 +100,13 @@ namespace ToolManagementAppV2.Models.Domain
             set => SetProperty(ref _keywords, value);
         }
 
+        private bool _isPowerTool;
+        public bool IsPowerTool
+        {
+            get => _isPowerTool;
+            set => SetProperty(ref _isPowerTool, value);
+        }
+
         private bool _isCheckedOut;
         public bool IsCheckedOut
         {

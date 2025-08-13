@@ -55,7 +55,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var dialog = new StubDialogService();
                 var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
-                toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Cordless Drill" });
+                toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Cordless Drill", IsPowerTool = true });
                 vm.SearchTerm = string.Empty;
                 await vm.SearchCommand.ExecuteAsync(null);
                 Assert.Single(vm.HandTools);
@@ -154,6 +154,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 vm.NewTool.QuantityOnHand = 5;
                 vm.NewTool.Supplier = "ABC";
                 vm.NewTool.Notes = "Note";
+                vm.NewTool.IsPowerTool = true;
                 await vm.NewToolCommand.ExecuteAsync(null);
                 var tools = toolService.GetAllTools();
                 Assert.Single(tools);
@@ -166,6 +167,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 Assert.Equal(5, tool.QuantityOnHand);
                 Assert.Equal("ABC", tool.Supplier);
                 Assert.Equal("Note", tool.Notes);
+                Assert.True(tool.IsPowerTool);
             }
             finally
             {
