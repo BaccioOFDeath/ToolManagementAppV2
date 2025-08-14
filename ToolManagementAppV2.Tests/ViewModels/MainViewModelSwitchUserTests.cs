@@ -12,6 +12,7 @@ using Xunit;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace ToolManagementAppV2.Tests.ViewModels
 {
@@ -59,6 +60,44 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void SwitchUserCommand_ShowsWarning_WhenLoginCancelled()
+        {
+            if (Application.Current == null)
+                new Application();
+
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var userContext = new ApplicationUserContext();
+                var userService = new UserService(db, userContext);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var activityLogService = new ActivityLogService(db);
+                var settingsService = new SettingsService(db);
+
+                var dialog = new StubDialogService();
+                var logger = new StubLogger<MainViewModel>();
+
+                Func<bool> stubLogin = () => false;
+
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                    new StubFileDialogService(), activityLogService, settingsService, db, dialog, logger, stubLogin);
+
+                vm.SwitchUserCommand.Execute(null);
+
+                Assert.True(dialog.InfoShown);
+                Assert.Equal("Switch user cancelled.", logger.LastWarning);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 
     class StubFileDialogService : IFileDialogService
@@ -69,11 +108,31 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
     class StubDialogService : IDialogService
     {
-        public void ShowInfo(string message, string title) { }
+        public bool InfoShown { get; private set; }
+        public void ShowInfo(string message, string title) => InfoShown = true;
         public bool ShowConfirmation(string message, string title) => false;
         public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
         public void ShowToolDetails(ToolModel tool) { }
         public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
         public CustomerModel? ShowAddCustomerDialog() => null;
+    }
+
+    class StubLogger<T> : ILogger<T>
+    {
+        public string? LastWarning { get; private set; }
+
+        public IDisposable BeginScope<TState>(TState state) => NullDisposable.Instance;
+        public bool IsEnabled(LogLevel logLevel) => true;
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            if (logLevel == LogLevel.Warning)
+                LastWarning = formatter(state, exception);
+        }
+
+        private sealed class NullDisposable : IDisposable
+        {
+            public static readonly NullDisposable Instance = new NullDisposable();
+            public void Dispose() { }
+        }
     }
 }
