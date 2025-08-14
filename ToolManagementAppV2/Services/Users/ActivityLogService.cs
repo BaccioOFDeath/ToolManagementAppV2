@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ToolManagementAppV2.Models.Domain;
@@ -55,6 +56,25 @@ namespace ToolManagementAppV2.Services.Users
                 var p = new[] { new SQLiteParameter("@Count", count) };
                 using var conn = _dbService.CreateConnection();
                 return SqliteHelper.ExecuteReader(conn, sql, p, MapLog);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve recent activity logs");
+                return null;
+            }
+        }
+
+        public virtual async Task<List<ActivityLog>?> GetRecentLogsAsync(int count = 50)
+        {
+            try
+            {
+                const string sql = @"
+                    SELECT * FROM ActivityLogs
+                     ORDER BY Timestamp DESC
+                     LIMIT @Count";
+                var p = new[] { new SQLiteParameter("@Count", count) };
+                using var conn = _dbService.CreateConnection();
+                return await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapLog);
             }
             catch (Exception ex)
             {
