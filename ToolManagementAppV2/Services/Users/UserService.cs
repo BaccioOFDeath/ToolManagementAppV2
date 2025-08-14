@@ -162,7 +162,15 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@CreatedAt", user.CreatedAt),
                 new SQLiteParameter("@PasswordExpired", user.PasswordExpired ? 1 : 0)
             });
-            user.UserID = Convert.ToInt32(cmd.ExecuteScalar());
+            try
+            {
+                user.UserID = Convert.ToInt32(cmd.ExecuteScalar());
+            }
+            catch (SQLiteException ex) when (ex.ResultCode == SQLiteErrorCode.Constraint &&
+                                             ex.Message.Contains("Users.UserName", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("A user with the same username already exists.", ex);
+            }
             user.Password = hashed;
             user.Salt = salt;
         }
@@ -427,7 +435,15 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@IsActive", user.IsActive ? 1 : 0),
                 new SQLiteParameter("@CreatedAt", user.CreatedAt)
             });
-            user.UserID = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+            try
+            {
+                user.UserID = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+            }
+            catch (SQLiteException ex) when (ex.ResultCode == SQLiteErrorCode.Constraint &&
+                                             ex.Message.Contains("Users.UserName", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("A user with the same username already exists.", ex);
+            }
             user.Password = hashed;
             user.Salt = salt;
         }
