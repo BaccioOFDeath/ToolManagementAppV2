@@ -46,7 +46,8 @@ namespace ToolManagementAppV2.Services.Core
             EnsureColumn("Tools", "CheckedOutBy", "TEXT");
             EnsureColumn("Tools", "CheckedOutTime", "DATETIME");
             EnsureColumn("Tools", "Keywords", "TEXT");
-            EnsureColumn("Tools", "IsPowerTool", "INTEGER");
+            EnsureColumn("Tools", "IsPowerTool", "INTEGER", "0");
+            EnsureColumn("Tools", "IsCheckedOut", "INTEGER", "0");
             EnsureColumn("Users", "Password", "TEXT");
             EnsureColumn("Users", "Salt", "TEXT");
             EnsureColumn("Users", "Email", "TEXT");
@@ -54,7 +55,7 @@ namespace ToolManagementAppV2.Services.Core
             EnsureColumn("Users", "Mobile", "TEXT");
             EnsureColumn("Users", "Address", "TEXT");
             EnsureColumn("Users", "Role", "TEXT");
-            EnsureColumn("Users", "IsActive", "INTEGER");
+            EnsureColumn("Users", "IsActive", "INTEGER", "1");
             EnsureColumn("Users", "CreatedAt", "DATETIME");
         }
 
@@ -164,14 +165,20 @@ namespace ToolManagementAppV2.Services.Core
             EnsureIndex(conn, "Users", "UserName");
         }
 
-        void EnsureColumn(string table, string column, string type)
+        void EnsureColumn(string table, string column, string type, string? defaultValue = null)
         {
             if (SqliteHelper.ColumnExists(ConnectionString, table, column)) return;
             try
             {
                 using var conn = CreateConnection();
-                using var alter = new SQLiteCommand($"ALTER TABLE {table} ADD COLUMN {column} {type}", conn);
+                var defaultClause = defaultValue != null ? $" NOT NULL DEFAULT {defaultValue}" : string.Empty;
+                using var alter = new SQLiteCommand($"ALTER TABLE {table} ADD COLUMN {column} {type}{defaultClause}", conn);
                 alter.ExecuteNonQuery();
+                if (defaultValue != null)
+                {
+                    using var update = new SQLiteCommand($"UPDATE {table} SET {column}={defaultValue} WHERE {column} IS NULL", conn);
+                    update.ExecuteNonQuery();
+                }
             }
             catch (SQLiteException ex)
             {
