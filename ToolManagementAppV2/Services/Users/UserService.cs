@@ -42,25 +42,72 @@ namespace ToolManagementAppV2.Services.Users
                 new[] { new SQLiteParameter("@UserName", userName) }, MapUser);
             var u = users.FirstOrDefault();
             if (u == null) return null;
+            if (u.LockoutUntil.HasValue && u.LockoutUntil > DateTime.UtcNow)
+                return null;
+            if (u.LockoutUntil.HasValue && u.LockoutUntil <= DateTime.UtcNow)
+            {
+                var reset = new[]
+                {
+                    new SQLiteParameter("@Attempts", 0),
+                    new SQLiteParameter("@Lockout", DBNull.Value),
+                    new SQLiteParameter("@ID", u.UserID)
+                };
+                SqliteHelper.ExecuteNonQuery(conn, "UPDATE Users SET FailedAttempts=@Attempts, LockoutUntil=@Lockout WHERE UserID=@ID", reset);
+                u.FailedAttempts = 0;
+                u.LockoutUntil = null;
+            }
 
+            bool success;
             if (string.IsNullOrWhiteSpace(u.Salt) && SecurityHelper.IsSha256Hash(u.Password))
             {
                 var legacy = SecurityHelper.ComputeSha256HashLegacy(password ?? string.Empty);
-                if (u.Password != legacy) return null;
-                var upgraded = SecurityHelper.HashPassword(password ?? string.Empty, out var salt);
-                var p = new[]
+                success = u.Password == legacy;
+                if (success)
                 {
-                    new SQLiteParameter("@Pwd", upgraded),
-                    new SQLiteParameter("@Salt", salt),
+                    var upgraded = SecurityHelper.HashPassword(password ?? string.Empty, out var salt);
+                    var p = new[]
+                    {
+                        new SQLiteParameter("@Pwd", upgraded),
+                        new SQLiteParameter("@Salt", salt),
+                        new SQLiteParameter("@ID", u.UserID)
+                    };
+                    SqliteHelper.ExecuteNonQuery(conn, "UPDATE Users SET Password=@Pwd, Salt=@Salt WHERE UserID=@ID", p);
+                    u.Password = upgraded;
+                    u.Salt = salt;
+                }
+            }
+            else
+            {
+                success = SecurityHelper.VerifyPassword(password ?? string.Empty, u.Salt, u.Password);
+            }
+
+            if (success)
+            {
+                var reset = new[]
+                {
+                    new SQLiteParameter("@Attempts", 0),
+                    new SQLiteParameter("@Lockout", DBNull.Value),
                     new SQLiteParameter("@ID", u.UserID)
                 };
-                SqliteHelper.ExecuteNonQuery(conn, "UPDATE Users SET Password=@Pwd, Salt=@Salt WHERE UserID=@ID", p);
-                u.Password = upgraded;
-                u.Salt = salt;
+                SqliteHelper.ExecuteNonQuery(conn, "UPDATE Users SET FailedAttempts=@Attempts, LockoutUntil=@Lockout WHERE UserID=@ID", reset);
+                u.FailedAttempts = 0;
+                u.LockoutUntil = null;
                 return u;
             }
 
-            return SecurityHelper.VerifyPassword(password ?? string.Empty, u.Salt, u.Password) ? u : null;
+            u.FailedAttempts++;
+            DateTime? lockout = null;
+            if (u.FailedAttempts >= 3)
+                lockout = DateTime.UtcNow.AddMinutes(15);
+            var update = new[]
+            {
+                new SQLiteParameter("@Attempts", u.FailedAttempts),
+                new SQLiteParameter("@Lockout", (object?)lockout ?? DBNull.Value),
+                new SQLiteParameter("@ID", u.UserID)
+            };
+            SqliteHelper.ExecuteNonQuery(conn, "UPDATE Users SET FailedAttempts=@Attempts, LockoutUntil=@Lockout WHERE UserID=@ID", update);
+            u.LockoutUntil = lockout;
+            return null;
         }
 
         public User? GetCurrentUser()
@@ -226,7 +273,9 @@ namespace ToolManagementAppV2.Services.Users
                 Address = rdr["Address"]?.ToString(),
                 Role = rdr["Role"]?.ToString(),
                 IsActive = rdr["IsActive"] != DBNull.Value && Convert.ToInt32(rdr["IsActive"]) == 1,
-                CreatedAt = rdr["CreatedAt"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(rdr["CreatedAt"])
+                CreatedAt = rdr["CreatedAt"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(rdr["CreatedAt"]),
+                FailedAttempts = rdr["FailedAttempts"] == DBNull.Value ? 0 : Convert.ToInt32(rdr["FailedAttempts"]),
+                LockoutUntil = rdr["LockoutUntil"] == DBNull.Value ? null : Convert.ToDateTime(rdr["LockoutUntil"])
             };
         }
 
@@ -252,25 +301,72 @@ namespace ToolManagementAppV2.Services.Users
                 new[] { new SQLiteParameter("@UserName", userName) }, MapUser);
             var u = users.FirstOrDefault();
             if (u == null) return null;
+            if (u.LockoutUntil.HasValue && u.LockoutUntil > DateTime.UtcNow)
+                return null;
+            if (u.LockoutUntil.HasValue && u.LockoutUntil <= DateTime.UtcNow)
+            {
+                var reset = new[]
+                {
+                    new SQLiteParameter("@Attempts", 0),
+                    new SQLiteParameter("@Lockout", DBNull.Value),
+                    new SQLiteParameter("@ID", u.UserID)
+                };
+                await SqliteHelper.ExecuteNonQueryAsync(conn, "UPDATE Users SET FailedAttempts=@Attempts, LockoutUntil=@Lockout WHERE UserID=@ID", reset);
+                u.FailedAttempts = 0;
+                u.LockoutUntil = null;
+            }
 
+            bool success;
             if (string.IsNullOrWhiteSpace(u.Salt) && SecurityHelper.IsSha256Hash(u.Password))
             {
                 var legacy = SecurityHelper.ComputeSha256HashLegacy(password ?? string.Empty);
-                if (u.Password != legacy) return null;
-                var upgraded = SecurityHelper.HashPassword(password ?? string.Empty, out var salt);
-                var p = new[]
+                success = u.Password == legacy;
+                if (success)
                 {
-                    new SQLiteParameter("@Pwd", upgraded),
-                    new SQLiteParameter("@Salt", salt),
+                    var upgraded = SecurityHelper.HashPassword(password ?? string.Empty, out var salt);
+                    var p = new[]
+                    {
+                        new SQLiteParameter("@Pwd", upgraded),
+                        new SQLiteParameter("@Salt", salt),
+                        new SQLiteParameter("@ID", u.UserID)
+                    };
+                    await SqliteHelper.ExecuteNonQueryAsync(conn, "UPDATE Users SET Password=@Pwd, Salt=@Salt WHERE UserID=@ID", p);
+                    u.Password = upgraded;
+                    u.Salt = salt;
+                }
+            }
+            else
+            {
+                success = SecurityHelper.VerifyPassword(password ?? string.Empty, u.Salt, u.Password);
+            }
+
+            if (success)
+            {
+                var reset = new[]
+                {
+                    new SQLiteParameter("@Attempts", 0),
+                    new SQLiteParameter("@Lockout", DBNull.Value),
                     new SQLiteParameter("@ID", u.UserID)
                 };
-                await SqliteHelper.ExecuteNonQueryAsync(conn, "UPDATE Users SET Password=@Pwd, Salt=@Salt WHERE UserID=@ID", p);
-                u.Password = upgraded;
-                u.Salt = salt;
+                await SqliteHelper.ExecuteNonQueryAsync(conn, "UPDATE Users SET FailedAttempts=@Attempts, LockoutUntil=@Lockout WHERE UserID=@ID", reset);
+                u.FailedAttempts = 0;
+                u.LockoutUntil = null;
                 return u;
             }
 
-            return SecurityHelper.VerifyPassword(password ?? string.Empty, u.Salt, u.Password) ? u : null;
+            u.FailedAttempts++;
+            DateTime? lockout = null;
+            if (u.FailedAttempts >= 3)
+                lockout = DateTime.UtcNow.AddMinutes(15);
+            var update = new[]
+            {
+                new SQLiteParameter("@Attempts", u.FailedAttempts),
+                new SQLiteParameter("@Lockout", (object?)lockout ?? DBNull.Value),
+                new SQLiteParameter("@ID", u.UserID)
+            };
+            await SqliteHelper.ExecuteNonQueryAsync(conn, "UPDATE Users SET FailedAttempts=@Attempts, LockoutUntil=@Lockout WHERE UserID=@ID", update);
+            u.LockoutUntil = lockout;
+            return null;
         }
 
         public async Task<User?> GetCurrentUserAsync()
