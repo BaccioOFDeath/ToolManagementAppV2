@@ -229,7 +229,9 @@ namespace ToolManagementAppV2.ViewModels
         void ResetPasswordFor(UserModel user)
         {
             if (user == null) return;
-            _userService.ChangeUserPassword(user.UserID, "admin");
+            var newPassword = SecurityHelper.GeneratePassword();
+            _userService.ChangeUserPassword(user.UserID, newPassword);
+            _dialogService.ShowInfo($"Password reset to: {newPassword}", "Password Reset");
             var refreshed = _userService.GetUserByID(user.UserID);
             if (refreshed != null)
             {

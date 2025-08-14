@@ -6,6 +6,7 @@ namespace ToolManagementAppV2.Utilities.Helpers
     public static class SecurityHelper
     {
         const int Iterations = 100_000;
+        const string PasswordChars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789!@#$%^&*";
 
         public static bool IsSha256Hash(string input)
         {
@@ -42,6 +43,18 @@ namespace ToolManagementAppV2.Utilities.Helpers
 
             var computed = HashPassword(password, salt);
             return computed == hash;
+        }
+
+        public static string GeneratePassword(int length = 12)
+        {
+            var bytes = new byte[length];
+            RandomNumberGenerator.Fill(bytes);
+            var chars = new char[length];
+            for (int i = 0; i < length; i++)
+            {
+                chars[i] = PasswordChars[bytes[i] % PasswordChars.Length];
+            }
+            return new string(chars);
         }
 
         // Legacy support for migrating existing SHA256 hashes
