@@ -14,6 +14,7 @@ using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.ViewModels;
 using Xunit;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace ToolManagementAppV2.Tests.ViewModels
 {
@@ -358,6 +359,25 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public async Task DeleteToolCommand_OnError_ShowsDialogAndLogs()
+        {
+            var toolService = new FailingToolService();
+            var dialog = new StubDialogService { ConfirmationResult = true };
+            var logger = new CapturingLogger<ToolManagementViewModel>();
+            var vm = new ToolManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), dialog, logger);
+            var tool = new Tool { ToolID = 1, ToolNumber = "T1", NameDescription = "Hammer" };
+            vm.Tools.Add(tool);
+            vm.SelectedTool = tool;
+
+            await vm.DeleteToolCommand.ExecuteAsync(null);
+
+            Assert.True(dialog.InfoShown);
+            Assert.Equal("Failed to delete tool 1", logger.LastError);
+            Assert.Single(vm.Tools);
+            Assert.Equal(tool, vm.SelectedTool);
+        }
+
+        [Fact]
         public async Task OpenRentalsCommand_CanExecuteDependsOnSelectedTool()
         {
             var dbPath = Path.GetTempFileName();
@@ -561,6 +581,56 @@ namespace ToolManagementAppV2.Tests.ViewModels
             public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector) => throw new NotImplementedException();
             public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null) => throw new NotImplementedException();
             public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null) => throw new NotImplementedException();
+        }
+
+        class FailingToolService : IToolService
+        {
+            public void AddTool(ToolModel tool) => throw new NotImplementedException();
+            public Task AddToolAsync(ToolModel tool) => throw new NotImplementedException();
+            public void UpdateTool(ToolModel tool) => throw new NotImplementedException();
+            public Task UpdateToolAsync(ToolModel tool) => throw new NotImplementedException();
+            public void DeleteTool(int toolID) => throw new NotImplementedException();
+            public Task DeleteToolAsync(int toolID) => throw new Exception("failure");
+            public ToolModel GetToolByID(int toolID) => throw new NotImplementedException();
+            public Task<ToolModel> GetToolByIDAsync(int toolID) => throw new NotImplementedException();
+            public List<ToolModel> GetAllTools() => new();
+            public Task<List<ToolModel>> GetAllToolsAsync() => Task.FromResult(new List<ToolModel>());
+            public List<ToolModel> SearchTools(string? searchText) => new();
+            public Task<List<ToolModel>> SearchToolsAsync(string? searchText) => Task.FromResult(new List<ToolModel>());
+            public void ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new NotImplementedException();
+            public Task ToggleToolCheckOutStatusAsync(int toolID, string currentUser) => throw new NotImplementedException();
+            public List<ToolModel> GetToolsCheckedOutBy(string userName) => new();
+            public Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName) => Task.FromResult(new List<ToolModel>());
+            public void UpdateToolImage(int toolID, string imagePath) => throw new NotImplementedException();
+            public Task UpdateToolImageAsync(int toolID, string imagePath) => throw new NotImplementedException();
+            public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map) => new();
+            public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map) => Task.FromResult(new List<int>());
+            public void ExportToolsToCsv(string filePath) { }
+            public Task ExportToolsToCsvAsync(string filePath) => Task.CompletedTask;
+            public ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector) => new();
+            public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector) => Task.FromResult(new ImageImportResult());
+            public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null) => throw new NotImplementedException();
+            public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null) => throw new NotImplementedException();
+        }
+
+        class CapturingLogger<T> : ILogger<T>
+        {
+            public string? LastError { get; private set; }
+
+            public IDisposable BeginScope<TState>(TState state) => NullDisposable.Instance;
+            public bool IsEnabled(LogLevel logLevel) => true;
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception,
+                Func<TState, Exception, string> formatter)
+            {
+                if (logLevel == LogLevel.Error)
+                    LastError = formatter(state, exception);
+            }
+
+            private sealed class NullDisposable : IDisposable
+            {
+                public static readonly NullDisposable Instance = new();
+                public void Dispose() { }
+            }
         }
 
         class TestDispatcherTimer : IDispatcherTimer

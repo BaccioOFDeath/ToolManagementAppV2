@@ -258,10 +258,18 @@ namespace ToolManagementAppV2.ViewModels
             if (!confirm)
                 return;
 
-            await _toolService.DeleteToolAsync(SelectedTool.ToolID);
-            await LoadToolsAsync();
-            await FilterToolsAsync();
-            SelectedTool = null;
+            try
+            {
+                await _toolService.DeleteToolAsync(SelectedTool.ToolID);
+                await LoadToolsAsync();
+                await FilterToolsAsync();
+                SelectedTool = null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete tool {ToolID}", SelectedTool.ToolID);
+                _dialogService.ShowInfo($"Failed to delete tool: {ex.Message}", "Error");
+            }
         }
 
         async Task OpenRentalsAsync()
