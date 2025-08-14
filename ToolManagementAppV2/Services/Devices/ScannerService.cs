@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.NetworkInformation;
+using System.Threading;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models;
@@ -21,10 +22,14 @@ namespace ToolManagementAppV2.Services.Devices
             _logger = logger ?? NullLogger<ScannerService>.Instance;
         }
 
-        public async Task<IEnumerable<ScannerDevice>> GetScannerDevicesAsync()
+        public async Task<IEnumerable<ScannerDevice>> GetScannerDevicesAsync(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var tasks = _settingsService.GetScannerIpAddresses().Select(async ip =>
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var device = new ScannerDevice
                 {
                     Name = $"Scanner {ip}",

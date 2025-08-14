@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models;
@@ -16,7 +17,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     {
         public int CallCount { get; private set; }
 
-        public Task<IEnumerable<ScannerDevice>> GetScannerDevicesAsync()
+        public Task<IEnumerable<ScannerDevice>> GetScannerDevicesAsync(CancellationToken cancellationToken)
         {
             CallCount++;
             IEnumerable<ScannerDevice> result = new[]

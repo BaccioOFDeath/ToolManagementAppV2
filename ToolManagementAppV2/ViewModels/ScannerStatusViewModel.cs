@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using ToolManagementAppV2.Interfaces;
@@ -39,13 +40,13 @@ namespace ToolManagementAppV2.ViewModels
             _service = service;
             RefreshCommand = new AsyncRelayCommand(RefreshAsync);
             _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
-            _timer.Tick += async (s, e) => await RefreshAsync();
+            _timer.Tick += async (s, e) => await RefreshAsync(CancellationToken.None);
         }
 
-        async Task RefreshAsync()
+        async Task RefreshAsync(CancellationToken cancellationToken)
         {
             Devices.Clear();
-            var devices = await _service.GetScannerDevicesAsync();
+            var devices = await _service.GetScannerDevicesAsync(cancellationToken);
             foreach (var d in devices)
                 Devices.Add(d);
         }
