@@ -14,8 +14,7 @@
         </Border>
 
         <!-- AVATAR GRID -->
-        <ListBox x:Name="AvatarListBox"
-                 DockPanel.Dock="Top"
+        <ListBox DockPanel.Dock="Top"
                  Margin="0,4,0,0"
                  ItemsSource="{Binding Avatars}">
             <ListBox.ItemsPanel>
