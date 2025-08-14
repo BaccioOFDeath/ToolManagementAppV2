@@ -24,34 +24,58 @@ namespace ToolManagementAppV2.Services.Settings
 
         public void SaveSetting(string key, string value)
         {
-            var p = new[]
+            try
             {
-                new SQLiteParameter("@Key", key),
-                new SQLiteParameter("@Value", value)
-            };
-            using var conn = _dbService.CreateConnection();
-            SqliteHelper.ExecuteNonQuery(conn, UpsertSql, p);
+                var p = new[]
+                {
+                    new SQLiteParameter("@Key", key),
+                    new SQLiteParameter("@Value", value)
+                };
+                using var conn = _dbService.CreateConnection();
+                SqliteHelper.ExecuteNonQuery(conn, UpsertSql, p);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save setting {Key}", key);
+                throw new InvalidOperationException($"Failed to save setting '{key}'.", ex);
+            }
         }
 
         public string GetSetting(string key)
         {
-            const string sql = "SELECT Value FROM Settings WHERE Key = @Key";
-            using var conn = _dbService.CreateConnection();
-            using var cmd = new SQLiteCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@Key", key);
-            return cmd.ExecuteScalar()?.ToString();
+            try
+            {
+                const string sql = "SELECT Value FROM Settings WHERE Key = @Key";
+                using var conn = _dbService.CreateConnection();
+                using var cmd = new SQLiteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Key", key);
+                return cmd.ExecuteScalar()?.ToString();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve setting {Key}", key);
+                throw new InvalidOperationException($"Failed to retrieve setting '{key}'.", ex);
+            }
         }
 
         public Dictionary<string, string> GetAllSettings()
         {
-            var dict = new Dictionary<string, string>();
-            const string sql = "SELECT Key, Value FROM Settings";
-            using var conn = _dbService.CreateConnection();
-            using var cmd = new SQLiteCommand(sql, conn);
-            using var rdr = cmd.ExecuteReader();
-            while (rdr.Read())
-                dict[rdr["Key"].ToString()] = rdr["Value"].ToString();
-            return dict;
+            try
+            {
+                var dict = new Dictionary<string, string>();
+                const string sql = "SELECT Key, Value FROM Settings";
+                using var conn = _dbService.CreateConnection();
+                using var cmd = new SQLiteCommand(sql, conn);
+                using var rdr = cmd.ExecuteReader();
+                while (rdr.Read())
+                    dict[rdr["Key"].ToString()] = rdr["Value"].ToString();
+                return dict;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve all settings");
+                throw new InvalidOperationException("Failed to retrieve all settings.", ex);
+            }
         }
 
         /// <summary>
@@ -85,16 +109,24 @@ namespace ToolManagementAppV2.Services.Settings
             {
                 tx.Rollback();
                 _logger.LogError(ex, "Failed to update settings");
-                throw;
+                throw new InvalidOperationException("Failed to update settings.", ex);
             }
         }
 
         public void DeleteSetting(string key)
         {
-            const string sql = "DELETE FROM Settings WHERE Key = @Key";
-            var p = new[] { new SQLiteParameter("@Key", key) };
-            using var conn = _dbService.CreateConnection();
-            SqliteHelper.ExecuteNonQuery(conn, sql, p);
+            try
+            {
+                const string sql = "DELETE FROM Settings WHERE Key = @Key";
+                var p = new[] { new SQLiteParameter("@Key", key) };
+                using var conn = _dbService.CreateConnection();
+                SqliteHelper.ExecuteNonQuery(conn, sql, p);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete setting {Key}", key);
+                throw new InvalidOperationException($"Failed to delete setting '{key}'.", ex);
+            }
         }
     }
 }
