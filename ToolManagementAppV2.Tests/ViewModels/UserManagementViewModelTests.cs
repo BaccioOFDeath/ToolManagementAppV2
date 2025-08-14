@@ -11,6 +11,7 @@ using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.ViewModels.Rental;
 using ToolManagementAppV2.Views;
+using ToolManagementAppV2.Utilities.Helpers;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.ViewModels
@@ -159,7 +160,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
-                var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
+                var dialog = new StubDialogService();
+                var vm = new UserManagementViewModel(userService, new StubFileDialogService(), dialog);
                 userService.AddUser(new User { UserName = "user1", Password = "pw" });
                 vm.LoadUsers();
                 var user = vm.Users.First();
@@ -167,6 +169,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 vm.ResetPasswordFromRowCommand.Execute(user);
                 var updated = userService.GetAllUsers().First();
                 Assert.NotEqual(oldPwd, updated.Password);
+                Assert.Equal("Password Reset", dialog.LastInfoTitle);
+                Assert.StartsWith("Password reset to: ", dialog.LastInfoMessage);
+                var prefix = "Password reset to: ";
+                var newPwd = dialog.LastInfoMessage.Substring(prefix.Length);
+                Assert.True(SecurityHelper.VerifyPassword(newPwd, updated.Salt, updated.Password));
             }
             finally
             {
@@ -313,7 +320,13 @@ class StubFileDialogService : IFileDialogService
 
 class StubDialogService : IDialogService
 {
-    public void ShowInfo(string message, string title) { }
+    public string? LastInfoMessage { get; private set; }
+    public string? LastInfoTitle { get; private set; }
+    public void ShowInfo(string message, string title)
+    {
+        LastInfoMessage = message;
+        LastInfoTitle = title;
+    }
     public bool ShowConfirmation(string message, string title) => false;
     public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
     public void ShowToolDetails(ToolModel tool) { }
