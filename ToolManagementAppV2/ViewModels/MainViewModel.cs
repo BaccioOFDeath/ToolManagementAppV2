@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -95,7 +96,7 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand GlobalSearchCommand { get; }
         public IRelayCommand SwitchUserCommand { get; }
 
-        public IRelayCommand OpenRentalHistoryWindowCommand { get; }
+        public IAsyncRelayCommand<ToolModel?> OpenRentalHistoryWindowCommand { get; }
         public IRelayCommand OpenPrintPreviewWindowCommand { get; }
         public IRelayCommand OpenPrintLabelWindowCommand { get; }
         public IRelayCommand OpenScannerStatusWindowCommand { get; }
@@ -284,10 +285,12 @@ namespace ToolManagementAppV2.ViewModels
                 }
             });
 
-            OpenRentalHistoryWindowCommand = new RelayCommand(() =>
+            OpenRentalHistoryWindowCommand = new AsyncRelayCommand<ToolModel?>(async tool =>
             {
-                _dialogService.ShowRentalHistory(new ToolModel(), Enumerable.Empty<RentalModel>());
-            });
+                if (tool == null) return;
+                var history = await _rentalService.GetRentalHistoryForToolAsync(tool.ToolID);
+                _dialogService.ShowRentalHistory(tool, history);
+            }, tool => tool != null);
 
             OpenPrintPreviewWindowCommand = new RelayCommand(() =>
             {
