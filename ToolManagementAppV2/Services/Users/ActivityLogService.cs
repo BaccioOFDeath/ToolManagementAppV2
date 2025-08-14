@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 
@@ -10,46 +12,74 @@ namespace ToolManagementAppV2.Services.Users
     public class ActivityLogService
     {
         readonly DatabaseService _dbService;
+        readonly ILogger<ActivityLogService> _logger;
 
-        public ActivityLogService(DatabaseService dbService)
+        public ActivityLogService(DatabaseService dbService, ILogger<ActivityLogService>? logger = null)
         {
             _dbService = dbService;
+            _logger = logger ?? NullLogger<ActivityLogService>.Instance;
         }
 
-        public void LogAction(int userID, string userName, string action)
+        public virtual bool LogAction(int userID, string userName, string action)
         {
-            const string sql = @"
-                INSERT INTO ActivityLogs (UserID, UserName, Action)
-                VALUES (@UserID, @UserName, @Action)";
-            var p = new[]
+            try
             {
-                new SQLiteParameter("@UserID",   userID),
-                new SQLiteParameter("@UserName", userName),
-                new SQLiteParameter("@Action",   action)
-            };
-            using var conn = _dbService.CreateConnection();
-            SqliteHelper.ExecuteNonQuery(conn, sql, p);
+                const string sql = @"
+                    INSERT INTO ActivityLogs (UserID, UserName, Action)
+                    VALUES (@UserID, @UserName, @Action)";
+                var p = new[]
+                {
+                    new SQLiteParameter("@UserID",   userID),
+                    new SQLiteParameter("@UserName", userName),
+                    new SQLiteParameter("@Action",   action)
+                };
+                using var conn = _dbService.CreateConnection();
+                SqliteHelper.ExecuteNonQuery(conn, sql, p);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to log activity {Action}", action);
+                return false;
+            }
         }
 
-        public List<ActivityLog> GetRecentLogs(int count = 50)
+        public virtual List<ActivityLog>? GetRecentLogs(int count = 50)
         {
-            const string sql = @"
-                SELECT * FROM ActivityLogs
-                 ORDER BY Timestamp DESC
-                 LIMIT @Count";
-            var p = new[] { new SQLiteParameter("@Count", count) };
-            using var conn = _dbService.CreateConnection();
-            return SqliteHelper.ExecuteReader(conn, sql, p, MapLog);
+            try
+            {
+                const string sql = @"
+                    SELECT * FROM ActivityLogs
+                     ORDER BY Timestamp DESC
+                     LIMIT @Count";
+                var p = new[] { new SQLiteParameter("@Count", count) };
+                using var conn = _dbService.CreateConnection();
+                return SqliteHelper.ExecuteReader(conn, sql, p, MapLog);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve recent activity logs");
+                return null;
+            }
         }
 
-        public void PurgeOldLogs(DateTime threshold)
+        public virtual bool PurgeOldLogs(DateTime threshold)
         {
-            const string sql = @"
-                DELETE FROM ActivityLogs
-                 WHERE Timestamp < @Threshold";
-            var p = new[] { new SQLiteParameter("@Threshold", threshold) };
-            using var conn = _dbService.CreateConnection();
-            SqliteHelper.ExecuteNonQuery(conn, sql, p);
+            try
+            {
+                const string sql = @"
+                    DELETE FROM ActivityLogs
+                     WHERE Timestamp < @Threshold";
+                var p = new[] { new SQLiteParameter("@Threshold", threshold) };
+                using var conn = _dbService.CreateConnection();
+                SqliteHelper.ExecuteNonQuery(conn, sql, p);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to purge old activity logs prior to {Threshold}", threshold);
+                return false;
+            }
         }
 
         ActivityLog MapLog(IDataRecord r)

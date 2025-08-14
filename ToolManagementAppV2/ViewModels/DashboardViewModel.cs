@@ -93,7 +93,10 @@ namespace ToolManagementAppV2.ViewModels
             try
             {
                 RecentActivity.Clear();
-                foreach (var log in _activityLogService.GetRecentLogs(10))
+                var logs = _activityLogService.GetRecentLogs(10);
+                if (logs == null)
+                    return;
+                foreach (var log in logs)
                     RecentActivity.Add(log);
             }
             catch (Exception ex)
