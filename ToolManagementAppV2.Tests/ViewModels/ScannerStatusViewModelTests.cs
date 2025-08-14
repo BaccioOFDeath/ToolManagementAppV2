@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Services.Core;
@@ -15,24 +16,25 @@ namespace ToolManagementAppV2.Tests.ViewModels
     {
         public int CallCount { get; private set; }
 
-        public IEnumerable<ScannerDevice> GetScannerDevices()
+        public Task<IEnumerable<ScannerDevice>> GetScannerDevicesAsync()
         {
             CallCount++;
-            return new[]
+            IEnumerable<ScannerDevice> result = new[]
             {
                 new ScannerDevice { Name = "A", Ip = "1.1.1.1", Status = "Online", LastSeen = DateTime.Now }
             };
+            return Task.FromResult(result);
         }
     }
 
     public class ScannerStatusViewModelTests
     {
         [Fact]
-        public void RefreshCommand_PopulatesDevices()
+        public async Task RefreshCommand_PopulatesDevices()
         {
             var svc = new FakeScannerService();
             var vm = new ScannerStatusViewModel(svc);
-            vm.RefreshCommand.Execute(null);
+            await vm.RefreshCommand.ExecuteAsync(null);
             Assert.Single(vm.Devices);
             Assert.Equal(1, svc.CallCount);
         }
@@ -49,7 +51,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void RefreshCommand_UsesIpsFromSettings()
+        public async Task RefreshCommand_UsesIpsFromSettings()
         {
             var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
             try
@@ -59,7 +61,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 settings.SaveScannerIpAddresses(new[] { "127.0.0.1" });
                 var svc = new ScannerService(settings);
                 var vm = new ScannerStatusViewModel(svc);
-                vm.RefreshCommand.Execute(null);
+                await vm.RefreshCommand.ExecuteAsync(null);
                 Assert.Single(vm.Devices);
                 Assert.Equal("127.0.0.1", vm.Devices[0].Ip);
             }

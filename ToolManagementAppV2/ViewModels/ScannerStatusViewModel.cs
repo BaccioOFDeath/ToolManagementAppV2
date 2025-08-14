@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models;
@@ -29,22 +30,23 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        public IRelayCommand RefreshCommand { get; }
+        public IAsyncRelayCommand RefreshCommand { get; }
 
         internal bool IsTimerRunning => _timer.IsEnabled;
 
         public ScannerStatusViewModel(IScannerService service)
         {
             _service = service;
-            RefreshCommand = new RelayCommand(Refresh);
+            RefreshCommand = new AsyncRelayCommand(RefreshAsync);
             _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
-            _timer.Tick += (s, e) => Refresh();
+            _timer.Tick += async (s, e) => await RefreshAsync();
         }
 
-        void Refresh()
+        async Task RefreshAsync()
         {
             Devices.Clear();
-            foreach (var d in _service.GetScannerDevices())
+            var devices = await _service.GetScannerDevicesAsync();
+            foreach (var d in devices)
                 Devices.Add(d);
         }
     }
