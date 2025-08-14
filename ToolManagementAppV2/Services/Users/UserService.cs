@@ -121,9 +121,9 @@ namespace ToolManagementAppV2.Services.Users
         {
             const string sql = @"
                 INSERT INTO Users
-                  (UserName, Password, Salt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt)
+                  (UserName, Password, Salt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired)
                 VALUES
-                  (@UserName,@Password,@Salt,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role,@IsActive,@CreatedAt);
+                  (@UserName,@Password,@Salt,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role,@IsActive,@CreatedAt,@PasswordExpired);
                 SELECT last_insert_rowid();";
 
             using var conn = _dbService.CreateConnection();
@@ -159,7 +159,8 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@Address",  (object)user.Address ?? DBNull.Value),
                 new SQLiteParameter("@Role",     (object)user.Role ?? DBNull.Value),
                 new SQLiteParameter("@IsActive", user.IsActive ? 1 : 0),
-                new SQLiteParameter("@CreatedAt", user.CreatedAt)
+                new SQLiteParameter("@CreatedAt", user.CreatedAt),
+                new SQLiteParameter("@PasswordExpired", user.PasswordExpired ? 1 : 0)
             });
             user.UserID = Convert.ToInt32(cmd.ExecuteScalar());
             user.Password = hashed;
@@ -180,7 +181,8 @@ namespace ToolManagementAppV2.Services.Users
                   Mobile        = @Mobile,
                   Address       = @Address,
                   Role          = @Role,
-                  IsActive      = @IsActive
+                  IsActive      = @IsActive,
+                  PasswordExpired = @PasswordExpired
                 WHERE UserID = @UserID";
 
             string hashed = user.Password;
@@ -203,7 +205,8 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@Mobile",   (object)user.Mobile ?? DBNull.Value),
                 new SQLiteParameter("@Address",  (object)user.Address ?? DBNull.Value),
                 new SQLiteParameter("@Role",     (object)user.Role ?? DBNull.Value),
-                new SQLiteParameter("@IsActive", user.IsActive ? 1 : 0)
+                new SQLiteParameter("@IsActive", user.IsActive ? 1 : 0),
+                new SQLiteParameter("@PasswordExpired", user.PasswordExpired ? 1 : 0)
             };
 
             using var conn = _dbService.CreateConnection();
@@ -214,7 +217,7 @@ namespace ToolManagementAppV2.Services.Users
 
         public void ChangeUserPassword(int userID, string newPassword)
         {
-            var sql = "UPDATE Users SET Password=@Pwd, Salt=@Salt WHERE UserID=@ID";
+            var sql = "UPDATE Users SET Password=@Pwd, Salt=@Salt, PasswordExpired=@Expired WHERE UserID=@ID";
             string hashed = string.Empty;
             string salt = string.Empty;
             if (!string.IsNullOrWhiteSpace(newPassword))
@@ -222,10 +225,13 @@ namespace ToolManagementAppV2.Services.Users
                 hashed = SecurityHelper.HashPassword(newPassword, out salt);
             }
 
+            var expired = newPassword == "admin" || newPassword == "changeme" || newPassword == "newpassword";
+
             var p = new[]
             {
                 new SQLiteParameter("@Pwd", hashed),
                 new SQLiteParameter("@Salt", salt),
+                new SQLiteParameter("@Expired", expired ? 1 : 0),
                 new SQLiteParameter("@ID",  userID)
             };
             using var conn = _dbService.CreateConnection();
@@ -275,7 +281,8 @@ namespace ToolManagementAppV2.Services.Users
                 IsActive = rdr["IsActive"] != DBNull.Value && Convert.ToInt32(rdr["IsActive"]) == 1,
                 CreatedAt = rdr["CreatedAt"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(rdr["CreatedAt"]),
                 FailedAttempts = rdr["FailedAttempts"] == DBNull.Value ? 0 : Convert.ToInt32(rdr["FailedAttempts"]),
-                LockoutUntil = rdr["LockoutUntil"] == DBNull.Value ? null : Convert.ToDateTime(rdr["LockoutUntil"])
+                LockoutUntil = rdr["LockoutUntil"] == DBNull.Value ? null : Convert.ToDateTime(rdr["LockoutUntil"]),
+                PasswordExpired = rdr["PasswordExpired"] != DBNull.Value && Convert.ToInt32(rdr["PasswordExpired"]) == 1
             };
         }
 
@@ -473,7 +480,7 @@ namespace ToolManagementAppV2.Services.Users
 
         public async Task ChangeUserPasswordAsync(int userID, string newPassword)
         {
-            var sql = "UPDATE Users SET Password=@Pwd, Salt=@Salt WHERE UserID=@ID";
+            var sql = "UPDATE Users SET Password=@Pwd, Salt=@Salt, PasswordExpired=@Expired WHERE UserID=@ID";
             string hashed = string.Empty;
             string salt = string.Empty;
             if (!string.IsNullOrWhiteSpace(newPassword))
@@ -481,10 +488,13 @@ namespace ToolManagementAppV2.Services.Users
                 hashed = SecurityHelper.HashPassword(newPassword, out salt);
             }
 
+            var expired = newPassword == "admin" || newPassword == "changeme" || newPassword == "newpassword";
+
             var p = new[]
             {
                 new SQLiteParameter("@Pwd", hashed),
                 new SQLiteParameter("@Salt", salt),
+                new SQLiteParameter("@Expired", expired ? 1 : 0),
                 new SQLiteParameter("@ID",  userID)
             };
             using var conn = _dbService.CreateConnection();

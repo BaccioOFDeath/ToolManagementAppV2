@@ -56,6 +56,12 @@ namespace ToolManagementAppV2.ViewModels
         /// </summary>
         public event EventHandler? LoginSucceeded;
 
+        public Func<string?> PromptForNewPassword { get; set; } = () =>
+        {
+            var dlg = new Views.ChangePasswordWindow();
+            return dlg.ShowDialog() == true ? dlg.NewPassword : null;
+        };
+
         public LoginViewModel(IUserService userService, ISettingsService settingsService, IDialogService dialogService, IUserContext userContext)
         {
             _settingsService = settingsService;
@@ -142,6 +148,7 @@ namespace ToolManagementAppV2.ViewModels
                 {
                     user.Password = refreshed.Password;
                     user.Salt = refreshed.Salt;
+                    user.PasswordExpired = refreshed.PasswordExpired;
                 }
             }
 
@@ -149,6 +156,8 @@ namespace ToolManagementAppV2.ViewModels
                 (string.IsNullOrWhiteSpace(user.Password) ||
                  SecurityHelper.VerifyPassword("newpassword", user.Salt, user.Password)))
             {
+                if (user.PasswordExpired && !PromptChangePassword(user))
+                    return;
                 _userContext.CurrentUser = user;
                 LoginSucceeded?.Invoke(this, EventArgs.Empty);
                 return;
@@ -173,6 +182,7 @@ namespace ToolManagementAppV2.ViewModels
                     {
                         user.Password = refreshed.Password;
                         user.Salt = refreshed.Salt;
+                        user.PasswordExpired = refreshed.PasswordExpired;
                     }
                     LoadUsers();
                     _dialogService.ShowInfo("Password has been reset to default. Please enter the new password to login.",
@@ -183,11 +193,29 @@ namespace ToolManagementAppV2.ViewModels
                 var credential = _userService.AuthenticateUser(user.UserName, prompt.EnteredPassword);
                 if (credential != null)
                 {
+                    if (credential.PasswordExpired && !PromptChangePassword(credential))
+                        return;
                     _userContext.CurrentUser = credential;
                     LoginSucceeded?.Invoke(this, EventArgs.Empty);
                     passwordValidated = true;
                 }
             }
+        }
+
+        bool PromptChangePassword(User user)
+        {
+            var newPwd = PromptForNewPassword?.Invoke();
+            if (string.IsNullOrWhiteSpace(newPwd))
+                return false;
+            _userService.ChangeUserPassword(user.UserID, newPwd);
+            var refreshed = _userService.GetUserByID(user.UserID);
+            if (refreshed != null)
+            {
+                user.Password = refreshed.Password;
+                user.Salt = refreshed.Salt;
+                user.PasswordExpired = refreshed.PasswordExpired;
+            }
+            return true;
         }
     }
 }

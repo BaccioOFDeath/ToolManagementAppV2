@@ -169,4 +169,31 @@ public class UserAuthenticationTests
                 File.Delete(dbPath);
         }
     }
+
+    [Fact]
+    public void ChangeUserPassword_SetsPasswordExpiredFlag()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+
+            var user = new User { UserName = "flag", Password = "secret", IsAdmin = false };
+            userService.AddUser(user);
+
+            userService.ChangeUserPassword(user.UserID, "admin");
+            var updated = userService.GetAllUsers().First();
+            Assert.True(updated.PasswordExpired);
+
+            userService.ChangeUserPassword(user.UserID, "newpass");
+            updated = userService.GetAllUsers().First();
+            Assert.False(updated.PasswordExpired);
+        }
+        finally
+        {
+            if (File.Exists(dbPath))
+                File.Delete(dbPath);
+        }
+    }
 }

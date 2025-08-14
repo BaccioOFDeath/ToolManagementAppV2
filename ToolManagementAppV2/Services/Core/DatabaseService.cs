@@ -60,6 +60,7 @@ namespace ToolManagementAppV2.Services.Core
             EnsureColumn("Users", "CreatedAt", "DATETIME");
             EnsureColumn("Users", "FailedAttempts", "INTEGER", "0");
             EnsureColumn("Users", "LockoutUntil", "DATETIME");
+            EnsureColumn("Users", "PasswordExpired", "INTEGER", "0");
         }
 
         public void Dispose()
@@ -129,7 +130,8 @@ namespace ToolManagementAppV2.Services.Core
                     IsActive INTEGER NOT NULL DEFAULT 1,
                     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     FailedAttempts INTEGER NOT NULL DEFAULT 0,
-                    LockoutUntil DATETIME
+                    LockoutUntil DATETIME,
+                    PasswordExpired INTEGER NOT NULL DEFAULT 0
                 );
                 CREATE TABLE IF NOT EXISTS Customers (
                     CustomerID INTEGER PRIMARY KEY AUTOINCREMENT,
