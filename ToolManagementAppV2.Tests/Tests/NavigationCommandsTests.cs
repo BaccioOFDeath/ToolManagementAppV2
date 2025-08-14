@@ -13,20 +13,21 @@ using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Views;
 using Xunit;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ToolManagementAppV2.Tests.Tests
 {
     public class NavigationCommandsTests
     {
         [Fact]
-        public void OpenSearchToolsCommand_NavigatesToToolSearchPage()
+        public async Task OpenSearchToolsCommand_NavigatesToToolSearchPage()
         {
             var (window, dbPath) = TestHelpers.CreateMainWindow();
             try
             {
                 var vm = Assert.IsType<MainViewModel>(window.DataContext);
 
-                vm.OpenSearchToolsCommand.Execute(null);
+                await vm.OpenSearchToolsCommand.ExecuteAsync(null);
 
                 Assert.IsType<ToolSearchPage>(vm.CurrentPage);
             }
@@ -39,7 +40,7 @@ namespace ToolManagementAppV2.Tests.Tests
         }
 
         [Fact]
-        public void OpenSearchToolsCommand_LoadsToolsAndSetsDataContext()
+        public async Task OpenSearchToolsCommand_LoadsToolsAndSetsDataContext()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -55,7 +56,7 @@ namespace ToolManagementAppV2.Tests.Tests
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
 
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
-                vm.OpenSearchToolsCommand.Execute(null);
+                await vm.OpenSearchToolsCommand.ExecuteAsync(null);
 
                 var page = Assert.IsType<ToolSearchPage>(vm.CurrentPage);
                 Assert.Same(vm.ToolManagement, page.DataContext);
