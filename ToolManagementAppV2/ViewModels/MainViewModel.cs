@@ -136,7 +136,7 @@ namespace ToolManagementAppV2.ViewModels
             UserManagement = new UserManagementViewModel(userService, fileDialogService, _dialogService);
             CustomerManagement = new CustomerManagementViewModel(customerService, _dialogService);
             ManageRentals = new ManageRentalsViewModel(rentalService, _dialogService);
-            ImportExport = new ImportExportViewModel(toolService, customerService, fileDialogService, databaseService);
+            ImportExport = new ImportExportViewModel(toolService, customerService, fileDialogService, databaseService, _dialogService);
             Reports = new ReportsViewModel(new ReportService(toolService, rentalService, activityLogService, customerService, userService));
             ActivityLogs = new ActivityLogsViewModel(activityLogService);
 
