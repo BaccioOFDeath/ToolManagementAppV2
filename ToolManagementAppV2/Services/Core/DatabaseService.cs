@@ -170,6 +170,8 @@ namespace ToolManagementAppV2.Services.Core
             EnsureIndex(conn, "Tools", "Notes");
             EnsureIndex(conn, "Tools", "Keywords");
             EnsureIndex(conn, "Users", "UserName");
+            EnsureIndex(conn, "Customers", "Contact");
+            EnsureIndex(conn, "Rentals", new[] { "ToolID", "CustomerID" });
         }
 
         void EnsureColumn(string table, string column, string type, string? defaultValue = null)
@@ -202,13 +204,17 @@ namespace ToolManagementAppV2.Services.Core
         }
 
         void EnsureIndex(SQLiteConnection conn, string table, string column, bool unique = false)
+            => EnsureIndex(conn, table, new[] { column }, unique);
+
+        void EnsureIndex(SQLiteConnection conn, string table, string[] columns, bool unique = false)
         {
-            var indexName = $"idx_{table}_{column}";
+            var indexName = $"idx_{table}_{string.Join("_", columns)}";
             if (SqliteHelper.IndexExists(conn, indexName)) return;
             try
             {
                 var uniqueSql = unique ? "UNIQUE" : string.Empty;
-                using var cmd = new SQLiteCommand($"CREATE {uniqueSql} INDEX {indexName} ON {table}({column})", conn);
+                var columnsSql = string.Join(", ", columns);
+                using var cmd = new SQLiteCommand($"CREATE {uniqueSql} INDEX {indexName} ON {table}({columnsSql})", conn);
                 cmd.ExecuteNonQuery();
             }
             catch (SQLiteException ex)
@@ -219,7 +225,7 @@ namespace ToolManagementAppV2.Services.Core
                 }
                 else
                 {
-                    _logger.LogError(ex, "Failed to ensure index on {Table}.{Column}", table, column);
+                    _logger.LogError(ex, "Failed to ensure index on {Table}.{Columns}", table, string.Join(",", columns));
                     throw;
                 }
             }
