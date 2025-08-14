@@ -11,21 +11,18 @@ namespace ToolManagementAppV2.Services.Devices
     public class ScannerService : IScannerService
     {
         private readonly ILogger<ScannerService> _logger;
+        private readonly ISettingsService _settingsService;
 
-        public ScannerService(ILogger<ScannerService>? logger = null)
+        public ScannerService(ISettingsService settingsService, ILogger<ScannerService>? logger = null)
         {
+            _settingsService = settingsService;
             _logger = logger ?? NullLogger<ScannerService>.Instance;
         }
-        static readonly string[] IpAddresses = new[]
-        {
-            "192.168.1.10",
-            "192.168.1.11"
-        };
 
         public IEnumerable<ScannerDevice> GetScannerDevices()
         {
             var list = new List<ScannerDevice>();
-            foreach (var ip in IpAddresses)
+            foreach (var ip in _settingsService.GetScannerIpAddresses())
             {
                 var device = new ScannerDevice
                 {

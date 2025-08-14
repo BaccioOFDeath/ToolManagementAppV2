@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models;
+using ToolManagementAppV2.Services.Core;
+using ToolManagementAppV2.Services.Devices;
+using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.ViewModels;
 using Xunit;
 
@@ -42,6 +46,27 @@ namespace ToolManagementAppV2.Tests.ViewModels
             Assert.True(vm.IsTimerRunning);
             vm.AutoRefresh = false;
             Assert.False(vm.IsTimerRunning);
+        }
+
+        [Fact]
+        public void RefreshCommand_UsesIpsFromSettings()
+        {
+            var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var settings = new SettingsService(db);
+                settings.SaveScannerIpAddresses(new[] { "127.0.0.1" });
+                var svc = new ScannerService(settings);
+                var vm = new ScannerStatusViewModel(svc);
+                vm.RefreshCommand.Execute(null);
+                Assert.Single(vm.Devices);
+                Assert.Equal("127.0.0.1", vm.Devices[0].Ip);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
         }
     }
 }

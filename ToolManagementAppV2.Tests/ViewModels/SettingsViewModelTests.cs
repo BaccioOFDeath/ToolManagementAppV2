@@ -100,6 +100,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Dictionary<string, string> GetAllSettings() => new();
         public void UpdateSettings(Dictionary<string, string> settings) { }
         public void DeleteSetting(string key) { }
+        public IEnumerable<string> ScannerIps { get; set; } = Array.Empty<string>();
+        public IEnumerable<string> GetScannerIpAddresses() => ScannerIps;
+        public void SaveScannerIpAddresses(IEnumerable<string> ipAddresses) => ScannerIps = ipAddresses;
     }
 
     class StubDialogService : IDialogService

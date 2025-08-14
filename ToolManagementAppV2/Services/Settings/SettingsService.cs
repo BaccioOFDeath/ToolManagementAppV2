@@ -130,5 +130,21 @@ namespace ToolManagementAppV2.Services.Settings
                 throw new InvalidOperationException($"Failed to delete setting '{key}'.", ex);
             }
         }
+
+        const string ScannerIpKey = "ScannerIpAddresses";
+
+        public IEnumerable<string> GetScannerIpAddresses()
+        {
+            var value = GetSetting(ScannerIpKey);
+            if (string.IsNullOrWhiteSpace(value))
+                return Array.Empty<string>();
+            return value.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        }
+
+        public void SaveScannerIpAddresses(IEnumerable<string> ipAddresses)
+        {
+            var value = string.Join(';', ipAddresses);
+            SaveSetting(ScannerIpKey, value);
+        }
     }
 }

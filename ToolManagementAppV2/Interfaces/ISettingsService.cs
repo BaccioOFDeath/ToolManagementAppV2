@@ -9,5 +9,7 @@ namespace ToolManagementAppV2.Interfaces
         Dictionary<string, string> GetAllSettings();
         void UpdateSettings(Dictionary<string, string> settings);
         void DeleteSetting(string key);
+        IEnumerable<string> GetScannerIpAddresses();
+        void SaveScannerIpAddresses(IEnumerable<string> ipAddresses);
     }
 }
