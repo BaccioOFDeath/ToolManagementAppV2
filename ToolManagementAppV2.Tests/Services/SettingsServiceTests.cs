@@ -208,5 +208,43 @@ namespace ToolManagementAppV2.Tests.Services
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void GetPasswordIterations_ReturnsDefault()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                ISettingsService service = new SettingsService(dbService);
+
+                var iterations = service.GetPasswordIterations();
+                Assert.Equal(100_000, iterations);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void SaveAndRetrievePasswordIterations()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                ISettingsService service = new SettingsService(dbService);
+
+                service.SavePasswordIterations(50_000);
+                Assert.Equal(50_000, service.GetPasswordIterations());
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }

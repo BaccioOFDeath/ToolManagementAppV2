@@ -1,11 +1,24 @@
 using System.Security.Cryptography;
 using System.Text;
+using ToolManagementAppV2.Interfaces;
 
 namespace ToolManagementAppV2.Utilities.Helpers
 {
     public static class SecurityHelper
     {
-        const int Iterations = 100_000;
+        const int DefaultIterations = 100_000;
+        static int? _iterations;
+        static ISettingsService? _settingsService;
+
+        public static ISettingsService? SettingsService
+        {
+            get => _settingsService;
+            set
+            {
+                _settingsService = value;
+                _iterations = null;
+            }
+        }
         const string PasswordChars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789!@#$%^&*";
 
         public static bool IsSha256Hash(string input)
@@ -32,7 +45,7 @@ namespace ToolManagementAppV2.Utilities.Helpers
         public static string HashPassword(string password, string salt)
         {
             var saltBytes = Convert.FromBase64String(salt);
-            using var pbkdf2 = new Rfc2898DeriveBytes(password, saltBytes, Iterations, HashAlgorithmName.SHA256);
+            using var pbkdf2 = new Rfc2898DeriveBytes(password, saltBytes, GetIterations(), HashAlgorithmName.SHA256);
             return Convert.ToBase64String(pbkdf2.GetBytes(32));
         }
 
@@ -68,6 +81,16 @@ namespace ToolManagementAppV2.Utilities.Helpers
                 builder.Append(b.ToString("x2"));
             }
             return builder.ToString();
+        }
+
+        static int GetIterations()
+        {
+            if (_iterations.HasValue)
+                return _iterations.Value;
+
+            var value = _settingsService?.GetPasswordIterations();
+            _iterations = value > 0 ? value : DefaultIterations;
+            return _iterations.Value;
         }
     }
 }
