@@ -1,3 +1,4 @@
+using System;
 using System.Security.Cryptography;
 using System.Text;
 using ToolManagementAppV2.Interfaces;
@@ -51,11 +52,20 @@ namespace ToolManagementAppV2.Utilities.Helpers
 
         public static bool VerifyPassword(string password, string salt, string hash)
         {
-            if (string.IsNullOrEmpty(salt))
+            if (string.IsNullOrEmpty(salt) || string.IsNullOrEmpty(hash))
                 return false;
 
             var computed = HashPassword(password, salt);
-            return computed == hash;
+            try
+            {
+                var computedBytes = Convert.FromBase64String(computed);
+                var hashBytes = Convert.FromBase64String(hash);
+                return CryptographicOperations.FixedTimeEquals(computedBytes, hashBytes);
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
         }
 
         public static string GeneratePassword(int length = 12)
