@@ -9,6 +9,8 @@ using System.Windows;
 using System.Windows.Documents;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -20,6 +22,7 @@ namespace ToolManagementAppV2.ViewModels
     {
         private readonly IRentalService _rentalService;
         private readonly IDialogService _dialogService;
+        private readonly ILogger<ManageRentalsViewModel> _logger;
         private List<RentalModel> _allRentals = new();
 
         public ObservableCollection<RentalModel> Rentals { get; } = new();
@@ -82,10 +85,11 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand PrintRentalCommand { get; }
         public IAsyncRelayCommand DeleteRentalCommand { get; }
 
-        public ManageRentalsViewModel(IRentalService rentalService, IDialogService dialogService)
+        public ManageRentalsViewModel(IRentalService rentalService, IDialogService dialogService, ILogger<ManageRentalsViewModel>? logger = null)
         {
             _rentalService = rentalService;
             _dialogService = dialogService;
+            _logger = logger ?? NullLogger<ManageRentalsViewModel>.Instance;
 
             ApplyFilterCommand = new RelayCommand(ApplyFilter);
             ClearFilterCommand = new RelayCommand(ClearFilter);
@@ -101,8 +105,16 @@ namespace ToolManagementAppV2.ViewModels
         /// <summary>Loads all rentals from the service.</summary>
         public async Task LoadRentalsAsync()
         {
-            _allRentals = await _rentalService.GetAllRentalsAsync();
-            Rentals.ReplaceRange(_allRentals);
+            try
+            {
+                _allRentals = await _rentalService.GetAllRentalsAsync();
+                Rentals.ReplaceRange(_allRentals);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load rentals");
+                _dialogService.ShowInfo($"Failed to load rentals: {ex.Message}", "Error");
+            }
         }
 
         void ApplyFilter()
@@ -154,34 +166,55 @@ namespace ToolManagementAppV2.ViewModels
         {
             if (SelectedRental == null)
                 return;
-
-            await _rentalService.ReturnToolAsync(SelectedRental.RentalID, DateTime.Today);
-            await LoadRentalsAsync();
+            try
+            {
+                await _rentalService.ReturnToolAsync(SelectedRental.RentalID, DateTime.Today);
+                await LoadRentalsAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to check in rental {RentalID}", SelectedRental.RentalID);
+                _dialogService.ShowInfo($"Failed to check in rental: {ex.Message}", "Error");
+            }
         }
 
         async Task ExtendAsync()
         {
             if (SelectedRental == null)
                 return;
-
-            var newDueDate = SelectedRental.DueDate.AddDays(7);
-            await _rentalService.ExtendRentalAsync(SelectedRental.RentalID, newDueDate);
-            await LoadRentalsAsync();
+            try
+            {
+                var newDueDate = SelectedRental.DueDate.AddDays(7);
+                await _rentalService.ExtendRentalAsync(SelectedRental.RentalID, newDueDate);
+                await LoadRentalsAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to extend rental {RentalID}", SelectedRental.RentalID);
+                _dialogService.ShowInfo($"Failed to extend rental: {ex.Message}", "Error");
+            }
         }
 
         async Task OpenHistoryAsync()
         {
             if (SelectedRental == null)
                 return;
-
-            var history = await _rentalService.GetRentalHistoryForToolAsync(SelectedRental.ToolID);
-            var tool = new ToolModel
+            try
             {
-                ToolID = SelectedRental.ToolID,
-                ToolNumber = SelectedRental.ToolNumber,
-                NameDescription = SelectedRental.ToolNumber
-            };
-            _dialogService.ShowRentalHistory(tool, history);
+                var history = await _rentalService.GetRentalHistoryForToolAsync(SelectedRental.ToolID);
+                var tool = new ToolModel
+                {
+                    ToolID = SelectedRental.ToolID,
+                    ToolNumber = SelectedRental.ToolNumber,
+                    NameDescription = SelectedRental.ToolNumber
+                };
+                _dialogService.ShowRentalHistory(tool, history);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to open rental history for tool {ToolID}", SelectedRental.ToolID);
+                _dialogService.ShowInfo($"Failed to load rental history: {ex.Message}", "Error");
+            }
         }
 
         void PrintRental()
@@ -236,9 +269,17 @@ namespace ToolManagementAppV2.ViewModels
         {
             if (SelectedRental == null)
                 return;
-            await _rentalService.DeleteRentalAsync(SelectedRental.RentalID);
-            _allRentals.Remove(SelectedRental);
-            Rentals.Remove(SelectedRental);
+            try
+            {
+                await _rentalService.DeleteRentalAsync(SelectedRental.RentalID);
+                _allRentals.Remove(SelectedRental);
+                Rentals.Remove(SelectedRental);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete rental {RentalID}", SelectedRental.RentalID);
+                _dialogService.ShowInfo($"Failed to delete rental: {ex.Message}", "Error");
+            }
         }
     }
 }

@@ -220,11 +220,45 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public async Task CheckInCommand_ShowsDialogOnFailure()
+        {
+            var rentals = new List<Rental>
+            {
+                new Rental
+                {
+                    RentalID = 1,
+                    ToolID = 1,
+                    ToolNumber = "T1",
+                    CustomerID = 1,
+                    CustomerName = "C1",
+                    RentalDate = DateTime.Today,
+                    DueDate = DateTime.Today.AddDays(1),
+                    Status = "Rented"
+                }
+            };
+            var rentalService = new ExceptionRentalService(rentals);
+            var dialog = new StubDialogService();
+            var vm = new ManageRentalsViewModel(rentalService, dialog);
+            await vm.LoadRentalsAsync();
+            vm.SelectedRental = vm.Rentals.First();
+
+            await vm.CheckInCommand.ExecuteAsync(null);
+
+            Assert.Contains("boom", dialog.LastInfoMessage);
+        }
     }
 
     class StubDialogService : IDialogService
     {
-        public void ShowInfo(string message, string title) { }
+        public string? LastInfoMessage { get; private set; }
+        public string? LastInfoTitle { get; private set; }
+        public void ShowInfo(string message, string title)
+        {
+            LastInfoMessage = message;
+            LastInfoTitle = title;
+        }
         public bool ShowConfirmation(string message, string title) => false;
         public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
         public void ShowToolDetails(ToolModel tool) { }
@@ -237,5 +271,29 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
         public void ShowPrintLabelDialog() { }
         public void ShowScannerStatus() { }
+    }
+
+    class ExceptionRentalService : IRentalService
+    {
+        readonly List<Rental> _rentals;
+        public ExceptionRentalService(List<Rental> rentals) => _rentals = rentals;
+        public Task<List<Rental>> GetAllRentalsAsync() => Task.FromResult(_rentals);
+        public Task ReturnToolAsync(int rentalID, DateTime returnDate) => throw new InvalidOperationException("boom");
+        public void RentTool(int toolID, int customerID, DateTime rentalDate, DateTime dueDate) => throw new NotImplementedException();
+        public Task RentToolAsync(int toolID, int customerID, DateTime rentalDate, DateTime dueDate) => throw new NotImplementedException();
+        public void ReturnTool(int rentalID, DateTime returnDate) => throw new NotImplementedException();
+        public void ExtendRental(int rentalID, DateTime newDueDate) => throw new NotImplementedException();
+        public Task ExtendRentalAsync(int rentalID, DateTime newDueDate) => throw new NotImplementedException();
+        public void DeleteRental(int rentalID) => throw new NotImplementedException();
+        public Task DeleteRentalAsync(int rentalID) => throw new NotImplementedException();
+        public List<Rental> GetActiveRentals() => throw new NotImplementedException();
+        public Task<List<Rental>> GetActiveRentalsAsync() => throw new NotImplementedException();
+        public List<Rental> GetOverdueRentals() => throw new NotImplementedException();
+        public Task<List<Rental>> GetOverdueRentalsAsync() => throw new NotImplementedException();
+        public List<Rental> GetAllRentals() => throw new NotImplementedException();
+        public List<Rental> GetRentalHistoryForTool(int toolID) => throw new NotImplementedException();
+        public Task<List<Rental>> GetRentalHistoryForToolAsync(int toolID) => throw new NotImplementedException();
+        public List<Rental> GetRentalHistoryForCustomer(int customerID) => throw new NotImplementedException();
+        public Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID) => throw new NotImplementedException();
     }
 }
