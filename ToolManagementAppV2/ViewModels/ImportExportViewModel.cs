@@ -3,8 +3,11 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Models.ImportExport;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -16,6 +19,7 @@ namespace ToolManagementAppV2.ViewModels
         private readonly ICustomerService _customerService;
         private readonly IFileDialogService _fileDialogService;
         private readonly IDatabaseBackupService _databaseService;
+        private readonly IDialogService _dialogService;
         private readonly ILogger<ImportExportViewModel> _logger;
 
         public IRelayCommand ImportToolsCommand { get; }
@@ -38,12 +42,14 @@ namespace ToolManagementAppV2.ViewModels
                                      ICustomerService customerService,
                                      IFileDialogService fileDialogService,
                                      IDatabaseBackupService databaseService,
+                                     IDialogService dialogService,
                                      ILogger<ImportExportViewModel>? logger = null)
         {
             _toolService = toolService;
             _customerService = customerService;
             _fileDialogService = fileDialogService;
             _databaseService = databaseService;
+            _dialogService = dialogService;
             _logger = logger ?? NullLogger<ImportExportViewModel>.Instance;
             ImportToolsCommand = new RelayCommand(ImportTools);
             ExportToolsCommand = new RelayCommand(ExportTools);
@@ -58,7 +64,12 @@ namespace ToolManagementAppV2.ViewModels
             if (string.IsNullOrEmpty(path)) return;
             try
             {
-                _toolService.ImportToolsFromCsv(path, new Dictionary<string, string>());
+                var headers = File.ReadLines(path).First().Split(',').Select(h => h.Trim());
+                var properties = typeof(ToolImportDto).GetProperties().Select(p => p.Name);
+                var map = _dialogService.ShowImportMapping(headers, properties);
+                if (map == null)
+                    return;
+                _toolService.ImportToolsFromCsv(path, map);
                 ImportExportLogs.Add($"Successfully imported tools from {path}.");
             }
             catch (Exception ex)
@@ -90,7 +101,12 @@ namespace ToolManagementAppV2.ViewModels
             if (string.IsNullOrEmpty(path)) return;
             try
             {
-                var result = _customerService.ImportCustomersFromCsv(path, new Dictionary<string, string>());
+                var headers = File.ReadLines(path).First().Split(',').Select(h => h.Trim());
+                var properties = typeof(CustomerImportDto).GetProperties().Select(p => p.Name);
+                var map = _dialogService.ShowImportMapping(headers, properties);
+                if (map == null)
+                    return;
+                var result = _customerService.ImportCustomersFromCsv(path, map);
                 ImportExportLogs.Add($"Successfully imported customers from {path}. Imported {result.ImportedCount} customers.");
                 foreach (var msg in result.SkippedRows)
                     ImportExportLogs.Add($"Skipped {msg}");
