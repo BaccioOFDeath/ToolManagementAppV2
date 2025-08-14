@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Models;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.ViewModels
@@ -34,6 +35,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
             var vm = new PrintLabelViewModel(ds, () => { }, _ => throw new Exception("print failed"));
             vm.PrintCommand.Execute(null);
             Assert.True(ds.InfoShown);
+        }
+
+        [Fact]
+        public void Items_Accepts_ToolModel()
+        {
+            var vm = new PrintLabelViewModel(new StubDialogService(), () => { });
+            vm.Items.Add(new ToolModel { ToolNumber = "T1" });
+            Assert.Single(vm.Items);
         }
     }
 

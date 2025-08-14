@@ -4,7 +4,6 @@ using System.Windows.Documents;
 using System.Windows.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Interfaces;
 
 namespace ToolManagementAppV2.ViewModels
@@ -31,7 +30,7 @@ namespace ToolManagementAppV2.ViewModels
             set => SetProperty(ref _includeQr, value);
         }
 
-        public ObservableCollection<Tool> Items { get; }
+        public ObservableCollection<ToolModel> Items { get; }
 
         public IRelayCommand PreviewCommand { get; }
         public IRelayCommand PrintCommand { get; }
@@ -49,7 +48,7 @@ namespace ToolManagementAppV2.ViewModels
             });
             Templates = new ObservableCollection<string> { "Standard", "Compact" };
             _selectedTemplate = Templates.First();
-            Items = new ObservableCollection<Tool>();
+            Items = new ObservableCollection<ToolModel>();
             PreviewCommand = new RelayCommand(Preview);
             PrintCommand = new RelayCommand(Print);
             CloseCommand = new RelayCommand(() => _closeAction?.Invoke());
