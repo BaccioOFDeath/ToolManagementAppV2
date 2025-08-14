@@ -7,6 +7,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Utilities;
 using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.Services;
 using Microsoft.Extensions.Logging;
@@ -87,6 +88,8 @@ namespace ToolManagementAppV2.ViewModels
         public IAsyncRelayCommand OpenRentalsCommand { get; }
         public IRelayCommand ViewDetailsCommand { get; }
 
+        readonly IDispatcherTimer _searchDebounceTimer;
+
         // Writable for TwoWay binding from XAML. Mirrors SearchTerm and triggers search.
         private string _searchText = string.Empty;
         public string SearchText
@@ -97,7 +100,8 @@ namespace ToolManagementAppV2.ViewModels
                 if (SetProperty(ref _searchText, value))
                 {
                     SearchTerm = value;
-                    SearchCommand.Execute(null);
+                    _searchDebounceTimer.Stop();
+                    _searchDebounceTimer.Start();
                 }
             }
         }
@@ -106,7 +110,8 @@ namespace ToolManagementAppV2.ViewModels
                                        ICustomerService customerService,
                                        IRentalService rentalService,
                                        IDialogService dialogService,
-                                       ILogger<ToolManagementViewModel>? logger = null)
+                                       ILogger<ToolManagementViewModel>? logger = null,
+                                       IDispatcherTimer? searchDebounceTimer = null)
         {
             _toolService = toolService;
             _customerService = customerService;
@@ -114,6 +119,12 @@ namespace ToolManagementAppV2.ViewModels
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<ToolManagementViewModel>.Instance;
             SearchCommand = new AsyncRelayCommand(FilterToolsAsync);
+            _searchDebounceTimer = searchDebounceTimer ?? new DispatcherTimerWrapper { Interval = TimeSpan.FromMilliseconds(300) };
+            _searchDebounceTimer.Tick += (s, e) =>
+            {
+                _searchDebounceTimer.Stop();
+                SearchCommand.Execute(null);
+            };
             NewToolCommand = new AsyncRelayCommand(AddToolAsync);
             EditToolCommand = new AsyncRelayCommand(EditToolAsync, () => SelectedTool != null);
             DeleteToolCommand = new AsyncRelayCommand(DeleteToolAsync);
