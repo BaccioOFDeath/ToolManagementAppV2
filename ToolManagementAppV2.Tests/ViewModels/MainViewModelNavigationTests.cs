@@ -250,8 +250,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 vm.GlobalSearchText = "Ham";
 
-                vm.GlobalSearchCommand.Execute(null);
-                await vm.OpenSearchToolsCommand.ExecutionTask!;
+                await vm.GlobalSearchCommand.ExecuteAsync(null);
 
                 var page = Assert.IsType<ToolSearchPage>(vm.CurrentPage);
                 Assert.Equal("Ham", vm.ToolManagement.SearchText);

@@ -1,6 +1,8 @@
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using CommunityToolkit.Mvvm.Input;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Views;
 using Xunit;
@@ -58,6 +60,29 @@ namespace ToolManagementAppV2.Tests.Tests
             var powerFirst = (FrameworkElement)page.PowerToolsList.ItemContainerGenerator.ContainerFromIndex(0);
             Assert.True(handFirst.ActualWidth > 0 && handFirst.ActualHeight > 0);
             Assert.True(powerFirst.ActualWidth > 0 && powerFirst.ActualHeight > 0);
+        }
+
+        [Fact]
+        public void SearchButton_BoundToSearchCommand()
+        {
+            var executed = false;
+            var vm = new TestVm(() => executed = true);
+            var page = new ToolSearchPage { DataContext = vm };
+
+            var root = (Grid)page.Content;
+            var border = (Border)root.Children[0];
+            var innerGrid = (Grid)border.Child;
+            var button = Assert.IsType<Button>(innerGrid.Children[2]);
+
+            Assert.Same(vm.SearchCommand, button.Command);
+            button.Command.Execute(null);
+            Assert.True(executed);
+        }
+
+        class TestVm
+        {
+            public IRelayCommand SearchCommand { get; }
+            public TestVm(Action onExecute) => SearchCommand = new RelayCommand(onExecute);
         }
     }
 }

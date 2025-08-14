@@ -94,7 +94,7 @@ namespace ToolManagementAppV2.ViewModels
         public IAsyncRelayCommand OpenImportMappingWindowCommand { get; }
         public IRelayCommand OpenImageImportMappingWindowCommand { get; }
         public IRelayCommand ExitCommand { get; }
-        public IRelayCommand GlobalSearchCommand { get; }
+        public IAsyncRelayCommand GlobalSearchCommand { get; }
         public IRelayCommand SwitchUserCommand { get; }
 
         public IAsyncRelayCommand<ToolModel?> OpenRentalHistoryWindowCommand { get; }
@@ -236,11 +236,12 @@ namespace ToolManagementAppV2.ViewModels
                 }
             });
 
-            GlobalSearchCommand = new RelayCommand(() =>
+            GlobalSearchCommand = new AsyncRelayCommand(async () =>
             {
                 ToolManagement.SearchText = GlobalSearchText;
-                OpenSearchToolsCommand.Execute(null);
-                ToolManagement.SearchCommand?.Execute(null);
+                await OpenSearchToolsCommand.ExecuteAsync(null);
+                if (ToolManagement.SearchCommand != null)
+                    await ToolManagement.SearchCommand.ExecuteAsync(null);
                 GlobalSearchText = string.Empty;
             });
 
