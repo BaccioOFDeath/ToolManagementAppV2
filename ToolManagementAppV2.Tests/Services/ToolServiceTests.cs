@@ -45,6 +45,52 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
+        public void SearchTools_PartialMatch_ReturnsMatches()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                IToolService service = new ToolService(dbService);
+
+                service.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
+                service.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Saw" });
+
+                var results = service.SearchTools("Ham");
+                Assert.Single(results);
+                Assert.Equal("T1", results[0].ToolNumber);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void SearchTools_MultipleTermsAcrossColumns_ReturnsMatches()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                IToolService service = new ToolService(dbService);
+
+                service.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" });
+                service.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Hammer", Brand = "BrandB" });
+
+                var results = service.SearchTools("Hammer BrandA");
+                Assert.Single(results);
+                Assert.Equal("BrandA", results[0].Brand);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public void AddTool_SetsGeneratedToolID()
         {
             var dbPath = Path.GetTempFileName();
