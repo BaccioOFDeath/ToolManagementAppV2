@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Models.ImportExport;
@@ -190,6 +191,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
     class StubDatabaseBackupService : IDatabaseBackupService
     {
-        public System.Threading.Tasks.Task BackupDatabaseAsync(string backupFilePath) => System.Threading.Tasks.Task.CompletedTask;
+        public System.Threading.Tasks.Task BackupDatabaseAsync(string backupFilePath, CancellationToken cancellationToken)
+            => System.Threading.Tasks.Task.CompletedTask;
     }
 }
