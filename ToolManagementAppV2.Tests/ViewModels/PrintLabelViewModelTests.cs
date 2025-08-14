@@ -26,11 +26,21 @@ namespace ToolManagementAppV2.Tests.ViewModels
             vm.CloseCommand.Execute(null);
             Assert.True(closed);
         }
+
+        [Fact]
+        public void PrintCommand_WhenPrintFails_LogsError()
+        {
+            var ds = new StubDialogService();
+            var vm = new PrintLabelViewModel(ds, () => { }, _ => throw new Exception("print failed"));
+            vm.PrintCommand.Execute(null);
+            Assert.True(ds.InfoShown);
+        }
     }
 
     class StubDialogService : IDialogService
     {
-        public void ShowInfo(string message, string title) { }
+        public bool InfoShown { get; private set; }
+        public void ShowInfo(string message, string title) => InfoShown = true;
         public bool ShowConfirmation(string message, string title) => false;
         public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
         public void ShowToolDetails(ToolModel tool) { }
