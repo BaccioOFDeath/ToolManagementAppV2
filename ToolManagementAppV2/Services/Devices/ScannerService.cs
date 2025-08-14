@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.NetworkInformation;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models;
 using Microsoft.Extensions.Logging;
@@ -19,10 +21,9 @@ namespace ToolManagementAppV2.Services.Devices
             _logger = logger ?? NullLogger<ScannerService>.Instance;
         }
 
-        public IEnumerable<ScannerDevice> GetScannerDevices()
+        public async Task<IEnumerable<ScannerDevice>> GetScannerDevicesAsync()
         {
-            var list = new List<ScannerDevice>();
-            foreach (var ip in _settingsService.GetScannerIpAddresses())
+            var tasks = _settingsService.GetScannerIpAddresses().Select(async ip =>
             {
                 var device = new ScannerDevice
                 {
@@ -33,7 +34,7 @@ namespace ToolManagementAppV2.Services.Devices
                 try
                 {
                     using var ping = new Ping();
-                    var reply = ping.Send(ip, 1000);
+                    var reply = await ping.SendPingAsync(ip, 1000);
                     device.Status = reply.Status == IPStatus.Success ? "Online" : "Offline";
                 }
                 catch (Exception ex)
@@ -41,9 +42,10 @@ namespace ToolManagementAppV2.Services.Devices
                     _logger.LogError(ex, "Failed to ping scanner {Ip}", ip);
                     device.Status = "Error";
                 }
-                list.Add(device);
-            }
-            return list;
+                return device;
+            });
+
+            return await Task.WhenAll(tasks);
         }
     }
 }
