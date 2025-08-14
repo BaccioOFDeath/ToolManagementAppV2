@@ -8,6 +8,7 @@ using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Interfaces;
 using Xunit;
 using System.Threading.Tasks;
+using ToolManagementAppV2.Models.ImportExport;
 
 namespace ToolManagementAppV2.Tests.Services
 {
@@ -101,6 +102,43 @@ namespace ToolManagementAppV2.Tests.Services
 
                 Assert.Throws<SQLiteException>(() => service.ImportCustomersFromCsv(csvPath, map));
                 Assert.Empty(service.GetAllCustomers());
+            }
+            finally
+            {
+                if (File.Exists(csvPath)) File.Delete(csvPath);
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void ImportCustomersFromCsv_InvalidRows_ReturnsSummary()
+        {
+            var dbPath = Path.GetTempFileName();
+            var csvPath = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(csvPath,
+                    "Company,Contact,Phone,Mobile\n" +
+                    "Acme,John,1,\n" +
+                    ",,,\n" +
+                    "Acme,John,1,\n" +
+                    "NoPhone,Jane,,\n");
+                var dbService = new DatabaseService(dbPath);
+                var service = new CustomerService(dbService);
+                var map = new Dictionary<string, string>
+                {
+                    {"Company", "Company"},
+                    {"Contact", "Contact"},
+                    {"Phone", "Phone"},
+                    {"Mobile", "Mobile"}
+                };
+
+                var result = service.ImportCustomersFromCsv(csvPath, map);
+                Assert.Equal(1, result.ImportedCount);
+                Assert.Equal(3, result.SkippedRows.Count);
+                Assert.Contains(result.SkippedRows, r => r.Contains("Row 3"));
+                Assert.Contains(result.SkippedRows, r => r.Contains("Row 4") && r.Contains("Duplicate"));
+                Assert.Contains(result.SkippedRows, r => r.Contains("Row 5") && r.Contains("Phone and Mobile"));
             }
             finally
             {
