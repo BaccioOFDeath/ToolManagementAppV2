@@ -1,17 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using ToolManagementAppV2.Services.Devices;
+using ToolManagementAppV2.Services.Core;
+using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.ViewModels;
 
 namespace ToolManagementAppV2.Views
@@ -21,10 +13,16 @@ namespace ToolManagementAppV2.Views
     /// </summary>
     public partial class ScannerStatusWindow : Window
     {
+        readonly DatabaseService _ownedDb;
+
         public ScannerStatusWindow()
         {
             InitializeComponent();
-            DataContext = new ScannerStatusViewModel(new ScannerService());
+            var dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db");
+            _ownedDb = new DatabaseService(dbPath);
+            var settingsService = new SettingsService(_ownedDb);
+            DataContext = new ScannerStatusViewModel(new ScannerService(settingsService));
+            Closed += (_, __) => _ownedDb.Dispose();
         }
     }
 }
