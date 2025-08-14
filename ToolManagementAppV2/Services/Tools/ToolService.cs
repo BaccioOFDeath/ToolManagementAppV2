@@ -207,7 +207,7 @@ namespace ToolManagementAppV2.Services.Tools
                 return;
 
             var newStatus = record.Out ? 0 : 1;
-            var time = record.Out ? (object)DBNull.Value : DateTime.Now;
+            var time = record.Out ? (object)DBNull.Value : DateTime.UtcNow;
             var by = record.Out ? (object)DBNull.Value : currentUser;
             var qtyChange = record.Out ? 1 : -1;
 
@@ -572,7 +572,7 @@ namespace ToolManagementAppV2.Services.Tools
             {
                 new SQLiteParameter("@Out", newStatus ? 1 : 0),
                 new SQLiteParameter("@By", newStatus ? currentUser : (object)DBNull.Value),
-                new SQLiteParameter("@Time", newStatus ? DateTime.Now : (object)DBNull.Value),
+                new SQLiteParameter("@Time", newStatus ? DateTime.UtcNow : (object)DBNull.Value),
                 new SQLiteParameter("@ID", toolID)
             };
             await SqliteHelper.ExecuteNonQueryAsync(conn, sql, parameters);

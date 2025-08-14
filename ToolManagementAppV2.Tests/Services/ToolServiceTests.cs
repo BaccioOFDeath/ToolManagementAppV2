@@ -550,5 +550,38 @@ namespace ToolManagementAppV2.Tests.Services
                 if (File.Exists(dbPath)) File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void ToggleToolCheckOutStatus_SetsUtcTime()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var svc = new ToolService(dbService);
+                svc.AddTool(new Tool
+                {
+                    ToolNumber = "T1",
+                    NameDescription = "Test",
+                    QuantityOnHand = 1,
+                    RentedQuantity = 0
+                });
+
+                var tool = svc.GetAllTools().Single();
+
+                var before = DateTime.UtcNow;
+                svc.ToggleToolCheckOutStatus(tool.ToolID, "user");
+                var after = DateTime.UtcNow;
+
+                var updated = svc.GetToolByID(tool.ToolID);
+                Assert.True(updated.IsCheckedOut);
+                Assert.NotNull(updated.CheckedOutTime);
+                Assert.InRange(updated.CheckedOutTime!.Value, before, after);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
     }
 }

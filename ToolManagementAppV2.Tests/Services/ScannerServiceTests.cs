@@ -22,11 +22,15 @@ namespace ToolManagementAppV2.Tests.Services
                 settings.SaveScannerIpAddresses(new[] { "127.0.0.1" });
 
                 var service = new ScannerService(settings);
+
+                var before = DateTime.UtcNow;
                 var devices = await service.GetScannerDevicesAsync();
+                var after = DateTime.UtcNow;
 
                 var list = devices.ToList();
                 Assert.Single(list);
                 Assert.Equal("127.0.0.1", list[0].Ip);
+                Assert.InRange(list[0].LastSeen, before, after);
             }
             finally
             {
