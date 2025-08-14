@@ -244,5 +244,58 @@ namespace ToolManagementAppV2.Tests.Services
                 if (File.Exists(dbPath)) File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void GetAllTools_AllowsNullNumericColumns()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                using (var conn = new SQLiteConnection($"Data Source={dbPath};Version=3;"))
+                {
+                    conn.Open();
+                    using var cmd = conn.CreateCommand();
+                    cmd.CommandText = @"
+                        CREATE TABLE Tools (
+                            ToolID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            ToolNumber TEXT,
+                            NameDescription TEXT,
+                            Location TEXT,
+                            Brand TEXT,
+                            PartNumber TEXT,
+                            Supplier TEXT,
+                            PurchasedDate DATETIME,
+                            Notes TEXT,
+                            AvailableQuantity INTEGER,
+                            RentedQuantity INTEGER,
+                            IsPowerTool INTEGER,
+                            IsCheckedOut INTEGER,
+                            CheckedOutBy TEXT,
+                            CheckedOutTime DATETIME,
+                            ToolImagePath TEXT,
+                            Keywords TEXT
+                        );
+                        INSERT INTO Tools (ToolNumber, NameDescription, AvailableQuantity, RentedQuantity, IsPowerTool, IsCheckedOut)
+                        VALUES ('T1', 'Test', NULL, NULL, NULL, NULL);
+                    ";
+                    cmd.ExecuteNonQuery();
+                }
+
+                var dbService = new DatabaseService(dbPath);
+                var svc = new ToolService(dbService);
+                var tools = svc.GetAllTools();
+
+                Assert.Single(tools);
+                var tool = tools[0];
+                Assert.Equal(0, tool.QuantityOnHand);
+                Assert.Equal(0, tool.RentedQuantity);
+                Assert.False(tool.IsPowerTool);
+                Assert.False(tool.IsCheckedOut);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
     }
 }
