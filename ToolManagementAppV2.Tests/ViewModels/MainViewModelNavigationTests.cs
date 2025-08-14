@@ -378,4 +378,10 @@ class StubDialogService : IDialogService
     public CustomerModel? ShowAddCustomerDialog() => null;
 
     public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties) => ImportMap;
+    public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
+    public void ShowRentalHistory(ToolModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }
+    public System.Func<ToolModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
+    public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
+    public void ShowPrintLabelDialog() { }
+    public void ShowScannerStatus() { }
 }
