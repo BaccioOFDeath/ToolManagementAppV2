@@ -49,5 +49,8 @@ namespace ToolManagementAppV2.Models.Domain
 
         private DateTime? _lockoutUntil;
         public DateTime? LockoutUntil { get => _lockoutUntil; set => SetProperty(ref _lockoutUntil, value); }
+
+        private bool _passwordExpired;
+        public bool PasswordExpired { get => _passwordExpired; set => SetProperty(ref _passwordExpired, value); }
     }
 }
