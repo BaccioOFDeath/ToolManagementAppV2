@@ -12,6 +12,7 @@ using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Utilities.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ToolManagementAppV2.Interfaces;
 
 namespace ToolManagementAppV2.ViewModels.Rental
 {
@@ -19,6 +20,7 @@ namespace ToolManagementAppV2.ViewModels.Rental
     {
         private readonly List<RentalModel> _allHistory;
         private readonly ILogger<RentalHistoryViewModel> _logger;
+        private readonly IDialogService _dialogService;
 
         public ObservableCollection<RentalModel> History { get; }
         public string ToolDisplayName { get; }
@@ -41,7 +43,7 @@ namespace ToolManagementAppV2.ViewModels.Rental
         public IRelayCommand ExportCsvCommand { get; }
         public IRelayCommand CloseCommand { get; }
 
-        public RentalHistoryViewModel(ToolModel? tool, IEnumerable<RentalModel>? history, ILogger<RentalHistoryViewModel>? logger = null)
+        public RentalHistoryViewModel(ToolModel? tool, IEnumerable<RentalModel>? history, IDialogService dialogService, ILogger<RentalHistoryViewModel>? logger = null)
         {
             ToolDisplayName = tool != null
                 ? $"{tool.ToolNumber} - {tool.NameDescription}"
@@ -50,6 +52,7 @@ namespace ToolManagementAppV2.ViewModels.Rental
             _allHistory = (history ?? Enumerable.Empty<RentalModel>()).ToList();
             History = new ObservableCollection<RentalModel>(_allHistory);
             _logger = logger ?? NullLogger<RentalHistoryViewModel>.Instance;
+            _dialogService = dialogService;
 
             SearchCommand = new RelayCommand(ExecuteSearch);
             ExportCsvCommand = new RelayCommand(ExportCsv);
@@ -110,7 +113,15 @@ namespace ToolManagementAppV2.ViewModels.Rental
                     Escape(r.Status)));
             }
 
-            File.WriteAllText(path, sb.ToString());
+            try
+            {
+                File.WriteAllText(path, sb.ToString());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to export rental history to {Path}", path);
+                _dialogService.ShowInfo($"Failed to export rental history: {ex.Message}", "Error");
+            }
         }
 
         static string Escape(string? value) =>

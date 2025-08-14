@@ -219,27 +219,35 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenImportMappingWindowCommand = new RelayCommand(() =>
             {
-                var path = fileDialogService.OpenFile("CSV Files|*.csv");
-                if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
-                    return;
-
-                var headers = File.ReadLines(path)
-                                   .First()
-                                   .Split(',')
-                                   .Select(h => h.Trim())
-                                   .ToList();
-                var properties = typeof(ToolModel)
-                                    .GetProperties()
-                                    .Select(p => p.Name)
-                                    .ToList();
-                var map = _dialogService.ShowImportMapping(headers, properties);
-                if (map != null)
+                try
                 {
-                    var invalid = _toolService.ImportToolsFromCsv(path, map);
-                    var msg = invalid.Count == 0
-                        ? "Successfully imported tools."
-                        : $"Imported with {invalid.Count} invalid rows.";
-                    _dialogService.ShowInfo(msg, "Import Tools");
+                    var path = fileDialogService.OpenFile("CSV Files|*.csv");
+                    if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+                        return;
+
+                    var headers = File.ReadLines(path)
+                                       .First()
+                                       .Split(',')
+                                       .Select(h => h.Trim())
+                                       .ToList();
+                    var properties = typeof(ToolModel)
+                                        .GetProperties()
+                                        .Select(p => p.Name)
+                                        .ToList();
+                    var map = _dialogService.ShowImportMapping(headers, properties);
+                    if (map != null)
+                    {
+                        var invalid = _toolService.ImportToolsFromCsv(path, map);
+                        var msg = invalid.Count == 0
+                            ? "Successfully imported tools."
+                            : $"Imported with {invalid.Count} invalid rows.";
+                        _dialogService.ShowInfo(msg, "Import Tools");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to import tools from CSV");
+                    _dialogService.ShowInfo($"Failed to import tools: {ex.Message}", "Import Tools");
                 }
             });
 
