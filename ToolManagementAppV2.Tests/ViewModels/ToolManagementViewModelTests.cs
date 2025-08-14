@@ -477,6 +477,28 @@ namespace ToolManagementAppV2.Tests.ViewModels
             Assert.Equal(1, toolService.GetAllToolsAsyncCalls);
         }
 
+        [Fact]
+        public void SearchText_DebouncesRapidChanges()
+        {
+            var tools = new List<ToolModel>
+            {
+                new Tool { ToolNumber = "T1", NameDescription = "Hammer" }
+            };
+            var toolService = new CountingToolService(tools);
+            var timer = new TestDispatcherTimer();
+            var vm = new ToolManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService(), null, timer);
+
+            vm.SearchText = "H";
+            vm.SearchText = "Ha";
+            vm.SearchText = "Ham";
+
+            Assert.Equal(0, toolService.SearchToolsAsyncCalls);
+
+            timer.RaiseTick();
+
+            Assert.Equal(1, toolService.SearchToolsAsyncCalls);
+        }
+
         class CountingToolService : IToolService
         {
             public int GetAllToolsAsyncCalls { get; private set; }
@@ -539,6 +561,20 @@ namespace ToolManagementAppV2.Tests.ViewModels
             public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector) => throw new NotImplementedException();
             public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null) => throw new NotImplementedException();
             public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null) => throw new NotImplementedException();
+        }
+
+        class TestDispatcherTimer : IDispatcherTimer
+        {
+            public event EventHandler Tick;
+            public TimeSpan Interval { get; set; }
+            public bool IsEnabled { get; private set; }
+            public void Start() => IsEnabled = true;
+            public void Stop() => IsEnabled = false;
+            public void RaiseTick()
+            {
+                if (IsEnabled)
+                    Tick?.Invoke(this, EventArgs.Empty);
+            }
         }
     }
 }
