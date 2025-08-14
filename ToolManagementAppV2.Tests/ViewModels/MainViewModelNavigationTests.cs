@@ -314,21 +314,68 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void OpenImportMappingWindowCommand_ShowsInfo_OnSuccess()
+        {
+            var dbPath = Path.GetTempFileName();
+            var csvPath = Path.GetTempFileName();
+            File.WriteAllText(csvPath, "ToolNumber,NameDescription\nT1,Hammer\n");
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                var userContext = new ApplicationUserContext();
+                IUserService userService = new UserService(db, userContext);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
+                var activityLogService = new ActivityLogService(db);
+                var settingsService = new SettingsService(db);
+
+                var fileDialog = new StubFileDialogService { FileToOpen = csvPath };
+                var dialog = new StubDialogService
+                {
+                    ImportMap = new Dictionary<string, string>
+                    {
+                        { "ToolNumber", "ToolNumber" },
+                        { "NameDescription", "NameDescription" }
+                    }
+                };
+
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, fileDialog, activityLogService, settingsService, db, dialog);
+                vm.OpenImportMappingWindowCommand.Execute(null);
+
+                Assert.True(dialog.InfoShown);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+                if (File.Exists(csvPath))
+                    File.Delete(csvPath);
+            }
+        }
     }
 }
 
 class StubFileDialogService : ToolManagementAppV2.Interfaces.IFileDialogService
 {
-    public string OpenFile(string filter) => null;
+    public string FileToOpen;
+    public string OpenFile(string filter) => FileToOpen;
     public string SaveFile(string filter) => null;
 }
 
 class StubDialogService : IDialogService
 {
-    public void ShowInfo(string message, string title) { }
+    public bool InfoShown { get; private set; }
+    public Dictionary<string, string>? ImportMap { get; set; }
+
+    public void ShowInfo(string message, string title) => InfoShown = true;
     public bool ShowConfirmation(string message, string title) => false;
     public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
     public void ShowToolDetails(ToolModel tool) { }
     public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
     public CustomerModel? ShowAddCustomerDialog() => null;
+
+    public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties) => ImportMap;
 }

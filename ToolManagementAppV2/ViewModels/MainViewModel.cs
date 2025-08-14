@@ -238,7 +238,7 @@ namespace ToolManagementAppV2.ViewModels
                     var msg = invalid.Count == 0
                         ? "Successfully imported tools."
                         : $"Imported with {invalid.Count} invalid rows.";
-                    System.Windows.MessageBox.Show(msg, "Import Tools");
+                    _dialogService.ShowInfo(msg, "Import Tools");
                 }
             });
 
@@ -251,7 +251,7 @@ namespace ToolManagementAppV2.ViewModels
                 if (selector != null)
                 {
                     var result = _toolService.ImportToolImages(dlg.SelectedPath, selector);
-                    System.Windows.MessageBox.Show(
+                    _dialogService.ShowInfo(
                         $"Imported {result.ImportedCount} images. Unmatched: {result.UnmatchedFiles.Count}, Conflicts: {result.ConflictingFiles.Count}",
                         "Import Images");
                 }
