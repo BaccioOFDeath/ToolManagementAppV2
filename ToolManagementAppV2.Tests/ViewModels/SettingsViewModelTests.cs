@@ -103,6 +103,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public IEnumerable<string> ScannerIps { get; set; } = Array.Empty<string>();
         public IEnumerable<string> GetScannerIpAddresses() => ScannerIps;
         public void SaveScannerIpAddresses(IEnumerable<string> ipAddresses) => ScannerIps = ipAddresses;
+        public int PasswordIterations { get; set; } = 100_000;
+        public int GetPasswordIterations() => PasswordIterations;
+        public void SavePasswordIterations(int iterations) => PasswordIterations = iterations;
     }
 
     class StubDialogService : IDialogService

@@ -11,5 +11,7 @@ namespace ToolManagementAppV2.Interfaces
         void DeleteSetting(string key);
         IEnumerable<string> GetScannerIpAddresses();
         void SaveScannerIpAddresses(IEnumerable<string> ipAddresses);
+        int GetPasswordIterations();
+        void SavePasswordIterations(int iterations);
     }
 }

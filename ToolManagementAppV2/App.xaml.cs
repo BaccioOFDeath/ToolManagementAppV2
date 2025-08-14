@@ -16,6 +16,7 @@ using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.ViewModels;
+using ToolManagementAppV2.Utilities.Helpers;
 
 namespace ToolManagementAppV2
 {
@@ -59,6 +60,7 @@ namespace ToolManagementAppV2
             var activityLogService = new ActivityLogService(db);
             var fileDialogService = new FileDialogService();
             var settingsService = new SettingsService(db);
+            SecurityHelper.SettingsService = settingsService;
             IDialogService dialogService = new DialogService();
 
             var mainVm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, fileDialogService, activityLogService, settingsService, db, dialogService);

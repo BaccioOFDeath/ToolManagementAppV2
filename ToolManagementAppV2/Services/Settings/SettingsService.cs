@@ -144,6 +144,7 @@ namespace ToolManagementAppV2.Services.Settings
         }
 
         const string ScannerIpKey = "ScannerIpAddresses";
+        const string PasswordIterationsKey = "PasswordIterations";
 
         public IEnumerable<string> GetScannerIpAddresses()
         {
@@ -157,6 +158,17 @@ namespace ToolManagementAppV2.Services.Settings
         {
             var value = string.Join(';', ipAddresses);
             SaveSetting(ScannerIpKey, value);
+        }
+
+        public int GetPasswordIterations()
+        {
+            var value = GetSetting(PasswordIterationsKey);
+            return int.TryParse(value, out var i) ? i : 100_000;
+        }
+
+        public void SavePasswordIterations(int iterations)
+        {
+            SaveSetting(PasswordIterationsKey, iterations.ToString());
         }
     }
 }
