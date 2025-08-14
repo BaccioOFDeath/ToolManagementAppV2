@@ -12,13 +12,15 @@ namespace ToolManagementAppV2.Utilities.Extensions
 
         private sealed class NotificationSuspender<T> : IDisposable
         {
+            private static readonly MethodInfo? OnCollectionChangedMethod =
+                typeof(ObservableCollection<T>).GetMethod("OnCollectionChanged", BindingFlags.Instance | BindingFlags.NonPublic);
+
             private readonly ObservableCollection<T> _collection;
             private readonly NotifyCollectionChangedEventHandler? _handlers;
 
             public NotificationSuspender(ObservableCollection<T> collection)
             {
                 _collection = collection;
-
                 var field = typeof(ObservableCollection<T>).GetField("CollectionChanged", BindingFlags.Instance | BindingFlags.NonPublic);
                 if (field?.GetValue(collection) is NotifyCollectionChangedEventHandler handlers)
                 {
@@ -35,8 +37,10 @@ namespace ToolManagementAppV2.Utilities.Extensions
                     foreach (NotifyCollectionChangedEventHandler h in _handlers.GetInvocationList())
                         _collection.CollectionChanged += h;
 
-                    _collection.CollectionChanged?.Invoke(_collection,
-                        new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+                    OnCollectionChangedMethod?.Invoke(_collection, new object[]
+                    {
+                        new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset)
+                    });
                 }
             }
         }
@@ -53,9 +57,11 @@ namespace ToolManagementAppV2.Utilities.Extensions
 
         public static void AddRange<T>(this ObservableCollection<T> collection, IEnumerable<T> items)
         {
-            foreach (var i in items)
-                collection.Add(i);
+            using (collection.SuspendNotifications())
+            {
+                foreach (var i in items)
+                    collection.Add(i);
+            }
         }
     }
 }
-

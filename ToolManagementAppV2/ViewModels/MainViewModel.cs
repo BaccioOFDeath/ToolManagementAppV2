@@ -126,7 +126,7 @@ namespace ToolManagementAppV2.ViewModels
             {
                 var login = new LoginWindow(_userContext, _userService, _settingsService, _dialogService)
                 {
-                    Owner = Application.Current.MainWindow
+                    Owner = System.Windows.Application.Current.MainWindow
                 };
                 return login.ShowDialog() == true;
             });

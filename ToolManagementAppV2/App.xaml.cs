@@ -1,9 +1,12 @@
 ﻿// App.xaml.cs
 using System;
 using System.IO;
+using System.Text;
 using System.Windows;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Serilog;
+using Serilog.Events;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Services;
 using ToolManagementAppV2.Services.Core;
@@ -25,14 +28,28 @@ namespace ToolManagementAppV2
             ShutdownMode = ShutdownMode.OnMainWindowClose;
             base.OnStartup(e);
 
+            var logsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
+            Directory.CreateDirectory(logsDir);
+            var logFile = Path.Combine(logsDir, "app-.log");
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                .Enrich.FromLogContext()
+                .WriteTo.Async(w => w.File(
+                    path: logFile,
+                    rollingInterval: RollingInterval.Day,
+                    retainedFileCountLimit: 14,
+                    shared: true,
+                    encoding: Encoding.UTF8))
+                .CreateLogger();
+
             LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
             {
-                var logFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app.log");
-                builder.AddDebug();
-                builder.AddFile(logFile);
+                builder.ClearProviders();
+                builder.AddSerilog(Log.Logger, dispose: true);
             });
 
-            // Boot main window and data context FIRST so it shows behind login
             var db = new DatabaseService(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db"));
             var toolService = new ToolService(db);
             var customerService = new CustomerService(db);
@@ -42,14 +59,13 @@ namespace ToolManagementAppV2
             var activityLogService = new ActivityLogService(db);
             var fileDialogService = new FileDialogService();
             var settingsService = new SettingsService(db);
-
             IDialogService dialogService = new DialogService();
 
             var mainVm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, fileDialogService, activityLogService, settingsService, db, dialogService);
             var main = new MainWindow(mainVm, db);
 
             Current.MainWindow = main;
-            main.Show(); // stays visible behind login
+            main.Show();
 
             var login = new LoginWindow(userContext, userService, settingsService, dialogService)
             {
@@ -67,7 +83,6 @@ namespace ToolManagementAppV2
             if (main.DataContext is MainViewModel vm)
                 vm.RefreshCurrentUser();
 
-            // bring main to front after login
             if (main.WindowState == WindowState.Minimized) main.WindowState = WindowState.Normal;
             main.Activate();
             main.Focus();
@@ -76,6 +91,7 @@ namespace ToolManagementAppV2
         protected override void OnExit(ExitEventArgs e)
         {
             LoggerFactory.Dispose();
+            Log.CloseAndFlush();
             base.OnExit(e);
         }
     }
