@@ -29,7 +29,7 @@ namespace ToolManagementAppV2.Services.Devices
                 {
                     Name = $"Scanner {ip}",
                     Ip = ip,
-                    LastSeen = DateTime.Now
+                    LastSeen = DateTime.UtcNow
                 };
                 try
                 {
