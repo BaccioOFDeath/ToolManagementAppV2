@@ -58,7 +58,7 @@ namespace ToolManagementAppV2.Services.Tools
             return !string.IsNullOrEmpty(full) && File.Exists(full) ? full : null;
         }
 
-        private FlowDocument BuildDocument(List<ToolModel> tools, string title, string logoPath)
+        private FlowDocument BuildDocument(List<ToolModel> tools, string title, string? logoPath)
         {
             var doc = new FlowDocument
             {
@@ -203,7 +203,7 @@ namespace ToolManagementAppV2.Services.Tools
             };
         }
 
-        private void AddCompanyLogo(StackPanel host, string logoPath)
+        private void AddCompanyLogo(StackPanel host, string? logoPath)
         {
             if (string.IsNullOrEmpty(logoPath))
                 return;

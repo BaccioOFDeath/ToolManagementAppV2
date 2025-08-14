@@ -84,6 +84,25 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
+        public void GetSetting_ReturnsNull_WhenKeyMissing()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                ISettingsService service = new SettingsService(dbService);
+
+                var result = service.GetSetting("NonExistentKey");
+                Assert.Null(result);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public void DeleteSetting_ThrowsOnFailure()
         {
             var dbPath = Path.GetTempFileName();

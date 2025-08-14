@@ -41,7 +41,7 @@ namespace ToolManagementAppV2.Services.Settings
             }
         }
 
-        public string GetSetting(string key)
+        public string? GetSetting(string key)
         {
             try
             {

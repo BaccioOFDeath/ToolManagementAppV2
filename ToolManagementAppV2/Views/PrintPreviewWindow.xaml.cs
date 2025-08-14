@@ -12,7 +12,7 @@ namespace ToolManagementAppV2.Views
     {
         private FlowDocument _document;
         private string _title;
-        private string _logoPath;
+        private string _logoPath = string.Empty;
 
         public PrintPreviewWindow()
         {
@@ -20,11 +20,11 @@ namespace ToolManagementAppV2.Views
             DataContext = new PrintPreviewViewModel(OnPageSetup, OnPrint, Close);
         }
 
-        public void ShowPreview(FlowDocument document, string title, string logoPath)
+        public void ShowPreview(FlowDocument document, string title, string? logoPath)
         {
             _document = document ?? throw new ArgumentNullException(nameof(document));
             _title = title ?? throw new ArgumentNullException(nameof(title));
-            _logoPath = logoPath ?? "";
+            _logoPath = logoPath ?? string.Empty;
 
             Title = $"Print Preview – {_title}";
             PreviewTitle.Text = _title;

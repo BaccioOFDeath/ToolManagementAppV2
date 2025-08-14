@@ -88,7 +88,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     {
         public string SavedKey { get; private set; }
         public string SavedValue { get; private set; }
-        public string GetSettingValue { get; set; } = string.Empty;
+        public string? GetSettingValue { get; set; } = string.Empty;
 
         public void SaveSetting(string key, string value)
         {
@@ -96,7 +96,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             SavedValue = value;
         }
 
-        public string GetSetting(string key) => GetSettingValue;
+        public string? GetSetting(string key) => GetSettingValue;
         public Dictionary<string, string> GetAllSettings() => new();
         public void UpdateSettings(Dictionary<string, string> settings) { }
         public void DeleteSetting(string key) { }
