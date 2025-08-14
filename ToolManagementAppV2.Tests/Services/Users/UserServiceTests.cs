@@ -103,4 +103,48 @@ public class UserServiceTests
                 File.Delete(dbPath);
         }
     }
+
+    [Fact]
+    public void GetAllUsers_DoesNotIncludeSensitiveFields()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+
+            userService.AddUser(new User { UserName = "list", Password = "pw", Salt = "s" });
+            var users = userService.GetAllUsers();
+            var user = users[0];
+            Assert.Null(user.Password);
+            Assert.Null(user.Salt);
+        }
+        finally
+        {
+            if (File.Exists(dbPath))
+                File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public async Task GetAllUsersAsync_DoesNotIncludeSensitiveFields()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            var userService = new UserService(dbService, new ApplicationUserContext());
+
+            await userService.AddUserAsync(new User { UserName = "list", Password = "pw", Salt = "s" });
+            var users = await userService.GetAllUsersAsync();
+            var user = users[0];
+            Assert.Null(user.Password);
+            Assert.Null(user.Salt);
+        }
+        finally
+        {
+            if (File.Exists(dbPath))
+                File.Delete(dbPath);
+        }
+    }
 }

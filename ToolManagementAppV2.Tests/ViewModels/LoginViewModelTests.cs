@@ -60,7 +60,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(dbService, userContext);
                 var settingsService = new SettingsService(dbService);
-                userService.AddUser(new User { UserName = "user", Password = "newpassword", IsAdmin = false, PasswordExpired = true });
+                var user = new User { UserName = "user", Password = "newpassword", IsAdmin = false, PasswordExpired = true };
+                userService.AddUser(user);
 
                 var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
                 {
@@ -72,7 +73,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 vm.SelectUserCommand.Execute(vm.Users.First());
 
                 Assert.True(success);
-                var updated = userService.GetAllUsers().First();
+                var updated = userService.GetUserByID(user.UserID)!;
                 Assert.False(updated.PasswordExpired);
                 Assert.True(SecurityHelper.VerifyPassword("changed", updated.Salt, updated.Password));
             }
