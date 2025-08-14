@@ -1,5 +1,6 @@
 using System.IO;
 using ToolManagementAppV2;
+using ToolManagementAppV2.Tests;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
@@ -20,13 +21,21 @@ namespace ToolManagementAppV2.Tests.Tests
         [Fact]
         public void OpenSearchToolsCommand_NavigatesToToolSearchPage()
         {
-            var window = new MainWindow();
-            var vm = Assert.IsType<MainViewModel>(window.DataContext);
+            var (window, dbPath) = TestHelpers.CreateMainWindow();
+            try
+            {
+                var vm = Assert.IsType<MainViewModel>(window.DataContext);
 
-            vm.OpenSearchToolsCommand.Execute(null);
+                vm.OpenSearchToolsCommand.Execute(null);
 
-            Assert.IsType<ToolSearchPage>(vm.CurrentPage);
-            window.Close();
+                Assert.IsType<ToolSearchPage>(vm.CurrentPage);
+            }
+            finally
+            {
+                window.Close();
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
         }
 
         [Fact]

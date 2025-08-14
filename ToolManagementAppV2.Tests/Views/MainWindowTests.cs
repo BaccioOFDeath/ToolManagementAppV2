@@ -8,6 +8,7 @@ using Xunit;
 using System.IO;
 using System.Runtime.Serialization;
 using ToolManagementAppV2.Services.Core;
+using ToolManagementAppV2.Tests;
 
 namespace ToolManagementAppV2.Tests.Views
 {
@@ -22,21 +23,30 @@ namespace ToolManagementAppV2.Tests.Views
             {
                 try
                 {
-                    var window = new ToolManagementAppV2.MainWindow();
-                    var textBox = (TextBox)window.FindName("GlobalSearchTextBox");
-                    Assert.NotNull(textBox);
+                    var (window, dbPath) = TestHelpers.CreateMainWindow();
+                    try
+                    {
+                        var textBox = (TextBox)window.FindName("GlobalSearchTextBox");
+                        Assert.NotNull(textBox);
 
-                    var vm = Assert.IsType<MainViewModel>(window.DataContext);
+                        var vm = Assert.IsType<MainViewModel>(window.DataContext);
 
-                    vm.GlobalSearchText = "Test";
+                        vm.GlobalSearchText = "Test";
 
-                    var keyBinding = textBox.InputBindings.OfType<KeyBinding>()
-                        .FirstOrDefault(kb => kb.Key == Key.Enter);
-                    Assert.NotNull(keyBinding);
+                        var keyBinding = textBox.InputBindings.OfType<KeyBinding>()
+                            .FirstOrDefault(kb => kb.Key == Key.Enter);
+                        Assert.NotNull(keyBinding);
 
-                    keyBinding.Command.Execute(null);
+                        keyBinding.Command.Execute(null);
 
-                    Assert.Equal(string.Empty, vm.GlobalSearchText);
+                        Assert.Equal(string.Empty, vm.GlobalSearchText);
+                    }
+                    finally
+                    {
+                        window.Close();
+                        if (File.Exists(dbPath))
+                            File.Delete(dbPath);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -63,12 +73,21 @@ namespace ToolManagementAppV2.Tests.Views
             {
                 try
                 {
-                    var window = new ToolManagementAppV2.MainWindow();
-                    var button = (Button)window.FindName("SwitchUserButton");
-                    Assert.NotNull(button);
+                    var (window, dbPath) = TestHelpers.CreateMainWindow();
+                    try
+                    {
+                        var button = (Button)window.FindName("SwitchUserButton");
+                        Assert.NotNull(button);
 
-                    var vm = Assert.IsType<MainViewModel>(window.DataContext);
-                    Assert.Same(vm.SwitchUserCommand, button.Command);
+                        var vm = Assert.IsType<MainViewModel>(window.DataContext);
+                        Assert.Same(vm.SwitchUserCommand, button.Command);
+                    }
+                    finally
+                    {
+                        window.Close();
+                        if (File.Exists(dbPath))
+                            File.Delete(dbPath);
+                    }
                 }
                 catch (Exception ex)
                 {
