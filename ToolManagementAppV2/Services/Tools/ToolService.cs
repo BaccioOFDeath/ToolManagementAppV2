@@ -19,7 +19,6 @@ namespace ToolManagementAppV2.Services.Tools
     public class ToolService : IToolService
     {
         readonly DatabaseService _dbService;
-        List<ToolModel>? _cache;
         const string AllToolsSql = "SELECT * FROM Tools";
         const string UpsertToolCsv = @"
             INSERT INTO Tools
@@ -37,20 +36,12 @@ namespace ToolManagementAppV2.Services.Tools
     
         public List<ToolModel> GetAllTools()
         {
-            if (_cache != null)
-                return _cache;
-
             using var conn = _dbService.CreateConnection();
-            _cache = SqliteHelper.ExecuteReader(conn, AllToolsSql, null, MapTool);
-            return _cache;
+            return SqliteHelper.ExecuteReader(conn, AllToolsSql, null, MapTool);
         }
     
         public ToolModel GetToolByID(int toolID)
         {
-            var cached = GetAllTools().FirstOrDefault(t => t.ToolID == toolID);
-            if (cached != null)
-                return cached;
-
             using var conn = _dbService.CreateConnection();
             return SqliteHelper.ExecuteReader(conn, "SELECT * FROM Tools WHERE ToolID=@ToolID",
                 new[] { new SQLiteParameter("@ToolID", toolID) }, MapTool).FirstOrDefault();
@@ -102,7 +93,6 @@ namespace ToolManagementAppV2.Services.Tools
                 throw new InvalidOperationException($"Tool {tool.ToolNumber} already exists.");
             using var conn = _dbService.CreateConnection();
             InsertTool(conn, null, tool);
-            _cache = null;
         }
     
         public void UpdateTool(ToolModel tool)
@@ -151,7 +141,6 @@ namespace ToolManagementAppV2.Services.Tools
             };
             using var conn = _dbService.CreateConnection();
             SqliteHelper.ExecuteNonQuery(conn, sql, p);
-            _cache = null;
         }
     
         public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental,
@@ -181,8 +170,6 @@ namespace ToolManagementAppV2.Services.Tools
                 if (SqliteHelper.ExecuteNonQuery(c, sql, p) == 0)
                     throw new InvalidOperationException("Quantity update failed.");
             }
-
-            _cache = null;
         }
     
         public void DeleteTool(int toolID)
@@ -190,7 +177,6 @@ namespace ToolManagementAppV2.Services.Tools
             using var conn = _dbService.CreateConnection();
             SqliteHelper.ExecuteNonQuery(conn, "DELETE FROM Tools WHERE ToolID=@ID",
                 new[] { new SQLiteParameter("@ID", toolID) });
-            _cache = null;
         }
     
         public void ToggleToolCheckOutStatus(int toolID, string currentUser)
@@ -226,7 +212,6 @@ namespace ToolManagementAppV2.Services.Tools
                 new SQLiteParameter("@Q", qtyChange),
                 new SQLiteParameter("@ID", toolID)
             });
-            _cache = null;
         }
     
         public List<ToolModel> GetToolsCheckedOutBy(string userName)
@@ -245,7 +230,6 @@ namespace ToolManagementAppV2.Services.Tools
                     new SQLiteParameter("@Img", imagePath),
                     new SQLiteParameter("@ID", toolID)
                 });
-            _cache = null;
         }
     
         public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map)
@@ -261,7 +245,6 @@ namespace ToolManagementAppV2.Services.Tools
                         InsertTool(conn, tran, tool);
                 }
                 tran.Commit();
-                _cache = null;
                 return invalidRows;
             }
             catch (Exception ex)

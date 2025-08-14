@@ -395,5 +395,34 @@ namespace ToolManagementAppV2.Tests.Services
                 if (File.Exists(dbPath)) File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void AddTool_ConcurrentAdds_Succeeds()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var svc = new ToolService(dbService);
+
+                var tasks = Enumerable.Range(0, 10).Select(i => Task.Run(() =>
+                    svc.AddTool(new Tool
+                    {
+                        ToolNumber = $"T{i}",
+                        NameDescription = $"Tool{i}"
+                    }))
+                ).ToArray();
+
+                var ex = Record.Exception(() => Task.WaitAll(tasks));
+                Assert.Null(ex);
+
+                var all = svc.GetAllTools();
+                Assert.Equal(10, all.Count);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
     }
 }
