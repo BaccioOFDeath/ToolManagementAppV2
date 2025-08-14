@@ -1,12 +1,16 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Threading;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.ViewModels;
+using ToolManagementAppV2.ViewModels.Rental;
+using ToolManagementAppV2.Views;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.ViewModels
@@ -241,6 +245,61 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 if (File.Exists(dbPath))
                     File.Delete(dbPath);
             }
+        }
+
+        [Fact]
+        public void RentToolPopupWindow_RequestCloseHandler_DoesNotLeak()
+        {
+            WeakReference? winRef = null;
+            bool? aliveBeforeUnsubscribe = null;
+            Exception? threadException = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var vm = new RentToolPopupViewModel(new ToolModel(), new List<CustomerModel>());
+                    var win = new RentToolPopupWindow { DataContext = vm };
+                    var captured = win;
+                    EventHandler handler = (_, _) => captured.Close();
+                    vm.RequestClose += handler;
+                    winRef = new WeakReference(captured);
+                    win = null;
+
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    GC.Collect();
+                    aliveBeforeUnsubscribe = winRef.IsAlive;
+
+                    vm.RequestClose -= handler;
+                    captured = null;
+
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    GC.Collect();
+                }
+                catch (Exception ex)
+                {
+                    threadException = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadException != null)
+            {
+                throw threadException;
+            }
+
+            Assert.True(aliveBeforeUnsubscribe);
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
+            Assert.False(winRef!.IsAlive);
         }
     }
 }
