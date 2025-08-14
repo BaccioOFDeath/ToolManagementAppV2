@@ -57,8 +57,19 @@ namespace ToolManagementAppV2.Services
         {
             var vm = new RentToolPopupViewModel(tool, customers);
             var win = new RentToolPopupWindow { DataContext = vm };
-            vm.RequestClose += (_, _) => win.Close();
-            win.ShowDialog();
+
+            EventHandler handler = null!;
+            handler = (_, _) => win.Close();
+            vm.RequestClose += handler;
+
+            try
+            {
+                win.ShowDialog();
+            }
+            finally
+            {
+                vm.RequestClose -= handler;
+            }
 
             if (vm.SelectedCustomerResult != null)
             {
