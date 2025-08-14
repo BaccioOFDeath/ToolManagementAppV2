@@ -248,6 +248,62 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
             Assert.Contains("boom", dialog.LastInfoMessage);
         }
+
+        [Fact]
+        public async Task ExtendCommand_ShowsDialogOnFailure()
+        {
+            var rentals = new List<Rental>
+            {
+                new Rental
+                {
+                    RentalID = 1,
+                    ToolID = 1,
+                    ToolNumber = "T1",
+                    CustomerID = 1,
+                    CustomerName = "C1",
+                    RentalDate = DateTime.Today,
+                    DueDate = DateTime.Today.AddDays(1),
+                    Status = "Rented"
+                }
+            };
+            var rentalService = new ExceptionRentalService(rentals);
+            var dialog = new StubDialogService();
+            var vm = new ManageRentalsViewModel(rentalService, dialog);
+            await vm.LoadRentalsAsync();
+            vm.SelectedRental = vm.Rentals.First();
+
+            await vm.ExtendCommand.ExecuteAsync(null);
+
+            Assert.Contains("boom", dialog.LastInfoMessage);
+        }
+
+        [Fact]
+        public async Task DeleteRentalCommand_ShowsDialogOnFailure()
+        {
+            var rentals = new List<Rental>
+            {
+                new Rental
+                {
+                    RentalID = 1,
+                    ToolID = 1,
+                    ToolNumber = "T1",
+                    CustomerID = 1,
+                    CustomerName = "C1",
+                    RentalDate = DateTime.Today,
+                    DueDate = DateTime.Today.AddDays(1),
+                    Status = "Rented"
+                }
+            };
+            var rentalService = new ExceptionRentalService(rentals);
+            var dialog = new StubDialogService();
+            var vm = new ManageRentalsViewModel(rentalService, dialog);
+            await vm.LoadRentalsAsync();
+            vm.SelectedRental = vm.Rentals.First();
+
+            await vm.DeleteRentalCommand.ExecuteAsync(null);
+
+            Assert.Contains("boom", dialog.LastInfoMessage);
+        }
     }
 
     class StubDialogService : IDialogService
@@ -279,20 +335,20 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public ExceptionRentalService(List<Rental> rentals) => _rentals = rentals;
         public Task<List<Rental>> GetAllRentalsAsync() => Task.FromResult(_rentals);
         public Task ReturnToolAsync(int rentalID, DateTime returnDate) => throw new InvalidOperationException("boom");
+        public Task ExtendRentalAsync(int rentalID, DateTime newDueDate) => throw new InvalidOperationException("boom");
+        public Task DeleteRentalAsync(int rentalID) => throw new InvalidOperationException("boom");
+        public Task<List<Rental>> GetRentalHistoryForToolAsync(int toolID) => throw new InvalidOperationException("boom");
         public void RentTool(int toolID, int customerID, DateTime rentalDate, DateTime dueDate) => throw new NotImplementedException();
         public Task RentToolAsync(int toolID, int customerID, DateTime rentalDate, DateTime dueDate) => throw new NotImplementedException();
         public void ReturnTool(int rentalID, DateTime returnDate) => throw new NotImplementedException();
         public void ExtendRental(int rentalID, DateTime newDueDate) => throw new NotImplementedException();
-        public Task ExtendRentalAsync(int rentalID, DateTime newDueDate) => throw new NotImplementedException();
         public void DeleteRental(int rentalID) => throw new NotImplementedException();
-        public Task DeleteRentalAsync(int rentalID) => throw new NotImplementedException();
         public List<Rental> GetActiveRentals() => throw new NotImplementedException();
         public Task<List<Rental>> GetActiveRentalsAsync() => throw new NotImplementedException();
         public List<Rental> GetOverdueRentals() => throw new NotImplementedException();
         public Task<List<Rental>> GetOverdueRentalsAsync() => throw new NotImplementedException();
         public List<Rental> GetAllRentals() => throw new NotImplementedException();
         public List<Rental> GetRentalHistoryForTool(int toolID) => throw new NotImplementedException();
-        public Task<List<Rental>> GetRentalHistoryForToolAsync(int toolID) => throw new NotImplementedException();
         public List<Rental> GetRentalHistoryForCustomer(int customerID) => throw new NotImplementedException();
         public Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID) => throw new NotImplementedException();
     }

@@ -268,16 +268,24 @@ namespace ToolManagementAppV2.ViewModels
         {
             if (SelectedTool == null) return;
 
-            var customers = await _customerService.GetAllCustomersAsync();
-            var result = _dialogService.ShowRentToolDialog(SelectedTool, customers);
-            if (result != null)
+            try
             {
-                var (customer, dueDate) = result.Value;
-                await _rentalService.RentToolAsync(SelectedTool.ToolID,
-                    customer.CustomerID,
-                    DateTime.Today,
-                    dueDate);
-                await LoadToolsAsync();
+                var customers = await _customerService.GetAllCustomersAsync();
+                var result = _dialogService.ShowRentToolDialog(SelectedTool, customers);
+                if (result != null)
+                {
+                    var (customer, dueDate) = result.Value;
+                    await _rentalService.RentToolAsync(SelectedTool.ToolID,
+                        customer.CustomerID,
+                        DateTime.Today,
+                        dueDate);
+                    await LoadToolsAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to rent tool {ToolID}", SelectedTool?.ToolID);
+                _dialogService.ShowInfo($"Failed to rent tool: {ex.Message}", "Error");
             }
         }
 
