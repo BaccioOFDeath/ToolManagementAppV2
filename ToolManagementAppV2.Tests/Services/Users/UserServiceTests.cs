@@ -103,4 +103,44 @@ public class UserServiceTests
                 File.Delete(dbPath);
         }
     }
+
+    [Fact]
+    public void ChangeUserPassword_ReturnsFalse_ForInvalidUserID()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+
+            var result = userService.ChangeUserPassword(9999, "newpass");
+
+            Assert.False(result);
+        }
+        finally
+        {
+            if (File.Exists(dbPath))
+                File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public async Task ChangeUserPasswordAsync_ReturnsFalse_ForInvalidUserID()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+
+            var result = await userService.ChangeUserPasswordAsync(9999, "newpass");
+
+            Assert.False(result);
+        }
+        finally
+        {
+            if (File.Exists(dbPath))
+                File.Delete(dbPath);
+        }
+    }
 }

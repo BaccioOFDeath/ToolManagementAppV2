@@ -7,6 +7,8 @@ using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.Interfaces;
 using System.Linq;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.Services.Users
 {
@@ -14,11 +16,13 @@ namespace ToolManagementAppV2.Services.Users
     {
         readonly DatabaseService _dbService;
         readonly IUserContext _context;
+        readonly ILogger<UserService> _logger;
 
-        public UserService(DatabaseService dbService, IUserContext context)
+        public UserService(DatabaseService dbService, IUserContext context, ILogger<UserService>? logger = null)
         {
             _dbService = dbService;
             _context = context;
+            _logger = logger ?? NullLogger<UserService>.Instance;
         }
 
         public List<User> GetAllUsers()
@@ -223,7 +227,7 @@ namespace ToolManagementAppV2.Services.Users
             user.Salt = salt;
         }
 
-        public void ChangeUserPassword(int userID, string newPassword)
+        public bool ChangeUserPassword(int userID, string newPassword)
         {
             var sql = "UPDATE Users SET Password=@Pwd, Salt=@Salt, PasswordExpired=@Expired WHERE UserID=@ID";
             string hashed = string.Empty;
@@ -243,7 +247,10 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@ID",  userID)
             };
             using var conn = _dbService.CreateConnection();
-            SqliteHelper.ExecuteNonQuery(conn, sql, p);
+            int rows = SqliteHelper.ExecuteNonQuery(conn, sql, p);
+            if (rows == 0)
+                _logger.LogWarning("Password update affected 0 rows for UserID {UserID}", userID);
+            return rows > 0;
         }
 
         public bool TryDeleteUser(int userID)
@@ -494,7 +501,7 @@ namespace ToolManagementAppV2.Services.Users
             user.Salt = salt;
         }
 
-        public async Task ChangeUserPasswordAsync(int userID, string newPassword)
+        public async Task<bool> ChangeUserPasswordAsync(int userID, string newPassword)
         {
             var sql = "UPDATE Users SET Password=@Pwd, Salt=@Salt, PasswordExpired=@Expired WHERE UserID=@ID";
             string hashed = string.Empty;
@@ -514,7 +521,10 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@ID",  userID)
             };
             using var conn = _dbService.CreateConnection();
-            await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
+            int rows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
+            if (rows == 0)
+                _logger.LogWarning("Password update affected 0 rows for UserID {UserID}", userID);
+            return rows > 0;
         }
 
         async Task DeleteUserInternalAsync(int userID)
