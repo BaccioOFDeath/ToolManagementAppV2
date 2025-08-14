@@ -10,13 +10,14 @@ using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.ViewModels;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace ToolManagementAppV2.Tests.ViewModels
 {
     public class ReportsViewModelTests
     {
         [Fact]
-        public void ReportsViewModel_ReportsPage_Binding_Wiring()
+        public async Task ReportsViewModel_ReportsPage_Binding_Wiring()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -48,7 +49,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 vm.SelectedReport = "Summary";
                 Assert.True(vm.RunReportCommand.CanExecute(null));
 
-                vm.RunReportCommand.Execute(null);
+                await vm.RunReportCommand.ExecuteAsync(null);
                 Assert.NotNull(vm.ReportResults);
                 Assert.Contains("Total Tools: 1",
                     vm.ReportResults.Rows.Cast<DataRow>().Select(r => r[0]?.ToString()));
@@ -59,7 +60,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 vm.SelectedReport = "Inventory";
                 Assert.True(vm.RunReportCommand.CanExecute(null));
 
-                vm.RunReportCommand.Execute(null);
+                await vm.RunReportCommand.ExecuteAsync(null);
                 Assert.Contains("Tool ID:",
                     vm.ReportResults.Rows.Cast<DataRow>().Select(r => r[0]?.ToString()));
             }
