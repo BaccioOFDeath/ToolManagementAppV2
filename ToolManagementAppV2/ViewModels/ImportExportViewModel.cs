@@ -90,8 +90,10 @@ namespace ToolManagementAppV2.ViewModels
             if (string.IsNullOrEmpty(path)) return;
             try
             {
-                _customerService.ImportCustomersFromCsv(path, new Dictionary<string, string>());
-                ImportExportLogs.Add($"Successfully imported customers from {path}.");
+                var result = _customerService.ImportCustomersFromCsv(path, new Dictionary<string, string>());
+                ImportExportLogs.Add($"Successfully imported customers from {path}. Imported {result.ImportedCount} customers.");
+                foreach (var msg in result.SkippedRows)
+                    ImportExportLogs.Add($"Skipped {msg}");
             }
             catch (Exception ex)
             {

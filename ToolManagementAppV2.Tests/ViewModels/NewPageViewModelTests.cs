@@ -5,6 +5,7 @@ using System.Linq;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Models.Domain;
+using ToolManagementAppV2.Models.ImportExport;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Services.Rentals;
@@ -221,26 +222,54 @@ namespace ToolManagementAppV2.Tests.ViewModels
     {
         public bool ImportCalled { get; private set; }
         public bool ExportCalled { get; private set; }
-        public void ImportCustomersFromCsv(string filePath, IDictionary<string, string> map) => ImportCalled = true;
+        public CustomerImportResult ImportCustomersFromCsv(string filePath, IDictionary<string, string> map)
+        {
+            ImportCalled = true;
+            return new CustomerImportResult();
+        }
         public void ExportCustomersToCsv(string filePath) => ExportCalled = true;
+        public Task ExportCustomersToCsvAsync(string filePath)
+        {
+            ExportCalled = true;
+            return Task.CompletedTask;
+        }
         public void AddCustomer(Customer customer) => throw new System.NotImplementedException();
+        public Task AddCustomerAsync(Customer customer) => throw new System.NotImplementedException();
         public void UpdateCustomer(Customer customer) => throw new System.NotImplementedException();
+        public Task UpdateCustomerAsync(Customer customer) => throw new System.NotImplementedException();
         public void DeleteCustomer(int customerID) => throw new System.NotImplementedException();
+        public Task DeleteCustomerAsync(int customerID) => throw new System.NotImplementedException();
         public Customer GetCustomerByID(int customerID) => throw new System.NotImplementedException();
+        public Task<Customer> GetCustomerByIDAsync(int customerID) => throw new System.NotImplementedException();
         public List<Customer> GetAllCustomers() => new();
+        public Task<List<Customer>> GetAllCustomersAsync() => Task.FromResult(new List<Customer>());
         public List<Customer> SearchCustomers(string searchTerm) => new();
+        public Task<List<Customer>> SearchCustomersAsync(string searchTerm) => Task.FromResult(new List<Customer>());
+        public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map)
+        {
+            ImportCalled = true;
+            return Task.FromResult(new CustomerImportResult());
+        }
     }
 
     class FailCustomerService : ICustomerService
     {
-        public void ImportCustomersFromCsv(string filePath, IDictionary<string, string> map) => throw new System.Exception("fail");
+        public CustomerImportResult ImportCustomersFromCsv(string filePath, IDictionary<string, string> map) => throw new System.Exception("fail");
+        public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map) => throw new System.Exception("fail");
         public void ExportCustomersToCsv(string filePath) => throw new System.Exception("fail");
+        public Task ExportCustomersToCsvAsync(string filePath) => throw new System.Exception("fail");
         public void AddCustomer(Customer customer) => throw new System.NotImplementedException();
+        public Task AddCustomerAsync(Customer customer) => throw new System.NotImplementedException();
         public void UpdateCustomer(Customer customer) => throw new System.NotImplementedException();
+        public Task UpdateCustomerAsync(Customer customer) => throw new System.NotImplementedException();
         public void DeleteCustomer(int customerID) => throw new System.NotImplementedException();
+        public Task DeleteCustomerAsync(int customerID) => throw new System.NotImplementedException();
         public Customer GetCustomerByID(int customerID) => throw new System.NotImplementedException();
+        public Task<Customer> GetCustomerByIDAsync(int customerID) => throw new System.NotImplementedException();
         public List<Customer> GetAllCustomers() => new();
+        public Task<List<Customer>> GetAllCustomersAsync() => Task.FromResult(new List<Customer>());
         public List<Customer> SearchCustomers(string searchTerm) => new();
+        public Task<List<Customer>> SearchCustomersAsync(string searchTerm) => Task.FromResult(new List<Customer>());
     }
 
     class StubDatabaseBackupService : IDatabaseBackupService

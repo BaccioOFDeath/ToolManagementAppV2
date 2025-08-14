@@ -5,6 +5,7 @@ using System.Data.SQLite;
 using System.IO;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Models.Domain;
+using ToolManagementAppV2.Models.ImportExport;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Utilities.IO;
 using ToolManagementAppV2.Interfaces;
@@ -24,23 +25,40 @@ namespace ToolManagementAppV2.Services.Customers
             _logger = logger ?? NullLogger<CustomerService>.Instance;
         }
 
-        public void ImportCustomersFromCsv(string filePath, IDictionary<string, string> map)
+        public CustomerImportResult ImportCustomersFromCsv(string filePath, IDictionary<string, string> map)
         {
             var customers = CsvHelperUtil.LoadCustomersFromCsv(filePath, map);
+            var result = new CustomerImportResult();
             using var conn = _dbService.CreateConnection();
             using var tran = conn.BeginTransaction();
             try
             {
-                foreach (var c in customers)
+                for (int i = 0; i < customers.Count; i++)
                 {
-                    if (string.IsNullOrWhiteSpace(c.Company)) continue;
-                    if (string.IsNullOrWhiteSpace(c.Contact)) continue;
-                    if (string.IsNullOrWhiteSpace(c.Phone) && string.IsNullOrWhiteSpace(c.Mobile)) continue;
+                    var c = customers[i];
+                    var row = i + 2; // account for header row
+                    var reason = GetSkipReason(c);
+                    if (reason != null)
+                    {
+                        var msg = $"Row {row}: {reason}";
+                        result.SkippedRows.Add(msg);
+                        _logger.LogInformation("{Message}", msg);
+                        continue;
+                    }
 
-                    if (!CustomerExists(c.Contact, c.Phone, c.Mobile))
-                        InsertCustomer(conn, tran, c);
+                    if (CustomerExists(c.Contact, c.Phone, c.Mobile))
+                    {
+                        var msg = $"Row {row}: Duplicate customer";
+                        result.SkippedRows.Add(msg);
+                        _logger.LogInformation("{Message}", msg);
+                        continue;
+                    }
+
+                    InsertCustomer(conn, tran, c);
+                    result.ImportedCount++;
                 }
                 tran.Commit();
+                return result;
             }
             catch (Exception ex)
             {
@@ -48,6 +66,15 @@ namespace ToolManagementAppV2.Services.Customers
                 tran.Rollback();
                 throw;
             }
+        }
+
+        static string? GetSkipReason(CustomerModel c)
+        {
+            var reasons = new List<string>();
+            if (string.IsNullOrWhiteSpace(c.Company)) reasons.Add("Company missing");
+            if (string.IsNullOrWhiteSpace(c.Contact)) reasons.Add("Contact missing");
+            if (string.IsNullOrWhiteSpace(c.Phone) && string.IsNullOrWhiteSpace(c.Mobile)) reasons.Add("Phone and Mobile missing");
+            return reasons.Count > 0 ? string.Join(", ", reasons) : null;
         }
 
 
@@ -179,7 +206,7 @@ namespace ToolManagementAppV2.Services.Customers
         public Task<CustomerModel> GetCustomerByIDAsync(int customerID) => Task.Run(() => GetCustomerByID(customerID));
         public Task<List<CustomerModel>> GetAllCustomersAsync() => Task.Run(GetAllCustomers);
         public Task<List<CustomerModel>> SearchCustomersAsync(string searchTerm) => Task.Run(() => SearchCustomers(searchTerm));
-        public Task ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map) => Task.Run(() => ImportCustomersFromCsv(filePath, map));
+        public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map) => Task.Run(() => ImportCustomersFromCsv(filePath, map));
         public Task ExportCustomersToCsvAsync(string filePath) => Task.Run(() => ExportCustomersToCsv(filePath));
     }
 }
