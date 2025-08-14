@@ -1,4 +1,6 @@
+using System;
 using System.IO;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
@@ -50,6 +52,50 @@ public class UserServiceTests
             Assert.True(result);
             Assert.Null(userService.GetUserByID(admin1.UserID));
             Assert.NotNull(userService.GetUserByID(admin2.UserID));
+        }
+        finally
+        {
+            if (File.Exists(dbPath))
+                File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public void AddUser_ThrowsInvalidOperationException_WhenUserNameExists()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+
+            userService.AddUser(new User { UserName = "dup", Password = "pw" });
+
+            var ex = Assert.Throws<InvalidOperationException>(() =>
+                userService.AddUser(new User { UserName = "dup", Password = "pw" }));
+            Assert.Contains("username", ex.Message, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            if (File.Exists(dbPath))
+                File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public async Task AddUserAsync_ThrowsInvalidOperationException_WhenUserNameExists()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            var userService = new UserService(dbService, new ApplicationUserContext());
+
+            await userService.AddUserAsync(new User { UserName = "dup", Password = "pw" });
+
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                userService.AddUserAsync(new User { UserName = "dup", Password = "pw" }));
+            Assert.Contains("username", ex.Message, StringComparison.OrdinalIgnoreCase);
         }
         finally
         {

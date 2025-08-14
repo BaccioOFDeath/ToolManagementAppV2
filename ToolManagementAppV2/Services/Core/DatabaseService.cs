@@ -176,7 +176,8 @@ namespace ToolManagementAppV2.Services.Core
             EnsureIndex(conn, "Tools", "Location");
             EnsureIndex(conn, "Tools", "Notes");
             EnsureIndex(conn, "Tools", "Keywords");
-            EnsureIndex(conn, "Users", "UserName");
+            // Ensure each user has a unique username
+            EnsureIndex(conn, "Users", "UserName", true);
             EnsureIndex(conn, "Customers", "Contact");
             EnsureIndex(conn, "Rentals", new[] { "ToolID", "CustomerID" });
         }
