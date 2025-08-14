@@ -122,6 +122,35 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
+        public async Task AddToolAsync_SetsGeneratedToolID()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                IToolService service = new ToolService(dbService);
+
+                var tool = new Tool
+                {
+                    ToolNumber = "ATID1",
+                    NameDescription = "Test",
+                    Location = "Loc",
+                    Brand = "Brand",
+                    PartNumber = "PN"
+                };
+
+                await service.AddToolAsync(tool);
+
+                Assert.True(tool.ToolID > 0);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public void AddTool_WithImagePath_PersistsPath()
         {
             var dbPath = Path.GetTempFileName();
@@ -229,6 +258,28 @@ namespace ToolManagementAppV2.Tests.Services
                 t2.ToolNumber = "T1";
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => service.UpdateToolAsync(t2));
                 Assert.Contains("T1", ex.Message);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task UpdateToolAsync_SameToolNumber_DoesNotThrow()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var service = new ToolService(dbService);
+                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer" };
+                await service.AddToolAsync(tool);
+
+                tool.NameDescription = "Updated";
+                var ex = await Record.ExceptionAsync(() => service.UpdateToolAsync(tool));
+                Assert.Null(ex);
             }
             finally
             {

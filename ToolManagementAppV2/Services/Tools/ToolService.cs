@@ -398,16 +398,25 @@ namespace ToolManagementAppV2.Services.Tools
             return count > 0;
         }
 
-        private async Task<bool> ToolExistsAsync(string toolNumber)
+        private async Task<bool> ToolExistsAsync(string toolNumber, int? exceptId = null)
         {
             if (string.IsNullOrWhiteSpace(toolNumber))
                 return false;
-            const string sql = "SELECT COUNT(*) FROM Tools WHERE ToolNumber = @TN";
-            using var conn = _dbService.CreateConnection();
-            var count = Convert.ToInt32(await SqliteHelper.ExecuteScalarAsync(conn, sql, new[]
+
+            var sql = "SELECT COUNT(*) FROM Tools WHERE ToolNumber = @TN";
+            var parameters = new List<SQLiteParameter>
             {
-                new SQLiteParameter("@TN", toolNumber)
-            }));
+                new("@TN", toolNumber)
+            };
+
+            if (exceptId.HasValue)
+            {
+                sql += " AND ToolID <> @ID";
+                parameters.Add(new SQLiteParameter("@ID", exceptId.Value));
+            }
+
+            using var conn = _dbService.CreateConnection();
+            var count = Convert.ToInt32(await SqliteHelper.ExecuteScalarAsync(conn, sql, parameters.ToArray()));
             return count > 0;
         }
     
@@ -444,16 +453,9 @@ namespace ToolManagementAppV2.Services.Tools
 
         public async Task UpdateToolAsync(ToolModel tool)
         {
-            const string dupSql = "SELECT COUNT(*) FROM Tools WHERE ToolNumber = @TN AND ToolID <> @ID";
-            var dupParams = new[]
-            {
-                new SQLiteParameter("@TN", tool.ToolNumber),
-                new SQLiteParameter("@ID", tool.ToolID)
-            };
-            using var conn = _dbService.CreateConnection();
-            var dup = Convert.ToInt32(await SqliteHelper.ExecuteScalarAsync(conn, dupSql, dupParams)) > 0;
-            if (dup)
+            if (await ToolExistsAsync(tool.ToolNumber, tool.ToolID))
                 throw new InvalidOperationException($"Tool {tool.ToolNumber} already exists.");
+            using var conn = _dbService.CreateConnection();
             const string sql = @"
                 UPDATE Tools SET
                   ToolNumber = @ToolNumber,
