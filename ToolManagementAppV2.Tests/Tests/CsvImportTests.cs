@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System;
 using ToolManagementAppV2.Utilities.IO;
 using Xunit;
 
@@ -26,6 +27,23 @@ public class CsvImportTests
 
         Assert.Single(tools);
         Assert.Contains(2, invalid);
+    }
+
+    [Fact]
+    public void LoadToolsFromCsv_MissingRequiredMapping_Throws()
+    {
+        var csv = string.Join('\n',
+            "ToolNumber,NameDescription",
+            "T1,Hammer");
+        var path = Path.GetTempFileName();
+        File.WriteAllText(path, csv);
+
+        var map = new Dictionary<string, string>
+        {
+            { "NameDescription", "NameDescription" }
+        };
+
+        Assert.Throws<ArgumentException>(() => CsvHelperUtil.LoadToolsFromCsv(path, map, out _));
     }
 }
 
