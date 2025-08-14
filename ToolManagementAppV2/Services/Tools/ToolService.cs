@@ -366,23 +366,23 @@ namespace ToolManagementAppV2.Services.Tools
     
         ToolModel MapTool(IDataRecord r) => new()
         {
-            ToolID = Convert.ToInt32(r["ToolID"]),
+            ToolID = r["ToolID"] is DBNull ? 0 : Convert.ToInt32(r["ToolID"]),
             ToolNumber = r["ToolNumber"].ToString(),
             PartNumber = r["PartNumber"].ToString(),
             NameDescription = r["NameDescription"].ToString(),
             Brand = r["Brand"].ToString(),
             Location = r["Location"].ToString(),
-            QuantityOnHand = Convert.ToInt32(r["AvailableQuantity"]),
-            RentedQuantity = Convert.ToInt32(r["RentedQuantity"]),
+            QuantityOnHand = r["AvailableQuantity"] is DBNull ? 0 : Convert.ToInt32(r["AvailableQuantity"]),
+            RentedQuantity = r["RentedQuantity"] is DBNull ? 0 : Convert.ToInt32(r["RentedQuantity"]),
             Supplier = r["Supplier"].ToString(),
             PurchasedDate = r["PurchasedDate"] is DBNull ? (DateTime?)null : Convert.ToDateTime(r["PurchasedDate"]),
             Notes = r["Notes"].ToString(),
-            IsCheckedOut = Convert.ToInt32(r["IsCheckedOut"]) == 1,
+            IsCheckedOut = (r["IsCheckedOut"] is DBNull ? 0 : Convert.ToInt32(r["IsCheckedOut"])) == 1,
             CheckedOutBy = r["CheckedOutBy"].ToString(),
             CheckedOutTime = r["CheckedOutTime"] is DBNull ? (DateTime?)null : Convert.ToDateTime(r["CheckedOutTime"]),
             ToolImagePath = r["ToolImagePath"]?.ToString(),
             Keywords = r["Keywords"]?.ToString(),
-            IsPowerTool = Convert.ToInt32(r["IsPowerTool"]) == 1
+            IsPowerTool = (r["IsPowerTool"] is DBNull ? 0 : Convert.ToInt32(r["IsPowerTool"])) == 1
         };
 
         public Task AddToolAsync(ToolModel tool) => Task.Run(() => AddTool(tool));
