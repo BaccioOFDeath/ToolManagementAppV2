@@ -162,13 +162,20 @@ namespace ToolManagementAppV2.Services.Tools
                     ? SqliteHelper.ExecuteNonQuery(conn, tx, sql, p)
                     : SqliteHelper.ExecuteNonQuery(conn, sql, p);
                 if (rows == 0)
+                {
+                    _logger.LogWarning("Quantity update affected 0 rows for ToolID {ToolID}", toolID);
                     throw new InvalidOperationException("Quantity update failed.");
+                }
             }
             else
             {
                 using var c = _dbService.CreateConnection();
-                if (SqliteHelper.ExecuteNonQuery(c, sql, p) == 0)
+                int rows = SqliteHelper.ExecuteNonQuery(c, sql, p);
+                if (rows == 0)
+                {
+                    _logger.LogWarning("Quantity update affected 0 rows for ToolID {ToolID}", toolID);
                     throw new InvalidOperationException("Quantity update failed.");
+                }
             }
         }
     
