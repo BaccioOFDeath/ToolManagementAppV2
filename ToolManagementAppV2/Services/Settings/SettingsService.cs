@@ -120,7 +120,9 @@ namespace ToolManagementAppV2.Services.Settings
                 const string sql = "DELETE FROM Settings WHERE Key = @Key";
                 var p = new[] { new SQLiteParameter("@Key", key) };
                 using var conn = _dbService.CreateConnection();
-                SqliteHelper.ExecuteNonQuery(conn, sql, p);
+                var affected = SqliteHelper.ExecuteNonQuery(conn, sql, p);
+                if (affected == 0)
+                    _logger.LogWarning("No setting found for key {Key}", key);
             }
             catch (Exception ex)
             {

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
+using Microsoft.Extensions.Logging;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Interfaces;
@@ -118,6 +119,30 @@ namespace ToolManagementAppV2.Tests.Services
                 }
 
                 Assert.Throws<InvalidOperationException>(() => service.DeleteSetting("Key1"));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void DeleteSetting_NonExistingKey_LogsWarning()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var logs = new List<LogEntry>();
+                using var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
+                var logger = factory.CreateLogger<SettingsService>();
+                ISettingsService service = new SettingsService(dbService, logger);
+
+                service.DeleteSetting("MissingKey");
+
+                Assert.Single(logs);
+                Assert.Equal(LogLevel.Warning, logs[0].Level);
             }
             finally
             {
