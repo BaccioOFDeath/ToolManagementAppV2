@@ -92,7 +92,7 @@ namespace ToolManagementAppV2.Services
 
         public void ShowRentalHistory(ToolModel tool, IEnumerable<RentalModel> history)
         {
-            var vm = new RentalHistoryViewModel(tool, history);
+            var vm = new RentalHistoryViewModel(tool, history, this);
             var win = new RentalHistoryWindow(vm) { Title = $"Rental History - {tool.ToolNumber}" };
             try { win.Owner = System.Windows.Application.Current?.MainWindow; }
             catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for RentalHistoryWindow"); }
