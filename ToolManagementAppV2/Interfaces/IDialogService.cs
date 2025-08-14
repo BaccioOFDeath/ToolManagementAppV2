@@ -14,12 +14,12 @@ namespace ToolManagementAppV2.Interfaces
         (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers);
         CustomerModel? ShowAddCustomerDialog();
 
-        void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
-        void ShowRentalHistory(ToolModel tool, IEnumerable<RentalModel> history) { }
-        Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties) => null;
-        Func<ToolModel, IEnumerable<string>>? ShowImageImportMapping() => null;
-        void ShowPrintPreview(FlowDocument document, string title, string description) { }
-        void ShowPrintLabelDialog() { }
-        void ShowScannerStatus() { }
+        void ShowRentalsFilter(ManageRentalsViewModel viewModel);
+        void ShowRentalHistory(ToolModel tool, IEnumerable<RentalModel> history);
+        Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties);
+        Func<ToolModel, IEnumerable<string>>? ShowImageImportMapping();
+        void ShowPrintPreview(FlowDocument document, string title, string description);
+        void ShowPrintLabelDialog();
+        void ShowScannerStatus();
     }
 }
