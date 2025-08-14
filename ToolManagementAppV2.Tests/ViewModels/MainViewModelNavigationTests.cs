@@ -230,7 +230,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void GlobalSearchCommand_NavigatesAndExecutesSearch()
+        public async Task GlobalSearchCommand_NavigatesAndExecutesSearch()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -251,6 +251,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 vm.GlobalSearchText = "Ham";
 
                 vm.GlobalSearchCommand.Execute(null);
+                await vm.OpenSearchToolsCommand.ExecutionTask!;
 
                 var page = Assert.IsType<ToolSearchPage>(vm.CurrentPage);
                 Assert.Equal("Ham", vm.ToolManagement.SearchText);

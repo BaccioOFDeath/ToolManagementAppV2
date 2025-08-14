@@ -81,10 +81,10 @@ namespace ToolManagementAppV2.ViewModels
         }
 
         public IRelayCommand OpenDashboardCommand { get; }
-        public IRelayCommand OpenSearchToolsCommand { get; }
-        public IRelayCommand OpenManageToolsCommand { get; }
+        public IAsyncRelayCommand OpenSearchToolsCommand { get; }
+        public IAsyncRelayCommand OpenManageToolsCommand { get; }
         public IAsyncRelayCommand OpenRentalsCommand { get; }
-        public IRelayCommand OpenCustomersCommand { get; }
+        public IAsyncRelayCommand OpenCustomersCommand { get; }
         public IRelayCommand OpenUsersCommand { get; }
         public IRelayCommand OpenSettingsCommand { get; }
         public IRelayCommand OpenImportExportCommand { get; }
@@ -147,17 +147,17 @@ namespace ToolManagementAppV2.ViewModels
                 CurrentPage = page;
             });
 
-            OpenSearchToolsCommand = new RelayCommand(() =>
+            OpenSearchToolsCommand = new AsyncRelayCommand(async () =>
             {
-                ToolManagement.LoadToolsAsync();
+                await ToolManagement.LoadToolsAsync();
                 var page = new ToolSearchPage { DataContext = ToolManagement, Title = "Search Tools" };
                 // If your ToolManagement VM supports a query setter, apply GlobalSearchText there.
                 CurrentPage = page;
             });
 
-            OpenManageToolsCommand = new RelayCommand(() =>
+            OpenManageToolsCommand = new AsyncRelayCommand(async () =>
             {
-                ToolManagement.LoadToolsAsync();
+                await ToolManagement.LoadToolsAsync();
                 var page = new ManageToolsPage { DataContext = ToolManagement, Title = "Manage Tools" };
                 CurrentPage = page;
             });
@@ -169,9 +169,9 @@ namespace ToolManagementAppV2.ViewModels
                 CurrentPage = page;
             });
 
-            OpenCustomersCommand = new RelayCommand(() =>
+            OpenCustomersCommand = new AsyncRelayCommand(async () =>
             {
-                CustomerManagement.LoadCustomersAsync();
+                await CustomerManagement.LoadCustomersAsync();
                 var page = new CustomersPage { DataContext = CustomerManagement, Title = "Customers" };
                 CurrentPage = page;
             });
