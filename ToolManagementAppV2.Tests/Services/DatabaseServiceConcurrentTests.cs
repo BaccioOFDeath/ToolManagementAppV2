@@ -38,5 +38,43 @@ namespace ToolManagementAppV2.Tests.Services
                 if (File.Exists(dbPath)) File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void EnsureIndex_ConcurrentCalls_NoDuplicateException()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var colMethod = typeof(DatabaseService).GetMethod("EnsureColumn", BindingFlags.NonPublic | BindingFlags.Instance);
+                var idxMethod = typeof(DatabaseService).GetMethod("EnsureIndex", BindingFlags.NonPublic | BindingFlags.Instance);
+
+                var db = new DatabaseService(dbPath);
+                colMethod.Invoke(db, new object[] { "Tools", "ConcurrentIdxCol", "TEXT" });
+
+                var t1 = Task.Run(() =>
+                {
+                    var d = new DatabaseService(dbPath);
+                    using var conn = d.CreateConnection();
+                    idxMethod.Invoke(d, new object[] { conn, "Tools", "ConcurrentIdxCol", false });
+                });
+                var t2 = Task.Run(() =>
+                {
+                    var d = new DatabaseService(dbPath);
+                    using var conn = d.CreateConnection();
+                    idxMethod.Invoke(d, new object[] { conn, "Tools", "ConcurrentIdxCol", false });
+                });
+
+                var ex = Record.Exception(() => Task.WaitAll(t1, t2));
+                Assert.Null(ex);
+
+                using var checkDb = new DatabaseService(dbPath);
+                using var checkConn = checkDb.CreateConnection();
+                Assert.True(SqliteHelper.IndexExists(checkConn, "idx_Tools_ConcurrentIdxCol"));
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
     }
 }
