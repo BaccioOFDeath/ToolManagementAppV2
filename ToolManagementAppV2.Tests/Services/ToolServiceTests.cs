@@ -9,6 +9,8 @@ using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Interfaces;
 using Xunit;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using ToolManagementAppV2.Tests;
 
 namespace ToolManagementAppV2.Tests.Services
 {
@@ -389,6 +391,35 @@ namespace ToolManagementAppV2.Tests.Services
                 Assert.Equal("T1", tool.ToolNumber);
                 Assert.False(tool.IsPowerTool);
                 Assert.Equal(0, tool.QuantityOnHand);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void UpdateToolQuantities_NoRows_LogsWarningAndThrows()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var logs = new List<LogEntry>();
+                using var loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
+                var dbService = new DatabaseService(dbPath);
+                IToolService service = new ToolService(dbService, loggerFactory.CreateLogger<ToolService>());
+
+                service.AddTool(new Tool
+                {
+                    ToolNumber = "T1",
+                    NameDescription = "Hammer",
+                    QuantityOnHand = 0,
+                    RentedQuantity = 0
+                });
+
+                var addedTool = service.GetAllTools().First();
+                Assert.Throws<InvalidOperationException>(() => service.UpdateToolQuantities(addedTool.ToolID, 1, true));
+                Assert.Contains(logs, l => l.Level == LogLevel.Warning && l.Message.Contains("Quantity update affected 0 rows"));
             }
             finally
             {
