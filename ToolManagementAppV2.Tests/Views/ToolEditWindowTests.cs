@@ -51,5 +51,64 @@ namespace ToolManagementAppV2.Tests.Views
                 throw threadException;
             }
         }
+
+        [Fact]
+        public void CancelCommand_ClosesWindow()
+        {
+            Exception? threadException = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var tool = new Tool();
+                    ToolEditWindow? window = null;
+                    bool closed = false;
+
+                    Action onSave = () => window?.Close();
+                    Action onCancel = () => window?.Close();
+
+                    window = new ToolEditWindow(tool, onSave, onCancel);
+                    window.Closed += (_, __) => closed = true;
+
+                    var vm = (ToolEditViewModel)window.DataContext;
+                    vm.CancelCommand.Execute(null);
+
+                    Assert.True(closed);
+                }
+                catch (Exception ex)
+                {
+                    threadException = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadException != null)
+            {
+                throw threadException;
+            }
+        }
+
+        [Fact(Skip = "Manual smoke test for visual inspection")]
+        public void ToolEditWindow_ManualSmokeTest()
+        {
+            var thread = new Thread(() =>
+            {
+                var tool = new Tool();
+                ToolEditWindow? window = null;
+                Action onSave = () => window?.Close();
+                Action onCancel = () => window?.Close();
+
+                window = new ToolEditWindow(tool, onSave, onCancel);
+                window.ShowDialog();
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+        }
     }
 }
