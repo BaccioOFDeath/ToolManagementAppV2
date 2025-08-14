@@ -286,6 +286,31 @@ namespace ToolManagementAppV2.Services.Tools
             if (result != null)
                 tool.ToolID = Convert.ToInt32(result);
         }
+
+        async Task InsertToolAsync(SQLiteConnection conn, SQLiteTransaction? tran, ToolModel tool)
+        {
+            var p = new[]
+            {
+                new SQLiteParameter("@ToolNumber", tool.ToolNumber),
+                new SQLiteParameter("@Desc", (object)tool.NameDescription ?? DBNull.Value),
+                new SQLiteParameter("@Loc", tool.Location),
+                new SQLiteParameter("@Brand", tool.Brand),
+                new SQLiteParameter("@PN", tool.PartNumber),
+                new SQLiteParameter("@Sup", (object)tool.Supplier ?? DBNull.Value),
+                new SQLiteParameter("@PD", (object)tool.PurchasedDate ?? DBNull.Value),
+                new SQLiteParameter("@Notes", (object)tool.Notes ?? DBNull.Value),
+                new SQLiteParameter("@Keywords", (object)tool.Keywords ?? DBNull.Value),
+                new SQLiteParameter("@Avail", tool.QuantityOnHand),
+                new SQLiteParameter("@Rent", tool.RentedQuantity),
+                new SQLiteParameter("@Img", (object)tool.ToolImagePath ?? DBNull.Value),
+                new SQLiteParameter("@Power", tool.IsPowerTool ? 1 : 0)
+            };
+            using var cmd = new SQLiteCommand(UpsertToolCsv, conn, tran);
+            cmd.Parameters.AddRange(p);
+            var result = await cmd.ExecuteScalarAsync();
+            if (result != null)
+                tool.ToolID = Convert.ToInt32(result);
+        }
     
         public void ExportToolsToCsv(string filePath)
         {
@@ -366,6 +391,19 @@ namespace ToolManagementAppV2.Services.Tools
             }));
             return count > 0;
         }
+
+        private async Task<bool> ToolExistsAsync(string toolNumber)
+        {
+            if (string.IsNullOrWhiteSpace(toolNumber))
+                return false;
+            const string sql = "SELECT COUNT(*) FROM Tools WHERE ToolNumber = @TN";
+            using var conn = _dbService.CreateConnection();
+            var count = Convert.ToInt32(await SqliteHelper.ExecuteScalarAsync(conn, sql, new[]
+            {
+                new SQLiteParameter("@TN", toolNumber)
+            }));
+            return count > 0;
+        }
     
         ToolModel MapTool(IDataRecord r) => new()
         {
@@ -388,18 +426,208 @@ namespace ToolManagementAppV2.Services.Tools
             IsPowerTool = (r["IsPowerTool"] is DBNull ? 0 : Convert.ToInt32(r["IsPowerTool"])) == 1
         };
 
-        public Task AddToolAsync(ToolModel tool) => Task.Run(() => AddTool(tool));
-        public Task UpdateToolAsync(ToolModel tool) => Task.Run(() => UpdateTool(tool));
-        public Task DeleteToolAsync(int toolID) => Task.Run(() => DeleteTool(toolID));
-        public Task<ToolModel> GetToolByIDAsync(int toolID) => Task.Run(() => GetToolByID(toolID));
-        public Task<List<ToolModel>> GetAllToolsAsync() => Task.Run(GetAllTools);
-        public Task<List<ToolModel>> SearchToolsAsync(string? searchText) => Task.Run(() => SearchTools(searchText));
-        public Task ToggleToolCheckOutStatusAsync(int toolID, string currentUser) => Task.Run(() => ToggleToolCheckOutStatus(toolID, currentUser));
-        public Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName) => Task.Run(() => GetToolsCheckedOutBy(userName));
-        public Task UpdateToolImageAsync(int toolID, string imagePath) => Task.Run(() => UpdateToolImage(toolID, imagePath));
-        public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map) => Task.Run(() => ImportToolsFromCsv(filePath, map));
-        public Task ExportToolsToCsvAsync(string filePath) => Task.Run(() => ExportToolsToCsv(filePath));
-        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector) => Task.Run(() => ImportToolImages(folderPath, keySelector));
-        public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null) => Task.Run(() => UpdateToolQuantities(toolID, qtyChange, isRental, conn, tx));
+        public async Task AddToolAsync(ToolModel tool)
+        {
+            if (string.IsNullOrWhiteSpace(tool?.ToolNumber))
+                throw new ArgumentException("ToolNumber is required.", nameof(tool));
+            if (await ToolExistsAsync(tool.ToolNumber))
+                throw new InvalidOperationException($"Tool {tool.ToolNumber} already exists.");
+            using var conn = _dbService.CreateConnection();
+            await InsertToolAsync(conn, null, tool);
+        }
+
+        public async Task UpdateToolAsync(ToolModel tool)
+        {
+            var dup = (await GetAllToolsAsync()).Any(t => t.ToolNumber == tool.ToolNumber && t.ToolID != tool.ToolID);
+            if (dup)
+                throw new InvalidOperationException($"Tool {tool.ToolNumber} already exists.");
+            const string sql = @"
+                UPDATE Tools SET
+                  ToolNumber = @ToolNumber,
+                  NameDescription = @Desc,
+                  Location = @Loc,
+                  Brand = @Brand,
+                  PartNumber = @PN,
+                  Supplier = @Sup,
+                  PurchasedDate = @PD,
+                  Notes = @Notes,
+                  Keywords = @Keywords,
+                  AvailableQuantity = @Avail,
+                  RentedQuantity = @Rent,
+                  IsPowerTool = @Power,
+                  IsCheckedOut = @Out,
+                  CheckedOutBy = @By,
+                  CheckedOutTime = @Time,
+                  ToolImagePath = @Img
+                WHERE ToolID = @ID";
+            var p = new[]
+            {
+                new SQLiteParameter("@ID", tool.ToolID),
+                new SQLiteParameter("@ToolNumber", tool.ToolNumber),
+                new SQLiteParameter("@Desc", (object)tool.NameDescription ?? DBNull.Value),
+                new SQLiteParameter("@Loc", tool.Location),
+                new SQLiteParameter("@Brand", tool.Brand),
+                new SQLiteParameter("@PN", tool.PartNumber),
+                new SQLiteParameter("@Sup", (object)tool.Supplier ?? DBNull.Value),
+                new SQLiteParameter("@PD", (object)tool.PurchasedDate ?? DBNull.Value),
+                new SQLiteParameter("@Notes", (object)tool.Notes ?? DBNull.Value),
+                new SQLiteParameter("@Keywords", (object)tool.Keywords ?? DBNull.Value),
+                new SQLiteParameter("@Avail", tool.QuantityOnHand),
+                new SQLiteParameter("@Rent", tool.RentedQuantity),
+                new SQLiteParameter("@Power", tool.IsPowerTool ? 1 : 0),
+                new SQLiteParameter("@Out", tool.IsCheckedOut ? 1 : 0),
+                new SQLiteParameter("@By", (object)tool.CheckedOutBy ?? DBNull.Value),
+                new SQLiteParameter("@Time", (object)tool.CheckedOutTime ?? DBNull.Value),
+                new SQLiteParameter("@Img", (object)tool.ToolImagePath ?? DBNull.Value)
+            };
+            using var conn = _dbService.CreateConnection();
+            await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
+        }
+
+        public async Task DeleteToolAsync(int toolID)
+        {
+            using var conn = _dbService.CreateConnection();
+            await SqliteHelper.ExecuteNonQueryAsync(conn, "DELETE FROM Tools WHERE ToolID=@ID",
+                new[] { new SQLiteParameter("@ID", toolID) });
+        }
+
+        public async Task<ToolModel> GetToolByIDAsync(int toolID)
+        {
+            using var conn = _dbService.CreateConnection();
+            var list = await SqliteHelper.ExecuteReaderAsync(conn, "SELECT * FROM Tools WHERE ToolID=@ToolID",
+                new[] { new SQLiteParameter("@ToolID", toolID) }, MapTool);
+            return list.FirstOrDefault();
+        }
+
+        public async Task<List<ToolModel>> GetAllToolsAsync()
+        {
+            using var conn = _dbService.CreateConnection();
+            return await SqliteHelper.ExecuteReaderAsync(conn, AllToolsSql, null, MapTool);
+        }
+
+        public async Task<List<ToolModel>> SearchToolsAsync(string? searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                return await GetAllToolsAsync();
+
+            using var conn = _dbService.CreateConnection();
+            var terms = searchText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var searchable = new[]
+            {
+                "ToolNumber",
+                "NameDescription",
+                "Brand",
+                "PartNumber",
+                "Supplier",
+                "Location",
+                "Notes",
+                "Keywords"
+            };
+
+            var sb = new StringBuilder("SELECT * FROM Tools WHERE ");
+            var parameters = new List<SQLiteParameter>();
+            for (int i = 0; i < terms.Length; i++)
+            {
+                if (i > 0) sb.Append(" AND ");
+                var paramName = $"@p{i}";
+                var likeClause = string.Join(" OR ", searchable.Select(col => $"{col} LIKE {paramName} COLLATE NOCASE"));
+                sb.Append($"(CAST(ToolID AS TEXT) LIKE {paramName} COLLATE NOCASE OR {likeClause})");
+                parameters.Add(new SQLiteParameter(paramName, $"%{terms[i]}%"));
+            }
+
+            return await SqliteHelper.ExecuteReaderAsync(conn, sb.ToString(), parameters.ToArray(), MapTool);
+        }
+
+        public async Task ToggleToolCheckOutStatusAsync(int toolID, string currentUser)
+        {
+            using var conn = _dbService.CreateConnection();
+            var record = (await SqliteHelper.ExecuteReaderAsync(conn,
+                "SELECT IsCheckedOut, AvailableQuantity FROM Tools WHERE ToolID=@ID",
+                new[] { new SQLiteParameter("@ID", toolID) },
+                r => new { Out = Convert.ToInt32(r["IsCheckedOut"]) == 1, Qty = Convert.ToInt32(r["AvailableQuantity"]) } )).FirstOrDefault();
+
+            if (record == null)
+                throw new InvalidOperationException($"Tool {toolID} not found.");
+
+            if (!record.Out && record.Qty <= 0)
+                throw new InvalidOperationException("Tool is out of stock.");
+
+            const string sql = @"UPDATE Tools SET IsCheckedOut=@Out, CheckedOutBy=@By, CheckedOutTime=@Time WHERE ToolID=@ID";
+            bool newStatus = !record.Out;
+            var parameters = new[]
+            {
+                new SQLiteParameter("@Out", newStatus ? 1 : 0),
+                new SQLiteParameter("@By", newStatus ? currentUser : (object)DBNull.Value),
+                new SQLiteParameter("@Time", newStatus ? DateTime.Now : (object)DBNull.Value),
+                new SQLiteParameter("@ID", toolID)
+            };
+            await SqliteHelper.ExecuteNonQueryAsync(conn, sql, parameters);
+        }
+
+        public async Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName)
+        {
+            using var conn = _dbService.CreateConnection();
+            return await SqliteHelper.ExecuteReaderAsync(conn,
+                "SELECT * FROM Tools WHERE CheckedOutBy=@U", new[] { new SQLiteParameter("@U", userName) }, MapTool);
+        }
+
+        public async Task UpdateToolImageAsync(int toolID, string imagePath)
+        {
+            const string sql = "UPDATE Tools SET ToolImagePath=@Img WHERE ToolID=@ID";
+            var p = new[]
+            {
+                new SQLiteParameter("@Img", imagePath),
+                new SQLiteParameter("@ID", toolID)
+            };
+            using var conn = _dbService.CreateConnection();
+            await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
+        }
+
+        public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map)
+            => Task.FromResult(ImportToolsFromCsv(filePath, map));
+
+        public Task ExportToolsToCsvAsync(string filePath)
+        {
+            ExportToolsToCsv(filePath);
+            return Task.CompletedTask;
+        }
+
+        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector)
+            => Task.FromResult(ImportToolImages(folderPath, keySelector));
+
+        public async Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null)
+        {
+            if (qtyChange <= 0) throw new ArgumentException("Quantity change must be positive.", nameof(qtyChange));
+            var sql = isRental
+                ? @"UPDATE Tools SET AvailableQuantity = AvailableQuantity - @Q, RentedQuantity = RentedQuantity + @Q WHERE ToolID = @ID AND AvailableQuantity >= @Q"
+                : @"UPDATE Tools SET AvailableQuantity = AvailableQuantity + @Q, RentedQuantity = RentedQuantity - @Q WHERE ToolID = @ID AND RentedQuantity >= @Q";
+            var p = new[]
+            {
+                new SQLiteParameter("@ID", toolID),
+                new SQLiteParameter("@Q", qtyChange)
+            };
+
+            if (conn != null)
+            {
+                int rows = tx != null
+                    ? await SqliteHelper.ExecuteNonQueryAsync(conn, tx, sql, p)
+                    : await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
+                if (rows == 0)
+                {
+                    _logger.LogWarning("Quantity update affected 0 rows for ToolID {ToolID}", toolID);
+                    throw new InvalidOperationException("Quantity update failed.");
+                }
+            }
+            else
+            {
+                using var c = _dbService.CreateConnection();
+                int rows = await SqliteHelper.ExecuteNonQueryAsync(c, sql, p);
+                if (rows == 0)
+                {
+                    _logger.LogWarning("Quantity update affected 0 rows for ToolID {ToolID}", toolID);
+                    throw new InvalidOperationException("Quantity update failed.");
+                }
+            }
+        }
     }
 }

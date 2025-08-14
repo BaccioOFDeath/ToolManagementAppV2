@@ -3,13 +3,14 @@ using System.IO;
 using System.Data.SQLite;
 using ToolManagementAppV2.Services.Core;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace ToolManagementAppV2.Tests.Services
 {
     public class DatabaseConnectionTests
     {
         [Fact]
-        public void MultipleConnections_NoLockingErrors()
+        public async Task MultipleConnections_NoLockingErrors()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -21,12 +22,12 @@ namespace ToolManagementAppV2.Tests.Services
                 using var tx = conn1.BeginTransaction();
                 using (var cmd = new SQLiteCommand("INSERT INTO Settings(Key,Value) VALUES('Test','1')", conn1, tx))
                 {
-                    cmd.ExecuteNonQuery();
+                    await cmd.ExecuteNonQueryAsync();
                 }
 
                 using (var cmd = new SQLiteCommand("SELECT COUNT(*) FROM Settings", conn2))
                 {
-                    var count = Convert.ToInt32(cmd.ExecuteScalar());
+                    var count = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                     Assert.Equal(1, count);
                 }
                 tx.Commit();

@@ -11,6 +11,7 @@ using ToolManagementAppV2.Utilities.IO;
 using ToolManagementAppV2.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using System.Linq;
 
 namespace ToolManagementAppV2.Services.Customers
 {
@@ -143,6 +144,28 @@ namespace ToolManagementAppV2.Services.Customers
             customer.CustomerID = Convert.ToInt32(cmd.ExecuteScalar());
         }
 
+        async Task InsertCustomerAsync(SQLiteConnection conn, SQLiteTransaction? tran, CustomerModel customer)
+        {
+            const string sql = @"
+        INSERT INTO Customers (Company, Email, Contact, Phone, Mobile, Address)
+        VALUES (@Company, @Email, @Contact, @Phone, @Mobile, @Address);
+        SELECT last_insert_rowid();";
+
+            var p = new[]
+            {
+                new SQLiteParameter("@Company", customer.Company ?? string.Empty),
+                new SQLiteParameter("@Email",   customer.Email ?? string.Empty),
+                new SQLiteParameter("@Contact", customer.Contact ?? string.Empty),
+                new SQLiteParameter("@Phone",   customer.Phone ?? string.Empty),
+                new SQLiteParameter("@Mobile",  customer.Mobile ?? string.Empty),
+                new SQLiteParameter("@Address", customer.Address ?? string.Empty)
+            };
+
+            using var cmd = new SQLiteCommand(sql, conn, tran);
+            cmd.Parameters.AddRange(p);
+            customer.CustomerID = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+        }
+
 
         public void UpdateCustomer(CustomerModel customer)
         {
@@ -200,13 +223,74 @@ namespace ToolManagementAppV2.Services.Customers
             Address = r["Address"].ToString()
         };
 
-        public Task AddCustomerAsync(CustomerModel customer) => Task.Run(() => AddCustomer(customer));
-        public Task UpdateCustomerAsync(CustomerModel customer) => Task.Run(() => UpdateCustomer(customer));
-        public Task DeleteCustomerAsync(int customerID) => Task.Run(() => DeleteCustomer(customerID));
-        public Task<CustomerModel> GetCustomerByIDAsync(int customerID) => Task.Run(() => GetCustomerByID(customerID));
-        public Task<List<CustomerModel>> GetAllCustomersAsync() => Task.Run(GetAllCustomers);
-        public Task<List<CustomerModel>> SearchCustomersAsync(string searchTerm) => Task.Run(() => SearchCustomers(searchTerm));
-        public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map) => Task.Run(() => ImportCustomersFromCsv(filePath, map));
-        public Task ExportCustomersToCsvAsync(string filePath) => Task.Run(() => ExportCustomersToCsv(filePath));
+        public async Task AddCustomerAsync(CustomerModel customer)
+        {
+            using var conn = _dbService.CreateConnection();
+            await InsertCustomerAsync(conn, null, customer);
+        }
+
+        public async Task UpdateCustomerAsync(CustomerModel customer)
+        {
+            const string sql = @"
+                UPDATE Customers
+                SET Company = @Company, Email = @Email, Contact = @Contact,
+                    Phone = @Phone, Mobile = @Mobile, Address = @Address
+                WHERE CustomerID = @CustomerID";
+            var p = new[]
+            {
+                new SQLiteParameter("@Company", customer.Company),
+                new SQLiteParameter("@Email", customer.Email),
+                new SQLiteParameter("@Contact", customer.Contact),
+                new SQLiteParameter("@Phone", customer.Phone),
+                new SQLiteParameter("@Mobile", customer.Mobile),
+                new SQLiteParameter("@Address", customer.Address),
+                new SQLiteParameter("@CustomerID", customer.CustomerID),
+            };
+            using var conn = _dbService.CreateConnection();
+            await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
+        }
+
+        public async Task DeleteCustomerAsync(int customerID)
+        {
+            const string sql = "DELETE FROM Customers WHERE CustomerID = @CustomerID";
+            var p = new[] { new SQLiteParameter("@CustomerID", customerID) };
+            using var conn = _dbService.CreateConnection();
+            await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
+        }
+
+        public async Task<CustomerModel> GetCustomerByIDAsync(int customerID)
+        {
+            const string sql = "SELECT * FROM Customers WHERE CustomerID = @id";
+            var p = new[] { new SQLiteParameter("@id", customerID) };
+            using var conn = _dbService.CreateConnection();
+            var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapCustomer);
+            return list.FirstOrDefault();
+        }
+
+        public async Task<List<CustomerModel>> GetAllCustomersAsync()
+        {
+            const string sql = "SELECT * FROM Customers";
+            using var conn = _dbService.CreateConnection();
+            return await SqliteHelper.ExecuteReaderAsync(conn, sql, null, MapCustomer);
+        }
+
+        public async Task<List<CustomerModel>> SearchCustomersAsync(string searchTerm)
+        {
+            const string sql = @"
+                SELECT * FROM Customers
+                WHERE Company LIKE @t OR Email LIKE @t OR Phone LIKE @t OR Mobile LIKE @t OR Address LIKE @t";
+            var p = new[] { new SQLiteParameter("@t", $"%{searchTerm}%") };
+            using var conn = _dbService.CreateConnection();
+            return await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapCustomer);
+        }
+
+        public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map)
+            => Task.FromResult(ImportCustomersFromCsv(filePath, map));
+
+        public Task ExportCustomersToCsvAsync(string filePath)
+        {
+            ExportCustomersToCsv(filePath);
+            return Task.CompletedTask;
+        }
     }
 }
