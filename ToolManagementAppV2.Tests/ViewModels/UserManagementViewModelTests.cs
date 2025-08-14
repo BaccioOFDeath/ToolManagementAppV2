@@ -165,9 +165,10 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 userService.AddUser(new User { UserName = "user1", Password = "pw" });
                 vm.LoadUsers();
                 var user = vm.Users.First();
-                var oldPwd = user.Password;
+                var original = userService.GetUserByID(user.UserID)!;
+                var oldPwd = original.Password;
                 vm.ResetPasswordFromRowCommand.Execute(user);
-                var updated = userService.GetAllUsers().First();
+                var updated = userService.GetUserByID(user.UserID)!;
                 Assert.NotEqual(oldPwd, updated.Password);
                 Assert.Equal("Password Reset", dialog.LastInfoTitle);
                 Assert.StartsWith("Password reset to: ", dialog.LastInfoMessage);

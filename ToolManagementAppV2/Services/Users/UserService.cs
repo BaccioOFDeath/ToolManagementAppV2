@@ -24,7 +24,8 @@ namespace ToolManagementAppV2.Services.Users
         public List<User> GetAllUsers()
         {
             using var conn = _dbService.CreateConnection();
-            return SqliteHelper.ExecuteReader(conn, "SELECT * FROM Users", null, MapUser);
+            const string sql = "SELECT UserID, UserName, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, FailedAttempts, LockoutUntil, PasswordExpired FROM Users";
+            return SqliteHelper.ExecuteReader(conn, sql, null, MapUser);
         }
 
         public User? GetUserByID(int userID)
@@ -273,12 +274,20 @@ namespace ToolManagementAppV2.Services.Users
 
         User MapUser(IDataRecord rdr)
         {
+            bool HasColumn(string columnName)
+            {
+                for (int i = 0; i < rdr.FieldCount; i++)
+                    if (rdr.GetName(i).Equals(columnName, StringComparison.OrdinalIgnoreCase))
+                        return true;
+                return false;
+            }
+
             return new User
             {
                 UserID = rdr["UserID"] != DBNull.Value ? Convert.ToInt32(rdr["UserID"]) : 0,
                 UserName = rdr["UserName"].ToString(),
-                Password = rdr["Password"].ToString(),
-                Salt = rdr["Salt"]?.ToString(),
+                Password = HasColumn("Password") && rdr["Password"] != DBNull.Value ? rdr["Password"].ToString() : null,
+                Salt = HasColumn("Salt") && rdr["Salt"] != DBNull.Value ? rdr["Salt"].ToString() : null,
                 UserPhotoPath = rdr["UserPhotoPath"]?.ToString(),
                 IsAdmin = rdr["IsAdmin"] != DBNull.Value && Convert.ToInt32(rdr["IsAdmin"]) == 1,
                 Email = rdr["Email"]?.ToString(),
@@ -297,7 +306,8 @@ namespace ToolManagementAppV2.Services.Users
         public async Task<List<User>> GetAllUsersAsync()
         {
             using var conn = _dbService.CreateConnection();
-            return await SqliteHelper.ExecuteReaderAsync(conn, "SELECT * FROM Users", null, MapUser);
+            const string sql = "SELECT UserID, UserName, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, FailedAttempts, LockoutUntil, PasswordExpired FROM Users";
+            return await SqliteHelper.ExecuteReaderAsync(conn, sql, null, MapUser);
         }
 
         public async Task<User?> GetUserByIDAsync(int userID)
