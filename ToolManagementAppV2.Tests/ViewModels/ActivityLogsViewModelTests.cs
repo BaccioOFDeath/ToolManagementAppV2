@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
+using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.ViewModels;
@@ -48,6 +51,31 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 if (File.Exists(dbPath))
                     File.Delete(dbPath);
             }
+        }
+
+        [Fact]
+        public void LoadLogs_ReturnsFalse_OnFailure()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var service = new FailingActivityLogService(db);
+                var vm = new ActivityLogsViewModel(service);
+                Assert.False(vm.LoadLogs());
+                Assert.Empty(vm.Logs);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        class FailingActivityLogService : ActivityLogService
+        {
+            public FailingActivityLogService(DatabaseService db) : base(db) { }
+            public override List<ActivityLog>? GetRecentLogs(int count = 50) => throw new Exception("fail");
         }
     }
 }
