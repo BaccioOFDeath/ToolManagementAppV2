@@ -1,6 +1,7 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Collections.Generic;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
@@ -20,7 +21,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
-                var vm = new UserManagementViewModel(userService, new StubFileDialogService());
+                var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
                 userService.AddUser(new User { UserName = "user1", Password = "pw" });
                 vm.LoadUsers();
                 vm.SelectedUser = vm.Users.First();
@@ -49,7 +50,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var db = new DatabaseService(dbPath);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
                 var fileSvc = new StubFileDialogService { FileToReturn = "path/to/image.png" };
-                var vm = new UserManagementViewModel(userService, fileSvc);
+                var vm = new UserManagementViewModel(userService, fileSvc, new StubDialogService());
                 userService.AddUser(new User { UserName = "user1", Password = "pw" });
                 vm.LoadUsers();
                 vm.SelectedUser = vm.Users.First();
@@ -77,7 +78,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var db = new DatabaseService(dbPath);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
                 var fileSvc = new StubFileDialogService { FileToReturn = "img.png" };
-                var vm = new UserManagementViewModel(userService, fileSvc);
+                var vm = new UserManagementViewModel(userService, fileSvc, new StubDialogService());
                 userService.AddUser(new User { UserName = "user1", Password = "pw" });
                 vm.LoadUsers();
                 vm.SelectedUser = vm.Users.First();
@@ -110,7 +111,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
-                var vm = new UserManagementViewModel(userService, new StubFileDialogService());
+                var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
                 userService.AddUser(new User { UserName = "user1", Password = "pw" });
                 vm.LoadUsers();
                 Assert.False(vm.UpdateUserCommand.CanExecute(null));
@@ -134,7 +135,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
-                var vm = new UserManagementViewModel(userService, new StubFileDialogService());
+                var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
                 vm.AddUserCommand.Execute(null);
                 Assert.Single(vm.Users);
                 Assert.Single(userService.GetAllUsers());
@@ -154,7 +155,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
-                var vm = new UserManagementViewModel(userService, new StubFileDialogService());
+                var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
                 userService.AddUser(new User { UserName = "user1", Password = "pw" });
                 vm.LoadUsers();
                 var user = vm.Users.First();
@@ -178,7 +179,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
-                var vm = new UserManagementViewModel(userService, new StubFileDialogService());
+                var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
                 userService.AddUser(new User { UserName = "alice", Password = "pw" });
                 userService.AddUser(new User { UserName = "bob", Password = "pw" });
                 vm.LoadUsers();
@@ -206,7 +207,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
-                var vm = new UserManagementViewModel(userService, new StubFileDialogService());
+                var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
                 userService.AddUser(new User { UserName = "user1", Password = "pw" });
                 userService.AddUser(new User { UserName = "user2", Password = "pw" });
                 vm.LoadUsers();
@@ -251,10 +252,20 @@ class StubFileDialogService : IFileDialogService
     public string SaveFile(string filter) => FileToReturn;
 }
 
+class StubDialogService : IDialogService
+{
+    public void ShowInfo(string message, string title) { }
+    public bool ShowConfirmation(string message, string title) => false;
+    public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
+    public void ShowToolDetails(ToolModel tool) { }
+    public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+    public CustomerModel? ShowAddCustomerDialog() => null;
+}
+
 class CancelPromptUserManagementViewModel : UserManagementViewModel
 {
     public CancelPromptUserManagementViewModel(IUserService userService, IFileDialogService fileDialogService)
-        : base(userService, fileDialogService) { }
+        : base(userService, fileDialogService, new StubDialogService()) { }
 
     protected override bool TryPromptForPassword(UserModel newUser, out string password)
     {

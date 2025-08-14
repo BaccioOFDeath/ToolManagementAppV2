@@ -8,7 +8,6 @@ using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.Views;
-using ToolManagementAppV2.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -18,6 +17,7 @@ namespace ToolManagementAppV2.ViewModels
     {
         private readonly IUserService _userService;
         private readonly IFileDialogService _fileDialogService;
+        private readonly IDialogService _dialogService;
         private readonly ILogger<UserManagementViewModel> _logger;
 
         private List<UserModel> _allUsers = new();
@@ -58,10 +58,14 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand ResetPasswordFromRowCommand { get; }
         public IRelayCommand DeleteUserFromRowCommand { get; }
 
-        public UserManagementViewModel(IUserService userService, IFileDialogService fileDialogService, ILogger<UserManagementViewModel>? logger = null)
+        public UserManagementViewModel(IUserService userService,
+                                       IFileDialogService fileDialogService,
+                                       IDialogService dialogService,
+                                       ILogger<UserManagementViewModel>? logger = null)
         {
             _userService = userService;
             _fileDialogService = fileDialogService;
+            _dialogService = dialogService;
             _logger = logger ?? NullLogger<UserManagementViewModel>.Instance;
             LoadUsersCommand = new RelayCommand(LoadUsers);
             UploadUserPhotoCommand = new RelayCommand(UploadUserPhoto);
@@ -142,7 +146,7 @@ namespace ToolManagementAppV2.ViewModels
             {
                 try
                 {
-                    var prompt = new PasswordPromptWindow(new DialogService()) { SelectedUser = newUser };
+                    var prompt = new PasswordPromptWindow(_dialogService) { SelectedUser = newUser };
                     if (prompt.ShowDialog() == true)
                     {
                         password = prompt.EnteredPassword;

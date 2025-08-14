@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Controls;
 using System.Reflection;
+using System.Collections.Generic;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
@@ -30,7 +31,7 @@ namespace ToolManagementAppV2.Tests.Views
                         var db = new DatabaseService(dbPath);
                         IUserService userService = new UserService(db, new ApplicationUserContext());
                         var fileSvc = new StubFileDialogService { FileToReturn = "img.png" };
-                        var vm = new UserManagementViewModel(userService, fileSvc);
+                        var vm = new UserManagementViewModel(userService, fileSvc, new StubDialogService());
                         userService.AddUser(new User { UserName = "user1", Password = "pw" });
                         vm.LoadUsers();
                         vm.SelectedUser = vm.Users.First();
@@ -82,5 +83,15 @@ namespace ToolManagementAppV2.Tests.Views
         public string FileToReturn { get; set; }
         public string OpenFile(string filter) => FileToReturn;
         public string SaveFile(string filter) => FileToReturn;
+    }
+
+    class StubDialogService : IDialogService
+    {
+        public void ShowInfo(string message, string title) { }
+        public bool ShowConfirmation(string message, string title) => false;
+        public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
+        public void ShowToolDetails(ToolModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+        public CustomerModel? ShowAddCustomerDialog() => null;
     }
 }
