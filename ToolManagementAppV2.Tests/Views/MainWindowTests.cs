@@ -3,12 +3,14 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using ToolManagementAppV2.ViewModels;
 using Xunit;
 using System.IO;
 using System.Runtime.Serialization;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Tests;
+using CommunityToolkit.Mvvm.Input;
 
 namespace ToolManagementAppV2.Tests.Views
 {
@@ -37,7 +39,12 @@ namespace ToolManagementAppV2.Tests.Views
                             .FirstOrDefault(kb => kb.Key == Key.Enter);
                         Assert.NotNull(keyBinding);
 
-                        keyBinding.Command.Execute(null);
+                        var asyncCommand = Assert.IsAssignableFrom<IAsyncRelayCommand>(keyBinding.Command);
+                        asyncCommand.Execute(null);
+
+                        var frame = new DispatcherFrame();
+                        asyncCommand.ExecutionTask!.ContinueWith(_ => frame.Continue = false);
+                        Dispatcher.PushFrame(frame);
 
                         Assert.Equal(string.Empty, vm.GlobalSearchText);
                     }
