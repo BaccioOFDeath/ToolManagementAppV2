@@ -290,11 +290,14 @@ namespace ToolManagementAppV2.ViewModels
 
             ExitCommand = new RelayCommand(() =>
             {
-                try { System.Windows.Application.Current.Shutdown(); }
+                try
+                {
+                    System.Windows.Application.Current.Shutdown();
+                }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to shutdown application");
-                    System.Environment.Exit(0);
+                    throw;
                 }
             });
 
