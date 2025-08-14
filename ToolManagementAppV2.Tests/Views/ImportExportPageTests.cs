@@ -37,7 +37,9 @@ namespace ToolManagementAppV2.Tests.Views
                         var importBtn = (Button)panel.Children[0];
 
                         Assert.Equal(vm.ImportToolsCommand, importBtn.Command);
-                        importBtn.Command.Execute(null);
+                        var asyncCmd = (CommunityToolkit.Mvvm.Input.IAsyncRelayCommand)importBtn.Command;
+                        asyncCmd.Execute(null);
+                        asyncCmd.ExecutionTask!.Wait();
                         Assert.True(toolSvc.ImportCalled);
                         Assert.Single(vm.ImportExportLogs);
                     }
@@ -100,6 +102,11 @@ namespace ToolManagementAppV2.Tests.Views
         {
             ImportCalled = true;
             return new();
+        }
+        public System.Threading.Tasks.Task<System.Collections.Generic.List<int>> ImportToolsFromCsvAsync(string filePath, System.Collections.Generic.IDictionary<string, string> map)
+        {
+            ImportCalled = true;
+            return System.Threading.Tasks.Task.FromResult(new System.Collections.Generic.List<int>());
         }
         public void ExportToolsToCsv(string filePath) { }
         public System.Collections.Generic.List<ToolModel> GetAllTools() => new();

@@ -11,6 +11,7 @@ using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Interfaces;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.Services
@@ -369,6 +370,7 @@ namespace ToolManagementAppV2.Tests.Services
         class FailingToolService : IToolService
         {
             public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map) => throw new NotImplementedException();
+            public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map) => throw new NotImplementedException();
             public void ExportToolsToCsv(string filePath) => throw new NotImplementedException();
             public List<ToolModel> GetAllTools() => new();
             public void AddTool(ToolModel tool) => throw new NotImplementedException();

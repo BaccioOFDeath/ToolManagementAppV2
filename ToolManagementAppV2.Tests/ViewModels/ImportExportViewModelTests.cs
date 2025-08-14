@@ -13,7 +13,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     public class ImportExportViewModelTests
     {
         [Fact]
-        public void ImportToolsCommand_UsesMappingFromDialog()
+        public async System.Threading.Tasks.Task ImportToolsCommand_UsesMappingFromDialog()
         {
             var tmp = Path.GetTempFileName();
             File.WriteAllText(tmp, "ToolNumber\n");
@@ -22,7 +22,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             var dialog = new StubDialogService { MapToReturn = new Dictionary<string,string>{{"ToolNumber","ToolNumber"}} };
             var vm = new ImportExportViewModel(toolSvc, new StubCustomerService(), fileDlg, new StubDatabaseBackupService(), dialog);
 
-            vm.ImportToolsCommand.Execute(null);
+            await vm.ImportToolsCommand.ExecuteAsync(null);
 
             Assert.True(dialog.ShowImportMappingCalled);
             Assert.True(toolSvc.ImportCalled);
@@ -49,7 +49,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void ImportToolsCommand_CancelledMapping_DoesNotCallService()
+        public async System.Threading.Tasks.Task ImportToolsCommand_CancelledMapping_DoesNotCallService()
         {
             var tmp = Path.GetTempFileName();
             File.WriteAllText(tmp, "ToolNumber\n");
@@ -58,7 +58,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             var dialog = new StubDialogService { MapToReturn = null };
             var vm = new ImportExportViewModel(toolSvc, new StubCustomerService(), fileDlg, new StubDatabaseBackupService(), dialog);
 
-            vm.ImportToolsCommand.Execute(null);
+            await vm.ImportToolsCommand.ExecuteAsync(null);
 
             Assert.True(dialog.ShowImportMappingCalled);
             Assert.False(toolSvc.ImportCalled);
@@ -105,6 +105,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
             ImportCalled = true;
             MapUsed = map;
             return new();
+        }
+        public System.Threading.Tasks.Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map)
+        {
+            ImportCalled = true;
+            MapUsed = map;
+            return System.Threading.Tasks.Task.FromResult(new List<int>());
         }
         public void ExportToolsToCsv(string filePath) { }
         public List<ToolModel> GetAllTools() => new();
@@ -155,6 +161,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
     class StubToolService : IToolService
     {
         public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map) => new();
+        public System.Threading.Tasks.Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map)
+            => System.Threading.Tasks.Task.FromResult(new List<int>());
         public void ExportToolsToCsv(string filePath) { }
         public List<ToolModel> GetAllTools() => new();
         public void AddTool(ToolModel tool) => throw new NotImplementedException();
