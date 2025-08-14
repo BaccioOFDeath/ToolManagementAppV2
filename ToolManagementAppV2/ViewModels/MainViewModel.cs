@@ -273,6 +273,11 @@ namespace ToolManagementAppV2.ViewModels
                     RefreshCurrentUser();
                     OpenDashboardCommand.Execute(null);
                 }
+                else
+                {
+                    _logger.LogWarning("Switch user cancelled.");
+                    _dialogService.ShowInfo("Switch user cancelled.", "Switch User");
+                }
             });
 
             ExitCommand = new RelayCommand(() =>
