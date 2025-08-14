@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Models.Domain;
@@ -106,6 +107,17 @@ namespace ToolManagementAppV2.Tests.ViewModels
             await vm.BackupDatabaseCommand.ExecuteAsync(null);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Successfully backed up database", vm.ImportExportLogs[0]);
+        }
+
+        [Fact]
+        public async Task ImportExportViewModel_BackupDatabaseCommand_CancelledOperation_LogsCancellation()
+        {
+            var vm = new ImportExportViewModel(new StubToolService(), new StubCustomerService(), new StubFileDialogService(), new CancellableDatabaseBackupService(), new StubDialogService());
+            var task = vm.BackupDatabaseCommand.ExecuteAsync(null);
+            vm.BackupDatabaseCommand.Cancel();
+            await task;
+            Assert.Single(vm.ImportExportLogs);
+            Assert.Equal("Database backup was cancelled.", vm.ImportExportLogs[0]);
         }
 
         [Fact]
@@ -324,11 +336,17 @@ namespace ToolManagementAppV2.Tests.ViewModels
     class StubDatabaseBackupService : IDatabaseBackupService
     {
         public bool Called { get; private set; }
-        public Task BackupDatabaseAsync(string backupFilePath)
+        public Task BackupDatabaseAsync(string backupFilePath, CancellationToken cancellationToken)
         {
             Called = true;
             return Task.CompletedTask;
         }
+    }
+
+    class CancellableDatabaseBackupService : IDatabaseBackupService
+    {
+        public Task BackupDatabaseAsync(string backupFilePath, CancellationToken cancellationToken)
+            => Task.Delay(Timeout.Infinite, cancellationToken);
     }
 
     class StubUserService : IUserService

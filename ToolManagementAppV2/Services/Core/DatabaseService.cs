@@ -1,6 +1,7 @@
 using System.Data.SQLite;
 using System.IO;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -270,7 +271,12 @@ namespace ToolManagementAppV2.Services.Core
         /// Asynchronously creates a backup of the current database.
         /// </summary>
         /// <param name="backupFilePath">Destination path for the backup file.</param>
-        public Task BackupDatabaseAsync(string backupFilePath)
-            => Task.Run(() => BackupDatabase(backupFilePath));
+        /// <param name="cancellationToken">Token to observe for cancellation.</param>
+        public Task BackupDatabaseAsync(string backupFilePath, CancellationToken cancellationToken)
+            => Task.Run(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                BackupDatabase(backupFilePath);
+            }, cancellationToken);
     }
 }

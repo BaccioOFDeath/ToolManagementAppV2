@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ToolManagementAppV2.Interfaces
@@ -11,6 +12,7 @@ namespace ToolManagementAppV2.Interfaces
         /// Creates a backup of the current database asynchronously.
         /// </summary>
         /// <param name="backupFilePath">Destination path for the backup file.</param>
-        Task BackupDatabaseAsync(string backupFilePath);
+        /// <param name="cancellationToken">Token to observe for cancellation.</param>
+        Task BackupDatabaseAsync(string backupFilePath, CancellationToken cancellationToken);
     }
 }

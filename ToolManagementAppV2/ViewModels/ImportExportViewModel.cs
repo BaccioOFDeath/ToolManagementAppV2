@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.ImportExport;
@@ -142,14 +143,18 @@ namespace ToolManagementAppV2.ViewModels
         /// while the file copy completes in the background.
         /// </remarks>
         /// <returns>A <see cref="Task"/> representing the asynchronous backup operation.</returns>
-        async Task BackupDatabaseAsync()
+        async Task BackupDatabaseAsync(CancellationToken cancellationToken)
         {
             var path = _fileDialogService.SaveFile("SQLite Database|*.db");
             if (string.IsNullOrEmpty(path)) return;
             try
             {
-                await _databaseService.BackupDatabaseAsync(path);
+                await _databaseService.BackupDatabaseAsync(path, cancellationToken);
                 ImportExportLogs.Add($"Successfully backed up database to {path}.");
+            }
+            catch (OperationCanceledException)
+            {
+                ImportExportLogs.Add("Database backup was cancelled.");
             }
             catch (Exception ex)
             {

@@ -137,6 +137,7 @@ namespace ToolManagementAppV2.Tests.Views
 
     class StubDatabaseBackupService : IDatabaseBackupService
     {
-        public System.Threading.Tasks.Task BackupDatabaseAsync(string backupFilePath) => System.Threading.Tasks.Task.CompletedTask;
+        public System.Threading.Tasks.Task BackupDatabaseAsync(string backupFilePath, CancellationToken cancellationToken)
+            => System.Threading.Tasks.Task.CompletedTask;
     }
 }
