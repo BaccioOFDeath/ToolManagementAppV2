@@ -46,6 +46,32 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public async Task SearchCommand_SupportsMultipleTerms()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var dialog = new StubDialogService();
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
+                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" });
+                toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Hammer", Brand = "BrandB" });
+                vm.SearchTerm = "Hammer BrandA";
+                await vm.SearchCommand.ExecuteAsync(null);
+                Assert.Single(vm.SearchResults);
+                Assert.Equal("BrandA", vm.SearchResults.First().Brand);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public async Task SearchCommand_SortsResultsIntoCategories()
         {
             var dbPath = Path.GetTempFileName();

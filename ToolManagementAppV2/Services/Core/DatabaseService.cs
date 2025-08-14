@@ -162,6 +162,13 @@ namespace ToolManagementAppV2.Services.Core
             cmd.ExecuteNonQuery();
 
             EnsureIndex(conn, "Tools", "ToolNumber", true);
+            EnsureIndex(conn, "Tools", "NameDescription");
+            EnsureIndex(conn, "Tools", "Brand");
+            EnsureIndex(conn, "Tools", "PartNumber");
+            EnsureIndex(conn, "Tools", "Supplier");
+            EnsureIndex(conn, "Tools", "Location");
+            EnsureIndex(conn, "Tools", "Notes");
+            EnsureIndex(conn, "Tools", "Keywords");
             EnsureIndex(conn, "Users", "UserName");
         }
 

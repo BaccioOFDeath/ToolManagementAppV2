@@ -58,22 +58,35 @@ namespace ToolManagementAppV2.Services.Tools
     
         public List<ToolModel> SearchTools(string? searchText)
         {
-            var all = GetAllTools();
             if (string.IsNullOrWhiteSpace(searchText))
-                return new List<ToolModel>(all);
+                return GetAllTools();
 
+            using var conn = _dbService.CreateConnection();
             var terms = searchText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            return all.Where(t => terms.All(term =>
-                t.ToolID.ToString().Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                (t.ToolNumber?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (t.NameDescription?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (t.Brand?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (t.PartNumber?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (t.Supplier?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (t.Location?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (t.Notes?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (t.Keywords?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)
-            )).ToList();
+            var searchable = new[]
+            {
+                "ToolNumber",
+                "NameDescription",
+                "Brand",
+                "PartNumber",
+                "Supplier",
+                "Location",
+                "Notes",
+                "Keywords"
+            };
+
+            var sb = new StringBuilder("SELECT * FROM Tools WHERE ");
+            var parameters = new List<SQLiteParameter>();
+            for (int i = 0; i < terms.Length; i++)
+            {
+                if (i > 0) sb.Append(" AND ");
+                var paramName = $"@p{i}";
+                var likeClause = string.Join(" OR ", searchable.Select(col => $"{col} LIKE {paramName} COLLATE NOCASE"));
+                sb.Append($"(CAST(ToolID AS TEXT) LIKE {paramName} COLLATE NOCASE OR {likeClause})");
+                parameters.Add(new SQLiteParameter(paramName, $"%{terms[i]}%"));
+            }
+
+            return SqliteHelper.ExecuteReader(conn, sb.ToString(), parameters.ToArray(), MapTool);
         }
     
         /// <summary>
