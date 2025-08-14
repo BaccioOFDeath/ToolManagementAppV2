@@ -13,7 +13,12 @@ namespace ToolManagementAppV2.Utilities.Extensions
         private sealed class NotificationSuspender<T> : IDisposable
         {
             private static readonly MethodInfo? OnCollectionChangedMethod =
-                typeof(ObservableCollection<T>).GetMethod("OnCollectionChanged", BindingFlags.Instance | BindingFlags.NonPublic);
+                typeof(ObservableCollection<T>).GetMethod(
+                    "OnCollectionChanged",
+                    BindingFlags.Instance | BindingFlags.NonPublic,
+                    binder: null,
+                    types: new[] { typeof(NotifyCollectionChangedEventArgs) },
+                    modifiers: null);
 
             private readonly ObservableCollection<T> _collection;
             private readonly NotifyCollectionChangedEventHandler? _handlers;
