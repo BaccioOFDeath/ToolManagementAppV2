@@ -41,7 +41,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void ImportExportViewModel_ImportToolsCommand_LogsSuccess()
+        public async Task ImportExportViewModel_ImportToolsCommand_LogsSuccess()
         {
             var toolService = new StubToolService();
             var customerService = new StubCustomerService();
@@ -51,7 +51,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             fileDlg.FileToReturn = tmp;
             var dialog = new StubDialogService();
             var vm = new ImportExportViewModel(toolService, customerService, fileDlg, new StubDatabaseBackupService(), dialog);
-            vm.ImportToolsCommand.Execute(null);
+            await vm.ImportToolsCommand.ExecuteAsync(null);
             Assert.True(toolService.ImportCalled);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Successfully imported tools", vm.ImportExportLogs[0]);
@@ -121,7 +121,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void ImportExportViewModel_ImportToolsCommand_LogsFailure()
+        public async Task ImportExportViewModel_ImportToolsCommand_LogsFailure()
         {
             var toolService = new FailToolService();
             var customerService = new StubCustomerService();
@@ -131,7 +131,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             fileDlg.FileToReturn = tmp;
             var dialog = new StubDialogService();
             var vm = new ImportExportViewModel(toolService, customerService, fileDlg, new StubDatabaseBackupService(), dialog);
-            vm.ImportToolsCommand.Execute(null);
+            await vm.ImportToolsCommand.ExecuteAsync(null);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Failed to import tools", vm.ImportExportLogs[0]);
             File.Delete(tmp);
@@ -236,6 +236,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
             ImportCalled = true;
             return new();
         }
+        public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map)
+        {
+            ImportCalled = true;
+            return Task.FromResult(new List<int>());
+        }
         public void ExportToolsToCsv(string filePath) => ExportCalled = true;
         public List<ToolModel> GetAllTools() => new();
         public void AddTool(ToolModel tool) => throw new System.NotImplementedException();
@@ -253,6 +258,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     class FailToolService : IToolService
     {
         public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map) => throw new System.Exception("fail");
+        public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map) => Task.FromException<List<int>>(new System.Exception("fail"));
         public void ExportToolsToCsv(string filePath) => throw new System.Exception("fail");
         public List<ToolModel> GetAllTools() => new();
         public void AddTool(ToolModel tool) => throw new System.NotImplementedException();

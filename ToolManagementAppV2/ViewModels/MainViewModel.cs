@@ -30,6 +30,7 @@ namespace ToolManagementAppV2.ViewModels
         readonly IRentalService _rentalService;
         readonly ActivityLogService _activityLogService;
         readonly ISettingsService _settingsService;
+        readonly IFileDialogService _fileDialogService;
         readonly IDialogService _dialogService;
         readonly ILogger<MainViewModel> _logger;
         readonly Func<bool> _showLoginWindow;
@@ -90,7 +91,7 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand OpenImportExportCommand { get; }
         public IRelayCommand OpenActivityLogsCommand { get; }
         public IRelayCommand OpenReportsCommand { get; }
-        public IRelayCommand OpenImportMappingWindowCommand { get; }
+        public IAsyncRelayCommand OpenImportMappingWindowCommand { get; }
         public IRelayCommand OpenImageImportMappingWindowCommand { get; }
         public IRelayCommand ExitCommand { get; }
         public IRelayCommand GlobalSearchCommand { get; }
@@ -122,6 +123,7 @@ namespace ToolManagementAppV2.ViewModels
             _activityLogService = activityLogService;
             _settingsService = settingsService;
             _dialogService = dialogService;
+            _fileDialogService = fileDialogService;
             _logger = logger ?? NullLogger<MainViewModel>.Instance;
             _showLoginWindow = showLoginWindow ?? new Func<bool>(() =>
             {
@@ -217,39 +219,7 @@ namespace ToolManagementAppV2.ViewModels
                 CurrentPage = page;
             });
 
-            OpenImportMappingWindowCommand = new RelayCommand(() =>
-            {
-                try
-                {
-                    var path = fileDialogService.OpenFile("CSV Files|*.csv");
-                    if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
-                        return;
-
-                    var headers = File.ReadLines(path)
-                                       .First()
-                                       .Split(',')
-                                       .Select(h => h.Trim())
-                                       .ToList();
-                    var properties = typeof(ToolModel)
-                                        .GetProperties()
-                                        .Select(p => p.Name)
-                                        .ToList();
-                    var map = _dialogService.ShowImportMapping(headers, properties);
-                    if (map != null)
-                    {
-                        var invalid = _toolService.ImportToolsFromCsv(path, map);
-                        var msg = invalid.Count == 0
-                            ? "Successfully imported tools."
-                            : $"Imported with {invalid.Count} invalid rows.";
-                        _dialogService.ShowInfo(msg, "Import Tools");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to import tools from CSV");
-                    _dialogService.ShowInfo($"Failed to import tools: {ex.Message}", "Import Tools");
-                }
-            });
+            OpenImportMappingWindowCommand = new AsyncRelayCommand(OpenImportMappingWindowAsync);
 
             OpenImageImportMappingWindowCommand = new RelayCommand(() =>
             {
@@ -325,6 +295,41 @@ namespace ToolManagementAppV2.ViewModels
             });
 
             OpenDashboardCommand.Execute(null);
+        }
+
+        async Task OpenImportMappingWindowAsync()
+        {
+            try
+            {
+                var path = _fileDialogService.OpenFile("CSV Files|*.csv");
+                if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+                    return;
+
+                var headers = File.ReadLines(path)
+                                   .First()
+                                   .Split(',')
+                                   .Select(h => h.Trim())
+                                   .ToList();
+                var properties = typeof(ToolModel)
+                                    .GetProperties()
+                                    .Select(p => p.Name)
+                                    .ToList();
+                var map = _dialogService.ShowImportMapping(headers, properties);
+                if (map != null)
+                {
+                    _dialogService.ShowInfo("Importing tools...", "Import Tools");
+                    var invalid = await _toolService.ImportToolsFromCsvAsync(path, map);
+                    var msg = invalid.Count == 0
+                        ? "Successfully imported tools."
+                        : $"Imported with {invalid.Count} invalid rows.";
+                    _dialogService.ShowInfo(msg, "Import Tools");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to import tools from CSV");
+                _dialogService.ShowInfo($"Failed to import tools: {ex.Message}", "Import Tools");
+            }
         }
     }
 }

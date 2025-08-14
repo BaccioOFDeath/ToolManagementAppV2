@@ -267,7 +267,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void OpenImportMappingWindowCommand_NoFile_Returns()
+        public async Task OpenImportMappingWindowCommand_NoFile_Returns()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -282,7 +282,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var settingsService = new SettingsService(db);
 
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
-                vm.OpenImportMappingWindowCommand.Execute(null);
+                await vm.OpenImportMappingWindowCommand.ExecuteAsync(null);
             }
             finally
             {
@@ -317,7 +317,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void OpenImportMappingWindowCommand_ShowsInfo_OnSuccess()
+        public async Task OpenImportMappingWindowCommand_ShowsInfo_OnSuccess()
         {
             var dbPath = Path.GetTempFileName();
             var csvPath = Path.GetTempFileName();
@@ -344,7 +344,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 };
 
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, fileDialog, activityLogService, settingsService, db, dialog);
-                vm.OpenImportMappingWindowCommand.Execute(null);
+                await vm.OpenImportMappingWindowCommand.ExecuteAsync(null);
 
                 Assert.True(dialog.InfoShown);
             }

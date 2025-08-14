@@ -23,7 +23,7 @@ namespace ToolManagementAppV2.ViewModels
         private readonly IDialogService _dialogService;
         private readonly ILogger<ImportExportViewModel> _logger;
 
-        public IRelayCommand ImportToolsCommand { get; }
+        public IAsyncRelayCommand ImportToolsCommand { get; }
         public IRelayCommand ExportToolsCommand { get; }
         public IRelayCommand ImportCustomersCommand { get; }
         public IRelayCommand ExportCustomersCommand { get; }
@@ -52,14 +52,14 @@ namespace ToolManagementAppV2.ViewModels
             _databaseService = databaseService;
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<ImportExportViewModel>.Instance;
-            ImportToolsCommand = new RelayCommand(ImportTools);
+            ImportToolsCommand = new AsyncRelayCommand(ImportToolsAsync);
             ExportToolsCommand = new RelayCommand(ExportTools);
             ImportCustomersCommand = new RelayCommand(ImportCustomers);
             ExportCustomersCommand = new RelayCommand(ExportCustomers);
             BackupDatabaseCommand = new AsyncRelayCommand(BackupDatabaseAsync);
         }
 
-        void ImportTools()
+        async Task ImportToolsAsync()
         {
             var path = _fileDialogService.OpenFile("CSV Files|*.csv");
             if (string.IsNullOrEmpty(path)) return;
@@ -70,14 +70,18 @@ namespace ToolManagementAppV2.ViewModels
                 var map = _dialogService.ShowImportMapping(headers, properties);
                 if (map == null)
                     return;
-                _toolService.ImportToolsFromCsv(path, map);
+                _dialogService.ShowInfo("Importing tools...", "Import Tools");
+                await _toolService.ImportToolsFromCsvAsync(path, map);
                 ImportExportLogs.Add($"Successfully imported tools from {path}.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to import tools from {Path}", path);
                 ImportExportLogs.Add($"Failed to import tools from {path}: {ex.Message}");
+                _dialogService.ShowInfo($"Failed to import tools from {path}: {ex.Message}", "Import Tools");
+                return;
             }
+            _dialogService.ShowInfo($"Successfully imported tools from {path}.", "Import Tools");
         }
 
         void ExportTools()
