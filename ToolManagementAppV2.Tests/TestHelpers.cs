@@ -1,0 +1,55 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using ToolManagementAppV2;
+using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Models.Domain;
+using ToolManagementAppV2.Services;
+using ToolManagementAppV2.Services.Core;
+using ToolManagementAppV2.Services.Customers;
+using ToolManagementAppV2.Services.Rentals;
+using ToolManagementAppV2.Services.Settings;
+using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.ViewModels;
+
+namespace ToolManagementAppV2.Tests
+{
+    public static class TestHelpers
+    {
+        public static (MainWindow window, string dbPath) CreateMainWindow()
+        {
+            var dbPath = Path.GetTempFileName();
+            var db = new DatabaseService(dbPath);
+            var toolService = new ToolService(db);
+            var customerService = new CustomerService(db);
+            var userContext = new ApplicationUserContext();
+            var userService = new UserService(db, userContext);
+            var rentalService = new RentalService(db, toolService);
+            var activityLogService = new ActivityLogService(db);
+            var fileDialogService = new StubFileDialogService();
+            var settingsService = new SettingsService(db);
+            var dialogService = new StubDialogService();
+            var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                fileDialogService, activityLogService, settingsService, db, dialogService);
+            var window = new MainWindow(vm, db);
+            return (window, dbPath);
+        }
+
+        class StubFileDialogService : IFileDialogService
+        {
+            public string OpenFile(string filter) => null;
+            public string SaveFile(string filter) => null;
+        }
+
+        class StubDialogService : IDialogService
+        {
+            public void ShowInfo(string message, string title) { }
+            public bool ShowConfirmation(string message, string title) => false;
+            public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
+            public void ShowToolDetails(ToolModel tool) { }
+            public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+            public CustomerModel? ShowAddCustomerDialog() => null;
+        }
+    }
+}
