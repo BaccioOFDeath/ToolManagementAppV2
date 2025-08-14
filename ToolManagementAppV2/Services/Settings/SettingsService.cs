@@ -24,6 +24,9 @@ namespace ToolManagementAppV2.Services.Settings
 
         public void SaveSetting(string key, string value)
         {
+            if (string.IsNullOrWhiteSpace(key))
+                throw new ArgumentException("Key cannot be null or empty.", nameof(key));
+
             try
             {
                 var p = new[]
@@ -90,6 +93,15 @@ namespace ToolManagementAppV2.Services.Settings
         /// </exception>
         public void UpdateSettings(Dictionary<string, string> settings)
         {
+            if (settings == null)
+                throw new ArgumentNullException(nameof(settings));
+
+            foreach (var kv in settings)
+            {
+                if (string.IsNullOrWhiteSpace(kv.Key))
+                    throw new ArgumentException("Key cannot be null or empty.", nameof(settings));
+            }
+
             using var conn = _dbService.CreateConnection();
             using var tx = conn.BeginTransaction();
             try

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
@@ -11,6 +12,63 @@ namespace ToolManagementAppV2.Tests.Services
 {
     public class SettingsServiceTests
     {
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void SaveSetting_ThrowsOnNullOrEmptyKey(string key)
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                ISettingsService service = new SettingsService(dbService);
+
+                Assert.Throws<ArgumentException>(() => service.SaveSetting(key!, "Value1"));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void UpdateSettings_ThrowsOnEmptyKey()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                ISettingsService service = new SettingsService(dbService);
+
+                var settings = new Dictionary<string, string> { [""] = "Value1" };
+                Assert.Throws<ArgumentException>(() => service.UpdateSettings(settings));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void UpdateSettings_ThrowsOnNullSettings()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                ISettingsService service = new SettingsService(dbService);
+
+                Assert.Throws<ArgumentNullException>(() => service.UpdateSettings(null!));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
         [Fact]
         public void UpdateSettings_ThrowsOnFailure()
         {
