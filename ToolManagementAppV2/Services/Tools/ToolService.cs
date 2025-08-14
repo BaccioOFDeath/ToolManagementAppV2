@@ -97,7 +97,14 @@ namespace ToolManagementAppV2.Services.Tools
     
         public void UpdateTool(ToolModel tool)
         {
-            var dup = GetAllTools().Any(t => t.ToolNumber == tool.ToolNumber && t.ToolID != tool.ToolID);
+            const string dupSql = "SELECT COUNT(*) FROM Tools WHERE ToolNumber = @TN AND ToolID <> @ID";
+            var dupParams = new[]
+            {
+                new SQLiteParameter("@TN", tool.ToolNumber),
+                new SQLiteParameter("@ID", tool.ToolID)
+            };
+            using var conn = _dbService.CreateConnection();
+            var dup = Convert.ToInt32(SqliteHelper.ExecuteScalar(conn, dupSql, dupParams)) > 0;
             if (dup)
                 throw new InvalidOperationException($"Tool {tool.ToolNumber} already exists.");
             const string sql = @"
@@ -139,7 +146,6 @@ namespace ToolManagementAppV2.Services.Tools
                 new SQLiteParameter("@Time", (object)tool.CheckedOutTime ?? DBNull.Value),
                 new SQLiteParameter("@Img", (object)tool.ToolImagePath ?? DBNull.Value)
             };
-            using var conn = _dbService.CreateConnection();
             SqliteHelper.ExecuteNonQuery(conn, sql, p);
         }
     
@@ -438,7 +444,14 @@ namespace ToolManagementAppV2.Services.Tools
 
         public async Task UpdateToolAsync(ToolModel tool)
         {
-            var dup = (await GetAllToolsAsync()).Any(t => t.ToolNumber == tool.ToolNumber && t.ToolID != tool.ToolID);
+            const string dupSql = "SELECT COUNT(*) FROM Tools WHERE ToolNumber = @TN AND ToolID <> @ID";
+            var dupParams = new[]
+            {
+                new SQLiteParameter("@TN", tool.ToolNumber),
+                new SQLiteParameter("@ID", tool.ToolID)
+            };
+            using var conn = _dbService.CreateConnection();
+            var dup = Convert.ToInt32(await SqliteHelper.ExecuteScalarAsync(conn, dupSql, dupParams)) > 0;
             if (dup)
                 throw new InvalidOperationException($"Tool {tool.ToolNumber} already exists.");
             const string sql = @"
@@ -480,7 +493,6 @@ namespace ToolManagementAppV2.Services.Tools
                 new SQLiteParameter("@Time", (object)tool.CheckedOutTime ?? DBNull.Value),
                 new SQLiteParameter("@Img", (object)tool.ToolImagePath ?? DBNull.Value)
             };
-            using var conn = _dbService.CreateConnection();
             await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
         }
 

@@ -194,6 +194,50 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
+        public void UpdateTool_DuplicateToolNumber_Throws()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var service = new ToolService(dbService);
+                service.AddTool(new Tool { ToolNumber = "T1" });
+                service.AddTool(new Tool { ToolNumber = "T2" });
+                var t2 = service.GetAllTools().First(t => t.ToolNumber == "T2");
+                t2.ToolNumber = "T1";
+                var ex = Assert.Throws<InvalidOperationException>(() => service.UpdateTool(t2));
+                Assert.Contains("T1", ex.Message);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task UpdateToolAsync_DuplicateToolNumber_Throws()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var service = new ToolService(dbService);
+                service.AddTool(new Tool { ToolNumber = "T1" });
+                service.AddTool(new Tool { ToolNumber = "T2" });
+                var t2 = service.GetAllTools().First(t => t.ToolNumber == "T2");
+                t2.ToolNumber = "T1";
+                var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => service.UpdateToolAsync(t2));
+                Assert.Contains("T1", ex.Message);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public void ImportToolImages_UpdatesImagePathsAndReportsIssues()
         {
             var dbPath = Path.GetTempFileName();
