@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Data.SQLite;
@@ -92,6 +93,75 @@ public class UserAuthenticationTests
 
             var auth = userService.AuthenticateUser("emptysalt", "secret");
             Assert.Null(auth);
+        }
+        finally
+        {
+            if (File.Exists(dbPath))
+                File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public void AuthenticateUser_LockoutAfterFailedAttempts()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+
+            var user = new User { UserName = "lock", Password = "secret", IsAdmin = false };
+            userService.AddUser(user);
+
+            for (int i = 0; i < 3; i++)
+            {
+                var auth = userService.AuthenticateUser("lock", "bad");
+                Assert.Null(auth);
+            }
+
+            var stored = userService.GetAllUsers().First();
+            Assert.Equal(3, stored.FailedAttempts);
+            Assert.NotNull(stored.LockoutUntil);
+
+            var afterLock = userService.AuthenticateUser("lock", "secret");
+            Assert.Null(afterLock);
+        }
+        finally
+        {
+            if (File.Exists(dbPath))
+                File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public void AuthenticateUser_ResetAfterSuccess()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+
+            var user = new User { UserName = "reset", Password = "secret", IsAdmin = false };
+            userService.AddUser(user);
+
+            for (int i = 0; i < 3; i++)
+                userService.AuthenticateUser("reset", "bad");
+
+            using (var conn = dbService.CreateConnection())
+            using (var cmd = new SQLiteCommand("UPDATE Users SET LockoutUntil=@t WHERE UserID=@id", conn))
+            {
+                cmd.Parameters.AddWithValue("@t", DateTime.UtcNow.AddMinutes(-1));
+                cmd.Parameters.AddWithValue("@id", user.UserID);
+                cmd.ExecuteNonQuery();
+            }
+
+            var auth = userService.AuthenticateUser("reset", "secret");
+            Assert.NotNull(auth);
+
+            var stored = userService.GetAllUsers().First(u => u.UserName == "reset");
+            Assert.Equal(0, stored.FailedAttempts);
+            Assert.Null(stored.LockoutUntil);
         }
         finally
         {
