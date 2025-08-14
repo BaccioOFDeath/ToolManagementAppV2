@@ -146,6 +146,25 @@ namespace ToolManagementAppV2.Services.Rentals
             }
         }
 
+        async Task ExecuteWithTransactionAsync(Func<SQLiteConnection, SQLiteTransaction, Task> action, Func<Task>? postCommitAction = null)
+        {
+            using var conn = _dbService.CreateConnection();
+            using var tx = conn.BeginTransaction();
+            try
+            {
+                await action(conn, tx);
+                tx.Commit();
+                if (postCommitAction != null)
+                    await postCommitAction();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Database transaction failed");
+                tx.Rollback();
+                throw;
+            }
+        }
+
         const string BaseSelect = @"SELECT r.*,
                                     t.ToolNumber,
                                     t.NameDescription,
@@ -218,14 +237,135 @@ namespace ToolManagementAppV2.Services.Rentals
             ToolLocation = r["ToolLocation"].ToString()
         };
 
-        public Task RentToolAsync(int toolID, int customerID, DateTime rentalDate, DateTime dueDate) => Task.Run(() => RentTool(toolID, customerID, rentalDate, dueDate));
-        public Task ReturnToolAsync(int rentalID, DateTime returnDate) => Task.Run(() => ReturnTool(rentalID, returnDate));
-        public Task ExtendRentalAsync(int rentalID, DateTime newDueDate) => Task.Run(() => ExtendRental(rentalID, newDueDate));
-        public Task DeleteRentalAsync(int rentalID) => Task.Run(() => DeleteRental(rentalID));
-        public Task<List<Rental>> GetActiveRentalsAsync() => Task.Run(GetActiveRentals);
-        public Task<List<Rental>> GetOverdueRentalsAsync() => Task.Run(GetOverdueRentals);
-        public Task<List<Rental>> GetAllRentalsAsync() => Task.Run(GetAllRentals);
-        public Task<List<Rental>> GetRentalHistoryForToolAsync(int toolID) => Task.Run(() => GetRentalHistoryForTool(toolID));
-        public Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID) => Task.Run(() => GetRentalHistoryForCustomer(customerID));
+        public async Task RentToolAsync(int toolID, int customerID, DateTime rentalDate, DateTime dueDate)
+        {
+            await ExecuteWithTransactionAsync(async (conn, tx) =>
+            {
+                var availCmd = new SQLiteCommand(
+                    "SELECT AvailableQuantity FROM Tools WHERE ToolID=@ToolID",
+                    conn, tx);
+                availCmd.Parameters.AddWithValue("@ToolID", toolID);
+                int avail = Convert.ToInt32(await availCmd.ExecuteScalarAsync() ?? 0);
+                if (avail < 1)
+                    throw new InvalidOperationException("Insufficient quantity.");
+
+                await SqliteHelper.ExecuteNonQueryAsync(conn, tx,
+                    "INSERT INTO Rentals (ToolID, CustomerID, RentalDate, DueDate, Status) " +
+                    "VALUES (@ToolID, @CustomerID, @RentalDate, @DueDate, 'Rented')",
+                    new[]
+                    {
+                        new SQLiteParameter("@ToolID", toolID),
+                        new SQLiteParameter("@CustomerID", customerID),
+                        new SQLiteParameter("@RentalDate", rentalDate),
+                        new SQLiteParameter("@DueDate", dueDate)
+                    });
+
+                if (_toolService != null)
+                    await _toolService.UpdateToolQuantitiesAsync(toolID, 1, true, conn, tx);
+            });
+        }
+
+        public async Task ReturnToolAsync(int rentalID, DateTime returnDate)
+        {
+            await ExecuteWithTransactionAsync(async (conn, tx) =>
+            {
+                var selCmd = new SQLiteCommand(
+                    "SELECT ToolID FROM Rentals WHERE RentalID=@RentalID AND Status='Rented'", conn, tx);
+                selCmd.Parameters.AddWithValue("@RentalID", rentalID);
+                var result = await selCmd.ExecuteScalarAsync();
+                if (result == null) throw new InvalidOperationException("Rental not found or already returned.");
+                var toolID = Convert.ToInt32(result);
+
+                await SqliteHelper.ExecuteNonQueryAsync(conn, tx,
+                    "UPDATE Rentals SET ReturnDate=@ReturnDate,Status='Returned' WHERE RentalID=@RentalID",
+                    new[]
+                    {
+                        new SQLiteParameter("@ReturnDate", returnDate),
+                        new SQLiteParameter("@RentalID", rentalID)
+                    });
+
+                if (_toolService != null)
+                    await _toolService.UpdateToolQuantitiesAsync(toolID, 1, false, conn, tx);
+            });
+        }
+
+        public async Task ExtendRentalAsync(int rentalID, DateTime newDueDate)
+        {
+            await ExecuteWithTransactionAsync(async (conn, tx) =>
+            {
+                var selectCmd = new SQLiteCommand(
+                    "SELECT ToolID, DueDate FROM Rentals WHERE RentalID=@RentalID AND Status='Rented'",
+                    conn, tx);
+                selectCmd.Parameters.AddWithValue("@RentalID", rentalID);
+                using var reader = await selectCmd.ExecuteReaderAsync();
+                if (!await reader.ReadAsync())
+                    throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
+
+                int toolID = Convert.ToInt32(reader["ToolID"]);
+                DateTime oldDueDate = Convert.ToDateTime(reader["DueDate"]);
+
+                var updateCmd = new SQLiteCommand(
+                    "UPDATE Rentals SET DueDate=@NewDueDate WHERE RentalID=@RentalID AND Status='Rented'",
+                    conn, tx);
+                updateCmd.Parameters.AddWithValue("@NewDueDate", newDueDate);
+                updateCmd.Parameters.AddWithValue("@RentalID", rentalID);
+                if (await updateCmd.ExecuteNonQueryAsync() == 0)
+                    throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
+
+                if (_toolService != null)
+                {
+                    if (oldDueDate <= DateTime.Today && newDueDate > DateTime.Today)
+                        await _toolService.UpdateToolQuantitiesAsync(toolID, 1, true, conn, tx);
+                    else if (oldDueDate > DateTime.Today && newDueDate <= DateTime.Today)
+                        await _toolService.UpdateToolQuantitiesAsync(toolID, 1, false, conn, tx);
+                }
+            });
+        }
+
+        public async Task DeleteRentalAsync(int rentalID)
+        {
+            const string sql = "DELETE FROM Rentals WHERE RentalID = @RentalID";
+            var p = new[] { new SQLiteParameter("@RentalID", rentalID) };
+            using var conn = _dbService.CreateConnection();
+            if (await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p) == 0)
+                throw new InvalidOperationException("Rental not found.");
+        }
+
+        public async Task<List<Rental>> GetActiveRentalsAsync()
+        {
+            using var conn = _dbService.CreateConnection();
+            var sql = BaseSelect + " WHERE r.Status='Rented'";
+            return await SqliteHelper.ExecuteReaderAsync(conn, sql, null, MapRental);
+        }
+
+        public async Task<List<Rental>> GetOverdueRentalsAsync()
+        {
+            const string sql = BaseSelect + @" WHERE r.Status = 'Rented' AND r.DueDate < @Today";
+            var p = new[] { new SQLiteParameter("@Today", DateTime.Today) };
+            using var conn = _dbService.CreateConnection();
+            return await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapRental);
+        }
+
+        public async Task<List<Rental>> GetAllRentalsAsync()
+        {
+            using var conn = _dbService.CreateConnection();
+            return await SqliteHelper.ExecuteReaderAsync(conn, BaseSelect, null, MapRental);
+        }
+
+        public async Task<List<Rental>> GetRentalHistoryForToolAsync(int toolID)
+        {
+            const string sql = BaseSelect + @" WHERE r.ToolID = @ToolID ORDER BY r.RentalDate DESC";
+            var p = new[] { new SQLiteParameter("@ToolID", toolID) };
+            using var conn = _dbService.CreateConnection();
+            return await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapRental);
+        }
+
+        public async Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID)
+        {
+            const string sql = BaseSelect + @" WHERE r.CustomerID = @CustomerID ORDER BY r.RentalDate DESC";
+            var p = new[] { new SQLiteParameter("@CustomerID", customerID) };
+            using var conn = _dbService.CreateConnection();
+            return await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapRental);
+        }
     }
 }

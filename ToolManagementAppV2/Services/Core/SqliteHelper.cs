@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
+using System.Threading.Tasks;
 
 namespace ToolManagementAppV2.Services.Core
 {
@@ -95,6 +96,69 @@ namespace ToolManagementAppV2.Services.Core
             cmd.Parameters.AddWithValue("@name", indexName);
             using var rdr = cmd.ExecuteReader();
             return rdr.Read();
+        }
+
+        public static async Task<int> ExecuteNonQueryAsync(string connStr, string sql, SQLiteParameter[] parameters = null)
+        {
+            using var conn = new SQLiteConnection(connStr);
+            await conn.OpenAsync();
+            using var cmd = new SQLiteCommand(sql, conn);
+            if (parameters != null) cmd.Parameters.AddRange(parameters);
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        public static async Task<int> ExecuteNonQueryAsync(SQLiteConnection conn, SQLiteTransaction tx, string sql, SQLiteParameter[] parameters)
+        {
+            using var cmd = new SQLiteCommand(sql, conn, tx);
+            if (parameters != null) cmd.Parameters.AddRange(parameters);
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        public static async Task<int> ExecuteNonQueryAsync(SQLiteConnection conn, string sql, SQLiteParameter[] parameters = null)
+        {
+            using var cmd = new SQLiteCommand(sql, conn);
+            if (parameters != null) cmd.Parameters.AddRange(parameters);
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        public static async Task<object> ExecuteScalarAsync(string connStr, string sql, SQLiteParameter[] parameters = null)
+        {
+            using var conn = new SQLiteConnection(connStr);
+            await conn.OpenAsync();
+            using var cmd = new SQLiteCommand(sql, conn);
+            if (parameters != null) cmd.Parameters.AddRange(parameters);
+            return await cmd.ExecuteScalarAsync();
+        }
+
+        public static async Task<object> ExecuteScalarAsync(SQLiteConnection conn, string sql, SQLiteParameter[] parameters = null)
+        {
+            using var cmd = new SQLiteCommand(sql, conn);
+            if (parameters != null) cmd.Parameters.AddRange(parameters);
+            return await cmd.ExecuteScalarAsync();
+        }
+
+        public static async Task<List<T>> ExecuteReaderAsync<T>(string connStr, string sql, SQLiteParameter[] parameters, Func<IDataRecord, T> map)
+        {
+            var list = new List<T>();
+            using var conn = new SQLiteConnection(connStr);
+            await conn.OpenAsync();
+            using var cmd = new SQLiteCommand(sql, conn);
+            if (parameters != null) cmd.Parameters.AddRange(parameters);
+            using var rdr = await cmd.ExecuteReaderAsync();
+            while (await rdr.ReadAsync())
+                list.Add(map(rdr));
+            return list;
+        }
+
+        public static async Task<List<T>> ExecuteReaderAsync<T>(SQLiteConnection conn, string sql, SQLiteParameter[] parameters, Func<IDataRecord, T> map)
+        {
+            var list = new List<T>();
+            using var cmd = new SQLiteCommand(sql, conn);
+            if (parameters != null) cmd.Parameters.AddRange(parameters);
+            using var rdr = await cmd.ExecuteReaderAsync();
+            while (await rdr.ReadAsync())
+                list.Add(map(rdr));
+            return list;
         }
     }
 }
