@@ -12,6 +12,7 @@ namespace ToolManagementAppV2.Utilities.IO
     {
         public static List<ToolModel> LoadToolsFromCsv(string filePath, IDictionary<string, string> map, out List<int> invalidRows)
         {
+            ValidateRequired(map, "ToolNumber");
             var list = new List<ToolModel>();
             invalidRows = new List<int>();
             using var parser = new TextFieldParser(filePath);
@@ -123,6 +124,13 @@ namespace ToolManagementAppV2.Utilities.IO
             var index = Array.FindIndex(headers,
                 h => string.Equals(h, column, StringComparison.OrdinalIgnoreCase));
             return index >= 0 && index < row.Length ? row[index].Trim() : null;
+        }
+
+        private static void ValidateRequired(IDictionary<string, string> map, params string[] keys)
+        {
+            foreach (var key in keys)
+                if (map == null || !map.ContainsKey(key) || string.IsNullOrWhiteSpace(map[key]))
+                    throw new ArgumentException($"Mapping for required field '{key}' is missing.", nameof(map));
         }
 
         private static int TryParseInt(string input) =>
