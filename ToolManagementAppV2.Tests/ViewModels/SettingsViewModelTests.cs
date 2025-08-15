@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
@@ -69,13 +70,29 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public void SaveCompanyLogoCommand_PersistsPath()
         {
             var settings = new StubSettingsService();
+            var expected = PathHelper.GetAbsolutePath("logo.png");
             var vm = new SettingsViewModel(new StubFileDialogService(), settings, new StubDialogService())
             {
                 CompanyLogoPath = "logo.png"
             };
             vm.SaveCompanyLogoCommand.Execute(null);
             Assert.Equal("CompanyLogoPath", settings.SavedKey);
-            Assert.Equal("logo.png", settings.SavedValue);
+            Assert.Equal(expected, settings.SavedValue);
+        }
+
+        [Fact]
+        public void SaveCompanyLogoCommand_InvalidPath_ShowsError()
+        {
+            var settings = new StubSettingsService();
+            var dialog = new StubDialogService();
+            var vm = new SettingsViewModel(new StubFileDialogService(), settings, dialog)
+            {
+                CompanyLogoPath = Path.Combine("..", "logo.png")
+            };
+            vm.SaveCompanyLogoCommand.Execute(null);
+            Assert.Null(settings.SavedKey);
+            Assert.Equal("Selected logo path is invalid.", dialog.LastMessage);
+            Assert.Equal("Invalid Path", dialog.LastTitle);
         }
 
         [Fact]
@@ -156,7 +173,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
     class StubDialogService : IDialogService
     {
-        public void ShowInfo(string message, string title) { }
+        public string? LastMessage { get; private set; }
+        public string? LastTitle { get; private set; }
+        public void ShowInfo(string message, string title)
+        {
+            LastMessage = message;
+            LastTitle = title;
+        }
         public bool ShowConfirmation(string message, string title) => true;
         public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
         public void ShowToolDetails(ToolModel tool) { }
