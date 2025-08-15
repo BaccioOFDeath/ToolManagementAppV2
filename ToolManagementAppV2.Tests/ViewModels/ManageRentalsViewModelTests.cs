@@ -100,6 +100,45 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public async Task ApplyFilter_ShowsMessage_WhenFromAfterTo()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+
+                var tool = new Tool { ToolNumber = "T1" };
+                toolService.AddTool(tool);
+                var customer = new Customer { Company = "C1" };
+                customerService.AddCustomer(customer);
+                var cust = customerService.GetAllCustomers().First();
+
+                rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+
+                var dialog = new StubDialogService();
+                var vm = new ManageRentalsViewModel(rentalService, dialog);
+                await vm.LoadRentalsAsync();
+
+                vm.FilterFrom = DateTime.Today.AddDays(1);
+                vm.FilterTo = DateTime.Today;
+
+                vm.ApplyFilterCommand.Execute(null);
+
+                Assert.Equal(2, vm.Rentals.Count);
+                Assert.Equal("\"From\" date cannot be later than \"To\" date.", dialog.LastInfoMessage);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public void CloseCommand_DoesNotThrowWithoutWindow()
         {
             var dbPath = Path.GetTempFileName();
@@ -314,6 +353,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             LastInfoMessage = message;
             LastInfoTitle = title;
+        }
+        public Task ShowInfoAsync(string message, string title)
+        {
+            ShowInfo(message, title);
+            return Task.CompletedTask;
         }
         public bool ShowConfirmation(string message, string title) => false;
         public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
