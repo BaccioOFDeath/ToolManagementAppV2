@@ -115,6 +115,7 @@ namespace ToolManagementAppV2.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to update user photo");
+                _dialogService.ShowInfo($"Failed to update user photo: {ex.Message}", "Error");
             }
         }
 
@@ -132,6 +133,7 @@ namespace ToolManagementAppV2.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to update user");
+                _dialogService.ShowInfo($"Failed to update user: {ex.Message}", "Error");
             }
         }
 
@@ -277,6 +279,7 @@ namespace ToolManagementAppV2.ViewModels
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Failed to update user");
+                        _dialogService.ShowInfo($"Failed to update user: {ex.Message}", "Error");
                     }
                 },
                 onCancel: () => win.Close(),

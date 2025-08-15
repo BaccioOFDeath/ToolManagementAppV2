@@ -48,6 +48,22 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public async Task UpdateUserCommand_ShowsErrorOnFailure()
+        {
+            var svc = new FailingUserService();
+            svc.AddUser(new User { UserID = 1, UserName = "user1", Password = "pw" });
+            var dialog = new StubDialogService();
+            var vm = new UserManagementViewModel(svc, new StubFileDialogService(), dialog);
+            await vm.LoadUsersAsync();
+            vm.SelectedUser = vm.Users.First();
+
+            await vm.UpdateUserCommand.ExecuteAsync(null);
+
+            Assert.Equal("Error", dialog.LastInfoTitle);
+            Assert.StartsWith("Failed to update user:", dialog.LastInfoMessage);
+        }
+
+        [Fact]
         public async Task UploadUserPhotoCommand_SetsPhotoPathAndPersists()
         {
             var dbPath = Path.GetTempFileName();
@@ -455,6 +471,29 @@ class StubDialogService : IDialogService
     public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
     public void ShowPrintLabelDialog() { }
     public void ShowScannerStatus() { }
+}
+
+class FailingUserService : IUserService
+{
+    readonly List<User> _users = new();
+    public List<User> GetAllUsers() => _users;
+    public Task<List<User>> GetAllUsersAsync() => Task.FromResult(_users);
+    public User? GetUserByID(int userID) => _users.FirstOrDefault(u => u.UserID == userID);
+    public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult(GetUserByID(userID));
+    public User? AuthenticateUser(string userName, string password) => null;
+    public Task<User?> AuthenticateUserAsync(string userName, string password) => Task.FromResult<User?>(null);
+    public User? GetCurrentUser() => null;
+    public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
+    public void AddUser(User user) => _users.Add(user);
+    public Task AddUserAsync(User user) { _users.Add(user); return Task.CompletedTask; }
+    public void UpdateUser(User user) => throw new Exception("update failed");
+    public Task UpdateUserAsync(User user) => Task.FromException(new Exception("update failed"));
+    public bool TryDeleteUser(int userID) => false;
+    public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
+    public void DeleteUser(int userID) { }
+    public Task DeleteUserAsync(int userID) => Task.CompletedTask;
+    public bool ChangeUserPassword(int userID, string newPassword) => false;
+    public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => Task.FromResult(false);
 }
 
 class CancelPromptUserManagementViewModel : UserManagementViewModel
