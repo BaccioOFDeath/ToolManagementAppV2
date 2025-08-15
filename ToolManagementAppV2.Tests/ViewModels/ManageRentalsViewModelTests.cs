@@ -157,7 +157,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task DeleteRentalCommand_RemovesRental()
+        public async Task DeleteRentalCommand_RemovesRentalAndClearsSelection()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -183,6 +183,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 Assert.Empty(vm.Rentals);
                 Assert.Empty(rentalService.GetAllRentals());
+                Assert.Null(vm.SelectedRental);
             }
             finally
             {
