@@ -89,12 +89,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void ImportExportViewModel_ExportCustomersCommand_LogsSuccess()
+        public async Task ImportExportViewModel_ExportCustomersCommand_LogsSuccess()
         {
             var toolService = new StubToolService();
             var customerService = new StubCustomerService();
             var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
-            vm.ExportCustomersCommand.Execute(null);
+            await vm.ExportCustomersCommand.ExecuteAsync(null);
             Assert.True(customerService.ExportCalled);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Successfully exported customers", vm.ImportExportLogs[0]);
@@ -166,12 +166,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void ImportExportViewModel_ExportCustomersCommand_LogsFailure()
+        public async Task ImportExportViewModel_ExportCustomersCommand_LogsFailure()
         {
             var toolService = new StubToolService();
             var customerService = new FailCustomerService();
             var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
-            vm.ExportCustomersCommand.Execute(null);
+            await vm.ExportCustomersCommand.ExecuteAsync(null);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Failed to export customers", vm.ImportExportLogs[0]);
         }
