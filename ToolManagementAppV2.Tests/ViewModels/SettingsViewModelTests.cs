@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Interfaces;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.ViewModels
@@ -75,6 +76,20 @@ namespace ToolManagementAppV2.Tests.ViewModels
             vm.SaveCompanyLogoCommand.Execute(null);
             Assert.Equal("CompanyLogoPath", settings.SavedKey);
             Assert.Equal("logo.png", settings.SavedValue);
+        }
+
+        [Fact]
+        public void TestDbCommand_LogsError_WhenDialogServiceFails()
+        {
+            var logger = new CapturingLogger<SettingsViewModel>();
+            var vm = new SettingsViewModel(new StubFileDialogService(), new StubSettingsService(), new FailingDialogService(), logger)
+            {
+                ConnectionString = "invalid"
+            };
+            var ex = Record.Exception(() => vm.TestDbCommand.Execute(null));
+            Assert.Null(ex);
+            Assert.NotNull(logger.LastError);
+            Assert.Contains("Failed to display info dialog", logger.LastError);
         }
     }
 
@@ -154,6 +169,40 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
         public void ShowPrintLabelDialog() { }
         public void ShowScannerStatus() { }
+    }
+
+    class FailingDialogService : IDialogService
+    {
+        public void ShowInfo(string message, string title) => throw new InvalidOperationException("dialog failure");
+        public bool ShowConfirmation(string message, string title) => false;
+        public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
+        public void ShowToolDetails(ToolModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+        public CustomerModel? ShowAddCustomerDialog() => null;
+        public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
+        public void ShowRentalHistory(ToolModel tool, IEnumerable<RentalModel> history) { }
+        public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties) => null;
+        public Func<ToolModel, IEnumerable<string>>? ShowImageImportMapping() => null;
+        public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
+        public void ShowPrintLabelDialog() { }
+        public void ShowScannerStatus() { }
+    }
+
+    class CapturingLogger<T> : ILogger<T>
+    {
+        public string? LastError { get; private set; }
+        public IDisposable BeginScope<TState>(TState state) => NullDisposable.Instance;
+        public bool IsEnabled(LogLevel logLevel) => true;
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            if (logLevel == LogLevel.Error)
+                LastError = formatter(state, exception);
+        }
+        private sealed class NullDisposable : IDisposable
+        {
+            public static readonly NullDisposable Instance = new();
+            public void Dispose() { }
+        }
     }
 }
 
