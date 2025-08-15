@@ -93,6 +93,32 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
+        public void SearchTools_ExceedsMaxTerms_TruncatesAndLogs()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var logs = new List<LogEntry>();
+                using var loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
+                var dbService = new DatabaseService(dbPath);
+                var service = new ToolService(dbService, loggerFactory.CreateLogger<ToolService>());
+
+                service.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
+
+                var search = string.Join(' ', Enumerable.Repeat("Hammer", 10)) + " extra";
+                var results = service.SearchTools(search);
+
+                Assert.Single(results);
+                Assert.Contains(logs, l => l.Level == LogLevel.Information && l.Message.Contains("truncating"));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public void AddTool_SetsGeneratedToolID()
         {
             var dbPath = Path.GetTempFileName();

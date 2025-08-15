@@ -27,6 +27,7 @@ namespace ToolManagementAppV2.Services.Tools
             VALUES (@ToolNumber,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Keywords,@Avail,@Rent,@Img,0,@Power);
             SELECT last_insert_rowid();";
         const int MaxQuantityOnHand = 10000;
+        const int MaxSearchTerms = 10;
     
         readonly ILogger<ToolService> _logger;
 
@@ -56,6 +57,14 @@ namespace ToolManagementAppV2.Services.Tools
 
             using var conn = _dbService.CreateConnection();
             var terms = searchText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var originalCount = terms.Length;
+            if (originalCount > MaxSearchTerms)
+            {
+                _logger.LogInformation(
+                    "Search term limit exceeded; truncating from {OriginalCount} to {Max}",
+                    originalCount, MaxSearchTerms);
+                terms = terms.Take(MaxSearchTerms).ToArray();
+            }
             var searchable = new[]
             {
                 "ToolNumber",
@@ -580,6 +589,14 @@ namespace ToolManagementAppV2.Services.Tools
 
             using var conn = _dbService.CreateConnection();
             var terms = searchText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var originalCount = terms.Length;
+            if (originalCount > MaxSearchTerms)
+            {
+                _logger.LogInformation(
+                    "Search term limit exceeded; truncating from {OriginalCount} to {Max}",
+                    originalCount, MaxSearchTerms);
+                terms = terms.Take(MaxSearchTerms).ToArray();
+            }
             var searchable = new[]
             {
                 "ToolNumber",
