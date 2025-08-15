@@ -126,9 +126,9 @@ namespace ToolManagementAppV2.Services.Users
         {
             const string sql = @"
                 INSERT INTO Users
-                  (UserName, Password, Salt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired)
+                  (UserName, Password, Salt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, FailedAttempts, LockoutUntil, PasswordExpired)
                 VALUES
-                  (@UserName,@Password,@Salt,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role,@IsActive,@CreatedAt,@PasswordExpired);
+                  (@UserName,@Password,@Salt,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role,@IsActive,@CreatedAt,@FailedAttempts,@Lockout,@PasswordExpired);
                 SELECT last_insert_rowid();";
 
             using var conn = _dbService.CreateConnection();
@@ -166,6 +166,8 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@Role",     (object)user.Role ?? DBNull.Value),
                 new SQLiteParameter("@IsActive", user.IsActive ? 1 : 0),
                 new SQLiteParameter("@CreatedAt", user.CreatedAt),
+                new SQLiteParameter("@FailedAttempts", user.FailedAttempts),
+                new SQLiteParameter("@Lockout",    (object?)user.LockoutUntil ?? DBNull.Value),
                 new SQLiteParameter("@PasswordExpired", user.PasswordExpired ? 1 : 0)
             });
             try
@@ -389,9 +391,9 @@ namespace ToolManagementAppV2.Services.Users
         {
             const string sql = @"
                 INSERT INTO Users
-                  (UserName, Password, Salt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired)
+                  (UserName, Password, Salt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, FailedAttempts, LockoutUntil, PasswordExpired)
                 VALUES
-                  (@UserName,@Password,@Salt,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role,@IsActive,@CreatedAt,@PasswordExpired);
+                  (@UserName,@Password,@Salt,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role,@IsActive,@CreatedAt,@FailedAttempts,@Lockout,@PasswordExpired);
                 SELECT last_insert_rowid();";
 
             using var conn = _dbService.CreateConnection();
@@ -429,6 +431,8 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@Role",     (object)user.Role ?? DBNull.Value),
                 new SQLiteParameter("@IsActive", user.IsActive ? 1 : 0),
                 new SQLiteParameter("@CreatedAt", user.CreatedAt),
+                new SQLiteParameter("@FailedAttempts", user.FailedAttempts),
+                new SQLiteParameter("@Lockout",    (object?)user.LockoutUntil ?? DBNull.Value),
                 new SQLiteParameter("@PasswordExpired", user.PasswordExpired ? 1 : 0)
             });
             try
