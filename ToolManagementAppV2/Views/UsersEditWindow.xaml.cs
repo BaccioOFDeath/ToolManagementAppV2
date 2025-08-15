@@ -1,5 +1,6 @@
 // Views/UsersEditWindow.xaml.cs
 using System;
+using System.Threading.Tasks;
 using System.Windows;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.ViewModels;
@@ -9,7 +10,7 @@ namespace ToolManagementAppV2.Views
 {
     public partial class UsersEditWindow : Window
     {
-        public UsersEditWindow(User user, Action onSave, Action onCancel, Action onRemoveAvatar)
+        public UsersEditWindow(User user, Func<Task> onSave, Action onCancel, Action onRemoveAvatar)
         {
             InitializeComponent();
             DataContext = new UsersEditViewModel(user, onSave, onCancel, BrowseAvatar, onRemoveAvatar);

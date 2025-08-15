@@ -264,11 +264,11 @@ namespace ToolManagementAppV2.ViewModels
 
             UsersEditWindow? win = null;
             win = new UsersEditWindow(clone,
-                onSave: () =>
+                onSave: async () =>
                 {
                     try
                     {
-                        _userService.UpdateUserAsync(clone).GetAwaiter().GetResult();
+                        await _userService.UpdateUserAsync(clone);
                         var idx = Users.IndexOf(user);
                         if (idx >= 0) Users[idx] = clone;
                         var idxAll = _allUsers.IndexOf(user);
