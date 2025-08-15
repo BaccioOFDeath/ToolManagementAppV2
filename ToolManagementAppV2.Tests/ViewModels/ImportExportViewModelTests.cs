@@ -81,6 +81,25 @@ namespace ToolManagementAppV2.Tests.ViewModels
             Assert.False(toolSvc.ImportCalled);
             File.Delete(tmp);
         }
+
+        [Fact]
+        public async System.Threading.Tasks.Task ImportToolsCommand_CanBeCancelled()
+        {
+            var tmp = Path.GetTempFileName();
+            File.WriteAllText(tmp, "ToolNumber\n");
+            var fileDlg = new StubFileDialogService { FileToReturn = tmp };
+            var toolSvc = new CancelableToolService();
+            var dialog = new StubDialogService { MapToReturn = new Dictionary<string,string>{{"ToolNumber","ToolNumber"}} };
+            var vm = new ImportExportViewModel(toolSvc, new StubCustomerService(), fileDlg, new StubDatabaseBackupService(), dialog);
+
+            var execute = vm.ImportToolsCommand.ExecuteAsync(null);
+            vm.ImportToolsCommand.Cancel();
+            await execute;
+
+            Assert.Single(vm.ImportExportLogs);
+            Assert.Contains("cancel", vm.ImportExportLogs[0], StringComparison.OrdinalIgnoreCase);
+            File.Delete(tmp);
+        }
     }
 
     class StubFileDialogService : IFileDialogService
@@ -123,7 +142,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             MapUsed = map;
             return new();
         }
-        public System.Threading.Tasks.Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map)
+        public System.Threading.Tasks.Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken)
         {
             ImportCalled = true;
             MapUsed = map;
@@ -179,8 +198,31 @@ namespace ToolManagementAppV2.Tests.ViewModels
     class StubToolService : IToolService
     {
         public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map) => new();
-        public System.Threading.Tasks.Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map)
+        public System.Threading.Tasks.Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken)
             => System.Threading.Tasks.Task.FromResult(new List<int>());
+        public void ExportToolsToCsv(string filePath) { }
+        public System.Threading.Tasks.Task ExportToolsToCsvAsync(string filePath) => System.Threading.Tasks.Task.CompletedTask;
+        public List<ToolModel> GetAllTools() => new();
+        public void AddTool(ToolModel tool) => throw new NotImplementedException();
+        public void UpdateTool(ToolModel tool) => throw new NotImplementedException();
+        public void DeleteTool(int toolID) => throw new NotImplementedException();
+        public ToolModel GetToolByID(int toolID) => throw new NotImplementedException();
+        public List<ToolModel> SearchTools(string? searchText) => new();
+        public void ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new NotImplementedException();
+        public List<ToolModel> GetToolsCheckedOutBy(string userName) => new();
+        public void UpdateToolImage(int toolID, string imagePath) => throw new NotImplementedException();
+        public ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector) => new();
+        public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental, System.Data.SQLite.SQLiteConnection? conn = null, System.Data.SQLite.SQLiteTransaction? tx = null) => throw new NotImplementedException();
+    }
+
+    class CancelableToolService : IToolService
+    {
+        public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map) => new();
+        public async System.Threading.Tasks.Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken)
+        {
+            await System.Threading.Tasks.Task.Delay(System.Threading.Timeout.Infinite, cancellationToken);
+            return new List<int>();
+        }
         public void ExportToolsToCsv(string filePath) { }
         public System.Threading.Tasks.Task ExportToolsToCsvAsync(string filePath) => System.Threading.Tasks.Task.CompletedTask;
         public List<ToolModel> GetAllTools() => new();

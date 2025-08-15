@@ -11,6 +11,7 @@
         <Border Style="{StaticResource Card}">
             <WrapPanel>
                 <Button Style="{StaticResource PrimaryButton}" Content="Import Tools CSV" Command="{Binding ImportToolsCommand}" Margin="0,0,8,8"/>
+                <Button Style="{StaticResource PrimaryButton}" Content="Cancel Import" Command="{Binding ImportToolsCommand.CancelCommand}" Margin="0,0,8,8" IsEnabled="{Binding ImportToolsCommand.IsRunning}"/>
                 <Button Style="{StaticResource PrimaryButton}" Content="Export Tools CSV" Command="{Binding ExportToolsCommand}" Margin="0,0,8,8"/>
                 <Button Style="{StaticResource PrimaryButton}" Content="Import Customers CSV" Command="{Binding ImportCustomersCommand}" Margin="0,0,8,8"/>
                 <Button Style="{StaticResource PrimaryButton}" Content="Export Customers CSV" Command="{Binding ExportCustomersCommand}" Margin="0,0,8,8"/>

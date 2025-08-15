@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Threading;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Models.ImportExport;
@@ -28,7 +29,7 @@ namespace ToolManagementAppV2.Interfaces
         void UpdateToolImage(int toolID, string imagePath);
         Task UpdateToolImageAsync(int toolID, string imagePath);
         List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map);
-        Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map);
+        Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken);
         void ExportToolsToCsv(string filePath);
         Task ExportToolsToCsvAsync(string filePath);
         ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector);
