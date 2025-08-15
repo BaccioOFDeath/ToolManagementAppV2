@@ -1,5 +1,6 @@
 using System.Windows;
 using ToolManagementAppV2.ViewModels.Rental;
+using ToolManagementAppV2.Utilities.Extensions;
 
 namespace ToolManagementAppV2.Views
 {
@@ -8,6 +9,7 @@ namespace ToolManagementAppV2.Views
         public RentalHistoryWindow()
         {
             InitializeComponent();
+            this.DisposeDataContextOnUnload();
         }
 
         public RentalHistoryWindow(RentalHistoryViewModel viewModel) : this()

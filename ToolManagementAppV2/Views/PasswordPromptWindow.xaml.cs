@@ -5,6 +5,7 @@ using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services;
 using ToolManagementAppV2.ViewModels;
+using ToolManagementAppV2.Utilities.Extensions;
 
 namespace ToolManagementAppV2.Views
 {
@@ -39,6 +40,7 @@ namespace ToolManagementAppV2.Views
                 () => { DialogResult = true; },
                 () => { DialogResult = false; },
                 ShowError);
+            this.DisposeDataContextOnUnload();
             Loaded += OnLoaded;
         }
 

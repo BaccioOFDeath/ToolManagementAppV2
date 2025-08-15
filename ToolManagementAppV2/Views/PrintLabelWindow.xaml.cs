@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Utilities.Extensions;
 
 namespace ToolManagementAppV2.Views
 {
@@ -25,6 +26,7 @@ namespace ToolManagementAppV2.Views
         {
             InitializeComponent();
             DataContext = new PrintLabelViewModel(dialogService, () => Close());
+            this.DisposeDataContextOnUnload();
         }
 
         public PrintLabelWindow() : this(new ToolManagementAppV2.Services.DialogService()) { }

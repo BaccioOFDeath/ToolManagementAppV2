@@ -5,6 +5,7 @@ using System.Windows.Documents;
 using System.Windows.Media.Imaging;
 using System.Windows.Controls; // WPF PrintDialog
 using ToolManagementAppV2.ViewModels;
+using ToolManagementAppV2.Utilities.Extensions;
 
 namespace ToolManagementAppV2.Views
 {
@@ -18,6 +19,7 @@ namespace ToolManagementAppV2.Views
         {
             InitializeComponent();
             DataContext = new PrintPreviewViewModel(OnPageSetup, OnPrint, Close);
+            this.DisposeDataContextOnUnload();
         }
 
         public void ShowPreview(FlowDocument document, string title, string? logoPath)
@@ -47,9 +49,16 @@ namespace ToolManagementAppV2.Views
         {
             if (!string.IsNullOrWhiteSpace(path))
             {
-                var full = Utilities.Helpers.PathHelper.GetAbsolutePath(path);
-                if (!string.IsNullOrEmpty(full) && File.Exists(full))
-                    return new Uri(full, UriKind.Absolute);
+                try
+                {
+                    var full = Utilities.Helpers.PathHelper.GetAbsolutePath(path, true);
+                    if (!string.IsNullOrEmpty(full) && File.Exists(full))
+                        return new Uri(full, UriKind.Absolute);
+                }
+                catch (InvalidOperationException)
+                {
+                    // fall through to default
+                }
             }
             return new Uri("pack://application:,,,/Resources/DefaultLogo.png");
         }

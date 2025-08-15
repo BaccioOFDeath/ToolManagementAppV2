@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Interfaces;
 using Xunit;
@@ -110,6 +111,32 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public int PasswordIterations { get; set; } = 100_000;
         public int GetPasswordIterations() => PasswordIterations;
         public void SavePasswordIterations(int iterations) => PasswordIterations = iterations;
+
+        public Task SaveSettingAsync(string key, string value)
+        {
+            SaveSetting(key, value);
+            return Task.CompletedTask;
+        }
+        public Task<string?> GetSettingAsync(string key) => Task.FromResult(GetSetting(key));
+        public Task<Dictionary<string, string>> GetAllSettingsAsync() => Task.FromResult(GetAllSettings());
+        public Task UpdateSettingsAsync(Dictionary<string, string> settings)
+        {
+            UpdateSettings(settings);
+            return Task.CompletedTask;
+        }
+        public Task DeleteSettingAsync(string key)
+        {
+            DeleteSetting(key);
+            return Task.CompletedTask;
+        }
+        public Task<IEnumerable<string>> GetScannerIpAddressesAsync() => Task.FromResult(GetScannerIpAddresses());
+        public Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses) => Task.FromResult(SaveScannerIpAddresses(ipAddresses));
+        public Task<int> GetPasswordIterationsAsync() => Task.FromResult(GetPasswordIterations());
+        public Task SavePasswordIterationsAsync(int iterations)
+        {
+            SavePasswordIterations(iterations);
+            return Task.CompletedTask;
+        }
     }
 
     class StubDialogService : IDialogService

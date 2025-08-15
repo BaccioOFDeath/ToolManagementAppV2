@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using System.IO;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 
 namespace ToolManagementAppV2.Utilities.Converters
@@ -14,8 +14,10 @@ namespace ToolManagementAppV2.Utilities.Converters
         private static BitmapImage _defaultUser;
         private static BitmapImage _defaultTool;
         private static BitmapImage _defaultLogo;
-        private static readonly Dictionary<string, BitmapImage> _imageCache =
-            new Dictionary<string, BitmapImage>(StringComparer.OrdinalIgnoreCase);
+        private const int MaxCacheEntries = 100;
+        private static readonly ConcurrentDictionary<string, BitmapImage> _imageCache =
+            new ConcurrentDictionary<string, BitmapImage>(StringComparer.OrdinalIgnoreCase);
+        private static readonly ConcurrentQueue<string> _cacheOrder = new ConcurrentQueue<string>();
         private static readonly ILogger Logger = App.LoggerFactory.CreateLogger<NullToDefaultImageConverter>();
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -30,7 +32,7 @@ namespace ToolManagementAppV2.Utilities.Converters
                 {
                     var absPath = Uri.IsWellFormedUriString(path, UriKind.Absolute)
                         ? path
-                        : Helpers.PathHelper.GetAbsolutePath(path);
+                        : Helpers.PathHelper.GetAbsolutePath(path, true);
 
                     if (!string.IsNullOrEmpty(absPath))
                     {
@@ -43,7 +45,16 @@ namespace ToolManagementAppV2.Utilities.Converters
                         image.UriSource = new Uri(absPath, UriKind.Absolute);
                         image.EndInit();
                         image.Freeze();
-                        _imageCache[absPath] = image;
+
+                        if (_imageCache.TryAdd(absPath, image))
+                        {
+                            _cacheOrder.Enqueue(absPath);
+                            while (_cacheOrder.Count > MaxCacheEntries && _cacheOrder.TryDequeue(out var oldKey))
+                            {
+                                _imageCache.TryRemove(oldKey, out _);
+                            }
+                        }
+
                         return image;
                     }
                 }

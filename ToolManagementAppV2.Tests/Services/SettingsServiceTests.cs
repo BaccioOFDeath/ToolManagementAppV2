@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Settings;
@@ -326,6 +327,72 @@ namespace ToolManagementAppV2.Tests.Services
 
                 service.SavePasswordIterations(50_000);
                 Assert.Equal(50_000, service.GetPasswordIterations());
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task SaveAndRetrieveSettingAsync()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var service = new SettingsService(dbService);
+
+                await service.SaveSettingAsync("Key1", "Value1");
+                var value = await service.GetSettingAsync("Key1");
+                Assert.Equal("Value1", value);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task GetAllSettingsAsync_ReturnsAllEntries()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var service = new SettingsService(dbService);
+
+                await service.SaveSettingAsync("A", "1");
+                await service.SaveSettingAsync("B", "2");
+
+                var settings = await service.GetAllSettingsAsync();
+                Assert.Equal(2, settings.Count);
+                Assert.Equal("1", settings["A"]);
+                Assert.Equal("2", settings["B"]);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task DeleteSettingAsync_RemovesEntry()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var service = new SettingsService(dbService);
+
+                await service.SaveSettingAsync("Key1", "Value1");
+                await service.DeleteSettingAsync("Key1");
+
+                var value = await service.GetSettingAsync("Key1");
+                Assert.Null(value);
             }
             finally
             {

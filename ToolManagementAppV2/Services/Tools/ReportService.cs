@@ -177,11 +177,11 @@ namespace ToolManagementAppV2.Services.Tools
 
             var lines = new[]
             {
-                $"Total Tools: {totalToolsTask.Result.Count}",
-                $"Total Rentals (History): {totalRentalsTask.Result.Count}",
-                $"Active Rentals: {totalActiveRentalsTask.Result.Count}",
-                $"Total Customers: {totalCustomersTask.Result.Count}",
-                $"Total Users: {totalUsersTask.Result.Count}"
+                $"Total Tools: {totalTools.Count}",
+                $"Total Rentals (History): {totalRentals.Count}",
+                $"Active Rentals: {totalActiveRentals.Count}",
+                $"Total Customers: {totalCustomers.Count}",
+                $"Total Users: {totalUsers.Count}"
             };
 
             return BuildReport("Application Summary Report", lines);
