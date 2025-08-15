@@ -258,11 +258,38 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 vm.ResetPasswordFromRowCommand.Execute(user);
                 var updated = userService.GetUserByID(user.UserID)!;
                 Assert.NotEqual(oldPwd, updated.Password);
+                Assert.True(updated.PasswordExpired);
                 Assert.Equal("Password Reset", dialog.LastInfoTitle);
-                Assert.StartsWith("Password reset to: ", dialog.LastInfoMessage);
                 var prefix = "Password reset to: ";
-                var newPwd = dialog.LastInfoMessage.Substring(prefix.Length);
+                var suffix = ". Please change it at next login.";
+                Assert.StartsWith(prefix, dialog.LastInfoMessage);
+                Assert.EndsWith("Please change it at next login.", dialog.LastInfoMessage);
+                var newPwd = dialog.LastInfoMessage.Substring(prefix.Length,
+                    dialog.LastInfoMessage.Length - prefix.Length - suffix.Length);
                 Assert.True(SecurityHelper.VerifyPassword(newPwd, updated.Salt, updated.Password));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task ResetPasswordFromRowCommand_SetsPasswordExpiredFlag()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IUserService userService = new UserService(db, new ApplicationUserContext());
+                var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
+                userService.AddUser(new User { UserName = "user1", Password = "pw" });
+                await vm.LoadUsersAsync();
+                var user = vm.Users.First();
+                vm.ResetPasswordFromRowCommand.Execute(user);
+                var updated = userService.GetUserByID(user.UserID)!;
+                Assert.True(updated.PasswordExpired);
             }
             finally
             {

@@ -293,13 +293,18 @@ namespace ToolManagementAppV2.ViewModels
             if (user == null) return;
             var newPassword = SecurityHelper.GeneratePassword();
             _userService.ChangeUserPassword(user.UserID, newPassword);
-            _dialogService.ShowInfo($"Password reset to: {newPassword}", "Password Reset");
             var refreshed = _userService.GetUserByID(user.UserID);
             if (refreshed != null)
             {
+                refreshed.PasswordExpired = true;
+                _userService.UpdateUser(refreshed);
                 user.Password = refreshed.Password;
                 user.Salt = refreshed.Salt;
+                user.PasswordExpired = true;
             }
+            _dialogService.ShowInfo(
+                $"Password reset to: {newPassword}. Please change it at next login.",
+                "Password Reset");
         }
 
         void DeleteUser(UserModel user)
