@@ -66,7 +66,7 @@ namespace ToolManagementAppV2.ViewModels
             if (string.IsNullOrEmpty(path)) return;
             try
             {
-                var headers = CsvHelperUtil.ReadHeaders(path);
+                var headers = await CsvHelperUtil.ReadHeadersAsync(path);
                 var properties = typeof(ToolImportDto).GetProperties().Select(p => p.Name);
                 var map = _dialogService.ShowImportMapping(headers, properties);
                 if (map == null)

@@ -11,6 +11,7 @@ using System.Runtime.Serialization;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Tests;
 using CommunityToolkit.Mvvm.Input;
+using System.Threading.Tasks;
 
 namespace ToolManagementAppV2.Tests.Views
 {
@@ -40,10 +41,10 @@ namespace ToolManagementAppV2.Tests.Views
                         Assert.NotNull(keyBinding);
 
                         var asyncCommand = Assert.IsAssignableFrom<IAsyncRelayCommand>(keyBinding.Command);
-                        asyncCommand.Execute(null);
+                        var task = asyncCommand.ExecuteAsync(null);
 
                         var frame = new DispatcherFrame();
-                        asyncCommand.ExecutionTask!.ContinueWith(_ => frame.Continue = false);
+                        task.ContinueWith(_ => frame.Continue = false);
                         Dispatcher.PushFrame(frame);
 
                         Assert.Equal(string.Empty, vm.GlobalSearchText);
