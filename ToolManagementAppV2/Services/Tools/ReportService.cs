@@ -173,7 +173,15 @@ namespace ToolManagementAppV2.Services.Tools
             var totalCustomersTask = _customerService.GetAllCustomersAsync();
             var totalUsersTask = _userService.GetAllUsersAsync();
 
-            await Task.WhenAll(totalToolsTask, totalRentalsTask, totalActiveRentalsTask, totalCustomersTask, totalUsersTask).ConfigureAwait(false);
+            await Task
+                .WhenAll(totalToolsTask, totalRentalsTask, totalActiveRentalsTask, totalCustomersTask, totalUsersTask)
+                .ConfigureAwait(false);
+
+            var totalTools = await totalToolsTask;
+            var totalRentals = await totalRentalsTask;
+            var totalActiveRentals = await totalActiveRentalsTask;
+            var totalCustomers = await totalCustomersTask;
+            var totalUsers = await totalUsersTask;
 
             var lines = new[]
             {
