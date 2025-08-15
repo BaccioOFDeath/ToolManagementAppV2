@@ -296,6 +296,19 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public async Task LoadUsersAsync_ShowsErrorOnFailure()
+        {
+            var svc = new GetAllUsersFailingUserService();
+            var dialog = new StubDialogService();
+            var vm = new UserManagementViewModel(svc, new StubFileDialogService(), dialog);
+
+            await vm.LoadUsersAsync();
+
+            Assert.Equal("Error", dialog.LastInfoTitle);
+            Assert.StartsWith("Failed to load users:", dialog.LastInfoMessage);
+        }
+
+        [Fact]
         public async Task AddUserAsync_AddsUser()
         {
             var svc = new InMemoryUserService();
@@ -602,6 +615,25 @@ class FailingUserService : IUserService
     public Task AddUserAsync(User user) { _users.Add(user); return Task.CompletedTask; }
     public void UpdateUser(User user) => throw new Exception("update failed");
     public Task UpdateUserAsync(User user) => Task.FromException(new Exception("update failed"));
+    public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
+    public bool ChangeUserPassword(int userID, string newPassword) => false;
+    public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => Task.FromResult(false);
+}
+
+class GetAllUsersFailingUserService : IUserService
+{
+    public List<User> GetAllUsers() => throw new Exception("load failed");
+    public Task<List<User>> GetAllUsersAsync() => Task.FromException<List<User>>(new Exception("load failed"));
+    public User? GetUserByID(int userID) => null;
+    public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult<User?>(null);
+    public User? AuthenticateUser(string userName, string password) => null;
+    public Task<User?> AuthenticateUserAsync(string userName, string password) => Task.FromResult<User?>(null);
+    public User? GetCurrentUser() => null;
+    public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
+    public void AddUser(User user) { }
+    public Task AddUserAsync(User user) => Task.CompletedTask;
+    public void UpdateUser(User user) { }
+    public Task UpdateUserAsync(User user) => Task.CompletedTask;
     public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
     public bool ChangeUserPassword(int userID, string newPassword) => false;
     public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => Task.FromResult(false);

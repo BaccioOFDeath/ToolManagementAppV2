@@ -94,6 +94,7 @@ namespace ToolManagementAppV2.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load users");
+                await _dialogService.ShowInfoAsync($"Failed to load users: {ex.Message}", "Error");
             }
         }
 
