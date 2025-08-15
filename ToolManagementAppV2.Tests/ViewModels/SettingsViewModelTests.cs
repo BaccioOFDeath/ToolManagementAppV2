@@ -102,7 +102,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public void DeleteSetting(string key) { }
         public IEnumerable<string> ScannerIps { get; set; } = Array.Empty<string>();
         public IEnumerable<string> GetScannerIpAddresses() => ScannerIps;
-        public void SaveScannerIpAddresses(IEnumerable<string> ipAddresses) => ScannerIps = ipAddresses;
+        public IEnumerable<string> SaveScannerIpAddresses(IEnumerable<string> ipAddresses)
+        {
+            ScannerIps = ipAddresses;
+            return Array.Empty<string>();
+        }
         public int PasswordIterations { get; set; } = 100_000;
         public int GetPasswordIterations() => PasswordIterations;
         public void SavePasswordIterations(int iterations) => PasswordIterations = iterations;

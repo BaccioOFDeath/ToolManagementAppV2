@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Settings;
@@ -201,6 +202,67 @@ namespace ToolManagementAppV2.Tests.Services
 
                 Assert.Single(logs);
                 Assert.Equal(LogLevel.Warning, logs[0].Level);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void SaveScannerIpAddresses_SkipsInvalidAndLogsWarning()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var logs = new List<LogEntry>();
+                using var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
+                var logger = factory.CreateLogger<SettingsService>();
+                var service = new SettingsService(dbService, logger);
+
+                var invalid = service.SaveScannerIpAddresses(new[] { "192.168.1.1", "bad", "999.999.999.999" }).ToList();
+
+                Assert.Equal(new[] { "bad", "999.999.999.999" }, invalid);
+
+                var saved = service.GetScannerIpAddresses().ToList();
+                Assert.Single(saved);
+                Assert.Equal("192.168.1.1", saved[0]);
+
+                Assert.Single(logs);
+                Assert.Equal(LogLevel.Warning, logs[0].Level);
+                Assert.Contains("bad", logs[0].Message);
+                Assert.Contains("999.999.999.999", logs[0].Message);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void SaveScannerIpAddresses_AllValid_NoWarning()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var logs = new List<LogEntry>();
+                using var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
+                var logger = factory.CreateLogger<SettingsService>();
+                var service = new SettingsService(dbService, logger);
+
+                var invalid = service.SaveScannerIpAddresses(new[] { "127.0.0.1", "10.0.0.2" });
+                Assert.Empty(invalid);
+
+                var saved = service.GetScannerIpAddresses().ToList();
+                Assert.Equal(2, saved.Count);
+                Assert.Contains("127.0.0.1", saved);
+                Assert.Contains("10.0.0.2", saved);
+
+                Assert.Empty(logs);
             }
             finally
             {

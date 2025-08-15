@@ -1,5 +1,6 @@
 ﻿using System.Data.SQLite;
 using System;
+using System.Net;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -151,13 +152,39 @@ namespace ToolManagementAppV2.Services.Settings
             var value = GetSetting(ScannerIpKey);
             if (string.IsNullOrWhiteSpace(value))
                 return Array.Empty<string>();
-            return value.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            var valid = new List<string>();
+            foreach (var ip in value.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (IPAddress.TryParse(ip, out _))
+                    valid.Add(ip);
+            }
+
+            return valid;
         }
 
-        public void SaveScannerIpAddresses(IEnumerable<string> ipAddresses)
+        public IEnumerable<string> SaveScannerIpAddresses(IEnumerable<string> ipAddresses)
         {
-            var value = string.Join(';', ipAddresses);
+            if (ipAddresses == null)
+                throw new ArgumentNullException(nameof(ipAddresses));
+
+            var valid = new List<string>();
+            var invalid = new List<string>();
+            foreach (var ip in ipAddresses)
+            {
+                if (IPAddress.TryParse(ip, out _))
+                    valid.Add(ip);
+                else
+                    invalid.Add(ip);
+            }
+
+            if (invalid.Count > 0)
+                _logger.LogWarning("Ignoring invalid IP addresses: {InvalidIps}", string.Join(", ", invalid));
+
+            var value = string.Join(';', valid);
             SaveSetting(ScannerIpKey, value);
+
+            return invalid;
         }
 
         public int GetPasswordIterations()

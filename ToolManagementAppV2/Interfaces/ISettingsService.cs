@@ -10,7 +10,7 @@ namespace ToolManagementAppV2.Interfaces
         void UpdateSettings(Dictionary<string, string> settings);
         void DeleteSetting(string key);
         IEnumerable<string> GetScannerIpAddresses();
-        void SaveScannerIpAddresses(IEnumerable<string> ipAddresses);
+        IEnumerable<string> SaveScannerIpAddresses(IEnumerable<string> ipAddresses);
         int GetPasswordIterations();
         void SavePasswordIterations(int iterations);
     }
