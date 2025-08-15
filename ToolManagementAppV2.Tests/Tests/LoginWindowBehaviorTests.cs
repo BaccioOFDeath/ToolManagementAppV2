@@ -12,7 +12,7 @@ namespace ToolManagementAppV2.Tests.Tests
     public class LoginWindowBehaviorTests
     {
         [Fact]
-        public void LoginWindow_IsTopmost()
+        public void LoginWindow_IsNotTopmost()
         {
             var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
             using var db = new DatabaseService(dbPath);
@@ -20,7 +20,7 @@ namespace ToolManagementAppV2.Tests.Tests
             var userService = new UserService(db, userContext);
             var settingsService = new SettingsService(db);
             var window = new LoginWindow(userContext, userService, settingsService);
-            Assert.True(window.Topmost);
+            Assert.False(window.Topmost);
             window.Close();
         }
     }
