@@ -62,11 +62,40 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 vm.SelectedUser = vm.Users.First();
                 await vm.UploadUserPhotoCommand.ExecuteAsync(null);
                 var updated = userService.GetAllUsers().First();
-                Assert.Equal("path/to/image.png", updated.UserPhotoPath);
+                var expected = PathHelper.GetAbsolutePath("path/to/image.png");
+                Assert.Equal(expected, updated.UserPhotoPath);
                 var field = typeof(UserManagementViewModel).GetField("_allUsers", BindingFlags.NonPublic | BindingFlags.Instance);
                 var allUsers = (System.Collections.Generic.List<User>)field!.GetValue(vm);
-                Assert.Equal("path/to/image.png", vm.Users.First().UserPhotoPath);
-                Assert.Equal("path/to/image.png", allUsers.First().UserPhotoPath);
+                Assert.Equal(expected, vm.Users.First().UserPhotoPath);
+                Assert.Equal(expected, allUsers.First().UserPhotoPath);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task UploadUserPhotoCommand_RejectsPathsOutsideAppDirectory()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IUserService userService = new UserService(db, new ApplicationUserContext());
+                var fileSvc = new StubFileDialogService { FileToReturn = Path.Combine("..", "outside.png") };
+                var vm = new UserManagementViewModel(userService, fileSvc, new StubDialogService());
+                userService.AddUser(new User { UserName = "user1", Password = "pw" });
+                await vm.LoadUsersAsync();
+                vm.SelectedUser = vm.Users.First();
+                await vm.UploadUserPhotoCommand.ExecuteAsync(null);
+                var updated = userService.GetAllUsers().First();
+                Assert.Null(updated.UserPhotoPath);
+                var field = typeof(UserManagementViewModel).GetField("_allUsers", BindingFlags.NonPublic | BindingFlags.Instance);
+                var allUsers = (System.Collections.Generic.List<User>)field!.GetValue(vm);
+                Assert.Null(vm.Users.First().UserPhotoPath);
+                Assert.Null(allUsers.First().UserPhotoPath);
             }
             finally
             {
@@ -97,10 +126,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var field = typeof(UserManagementViewModel).GetField("_allUsers", BindingFlags.NonPublic | BindingFlags.Instance);
                 var allUsers = (System.Collections.Generic.List<User>)field!.GetValue(vm);
 
+                var expected = PathHelper.GetAbsolutePath("img.png");
                 Assert.Equal("test@example.com", vm.Users.First().Email);
                 Assert.Equal("test@example.com", allUsers.First().Email);
-                Assert.Equal("img.png", vm.Users.First().UserPhotoPath);
-                Assert.Equal("img.png", allUsers.First().UserPhotoPath);
+                Assert.Equal(expected, vm.Users.First().UserPhotoPath);
+                Assert.Equal(expected, allUsers.First().UserPhotoPath);
             }
             finally
             {
