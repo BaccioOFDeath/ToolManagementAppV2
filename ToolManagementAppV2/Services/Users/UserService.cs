@@ -138,7 +138,8 @@ namespace ToolManagementAppV2.Services.Users
             string salt = string.Empty;
             if (!string.IsNullOrWhiteSpace(user.Password))
             {
-                if (!string.IsNullOrWhiteSpace(user.Salt))
+                if (!string.IsNullOrWhiteSpace(user.Salt) &&
+                    IsBase64String(user.Password) && IsBase64String(user.Salt))
                 {
                     hashed = user.Password;
                     salt = user.Salt;
@@ -416,9 +417,9 @@ namespace ToolManagementAppV2.Services.Users
         {
             const string sql = @"
                 INSERT INTO Users
-                  (UserName, Password, Salt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt)
+                  (UserName, Password, Salt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired)
                 VALUES
-                  (@UserName,@Password,@Salt,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role,@IsActive,@CreatedAt);
+                  (@UserName,@Password,@Salt,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role,@IsActive,@CreatedAt,@PasswordExpired);
                 SELECT last_insert_rowid();";
 
             using var conn = _dbService.CreateConnection();
@@ -428,7 +429,8 @@ namespace ToolManagementAppV2.Services.Users
             string salt = string.Empty;
             if (!string.IsNullOrWhiteSpace(user.Password))
             {
-                if (!string.IsNullOrWhiteSpace(user.Salt))
+                if (!string.IsNullOrWhiteSpace(user.Salt) &&
+                    IsBase64String(user.Password) && IsBase64String(user.Salt))
                 {
                     hashed = user.Password;
                     salt = user.Salt;
@@ -454,7 +456,8 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@Address",  (object)user.Address ?? DBNull.Value),
                 new SQLiteParameter("@Role",     (object)user.Role ?? DBNull.Value),
                 new SQLiteParameter("@IsActive", user.IsActive ? 1 : 0),
-                new SQLiteParameter("@CreatedAt", user.CreatedAt)
+                new SQLiteParameter("@CreatedAt", user.CreatedAt),
+                new SQLiteParameter("@PasswordExpired", user.PasswordExpired ? 1 : 0)
             });
             try
             {
@@ -567,6 +570,13 @@ namespace ToolManagementAppV2.Services.Users
         {
             if (!await TryDeleteUserAsync(userID))
                 throw new InvalidOperationException($"Failed to delete user {userID}");
+        }
+
+        static bool IsBase64String(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return false;
+            Span<byte> buffer = new Span<byte>(new byte[input.Length]);
+            return Convert.TryFromBase64String(input, buffer, out _);
         }
     }
 }
