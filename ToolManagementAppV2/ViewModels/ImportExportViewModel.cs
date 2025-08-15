@@ -25,7 +25,7 @@ namespace ToolManagementAppV2.ViewModels
         private readonly ILogger<ImportExportViewModel> _logger;
 
         public IAsyncRelayCommand ImportToolsCommand { get; }
-        public IRelayCommand ExportToolsCommand { get; }
+        public IAsyncRelayCommand ExportToolsCommand { get; }
         public IRelayCommand ImportCustomersCommand { get; }
         public IRelayCommand ExportCustomersCommand { get; }
 
@@ -54,7 +54,7 @@ namespace ToolManagementAppV2.ViewModels
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<ImportExportViewModel>.Instance;
             ImportToolsCommand = new AsyncRelayCommand(ImportToolsAsync);
-            ExportToolsCommand = new RelayCommand(ExportTools);
+            ExportToolsCommand = new AsyncRelayCommand(ExportToolsAsync);
             ImportCustomersCommand = new RelayCommand(ImportCustomers);
             ExportCustomersCommand = new RelayCommand(ExportCustomers);
             BackupDatabaseCommand = new AsyncRelayCommand(BackupDatabaseAsync);
@@ -85,13 +85,13 @@ namespace ToolManagementAppV2.ViewModels
             _dialogService.ShowInfo($"Successfully imported tools from {path}.", "Import Tools");
         }
 
-        void ExportTools()
+        async Task ExportToolsAsync()
         {
             var path = _fileDialogService.SaveFile("CSV Files|*.csv");
             if (string.IsNullOrEmpty(path)) return;
             try
             {
-                _toolService.ExportToolsToCsv(path);
+                await _toolService.ExportToolsToCsvAsync(path);
                 ImportExportLogs.Add($"Successfully exported tools to {path}.");
             }
             catch (Exception ex)

@@ -113,6 +113,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             return System.Threading.Tasks.Task.FromResult(new List<int>());
         }
         public void ExportToolsToCsv(string filePath) { }
+        public System.Threading.Tasks.Task ExportToolsToCsvAsync(string filePath) => System.Threading.Tasks.Task.CompletedTask;
         public List<ToolModel> GetAllTools() => new();
         public void AddTool(ToolModel tool) => throw new NotImplementedException();
         public void UpdateTool(ToolModel tool) => throw new NotImplementedException();
@@ -164,6 +165,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public System.Threading.Tasks.Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map)
             => System.Threading.Tasks.Task.FromResult(new List<int>());
         public void ExportToolsToCsv(string filePath) { }
+        public System.Threading.Tasks.Task ExportToolsToCsvAsync(string filePath) => System.Threading.Tasks.Task.CompletedTask;
         public List<ToolModel> GetAllTools() => new();
         public void AddTool(ToolModel tool) => throw new NotImplementedException();
         public void UpdateTool(ToolModel tool) => throw new NotImplementedException();

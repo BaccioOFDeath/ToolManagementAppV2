@@ -637,10 +637,10 @@ namespace ToolManagementAppV2.Services.Tools
         public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map)
             => Task.FromResult(ImportToolsFromCsv(filePath, map));
 
-        public Task ExportToolsToCsvAsync(string filePath)
+        public async Task ExportToolsToCsvAsync(string filePath)
         {
-            ExportToolsToCsv(filePath);
-            return Task.CompletedTask;
+            var tools = GetAllTools();
+            await CsvHelperUtil.ExportToolsToCsvAsync(filePath, tools);
         }
 
         public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector)

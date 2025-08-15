@@ -59,12 +59,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void ImportExportViewModel_ExportToolsCommand_LogsSuccess()
+        public async Task ImportExportViewModel_ExportToolsCommand_LogsSuccess()
         {
             var toolService = new StubToolService();
             var customerService = new StubCustomerService();
             var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
-            vm.ExportToolsCommand.Execute(null);
+            await vm.ExportToolsCommand.ExecuteAsync(null);
             Assert.True(toolService.ExportCalled);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Successfully exported tools", vm.ImportExportLogs[0]);
@@ -138,12 +138,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void ImportExportViewModel_ExportToolsCommand_LogsFailure()
+        public async Task ImportExportViewModel_ExportToolsCommand_LogsFailure()
         {
             var toolService = new FailToolService();
             var customerService = new StubCustomerService();
             var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
-            vm.ExportToolsCommand.Execute(null);
+            await vm.ExportToolsCommand.ExecuteAsync(null);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Failed to export tools", vm.ImportExportLogs[0]);
         }
@@ -242,6 +242,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             return Task.FromResult(new List<int>());
         }
         public void ExportToolsToCsv(string filePath) => ExportCalled = true;
+        public Task ExportToolsToCsvAsync(string filePath) { ExportCalled = true; return Task.CompletedTask; }
         public List<ToolModel> GetAllTools() => new();
         public void AddTool(ToolModel tool) => throw new System.NotImplementedException();
         public void UpdateTool(ToolModel tool) => throw new System.NotImplementedException();
@@ -260,6 +261,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map) => throw new System.Exception("fail");
         public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map) => Task.FromException<List<int>>(new System.Exception("fail"));
         public void ExportToolsToCsv(string filePath) => throw new System.Exception("fail");
+        public Task ExportToolsToCsvAsync(string filePath) => Task.FromException(new System.Exception("fail"));
         public List<ToolModel> GetAllTools() => new();
         public void AddTool(ToolModel tool) => throw new System.NotImplementedException();
         public void UpdateTool(ToolModel tool) => throw new System.NotImplementedException();

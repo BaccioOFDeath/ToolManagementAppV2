@@ -109,6 +109,7 @@ namespace ToolManagementAppV2.Tests.Views
             return System.Threading.Tasks.Task.FromResult(new System.Collections.Generic.List<int>());
         }
         public void ExportToolsToCsv(string filePath) { }
+        public System.Threading.Tasks.Task ExportToolsToCsvAsync(string filePath) => System.Threading.Tasks.Task.CompletedTask;
         public System.Collections.Generic.List<ToolModel> GetAllTools() => new();
         public void AddTool(ToolModel tool) => throw new NotImplementedException();
         public void UpdateTool(ToolModel tool) => throw new NotImplementedException();
