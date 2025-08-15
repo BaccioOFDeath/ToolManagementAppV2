@@ -15,6 +15,8 @@ using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.Views;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -32,6 +34,7 @@ namespace ToolManagementAppV2.ViewModels
         readonly ISettingsService _settingsService;
         readonly IDialogService _dialogService;
         readonly IUserContext _userContext;
+        readonly ILogger<LoginViewModel> _logger;
 
         public ObservableCollection<User> Users { get; } = new();
 
@@ -80,12 +83,13 @@ namespace ToolManagementAppV2.ViewModels
         public Func<User, CancellationToken, Task<PasswordPromptResult?>>? PromptForPasswordAsync { get; set; }
             
 
-        public LoginViewModel(IUserService userService, ISettingsService settingsService, IDialogService dialogService, IUserContext userContext)
+        public LoginViewModel(IUserService userService, ISettingsService settingsService, IDialogService dialogService, IUserContext userContext, ILogger<LoginViewModel>? logger = null)
         {
             _settingsService = settingsService;
             _userService = userService;
             _dialogService = dialogService;
             _userContext = userContext;
+            _logger = logger ?? NullLogger<LoginViewModel>.Instance;
 
             SelectUserCommand = new AsyncRelayCommand<User>(OnUserSelected);
 
@@ -257,7 +261,16 @@ namespace ToolManagementAppV2.ViewModels
             var newPwd = PromptForNewPassword?.Invoke();
             if (string.IsNullOrWhiteSpace(newPwd))
                 return false;
-            _userService.ChangeUserPassword(user.UserID, newPwd);
+            try
+            {
+                _userService.ChangeUserPassword(user.UserID, newPwd);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to change password for user {UserID}", user.UserID);
+                _dialogService.ShowInfo("Failed to update password.", "Error");
+                return false;
+            }
             var refreshed = _userService.GetUserByID(user.UserID);
             if (refreshed != null)
             {
