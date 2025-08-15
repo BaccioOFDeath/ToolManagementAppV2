@@ -111,7 +111,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void OpenActivityLogsCommand_LoadsLogs()
+        public async Task OpenActivityLogsCommand_LoadsLogsAsync()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -127,7 +127,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var settingsService = new SettingsService(db);
 
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
-                vm.OpenActivityLogsCommand.Execute(null);
+                await vm.OpenActivityLogsCommand.ExecuteAsync(null);
 
                 var page = Assert.IsType<ActivityLogsPage>(vm.CurrentPage);
                 var logsVm = Assert.IsType<ActivityLogsViewModel>(page.DataContext);
