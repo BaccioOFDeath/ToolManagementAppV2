@@ -65,7 +65,8 @@ namespace ToolManagementAppV2.Services.Tools
 
         public async Task<FlowDocument> GenerateActivityLogReport()
         {
-            var logs = await _activityLogService.GetRecentLogsAsync(100).ConfigureAwait(false) ?? new List<ActivityLog>();
+            var result = await _activityLogService.GetRecentLogsAsync(100).ConfigureAwait(false);
+            var logs = result?.Data ?? new List<ActivityLog>();
             var lines = logs.Select(l =>
                 $"LogID: {l.LogID} | UserID: {l.UserID} | User: {l.UserName} | Action: {l.Action} | Timestamp: {l.Timestamp:yyyy-MM-dd HH:mm:ss}");
             return BuildReport("Activity Log Report", lines);
@@ -144,7 +145,7 @@ namespace ToolManagementAppV2.Services.Tools
         {
             var doc = new FlowDocument
             {
-                FontFamily = new FontFamily("Segoe UI"),
+                FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
                 FontSize = 12,
                 PageWidth = 800
             };
