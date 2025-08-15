@@ -76,6 +76,60 @@ namespace ToolManagementAppV2.Tests.Views
                     System.IO.File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void ContextMenuDeleteCommand_RemovesUser()
+        {
+            var dbPath = System.IO.Path.GetTempFileName();
+            Exception? threadException = null;
+
+            try
+            {
+                var thread = new Thread(() =>
+                {
+                    try
+                    {
+                        var db = new DatabaseService(dbPath);
+                        IUserService userService = new UserService(db, new ApplicationUserContext());
+                        var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
+                        userService.AddUser(new User { UserName = "user1", Password = "pw" });
+                        userService.AddUser(new User { UserName = "user2", Password = "pw" });
+                        vm.LoadUsers();
+
+                        var page = new UsersPage { DataContext = vm };
+                        var grid = (Grid)page.Content;
+                        var dataGrid = (DataGrid)((Border)grid.Children[1]).Child;
+
+                        dataGrid.SelectedItem = vm.Users.First();
+                        var deleteItem = (MenuItem)dataGrid.ContextMenu.Items[4];
+
+                        Assert.Equal(vm.DeleteUserFromRowCommand, deleteItem.Command);
+                        deleteItem.Command.Execute(dataGrid.SelectedItem);
+
+                        Assert.Single(vm.Users);
+                        Assert.Equal("user2", vm.Users.First().UserName);
+                    }
+                    catch (Exception ex)
+                    {
+                        threadException = ex;
+                    }
+                });
+
+                thread.SetApartmentState(ApartmentState.STA);
+                thread.Start();
+                thread.Join();
+
+                if (threadException != null)
+                {
+                    throw threadException;
+                }
+            }
+            finally
+            {
+                if (System.IO.File.Exists(dbPath))
+                    System.IO.File.Delete(dbPath);
+            }
+        }
     }
 
     class StubFileDialogService : IFileDialogService
