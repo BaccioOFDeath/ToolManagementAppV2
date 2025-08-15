@@ -242,7 +242,18 @@ namespace ToolManagementAppV2.Services.Tools
             }
 
             var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
-            Directory.CreateDirectory(destDir);
+            if (!Directory.Exists(destDir))
+            {
+                try
+                {
+                    Directory.CreateDirectory(destDir);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to create image directory {Dir}", destDir);
+                    return result;
+                }
+            }
 
             var supported = new HashSet<string>(new[] { ".png", ".jpg", ".jpeg", ".bmp", ".gif" }, StringComparer.OrdinalIgnoreCase);
 
