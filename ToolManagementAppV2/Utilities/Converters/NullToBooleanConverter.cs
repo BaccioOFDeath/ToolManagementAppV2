@@ -16,6 +16,8 @@ namespace ToolManagementAppV2.Utilities.Converters
     {
         private readonly ILogger<NullToBooleanConverter> _logger;
 
+        public NullToBooleanConverter() : this(null) { }
+
         public NullToBooleanConverter(ILogger<NullToBooleanConverter>? logger = null)
             => _logger = logger ?? NullLogger<NullToBooleanConverter>.Instance;
         /// <summary>

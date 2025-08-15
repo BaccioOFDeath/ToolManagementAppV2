@@ -11,6 +11,8 @@ namespace ToolManagementAppV2.Utilities.Converters
     {
         private readonly ILogger<CheckOutStatusConverter> _logger;
 
+        public CheckOutStatusConverter() : this(null) { }
+
         public CheckOutStatusConverter(ILogger<CheckOutStatusConverter>? logger = null)
             => _logger = logger ?? NullLogger<CheckOutStatusConverter>.Instance;
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

@@ -11,6 +11,8 @@ namespace ToolManagementAppV2.Utilities.Converters
     {
         private readonly ILogger<BooleanToAdminConverter> _logger;
 
+        public BooleanToAdminConverter() : this(null) { }
+
         public BooleanToAdminConverter(ILogger<BooleanToAdminConverter>? logger = null)
             => _logger = logger ?? NullLogger<BooleanToAdminConverter>.Instance;
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

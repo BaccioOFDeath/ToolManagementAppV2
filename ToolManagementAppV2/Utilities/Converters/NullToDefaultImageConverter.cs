@@ -21,6 +21,8 @@ namespace ToolManagementAppV2.Utilities.Converters
         private static readonly ConcurrentQueue<string> _cacheOrder = new ConcurrentQueue<string>();
         private readonly ILogger<NullToDefaultImageConverter> _logger;
 
+        public NullToDefaultImageConverter() : this(null) { }
+
         public NullToDefaultImageConverter(ILogger<NullToDefaultImageConverter>? logger = null)
         {
             _logger = logger ?? NullLogger<NullToDefaultImageConverter>.Instance;
