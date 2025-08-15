@@ -77,6 +77,8 @@ namespace ToolManagementAppV2.ViewModels
 
         public string CurrentUserRole => _userContext.Role;
 
+        public ToolModel? SelectedTool => ToolManagement.SelectedTool;
+
         public void RefreshCurrentUser()
         {
             OnPropertyChanged(nameof(IsCurrentUserAdmin));
@@ -138,6 +140,14 @@ namespace ToolManagementAppV2.ViewModels
             });
 
             ToolManagement = new ToolManagementViewModel(toolService, customerService, rentalService, _dialogService);
+            ToolManagement.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(ToolManagementViewModel.SelectedTool))
+                {
+                    OnPropertyChanged(nameof(SelectedTool));
+                    OpenRentalHistoryWindowCommand.NotifyCanExecuteChanged();
+                }
+            };
             UserManagement = new UserManagementViewModel(userService, fileDialogService, _dialogService);
             CustomerManagement = new CustomerManagementViewModel(customerService, _dialogService);
             ManageRentals = new ManageRentalsViewModel(rentalService, _dialogService);

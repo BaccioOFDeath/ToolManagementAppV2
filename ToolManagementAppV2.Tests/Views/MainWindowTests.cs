@@ -12,6 +12,8 @@ using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Tests;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
+using System.Windows;
+using ToolManagementAppV2.Models.Domain;
 
 namespace ToolManagementAppV2.Tests.Views
 {
@@ -111,6 +113,67 @@ namespace ToolManagementAppV2.Tests.Views
             {
                 throw threadException;
             }
+        }
+
+        [Fact]
+        public void RentalHistoryButton_BoundToSelectedTool()
+        {
+            Exception? threadException = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var (window, dbPath) = TestHelpers.CreateMainWindow();
+                    try
+                    {
+                        var vm = Assert.IsType<MainViewModel>(window.DataContext);
+                        var button = FindButtonByContent(window, "Rental History");
+                        Assert.NotNull(button);
+
+                        var tool = new ToolModel { ToolID = 1 };
+                        vm.ToolManagement.SelectedTool = tool;
+
+                        Assert.Same(tool, button!.CommandParameter);
+                        Assert.Same(vm.OpenRentalHistoryWindowCommand, button.Command);
+                    }
+                    finally
+                    {
+                        window.Close();
+                        if (File.Exists(dbPath))
+                            File.Delete(dbPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    threadException = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadException != null)
+            {
+                throw threadException;
+            }
+        }
+
+        static Button? FindButtonByContent(DependencyObject parent, string content)
+        {
+            if (parent is Button btn && btn.Content as string == content)
+                return btn;
+
+            foreach (var child in LogicalTreeHelper.GetChildren(parent))
+            {
+                if (child is DependencyObject dep)
+                {
+                    var result = FindButtonByContent(dep, content);
+                    if (result != null) return result;
+                }
+            }
+            return null;
         }
 
         [Fact]
