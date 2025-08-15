@@ -22,8 +22,8 @@ namespace ToolManagementAppV2.Interfaces
         Task<List<ToolModel>> GetAllToolsAsync();
         List<ToolModel> SearchTools(string? searchText);
         Task<List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default);
-        void ToggleToolCheckOutStatus(int toolID, string currentUser);
-        Task ToggleToolCheckOutStatusAsync(int toolID, string currentUser);
+        bool ToggleToolCheckOutStatus(int toolID, string currentUser);
+        Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser);
         List<ToolModel> GetToolsCheckedOutBy(string userName);
         Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName);
         void UpdateToolImage(int toolID, string imagePath);
