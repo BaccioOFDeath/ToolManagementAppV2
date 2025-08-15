@@ -271,9 +271,11 @@ namespace ToolManagementAppV2.ViewModels
                 return;
             try
             {
-                await _rentalService.DeleteRentalAsync(SelectedRental.RentalID);
-                _allRentals.Remove(SelectedRental);
-                Rentals.Remove(SelectedRental);
+                var rentalToDelete = SelectedRental;
+                await _rentalService.DeleteRentalAsync(rentalToDelete.RentalID);
+                _allRentals.Remove(rentalToDelete);
+                Rentals.Remove(rentalToDelete);
+                SelectedRental = null;
             }
             catch (Exception ex)
             {
