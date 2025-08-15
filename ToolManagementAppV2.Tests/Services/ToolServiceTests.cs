@@ -550,6 +550,52 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
+        public void DeleteTool_WhenSqlFails_Throws()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                using (var conn = dbService.CreateConnection())
+                using (var cmd = new SQLiteCommand("DROP TABLE Tools;", conn))
+                {
+                    cmd.ExecuteNonQuery();
+                }
+
+                var svc = new ToolService(dbService);
+                var ex = Assert.Throws<InvalidOperationException>(() => svc.DeleteTool(1));
+                Assert.Contains("Failed to delete tool 1", ex.Message);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task DeleteToolAsync_WhenSqlFails_Throws()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                using (var conn = dbService.CreateConnection())
+                using (var cmd = new SQLiteCommand("DROP TABLE Tools;", conn))
+                {
+                    cmd.ExecuteNonQuery();
+                }
+
+                var svc = new ToolService(dbService);
+                var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => svc.DeleteToolAsync(1));
+                Assert.Contains("Failed to delete tool 1", ex.Message);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public void AddTool_ConcurrentAdds_Succeeds()
         {
             var dbPath = Path.GetTempFileName();
