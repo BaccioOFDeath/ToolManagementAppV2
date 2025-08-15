@@ -181,6 +181,7 @@ namespace ToolManagementAppV2.ViewModels
                     PasswordExpired = true
                 };
                 await _userService.AddUserAsync(admin);
+                _logger.LogInformation("Seeded admin user {UserName}", admin.UserName);
                 users = await _userService.GetAllUsersAsync();
             }
 
