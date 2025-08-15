@@ -93,10 +93,13 @@ namespace ToolManagementAppV2.ViewModels
             try
             {
                 RecentActivity.Clear();
-                var logs = _activityLogService.GetRecentLogs(10);
-                if (logs == null)
+                var result = _activityLogService.GetRecentLogs(10);
+                if (!result.Success || result.Value == null)
+                {
+                    _logger.LogError("Failed to load recent activity: {Error}", result.ErrorMessage);
                     return;
-                foreach (var log in logs)
+                }
+                foreach (var log in result.Value)
                     RecentActivity.Add(log);
             }
             catch (Exception ex)

@@ -5,6 +5,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Models.Domain;
+using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Users;
@@ -93,7 +94,8 @@ namespace ToolManagementAppV2.Services.Tools
 
         public FlowDocument GenerateActivityLogReport()
         {
-            var logs = _activityLogService.GetRecentLogs(100) ?? new List<ActivityLog>();
+            var result = _activityLogService.GetRecentLogs(100);
+            var logs = result.Success && result.Value != null ? result.Value : new List<ActivityLog>();
             var lines = logs.Select(l =>
                     $"LogID: {l.LogID} | UserID: {l.UserID} | User: {l.UserName} | " +
                     $"Action: {l.Action} | Timestamp: {l.Timestamp:yyyy-MM-dd HH:mm:ss}");
@@ -102,7 +104,8 @@ namespace ToolManagementAppV2.Services.Tools
 
         public async Task<FlowDocument> GenerateActivityLogReportAsync()
         {
-            var logs = await _activityLogService.GetRecentLogsAsync(100) ?? new List<ActivityLog>();
+            var result = await _activityLogService.GetRecentLogsAsync(100);
+            var logs = result.Success && result.Value != null ? result.Value : new List<ActivityLog>();
             var lines = logs.Select(l =>
                     $"LogID: {l.LogID} | UserID: {l.UserID} | User: {l.UserName} | " +
                     $"Action: {l.Action} | Timestamp: {l.Timestamp:yyyy-MM-dd HH:mm:ss}");
