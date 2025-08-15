@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.VisualBasic.FileIO;
 using System.Linq;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Models.ImportExport;
 
@@ -16,6 +17,15 @@ namespace ToolManagementAppV2.Utilities.IO
             parser.SetDelimiters(",");
             parser.HasFieldsEnclosedInQuotes = true;
             return parser.EndOfData ? Array.Empty<string>() : parser.ReadFields().Select(h => h.Trim());
+        }
+
+        public static async Task<IEnumerable<string>> ReadHeadersAsync(string filePath)
+        {
+            using var parser = new TextFieldParser(filePath);
+            parser.SetDelimiters(",");
+            parser.HasFieldsEnclosedInQuotes = true;
+            return await Task.Run(() =>
+                parser.EndOfData ? Array.Empty<string>() : parser.ReadFields().Select(h => h.Trim()));
         }
 
         public static List<ToolModel> LoadToolsFromCsv(string filePath, IDictionary<string, string> map, out List<int> invalidRows)

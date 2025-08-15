@@ -38,8 +38,8 @@ namespace ToolManagementAppV2.Tests.Views
 
                         Assert.Equal(vm.ImportToolsCommand, importBtn.Command);
                         var asyncCmd = (CommunityToolkit.Mvvm.Input.IAsyncRelayCommand)importBtn.Command;
-                        asyncCmd.Execute(null);
-                        asyncCmd.ExecutionTask!.Wait();
+                        var task = asyncCmd.ExecuteAsync(null);
+                        task.GetAwaiter().GetResult();
                         Assert.True(toolSvc.ImportCalled);
                         Assert.Single(vm.ImportExportLogs);
                     }

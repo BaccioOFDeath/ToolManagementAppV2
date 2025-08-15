@@ -309,7 +309,7 @@ namespace ToolManagementAppV2.ViewModels
                 if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
                     return;
 
-                var headers = CsvHelperUtil.ReadHeaders(path).ToList();
+                var headers = (await CsvHelperUtil.ReadHeadersAsync(path)).ToList();
                 var properties = typeof(ToolModel)
                                     .GetProperties()
                                     .Select(p => p.Name)
