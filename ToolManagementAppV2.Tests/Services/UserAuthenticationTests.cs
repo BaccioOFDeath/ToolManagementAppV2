@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Data.SQLite;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
@@ -189,6 +190,66 @@ public class UserAuthenticationTests
             userService.ChangeUserPassword(user.UserID, "newpass");
             updated = userService.GetAllUsers().First();
             Assert.False(updated.PasswordExpired);
+        }
+        finally
+        {
+            if (File.Exists(dbPath))
+                File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public async Task AuthenticateUserAsync_HashesPassword()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+
+            var user = new User { UserName = "atest", Password = "secret", IsAdmin = false };
+            userService.AddUser(user);
+            var added = userService.GetUserByID(user.UserID)!;
+
+            Assert.NotEqual("secret", added.Password);
+            Assert.False(SecurityHelper.IsSha256Hash(added.Password));
+            Assert.False(string.IsNullOrWhiteSpace(added.Salt));
+            Assert.True(SecurityHelper.VerifyPassword("secret", added.Salt, added.Password));
+
+            var auth = await userService.AuthenticateUserAsync("atest", "secret");
+            Assert.NotNull(auth);
+        }
+        finally
+        {
+            if (File.Exists(dbPath))
+                File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public async Task AuthenticateUserAsync_LockoutAfterFailedAttempts()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+
+            var user = new User { UserName = "lockasync", Password = "secret", IsAdmin = false };
+            userService.AddUser(user);
+
+            for (int i = 0; i < 3; i++)
+            {
+                var auth = await userService.AuthenticateUserAsync("lockasync", "bad");
+                Assert.Null(auth);
+            }
+
+            var stored = userService.GetAllUsers().First(u => u.UserName == "lockasync");
+            Assert.Equal(3, stored.FailedAttempts);
+            Assert.NotNull(stored.LockoutUntil);
+
+            var afterLock = await userService.AuthenticateUserAsync("lockasync", "secret");
+            Assert.Null(afterLock);
         }
         finally
         {
