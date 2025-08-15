@@ -202,6 +202,46 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public void OpenSettingsCommand_ReusesSettingsViewModelInstance()
+        {
+            var dbPath = Path.GetTempFileName();
+            var tempDb = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db");
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                var userContext = new ApplicationUserContext();
+                IUserService userService = new UserService(db, userContext);
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
+                var activityLogService = new ActivityLogService(db);
+                var settingsService = new SettingsService(db);
+
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
+
+                vm.OpenSettingsCommand.Execute(null);
+                var firstPage = Assert.IsType<SettingsPage>(vm.CurrentPage);
+                var firstVm = Assert.IsType<SettingsViewModel>(firstPage.DataContext);
+                firstVm.ApplicationName = "My App";
+
+                vm.OpenDashboardCommand.Execute(null);
+                vm.OpenSettingsCommand.Execute(null);
+                var secondPage = Assert.IsType<SettingsPage>(vm.CurrentPage);
+                var secondVm = Assert.IsType<SettingsViewModel>(secondPage.DataContext);
+
+                Assert.Same(firstVm, secondVm);
+                Assert.Equal("My App", secondVm.ApplicationName);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+                if (File.Exists(tempDb))
+                    File.Delete(tempDb);
+            }
+        }
+
+        [Fact]
         public async Task OpenRentalsCommand_NavigatesToManageRentalsPage()
         {
             var dbPath = Path.GetTempFileName();

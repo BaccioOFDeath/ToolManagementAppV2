@@ -42,6 +42,7 @@ namespace ToolManagementAppV2.ViewModels
         public ImportExportViewModel ImportExport { get; }
         public ActivityLogsViewModel ActivityLogs { get; }
         public ReportsViewModel Reports { get; }
+        public SettingsViewModel Settings { get; }
 
         private Page _currentPage;
         public Page CurrentPage
@@ -141,6 +142,7 @@ namespace ToolManagementAppV2.ViewModels
             ImportExport = new ImportExportViewModel(toolService, customerService, fileDialogService, databaseService, _dialogService);
             Reports = new ReportsViewModel(new ReportService(toolService, rentalService, activityLogService, customerService, userService));
             ActivityLogs = new ActivityLogsViewModel(activityLogService);
+            Settings = new SettingsViewModel(_fileDialogService, _settingsService, _dialogService);
 
             OpenDashboardCommand = new RelayCommand(() =>
             {
@@ -194,7 +196,7 @@ namespace ToolManagementAppV2.ViewModels
             {
                 var page = new SettingsPage
                     {
-                        DataContext = new SettingsViewModel(fileDialogService, _settingsService, _dialogService),
+                        DataContext = Settings,
                         Title = "Settings"
                     };
                 CurrentPage = page;
