@@ -26,31 +26,40 @@ namespace ToolManagementAppV2.Services.Devices
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            using var semaphore = new SemaphoreSlim(5);
             var tasks = _settingsService.GetScannerIpAddresses().Select(async ip =>
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var device = new ScannerDevice
-                {
-                    Name = $"Scanner {ip}",
-                    Ip = ip,
-                    LastSeen = DateTime.UtcNow
-                };
+                await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
                 try
                 {
-                    using var ping = new Ping();
-                    var reply = await ping.SendPingAsync(ip, 1000);
-                    device.Status = reply.Status == IPStatus.Success ? "Online" : "Offline";
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var device = new ScannerDevice
+                    {
+                        Name = $"Scanner {ip}",
+                        Ip = ip,
+                        LastSeen = DateTime.UtcNow
+                    };
+                    try
+                    {
+                        using var ping = new Ping();
+                        var reply = await ping.SendPingAsync(ip, 1000).ConfigureAwait(false);
+                        device.Status = reply.Status == IPStatus.Success ? "Online" : "Offline";
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to ping scanner {Ip}", ip);
+                        device.Status = "Error";
+                    }
+                    return device;
                 }
-                catch (Exception ex)
+                finally
                 {
-                    _logger.LogError(ex, "Failed to ping scanner {Ip}", ip);
-                    device.Status = "Error";
+                    semaphore.Release();
                 }
-                return device;
             });
 
-            return await Task.WhenAll(tasks);
+            return await Task.WhenAll(tasks).ConfigureAwait(false);
         }
     }
 }
