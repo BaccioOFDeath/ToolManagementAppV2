@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
@@ -10,7 +11,7 @@ using Xunit;
 public class UserDeletionTests
 {
     [Fact]
-    public void Deleting_Last_Admin_Is_Blocked()
+    public async Task Deleting_Last_Admin_Is_Blocked()
     {
         var dbPath = Path.GetTempFileName();
         try
@@ -19,11 +20,12 @@ public class UserDeletionTests
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
             var admin = new User { UserName = "admin", Password = "pw", IsAdmin = true };
-            userService.AddUser(admin);
+            await userService.AddUserAsync(admin);
 
-            var added = userService.GetAllUsers().First();
-            Assert.Throws<InvalidOperationException>(() => userService.DeleteUser(added.UserID));
-            Assert.Single(userService.GetAllUsers());
+            var added = (await userService.GetAllUsersAsync()).First();
+            var result = await userService.TryDeleteUserAsync(added.UserID);
+            Assert.False(result);
+            Assert.Single(await userService.GetAllUsersAsync());
         }
         finally
         {

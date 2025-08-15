@@ -255,34 +255,6 @@ namespace ToolManagementAppV2.Services.Users
             return rows > 0;
         }
 
-        public bool TryDeleteUser(int userID)
-        {
-            var user = GetUserByID(userID);
-            if (user == null) return false;
-            if (user.IsAdmin)
-            {
-                const string sql = "SELECT COUNT(*) FROM Users WHERE IsAdmin = 1";
-                using var conn = _dbService.CreateConnection();
-                var adminCount = Convert.ToInt32(SqliteHelper.ExecuteScalar(conn, sql));
-                if (adminCount <= 1) return false;
-            }
-            DeleteUserInternal(userID);
-            return true;
-        }
-
-        public void DeleteUser(int userID)
-        {
-            if (!TryDeleteUser(userID))
-                throw new InvalidOperationException($"Failed to delete user {userID}");
-        }
-
-        void DeleteUserInternal(int userID)
-        {
-            var sql = "DELETE FROM Users WHERE UserID=@ID";
-            var p = new[] { new SQLiteParameter("@ID", userID) };
-            using var conn = _dbService.CreateConnection();
-            SqliteHelper.ExecuteNonQuery(conn, sql, p);
-        }
 
         User MapUser(IDataRecord rdr)
         {
@@ -564,12 +536,6 @@ namespace ToolManagementAppV2.Services.Users
             }
             await DeleteUserInternalAsync(userID);
             return true;
-        }
-
-        public async Task DeleteUserAsync(int userID)
-        {
-            if (!await TryDeleteUserAsync(userID))
-                throw new InvalidOperationException($"Failed to delete user {userID}");
         }
 
         static bool IsBase64String(string input)

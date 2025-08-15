@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.Views;
@@ -32,8 +33,8 @@ namespace ToolManagementAppV2.ViewModels
             set => SetProperty(ref _userSearchText, value);
         }
 
-        private UserModel _selectedUser;
-        public UserModel SelectedUser
+        private UserModel? _selectedUser;
+        public UserModel? SelectedUser
         {
             get => _selectedUser;
             set
@@ -57,7 +58,7 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand EditUserCommand { get; }
         public IRelayCommand EditUserFromRowCommand { get; }
         public IAsyncRelayCommand<UserModel> ResetPasswordFromRowCommand { get; }
-        public IRelayCommand DeleteUserFromRowCommand { get; }
+        public IAsyncRelayCommand<UserModel> DeleteUserFromRowCommand { get; }
 
         public UserManagementViewModel(IUserService userService,
                                        IFileDialogService fileDialogService,
@@ -68,6 +69,7 @@ namespace ToolManagementAppV2.ViewModels
             _fileDialogService = fileDialogService;
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<UserManagementViewModel>.Instance;
+
             LoadUsersCommand = new AsyncRelayCommand(LoadUsersAsync);
             UploadUserPhotoCommand = new AsyncRelayCommand(UploadUserPhotoAsync);
             UpdateUserCommand = new AsyncRelayCommand(UpdateUserAsync, () => SelectedUser != null);
@@ -76,10 +78,10 @@ namespace ToolManagementAppV2.ViewModels
             SearchUsersCommand = new RelayCommand(SearchUsers);
             ClearUserSearchCommand = new RelayCommand(ClearUserSearch);
 
-            EditUserCommand = new RelayCommand(() => EditUser(SelectedUser), () => SelectedUser != null);
+            EditUserCommand = new RelayCommand(() => EditUser(SelectedUser!), () => SelectedUser != null);
             EditUserFromRowCommand = new RelayCommand<UserModel>(EditUser);
             ResetPasswordFromRowCommand = new AsyncRelayCommand<UserModel>(ResetPasswordFor);
-            DeleteUserFromRowCommand = new RelayCommand<UserModel>(DeleteUser);
+            DeleteUserFromRowCommand = new AsyncRelayCommand<UserModel>(DeleteUserAsync);
         }
 
         public async Task LoadUsersAsync()
@@ -100,8 +102,7 @@ namespace ToolManagementAppV2.ViewModels
             if (SelectedUser == null) return;
             var path = _fileDialogService.OpenFile("Image Files|*.png;*.jpg;*.jpeg;*.bmp|All Files|*.*");
             var full = PathHelper.GetAbsolutePath(path);
-            if (string.IsNullOrEmpty(full))
-                return;
+            if (string.IsNullOrEmpty(full)) return;
 
             SelectedUser.UserPhotoPath = full;
             try
@@ -139,10 +140,6 @@ namespace ToolManagementAppV2.ViewModels
 
         public async Task AddUserAsync()
         {
-            // Determine the next available user name by querying the service
-            // for all existing names and incrementing the suffix until an
-            // unused value is found. This avoids collisions even if the
-            // local collection is out of date.
             HashSet<string> existingNames;
             try
             {
@@ -158,18 +155,12 @@ namespace ToolManagementAppV2.ViewModels
 
             var idx = 1;
             string name;
-            do
-            {
-                name = $"user{idx++}";
-            } while (existingNames.Contains(name));
+            do { name = $"user{idx++}"; } while (existingNames.Contains(name));
 
             var newUser = new UserModel { UserName = name };
 
-            if (!TryPromptForPassword(newUser, out var entered))
-                return;
+            if (!TryPromptForPassword(newUser, out var entered)) return;
 
-            // If the user leaves the prompt blank, assign a hashed "changeme" password
-            // so the account is initialized with a known placeholder that must be changed.
             if (string.IsNullOrWhiteSpace(entered))
             {
                 const string defaultPwd = "changeme";
@@ -195,7 +186,7 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        protected virtual bool TryPromptForPassword(UserModel newUser, out string password)
+        protected virtual bool TryPromptForPassword(UserModel newUser, out string? password)
         {
             password = null;
 
@@ -241,7 +232,7 @@ namespace ToolManagementAppV2.ViewModels
             Users.ReplaceRange(_allUsers);
         }
 
-        void EditUser(UserModel user)
+        void EditUser(UserModel? user)
         {
             if (user == null) return;
 
@@ -285,10 +276,8 @@ namespace ToolManagementAppV2.ViewModels
                 onCancel: () => win.Close(),
                 onRemoveAvatar: () => clone.UserPhotoPath = null);
 
-            try { win.Owner = System.Windows.Application.Current?.MainWindow; }
-            catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for UsersEditWindow"); }
-            try { win.ShowDialog(); }
-            catch (Exception ex) { _logger.LogError(ex, "Failed to show UsersEditWindow"); }
+            try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for UsersEditWindow"); }
+            try { win.ShowDialog(); } catch (Exception ex) { _logger.LogError(ex, "Failed to show UsersEditWindow"); }
         }
 
         async Task ResetPasswordFor(UserModel user)
@@ -305,20 +294,25 @@ namespace ToolManagementAppV2.ViewModels
                 user.Salt = refreshed.Salt;
                 user.PasswordExpired = true;
             }
-            _dialogService.ShowInfo(
-                "Password has been reset. The user must change it at next login.",
-                "Password Reset");
+            _dialogService.ShowInfo("Password has been reset. The user must change it at next login.", "Password Reset");
         }
 
-        void DeleteUser(UserModel user)
+        async Task DeleteUserAsync(UserModel user)
         {
             if (user == null) return;
             try
             {
-                _userService.DeleteUser(user.UserID);
-                _allUsers.Remove(user);
-                Users.Remove(user);
-                if (ReferenceEquals(SelectedUser, user)) SelectedUser = null;
+                var deleted = await _userService.TryDeleteUserAsync(user.UserID);
+                if (deleted)
+                {
+                    _allUsers.Remove(user);
+                    Users.Remove(user);
+                    if (ReferenceEquals(SelectedUser, user)) SelectedUser = null;
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to delete user {UserID}", user.UserID);
+                }
             }
             catch (Exception ex)
             {

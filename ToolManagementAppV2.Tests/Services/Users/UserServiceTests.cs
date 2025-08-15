@@ -11,7 +11,7 @@ using Xunit;
 public class UserServiceTests
 {
     [Fact]
-    public void DeleteUser_ThrowsInvalidOperationException_WhenDeletingOnlyAdmin()
+    public async Task TryDeleteUserAsync_ReturnsFalse_WhenDeletingOnlyAdmin()
     {
         var dbPath = Path.GetTempFileName();
         try
@@ -19,8 +19,9 @@ public class UserServiceTests
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
             var admin = new User { UserName = "admin", Password = "pw", IsAdmin = true };
-            userService.AddUser(admin);
-            Assert.Throws<InvalidOperationException>(() => userService.DeleteUser(admin.UserID));
+            await userService.AddUserAsync(admin);
+            var result = await userService.TryDeleteUserAsync(admin.UserID);
+            Assert.False(result);
             Assert.NotNull(userService.GetUserByID(admin.UserID));
         }
         finally
@@ -30,7 +31,7 @@ public class UserServiceTests
     }
 
     [Fact]
-    public void DeleteUser_AllowsDeletingAdmin_WhenMultipleAdminsExist()
+    public async Task TryDeleteUserAsync_AllowsDeletingAdmin_WhenMultipleAdminsExist()
     {
         var dbPath = Path.GetTempFileName();
         try
@@ -39,9 +40,10 @@ public class UserServiceTests
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
             var admin1 = new User { UserName = "admin1", Password = "pw", IsAdmin = true };
             var admin2 = new User { UserName = "admin2", Password = "pw", IsAdmin = true };
-            userService.AddUser(admin1);
-            userService.AddUser(admin2);
-            userService.DeleteUser(admin1.UserID);
+            await userService.AddUserAsync(admin1);
+            await userService.AddUserAsync(admin2);
+            var result = await userService.TryDeleteUserAsync(admin1.UserID);
+            Assert.True(result);
             Assert.Null(userService.GetUserByID(admin1.UserID));
             Assert.NotNull(userService.GetUserByID(admin2.UserID));
         }

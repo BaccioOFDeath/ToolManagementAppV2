@@ -422,9 +422,21 @@ namespace ToolManagementAppV2.Tests.ViewModels
             var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
             await vm.LoadUsersAsync();
             var toDelete = vm.Users.First();
-            vm.DeleteUserFromRowCommand.Execute(toDelete);
+            await vm.DeleteUserFromRowCommand.ExecuteAsync(toDelete);
             Assert.Single(vm.Users);
             Assert.Equal("user2", vm.Users.First().UserName);
+        }
+
+        [Fact]
+        public async Task DeleteUserFromRowCommand_FailureDoesNotRemoveUser()
+        {
+            var svc = new FailingUserService();
+            svc.AddUser(new User { UserName = "user1", Password = "pw" });
+            var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
+            await vm.LoadUsersAsync();
+            var toDelete = vm.Users.First();
+            await vm.DeleteUserFromRowCommand.ExecuteAsync(toDelete);
+            Assert.Single(vm.Users);
         }
 
         [Fact]
@@ -547,15 +559,12 @@ class InMemoryUserService : IUserService
         if (idx >= 0) Users[idx] = user;
     }
     public Task UpdateUserAsync(User user) { UpdateUser(user); return Task.CompletedTask; }
-    public bool TryDeleteUser(int userID)
+    public Task<bool> TryDeleteUserAsync(int userID)
     {
         var u = Users.FirstOrDefault(x => x.UserID == userID);
-        if (u != null) { Users.Remove(u); return true; }
-        return false;
+        if (u != null) { Users.Remove(u); return Task.FromResult(true); }
+        return Task.FromResult(false);
     }
-    public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(TryDeleteUser(userID));
-    public void DeleteUser(int userID) => TryDeleteUser(userID);
-    public Task DeleteUserAsync(int userID) { DeleteUser(userID); return Task.CompletedTask; }
     public bool ChangeUserPassword(int userID, string newPassword) => false;
     public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => Task.FromResult(false);
 }
@@ -591,10 +600,7 @@ class FailingUserService : IUserService
     public Task AddUserAsync(User user) { _users.Add(user); return Task.CompletedTask; }
     public void UpdateUser(User user) => throw new Exception("update failed");
     public Task UpdateUserAsync(User user) => Task.FromException(new Exception("update failed"));
-    public bool TryDeleteUser(int userID) => false;
     public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
-    public void DeleteUser(int userID) { }
-    public Task DeleteUserAsync(int userID) => Task.CompletedTask;
     public bool ChangeUserPassword(int userID, string newPassword) => false;
     public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => Task.FromResult(false);
 }
