@@ -36,7 +36,7 @@ namespace ToolManagementAppV2.ViewModels
         readonly IFileDialogService _fileDialogService;
         readonly IDialogService _dialogService;
         readonly ILogger<MainViewModel> _logger;
-        readonly Func<bool> _showLoginWindow;
+        readonly Func<Task<bool>> _showLoginWindow;
 
         PropertyChangedEventHandler? _toolManagementPropertyChangedHandler;
 
@@ -103,7 +103,7 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand OpenImageImportMappingWindowCommand { get; }
         public IRelayCommand ExitCommand { get; }
         public IAsyncRelayCommand GlobalSearchCommand { get; }
-        public IRelayCommand SwitchUserCommand { get; }
+        public IAsyncRelayCommand SwitchUserCommand { get; }
 
         public IAsyncRelayCommand<ToolModel?> OpenRentalHistoryWindowCommand { get; }
         public IRelayCommand OpenPrintPreviewWindowCommand { get; }
@@ -121,7 +121,7 @@ namespace ToolManagementAppV2.ViewModels
                              IDatabaseBackupService databaseService,
                              IDialogService dialogService,
                              ILogger<MainViewModel>? logger = null,
-                             Func<bool>? showLoginWindow = null)
+                             Func<Task<bool>>? showLoginWindow = null)
         {
             _toolService = toolService;
             _userService = userService;
@@ -133,12 +133,14 @@ namespace ToolManagementAppV2.ViewModels
             _dialogService = dialogService;
             _fileDialogService = fileDialogService;
             _logger = logger ?? NullLogger<MainViewModel>.Instance;
-            _showLoginWindow = showLoginWindow ?? new Func<bool>(() =>
+            _showLoginWindow = showLoginWindow ?? new Func<Task<bool>>(async () =>
             {
                 var login = new LoginWindow(_userContext, _userService, _settingsService, _dialogService)
                 {
                     Owner = System.Windows.Application.Current.MainWindow
                 };
+                if (login.DataContext is LoginViewModel lvm)
+                    await lvm.InitializeAsync();
                 return login.ShowDialog() == true;
             });
 
@@ -263,9 +265,9 @@ namespace ToolManagementAppV2.ViewModels
                 GlobalSearchText = string.Empty;
             });
 
-            SwitchUserCommand = new RelayCommand(() =>
+            SwitchUserCommand = new AsyncRelayCommand(async () =>
             {
-                if (_showLoginWindow())
+                if (await _showLoginWindow())
                 {
                     RefreshCurrentUser();
                     OpenDashboardCommand.Execute(null);

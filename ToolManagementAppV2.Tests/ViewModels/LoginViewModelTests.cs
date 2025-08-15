@@ -20,6 +20,34 @@ namespace ToolManagementAppV2.Tests.ViewModels
     public class LoginViewModelTests
     {
         [Fact]
+        public async Task InitializeAsync_LoadsLogoAndTitle()
+        {
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
+
+            var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
+            try
+            {
+                using var dbService = new DatabaseService(dbPath);
+                var userContext = new ApplicationUserContext();
+                var userService = new UserService(dbService, userContext);
+                var settingsService = new SettingsService(dbService);
+                await settingsService.SaveSettingAsync("ApplicationName", "TestApp");
+
+                var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext);
+                await vm.InitializeAsync();
+
+                Assert.Equal("TestApp – Login", vm.WindowTitle);
+                Assert.NotNull(vm.CompanyLogo);
+                Assert.NotEmpty(vm.Users);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public async Task SelectUserCommand_SetsCurrentUser()
         {
             if (System.Windows.Application.Current == null)
@@ -35,7 +63,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 userService.AddUser(new User { UserName = "user", Password = "newpassword", IsAdmin = false });
 
                 var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext);
-                await vm.LoadUsersCommand.ExecuteAsync(null);
+                await vm.InitializeAsync();
                 bool success = false;
                 vm.LoginSucceeded += (_, __) => success = true;
 
@@ -71,7 +99,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 {
                     PromptForNewPassword = () => "changed"
                 };
-                await vm.LoadUsersCommand.ExecuteAsync(null);
+                await vm.InitializeAsync();
                 bool success = false;
                 vm.LoginSucceeded += (_, __) => success = true;
 
@@ -108,7 +136,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     PromptForPasswordAsync = (u, ct) =>
                         Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("secret", false))
                 };
-                await vm.LoadUsersCommand.ExecuteAsync(null);
+                await vm.InitializeAsync();
                 bool success = false;
                 vm.LoginSucceeded += (_, __) => success = true;
 
@@ -146,7 +174,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                         return new PasswordPromptResult("secret", false);
                     }
                 };
-                await vm.LoadUsersCommand.ExecuteAsync(null);
+                await vm.InitializeAsync();
 
                 var execTask = vm.SelectUserCommand.ExecuteAsync(vm.Users.First());
                 vm.SelectUserCommand.Cancel();

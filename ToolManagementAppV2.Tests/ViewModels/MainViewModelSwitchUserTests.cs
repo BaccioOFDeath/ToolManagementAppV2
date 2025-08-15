@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Windows;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Tools;
@@ -19,7 +20,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     public class MainViewModelSwitchUserTests
     {
         [Fact]
-        public void SwitchUserCommand_UpdatesCurrentUser()
+        public async Task SwitchUserCommand_UpdatesCurrentUser()
         {
             if (System.Windows.Application.Current == null)
                 new System.Windows.Application();
@@ -37,10 +38,10 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var settingsService = new SettingsService(db);
 
                 var newUser = new User { UserName = "newuser", IsAdmin = true };
-                Func<bool> stubLogin = () =>
+                Func<Task<bool>> stubLogin = () =>
                 {
                     userContext.CurrentUser = newUser;
-                    return true;
+                    return Task.FromResult(true);
                 };
 
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
@@ -49,7 +50,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 userContext.CurrentUser = new User { UserName = "old", IsAdmin = false };
                 vm.RefreshCurrentUser();
 
-                vm.SwitchUserCommand.Execute(null);
+                await vm.SwitchUserCommand.ExecuteAsync(null);
 
                 Assert.Equal("newuser", vm.CurrentUserName);
                 Assert.True(vm.IsCurrentUserAdmin);
@@ -62,7 +63,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void SwitchUserCommand_ShowsWarning_WhenLoginCancelled()
+        public async Task SwitchUserCommand_ShowsWarning_WhenLoginCancelled()
         {
             if (System.Windows.Application.Current == null)
                 new System.Windows.Application();
@@ -82,12 +83,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var dialog = new StubDialogService();
                 var logger = new StubLogger<MainViewModel>();
 
-                Func<bool> stubLogin = () => false;
+                Func<Task<bool>> stubLogin = () => Task.FromResult(false);
 
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
                     new StubFileDialogService(), activityLogService, settingsService, db, dialog, logger, stubLogin);
 
-                vm.SwitchUserCommand.Execute(null);
+                await vm.SwitchUserCommand.ExecuteAsync(null);
 
                 Assert.True(dialog.InfoShown);
                 Assert.Equal("Switch user cancelled.", logger.LastWarning);
