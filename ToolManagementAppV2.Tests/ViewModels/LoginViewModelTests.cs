@@ -14,6 +14,7 @@ using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.Views;
 using Xunit;
+using Microsoft.Extensions.Logging;
 
 namespace ToolManagementAppV2.Tests.ViewModels
 {
@@ -226,6 +227,33 @@ namespace ToolManagementAppV2.Tests.ViewModels
             Assert.Single(vm.Users);
             Assert.Equal("admin", vm.Users[0].UserName);
         }
+
+        [Fact]
+        public async Task PromptChangePassword_ShowsError_WhenServiceFails()
+        {
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
+
+            var hashed = SecurityHelper.HashPassword("newpassword", out var salt);
+            var user = new User { UserID = 1, UserName = "user", Password = hashed, Salt = salt, IsAdmin = false, PasswordExpired = true };
+            var userService = new ThrowingUserService(user);
+            var settingsService = new StubSettingsService();
+            var dialog = new CapturingDialogService();
+            var userContext = new ApplicationUserContext();
+            var logger = new CapturingLogger<LoginViewModel>();
+
+            var vm = new LoginViewModel(userService, settingsService, dialog, userContext, logger)
+            {
+                PromptForNewPassword = () => "changed"
+            };
+            await vm.LoadUsersCommand.ExecuteAsync(null);
+
+            await vm.SelectUserCommand.ExecuteAsync(vm.Users[0]);
+
+            Assert.True(dialog.InfoShown);
+            Assert.Null(userContext.CurrentUser);
+            Assert.NotNull(logger.LastException);
+        }
     }
 
     class StubDialogService : IDialogService
@@ -274,5 +302,71 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
         public bool ChangeUserPassword(int userID, string newPassword) => false;
         public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => Task.FromResult(false);
+    }
+
+    class ThrowingUserService : IUserService
+    {
+        readonly List<User> _users;
+
+        public ThrowingUserService(User user)
+        {
+            _users = new List<User> { user };
+        }
+
+        public List<User> GetAllUsers() => _users.ToList();
+        public Task<List<User>> GetAllUsersAsync() => Task.FromResult(GetAllUsers());
+        public User? GetUserByID(int userID) => _users.FirstOrDefault(u => u.UserID == userID);
+        public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult(GetUserByID(userID));
+        public User? AuthenticateUser(string userName, string password) => null;
+        public Task<User?> AuthenticateUserAsync(string userName, string password) => Task.FromResult<User?>(null);
+        public User? GetCurrentUser() => null;
+        public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
+        public void AddUser(User user) => _users.Add(user);
+        public Task AddUserAsync(User user)
+        {
+            _users.Add(user);
+            return Task.CompletedTask;
+        }
+        public void UpdateUser(User user) { }
+        public Task UpdateUserAsync(User user) => Task.CompletedTask;
+        public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
+        public bool ChangeUserPassword(int userID, string newPassword) => throw new InvalidOperationException();
+        public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => throw new InvalidOperationException();
+    }
+
+    class CapturingDialogService : IDialogService
+    {
+        public bool InfoShown { get; private set; }
+        public void ShowInfo(string message, string title) => InfoShown = true;
+        public bool ShowConfirmation(string message, string title) => true;
+        public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
+        public void ShowToolDetails(ToolModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+        public CustomerModel? ShowAddCustomerDialog() => null;
+        public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
+        public void ShowRentalHistory(ToolModel tool, IEnumerable<RentalModel> history) { }
+        public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties) => null;
+        public Func<ToolModel, IEnumerable<string>>? ShowImageImportMapping() => null;
+        public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
+        public void ShowPrintLabelDialog() { }
+        public void ShowScannerStatus() { }
+    }
+
+    class CapturingLogger<T> : ILogger<T>
+    {
+        public Exception? LastException { get; private set; }
+        public IDisposable BeginScope<TState>(TState state) => NullDisposable.Instance;
+        public bool IsEnabled(LogLevel logLevel) => true;
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            if (logLevel == LogLevel.Error)
+                LastException = exception;
+        }
+
+        sealed class NullDisposable : IDisposable
+        {
+            public static readonly NullDisposable Instance = new();
+            public void Dispose() { }
+        }
     }
 }

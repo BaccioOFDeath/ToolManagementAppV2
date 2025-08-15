@@ -44,6 +44,41 @@ namespace ToolManagementAppV2.Tests.Views
             }
         }
 
+        [Fact]
+        public void ResetPasswordCommand_DoesNotSetFlag_WhenCancelled()
+        {
+            Exception? threadException = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var dialog = new StubDialogService { ConfirmationResult = false };
+                    var window = new PasswordPromptWindow(dialog)
+                    {
+                        SelectedUser = new User { IsAdmin = true }
+                    };
+
+                    window.VM.ResetPasswordCommand.ExecuteAsync(null).GetAwaiter().GetResult();
+
+                    Assert.False(window.IsPasswordResetRequested);
+                }
+                catch (Exception ex)
+                {
+                    threadException = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadException != null)
+            {
+                throw threadException;
+            }
+        }
+
         private class StubDialogService : IDialogService
         {
             public bool ConfirmationResult { get; set; }
