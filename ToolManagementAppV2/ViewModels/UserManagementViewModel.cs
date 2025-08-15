@@ -99,21 +99,22 @@ namespace ToolManagementAppV2.ViewModels
         {
             if (SelectedUser == null) return;
             var path = _fileDialogService.OpenFile("Image Files|*.png;*.jpg;*.jpeg;*.bmp|All Files|*.*");
-            if (!string.IsNullOrEmpty(path))
+            var full = PathHelper.GetAbsolutePath(path);
+            if (string.IsNullOrEmpty(full))
+                return;
+
+            SelectedUser.UserPhotoPath = full;
+            try
             {
-                SelectedUser.UserPhotoPath = path;
-                try
-                {
-                    await _userService.UpdateUserAsync(SelectedUser);
-                    var idxAll = _allUsers.IndexOf(SelectedUser);
-                    if (idxAll >= 0) _allUsers[idxAll] = SelectedUser;
-                    var idx = Users.IndexOf(SelectedUser);
-                    if (idx >= 0) Users[idx] = SelectedUser;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to update user photo");
-                }
+                await _userService.UpdateUserAsync(SelectedUser);
+                var idxAll = _allUsers.IndexOf(SelectedUser);
+                if (idxAll >= 0) _allUsers[idxAll] = SelectedUser;
+                var idx = Users.IndexOf(SelectedUser);
+                if (idx >= 0) Users[idx] = SelectedUser;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update user photo");
             }
         }
 
