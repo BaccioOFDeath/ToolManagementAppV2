@@ -1,6 +1,7 @@
 using System;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 
 namespace ToolManagementAppV2.Utilities.Helpers
@@ -95,10 +96,15 @@ namespace ToolManagementAppV2.Utilities.Helpers
 
         static int GetIterations()
         {
+            return GetIterationsAsync().GetAwaiter().GetResult();
+        }
+
+        static async Task<int> GetIterationsAsync()
+        {
             if (_iterations.HasValue)
                 return _iterations.Value;
 
-            var value = _settingsService?.GetPasswordIterations();
+            var value = _settingsService != null ? await _settingsService.GetPasswordIterationsAsync() : 0;
             _iterations = value > 0 ? value : DefaultIterations;
             return _iterations.Value;
         }
