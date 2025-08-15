@@ -353,6 +353,10 @@ namespace ToolManagementAppV2.ViewModels
                 var map = _dialogService.ShowImportMapping(headers, properties);
                 if (map != null)
                 {
+                    var mappingString = string.Join(", ", map.Select(kvp => $"{kvp.Key} -> {kvp.Value}"));
+                    _logger.LogInformation("Import mapping selected. Headers: {Headers}. Map: {Map}",
+                        string.Join(", ", headers),
+                        mappingString);
                     await _dialogService.ShowInfoAsync("Importing tools...", "Import Tools");
                     var invalid = await _toolService.ImportToolsFromCsvAsync(path, map, CancellationToken.None);
                     var msg = invalid.Count == 0
