@@ -99,9 +99,10 @@ namespace ToolManagementAppV2.Services.Tools
         private async Task<FlowDocument> BuildDocumentIncrementallyAsync(IEnumerable<ToolModel> tools, string title, string? logoPath, string? currentUserName, int batchSize)
         {
             var doc = BuildDocument(title, logoPath);
-            var ordered = tools.OrderBy(t => t.Location);
+            var ordered = tools;
             if (!string.IsNullOrEmpty(currentUserName))
                 ordered = ordered.Where(t => t.CheckedOutBy == currentUserName);
+            ordered = ordered.OrderBy(t => t.Location);
 
             foreach (var batch in ordered.Chunk(batchSize))
             {
