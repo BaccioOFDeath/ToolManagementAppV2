@@ -682,5 +682,46 @@ namespace ToolManagementAppV2.Tests.Services
                 if (File.Exists(dbPath)) File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public async Task DeleteToolAsync_RemovesTool()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var svc = new ToolService(dbService);
+                await svc.AddToolAsync(new Tool { ToolNumber = "T1", QuantityOnHand = 1 });
+                var tool = (await svc.GetAllToolsAsync()).Single();
+                await svc.DeleteToolAsync(tool.ToolID);
+                var remaining = await svc.GetAllToolsAsync();
+                Assert.Empty(remaining);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task ToggleToolCheckOutStatusAsync_UpdatesQuantity()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var svc = new ToolService(dbService);
+                await svc.AddToolAsync(new Tool { ToolNumber = "T2", QuantityOnHand = 1 });
+                var tool = (await svc.GetAllToolsAsync()).Single();
+                await svc.ToggleToolCheckOutStatusAsync(tool.ToolID, "u");
+                var updated = await svc.GetToolByIDAsync(tool.ToolID);
+                Assert.True(updated.IsCheckedOut);
+                Assert.Equal(0, updated.QuantityOnHand);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
     }
 }
