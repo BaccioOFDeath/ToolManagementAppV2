@@ -90,7 +90,15 @@ namespace ToolManagementAppV2.Services.Customers
         {
             const string sql = "SELECT * FROM Customers";
             using var conn = _dbService.CreateConnection();
-            return SqliteHelper.ExecuteReader(conn, sql, null, MapCustomer);
+            try
+            {
+                return SqliteHelper.ExecuteReader(conn, sql, null, MapCustomer);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get all customers");
+                throw;
+            }
         }
 
         public List<CustomerModel> SearchCustomers(string searchTerm)
@@ -100,7 +108,15 @@ namespace ToolManagementAppV2.Services.Customers
                 WHERE Company LIKE @t OR Email LIKE @t OR Phone LIKE @t OR Mobile LIKE @t OR Address LIKE @t";
             var p = new[] { new SQLiteParameter("@t", $"%{searchTerm}%") };
             using var conn = _dbService.CreateConnection();
-            return SqliteHelper.ExecuteReader(conn, sql, p, MapCustomer);
+            try
+            {
+                return SqliteHelper.ExecuteReader(conn, sql, p, MapCustomer);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to search customers with term {SearchTerm}", searchTerm);
+                throw;
+            }
         }
 
         public CustomerModel GetCustomerByID(int customerID)
@@ -108,7 +124,15 @@ namespace ToolManagementAppV2.Services.Customers
             const string sql = "SELECT * FROM Customers WHERE CustomerID = @id";
             var p = new[] { new SQLiteParameter("@id", customerID) };
             using var conn = _dbService.CreateConnection();
-            return SqliteHelper.ExecuteReader(conn, sql, p, MapCustomer).FirstOrDefault();
+            try
+            {
+                return SqliteHelper.ExecuteReader(conn, sql, p, MapCustomer).FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get customer {CustomerID}", customerID);
+                throw;
+            }
         }
 
         /// <summary>
@@ -119,7 +143,15 @@ namespace ToolManagementAppV2.Services.Customers
         public void AddCustomer(CustomerModel customer)
         {
             using var conn = _dbService.CreateConnection();
-            InsertCustomer(conn, null, customer);
+            try
+            {
+                InsertCustomer(conn, null, customer);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to add customer {Contact}", customer.Contact);
+                throw;
+            }
         }
 
         void InsertCustomer(SQLiteConnection conn, SQLiteTransaction? tran, CustomerModel customer)
@@ -139,9 +171,17 @@ namespace ToolManagementAppV2.Services.Customers
                 new SQLiteParameter("@Address", customer.Address ?? string.Empty)
             };
 
-            using var cmd = new SQLiteCommand(sql, conn, tran);
-            cmd.Parameters.AddRange(p);
-            customer.CustomerID = Convert.ToInt32(cmd.ExecuteScalar());
+            try
+            {
+                using var cmd = new SQLiteCommand(sql, conn, tran);
+                cmd.Parameters.AddRange(p);
+                customer.CustomerID = Convert.ToInt32(cmd.ExecuteScalar());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to insert customer {Contact}", customer.Contact);
+                throw;
+            }
         }
 
         async Task InsertCustomerAsync(SQLiteConnection conn, SQLiteTransaction? tran, CustomerModel customer)
@@ -161,9 +201,17 @@ namespace ToolManagementAppV2.Services.Customers
                 new SQLiteParameter("@Address", customer.Address ?? string.Empty)
             };
 
-            using var cmd = new SQLiteCommand(sql, conn, tran);
-            cmd.Parameters.AddRange(p);
-            customer.CustomerID = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+            try
+            {
+                using var cmd = new SQLiteCommand(sql, conn, tran);
+                cmd.Parameters.AddRange(p);
+                customer.CustomerID = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to insert customer {Contact}", customer.Contact);
+                throw;
+            }
         }
 
 
@@ -185,7 +233,15 @@ namespace ToolManagementAppV2.Services.Customers
                 new SQLiteParameter("@CustomerID", customer.CustomerID)
             };
             using var conn = _dbService.CreateConnection();
-            SqliteHelper.ExecuteNonQuery(conn, sql, p);
+            try
+            {
+                SqliteHelper.ExecuteNonQuery(conn, sql, p);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update customer {CustomerID}", customer.CustomerID);
+                throw;
+            }
         }
 
         public void DeleteCustomer(int customerID)
@@ -193,7 +249,15 @@ namespace ToolManagementAppV2.Services.Customers
             const string sql = "DELETE FROM Customers WHERE CustomerID = @CustomerID";
             var p = new[] { new SQLiteParameter("@CustomerID", customerID) };
             using var conn = _dbService.CreateConnection();
-            SqliteHelper.ExecuteNonQuery(conn, sql, p);
+            try
+            {
+                SqliteHelper.ExecuteNonQuery(conn, sql, p);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete customer {CustomerID}", customerID);
+                throw;
+            }
         }
 
         private bool CustomerExists(string contact, string phone, string mobile)
@@ -202,13 +266,21 @@ namespace ToolManagementAppV2.Services.Customers
         SELECT COUNT(*) FROM Customers
          WHERE Contact = @Contact AND (Phone = @Phone OR Mobile = @Mobile)";
             using var conn = _dbService.CreateConnection();
-            var count = Convert.ToInt32(SqliteHelper.ExecuteScalar(conn, sql, new[]
+            try
             {
-            new SQLiteParameter("@Contact", contact),
-            new SQLiteParameter("@Phone", phone ?? ""),
-            new SQLiteParameter("@Mobile", mobile ?? "")
-            }));
-            return count > 0;
+                var count = Convert.ToInt32(SqliteHelper.ExecuteScalar(conn, sql, new[]
+                {
+                    new SQLiteParameter("@Contact", contact),
+                    new SQLiteParameter("@Phone", phone ?? ""),
+                    new SQLiteParameter("@Mobile", mobile ?? "")
+                }));
+                return count > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to check if customer exists");
+                throw;
+            }
         }
 
 
@@ -226,7 +298,15 @@ namespace ToolManagementAppV2.Services.Customers
         public async Task AddCustomerAsync(CustomerModel customer)
         {
             using var conn = _dbService.CreateConnection();
-            await InsertCustomerAsync(conn, null, customer);
+            try
+            {
+                await InsertCustomerAsync(conn, null, customer);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to add customer {Contact}", customer.Contact);
+                throw;
+            }
         }
 
         public async Task UpdateCustomerAsync(CustomerModel customer)
@@ -247,7 +327,15 @@ namespace ToolManagementAppV2.Services.Customers
                 new SQLiteParameter("@CustomerID", customer.CustomerID),
             };
             using var conn = _dbService.CreateConnection();
-            await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
+            try
+            {
+                await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update customer {CustomerID}", customer.CustomerID);
+                throw;
+            }
         }
 
         public async Task DeleteCustomerAsync(int customerID)
@@ -255,7 +343,15 @@ namespace ToolManagementAppV2.Services.Customers
             const string sql = "DELETE FROM Customers WHERE CustomerID = @CustomerID";
             var p = new[] { new SQLiteParameter("@CustomerID", customerID) };
             using var conn = _dbService.CreateConnection();
-            await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
+            try
+            {
+                await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete customer {CustomerID}", customerID);
+                throw;
+            }
         }
 
         public async Task<CustomerModel> GetCustomerByIDAsync(int customerID)
@@ -263,15 +359,31 @@ namespace ToolManagementAppV2.Services.Customers
             const string sql = "SELECT * FROM Customers WHERE CustomerID = @id";
             var p = new[] { new SQLiteParameter("@id", customerID) };
             using var conn = _dbService.CreateConnection();
-            var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapCustomer);
-            return list.FirstOrDefault();
+            try
+            {
+                var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapCustomer);
+                return list.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get customer {CustomerID}", customerID);
+                throw;
+            }
         }
 
         public async Task<List<CustomerModel>> GetAllCustomersAsync()
         {
             const string sql = "SELECT * FROM Customers";
             using var conn = _dbService.CreateConnection();
-            return await SqliteHelper.ExecuteReaderAsync(conn, sql, null, MapCustomer);
+            try
+            {
+                return await SqliteHelper.ExecuteReaderAsync(conn, sql, null, MapCustomer);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get all customers");
+                throw;
+            }
         }
 
         public async Task<List<CustomerModel>> SearchCustomersAsync(string searchTerm)
@@ -281,7 +393,15 @@ namespace ToolManagementAppV2.Services.Customers
                 WHERE Company LIKE @t OR Email LIKE @t OR Phone LIKE @t OR Mobile LIKE @t OR Address LIKE @t";
             var p = new[] { new SQLiteParameter("@t", $"%{searchTerm}%") };
             using var conn = _dbService.CreateConnection();
-            return await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapCustomer);
+            try
+            {
+                return await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapCustomer);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to search customers with term {SearchTerm}", searchTerm);
+                throw;
+            }
         }
 
         public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map)
