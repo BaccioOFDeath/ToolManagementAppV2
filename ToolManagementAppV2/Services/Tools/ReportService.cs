@@ -1,10 +1,11 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Models.Domain;
+using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Users;
@@ -37,10 +38,8 @@ namespace ToolManagementAppV2.Services.Tools
         public async Task<FlowDocument> GenerateInventoryReport()
         {
             var tools = await _toolService.GetAllToolsAsync().ConfigureAwait(false);
-            var lines = tools
-                .Select(t =>
-                    $"Tool ID: {t.ToolID} | ToolNumber: {t.ToolNumber} | Qty: {t.QuantityOnHand} | " +
-                    $"Location: {t.Location} | Supplier: {t.Supplier}");
+            var lines = tools.Select(t =>
+                $"Tool ID: {t.ToolID} | ToolNumber: {t.ToolNumber} | Qty: {t.QuantityOnHand} | Location: {t.Location} | Supplier: {t.Supplier}");
             return BuildReport("Tool Inventory Report", lines);
         }
 
@@ -53,15 +52,10 @@ namespace ToolManagementAppV2.Services.Tools
                 ? await _rentalService.GetActiveRentalsAsync().ConfigureAwait(false)
                 : await _rentalService.GetAllRentalsAsync().ConfigureAwait(false);
 
-            var title = activeOnly
-                ? "Active Rental Report"
-                : "Full Rental History Report";
+            var title = activeOnly ? "Active Rental Report" : "Full Rental History Report";
 
             var lines = rentals.Select(r =>
-                $"Rental ID: {r.RentalID} | Tool ID: {r.ToolID} | Customer ID: {r.CustomerID} | " +
-                $"Rental Date: {r.RentalDate:yyyy-MM-dd} | Due Date: {r.DueDate:yyyy-MM-dd} | " +
-                $"Return Date: {(r.ReturnDate.HasValue ? r.ReturnDate.Value.ToString("yyyy-MM-dd") : "N/A")} | " +
-                $"Status: {r.Status}");
+                $"Rental ID: {r.RentalID} | Tool ID: {r.ToolID} | Customer ID: {r.CustomerID} | Rental Date: {r.RentalDate:yyyy-MM-dd} | Due Date: {r.DueDate:yyyy-MM-dd} | Return Date: {(r.ReturnDate.HasValue ? r.ReturnDate.Value.ToString("yyyy-MM-dd") : "N/A")} | Status: {r.Status}");
 
             return BuildReport(title, lines);
         }
@@ -73,8 +67,7 @@ namespace ToolManagementAppV2.Services.Tools
         {
             var logs = await _activityLogService.GetRecentLogsAsync(100).ConfigureAwait(false) ?? new List<ActivityLog>();
             var lines = logs.Select(l =>
-                    $"LogID: {l.LogID} | UserID: {l.UserID} | User: {l.UserName} | " +
-                    $"Action: {l.Action} | Timestamp: {l.Timestamp:yyyy-MM-dd HH:mm:ss}");
+                $"LogID: {l.LogID} | UserID: {l.UserID} | User: {l.UserName} | Action: {l.Action} | Timestamp: {l.Timestamp:yyyy-MM-dd HH:mm:ss}");
             return BuildReport("Activity Log Report", lines);
         }
 
@@ -84,10 +77,8 @@ namespace ToolManagementAppV2.Services.Tools
         public async Task<FlowDocument> GenerateCustomerReport()
         {
             var customers = await _customerService.GetAllCustomersAsync().ConfigureAwait(false);
-            var lines = customers
-                .Select(c =>
-                    $"CustomerID: {c.CustomerID} | Company: {c.Company} | Email: {c.Email} | " +
-                    $"Contact: {c.Contact} | Phone: {c.Phone} | Mobile: {c.Mobile} | Address: {c.Address}");
+            var lines = customers.Select(c =>
+                $"CustomerID: {c.CustomerID} | Company: {c.Company} | Email: {c.Email} | Contact: {c.Contact} | Phone: {c.Phone} | Mobile: {c.Mobile} | Address: {c.Address}");
             return BuildReport("Customer Report", lines);
         }
 
@@ -97,9 +88,8 @@ namespace ToolManagementAppV2.Services.Tools
         public async Task<FlowDocument> GenerateUserReport()
         {
             var users = await _userService.GetAllUsersAsync().ConfigureAwait(false);
-            var lines = users
-                .Select(u =>
-                    $"UserID: {u.UserID} | UserName: {u.UserName} | IsAdmin: {u.IsAdmin}");
+            var lines = users.Select(u =>
+                $"UserID: {u.UserID} | UserName: {u.UserName} | IsAdmin: {u.IsAdmin}");
             return BuildReport("User Report", lines);
         }
 
@@ -114,9 +104,7 @@ namespace ToolManagementAppV2.Services.Tools
             var totalCustomersTask = _customerService.GetAllCustomersAsync();
             var totalUsersTask = _userService.GetAllUsersAsync();
 
-            await Task
-                .WhenAll(totalToolsTask, totalRentalsTask, totalActiveRentalsTask, totalCustomersTask, totalUsersTask)
-                .ConfigureAwait(false);
+            await Task.WhenAll(totalToolsTask, totalRentalsTask, totalActiveRentalsTask, totalCustomersTask, totalUsersTask).ConfigureAwait(false);
 
             var totalTools = await totalToolsTask;
             var totalRentals = await totalRentalsTask;
@@ -143,7 +131,7 @@ namespace ToolManagementAppV2.Services.Tools
         {
             var doc = new FlowDocument
             {
-                FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
+                FontFamily = new FontFamily("Segoe UI"),
                 FontSize = 12,
                 PageWidth = 800
             };

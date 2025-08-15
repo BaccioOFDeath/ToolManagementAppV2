@@ -92,32 +92,23 @@ namespace ToolManagementAppV2.Utilities.Helpers
                 cached = _iterationCache;
                 if (cached > 0) return cached;
 
-                int value = 0;
+                int value = DefaultIterations;
                 var svc = _settingsService;
                 if (svc != null)
                 {
-                    var t = svc.GetType();
-
-                    var mSync = t.GetMethod("GetPasswordIterations", Type.EmptyTypes);
-                    if (mSync != null && mSync.ReturnType == typeof(int))
+                    value = svc.GetPasswordIterations();
+                    if (value <= 0)
                     {
-                        value = (int)mSync.Invoke(svc, null)!;
-                    }
-                    else
-                    {
-                        var mAsync = t.GetMethod("GetPasswordIterationsAsync", Type.EmptyTypes);
-                        if (mAsync != null)
-                        {
-                            var taskObj = mAsync.Invoke(svc, null);
-                            if (taskObj is Task<int> task)
-                            {
-                                value = task.ConfigureAwait(false).GetAwaiter().GetResult();
-                            }
-                        }
+                        value = svc.GetPasswordIterationsAsync()
+                            .ConfigureAwait(false)
+                            .GetAwaiter()
+                            .GetResult();
                     }
                 }
 
-                if (value <= 0) value = DefaultIterations;
+                if (value <= 0)
+                    value = DefaultIterations;
+
                 Volatile.Write(ref _iterationCache, value);
                 return value;
             }

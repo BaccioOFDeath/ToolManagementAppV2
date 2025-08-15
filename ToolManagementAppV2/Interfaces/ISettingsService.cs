@@ -17,10 +17,12 @@ namespace ToolManagementAppV2.Interfaces
         Task DeleteSettingAsync(string key);
         IEnumerable<string> GetScannerIpAddresses();
         IEnumerable<string> SaveScannerIpAddresses(IEnumerable<string>? ipAddresses);
-        int GetPasswordIterations();
-        void SavePasswordIterations(int iterations);
         Task<IEnumerable<string>> GetScannerIpAddressesAsync();
         Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses);
+
+        // Password hashing configuration
+        int GetPasswordIterations();
+        void SavePasswordIterations(int iterations);
         Task<int> GetPasswordIterationsAsync();
         Task SavePasswordIterationsAsync(int iterations);
     }

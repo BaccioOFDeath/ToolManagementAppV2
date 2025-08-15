@@ -82,6 +82,17 @@ namespace ToolManagementAppV2.Tests.ViewModels
             Assert.True(dialog.InfoShown);
             Assert.Empty(vm.Devices);
         }
+
+        [Fact]
+        public void Dispose_StopsTimer()
+        {
+            var svc = new FakeScannerService();
+            var vm = new ScannerStatusViewModel(svc, new StubDialogService());
+            vm.AutoRefresh = true;
+            Assert.True(vm.IsTimerRunning);
+            vm.Dispose();
+            Assert.False(vm.IsTimerRunning);
+        }
     }
 
     class ThrowingScannerService : IScannerService

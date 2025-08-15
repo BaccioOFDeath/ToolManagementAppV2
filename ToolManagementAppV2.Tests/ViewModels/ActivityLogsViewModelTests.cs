@@ -78,7 +78,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         class FailingActivityLogService : ActivityLogService
         {
             public FailingActivityLogService(DatabaseService db) : base(db) { }
-            public override Task<List<ActivityLog>?> GetRecentLogsAsync(int count = 50) => throw new Exception("fail");
+            public override Task<ToolManagementAppV2.Models.Result<List<ActivityLog>>> GetRecentLogsAsync(int count = 50) => throw new Exception("fail");
         }
     }
 }

@@ -202,6 +202,30 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
             Assert.True(closed);
         }
+
+        [Fact]
+        public async Task LoadUsersAsync_AwaitsAdminCreation()
+        {
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
+
+            var tcs = new TaskCompletionSource<bool>();
+            var userService = new AwaitableUserService(tcs);
+            var settingsService = new StubSettingsService();
+            var userContext = new ApplicationUserContext();
+            var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext);
+
+            var loadTask = vm.LoadUsersCommand.ExecuteAsync(null);
+
+            await Task.Delay(50);
+            Assert.False(loadTask.IsCompleted);
+
+            tcs.SetResult(true);
+            await loadTask;
+
+            Assert.Single(vm.Users);
+            Assert.Equal("admin", vm.Users[0].UserName);
+        }
     }
 
     class StubDialogService : IDialogService
@@ -219,5 +243,36 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
         public void ShowPrintLabelDialog() { }
         public void ShowScannerStatus() { }
+    }
+
+    class AwaitableUserService : IUserService
+    {
+        readonly TaskCompletionSource<bool> _tcs;
+        readonly List<User> _users = new();
+
+        public AwaitableUserService(TaskCompletionSource<bool> tcs)
+        {
+            _tcs = tcs;
+        }
+
+        public List<User> GetAllUsers() => _users.ToList();
+        public Task<List<User>> GetAllUsersAsync() => Task.FromResult(_users.ToList());
+        public User? GetUserByID(int userID) => null;
+        public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult<User?>(null);
+        public User? AuthenticateUser(string userName, string password) => null;
+        public Task<User?> AuthenticateUserAsync(string userName, string password) => Task.FromResult<User?>(null);
+        public User? GetCurrentUser() => null;
+        public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
+        public void AddUser(User user) => _users.Add(user);
+        public async Task AddUserAsync(User user)
+        {
+            await _tcs.Task;
+            _users.Add(user);
+        }
+        public void UpdateUser(User user) { }
+        public Task UpdateUserAsync(User user) => Task.CompletedTask;
+        public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
+        public bool ChangeUserPassword(int userID, string newPassword) => false;
+        public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => Task.FromResult(false);
     }
 }

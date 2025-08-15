@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Users;
 
@@ -32,10 +33,13 @@ namespace ToolManagementAppV2.ViewModels
             try
             {
                 Logs.Clear();
-                var logs = await _service.GetRecentLogsAsync();
-                if (logs == null)
+                var result = await _service.GetRecentLogsAsync();
+                if (!result.Success || result.Value == null)
+                {
+                    _logger.LogError("Failed to load activity logs: {Error}", result.ErrorMessage);
                     return false;
-                foreach (var log in logs)
+                }
+                foreach (var log in result.Value)
                     Logs.Add(log);
                 return true;
             }

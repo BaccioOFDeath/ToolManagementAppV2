@@ -5,6 +5,7 @@ using System.Data.SQLite;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 
@@ -21,7 +22,7 @@ namespace ToolManagementAppV2.Services.Users
             _logger = logger ?? NullLogger<ActivityLogService>.Instance;
         }
 
-        public virtual bool LogAction(int userID, string userName, string action)
+        public virtual Result LogAction(int userID, string userName, string action)
         {
             try
             {
@@ -36,16 +37,16 @@ namespace ToolManagementAppV2.Services.Users
                 };
                 using var conn = _dbService.CreateConnection();
                 SqliteHelper.ExecuteNonQuery(conn, sql, p);
-                return true;
+                return new Result(true);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to log activity {Action}", action);
-                return false;
+                return new Result(false, ex.Message);
             }
         }
 
-        public virtual List<ActivityLog>? GetRecentLogs(int count = 50)
+        public virtual Result<List<ActivityLog>> GetRecentLogs(int count = 50)
         {
             try
             {
@@ -55,16 +56,17 @@ namespace ToolManagementAppV2.Services.Users
                      LIMIT @Count";
                 var p = new[] { new SQLiteParameter("@Count", count) };
                 using var conn = _dbService.CreateConnection();
-                return SqliteHelper.ExecuteReader(conn, sql, p, MapLog);
+                var logs = SqliteHelper.ExecuteReader(conn, sql, p, MapLog);
+                return new Result<List<ActivityLog>>(logs, true);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to retrieve recent activity logs");
-                return null;
+                return new Result<List<ActivityLog>>(null, false, ex.Message);
             }
         }
 
-        public virtual async Task<List<ActivityLog>?> GetRecentLogsAsync(int count = 50)
+        public virtual async Task<Result<List<ActivityLog>>> GetRecentLogsAsync(int count = 50)
         {
             try
             {
@@ -74,16 +76,17 @@ namespace ToolManagementAppV2.Services.Users
                      LIMIT @Count";
                 var p = new[] { new SQLiteParameter("@Count", count) };
                 using var conn = _dbService.CreateConnection();
-                return await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapLog);
+                var logs = await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapLog);
+                return new Result<List<ActivityLog>>(logs, true);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to retrieve recent activity logs");
-                return null;
+                return new Result<List<ActivityLog>>(null, false, ex.Message);
             }
         }
 
-        public virtual bool PurgeOldLogs(DateTime threshold)
+        public virtual Result PurgeOldLogs(DateTime threshold)
         {
             try
             {
@@ -93,12 +96,12 @@ namespace ToolManagementAppV2.Services.Users
                 var p = new[] { new SQLiteParameter("@Threshold", threshold) };
                 using var conn = _dbService.CreateConnection();
                 SqliteHelper.ExecuteNonQuery(conn, sql, p);
-                return true;
+                return new Result(true);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to purge old activity logs prior to {Threshold}", threshold);
-                return false;
+                return new Result(false, ex.Message);
             }
         }
 
