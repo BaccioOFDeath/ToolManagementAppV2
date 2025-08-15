@@ -106,26 +106,39 @@ namespace ToolManagementAppV2.Services.Tools
 
             await Task.WhenAll(totalToolsTask, totalRentalsTask, totalActiveRentalsTask, totalCustomersTask, totalUsersTask).ConfigureAwait(false);
 
-            var totalTools = await totalToolsTask;
-            var totalRentals = await totalRentalsTask;
-            var totalActiveRentals = await totalActiveRentalsTask;
-            var totalCustomers = await totalCustomersTask;
-            var totalUsers = await totalUsersTask;
-
             var lines = new[]
             {
-                $"Total Tools: {totalTools.Count}",
-                $"Total Rentals (History): {totalRentals.Count}",
-                $"Active Rentals: {totalActiveRentals.Count}",
-                $"Total Customers: {totalCustomers.Count}",
-                $"Total Users: {totalUsers.Count}"
+                $"Total Tools: {totalToolsTask.Result.Count}",
+                $"Total Rentals (History): {totalRentalsTask.Result.Count}",
+                $"Active Rentals: {totalActiveRentalsTask.Result.Count}",
+                $"Total Customers: {totalCustomersTask.Result.Count}",
+                $"Total Users: {totalUsersTask.Result.Count}"
             };
 
             return BuildReport("Application Summary Report", lines);
         }
 
-        public FlowDocument GenerateSummaryReportSync() =>
-            GenerateSummaryReport().GetAwaiter().GetResult();
+        public FlowDocument GenerateSummaryReportSync()
+        {
+            var totalToolsTask = _toolService.GetAllToolsAsync();
+            var totalRentalsTask = _rentalService.GetAllRentalsAsync();
+            var totalActiveRentalsTask = _rentalService.GetActiveRentalsAsync();
+            var totalCustomersTask = _customerService.GetAllCustomersAsync();
+            var totalUsersTask = _userService.GetAllUsersAsync();
+
+            Task.WhenAll(totalToolsTask, totalRentalsTask, totalActiveRentalsTask, totalCustomersTask, totalUsersTask).GetAwaiter().GetResult();
+
+            var lines = new[]
+            {
+                $"Total Tools: {totalToolsTask.Result.Count}",
+                $"Total Rentals (History): {totalRentalsTask.Result.Count}",
+                $"Active Rentals: {totalActiveRentalsTask.Result.Count}",
+                $"Total Customers: {totalCustomersTask.Result.Count}",
+                $"Total Users: {totalUsersTask.Result.Count}"
+            };
+
+            return BuildReport("Application Summary Report", lines);
+        }
 
         FlowDocument BuildReport(string title, IEnumerable<string> lines)
         {
