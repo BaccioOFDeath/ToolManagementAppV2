@@ -49,9 +49,16 @@ namespace ToolManagementAppV2.Views
         {
             if (!string.IsNullOrWhiteSpace(path))
             {
-                var full = Utilities.Helpers.PathHelper.GetAbsolutePath(path);
-                if (!string.IsNullOrEmpty(full) && File.Exists(full))
-                    return new Uri(full, UriKind.Absolute);
+                try
+                {
+                    var full = Utilities.Helpers.PathHelper.GetAbsolutePath(path, true);
+                    if (!string.IsNullOrEmpty(full) && File.Exists(full))
+                        return new Uri(full, UriKind.Absolute);
+                }
+                catch (InvalidOperationException)
+                {
+                    // fall through to default
+                }
             }
             return new Uri("pack://application:,,,/Resources/DefaultLogo.png");
         }

@@ -31,7 +31,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void ImportCustomersCommand_UsesMappingFromDialog()
+        public async System.Threading.Tasks.Task ImportCustomersCommand_UsesMappingFromDialog()
         {
             var tmp = Path.GetTempFileName();
             File.WriteAllText(tmp, "Company\n");
@@ -40,11 +40,28 @@ namespace ToolManagementAppV2.Tests.ViewModels
             var dialog = new StubDialogService { MapToReturn = new Dictionary<string,string>{{"Company","Company"}} };
             var vm = new ImportExportViewModel(new StubToolService(), customerSvc, fileDlg, new StubDatabaseBackupService(), dialog);
 
-            vm.ImportCustomersCommand.Execute(null);
+            await vm.ImportCustomersCommand.ExecuteAsync(null);
 
             Assert.True(dialog.ShowImportMappingCalled);
             Assert.True(customerSvc.ImportCalled);
             Assert.Equal("Company", customerSvc.MapUsed!["Company"]);
+            File.Delete(tmp);
+        }
+
+        [Fact]
+        public async System.Threading.Tasks.Task ImportCustomersCommand_CancelledMapping_DoesNotCallService()
+        {
+            var tmp = Path.GetTempFileName();
+            File.WriteAllText(tmp, "Company\n");
+            var fileDlg = new StubFileDialogService { FileToReturn = tmp };
+            var customerSvc = new CapturingCustomerService();
+            var dialog = new StubDialogService { MapToReturn = null };
+            var vm = new ImportExportViewModel(new StubToolService(), customerSvc, fileDlg, new StubDatabaseBackupService(), dialog);
+
+            await vm.ImportCustomersCommand.ExecuteAsync(null);
+
+            Assert.True(dialog.ShowImportMappingCalled);
+            Assert.False(customerSvc.ImportCalled);
             File.Delete(tmp);
         }
 

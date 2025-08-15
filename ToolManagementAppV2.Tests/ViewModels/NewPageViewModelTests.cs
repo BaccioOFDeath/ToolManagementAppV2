@@ -71,7 +71,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void ImportExportViewModel_ImportCustomersCommand_LogsSuccess()
+        public async Task ImportExportViewModel_ImportCustomersCommand_LogsSuccess()
         {
             var toolService = new StubToolService();
             var customerService = new StubCustomerService();
@@ -81,7 +81,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             fileDlg.FileToReturn = tmp;
             var dialog = new StubDialogService();
             var vm = new ImportExportViewModel(toolService, customerService, fileDlg, new StubDatabaseBackupService(), dialog);
-            vm.ImportCustomersCommand.Execute(null);
+            await vm.ImportCustomersCommand.ExecuteAsync(null);
             Assert.True(customerService.ImportCalled);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Successfully imported customers", vm.ImportExportLogs[0]);
@@ -149,7 +149,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void ImportExportViewModel_ImportCustomersCommand_LogsFailure()
+        public async Task ImportExportViewModel_ImportCustomersCommand_LogsFailure()
         {
             var toolService = new StubToolService();
             var customerService = new FailCustomerService();
@@ -159,7 +159,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             fileDlg.FileToReturn = tmp;
             var dialog = new StubDialogService();
             var vm = new ImportExportViewModel(toolService, customerService, fileDlg, new StubDatabaseBackupService(), dialog);
-            vm.ImportCustomersCommand.Execute(null);
+            await vm.ImportCustomersCommand.ExecuteAsync(null);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Failed to import customers", vm.ImportExportLogs[0]);
             File.Delete(tmp);
@@ -373,8 +373,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Task UpdateUserAsync(User user) => Task.CompletedTask;
         public bool TryDeleteUser(int userID) => false;
         public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
-        public bool DeleteUser(int userID) => false;
-        public Task<bool> DeleteUserAsync(int userID) => Task.FromResult(false);
+        public void DeleteUser(int userID) { }
+        public Task DeleteUserAsync(int userID) => Task.CompletedTask;
         public bool ChangeUserPassword(int userID, string newPassword) => false;
         public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => Task.FromResult(false);
     }

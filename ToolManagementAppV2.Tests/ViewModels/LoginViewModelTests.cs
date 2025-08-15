@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
@@ -17,7 +18,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     public class LoginViewModelTests
     {
         [Fact]
-        public void SelectUserCommand_SetsCurrentUser()
+        public async Task SelectUserCommand_SetsCurrentUser()
         {
             if (Application.Current == null)
                 new Application();
@@ -32,6 +33,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 userService.AddUser(new User { UserName = "user", Password = "newpassword", IsAdmin = false });
 
                 var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext);
+                await vm.LoadUsersCommand.ExecuteAsync(null);
                 bool success = false;
                 vm.LoginSucceeded += (_, __) => success = true;
 
@@ -48,7 +50,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void SelectUserCommand_PromptsForPasswordChange_WhenExpired()
+        public async Task SelectUserCommand_PromptsForPasswordChange_WhenExpired()
         {
             if (Application.Current == null)
                 new Application();
@@ -67,6 +69,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 {
                     PromptForNewPassword = () => "changed"
                 };
+                await vm.LoadUsersCommand.ExecuteAsync(null);
                 bool success = false;
                 vm.LoginSucceeded += (_, __) => success = true;
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
@@ -19,7 +20,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     public class UserManagementViewModelTests
     {
         [Fact]
-        public void UpdateUserCommand_PersistsChanges()
+        public async Task UpdateUserCommand_PersistsChanges()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -28,10 +29,10 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IUserService userService = new UserService(db, new ApplicationUserContext());
                 var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
                 userService.AddUser(new User { UserName = "user1", Password = "pw" });
-                vm.LoadUsers();
+                await vm.LoadUsersAsync();
                 vm.SelectedUser = vm.Users.First();
                 vm.SelectedUser.Email = "test@example.com";
-                vm.UpdateUserCommand.Execute(null);
+                await vm.UpdateUserCommand.ExecuteAsync(null);
                 var updated = userService.GetAllUsers().First();
                 Assert.Equal("test@example.com", updated.Email);
                 var field = typeof(UserManagementViewModel).GetField("_allUsers", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -47,7 +48,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void UploadUserPhotoCommand_SetsPhotoPathAndPersists()
+        public async Task UploadUserPhotoCommand_SetsPhotoPathAndPersists()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -57,9 +58,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var fileSvc = new StubFileDialogService { FileToReturn = "path/to/image.png" };
                 var vm = new UserManagementViewModel(userService, fileSvc, new StubDialogService());
                 userService.AddUser(new User { UserName = "user1", Password = "pw" });
-                vm.LoadUsers();
+                await vm.LoadUsersAsync();
                 vm.SelectedUser = vm.Users.First();
-                vm.UploadUserPhotoCommand.Execute(null);
+                await vm.UploadUserPhotoCommand.ExecuteAsync(null);
                 var updated = userService.GetAllUsers().First();
                 Assert.Equal("path/to/image.png", updated.UserPhotoPath);
                 var field = typeof(UserManagementViewModel).GetField("_allUsers", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -75,7 +76,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void UpdateUserAndUploadPhoto_UpdateCollections()
+        public async Task UpdateUserAndUploadPhoto_UpdateCollections()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -85,13 +86,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var fileSvc = new StubFileDialogService { FileToReturn = "img.png" };
                 var vm = new UserManagementViewModel(userService, fileSvc, new StubDialogService());
                 userService.AddUser(new User { UserName = "user1", Password = "pw" });
-                vm.LoadUsers();
+                await vm.LoadUsersAsync();
                 vm.SelectedUser = vm.Users.First();
 
                 vm.SelectedUser.Email = "test@example.com";
-                vm.UpdateUserCommand.Execute(null);
+                await vm.UpdateUserCommand.ExecuteAsync(null);
 
-                vm.UploadUserPhotoCommand.Execute(null);
+                await vm.UploadUserPhotoCommand.ExecuteAsync(null);
 
                 var field = typeof(UserManagementViewModel).GetField("_allUsers", BindingFlags.NonPublic | BindingFlags.Instance);
                 var allUsers = (System.Collections.Generic.List<User>)field!.GetValue(vm);
@@ -109,7 +110,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void CommandsDisabledWhenNoUserSelected()
+        public async Task CommandsDisabledWhenNoUserSelected()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -118,7 +119,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IUserService userService = new UserService(db, new ApplicationUserContext());
                 var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
                 userService.AddUser(new User { UserName = "user1", Password = "pw" });
-                vm.LoadUsers();
+                await vm.LoadUsersAsync();
                 Assert.False(vm.UpdateUserCommand.CanExecute(null));
                 Assert.False(vm.EditUserCommand.CanExecute(null));
                 vm.SelectedUser = vm.Users.First();
@@ -133,7 +134,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void AddUserCommand_AddsUser()
+        public async Task AddUserCommand_AddsUser()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -141,7 +142,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var db = new DatabaseService(dbPath);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
                 var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
-                vm.AddUserCommand.Execute(null);
+                await vm.AddUserCommand.ExecuteAsync(null);
                 Assert.Single(vm.Users);
                 Assert.Single(userService.GetAllUsers());
             }
@@ -153,7 +154,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void AddUserCommand_SkipsExistingNameFromService()
+        public async Task AddUserCommand_SkipsExistingNameFromService()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -165,7 +166,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 // The view model has not loaded users, so its local collection is empty
                 var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
-                vm.AddUserCommand.Execute(null);
+                await vm.AddUserCommand.ExecuteAsync(null);
 
                 // Ensure a second user was added with an incremented name
                 var all = userService.GetAllUsers();
@@ -182,7 +183,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void AddUserCommand_FindsFirstAvailableNumber()
+        public async Task AddUserCommand_FindsFirstAvailableNumber()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -194,7 +195,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 userService.AddUser(new User { UserName = "user3", Password = "pw" });
 
                 var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
-                vm.AddUserCommand.Execute(null);
+                await vm.AddUserCommand.ExecuteAsync(null);
 
                 var all = userService.GetAllUsers();
                 Assert.Equal(3, all.Count);
@@ -210,7 +211,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void ResetPasswordFromRowCommand_ChangesPassword()
+        public async Task ResetPasswordFromRowCommand_ChangesPassword()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -220,7 +221,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var dialog = new StubDialogService();
                 var vm = new UserManagementViewModel(userService, new StubFileDialogService(), dialog);
                 userService.AddUser(new User { UserName = "user1", Password = "pw" });
-                vm.LoadUsers();
+                await vm.LoadUsersAsync();
                 var user = vm.Users.First();
                 var original = userService.GetUserByID(user.UserID)!;
                 var oldPwd = original.Password;
@@ -241,7 +242,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void SearchAndClearUsers_WorkAsExpected()
+        public async Task SearchAndClearUsers_WorkAsExpected()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -251,7 +252,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
                 userService.AddUser(new User { UserName = "alice", Password = "pw" });
                 userService.AddUser(new User { UserName = "bob", Password = "pw" });
-                vm.LoadUsers();
+                await vm.LoadUsersAsync();
 
                 vm.UserSearchText = "alice";
                 vm.SearchUsersCommand.Execute(null);
@@ -269,7 +270,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void DeleteUserFromRowCommand_RemovesUser()
+        public async Task DeleteUserFromRowCommand_RemovesUser()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -279,7 +280,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
                 userService.AddUser(new User { UserName = "user1", Password = "pw" });
                 userService.AddUser(new User { UserName = "user2", Password = "pw" });
-                vm.LoadUsers();
+                await vm.LoadUsersAsync();
                 var toDelete = vm.Users.First();
                 vm.DeleteUserFromRowCommand.Execute(toDelete);
                 Assert.Single(vm.Users);
@@ -293,7 +294,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void AddUserCommand_CancelledPrompt_DoesNotAddUser()
+        public async Task AddUserCommand_CancelledPrompt_DoesNotAddUser()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -301,7 +302,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var db = new DatabaseService(dbPath);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
                 var vm = new CancelPromptUserManagementViewModel(userService, new StubFileDialogService());
-                vm.AddUserCommand.Execute(null);
+                await vm.AddUserCommand.ExecuteAsync(null);
                 Assert.Empty(vm.Users);
                 Assert.Empty(userService.GetAllUsers());
             }

@@ -271,7 +271,15 @@ namespace ToolManagementAppV2.ViewModels
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to shutdown application");
-                    throw;
+                    _dialogService.ShowInfo("Failed to shutdown application", "Error");
+                    try
+                    {
+                        System.Windows.Application.Current?.Shutdown();
+                    }
+                    catch (Exception shutdownEx)
+                    {
+                        _logger.LogError(shutdownEx, "Secondary shutdown attempt failed");
+                    }
                 }
             });
 

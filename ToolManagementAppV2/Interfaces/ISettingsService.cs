@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ToolManagementAppV2.Interfaces
 {
@@ -9,9 +10,18 @@ namespace ToolManagementAppV2.Interfaces
         Dictionary<string, string> GetAllSettings();
         void UpdateSettings(Dictionary<string, string> settings);
         void DeleteSetting(string key);
+        Task SaveSettingAsync(string key, string value);
+        Task<string?> GetSettingAsync(string key);
+        Task<Dictionary<string, string>> GetAllSettingsAsync();
+        Task UpdateSettingsAsync(Dictionary<string, string> settings);
+        Task DeleteSettingAsync(string key);
         IEnumerable<string> GetScannerIpAddresses();
         IEnumerable<string> SaveScannerIpAddresses(IEnumerable<string>? ipAddresses);
         int GetPasswordIterations();
         void SavePasswordIterations(int iterations);
+        Task<IEnumerable<string>> GetScannerIpAddressesAsync();
+        Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses);
+        Task<int> GetPasswordIterationsAsync();
+        Task SavePasswordIterationsAsync(int iterations);
     }
 }
