@@ -119,6 +119,12 @@ namespace ToolManagementAppV2.ViewModels
 
         void ApplyFilter()
         {
+            if (FilterFrom.HasValue && FilterTo.HasValue && FilterFrom > FilterTo)
+            {
+                _ = _dialogService.ShowInfoAsync("\"From\" date cannot be later than \"To\" date.", "Invalid Date Range");
+                return;
+            }
+
             IEnumerable<RentalModel> filtered = _allRentals;
 
             if (!string.IsNullOrWhiteSpace(SearchText))
