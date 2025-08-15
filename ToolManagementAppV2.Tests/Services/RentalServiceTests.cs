@@ -370,23 +370,19 @@ namespace ToolManagementAppV2.Tests.Services
 
         class FailingToolService : IToolService
         {
-            public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map) => throw new NotImplementedException();
             public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => throw new NotImplementedException();
-            public void ExportToolsToCsv(string filePath) => throw new NotImplementedException();
-            public Task ExportToolsToCsvAsync(string filePath) => Task.CompletedTask;
-            public List<ToolModel> GetAllTools() => new();
-            public void AddTool(ToolModel tool) => throw new NotImplementedException();
-            public void UpdateTool(ToolModel tool) => throw new NotImplementedException();
-            public void DeleteTool(int toolID) => throw new NotImplementedException();
-            public ToolModel GetToolByID(int toolID) => throw new NotImplementedException();
-            public List<ToolModel> SearchTools(string? searchText) => new();
+            public Task ExportToolsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<List<ToolModel>> GetAllToolsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
+            public Task AddToolAsync(ToolModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task UpdateToolAsync(ToolModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task DeleteToolAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<ToolModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
-            public bool ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new NotImplementedException();
-            public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser) => throw new NotImplementedException();
-            public List<ToolModel> GetToolsCheckedOutBy(string userName) => new();
-            public void UpdateToolImage(int toolID, string imagePath) => throw new NotImplementedException();
-            public ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector) => new();
-            public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null)
+            public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
+            public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
+            public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default)
                 => throw new InvalidOperationException("fail");
         }
     }

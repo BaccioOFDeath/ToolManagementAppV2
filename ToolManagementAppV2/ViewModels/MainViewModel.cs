@@ -101,7 +101,7 @@ namespace ToolManagementAppV2.ViewModels
         public IAsyncRelayCommand OpenActivityLogsCommand { get; }
         public IRelayCommand OpenReportsCommand { get; }
         public IAsyncRelayCommand OpenImportMappingWindowCommand { get; }
-        public IRelayCommand OpenImageImportMappingWindowCommand { get; }
+        public IAsyncRelayCommand OpenImageImportMappingWindowCommand { get; }
         public IRelayCommand ExitCommand { get; }
         public IAsyncRelayCommand GlobalSearchCommand { get; }
         public IAsyncRelayCommand SwitchUserCommand { get; }
@@ -245,20 +245,7 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenImportMappingWindowCommand = new AsyncRelayCommand(OpenImportMappingWindowAsync);
 
-            OpenImageImportMappingWindowCommand = new RelayCommand(() =>
-            {
-                using var dlg = new Forms.FolderBrowserDialog();
-                if (dlg.ShowDialog() != Forms.DialogResult.OK)
-                    return;
-                var selector = _dialogService.ShowImageImportMapping();
-                if (selector != null)
-                {
-                    var result = _toolService.ImportToolImages(dlg.SelectedPath, selector);
-                    _dialogService.ShowInfo(
-                        $"Imported {result.ImportedCount} images. Unmatched: {result.UnmatchedFiles.Count}, Conflicts: {result.ConflictingFiles.Count}",
-                        "Import Images");
-                }
-            });
+            OpenImageImportMappingWindowCommand = new AsyncRelayCommand(OpenImageImportMappingWindowAsync);
 
             GlobalSearchCommand = new AsyncRelayCommand(GlobalSearchAsync);
 
@@ -370,6 +357,21 @@ namespace ToolManagementAppV2.ViewModels
             {
                 _logger.LogError(ex, "Failed to import tools from CSV");
                 await _dialogService.ShowInfoAsync($"Failed to import tools: {ex.Message}", "Import Tools");
+            }
+        }
+
+        async Task OpenImageImportMappingWindowAsync()
+        {
+            using var dlg = new Forms.FolderBrowserDialog();
+            if (dlg.ShowDialog() != Forms.DialogResult.OK)
+                return;
+            var selector = _dialogService.ShowImageImportMapping();
+            if (selector != null)
+            {
+                var result = await _toolService.ImportToolImagesAsync(dlg.SelectedPath, selector, CancellationToken.None);
+                _dialogService.ShowInfo(
+                    $"Imported {result.ImportedCount} images. Unmatched: {result.UnmatchedFiles.Count}, Conflicts: {result.ConflictingFiles.Count}",
+                    "Import Images");
             }
         }
 

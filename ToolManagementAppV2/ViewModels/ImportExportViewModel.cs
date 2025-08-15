@@ -95,7 +95,7 @@ namespace ToolManagementAppV2.ViewModels
             if (string.IsNullOrEmpty(path)) return;
             try
             {
-                await _toolService.ExportToolsToCsvAsync(path);
+                await _toolService.ExportToolsToCsvAsync(path, CancellationToken.None);
                 ImportExportLogs.Add($"Successfully exported tools to {path}.");
             }
             catch (Exception ex)

@@ -250,6 +250,27 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
+        public async Task SearchToolsAsync_Cancellation_Throws()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                IToolService service = new ToolService(dbService);
+                service.AddTool(new Tool { ToolNumber = "T1" });
+                using var cts = new CancellationTokenSource();
+                var searchTask = service.SearchToolsAsync("T1", cts.Token);
+                cts.Cancel();
+                await Assert.ThrowsAsync<OperationCanceledException>(async () => await searchTask);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public void UpdateTool_DuplicateToolNumber_Throws()
         {
             var dbPath = Path.GetTempFileName();

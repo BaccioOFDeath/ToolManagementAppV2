@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ToolManagementAppV2.Services.Core
@@ -98,65 +99,65 @@ namespace ToolManagementAppV2.Services.Core
             return rdr.Read();
         }
 
-        public static async Task<int> ExecuteNonQueryAsync(string connStr, string sql, SQLiteParameter[] parameters = null)
+        public static async Task<int> ExecuteNonQueryAsync(string connStr, string sql, SQLiteParameter[] parameters = null, CancellationToken cancellationToken = default)
         {
             using var conn = new SQLiteConnection(connStr);
-            await conn.OpenAsync();
+            await conn.OpenAsync(cancellationToken);
             using var cmd = new SQLiteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
-            return await cmd.ExecuteNonQueryAsync();
+            return await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        public static async Task<int> ExecuteNonQueryAsync(SQLiteConnection conn, SQLiteTransaction tx, string sql, SQLiteParameter[] parameters)
+        public static async Task<int> ExecuteNonQueryAsync(SQLiteConnection conn, SQLiteTransaction tx, string sql, SQLiteParameter[] parameters, CancellationToken cancellationToken = default)
         {
             using var cmd = new SQLiteCommand(sql, conn, tx);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
-            return await cmd.ExecuteNonQueryAsync();
+            return await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        public static async Task<int> ExecuteNonQueryAsync(SQLiteConnection conn, string sql, SQLiteParameter[] parameters = null)
+        public static async Task<int> ExecuteNonQueryAsync(SQLiteConnection conn, string sql, SQLiteParameter[] parameters = null, CancellationToken cancellationToken = default)
         {
             using var cmd = new SQLiteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
-            return await cmd.ExecuteNonQueryAsync();
+            return await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        public static async Task<object> ExecuteScalarAsync(string connStr, string sql, SQLiteParameter[] parameters = null)
+        public static async Task<object> ExecuteScalarAsync(string connStr, string sql, SQLiteParameter[] parameters = null, CancellationToken cancellationToken = default)
         {
             using var conn = new SQLiteConnection(connStr);
-            await conn.OpenAsync();
+            await conn.OpenAsync(cancellationToken);
             using var cmd = new SQLiteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
-            return await cmd.ExecuteScalarAsync();
+            return await cmd.ExecuteScalarAsync(cancellationToken);
         }
 
-        public static async Task<object> ExecuteScalarAsync(SQLiteConnection conn, string sql, SQLiteParameter[] parameters = null)
+        public static async Task<object> ExecuteScalarAsync(SQLiteConnection conn, string sql, SQLiteParameter[] parameters = null, CancellationToken cancellationToken = default)
         {
             using var cmd = new SQLiteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
-            return await cmd.ExecuteScalarAsync();
+            return await cmd.ExecuteScalarAsync(cancellationToken);
         }
 
-        public static async Task<List<T>> ExecuteReaderAsync<T>(string connStr, string sql, SQLiteParameter[] parameters, Func<IDataRecord, T> map)
+        public static async Task<List<T>> ExecuteReaderAsync<T>(string connStr, string sql, SQLiteParameter[] parameters, Func<IDataRecord, T> map, CancellationToken cancellationToken = default)
         {
             var list = new List<T>();
             using var conn = new SQLiteConnection(connStr);
-            await conn.OpenAsync();
+            await conn.OpenAsync(cancellationToken);
             using var cmd = new SQLiteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
-            using var rdr = await cmd.ExecuteReaderAsync();
-            while (await rdr.ReadAsync())
+            using var rdr = await cmd.ExecuteReaderAsync(cancellationToken);
+            while (await rdr.ReadAsync(cancellationToken))
                 list.Add(map(rdr));
             return list;
         }
 
-        public static async Task<List<T>> ExecuteReaderAsync<T>(SQLiteConnection conn, string sql, SQLiteParameter[] parameters, Func<IDataRecord, T> map)
+        public static async Task<List<T>> ExecuteReaderAsync<T>(SQLiteConnection conn, string sql, SQLiteParameter[] parameters, Func<IDataRecord, T> map, CancellationToken cancellationToken = default)
         {
             var list = new List<T>();
             using var cmd = new SQLiteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
-            using var rdr = await cmd.ExecuteReaderAsync();
-            while (await rdr.ReadAsync())
+            using var rdr = await cmd.ExecuteReaderAsync(cancellationToken);
+            while (await rdr.ReadAsync(cancellationToken))
                 list.Add(map(rdr));
             return list;
         }

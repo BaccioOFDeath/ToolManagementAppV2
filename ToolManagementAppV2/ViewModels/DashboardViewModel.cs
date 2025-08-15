@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
+using System.Threading;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Models.Domain;
@@ -68,16 +69,17 @@ namespace ToolManagementAppV2.ViewModels
                 catch (Exception ex) { _logger.LogError(ex, "Failed to open import/export page"); }
             });
 
-            LoadStats();
+            _ = LoadStatsAsync();
             LoadRecentActivity();
         }
 
-        void LoadStats()
+        async Task LoadStatsAsync()
         {
             try
             {
                 StatCards.Clear();
-                StatCards.Add(new StatCard { Title = "Total Tools", Value = _toolService.GetAllTools().Count.ToString() });
+                var tools = await _toolService.GetAllToolsAsync(CancellationToken.None);
+                StatCards.Add(new StatCard { Title = "Total Tools", Value = tools.Count.ToString() });
                 StatCards.Add(new StatCard { Title = "Active Rentals", Value = _rentalService.GetActiveRentals().Count.ToString() });
                 StatCards.Add(new StatCard { Title = "Total Customers", Value = _customerService.GetAllCustomers().Count.ToString() });
                 StatCards.Add(new StatCard { Title = "Total Users", Value = _userService.GetAllUsers().Count.ToString() });

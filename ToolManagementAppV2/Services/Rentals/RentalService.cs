@@ -48,7 +48,7 @@ namespace ToolManagementAppV2.Services.Rentals
                         new SQLiteParameter("@DueDate", dueDate)
                     });
 
-                _toolService?.UpdateToolQuantities(toolID, 1, true, conn, tx);
+                _toolService?.UpdateToolQuantitiesAsync(toolID, 1, true, conn, tx).GetAwaiter().GetResult();
             });
         }
 
@@ -71,7 +71,7 @@ namespace ToolManagementAppV2.Services.Rentals
                         new SQLiteParameter("@RentalID", rentalID)
                     });
 
-                _toolService?.UpdateToolQuantities(toolID, 1, false, conn, tx);
+                _toolService?.UpdateToolQuantitiesAsync(toolID, 1, false, conn, tx).GetAwaiter().GetResult();
             });
         }
 
@@ -108,11 +108,11 @@ namespace ToolManagementAppV2.Services.Rentals
                     // considered overdue and becomes available for others.
                     if (oldDueDate <= DateTime.Today && newDueDate > DateTime.Today)
                     {
-                        _toolService.UpdateToolQuantities(toolID, 1, true, conn, tx);
+                        _toolService.UpdateToolQuantitiesAsync(toolID, 1, true, conn, tx).GetAwaiter().GetResult();
                     }
                     else if (oldDueDate > DateTime.Today && newDueDate <= DateTime.Today)
                     {
-                        _toolService.UpdateToolQuantities(toolID, 1, false, conn, tx);
+                        _toolService.UpdateToolQuantitiesAsync(toolID, 1, false, conn, tx).GetAwaiter().GetResult();
                     }
                 }
             });
