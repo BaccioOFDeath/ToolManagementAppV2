@@ -33,7 +33,14 @@ namespace ToolManagementAppV2.ViewModels
             TestDbCommand = new RelayCommand(() =>
             {
                 var success = TestDbConnection(out var message);
-                _dialogService.ShowInfo(message, "Database Connection");
+                try
+                {
+                    _dialogService.ShowInfo(message, "Database Connection");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to display info dialog.");
+                }
             });
             BrowseCompanyLogoCommand = new RelayCommand(BrowseCompanyLogo);
             SaveCompanyLogoCommand = new RelayCommand(SaveCompanyLogo);
