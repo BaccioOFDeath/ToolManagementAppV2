@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.ViewModels
 {
-    public class ScannerStatusViewModel : ObservableObject
+    public class ScannerStatusViewModel : ObservableObject, IDisposable
     {
         readonly IScannerService _service;
         readonly IDialogService _dialogService;
@@ -46,7 +46,12 @@ namespace ToolManagementAppV2.ViewModels
             _logger = logger ?? NullLogger<ScannerStatusViewModel>.Instance;
             RefreshCommand = new AsyncRelayCommand(RefreshAsync);
             _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
-            _timer.Tick += async (s, e) => await RefreshAsync(CancellationToken.None);
+            _timer.Tick += OnTimerTick;
+        }
+
+        void OnTimerTick(object? s, EventArgs e)
+        {
+            _ = RefreshAsync(CancellationToken.None);
         }
 
         async Task RefreshAsync(CancellationToken cancellationToken)
@@ -63,6 +68,12 @@ namespace ToolManagementAppV2.ViewModels
                 _logger.LogError(ex, "Failed to refresh scanner devices");
                 await _dialogService.ShowInfoAsync($"Failed to refresh scanner devices: {ex.Message}", "Error");
             }
+        }
+
+        public void Dispose()
+        {
+            _timer.Tick -= OnTimerTick;
+            _timer.Stop();
         }
     }
 }
