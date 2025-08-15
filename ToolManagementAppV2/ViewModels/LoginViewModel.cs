@@ -169,7 +169,7 @@ namespace ToolManagementAppV2.ViewModels
                     IsAdmin = true,
                     PasswordExpired = true
                 };
-                _userService.AddUser(admin);
+                await _userService.AddUserAsync(admin);
                 users = await _userService.GetAllUsersAsync();
             }
 
