@@ -114,7 +114,22 @@ namespace ToolManagementAppV2.ViewModels
 
         public void AddUser()
         {
-            var newUser = new UserModel { UserName = $"user{Users.Count + 1}" };
+            // Determine the next available user name by querying the service
+            // for all existing names and incrementing the suffix until an
+            // unused value is found. This avoids collisions even if the
+            // local collection is out of date.
+            var existingNames = new HashSet<string>(
+                _userService.GetAllUsers().Select(u => u.UserName),
+                StringComparer.OrdinalIgnoreCase);
+
+            var idx = 1;
+            string name;
+            do
+            {
+                name = $"user{idx++}";
+            } while (existingNames.Contains(name));
+
+            var newUser = new UserModel { UserName = name };
 
             if (!TryPromptForPassword(newUser, out var entered))
                 return;
