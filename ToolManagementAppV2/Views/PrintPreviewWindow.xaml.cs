@@ -54,10 +54,11 @@ namespace ToolManagementAppV2.Views
                     var full = Utilities.Helpers.PathHelper.GetAbsolutePath(path, true);
                     if (!string.IsNullOrEmpty(full) && File.Exists(full))
                         return new Uri(full, UriKind.Absolute);
+                    MessageBox.Show("Logo path is invalid.", "Invalid Path");
                 }
                 catch (InvalidOperationException)
                 {
-                    // fall through to default
+                    MessageBox.Show("Logo path is invalid.", "Invalid Path");
                 }
             }
             return new Uri("pack://application:,,,/Resources/DefaultLogo.png");

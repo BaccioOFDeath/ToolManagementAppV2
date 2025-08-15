@@ -212,7 +212,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var db = new DatabaseService(dbPath);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
                 var fileSvc = new StubFileDialogService { FileToReturn = Path.Combine("..", "outside.png") };
-                var vm = new UserManagementViewModel(userService, fileSvc, new StubDialogService());
+                var dialog = new StubDialogService();
+                var vm = new UserManagementViewModel(userService, fileSvc, dialog);
                 userService.AddUser(new User { UserName = "user1", Password = "pw" });
                 await vm.LoadUsersAsync();
                 vm.SelectedUser = vm.Users.First();
@@ -223,6 +224,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var allUsers = (System.Collections.Generic.List<User>)field!.GetValue(vm);
                 Assert.Null(vm.Users.First().UserPhotoPath);
                 Assert.Null(allUsers.First().UserPhotoPath);
+                Assert.Equal("Selected file path is invalid.", dialog.LastInfoMessage);
             }
             finally
             {
