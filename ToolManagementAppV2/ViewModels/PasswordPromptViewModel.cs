@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 
@@ -15,7 +16,7 @@ namespace ToolManagementAppV2.ViewModels
 
         public IRelayCommand OkCommand { get; }
         public IRelayCommand CancelCommand { get; }
-        public IRelayCommand ResetPasswordCommand { get; }
+        public IAsyncRelayCommand ResetPasswordCommand { get; }
 
         private readonly Action _onSuccess;
         private readonly Action _onCancel;
@@ -31,7 +32,7 @@ namespace ToolManagementAppV2.ViewModels
 
             OkCommand = new RelayCommand(OnOk);
             CancelCommand = new RelayCommand(() => _onCancel());
-            ResetPasswordCommand = new RelayCommand(OnResetPassword);
+            ResetPasswordCommand = new AsyncRelayCommand(OnResetPasswordAsync);
         }
 
         private void OnOk()
@@ -46,17 +47,17 @@ namespace ToolManagementAppV2.ViewModels
             _showError("Incorrect password. Please try again.");
         }
 
-        void OnResetPassword()
+        async Task OnResetPasswordAsync()
         {
             if (SelectedUser?.IsAdmin != true)
             {
-                _dialogService.ShowInfo(
+                await _dialogService.ShowInfoAsync(
                     "Password recovery is only available for admin users.",
                     "Not Allowed");
                 return;
             }
 
-            if (!_dialogService.ShowConfirmation(
+            if (!await _dialogService.ShowConfirmationAsync(
                 "You have entered the wrong password multiple times. Reset to default and change it after login?",
                 "Reset Password"))
                 return;
