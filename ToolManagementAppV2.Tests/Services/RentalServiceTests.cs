@@ -372,6 +372,7 @@ namespace ToolManagementAppV2.Tests.Services
             public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map) => throw new NotImplementedException();
             public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map) => throw new NotImplementedException();
             public void ExportToolsToCsv(string filePath) => throw new NotImplementedException();
+            public Task ExportToolsToCsvAsync(string filePath) => Task.CompletedTask;
             public List<ToolModel> GetAllTools() => new();
             public void AddTool(ToolModel tool) => throw new NotImplementedException();
             public void UpdateTool(ToolModel tool) => throw new NotImplementedException();

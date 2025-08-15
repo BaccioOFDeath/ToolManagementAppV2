@@ -146,5 +146,30 @@ public class CsvImportTests
             if (File.Exists(dbPath)) File.Delete(dbPath);
         }
     }
+
+    [Fact]
+    public async System.Threading.Tasks.Task ExportToolsToCsvAsync_WritesExpectedFile()
+    {
+        var dbPath = Path.GetTempFileName();
+        var csvPath = Path.GetTempFileName();
+        try
+        {
+            using var db = new DatabaseService(dbPath);
+            var service = new ToolService(db);
+            service.AddTool(new ToolModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 5, IsPowerTool = true });
+
+            await service.ExportToolsToCsvAsync(csvPath);
+
+            var lines = await File.ReadAllLinesAsync(csvPath);
+            Assert.True(lines.Length > 1);
+            Assert.Equal("ToolNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowerTool", lines[0]);
+            Assert.Contains("T1", lines[1]);
+        }
+        finally
+        {
+            if (File.Exists(csvPath)) File.Delete(csvPath);
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
 }
 

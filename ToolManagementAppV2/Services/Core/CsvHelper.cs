@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.VisualBasic.FileIO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -89,6 +90,27 @@ namespace ToolManagementAppV2.Utilities.IO
                     Quote(t.QuantityOnHand.ToString()),
                     Quote(t.IsPowerTool ? "1" : "0"))));
             File.WriteAllLines(filePath, lines);
+        }
+
+        public static Task ExportToolsToCsvAsync(string filePath, List<ToolModel> tools)
+        {
+            var lines = new List<string>
+            {
+                "ToolNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowerTool"
+            };
+            lines.AddRange(tools.Select(t =>
+                string.Join(",",
+                    Quote(t.ToolNumber),
+                    Quote(t.NameDescription),
+                    Quote(t.Location),
+                    Quote(t.Brand),
+                    Quote(t.PartNumber),
+                    Quote(t.Supplier),
+                    Quote(t.PurchasedDate?.ToString("yyyy-MM-dd")),
+                    Quote(t.Notes),
+                    Quote(t.QuantityOnHand.ToString()),
+                    Quote(t.IsPowerTool ? "1" : "0"))));
+            return File.WriteAllLinesAsync(filePath, lines);
         }
 
         public static List<CustomerModel> LoadCustomersFromCsv(string filePath, IDictionary<string, string> map)
