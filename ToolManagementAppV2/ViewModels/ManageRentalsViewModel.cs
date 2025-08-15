@@ -113,7 +113,7 @@ namespace ToolManagementAppV2.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load rentals");
-                _dialogService.ShowInfo($"Failed to load rentals: {ex.Message}", "Error");
+                await _dialogService.ShowInfoAsync($"Failed to load rentals: {ex.Message}", "Error");
             }
         }
 
@@ -174,7 +174,7 @@ namespace ToolManagementAppV2.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to check in rental {RentalID}", SelectedRental.RentalID);
-                _dialogService.ShowInfo($"Failed to check in rental: {ex.Message}", "Error");
+                await _dialogService.ShowInfoAsync($"Failed to check in rental: {ex.Message}", "Error");
             }
         }
 
@@ -191,7 +191,7 @@ namespace ToolManagementAppV2.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to extend rental {RentalID}", SelectedRental.RentalID);
-                _dialogService.ShowInfo($"Failed to extend rental: {ex.Message}", "Error");
+                await _dialogService.ShowInfoAsync($"Failed to extend rental: {ex.Message}", "Error");
             }
         }
 
@@ -213,7 +213,7 @@ namespace ToolManagementAppV2.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to open rental history for tool {ToolID}", SelectedRental.ToolID);
-                _dialogService.ShowInfo($"Failed to load rental history: {ex.Message}", "Error");
+                await _dialogService.ShowInfoAsync($"Failed to load rental history: {ex.Message}", "Error");
             }
         }
 
@@ -278,7 +278,7 @@ namespace ToolManagementAppV2.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to delete rental {RentalID}", SelectedRental.RentalID);
-                _dialogService.ShowInfo($"Failed to delete rental: {ex.Message}", "Error");
+                await _dialogService.ShowInfoAsync($"Failed to delete rental: {ex.Message}", "Error");
             }
         }
     }

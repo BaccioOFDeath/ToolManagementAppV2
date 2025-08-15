@@ -344,18 +344,18 @@ namespace ToolManagementAppV2.ViewModels
                 var map = _dialogService.ShowImportMapping(headers, properties);
                 if (map != null)
                 {
-                    _dialogService.ShowInfo("Importing tools...", "Import Tools");
+                    await _dialogService.ShowInfoAsync("Importing tools...", "Import Tools");
                     var invalid = await _toolService.ImportToolsFromCsvAsync(path, map, CancellationToken.None);
                     var msg = invalid.Count == 0
                         ? "Successfully imported tools."
                         : $"Imported with {invalid.Count} invalid rows.";
-                    _dialogService.ShowInfo(msg, "Import Tools");
+                    await _dialogService.ShowInfoAsync(msg, "Import Tools");
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to import tools from CSV");
-                _dialogService.ShowInfo($"Failed to import tools: {ex.Message}", "Import Tools");
+                await _dialogService.ShowInfoAsync($"Failed to import tools: {ex.Message}", "Import Tools");
             }
         }
 
