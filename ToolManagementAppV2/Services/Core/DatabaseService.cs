@@ -58,6 +58,7 @@ namespace ToolManagementAppV2.Services.Core
             EnsureColumn("Users", "Role", "TEXT");
             EnsureColumn("Users", "IsActive", "INTEGER", "1");
             EnsureColumn("Users", "CreatedAt", "DATETIME");
+            // Security-related columns for login tracking
             EnsureColumn("Users", "FailedAttempts", "INTEGER", "0");
             EnsureColumn("Users", "LockoutUntil", "DATETIME");
             EnsureColumn("Users", "PasswordExpired", "INTEGER", "0");
