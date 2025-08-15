@@ -49,6 +49,11 @@ namespace ToolManagementAppV2.Services.Core
             EnsureColumn("Tools", "Keywords", "TEXT");
             EnsureColumn("Tools", "IsPowerTool", "INTEGER", "0");
             EnsureColumn("Tools", "IsCheckedOut", "INTEGER", "0");
+            // Ensure indexes that depend on newly added columns
+            using (var conn = CreateConnection())
+            {
+                EnsureIndex(conn, "Tools", "Keywords");
+            }
             EnsureColumn("Users", "Password", "TEXT");
             EnsureColumn("Users", "Salt", "TEXT");
             EnsureColumn("Users", "Email", "TEXT");
@@ -176,7 +181,6 @@ namespace ToolManagementAppV2.Services.Core
             EnsureIndex(conn, "Tools", "Supplier");
             EnsureIndex(conn, "Tools", "Location");
             EnsureIndex(conn, "Tools", "Notes");
-            EnsureIndex(conn, "Tools", "Keywords");
             // Ensure each user has a unique username
             EnsureIndex(conn, "Users", "UserName", true);
             EnsureIndex(conn, "Customers", "Contact");
