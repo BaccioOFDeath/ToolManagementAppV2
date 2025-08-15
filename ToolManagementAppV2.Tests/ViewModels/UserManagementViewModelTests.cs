@@ -442,6 +442,20 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public async Task DeleteUserFromRowCommand_FailureShowsInfo()
+        {
+            var svc = new FailingUserService();
+            svc.AddUser(new User { UserName = "user1", Password = "pw" });
+            var dialog = new StubDialogService();
+            var vm = new UserManagementViewModel(svc, new StubFileDialogService(), dialog);
+            await vm.LoadUsersAsync();
+            var toDelete = vm.Users.First();
+            await vm.DeleteUserFromRowCommand.ExecuteAsync(toDelete);
+            Assert.Equal("Failed to delete user.", dialog.LastInfoMessage);
+            Assert.Equal("Error", dialog.LastInfoTitle);
+        }
+
+        [Fact]
         public async Task AddUserAsync_CancelledPrompt_DoesNotAddUser()
         {
             var svc = new InMemoryUserService();
