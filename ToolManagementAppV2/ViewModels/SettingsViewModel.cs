@@ -29,6 +29,7 @@ namespace ToolManagementAppV2.ViewModels
 
             ThemeOptions = new ObservableCollection<string> { "Light", "Dark" };
             _theme = ThemeOptions[0];
+            _passwordIterations = _settingsService.GetPasswordIterations();
             TestDbCommand = new RelayCommand(() =>
             {
                 var success = TestDbConnection(out var message);
@@ -71,6 +72,18 @@ namespace ToolManagementAppV2.ViewModels
         {
             get => _theme;
             set => SetProperty(ref _theme, value);
+        }
+
+        private int _passwordIterations;
+        public int PasswordIterations
+        {
+            get => _passwordIterations;
+            set
+            {
+                if (value <= 0) return;
+                if (SetProperty(ref _passwordIterations, value))
+                    _settingsService.SavePasswordIterations(value);
+            }
         }
 
         public ObservableCollection<string> ThemeOptions { get; }

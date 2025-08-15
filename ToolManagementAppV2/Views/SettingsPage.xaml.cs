@@ -1,4 +1,5 @@
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace ToolManagementAppV2.Views
 {
@@ -7,6 +8,13 @@ namespace ToolManagementAppV2.Views
         public SettingsPage()
         {
             InitializeComponent();
+        }
+
+        void PasswordIterationsBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            var textBox = (TextBox)sender;
+            var proposed = textBox.Text.Insert(textBox.SelectionStart, e.Text);
+            e.Handled = !int.TryParse(proposed, out var value) || value <= 0;
         }
     }
 }

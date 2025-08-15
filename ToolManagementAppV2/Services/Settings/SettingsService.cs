@@ -368,6 +368,8 @@ namespace ToolManagementAppV2.Services.Settings
 
         public void SavePasswordIterations(int iterations)
         {
+            if (iterations <= 0)
+                throw new ArgumentOutOfRangeException(nameof(iterations));
             SaveSetting(PasswordIterationsKey, iterations.ToString());
         }
 
@@ -379,6 +381,8 @@ namespace ToolManagementAppV2.Services.Settings
 
         public async Task SavePasswordIterationsAsync(int iterations)
         {
+            if (iterations <= 0)
+                throw new ArgumentOutOfRangeException(nameof(iterations));
             await SaveSettingAsync(PasswordIterationsKey, iterations.ToString());
         }
     }
