@@ -5,6 +5,7 @@ using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Utilities.Helpers;
 using Xunit;
 
 public class UserServiceTests
@@ -153,6 +154,29 @@ public class UserServiceTests
             var user = users[0];
             Assert.Null(user.Password);
             Assert.Null(user.Salt);
+        }
+        finally
+        {
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public void AddUser_UsesPreHashedPassword_WhenProvided()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+            var hash = SecurityHelper.HashPassword("secret", out var salt);
+            var user = new User { UserName = "prehashed", Password = hash, Salt = salt, PasswordExpired = true };
+            userService.AddUser(user);
+            var fetched = userService.GetUserByID(user.UserID)!;
+            Assert.Equal(hash, fetched.Password);
+            Assert.Equal(salt, fetched.Salt);
+            Assert.True(fetched.PasswordExpired);
+            Assert.True(SecurityHelper.VerifyPassword("secret", fetched.Salt, fetched.Password));
         }
         finally
         {

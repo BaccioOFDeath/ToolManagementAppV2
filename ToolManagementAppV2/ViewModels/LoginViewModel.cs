@@ -146,7 +146,15 @@ namespace ToolManagementAppV2.ViewModels
                     "No users exist. A default admin account will be created (username: admin, password: admin).",
                     "Setup");
 
-                var admin = new User { UserName = "admin", Password = "admin", IsAdmin = true };
+                var hashed = SecurityHelper.HashPassword("admin", out var salt);
+                var admin = new User
+                {
+                    UserName = "admin",
+                    Password = hashed,
+                    Salt = salt,
+                    IsAdmin = true,
+                    PasswordExpired = true
+                };
                 _userService.AddUser(admin);
                 users = await _userService.GetAllUsersAsync();
             }
