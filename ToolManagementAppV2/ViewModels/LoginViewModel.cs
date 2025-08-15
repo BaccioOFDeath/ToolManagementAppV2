@@ -3,11 +3,11 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Settings;
@@ -50,7 +50,7 @@ namespace ToolManagementAppV2.ViewModels
         /// <see cref="OnUserSelected"/> to perform authentication, including prompting
         /// for passwords and handling resets.
         /// </summary>
-        public ICommand SelectUserCommand { get; }
+        public IAsyncRelayCommand<User> SelectUserCommand { get; }
 
         public IAsyncRelayCommand LoadUsersCommand { get; }
 
@@ -66,6 +66,9 @@ namespace ToolManagementAppV2.ViewModels
             return dlg.ShowDialog() == true ? dlg.NewPassword : null;
         };
 
+        public Func<User, CancellationToken, Task<PasswordPromptResult?>>? PromptForPasswordAsync { get; set; }
+            
+
         public LoginViewModel(IUserService userService, ISettingsService settingsService, IDialogService dialogService, IUserContext userContext)
         {
             _settingsService = settingsService;
@@ -76,7 +79,19 @@ namespace ToolManagementAppV2.ViewModels
             CompanyLogo = LoadLogoAsync().GetAwaiter().GetResult();
             WindowTitle = GetWindowTitleAsync().GetAwaiter().GetResult();
 
-            SelectUserCommand = new RelayCommand<User>(OnUserSelected);
+            SelectUserCommand = new AsyncRelayCommand<User>(OnUserSelected);
+
+            PromptForPasswordAsync = (u, ct) =>
+            {
+                var prompt = new PasswordPromptWindow(_dialogService)
+                {
+                    SelectedUser = u
+                };
+                var result = prompt.ShowDialog();
+                if (result == true)
+                    return Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult(prompt.EnteredPassword, prompt.IsPasswordResetRequested));
+                return Task.FromResult<PasswordPromptResult?>(null);
+            };
 
             LoadUsersCommand = new AsyncRelayCommand(LoadUsersAsync);
             LoadUsersCommand.Execute(null);
@@ -148,7 +163,8 @@ namespace ToolManagementAppV2.ViewModels
         /// and raises <see cref="LoginSucceeded"/>.
         /// </summary>
         /// <param name="user">The account to authenticate.</param>
-        void OnUserSelected(User user)
+        /// <param name="cancellationToken">Token used to cancel the authentication loop.</param>
+        async Task OnUserSelected(User user, CancellationToken cancellationToken)
         {
             if (user == null) return;
 
@@ -175,18 +191,17 @@ namespace ToolManagementAppV2.ViewModels
                 return;
             }
 
-            var passwordValidated = false;
-            while (!passwordValidated)
+            User? credential = null;
+            while (credential == null)
             {
-                var prompt = new PasswordPromptWindow(_dialogService)
-                {
-                    SelectedUser = user,
-                    ValidatePassword = pwd => _userService.AuthenticateUser(user.UserName, pwd) != null
-                };
+                cancellationToken.ThrowIfCancellationRequested();
 
-                if (prompt.ShowDialog() != true) return;
+                var promptResult = await (PromptForPasswordAsync?.Invoke(user, cancellationToken)
+                    ?? Task.FromResult<PasswordPromptResult?>(null));
+                if (promptResult == null)
+                    return;
 
-                if (prompt.IsPasswordResetRequested)
+                if (promptResult.IsPasswordResetRequested)
                 {
                     _userService.ChangeUserPassword(user.UserID, "admin");
                     var refreshed = _userService.GetUserByID(user.UserID);
@@ -202,16 +217,17 @@ namespace ToolManagementAppV2.ViewModels
                     continue;
                 }
 
-                var credential = _userService.AuthenticateUser(user.UserName, prompt.EnteredPassword);
-                if (credential != null)
+                credential = await _userService.AuthenticateUserAsync(user.UserName, promptResult.Password);
+                if (credential == null)
                 {
-                    if (credential.PasswordExpired && !PromptChangePassword(credential))
-                        return;
-                    _userContext.CurrentUser = credential;
-                    LoginSucceeded?.Invoke(this, EventArgs.Empty);
-                    passwordValidated = true;
+                    _dialogService.ShowInfo("Incorrect password. Please try again.", "Login Failed");
                 }
             }
+
+            if (credential.PasswordExpired && !PromptChangePassword(credential))
+                return;
+            _userContext.CurrentUser = credential;
+            LoginSucceeded?.Invoke(this, EventArgs.Empty);
         }
 
         bool PromptChangePassword(User user)
@@ -230,4 +246,6 @@ namespace ToolManagementAppV2.ViewModels
             return true;
         }
     }
+
+    public record PasswordPromptResult(string Password, bool IsPasswordResetRequested);
 }
