@@ -108,6 +108,42 @@ namespace ToolManagementAppV2.Tests.ViewModels
             Assert.NotNull(logger.LastError);
             Assert.Contains("Failed to display info dialog", logger.LastError);
         }
+
+        [Fact]
+        public void PasswordIterations_AboveLimit_IsClampedAndNotifies()
+        {
+            var settings = new StubSettingsService();
+            var dialog = new StubDialogService();
+            var vm = new SettingsViewModel(new StubFileDialogService(), settings, dialog);
+
+            vm.PasswordIterations = 2_000_000;
+
+            Assert.Equal(1_000_000, vm.PasswordIterations);
+            Assert.Equal(1_000_000, settings.PasswordIterations);
+            Assert.NotNull(dialog.LastInfoMessage);
+        }
+
+        [Fact]
+        public void PasswordIterations_AboveLimit_PersistsClampedValue()
+        {
+            var path = System.IO.Path.GetTempFileName();
+            try
+            {
+                var db = new ToolManagementAppV2.Services.Core.DatabaseService(path);
+                var settings = new ToolManagementAppV2.Services.Settings.SettingsService(db);
+                var dialog = new StubDialogService();
+                var vm = new SettingsViewModel(new StubFileDialogService(), settings, dialog);
+
+                vm.PasswordIterations = 2_000_000;
+
+                Assert.Equal(1_000_000, settings.GetPasswordIterations());
+            }
+            finally
+            {
+                if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
+            }
+        }
+
     }
 
     class StubFileDialogService : ToolManagementAppV2.Interfaces.IFileDialogService
@@ -173,13 +209,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
     class StubDialogService : IDialogService
     {
-        public string? LastMessage { get; private set; }
-        public string? LastTitle { get; private set; }
+        public string? LastInfoMessage { get; private set; }
+        public string? LastInfoTitle { get; private set; }
         public void ShowInfo(string message, string title)
         {
-            LastMessage = message;
-            LastTitle = title;
+            LastInfoMessage = message;
+            LastInfoTitle = title;
         }
+        
         public bool ShowConfirmation(string message, string title) => true;
         public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
         public void ShowToolDetails(ToolModel tool) { }
