@@ -6,6 +6,7 @@
         Width="900" Height="560"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
+        Topmost="True"
         Background="{StaticResource BackgroundBrush}">
     <Window.InputBindings>
         <KeyBinding Key="Enter" Command="{Binding SelectUserCommand}" CommandParameter="{Binding SelectedUser}"/>
