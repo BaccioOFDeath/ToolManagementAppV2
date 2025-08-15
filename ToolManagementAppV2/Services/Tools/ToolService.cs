@@ -282,7 +282,18 @@ namespace ToolManagementAppV2.Services.Tools
                 }
                 var dest = Path.Combine(destDir, Path.GetFileName(file));
                 if (!File.Exists(dest))
-                    File.Copy(file, dest, true);
+                {
+                    try
+                    {
+                        CopyFile(file, dest);
+                    }
+                    catch (IOException ex)
+                    {
+                        _logger.LogError(ex, "Failed to copy image from {Source} to {Destination}", file, dest);
+                        result.ConflictingFiles.Add(file);
+                        continue;
+                    }
+                }
                 var relative = $"Images/{Path.GetFileName(dest)}";
                 UpdateToolImage(tool.ToolID, relative);
                 result.ImportedCount++;
@@ -290,7 +301,10 @@ namespace ToolManagementAppV2.Services.Tools
 
             return result;
         }
-    
+
+        protected virtual void CopyFile(string sourceFileName, string destFileName)
+            => File.Copy(sourceFileName, destFileName, true);
+
         private async Task<bool> ToolExistsAsync(string toolNumber, int? exceptId = null)
         {
             if (string.IsNullOrWhiteSpace(toolNumber))
