@@ -38,6 +38,30 @@ namespace ToolManagementAppV2.Tests.Services
                 if (File.Exists(dbPath)) File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public async Task GetScannerDevicesAsync_ReturnsAllConfiguredDevices()
+        {
+            var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var settings = new SettingsService(db);
+                settings.SaveScannerIpAddresses(new[] { "127.0.0.1", "127.0.0.2" });
+
+                var service = new ScannerService(settings);
+
+                var devices = await service.GetScannerDevicesAsync(CancellationToken.None);
+                var list = devices.ToList();
+                Assert.Equal(2, list.Count);
+                Assert.Contains(list, d => d.Ip == "127.0.0.1");
+                Assert.Contains(list, d => d.Ip == "127.0.0.2");
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
         [Fact]
         public async Task GetScannerDevicesAsync_HonorsCancellation()
         {
