@@ -104,5 +104,47 @@ public class CsvImportTests
             if (File.Exists(dbPath)) File.Delete(dbPath);
         }
     }
+
+    [Fact]
+    public async System.Threading.Tasks.Task ImportToolsFromCsvAsync_PerformanceWithDuplicates()
+    {
+        var dbPath = Path.GetTempFileName();
+        var csvPath = Path.GetTempFileName();
+        try
+        {
+            var db = new DatabaseService(dbPath);
+            var service = new ToolService(db);
+
+            for (int i = 0; i < 100; i++)
+                service.AddTool(new ToolModel { ToolNumber = $"E{i}", NameDescription = $"Existing {i}" });
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("ToolNumber,NameDescription");
+            for (int i = 0; i < 100; i++)
+                sb.AppendLine($"E{i},Dup {i}");
+            for (int i = 0; i < 900; i++)
+                sb.AppendLine($"N{i},New {i}");
+            File.WriteAllText(csvPath, sb.ToString());
+
+            var map = new Dictionary<string, string>
+            {
+                {"ToolNumber", "ToolNumber"},
+                {"NameDescription", "NameDescription"}
+            };
+
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            var invalid = await service.ImportToolsFromCsvAsync(csvPath, map);
+            sw.Stop();
+
+            Assert.True(sw.ElapsedMilliseconds < 5000, $"Import took {sw.ElapsedMilliseconds}ms");
+            Assert.Empty(invalid);
+            Assert.Equal(1000, service.GetAllTools().Count);
+        }
+        finally
+        {
+            if (File.Exists(csvPath)) File.Delete(csvPath);
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
 }
 

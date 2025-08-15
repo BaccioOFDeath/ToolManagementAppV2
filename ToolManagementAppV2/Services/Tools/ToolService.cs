@@ -257,13 +257,21 @@ namespace ToolManagementAppV2.Services.Tools
         {
             var tools = CsvHelperUtil.LoadToolsFromCsv(filePath, map, out var invalidRows);
             using var conn = _dbService.CreateConnection();
+            var existingNumbers = new HashSet<string>(
+                SqliteHelper.ExecuteReader(conn,
+                    "SELECT ToolNumber FROM Tools", null,
+                    r => r.GetString(0)));
+
             using var tran = conn.BeginTransaction();
             try
             {
                 foreach (var tool in tools)
                 {
-                    if (!ToolExists(tool.ToolNumber))
-                        InsertTool(conn, tran, tool);
+                    if (string.IsNullOrWhiteSpace(tool.ToolNumber) ||
+                        existingNumbers.Contains(tool.ToolNumber))
+                        continue;
+                    InsertTool(conn, tran, tool);
+                    existingNumbers.Add(tool.ToolNumber);
                 }
                 tran.Commit();
                 return invalidRows;
