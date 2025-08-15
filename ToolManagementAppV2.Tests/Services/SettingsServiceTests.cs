@@ -271,6 +271,31 @@ namespace ToolManagementAppV2.Tests.Services
             }
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData(new string[0])]
+        public void SaveScannerIpAddresses_NullOrEmpty_DeletesSetting(string[]? input)
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var service = new SettingsService(dbService);
+
+                service.SaveScannerIpAddresses(new[] { "192.168.0.1" });
+                Assert.Single(service.GetScannerIpAddresses());
+
+                var invalid = service.SaveScannerIpAddresses(input).ToList();
+                Assert.Empty(invalid);
+                Assert.Empty(service.GetScannerIpAddresses());
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
         [Fact]
         public void GetPasswordIterations_ReturnsDefault()
         {
