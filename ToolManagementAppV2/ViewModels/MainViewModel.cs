@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -326,7 +327,7 @@ namespace ToolManagementAppV2.ViewModels
                 if (map != null)
                 {
                     _dialogService.ShowInfo("Importing tools...", "Import Tools");
-                    var invalid = await _toolService.ImportToolsFromCsvAsync(path, map);
+                    var invalid = await _toolService.ImportToolsFromCsvAsync(path, map, CancellationToken.None);
                     var msg = invalid.Count == 0
                         ? "Successfully imported tools."
                         : $"Imported with {invalid.Count} invalid rows.";

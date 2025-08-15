@@ -13,6 +13,7 @@ using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.ViewModels;
 using Xunit;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
@@ -622,7 +623,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             public void UpdateToolImage(int toolID, string imagePath) => throw new NotImplementedException();
             public Task UpdateToolImageAsync(int toolID, string imagePath) => throw new NotImplementedException();
             public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map) => throw new NotImplementedException();
-            public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map) => throw new NotImplementedException();
+            public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => throw new NotImplementedException();
             public void ExportToolsToCsv(string filePath) => throw new NotImplementedException();
             public Task ExportToolsToCsvAsync(string filePath) => throw new NotImplementedException();
             public ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector) => throw new NotImplementedException();
@@ -652,7 +653,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             public void UpdateToolImage(int toolID, string imagePath) => throw new NotImplementedException();
             public Task UpdateToolImageAsync(int toolID, string imagePath) => throw new NotImplementedException();
             public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map) => new();
-            public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map) => Task.FromResult(new List<int>());
+            public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => Task.FromResult(new List<int>());
             public void ExportToolsToCsv(string filePath) { }
             public Task ExportToolsToCsvAsync(string filePath) => Task.CompletedTask;
             public ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector) => new();

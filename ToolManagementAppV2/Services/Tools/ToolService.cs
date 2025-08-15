@@ -4,6 +4,7 @@ using System.IO;
 using System.Data;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Models.Domain;
@@ -650,8 +651,8 @@ namespace ToolManagementAppV2.Services.Tools
             await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
         }
 
-        public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map)
-            => Task.FromResult(ImportToolsFromCsv(filePath, map));
+        public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken)
+            => Task.Run(() => ImportToolsFromCsv(filePath, map), cancellationToken);
 
         public async Task ExportToolsToCsvAsync(string filePath)
         {

@@ -60,7 +60,7 @@ namespace ToolManagementAppV2.ViewModels
             BackupDatabaseCommand = new AsyncRelayCommand(BackupDatabaseAsync);
         }
 
-        async Task ImportToolsAsync()
+        async Task ImportToolsAsync(CancellationToken cancellationToken)
         {
             var path = _fileDialogService.OpenFile("CSV Files|*.csv");
             if (string.IsNullOrEmpty(path)) return;
@@ -72,17 +72,21 @@ namespace ToolManagementAppV2.ViewModels
                 if (map == null)
                     return;
                 _dialogService.ShowInfo("Importing tools...", "Import Tools");
-                await _toolService.ImportToolsFromCsvAsync(path, map);
+                await _toolService.ImportToolsFromCsvAsync(path, map, cancellationToken);
                 ImportExportLogs.Add($"Successfully imported tools from {path}.");
+                _dialogService.ShowInfo($"Successfully imported tools from {path}.", "Import Tools");
+            }
+            catch (OperationCanceledException)
+            {
+                ImportExportLogs.Add("Tool import was cancelled.");
+                _dialogService.ShowInfo("Tool import was cancelled.", "Import Tools");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to import tools from {Path}", path);
                 ImportExportLogs.Add($"Failed to import tools from {path}: {ex.Message}");
                 _dialogService.ShowInfo($"Failed to import tools from {path}: {ex.Message}", "Import Tools");
-                return;
             }
-            _dialogService.ShowInfo($"Successfully imported tools from {path}.", "Import Tools");
         }
 
         async Task ExportToolsAsync()

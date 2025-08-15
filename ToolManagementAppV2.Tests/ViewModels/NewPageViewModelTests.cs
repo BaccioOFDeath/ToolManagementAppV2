@@ -236,7 +236,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             ImportCalled = true;
             return new();
         }
-        public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map)
+        public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken)
         {
             ImportCalled = true;
             return Task.FromResult(new List<int>());
@@ -259,7 +259,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     class FailToolService : IToolService
     {
         public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map) => throw new System.Exception("fail");
-        public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map) => Task.FromException<List<int>>(new System.Exception("fail"));
+        public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => Task.FromException<List<int>>(new System.Exception("fail"));
         public void ExportToolsToCsv(string filePath) => throw new System.Exception("fail");
         public Task ExportToolsToCsvAsync(string filePath) => Task.FromException(new System.Exception("fail"));
         public List<ToolModel> GetAllTools() => new();

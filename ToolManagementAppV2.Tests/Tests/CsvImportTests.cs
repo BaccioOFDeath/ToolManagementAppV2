@@ -6,6 +6,7 @@ using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Models.Domain;
 using Xunit;
+using System.Threading;
 
 public class CsvImportTests
 {
@@ -92,7 +93,7 @@ public class CsvImportTests
                 {"NameDescription", "NameDescription"}
             };
 
-            var invalid = await service.ImportToolsFromCsvAsync(csvPath, map);
+            var invalid = await service.ImportToolsFromCsvAsync(csvPath, map, CancellationToken.None);
 
             Assert.Single(invalid);
             Assert.Contains(2, invalid);
@@ -133,7 +134,7 @@ public class CsvImportTests
             };
 
             var sw = System.Diagnostics.Stopwatch.StartNew();
-            var invalid = await service.ImportToolsFromCsvAsync(csvPath, map);
+            var invalid = await service.ImportToolsFromCsvAsync(csvPath, map, CancellationToken.None);
             sw.Stop();
 
             Assert.True(sw.ElapsedMilliseconds < 5000, $"Import took {sw.ElapsedMilliseconds}ms");
