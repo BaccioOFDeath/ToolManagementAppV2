@@ -163,10 +163,13 @@ namespace ToolManagementAppV2.Services.Settings
             return valid;
         }
 
-        public IEnumerable<string> SaveScannerIpAddresses(IEnumerable<string> ipAddresses)
+        public IEnumerable<string> SaveScannerIpAddresses(IEnumerable<string>? ipAddresses)
         {
             if (ipAddresses == null)
-                throw new ArgumentNullException(nameof(ipAddresses));
+            {
+                DeleteSetting(ScannerIpKey);
+                return Array.Empty<string>();
+            }
 
             var valid = new List<string>();
             var invalid = new List<string>();
@@ -181,8 +184,15 @@ namespace ToolManagementAppV2.Services.Settings
             if (invalid.Count > 0)
                 _logger.LogWarning("Ignoring invalid IP addresses: {InvalidIps}", string.Join(", ", invalid));
 
-            var value = string.Join(';', valid);
-            SaveSetting(ScannerIpKey, value);
+            if (valid.Count > 0)
+            {
+                var value = string.Join(';', valid);
+                SaveSetting(ScannerIpKey, value);
+            }
+            else
+            {
+                DeleteSetting(ScannerIpKey);
+            }
 
             return invalid;
         }
