@@ -146,7 +146,15 @@ namespace ToolManagementAppV2.Services.Tools
                 new SQLiteParameter("@Time", (object)tool.CheckedOutTime ?? DBNull.Value),
                 new SQLiteParameter("@Img", (object)tool.ToolImagePath ?? DBNull.Value)
             };
-            SqliteHelper.ExecuteNonQuery(conn, sql, p);
+            try
+            {
+                SqliteHelper.ExecuteNonQuery(conn, sql, p);
+            }
+            catch (SQLiteException ex)
+            {
+                _logger.LogError(ex, "Failed to update tool {ToolID}", tool.ToolID);
+                throw new InvalidOperationException($"Failed to update tool {tool.ToolID}.", ex);
+            }
         }
     
         public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental,
@@ -495,7 +503,15 @@ namespace ToolManagementAppV2.Services.Tools
                 new SQLiteParameter("@Time", (object)tool.CheckedOutTime ?? DBNull.Value),
                 new SQLiteParameter("@Img", (object)tool.ToolImagePath ?? DBNull.Value)
             };
-            await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
+            try
+            {
+                await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
+            }
+            catch (SQLiteException ex)
+            {
+                _logger.LogError(ex, "Failed to update tool {ToolID}", tool.ToolID);
+                throw new InvalidOperationException($"Failed to update tool {tool.ToolID}.", ex);
+            }
         }
 
         public async Task DeleteToolAsync(int toolID)

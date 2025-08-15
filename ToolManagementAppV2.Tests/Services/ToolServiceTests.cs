@@ -289,6 +289,33 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
+        public void UpdateTool_DatabaseError_LogsAndThrows()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var logs = new List<LogEntry>();
+                using var loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
+                var dbService = new DatabaseService(dbPath);
+                var service = new ToolService(dbService, loggerFactory.CreateLogger<ToolService>());
+
+                service.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
+                var tool = service.GetAllTools().First();
+                tool.ToolNumber = null;
+
+                var ex = Assert.Throws<InvalidOperationException>(() => service.UpdateTool(tool));
+                Assert.Contains("Failed to update tool", ex.Message);
+                Assert.IsType<SQLiteException>(ex.InnerException);
+                Assert.Contains(logs, l => l.Level == LogLevel.Error && l.Message.Contains("Failed to update tool"));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public void ImportToolImages_UpdatesImagePathsAndReportsIssues()
         {
             var dbPath = Path.GetTempFileName();
