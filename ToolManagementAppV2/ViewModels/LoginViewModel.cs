@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
@@ -69,17 +70,17 @@ namespace ToolManagementAppV2.ViewModels
             _dialogService = dialogService;
             _userContext = userContext;
 
-            CompanyLogo = LoadLogo();
-            WindowTitle = GetWindowTitle();
+            CompanyLogo = LoadLogoAsync().GetAwaiter().GetResult();
+            WindowTitle = GetWindowTitleAsync().GetAwaiter().GetResult();
 
             SelectUserCommand = new RelayCommand<User>(OnUserSelected);
 
             LoadUsers();
         }
 
-        BitmapImage LoadLogo()
+        async Task<BitmapImage> LoadLogoAsync()
         {
-            var logoPath = _settingsService.GetSetting("CompanyLogoPath");
+            var logoPath = await _settingsService.GetSettingAsync("CompanyLogoPath");
             Uri logoUri;
             if (!string.IsNullOrWhiteSpace(logoPath))
             {
@@ -102,9 +103,9 @@ namespace ToolManagementAppV2.ViewModels
             return bitmap;
         }
 
-        string GetWindowTitle()
+        async Task<string> GetWindowTitleAsync()
         {
-            var appName = _settingsService.GetSetting("ApplicationName");
+            var appName = await _settingsService.GetSettingAsync("ApplicationName");
             return !string.IsNullOrWhiteSpace(appName)
                 ? $"{appName} – Login"
                 : "Tool Inventory Management – Login";
