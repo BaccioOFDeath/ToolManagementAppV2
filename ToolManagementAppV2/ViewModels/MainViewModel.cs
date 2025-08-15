@@ -38,6 +38,7 @@ namespace ToolManagementAppV2.ViewModels
         readonly ILogger<MainViewModel> _logger;
         readonly Func<Task<bool>> _showLoginWindow;
 
+        EventHandler<User?>? _userContextChangedHandler;
         PropertyChangedEventHandler? _toolManagementPropertyChangedHandler;
 
         public ToolManagementViewModel ToolManagement { get; }
@@ -143,6 +144,9 @@ namespace ToolManagementAppV2.ViewModels
                     await lvm.InitializeAsync();
                 return login.ShowDialog() == true;
             });
+
+            _userContextChangedHandler = (_, _) => RefreshCurrentUser();
+            _userContext.UserChanged += _userContextChangedHandler;
 
             ToolManagement = new ToolManagementViewModel(toolService, customerService, rentalService, _dialogService);
             _toolManagementPropertyChangedHandler = (s, e) =>
@@ -269,7 +273,6 @@ namespace ToolManagementAppV2.ViewModels
             {
                 if (await _showLoginWindow())
                 {
-                    RefreshCurrentUser();
                     OpenDashboardCommand.Execute(null);
                 }
                 else
@@ -368,6 +371,12 @@ namespace ToolManagementAppV2.ViewModels
         /// <inheritdoc />
         public void Dispose()
         {
+            if (_userContextChangedHandler != null)
+            {
+                _userContext.UserChanged -= _userContextChangedHandler;
+                _userContextChangedHandler = null;
+            }
+
             if (_toolManagementPropertyChangedHandler != null)
             {
                 ToolManagement.PropertyChanged -= _toolManagementPropertyChangedHandler;

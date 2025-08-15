@@ -91,9 +91,6 @@ namespace ToolManagementAppV2
                 return;
             }
 
-            if (main.DataContext is MainViewModel vm)
-                vm.RefreshCurrentUser();
-
             if (main.WindowState == WindowState.Minimized) main.WindowState = WindowState.Normal;
             main.Activate();
             main.Focus();
