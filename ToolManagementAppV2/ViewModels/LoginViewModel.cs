@@ -178,8 +178,8 @@ namespace ToolManagementAppV2.ViewModels
 
             if (user.IsAdmin && string.IsNullOrWhiteSpace(user.Password))
             {
-                _userService.ChangeUserPassword(user.UserID, "admin");
-                var refreshed = _userService.GetUserByID(user.UserID);
+                await _userService.ChangeUserPasswordAsync(user.UserID, "admin");
+                var refreshed = await _userService.GetUserByIDAsync(user.UserID);
                 if (refreshed != null)
                 {
                     user.Password = refreshed.Password;
@@ -211,15 +211,15 @@ namespace ToolManagementAppV2.ViewModels
 
                 if (promptResult.IsPasswordResetRequested)
                 {
-                    _userService.ChangeUserPassword(user.UserID, "admin");
-                    var refreshed = _userService.GetUserByID(user.UserID);
+                    await _userService.ChangeUserPasswordAsync(user.UserID, "admin");
+                    var refreshed = await _userService.GetUserByIDAsync(user.UserID);
                     if (refreshed != null)
                     {
                         user.Password = refreshed.Password;
                         user.Salt = refreshed.Salt;
                         user.PasswordExpired = refreshed.PasswordExpired;
                     }
-                    LoadUsersCommand.Execute(null);
+                    await LoadUsersCommand.ExecuteAsync(null);
                     _dialogService.ShowInfo("Password has been reset to default. Please enter the new password to login.",
                         "Password Reset");
                     continue;
