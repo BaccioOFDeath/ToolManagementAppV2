@@ -91,7 +91,7 @@ namespace ToolManagementAppV2.ViewModels
         public IAsyncRelayCommand OpenManageToolsCommand { get; }
         public IAsyncRelayCommand OpenRentalsCommand { get; }
         public IAsyncRelayCommand OpenCustomersCommand { get; }
-        public IRelayCommand OpenUsersCommand { get; }
+        public IAsyncRelayCommand OpenUsersCommand { get; }
         public IRelayCommand OpenSettingsCommand { get; }
         public IRelayCommand OpenImportExportCommand { get; }
         public IRelayCommand OpenActivityLogsCommand { get; }
@@ -192,9 +192,9 @@ namespace ToolManagementAppV2.ViewModels
                 CurrentPage = page;
             });
 
-            OpenUsersCommand = new RelayCommand(() =>
+            OpenUsersCommand = new AsyncRelayCommand(async () =>
             {
-                UserManagement.LoadUsers();
+                await UserManagement.LoadUsersAsync();
                 var page = new UsersPage
                 {
                     // UsersPage expects a UserManagementViewModel as its DataContext

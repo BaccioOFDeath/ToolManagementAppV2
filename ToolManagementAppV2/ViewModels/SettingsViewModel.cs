@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.ViewModels
 {
-    internal class SettingsViewModel : ObservableObject
+    public class SettingsViewModel : ObservableObject
     {
         readonly IFileDialogService _fileDialog;
         readonly ISettingsService _settingsService;
