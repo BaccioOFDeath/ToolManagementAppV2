@@ -24,7 +24,7 @@ namespace ToolManagementAppV2
     {
         private ServiceProvider? _serviceProvider;
 
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
             ShutdownMode = ShutdownMode.OnMainWindowClose;
             base.OnStartup(e);
@@ -80,6 +80,9 @@ namespace ToolManagementAppV2
                 Owner = main,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
             };
+
+            if (login.DataContext is LoginViewModel lvm)
+                await lvm.InitializeAsync();
 
             var ok = login.ShowDialog() == true;
             if (!ok)

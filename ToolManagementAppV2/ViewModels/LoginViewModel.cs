@@ -42,8 +42,19 @@ namespace ToolManagementAppV2.ViewModels
             set => SetProperty(ref _selectedUser, value);
         }
 
-        public BitmapImage CompanyLogo { get; }
-        public string WindowTitle { get; }
+        BitmapImage _companyLogo;
+        public BitmapImage CompanyLogo
+        {
+            get => _companyLogo;
+            private set => SetProperty(ref _companyLogo, value);
+        }
+
+        string _windowTitle = string.Empty;
+        public string WindowTitle
+        {
+            get => _windowTitle;
+            private set => SetProperty(ref _windowTitle, value);
+        }
 
         /// <summary>
         /// Command invoked when the user selects an account from the list. It calls
@@ -76,9 +87,6 @@ namespace ToolManagementAppV2.ViewModels
             _dialogService = dialogService;
             _userContext = userContext;
 
-            CompanyLogo = LoadLogoAsync().GetAwaiter().GetResult();
-            WindowTitle = GetWindowTitleAsync().GetAwaiter().GetResult();
-
             SelectUserCommand = new AsyncRelayCommand<User>(OnUserSelected);
 
             PromptForPasswordAsync = (u, ct) =>
@@ -94,7 +102,13 @@ namespace ToolManagementAppV2.ViewModels
             };
 
             LoadUsersCommand = new AsyncRelayCommand(LoadUsersAsync);
-            LoadUsersCommand.Execute(null);
+        }
+
+        public async Task InitializeAsync()
+        {
+            CompanyLogo = await LoadLogoAsync();
+            WindowTitle = await GetWindowTitleAsync();
+            await LoadUsersCommand.ExecuteAsync(null);
         }
 
         async Task<BitmapImage> LoadLogoAsync()
