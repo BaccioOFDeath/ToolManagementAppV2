@@ -55,7 +55,7 @@ namespace ToolManagementAppV2
             _serviceProvider = services.BuildServiceProvider();
 
             var loggerFactory = _serviceProvider.GetRequiredService<ILoggerFactory>();
-            PathHelper.Configure(loggerFactory.CreateLogger<PathHelper>());
+            PathHelper.Configure(loggerFactory.CreateLogger("PathHelper"));
 
             var db = new DatabaseService(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db"), loggerFactory.CreateLogger<DatabaseService>());
             var toolService = new ToolService(db, loggerFactory.CreateLogger<ToolService>());
