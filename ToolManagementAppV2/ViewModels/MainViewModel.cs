@@ -98,7 +98,7 @@ namespace ToolManagementAppV2.ViewModels
         public IAsyncRelayCommand OpenUsersCommand { get; }
         public IRelayCommand OpenSettingsCommand { get; }
         public IRelayCommand OpenImportExportCommand { get; }
-        public IRelayCommand OpenActivityLogsCommand { get; }
+        public IAsyncRelayCommand OpenActivityLogsCommand { get; }
         public IRelayCommand OpenReportsCommand { get; }
         public IAsyncRelayCommand OpenImportMappingWindowCommand { get; }
         public IRelayCommand OpenImageImportMappingWindowCommand { get; }
@@ -230,9 +230,9 @@ namespace ToolManagementAppV2.ViewModels
                 CurrentPage = page;
             });
 
-            OpenActivityLogsCommand = new RelayCommand(() =>
+            OpenActivityLogsCommand = new AsyncRelayCommand(async () =>
             {
-                ActivityLogs.LoadLogs();
+                await ActivityLogs.LoadLogsAsync();
                 var page = new ActivityLogsPage { DataContext = ActivityLogs, Title = "Activity Logs" };
                 CurrentPage = page;
             });

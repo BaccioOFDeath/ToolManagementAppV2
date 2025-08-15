@@ -22,7 +22,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     public class NewPageViewModelTests
     {
         [Fact]
-        public void ActivityLogsViewModel_LoadsLogs()
+        public async Task ActivityLogsViewModel_LoadsLogsAsync()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -31,7 +31,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var service = new ActivityLogService(db);
                 service.LogAction(1, "user", "action");
                 var vm = new ActivityLogsViewModel(service);
-                vm.LoadLogs();
+                await vm.LoadLogsAsync();
                 Assert.NotEmpty(vm.Logs);
             }
             finally
