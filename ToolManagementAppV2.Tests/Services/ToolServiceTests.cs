@@ -376,6 +376,75 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
+        public void ImportToolImages_CopiesFilesToDestination()
+        {
+            var dbPath = Path.GetTempFileName();
+            var imgDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(imgDir);
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService svc = new ToolService(db);
+                svc.AddTool(new Tool { ToolNumber = "T1", NameDescription = "A" });
+                File.WriteAllText(Path.Combine(imgDir, "T1.jpg"), string.Empty);
+
+                var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+                if (Directory.Exists(destDir)) Directory.Delete(destDir, true);
+
+                var result = svc.ImportToolImages(imgDir, t => new[] { t.ToolNumber });
+
+                Assert.Equal(1, result.ImportedCount);
+                var expected = Path.Combine(destDir, "T1.jpg");
+                Assert.True(File.Exists(expected));
+
+                var tool = svc.GetAllTools().First();
+                Assert.Equal($"Images/{Path.GetFileName(expected)}", tool.ToolImagePath);
+            }
+            finally
+            {
+                var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+                if (Directory.Exists(destDir)) Directory.Delete(destDir, true);
+                if (Directory.Exists(imgDir)) Directory.Delete(imgDir, true);
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void ImportToolImages_DestinationCreationFails_LogsErrorAndAborts()
+        {
+            var dbPath = Path.GetTempFileName();
+            var imgDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(imgDir);
+            var destPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+            var destFile = false;
+            try
+            {
+                File.WriteAllText(Path.Combine(imgDir, "T1.jpg"), string.Empty);
+
+                if (Directory.Exists(destPath)) Directory.Delete(destPath, true);
+                File.WriteAllText(destPath, "blocking file");
+                destFile = true;
+
+                var logs = new List<LogEntry>();
+                using var loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
+                var db = new DatabaseService(dbPath);
+                var svc = new ToolService(db, loggerFactory.CreateLogger<ToolService>());
+                svc.AddTool(new Tool { ToolNumber = "T1", NameDescription = "A" });
+
+                var result = svc.ImportToolImages(imgDir, t => new[] { t.ToolNumber });
+
+                Assert.Equal(0, result.ImportedCount);
+                Assert.Contains(logs, l => l.Level == LogLevel.Error && l.Message.Contains("Failed to create image directory"));
+            }
+            finally
+            {
+                if (destFile && File.Exists(destPath)) File.Delete(destPath);
+                if (Directory.Exists(imgDir)) Directory.Delete(imgDir, true);
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public async Task GetAllToolsAsync_ReturnsTools()
         {
             var dbPath = Path.GetTempFileName();
