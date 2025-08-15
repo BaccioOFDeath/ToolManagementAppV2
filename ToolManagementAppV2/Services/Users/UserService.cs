@@ -269,7 +269,11 @@ namespace ToolManagementAppV2.Services.Users
             return true;
         }
 
-        public bool DeleteUser(int userID) => TryDeleteUser(userID);
+        public void DeleteUser(int userID)
+        {
+            if (!TryDeleteUser(userID))
+                throw new InvalidOperationException($"Failed to delete user {userID}");
+        }
 
         void DeleteUserInternal(int userID)
         {
@@ -559,6 +563,10 @@ namespace ToolManagementAppV2.Services.Users
             return true;
         }
 
-        public Task<bool> DeleteUserAsync(int userID) => TryDeleteUserAsync(userID);
+        public async Task DeleteUserAsync(int userID)
+        {
+            if (!await TryDeleteUserAsync(userID))
+                throw new InvalidOperationException($"Failed to delete user {userID}");
+        }
     }
 }

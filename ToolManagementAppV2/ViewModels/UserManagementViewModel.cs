@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.Utilities.Helpers;
@@ -39,16 +40,16 @@ namespace ToolManagementAppV2.ViewModels
             {
                 if (SetProperty(ref _selectedUser, value))
                 {
-                    ((RelayCommand)UpdateUserCommand).NotifyCanExecuteChanged();
+                    ((AsyncRelayCommand)UpdateUserCommand).NotifyCanExecuteChanged();
                     ((RelayCommand)EditUserCommand).NotifyCanExecuteChanged();
                 }
             }
         }
 
-        public IRelayCommand LoadUsersCommand { get; }
-        public IRelayCommand UploadUserPhotoCommand { get; }
-        public IRelayCommand UpdateUserCommand { get; }
-        public IRelayCommand AddUserCommand { get; }
+        public IAsyncRelayCommand LoadUsersCommand { get; }
+        public IAsyncRelayCommand UploadUserPhotoCommand { get; }
+        public IAsyncRelayCommand UpdateUserCommand { get; }
+        public IAsyncRelayCommand AddUserCommand { get; }
 
         public IRelayCommand SearchUsersCommand { get; }
         public IRelayCommand ClearUserSearchCommand { get; }
@@ -67,10 +68,10 @@ namespace ToolManagementAppV2.ViewModels
             _fileDialogService = fileDialogService;
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<UserManagementViewModel>.Instance;
-            LoadUsersCommand = new RelayCommand(LoadUsers);
-            UploadUserPhotoCommand = new RelayCommand(UploadUserPhoto);
-            UpdateUserCommand = new RelayCommand(UpdateUser, () => SelectedUser != null);
-            AddUserCommand = new RelayCommand(AddUser);
+            LoadUsersCommand = new AsyncRelayCommand(LoadUsersAsync);
+            UploadUserPhotoCommand = new AsyncRelayCommand(UploadUserPhotoAsync);
+            UpdateUserCommand = new AsyncRelayCommand(UpdateUserAsync, () => SelectedUser != null);
+            AddUserCommand = new AsyncRelayCommand(AddUserAsync);
 
             SearchUsersCommand = new RelayCommand(SearchUsers);
             ClearUserSearchCommand = new RelayCommand(ClearUserSearch);
@@ -81,46 +82,76 @@ namespace ToolManagementAppV2.ViewModels
             DeleteUserFromRowCommand = new RelayCommand<UserModel>(DeleteUser);
         }
 
-        public void LoadUsers()
+        public async Task LoadUsersAsync()
         {
-            _allUsers = _userService.GetAllUsers();
-            Users.ReplaceRange(_allUsers);
+            try
+            {
+                _allUsers = await _userService.GetAllUsersAsync();
+                Users.ReplaceRange(_allUsers);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load users");
+            }
         }
 
-        public void UploadUserPhoto()
+        public async Task UploadUserPhotoAsync()
         {
             if (SelectedUser == null) return;
             var path = _fileDialogService.OpenFile("Image Files|*.png;*.jpg;*.jpeg;*.bmp|All Files|*.*");
             if (!string.IsNullOrEmpty(path))
             {
                 SelectedUser.UserPhotoPath = path;
-                _userService.UpdateUser(SelectedUser);
+                try
+                {
+                    await _userService.UpdateUserAsync(SelectedUser);
+                    var idxAll = _allUsers.IndexOf(SelectedUser);
+                    if (idxAll >= 0) _allUsers[idxAll] = SelectedUser;
+                    var idx = Users.IndexOf(SelectedUser);
+                    if (idx >= 0) Users[idx] = SelectedUser;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to update user photo");
+                }
+            }
+        }
+
+        public async Task UpdateUserAsync()
+        {
+            if (SelectedUser == null) return;
+            try
+            {
+                await _userService.UpdateUserAsync(SelectedUser);
                 var idxAll = _allUsers.IndexOf(SelectedUser);
                 if (idxAll >= 0) _allUsers[idxAll] = SelectedUser;
                 var idx = Users.IndexOf(SelectedUser);
                 if (idx >= 0) Users[idx] = SelectedUser;
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update user");
+            }
         }
 
-        public void UpdateUser()
-        {
-            if (SelectedUser == null) return;
-            _userService.UpdateUser(SelectedUser);
-            var idxAll = _allUsers.IndexOf(SelectedUser);
-            if (idxAll >= 0) _allUsers[idxAll] = SelectedUser;
-            var idx = Users.IndexOf(SelectedUser);
-            if (idx >= 0) Users[idx] = SelectedUser;
-        }
-
-        public void AddUser()
+        public async Task AddUserAsync()
         {
             // Determine the next available user name by querying the service
             // for all existing names and incrementing the suffix until an
             // unused value is found. This avoids collisions even if the
             // local collection is out of date.
-            var existingNames = new HashSet<string>(
-                _userService.GetAllUsers().Select(u => u.UserName),
-                StringComparer.OrdinalIgnoreCase);
+            HashSet<string> existingNames;
+            try
+            {
+                existingNames = new HashSet<string>(
+                    (await _userService.GetAllUsersAsync()).Select(u => u.UserName),
+                    StringComparer.OrdinalIgnoreCase);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve existing users");
+                return;
+            }
 
             var idx = 1;
             string name;
@@ -148,10 +179,17 @@ namespace ToolManagementAppV2.ViewModels
                 newUser.Password = entered;
             }
 
-            _userService.AddUser(newUser);
-            _allUsers.Add(newUser);
-            Users.Add(newUser);
-            SelectedUser = newUser;
+            try
+            {
+                await _userService.AddUserAsync(newUser);
+                _allUsers.Add(newUser);
+                Users.Add(newUser);
+                SelectedUser = newUser;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to add user");
+            }
         }
 
         protected virtual bool TryPromptForPassword(UserModel newUser, out string password)
@@ -225,13 +263,20 @@ namespace ToolManagementAppV2.ViewModels
             win = new UsersEditWindow(clone,
                 onSave: () =>
                 {
-                    _userService.UpdateUser(clone);
-                    var idx = Users.IndexOf(user);
-                    if (idx >= 0) Users[idx] = clone;
-                    var idxAll = _allUsers.IndexOf(user);
-                    if (idxAll >= 0) _allUsers[idxAll] = clone;
-                    if (ReferenceEquals(SelectedUser, user)) SelectedUser = clone;
-                    win.DialogResult = true;
+                    try
+                    {
+                        _userService.UpdateUserAsync(clone).GetAwaiter().GetResult();
+                        var idx = Users.IndexOf(user);
+                        if (idx >= 0) Users[idx] = clone;
+                        var idxAll = _allUsers.IndexOf(user);
+                        if (idxAll >= 0) _allUsers[idxAll] = clone;
+                        if (ReferenceEquals(SelectedUser, user)) SelectedUser = clone;
+                        win.DialogResult = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to update user");
+                    }
                 },
                 onCancel: () => win.Close(),
                 onRemoveAvatar: () => clone.UserPhotoPath = null);
@@ -259,11 +304,16 @@ namespace ToolManagementAppV2.ViewModels
         void DeleteUser(UserModel user)
         {
             if (user == null) return;
-            if (_userService.TryDeleteUser(user.UserID))
+            try
             {
+                _userService.DeleteUser(user.UserID);
                 _allUsers.Remove(user);
                 Users.Remove(user);
                 if (ReferenceEquals(SelectedUser, user)) SelectedUser = null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete user {UserID}", user.UserID);
             }
         }
     }
