@@ -26,7 +26,7 @@ namespace ToolManagementAppV2.ViewModels
 
         public IAsyncRelayCommand ImportToolsCommand { get; }
         public IAsyncRelayCommand ExportToolsCommand { get; }
-        public IRelayCommand ImportCustomersCommand { get; }
+        public IAsyncRelayCommand ImportCustomersCommand { get; }
         public IRelayCommand ExportCustomersCommand { get; }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace ToolManagementAppV2.ViewModels
             _logger = logger ?? NullLogger<ImportExportViewModel>.Instance;
             ImportToolsCommand = new AsyncRelayCommand(ImportToolsAsync);
             ExportToolsCommand = new AsyncRelayCommand(ExportToolsAsync);
-            ImportCustomersCommand = new RelayCommand(ImportCustomers);
+            ImportCustomersCommand = new AsyncRelayCommand(ImportCustomersAsync);
             ExportCustomersCommand = new RelayCommand(ExportCustomers);
             BackupDatabaseCommand = new AsyncRelayCommand(BackupDatabaseAsync);
         }
@@ -101,18 +101,18 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        void ImportCustomers()
+        async Task ImportCustomersAsync()
         {
             var path = _fileDialogService.OpenFile("CSV Files|*.csv");
             if (string.IsNullOrEmpty(path)) return;
             try
             {
-                var headers = CsvHelperUtil.ReadHeaders(path);
+                var headers = await CsvHelperUtil.ReadHeadersAsync(path);
                 var properties = typeof(CustomerImportDto).GetProperties().Select(p => p.Name);
                 var map = _dialogService.ShowImportMapping(headers, properties);
                 if (map == null)
                     return;
-                var result = _customerService.ImportCustomersFromCsv(path, map);
+                var result = await _customerService.ImportCustomersFromCsvAsync(path, map);
                 ImportExportLogs.Add($"Successfully imported customers from {path}. Imported {result.ImportedCount} customers.");
                 foreach (var msg in result.SkippedRows)
                     ImportExportLogs.Add($"Skipped {msg}");
