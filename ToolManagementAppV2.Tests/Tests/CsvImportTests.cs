@@ -33,6 +33,29 @@ public class CsvImportTests
     }
 
     [Fact]
+    public void LoadToolsFromCsv_HandlesQuotedHeaders()
+    {
+        var csv = string.Join('\n',
+            "\"ToolNumber\",\"NameDescription\",\"AvailableQuantity\"",
+            "T1,Hammer,5");
+        var path = Path.GetTempFileName();
+        File.WriteAllText(path, csv);
+
+        var map = new Dictionary<string, string>
+        {
+            { "ToolNumber", "ToolNumber" },
+            { "NameDescription", "NameDescription" },
+            { "AvailableQuantity", "AvailableQuantity" }
+        };
+
+        var tools = CsvHelperUtil.LoadToolsFromCsv(path, map, out var invalid);
+
+        Assert.Single(tools);
+        Assert.Empty(invalid);
+        Assert.Equal("T1", tools[0].ToolNumber);
+    }
+
+    [Fact]
     public void LoadToolsFromCsv_MissingRequiredMapping_Throws()
     {
         var csv = string.Join('\n',

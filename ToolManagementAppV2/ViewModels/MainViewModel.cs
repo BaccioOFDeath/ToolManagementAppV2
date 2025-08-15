@@ -18,6 +18,7 @@ using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Views;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ToolManagementAppV2.Utilities.IO;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -306,11 +307,7 @@ namespace ToolManagementAppV2.ViewModels
                 if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
                     return;
 
-                var headers = File.ReadLines(path)
-                                   .First()
-                                   .Split(',')
-                                   .Select(h => h.Trim())
-                                   .ToList();
+                var headers = CsvHelperUtil.ReadHeaders(path).ToList();
                 var properties = typeof(ToolModel)
                                     .GetProperties()
                                     .Select(p => p.Name)

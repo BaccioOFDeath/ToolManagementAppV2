@@ -11,6 +11,7 @@ using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.ImportExport;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ToolManagementAppV2.Utilities.IO;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -65,7 +66,7 @@ namespace ToolManagementAppV2.ViewModels
             if (string.IsNullOrEmpty(path)) return;
             try
             {
-                var headers = File.ReadLines(path).First().Split(',').Select(h => h.Trim());
+                var headers = CsvHelperUtil.ReadHeaders(path);
                 var properties = typeof(ToolImportDto).GetProperties().Select(p => p.Name);
                 var map = _dialogService.ShowImportMapping(headers, properties);
                 if (map == null)
@@ -106,7 +107,7 @@ namespace ToolManagementAppV2.ViewModels
             if (string.IsNullOrEmpty(path)) return;
             try
             {
-                var headers = File.ReadLines(path).First().Split(',').Select(h => h.Trim());
+                var headers = CsvHelperUtil.ReadHeaders(path);
                 var properties = typeof(CustomerImportDto).GetProperties().Select(p => p.Name);
                 var map = _dialogService.ShowImportMapping(headers, properties);
                 if (map == null)
