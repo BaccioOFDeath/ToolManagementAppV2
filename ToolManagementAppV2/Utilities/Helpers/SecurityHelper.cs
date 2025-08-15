@@ -8,7 +8,7 @@ namespace ToolManagementAppV2.Utilities.Helpers
     public static class SecurityHelper
     {
         const int DefaultIterations = 100_000;
-        static int? _iterations;
+        static Lazy<int> _iterations = CreateIterations();
         static ISettingsService? _settingsService;
 
         public static ISettingsService? SettingsService
@@ -17,7 +17,7 @@ namespace ToolManagementAppV2.Utilities.Helpers
             set
             {
                 _settingsService = value;
-                _iterations = null;
+                _iterations = CreateIterations();
             }
         }
         const string PasswordChars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789!@#$%^&*";
@@ -93,14 +93,12 @@ namespace ToolManagementAppV2.Utilities.Helpers
             return builder.ToString();
         }
 
-        static int GetIterations()
+        static Lazy<int> CreateIterations() => new(() =>
         {
-            if (_iterations.HasValue)
-                return _iterations.Value;
-
             var value = _settingsService?.GetPasswordIterations();
-            _iterations = value > 0 ? value : DefaultIterations;
-            return _iterations.Value;
-        }
+            return value > 0 ? value : DefaultIterations;
+        }, true);
+
+        static int GetIterations() => _iterations.Value;
     }
 }
