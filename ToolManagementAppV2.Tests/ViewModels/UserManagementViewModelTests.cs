@@ -64,6 +64,117 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public async Task EditUserAsync_PersistsChanges()
+        {
+            var svc = new InMemoryUserService();
+            svc.AddUser(new User { UserName = "user1", Password = "pw" });
+            var dialog = new StubDialogService();
+            var vm = new UserManagementViewModel(svc, new StubFileDialogService(), dialog);
+            await vm.LoadUsersAsync();
+            var user = vm.Users.First();
+            vm.SelectedUser = user;
+
+            var clone = new User
+            {
+                UserID = user.UserID,
+                UserName = user.UserName,
+                Password = user.Password,
+                Salt = user.Salt,
+                UserPhotoPath = user.UserPhotoPath,
+                IsAdmin = user.IsAdmin,
+                Email = "edited@example.com",
+                Phone = user.Phone,
+                Mobile = user.Mobile,
+                Address = user.Address,
+                Role = user.Role,
+                IsActive = user.IsActive,
+                CreatedAt = user.CreatedAt
+            };
+
+            Func<Task> onSave = async () =>
+            {
+                try
+                {
+                    await svc.UpdateUserAsync(clone);
+                    var idx = vm.Users.IndexOf(user);
+                    if (idx >= 0) vm.Users[idx] = clone;
+                    var field = typeof(UserManagementViewModel).GetField("_allUsers", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var allUsers = (List<User>)field!.GetValue(vm);
+                    var idxAll = allUsers.IndexOf(user);
+                    if (idxAll >= 0) allUsers[idxAll] = clone;
+                    if (ReferenceEquals(vm.SelectedUser, user)) vm.SelectedUser = clone;
+                }
+                catch (Exception ex)
+                {
+                    dialog.ShowInfo($"Failed to update user: {ex.Message}", "Error");
+                }
+            };
+
+            var editVm = new UsersEditViewModel(clone, onSave, () => { }, () => { }, () => { });
+            await editVm.SaveCommand.ExecuteAsync(null);
+
+            Assert.Equal("edited@example.com", svc.Users.First().Email);
+            Assert.Equal("edited@example.com", vm.Users.First().Email);
+            var allField = typeof(UserManagementViewModel).GetField("_allUsers", BindingFlags.NonPublic | BindingFlags.Instance);
+            var allList = (List<User>)allField!.GetValue(vm);
+            Assert.Equal("edited@example.com", allList.First().Email);
+        }
+
+        [Fact]
+        public async Task EditUserAsync_ShowsErrorOnFailure()
+        {
+            var svc = new FailingUserService();
+            svc.AddUser(new User { UserID = 1, UserName = "user1", Password = "pw" });
+            var dialog = new StubDialogService();
+            var vm = new UserManagementViewModel(svc, new StubFileDialogService(), dialog);
+            await vm.LoadUsersAsync();
+            var user = vm.Users.First();
+            vm.SelectedUser = user;
+
+            var clone = new User
+            {
+                UserID = user.UserID,
+                UserName = user.UserName,
+                Password = user.Password,
+                Salt = user.Salt,
+                UserPhotoPath = user.UserPhotoPath,
+                IsAdmin = user.IsAdmin,
+                Email = "edited@example.com",
+                Phone = user.Phone,
+                Mobile = user.Mobile,
+                Address = user.Address,
+                Role = user.Role,
+                IsActive = user.IsActive,
+                CreatedAt = user.CreatedAt
+            };
+
+            Func<Task> onSave = async () =>
+            {
+                try
+                {
+                    await svc.UpdateUserAsync(clone);
+                    var idx = vm.Users.IndexOf(user);
+                    if (idx >= 0) vm.Users[idx] = clone;
+                    var field = typeof(UserManagementViewModel).GetField("_allUsers", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var allUsers = (List<User>)field!.GetValue(vm);
+                    var idxAll = allUsers.IndexOf(user);
+                    if (idxAll >= 0) allUsers[idxAll] = clone;
+                    if (ReferenceEquals(vm.SelectedUser, user)) vm.SelectedUser = clone;
+                }
+                catch (Exception ex)
+                {
+                    dialog.ShowInfo($"Failed to update user: {ex.Message}", "Error");
+                }
+            };
+
+            var editVm = new UsersEditViewModel(clone, onSave, () => { }, () => { }, () => { });
+            await editVm.SaveCommand.ExecuteAsync(null);
+
+            Assert.Equal("Error", dialog.LastInfoTitle);
+            Assert.StartsWith("Failed to update user:", dialog.LastInfoMessage);
+        }
+
+        [Fact]
         public async Task UploadUserPhotoCommand_SetsPhotoPathAndPersists()
         {
             var dbPath = Path.GetTempFileName();
