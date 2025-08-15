@@ -17,19 +17,15 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
-
             var admin = new User { UserName = "admin", Password = "pw", IsAdmin = true };
             userService.AddUser(admin);
-
             var result = userService.TryDeleteUser(admin.UserID);
-
             Assert.False(result);
             Assert.NotNull(userService.GetUserByID(admin.UserID));
         }
         finally
         {
-            if (File.Exists(dbPath))
-                File.Delete(dbPath);
+            if (File.Exists(dbPath)) File.Delete(dbPath);
         }
     }
 
@@ -41,22 +37,18 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
-
             var admin1 = new User { UserName = "admin1", Password = "pw", IsAdmin = true };
             var admin2 = new User { UserName = "admin2", Password = "pw", IsAdmin = true };
             userService.AddUser(admin1);
             userService.AddUser(admin2);
-
             var result = userService.TryDeleteUser(admin1.UserID);
-
             Assert.True(result);
             Assert.Null(userService.GetUserByID(admin1.UserID));
             Assert.NotNull(userService.GetUserByID(admin2.UserID));
         }
         finally
         {
-            if (File.Exists(dbPath))
-                File.Delete(dbPath);
+            if (File.Exists(dbPath)) File.Delete(dbPath);
         }
     }
 
@@ -68,17 +60,13 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
-
             userService.AddUser(new User { UserName = "dup", Password = "pw" });
-
-            var ex = Assert.Throws<InvalidOperationException>(() =>
-                userService.AddUser(new User { UserName = "dup", Password = "pw" }));
+            var ex = Assert.Throws<InvalidOperationException>(() => userService.AddUser(new User { UserName = "dup", Password = "pw" }));
             Assert.Contains("username", ex.Message, StringComparison.OrdinalIgnoreCase);
         }
         finally
         {
-            if (File.Exists(dbPath))
-                File.Delete(dbPath);
+            if (File.Exists(dbPath)) File.Delete(dbPath);
         }
     }
 
@@ -90,17 +78,13 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             var userService = new UserService(dbService, new ApplicationUserContext());
-
             await userService.AddUserAsync(new User { UserName = "dup", Password = "pw" });
-
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                userService.AddUserAsync(new User { UserName = "dup", Password = "pw" }));
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => userService.AddUserAsync(new User { UserName = "dup", Password = "pw" }));
             Assert.Contains("username", ex.Message, StringComparison.OrdinalIgnoreCase);
         }
         finally
         {
-            if (File.Exists(dbPath))
-                File.Delete(dbPath);
+            if (File.Exists(dbPath)) File.Delete(dbPath);
         }
     }
 
@@ -112,15 +96,12 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
-
             var result = userService.ChangeUserPassword(9999, "newpass");
-
             Assert.False(result);
         }
         finally
         {
-            if (File.Exists(dbPath))
-                File.Delete(dbPath);
+            if (File.Exists(dbPath)) File.Delete(dbPath);
         }
     }
 
@@ -132,15 +113,52 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
-
             var result = await userService.ChangeUserPasswordAsync(9999, "newpass");
-
             Assert.False(result);
         }
         finally
         {
-            if (File.Exists(dbPath))
-                File.Delete(dbPath);
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public void GetAllUsers_DoesNotIncludeSensitiveFields()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+            userService.AddUser(new User { UserName = "list", Password = "pw", Salt = "s" });
+            var users = userService.GetAllUsers();
+            var user = users[0];
+            Assert.Null(user.Password);
+            Assert.Null(user.Salt);
+        }
+        finally
+        {
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public async Task GetAllUsersAsync_DoesNotIncludeSensitiveFields()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            var userService = new UserService(dbService, new ApplicationUserContext());
+            await userService.AddUserAsync(new User { UserName = "list", Password = "pw", Salt = "s" });
+            var users = await userService.GetAllUsersAsync();
+            var user = users[0];
+            Assert.Null(user.Password);
+            Assert.Null(user.Salt);
+        }
+        finally
+        {
+            if (File.Exists(dbPath)) File.Delete(dbPath);
         }
     }
 }

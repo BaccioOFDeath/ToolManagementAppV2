@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Linq;
 using System.Windows.Documents;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Services.Tools;
 
 namespace ToolManagementAppV2.ViewModels
@@ -34,7 +35,7 @@ namespace ToolManagementAppV2.ViewModels
             set => SetProperty(ref _reportResults, value);
         }
 
-        public IRelayCommand RunReportCommand { get; }
+        public IAsyncRelayCommand RunReportCommand { get; }
 
         public ReportsViewModel(ReportService reportService)
         {
@@ -51,22 +52,22 @@ namespace ToolManagementAppV2.ViewModels
                 "Full Rental History"
             };
 
-            RunReportCommand = new RelayCommand(RunReport, CanRunReport);
+            RunReportCommand = new AsyncRelayCommand(RunReportAsync, CanRunReport);
         }
 
         private bool CanRunReport() => !string.IsNullOrEmpty(SelectedReport);
 
-        private void RunReport()
+        private async Task RunReportAsync()
         {
             FlowDocument doc = SelectedReport switch
             {
-                "Summary" => _reportService.GenerateSummaryReport(),
-                "Inventory" => _reportService.GenerateInventoryReport(),
-                "Activity Log" => _reportService.GenerateActivityLogReport(),
-                "Customers" => _reportService.GenerateCustomerReport(),
-                "Users" => _reportService.GenerateUserReport(),
-                "Active Rentals" => _reportService.GenerateRentalReport(true),
-                "Full Rental History" => _reportService.GenerateRentalReport(false),
+                "Summary" => await _reportService.GenerateSummaryReportAsync(),
+                "Inventory" => await _reportService.GenerateInventoryReportAsync(),
+                "Activity Log" => await _reportService.GenerateActivityLogReportAsync(),
+                "Customers" => await _reportService.GenerateCustomerReportAsync(),
+                "Users" => await _reportService.GenerateUserReportAsync(),
+                "Active Rentals" => await _reportService.GenerateRentalReportAsync(true),
+                "Full Rental History" => await _reportService.GenerateRentalReportAsync(false),
                 _ => null
             };
 

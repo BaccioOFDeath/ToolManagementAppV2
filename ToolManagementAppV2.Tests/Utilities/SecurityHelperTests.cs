@@ -51,5 +51,14 @@ namespace ToolManagementAppV2.Tests.Utilities
             var actual = SecurityHelper.HashPassword("secret", salt);
             Assert.Equal(expected, actual);
         }
+
+        [Fact]
+        public void VerifyPassword_ReturnsTrueForValidHash()
+        {
+            SecurityHelper.SettingsService = null;
+            var hash = SecurityHelper.HashPassword("secret", out var salt);
+            var result = SecurityHelper.VerifyPassword("secret", salt, hash);
+            Assert.True(result);
+        }
     }
 }

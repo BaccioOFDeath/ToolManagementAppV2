@@ -22,7 +22,7 @@ public class UserAuthenticationTests
 
             var user = new User { UserName = "test", Password = "secret", IsAdmin = false };
             userService.AddUser(user);
-            var added = userService.GetAllUsers().First();
+            var added = userService.GetUserByID(user.UserID)!;
 
             Assert.NotEqual("secret", added.Password);
             Assert.False(SecurityHelper.IsSha256Hash(added.Password));
@@ -60,7 +60,7 @@ public class UserAuthenticationTests
             var auth = userService.AuthenticateUser("legacy", "secret");
             Assert.NotNull(auth);
 
-            var updated = userService.GetAllUsers().First(u => u.UserName == "legacy");
+            var updated = userService.GetUserByID(auth!.UserID)!;
             Assert.False(SecurityHelper.IsSha256Hash(updated.Password));
             Assert.False(string.IsNullOrWhiteSpace(updated.Salt));
             Assert.True(SecurityHelper.VerifyPassword("secret", updated.Salt, updated.Password));
