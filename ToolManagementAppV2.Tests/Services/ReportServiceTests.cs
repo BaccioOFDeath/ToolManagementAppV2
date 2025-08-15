@@ -16,7 +16,7 @@ namespace ToolManagementAppV2.Tests.Services
     public class ReportServiceTests
     {
         [Fact]
-        public void GenerateSummaryReportAsync_DoesNotDeadlock()
+        public void GenerateSummaryReportAsync_TaskRun_ReturnsSummary()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -62,7 +62,7 @@ namespace ToolManagementAppV2.Tests.Services
 
                 rentalService.RentTool(tool.ToolID, customer.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
-                var task = reportService.GenerateSummaryReportAsync();
+                var task = Task.Run(async () => await reportService.GenerateSummaryReportAsync());
                 Assert.True(task.Wait(TimeSpan.FromSeconds(5)), "GenerateSummaryReportAsync deadlocked.");
                 var doc = task.Result;
                 var text = new TextRange(doc.ContentStart, doc.ContentEnd).Text;
