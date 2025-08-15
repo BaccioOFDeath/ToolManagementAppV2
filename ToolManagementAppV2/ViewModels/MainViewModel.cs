@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -36,6 +37,8 @@ namespace ToolManagementAppV2.ViewModels
         readonly IDialogService _dialogService;
         readonly ILogger<MainViewModel> _logger;
         readonly Func<bool> _showLoginWindow;
+
+        PropertyChangedEventHandler? _toolManagementPropertyChangedHandler;
 
         public ToolManagementViewModel ToolManagement { get; }
         public UserManagementViewModel UserManagement { get; }
@@ -140,7 +143,7 @@ namespace ToolManagementAppV2.ViewModels
             });
 
             ToolManagement = new ToolManagementViewModel(toolService, customerService, rentalService, _dialogService);
-            ToolManagement.PropertyChanged += (s, e) =>
+            _toolManagementPropertyChangedHandler = (s, e) =>
             {
                 if (e.PropertyName == nameof(ToolManagementViewModel.SelectedTool))
                 {
@@ -148,6 +151,7 @@ namespace ToolManagementAppV2.ViewModels
                     OpenRentalHistoryWindowCommand.NotifyCanExecuteChanged();
                 }
             };
+            ToolManagement.PropertyChanged += _toolManagementPropertyChangedHandler;
             UserManagement = new UserManagementViewModel(userService, fileDialogService, _dialogService);
             CustomerManagement = new CustomerManagementViewModel(customerService, _dialogService);
             ManageRentals = new ManageRentalsViewModel(rentalService, _dialogService);
@@ -362,6 +366,11 @@ namespace ToolManagementAppV2.ViewModels
         /// <inheritdoc />
         public void Dispose()
         {
+            if (_toolManagementPropertyChangedHandler != null)
+            {
+                ToolManagement.PropertyChanged -= _toolManagementPropertyChangedHandler;
+                _toolManagementPropertyChangedHandler = null;
+            }
             ToolManagement.Dispose();
         }
     }
