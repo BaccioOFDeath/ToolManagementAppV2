@@ -82,14 +82,28 @@ namespace ToolManagementAppV2.ViewModels
         }
 
         private int _passwordIterations;
+        const int MaxPasswordIterations = 1_000_000;
         public int PasswordIterations
         {
             get => _passwordIterations;
             set
             {
                 if (value <= 0) return;
-                if (SetProperty(ref _passwordIterations, value))
-                    _settingsService.SavePasswordIterations(value);
+                var newValue = value;
+                if (value > MaxPasswordIterations)
+                {
+                    newValue = MaxPasswordIterations;
+                    try
+                    {
+                        _dialogService.ShowInfo($"Password iterations cannot exceed {MaxPasswordIterations} and have been set to {MaxPasswordIterations}.", "Password Iterations");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to display info dialog.");
+                    }
+                }
+                if (SetProperty(ref _passwordIterations, newValue))
+                    _settingsService.SavePasswordIterations(newValue);
             }
         }
 
