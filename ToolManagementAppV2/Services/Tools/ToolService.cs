@@ -25,6 +25,7 @@ namespace ToolManagementAppV2.Services.Tools
               (ToolNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, ToolImagePath, IsCheckedOut, IsPowerTool)
             VALUES (@ToolNumber,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Keywords,@Avail,@Rent,@Img,0,@Power);
             SELECT last_insert_rowid();";
+        const int MaxQuantityOnHand = 10000;
     
         readonly ILogger<ToolService> _logger;
 
@@ -91,6 +92,7 @@ namespace ToolManagementAppV2.Services.Tools
                 throw new ArgumentException("ToolNumber is required.", nameof(tool));
             if (ToolExists(tool.ToolNumber))
                 throw new InvalidOperationException($"Tool {tool.ToolNumber} already exists.");
+            ValidateQuantity(tool.QuantityOnHand);
             using var conn = _dbService.CreateConnection();
             InsertTool(conn, null, tool);
         }
@@ -107,6 +109,7 @@ namespace ToolManagementAppV2.Services.Tools
             var dup = Convert.ToInt32(SqliteHelper.ExecuteScalar(conn, dupSql, dupParams)) > 0;
             if (dup)
                 throw new InvalidOperationException($"Tool {tool.ToolNumber} already exists.");
+            ValidateQuantity(tool.QuantityOnHand);
             const string sql = @"
                 UPDATE Tools SET
                   ToolNumber = @ToolNumber,
@@ -284,8 +287,15 @@ namespace ToolManagementAppV2.Services.Tools
             }
         }
 
+        static void ValidateQuantity(int quantity)
+        {
+            if (quantity < 0 || quantity > MaxQuantityOnHand)
+                throw new ArgumentOutOfRangeException(nameof(Tool.QuantityOnHand), $"QuantityOnHand must be between 0 and {MaxQuantityOnHand}.");
+        }
+
         void InsertTool(SQLiteConnection conn, SQLiteTransaction? tran, ToolModel tool)
         {
+            ValidateQuantity(tool.QuantityOnHand);
             var p = new[]
             {
                 new SQLiteParameter("@ToolNumber", tool.ToolNumber),
@@ -311,6 +321,7 @@ namespace ToolManagementAppV2.Services.Tools
 
         async Task InsertToolAsync(SQLiteConnection conn, SQLiteTransaction? tran, ToolModel tool)
         {
+            ValidateQuantity(tool.QuantityOnHand);
             var p = new[]
             {
                 new SQLiteParameter("@ToolNumber", tool.ToolNumber),
@@ -463,6 +474,7 @@ namespace ToolManagementAppV2.Services.Tools
                 throw new ArgumentException("ToolNumber is required.", nameof(tool));
             if (await ToolExistsAsync(tool.ToolNumber))
                 throw new InvalidOperationException($"Tool {tool.ToolNumber} already exists.");
+            ValidateQuantity(tool.QuantityOnHand);
             using var conn = _dbService.CreateConnection();
             await InsertToolAsync(conn, null, tool);
         }
@@ -472,6 +484,7 @@ namespace ToolManagementAppV2.Services.Tools
             if (await ToolExistsAsync(tool.ToolNumber, tool.ToolID))
                 throw new InvalidOperationException($"Tool {tool.ToolNumber} already exists.");
             using var conn = _dbService.CreateConnection();
+            ValidateQuantity(tool.QuantityOnHand);
             const string sql = @"
                 UPDATE Tools SET
                   ToolNumber = @ToolNumber,

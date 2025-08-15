@@ -199,6 +199,35 @@ namespace ToolManagementAppV2.Tests.ViewModels
             public void ShowScannerStatus() { }
         }
 
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(10001)]
+        public async Task AddToolCommand_ShowsDialog_OnInvalidQuantity(int quantity)
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var dialog = new StubDialogService();
+                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
+                vm.NewTool.ToolNumber = "TN1";
+                vm.NewTool.NameDescription = "Hammer";
+                vm.NewTool.QuantityOnHand = quantity;
+                await vm.NewToolCommand.ExecuteAsync(null);
+                Assert.True(dialog.InfoShown);
+                Assert.Empty(toolService.GetAllTools());
+                Assert.Equal(quantity, vm.NewTool.QuantityOnHand);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
         [Fact]
         public async Task NewToolCommand_PersistsNewToolValues()
         {
