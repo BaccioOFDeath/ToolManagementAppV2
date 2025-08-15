@@ -1,4 +1,5 @@
 using System.Windows;
+using ToolManagementAppV2.Utilities.Extensions;
 
 namespace ToolManagementAppV2.Views
 {
@@ -7,6 +8,7 @@ namespace ToolManagementAppV2.Views
         public RentToolPopupWindow()
         {
             InitializeComponent();
+            this.DisposeDataContextOnUnload();
         }
     }
 }

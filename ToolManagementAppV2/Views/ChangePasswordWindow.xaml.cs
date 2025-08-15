@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using ToolManagementAppV2.ViewModels;
+using ToolManagementAppV2.Utilities.Extensions;
 
 namespace ToolManagementAppV2.Views
 {
@@ -14,6 +15,7 @@ namespace ToolManagementAppV2.Views
         {
             InitializeComponent();
             DataContext = new ChangePasswordViewModel(() => DialogResult = true, () => DialogResult = false);
+            this.DisposeDataContextOnUnload();
         }
 
         void NewPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)

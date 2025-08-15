@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.ViewModels
 {
-    public class ToolManagementViewModel : ObservableObject
+    public class ToolManagementViewModel : ObservableObject, IDisposable
     {
         private readonly IToolService _toolService;
         private readonly ICustomerService _customerService;
@@ -120,11 +120,7 @@ namespace ToolManagementAppV2.ViewModels
             _logger = logger ?? NullLogger<ToolManagementViewModel>.Instance;
             SearchCommand = new AsyncRelayCommand(FilterToolsAsync);
             _searchDebounceTimer = searchDebounceTimer ?? new DispatcherTimerWrapper { Interval = TimeSpan.FromMilliseconds(300) };
-            _searchDebounceTimer.Tick += (s, e) =>
-            {
-                _searchDebounceTimer.Stop();
-                SearchCommand.Execute(null);
-            };
+            _searchDebounceTimer.Tick += OnSearchDebounceTimerTick;
             NewToolCommand = new AsyncRelayCommand(AddToolAsync);
             EditToolCommand = new AsyncRelayCommand(EditToolAsync, () => SelectedTool != null);
             DeleteToolCommand = new AsyncRelayCommand(DeleteToolAsync);
@@ -135,6 +131,12 @@ namespace ToolManagementAppV2.ViewModels
             // instances.
             Tools.CollectionChanged -= Tools_CollectionChanged;
             Tools.CollectionChanged += Tools_CollectionChanged;
+        }
+
+        void OnSearchDebounceTimerTick(object? s, EventArgs e)
+        {
+            _searchDebounceTimer.Stop();
+            SearchCommand.Execute(null);
         }
 
         public async Task LoadToolsAsync()
@@ -331,5 +333,12 @@ namespace ToolManagementAppV2.ViewModels
 
         void Tools_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => LoadCategories(Tools);
 
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            _searchDebounceTimer.Tick -= OnSearchDebounceTimerTick;
+            _searchDebounceTimer.Stop();
+            Tools.CollectionChanged -= Tools_CollectionChanged;
+        }
     }
 }

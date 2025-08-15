@@ -548,6 +548,25 @@ namespace ToolManagementAppV2.Tests.ViewModels
             Assert.Equal(1, toolService.SearchToolsAsyncCalls);
         }
 
+        [Fact]
+        public void Dispose_StopsSearchDebounceTimer()
+        {
+            var tools = new List<ToolModel>
+            {
+                new Tool { ToolNumber = "T1", NameDescription = "Hammer" }
+            };
+            var toolService = new CountingToolService(tools);
+            var timer = new TestDispatcherTimer();
+            var vm = new ToolManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService(), null, timer);
+
+            vm.SearchText = "Ha";
+            Assert.True(timer.IsEnabled);
+
+            vm.Dispose();
+
+            Assert.False(timer.IsEnabled);
+        }
+
         class CountingToolService : IToolService
         {
             public int GetAllToolsAsyncCalls { get; private set; }

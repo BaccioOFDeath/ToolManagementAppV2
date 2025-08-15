@@ -5,6 +5,7 @@ using ToolManagementAppV2.Services.Devices;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.ViewModels;
+using ToolManagementAppV2.Utilities.Extensions;
 
 namespace ToolManagementAppV2.Views
 {
@@ -22,6 +23,7 @@ namespace ToolManagementAppV2.Views
             _ownedDb = new DatabaseService(dbPath);
             var settingsService = new SettingsService(_ownedDb);
             DataContext = new ScannerStatusViewModel(new ScannerService(settingsService));
+            this.DisposeDataContextOnUnload();
             Closed += (_, __) => _ownedDb.Dispose();
         }
     }

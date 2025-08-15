@@ -3,6 +3,7 @@ using System;
 using System.Windows;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.ViewModels;
+using ToolManagementAppV2.Utilities.Extensions;
 
 namespace ToolManagementAppV2
 {
@@ -23,6 +24,7 @@ namespace ToolManagementAppV2
 
             DataContext = viewModel;
             _ownedDb = ownedDatabaseService;
+            this.DisposeDataContextOnUnload();
 
             Closed += (_, __) => _ownedDb?.Dispose();
         }
