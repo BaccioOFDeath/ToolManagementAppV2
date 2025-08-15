@@ -2,10 +2,10 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
-using ToolManagementAppV2;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.Interfaces;
 using Xunit;
 
@@ -19,22 +19,19 @@ namespace ToolManagementAppV2.Tests
             var dbPath = Path.GetTempFileName();
             try
             {
-                var db = new DatabaseService(dbPath);
-                IUserService service = new UserService(db, new ApplicationUserContext());
-                service.AddUser(new User { UserName = "u", Password = "p", UserPhotoPath = "pack://application:,,,/Resources/NoImage.png" });
-
-                var logs = new List<LogEntry>();
-                var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
-                var originalFactory = App.LoggerFactory;
-                App.LoggerFactory = factory;
+                using var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
+                var db = new DatabaseService(dbPath, factory.CreateLogger<DatabaseService>());
+                IUserService service = new UserService(db, new ApplicationUserContext(), factory.CreateLogger<UserService>());
+                var original = PathHelper.Logger;
+                PathHelper.Configure(factory.CreateLogger<PathHelper>());
                 try
                 {
+                    service.AddUser(new User { UserName = "u", Password = "p", UserPhotoPath = "pack://application:,,,/Resources/NoImage.png" });
                     service.GetAllUsers();
                 }
                 finally
                 {
-                    App.LoggerFactory = originalFactory;
-                    factory.Dispose();
+                    PathHelper.Configure(original);
                 }
                 Assert.Empty(logs);
             }
@@ -50,22 +47,19 @@ namespace ToolManagementAppV2.Tests
             var dbPath = Path.GetTempFileName();
             try
             {
-                var db = new DatabaseService(dbPath);
-                IUserService service = new UserService(db, new ApplicationUserContext());
-                service.AddUser(new User { UserName = "u", Password = "p", UserPhotoPath = "invalid|path.png" });
-
-                var logs = new List<LogEntry>();
-                var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
-                var originalFactory = App.LoggerFactory;
-                App.LoggerFactory = factory;
+                using var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
+                var db = new DatabaseService(dbPath, factory.CreateLogger<DatabaseService>());
+                IUserService service = new UserService(db, new ApplicationUserContext(), factory.CreateLogger<UserService>());
+                var original = PathHelper.Logger;
+                PathHelper.Configure(factory.CreateLogger<PathHelper>());
                 try
                 {
+                    service.AddUser(new User { UserName = "u", Password = "p", UserPhotoPath = "invalid|path.png" });
                     service.GetAllUsers();
                 }
                 finally
                 {
-                    App.LoggerFactory = originalFactory;
-                    factory.Dispose();
+                    PathHelper.Configure(original);
                 }
                 Assert.Empty(logs);
             }

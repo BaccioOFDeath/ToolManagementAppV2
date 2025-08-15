@@ -1,12 +1,16 @@
 ﻿using System;
 using System.IO;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.Utilities.Helpers
 {
     public static class PathHelper
     {
-        private static readonly ILogger Logger = App.LoggerFactory.CreateLogger(nameof(PathHelper));
+        public static ILogger Logger { get; private set; } = NullLogger.Instance;
+
+        public static void Configure(ILogger logger)
+            => Logger = logger ?? NullLogger.Instance;
 
         /// <summary>
         /// Resolves <paramref name="path"/> against the application's base directory

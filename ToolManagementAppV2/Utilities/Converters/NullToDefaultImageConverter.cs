@@ -6,6 +6,7 @@ using System.Windows.Media.Imaging;
 using System.IO;
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.Utilities.Converters
 {
@@ -18,7 +19,12 @@ namespace ToolManagementAppV2.Utilities.Converters
         private static readonly ConcurrentDictionary<string, BitmapImage> _imageCache =
             new ConcurrentDictionary<string, BitmapImage>(StringComparer.OrdinalIgnoreCase);
         private static readonly ConcurrentQueue<string> _cacheOrder = new ConcurrentQueue<string>();
-        private static readonly ILogger Logger = App.LoggerFactory.CreateLogger<NullToDefaultImageConverter>();
+        private readonly ILogger<NullToDefaultImageConverter> _logger;
+
+        public NullToDefaultImageConverter(ILogger<NullToDefaultImageConverter>? logger = null)
+        {
+            _logger = logger ?? NullLogger<NullToDefaultImageConverter>.Instance;
+        }
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -60,7 +66,7 @@ namespace ToolManagementAppV2.Utilities.Converters
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(ex, "Failed to load image from {Path}", path);
+                    _logger.LogError(ex, "Failed to load image from {Path}", path);
                     // fall-through to default
                 }
             }
@@ -95,7 +101,7 @@ namespace ToolManagementAppV2.Utilities.Converters
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Failed to load resource {FileName}", fileName);
+                _logger.LogError(ex, "Failed to load resource {FileName}", fileName);
                 return new BitmapImage(); // empty fallback
             }
         }
@@ -112,7 +118,7 @@ namespace ToolManagementAppV2.Utilities.Converters
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "ConvertBack failed");
+                _logger.LogError(ex, "ConvertBack failed");
             }
 
             return System.Windows.Data.Binding.DoNothing;

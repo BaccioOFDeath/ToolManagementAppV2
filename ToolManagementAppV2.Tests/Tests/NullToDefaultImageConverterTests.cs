@@ -7,7 +7,6 @@ using ToolManagementAppV2.Utilities.Helpers;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
-using ToolManagementAppV2;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests
@@ -82,20 +81,13 @@ namespace ToolManagementAppV2.Tests
         public void LoadFromResource_InvalidFile_LogsError()
         {
             var logs = new List<LogEntry>();
-            var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
-            var originalFactory = App.LoggerFactory;
-            App.LoggerFactory = factory;
-            try
-            {
-                var converter = new NullToDefaultImageConverter();
-                var method = typeof(NullToDefaultImageConverter).GetMethod("LoadFromResource", BindingFlags.NonPublic | BindingFlags.Instance);
-                method!.Invoke(converter, new object[] { "NoSuchFile.png" });
-            }
-            finally
-            {
-                App.LoggerFactory = originalFactory;
-                factory.Dispose();
-            }
+            using var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
+            var logger = factory.CreateLogger<NullToDefaultImageConverter>();
+
+            var converter = new NullToDefaultImageConverter(logger);
+            var method = typeof(NullToDefaultImageConverter).GetMethod("LoadFromResource", BindingFlags.NonPublic | BindingFlags.Instance);
+            method!.Invoke(converter, new object[] { "NoSuchFile.png" });
+
             Assert.NotEmpty(logs);
         }
     }

@@ -3,8 +3,8 @@ using System;
 using System.IO;
 using System.Text;
 using System.Windows;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Serilog;
 using Serilog.Events;
 using ToolManagementAppV2.Interfaces;
@@ -22,7 +22,7 @@ namespace ToolManagementAppV2
 {
     public partial class App : System.Windows.Application
     {
-        public static ILoggerFactory LoggerFactory { get; set; } = NullLoggerFactory.Instance;
+        private ServiceProvider? _serviceProvider;
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -45,25 +45,31 @@ namespace ToolManagementAppV2
                     encoding: Encoding.UTF8))
                 .CreateLogger();
 
-            LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
+            var services = new ServiceCollection();
+            services.AddLogging(builder =>
             {
                 builder.ClearProviders();
                 builder.AddSerilog(Log.Logger, dispose: true);
             });
 
-            var db = new DatabaseService(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db"));
-            var toolService = new ToolService(db);
-            var customerService = new CustomerService(db);
-            var userContext = new ApplicationUserContext();
-            var userService = new UserService(db, userContext);
-            var rentalService = new RentalService(db, toolService);
-            var activityLogService = new ActivityLogService(db);
-            var fileDialogService = new FileDialogService();
-            var settingsService = new SettingsService(db);
-            SecurityHelper.SettingsService = settingsService;
-            IDialogService dialogService = new DialogService();
+            _serviceProvider = services.BuildServiceProvider();
 
-            var mainVm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, fileDialogService, activityLogService, settingsService, db, dialogService);
+            var loggerFactory = _serviceProvider.GetRequiredService<ILoggerFactory>();
+            PathHelper.Configure(loggerFactory.CreateLogger<PathHelper>());
+
+            var db = new DatabaseService(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db"), loggerFactory.CreateLogger<DatabaseService>());
+            var toolService = new ToolService(db, loggerFactory.CreateLogger<ToolService>());
+            var customerService = new CustomerService(db, loggerFactory.CreateLogger<CustomerService>());
+            var userContext = new ApplicationUserContext();
+            var userService = new UserService(db, userContext, loggerFactory.CreateLogger<UserService>());
+            var rentalService = new RentalService(db, toolService, loggerFactory.CreateLogger<RentalService>());
+            var activityLogService = new ActivityLogService(db, loggerFactory.CreateLogger<ActivityLogService>());
+            var fileDialogService = new FileDialogService();
+            var settingsService = new SettingsService(db, loggerFactory.CreateLogger<SettingsService>());
+            SecurityHelper.SettingsService = settingsService;
+            IDialogService dialogService = new DialogService(loggerFactory.CreateLogger<DialogService>());
+
+            var mainVm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, fileDialogService, activityLogService, settingsService, db, dialogService, loggerFactory.CreateLogger<MainViewModel>());
             var main = new MainWindow(mainVm, db);
 
             Current.MainWindow = main;
@@ -92,7 +98,7 @@ namespace ToolManagementAppV2
 
         protected override void OnExit(ExitEventArgs e)
         {
-            LoggerFactory.Dispose();
+            _serviceProvider?.Dispose();
             Log.CloseAndFlush();
             base.OnExit(e);
         }

@@ -3,12 +3,17 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.Utilities.Converters
 {
     public class NonEmptyStringToBoolConverter : IValueConverter
     {
-        private static readonly ILogger Logger = App.LoggerFactory.CreateLogger<NonEmptyStringToBoolConverter>();
+        private readonly ILogger<NonEmptyStringToBoolConverter> _logger;
+
+        public NonEmptyStringToBoolConverter(ILogger<NonEmptyStringToBoolConverter>? logger = null)
+            => _logger = logger ?? NullLogger<NonEmptyStringToBoolConverter>.Instance;
+
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
             !string.IsNullOrEmpty(value as string);
 
@@ -24,7 +29,7 @@ namespace ToolManagementAppV2.Utilities.Converters
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "ConvertBack failed");
+                _logger.LogError(ex, "ConvertBack failed");
             }
             return System.Windows.Data.Binding.DoNothing;
         }
