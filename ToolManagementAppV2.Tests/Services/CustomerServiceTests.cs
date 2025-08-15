@@ -9,6 +9,8 @@ using ToolManagementAppV2.Interfaces;
 using Xunit;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Models.ImportExport;
+using Microsoft.Extensions.Logging;
+using ToolManagementAppV2.Tests;
 
 namespace ToolManagementAppV2.Tests.Services
 {
@@ -143,6 +145,28 @@ namespace ToolManagementAppV2.Tests.Services
             finally
             {
                 if (File.Exists(csvPath)) File.Delete(csvPath);
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void GetAllCustomers_DbFailure_LogsError()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                using (var conn = dbService.CreateConnection())
+                {
+                    SqliteHelper.ExecuteNonQuery(conn, "DROP TABLE Customers", null);
+                }
+                var logger = new TestLogger<CustomerService>();
+                var service = new CustomerService(dbService, logger);
+                Assert.Throws<SQLiteException>(() => service.GetAllCustomers());
+                Assert.Contains(logger.Entries, e => e.Level == LogLevel.Error && e.Message.Contains("Failed to get all customers"));
+            }
+            finally
+            {
                 if (File.Exists(dbPath)) File.Delete(dbPath);
             }
         }
