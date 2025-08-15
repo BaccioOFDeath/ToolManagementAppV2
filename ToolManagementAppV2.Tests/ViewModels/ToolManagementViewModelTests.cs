@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Data.SQLite;
@@ -16,6 +17,7 @@ using Xunit;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace ToolManagementAppV2.Tests.ViewModels
 {
@@ -144,6 +146,59 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 vm.Tools.Add(new Tool { ToolNumber = "T2", Brand = "BrandB" });
 
+                Assert.Contains("BrandB", vm.Categories);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task LoadToolsAsync_DoesNotDuplicateCollectionChangedHandlers()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                var vm = new ToolManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
+
+                toolService.AddTool(new Tool { ToolNumber = "T1" });
+                await vm.LoadToolsAsync();
+                await vm.LoadToolsAsync();
+
+                var field = typeof(ObservableCollection<ToolModel>).GetField("CollectionChanged", BindingFlags.Instance | BindingFlags.NonPublic);
+                var handlers = field?.GetValue(vm.Tools) as MulticastDelegate;
+                var count = handlers?.GetInvocationList().Length ?? 0;
+                Assert.Equal(1, count);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task LoadToolsAsync_CanBeCalledMultipleTimes()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                var vm = new ToolManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
+
+                toolService.AddTool(new Tool { ToolNumber = "T1", Brand = "BrandA" });
+                await vm.LoadToolsAsync();
+
+                toolService.AddTool(new Tool { ToolNumber = "T2", Brand = "BrandB" });
+                await vm.LoadToolsAsync();
+
+                Assert.Equal(2, vm.Tools.Count);
+                Assert.Contains("BrandA", vm.Categories);
                 Assert.Contains("BrandB", vm.Categories);
             }
             finally

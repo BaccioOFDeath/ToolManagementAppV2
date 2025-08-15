@@ -139,21 +139,23 @@ namespace ToolManagementAppV2.ViewModels
             SearchCommand.Execute(null);
         }
 
+        bool _suppressToolsChanged;
+
         public async Task LoadToolsAsync()
         {
-            var all = await _toolService.GetAllToolsAsync();
-            // Temporarily detach to prevent intermediate collection changes
-            // from firing the handler and potentially resulting in duplicate
-            // subscriptions.
-            Tools.CollectionChanged -= Tools_CollectionChanged;
-            Tools.ReplaceRange(all);
-            SearchResults.ReplaceRange(all);
-            CategorizeTools(all);
-            LoadCategories(Tools);
-            // Remove again in case the handler was reattached during the load
-            // process, then attach once to guarantee a single subscription.
-            Tools.CollectionChanged -= Tools_CollectionChanged;
-            Tools.CollectionChanged += Tools_CollectionChanged;
+            _suppressToolsChanged = true;
+            try
+            {
+                var all = await _toolService.GetAllToolsAsync();
+                Tools.ReplaceRange(all);
+                SearchResults.ReplaceRange(all);
+                CategorizeTools(all);
+                LoadCategories(Tools);
+            }
+            finally
+            {
+                _suppressToolsChanged = false;
+            }
         }
 
         /// <summary>
@@ -331,7 +333,13 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        void Tools_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => LoadCategories(Tools);
+        void Tools_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (_suppressToolsChanged)
+                return;
+
+            LoadCategories(Tools);
+        }
 
         /// <inheritdoc />
         public void Dispose()
