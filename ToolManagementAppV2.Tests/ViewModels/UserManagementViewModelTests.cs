@@ -153,6 +153,63 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public void AddUserCommand_SkipsExistingNameFromService()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IUserService userService = new UserService(db, new ApplicationUserContext());
+                // Pre-populate the database with a user named "user1"
+                userService.AddUser(new User { UserName = "user1", Password = "pw" });
+
+                // The view model has not loaded users, so its local collection is empty
+                var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
+                vm.AddUserCommand.Execute(null);
+
+                // Ensure a second user was added with an incremented name
+                var all = userService.GetAllUsers();
+                Assert.Equal(2, all.Count);
+                Assert.Contains(all, u => u.UserName == "user2");
+                Assert.Single(vm.Users);
+                Assert.Equal("user2", vm.Users.First().UserName);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void AddUserCommand_FindsFirstAvailableNumber()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IUserService userService = new UserService(db, new ApplicationUserContext());
+                // Create a gap: user1 and user3 exist
+                userService.AddUser(new User { UserName = "user1", Password = "pw" });
+                userService.AddUser(new User { UserName = "user3", Password = "pw" });
+
+                var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
+                vm.AddUserCommand.Execute(null);
+
+                var all = userService.GetAllUsers();
+                Assert.Equal(3, all.Count);
+                Assert.Contains(all, u => u.UserName == "user2");
+                Assert.Single(vm.Users);
+                Assert.Equal("user2", vm.Users.First().UserName);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public void ResetPasswordFromRowCommand_ChangesPassword()
         {
             var dbPath = Path.GetTempFileName();
