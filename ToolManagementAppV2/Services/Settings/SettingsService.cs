@@ -360,6 +360,7 @@ namespace ToolManagementAppV2.Services.Settings
             return invalid;
         }
 
+        // Password hashing configuration
         public int GetPasswordIterations()
         {
             var value = GetSetting(PasswordIterationsKey);
