@@ -30,7 +30,7 @@ namespace ToolManagementAppV2.Utilities.Converters
                 {
                     var absPath = Uri.IsWellFormedUriString(path, UriKind.Absolute)
                         ? path
-                        : Helpers.PathHelper.GetAbsolutePath(path);
+                        : Helpers.PathHelper.GetAbsolutePath(path, true);
 
                     if (!string.IsNullOrEmpty(absPath))
                     {

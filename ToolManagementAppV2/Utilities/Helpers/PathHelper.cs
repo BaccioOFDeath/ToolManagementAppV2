@@ -13,8 +13,9 @@ namespace ToolManagementAppV2.Utilities.Helpers
         /// and ensures the resulting absolute path stays within that directory.
         /// </summary>
         /// <param name="path">Relative or absolute path.</param>
+        /// <param name="throwOnInvalid">Throw if the path resolves outside the application's base directory.</param>
         /// <returns>The validated absolute path, or <c>null</c> if validation fails.</returns>
-        public static string? GetAbsolutePath(string? path)
+        public static string? GetAbsolutePath(string? path, bool throwOnInvalid = false)
         {
             if (string.IsNullOrWhiteSpace(path))
                 return null;
@@ -29,7 +30,12 @@ namespace ToolManagementAppV2.Utilities.Helpers
                 var fullPath = Path.GetFullPath(combined);
 
                 if (!fullPath.StartsWith(baseDir, StringComparison.OrdinalIgnoreCase))
+                {
+                    Logger.LogWarning("Resolved path {Path} is outside base directory {BaseDir}", fullPath, baseDir);
+                    if (throwOnInvalid)
+                        throw new InvalidOperationException("Path is outside of the application's base directory.");
                     return null;
+                }
 
                 return fullPath;
             }
