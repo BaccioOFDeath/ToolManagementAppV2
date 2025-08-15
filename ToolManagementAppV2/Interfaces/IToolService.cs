@@ -10,34 +10,19 @@ namespace ToolManagementAppV2.Interfaces
 {
     public interface IToolService
     {
-        void AddTool(ToolModel tool);
-        Task AddToolAsync(ToolModel tool);
-        void UpdateTool(ToolModel tool);
-        Task UpdateToolAsync(ToolModel tool);
-        void DeleteTool(int toolID);
-        Task DeleteToolAsync(int toolID);
-        ToolModel GetToolByID(int toolID);
-        Task<ToolModel> GetToolByIDAsync(int toolID);
-        List<ToolModel> GetAllTools();
-        Task<List<ToolModel>> GetAllToolsAsync();
-        List<ToolModel> SearchTools(string? searchText);
+        Task AddToolAsync(ToolModel tool, CancellationToken cancellationToken = default);
+        Task UpdateToolAsync(ToolModel tool, CancellationToken cancellationToken = default);
+        Task DeleteToolAsync(int toolID, CancellationToken cancellationToken = default);
+        Task<ToolModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default);
+        Task<List<ToolModel>> GetAllToolsAsync(CancellationToken cancellationToken = default);
         Task<List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default);
-        bool ToggleToolCheckOutStatus(int toolID, string currentUser);
-        Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser);
-        List<ToolModel> GetToolsCheckedOutBy(string userName);
-        Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName);
-        void UpdateToolImage(int toolID, string imagePath);
-        Task UpdateToolImageAsync(int toolID, string imagePath);
-        List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map);
+        Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default);
+        Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default);
+        Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default);
         Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken);
-        void ExportToolsToCsv(string filePath);
-        Task ExportToolsToCsvAsync(string filePath);
-        ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector);
-        Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector);
-        void UpdateToolQuantities(int toolID, int qtyChange, bool isRental,
-            SQLiteConnection? conn = null, SQLiteTransaction? tx = null);
+        Task ExportToolsToCsvAsync(string filePath, CancellationToken cancellationToken = default);
+        Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector, CancellationToken cancellationToken = default);
         Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental,
-            SQLiteConnection? conn = null, SQLiteTransaction? tx = null);
+            SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default);
     }
 }
-

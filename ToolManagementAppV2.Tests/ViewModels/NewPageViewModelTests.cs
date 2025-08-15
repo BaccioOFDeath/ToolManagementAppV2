@@ -231,52 +231,44 @@ namespace ToolManagementAppV2.Tests.ViewModels
     {
         public bool ImportCalled { get; private set; }
         public bool ExportCalled { get; private set; }
-        public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map)
-        {
-            ImportCalled = true;
-            return new();
-        }
         public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken)
         {
             ImportCalled = true;
             return Task.FromResult(new List<int>());
         }
-        public void ExportToolsToCsv(string filePath) => ExportCalled = true;
-        public Task ExportToolsToCsvAsync(string filePath) { ExportCalled = true; return Task.CompletedTask; }
-        public List<ToolModel> GetAllTools() => new();
-        public void AddTool(ToolModel tool) => throw new System.NotImplementedException();
-        public void UpdateTool(ToolModel tool) => throw new System.NotImplementedException();
-        public void DeleteTool(int toolID) => throw new System.NotImplementedException();
-        public ToolModel GetToolByID(int toolID) => throw new System.NotImplementedException();
-        public List<ToolModel> SearchTools(string? searchText) => new();
+        public Task ExportToolsToCsvAsync(string filePath, CancellationToken cancellationToken = default)
+        {
+            ExportCalled = true;
+            return Task.CompletedTask;
+        }
+        public Task<List<ToolModel>> GetAllToolsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
+        public Task AddToolAsync(ToolModel tool, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task UpdateToolAsync(ToolModel tool, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task DeleteToolAsync(int toolID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task<ToolModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
-        public bool ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new System.NotImplementedException();
-        public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser) => throw new System.NotImplementedException();
-        public List<ToolModel> GetToolsCheckedOutBy(string userName) => new();
-        public void UpdateToolImage(int toolID, string imagePath) => throw new System.NotImplementedException();
-        public ImageImportResult ImportToolImages(string folderPath, System.Func<ToolModel, IEnumerable<string>> keySelector) => new();
-        public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null) => throw new System.NotImplementedException();
+        public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
+        public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, System.Func<ToolModel, IEnumerable<string>> keySelector, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
+        public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
     }
 
     class FailToolService : IToolService
     {
-        public List<int> ImportToolsFromCsv(string filePath, IDictionary<string, string> map) => throw new System.Exception("fail");
         public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => Task.FromException<List<int>>(new System.Exception("fail"));
-        public void ExportToolsToCsv(string filePath) => throw new System.Exception("fail");
-        public Task ExportToolsToCsvAsync(string filePath) => Task.FromException(new System.Exception("fail"));
-        public List<ToolModel> GetAllTools() => new();
-        public void AddTool(ToolModel tool) => throw new System.NotImplementedException();
-        public void UpdateTool(ToolModel tool) => throw new System.NotImplementedException();
-        public void DeleteTool(int toolID) => throw new System.NotImplementedException();
-        public ToolModel GetToolByID(int toolID) => throw new System.NotImplementedException();
-        public List<ToolModel> SearchTools(string? searchText) => new();
+        public Task ExportToolsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.FromException(new System.Exception("fail"));
+        public Task<List<ToolModel>> GetAllToolsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
+        public Task AddToolAsync(ToolModel tool, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task UpdateToolAsync(ToolModel tool, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task DeleteToolAsync(int toolID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task<ToolModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
-        public bool ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new System.NotImplementedException();
-        public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser) => throw new System.NotImplementedException();
-        public List<ToolModel> GetToolsCheckedOutBy(string userName) => new();
-        public void UpdateToolImage(int toolID, string imagePath) => throw new System.NotImplementedException();
-        public ImageImportResult ImportToolImages(string folderPath, System.Func<ToolModel, IEnumerable<string>> keySelector) => new();
-        public void UpdateToolQuantities(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null) => throw new System.NotImplementedException();
+        public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
+        public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, System.Func<ToolModel, IEnumerable<string>> keySelector, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
+        public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
     }
 
     class StubRentalService : IRentalService
