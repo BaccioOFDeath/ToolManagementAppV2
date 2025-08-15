@@ -344,6 +344,34 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
             Assert.Contains("boom", dialog.LastInfoMessage);
         }
+
+        [Fact]
+        public async Task PrintRental_ShowsDialogOnFailure()
+        {
+            var rentals = new List<Rental>
+            {
+                new Rental
+                {
+                    RentalID = 1,
+                    ToolID = 1,
+                    ToolNumber = "T1",
+                    CustomerID = 1,
+                    CustomerName = "C1",
+                    RentalDate = DateTime.Today,
+                    DueDate = DateTime.Today.AddDays(1),
+                    Status = "Rented"
+                }
+            };
+            var rentalService = new ExceptionRentalService(rentals);
+            var dialog = new ExceptionDialogService();
+            var vm = new ManageRentalsViewModel(rentalService, dialog);
+            await vm.LoadRentalsAsync();
+            vm.SelectedRental = vm.Rentals.First();
+
+            vm.PrintRentalCommand.Execute(null);
+
+            Assert.Contains("boom", dialog.LastInfoMessage);
+        }
     }
 
     class StubDialogService : IDialogService
@@ -370,6 +398,24 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public System.Collections.Generic.Dictionary<string, string>? ShowImportMapping(System.Collections.Generic.IEnumerable<string> headers, System.Collections.Generic.IEnumerable<string> properties) => null;
         public System.Func<ToolModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
         public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
+        public void ShowPrintLabelDialog() { }
+        public void ShowScannerStatus() { }
+    }
+
+    class ExceptionDialogService : IDialogService
+    {
+        public string? LastInfoMessage { get; private set; }
+        public void ShowInfo(string message, string title) => LastInfoMessage = message;
+        public bool ShowConfirmation(string message, string title) => false;
+        public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
+        public void ShowToolDetails(ToolModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+        public CustomerModel? ShowAddCustomerDialog() => null;
+        public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
+        public void ShowRentalHistory(ToolModel tool, IEnumerable<RentalModel> history) { }
+        public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties) => null;
+        public Func<ToolModel, IEnumerable<string>>? ShowImageImportMapping() => null;
+        public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) => throw new InvalidOperationException("boom");
         public void ShowPrintLabelDialog() { }
         public void ShowScannerStatus() { }
     }
