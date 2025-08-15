@@ -259,11 +259,16 @@ namespace ToolManagementAppV2.ViewModels
         void DeleteUser(UserModel user)
         {
             if (user == null) return;
-            if (_userService.TryDeleteUser(user.UserID))
+            try
             {
+                _userService.DeleteUser(user.UserID);
                 _allUsers.Remove(user);
                 Users.Remove(user);
                 if (ReferenceEquals(SelectedUser, user)) SelectedUser = null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete user {UserID}", user.UserID);
             }
         }
     }

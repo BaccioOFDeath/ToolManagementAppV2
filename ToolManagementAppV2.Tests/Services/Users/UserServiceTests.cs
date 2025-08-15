@@ -10,7 +10,7 @@ using Xunit;
 public class UserServiceTests
 {
     [Fact]
-    public void TryDeleteUser_ReturnsFalse_WhenDeletingOnlyAdmin()
+    public void DeleteUser_ThrowsInvalidOperationException_WhenDeletingOnlyAdmin()
     {
         var dbPath = Path.GetTempFileName();
         try
@@ -19,8 +19,7 @@ public class UserServiceTests
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
             var admin = new User { UserName = "admin", Password = "pw", IsAdmin = true };
             userService.AddUser(admin);
-            var result = userService.TryDeleteUser(admin.UserID);
-            Assert.False(result);
+            Assert.Throws<InvalidOperationException>(() => userService.DeleteUser(admin.UserID));
             Assert.NotNull(userService.GetUserByID(admin.UserID));
         }
         finally
@@ -30,7 +29,7 @@ public class UserServiceTests
     }
 
     [Fact]
-    public void TryDeleteUser_AllowsDeletingAdmin_WhenMultipleAdminsExist()
+    public void DeleteUser_AllowsDeletingAdmin_WhenMultipleAdminsExist()
     {
         var dbPath = Path.GetTempFileName();
         try
@@ -41,8 +40,7 @@ public class UserServiceTests
             var admin2 = new User { UserName = "admin2", Password = "pw", IsAdmin = true };
             userService.AddUser(admin1);
             userService.AddUser(admin2);
-            var result = userService.TryDeleteUser(admin1.UserID);
-            Assert.True(result);
+            userService.DeleteUser(admin1.UserID);
             Assert.Null(userService.GetUserByID(admin1.UserID));
             Assert.NotNull(userService.GetUserByID(admin2.UserID));
         }
