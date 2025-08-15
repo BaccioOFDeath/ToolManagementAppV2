@@ -53,11 +53,45 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void OpenPrintLabelWindow_ShowsError_WhenDialogFails()
+        {
+            if (Application.Current == null)
+                new Application();
+
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var userContext = new ApplicationUserContext();
+                var userService = new UserService(db, userContext);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var activityLogService = new ActivityLogService(db);
+                var settingsService = new SettingsService(db);
+                var dialog = new StubDialogService { ThrowOnShowPrintLabelDialog = true };
+
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                    new StubFileDialogService(), activityLogService, settingsService, db, dialog);
+
+                vm.OpenPrintLabelWindowCommand.Execute(null);
+
+                Assert.True(dialog.InfoShown);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 
     class StubDialogService : IDialogService
     {
         public bool InfoShown { get; private set; }
+        public bool ThrowOnShowPrintLabelDialog { get; set; }
         public void ShowInfo(string message, string title) => InfoShown = true;
         public bool ShowConfirmation(string message, string title) => false;
         public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
@@ -69,7 +103,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public System.Collections.Generic.Dictionary<string, string>? ShowImportMapping(System.Collections.Generic.IEnumerable<string> headers, System.Collections.Generic.IEnumerable<string> properties) => null;
         public System.Func<ToolModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
         public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
-        public void ShowPrintLabelDialog() { }
+        public void ShowPrintLabelDialog()
+        {
+            if (ThrowOnShowPrintLabelDialog)
+                throw new InvalidOperationException("fail");
+        }
         public void ShowScannerStatus() { }
     }
 

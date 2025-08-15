@@ -298,7 +298,15 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenPrintLabelWindowCommand = new RelayCommand(() =>
             {
-                _dialogService.ShowPrintLabelDialog();
+                try
+                {
+                    _dialogService.ShowPrintLabelDialog();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open print label dialog");
+                    _dialogService.ShowInfo($"Failed to open print label dialog: {ex.Message}", "Error");
+                }
             });
 
             OpenScannerStatusWindowCommand = new RelayCommand(() =>
