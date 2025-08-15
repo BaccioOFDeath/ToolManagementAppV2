@@ -62,6 +62,29 @@ namespace ToolManagementAppV2.Tests.Services
                 if (File.Exists(dbPath)) File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public async Task GetScannerDevicesAsync_DeduplicatesIps()
+        {
+            var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var settings = new SettingsService(db);
+                settings.SaveScannerIpAddresses(new[] { "127.0.0.1", "127.0.0.1" });
+
+                var service = new ScannerService(settings);
+
+                var devices = await service.GetScannerDevicesAsync(CancellationToken.None);
+                var list = devices.ToList();
+                Assert.Single(list);
+                Assert.Equal("127.0.0.1", list[0].Ip);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
         [Fact]
         public async Task GetScannerDevicesAsync_HonorsCancellation()
         {

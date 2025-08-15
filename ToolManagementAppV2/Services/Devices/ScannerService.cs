@@ -27,7 +27,7 @@ namespace ToolManagementAppV2.Services.Devices
             cancellationToken.ThrowIfCancellationRequested();
 
             using var semaphore = new SemaphoreSlim(5);
-            var tasks = _settingsService.GetScannerIpAddresses().Select(async ip =>
+            var tasks = _settingsService.GetScannerIpAddresses().Distinct().Select(async ip =>
             {
                 await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
                 try
@@ -59,7 +59,22 @@ namespace ToolManagementAppV2.Services.Devices
                 }
             });
 
-            return await Task.WhenAll(tasks).ConfigureAwait(false);
+            var devices = await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            // Merge statuses for any duplicate IPs
+            return devices
+                .GroupBy(d => d.Ip)
+                .Select(g =>
+                {
+                    var device = g.First();
+                    if (g.Any(d => d.Status == "Online"))
+                        device.Status = "Online";
+                    else if (g.Any(d => d.Status == "Offline"))
+                        device.Status = "Offline";
+                    else
+                        device.Status = "Error";
+                    return device;
+                });
         }
     }
 }
