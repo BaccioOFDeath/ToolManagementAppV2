@@ -15,6 +15,7 @@ using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.Views;
 using Xunit;
 using Microsoft.Extensions.Logging;
+using ToolManagementAppV2.Tests;
 
 namespace ToolManagementAppV2.Tests.ViewModels
 {
@@ -41,6 +42,36 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 Assert.Equal("TestApp – Login", vm.WindowTitle);
                 Assert.NotNull(vm.CompanyLogo);
                 Assert.NotEmpty(vm.Users);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task LoadUsersAsync_SeedsAdmin_LogsInformation()
+        {
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
+
+            var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
+            try
+            {
+                using var dbService = new DatabaseService(dbPath);
+                var userContext = new ApplicationUserContext();
+                var userService = new UserService(dbService, userContext);
+                var settingsService = new SettingsService(dbService);
+
+                var logs = new List<LogEntry>();
+                using var provider = new ListLoggerProvider(logs);
+                using var loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(provider));
+                var logger = loggerFactory.CreateLogger<LoginViewModel>();
+
+                var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext, logger);
+                await vm.LoadUsersCommand.ExecuteAsync(null);
+
+                Assert.Contains(logs, l => l.Level == LogLevel.Information && l.Message.Contains("admin"));
             }
             finally
             {
