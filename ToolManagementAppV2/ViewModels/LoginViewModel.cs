@@ -6,6 +6,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Settings;
@@ -50,6 +51,8 @@ namespace ToolManagementAppV2.ViewModels
         /// </summary>
         public ICommand SelectUserCommand { get; }
 
+        public IAsyncRelayCommand LoadUsersCommand { get; }
+
         /// <summary>
         /// Raised after <see cref="OnUserSelected"/> successfully authenticates a user
         /// and stores the result in <see cref="IUserContext"/>.
@@ -74,7 +77,8 @@ namespace ToolManagementAppV2.ViewModels
 
             SelectUserCommand = new RelayCommand<User>(OnUserSelected);
 
-            LoadUsers();
+            LoadUsersCommand = new AsyncRelayCommand(LoadUsersAsync);
+            LoadUsersCommand.Execute(null);
         }
 
         BitmapImage LoadLogo()
@@ -110,9 +114,9 @@ namespace ToolManagementAppV2.ViewModels
                 : "Tool Inventory Management – Login";
         }
 
-        void LoadUsers()
+        async Task LoadUsersAsync()
         {
-            var users = _userService.GetAllUsers();
+            var users = await _userService.GetAllUsersAsync();
             if (users.Count == 0)
             {
                 _dialogService.ShowInfo(
@@ -121,7 +125,7 @@ namespace ToolManagementAppV2.ViewModels
 
                 var admin = new User { UserName = "admin", Password = "admin", IsAdmin = true };
                 _userService.AddUser(admin);
-                users = _userService.GetAllUsers();
+                users = await _userService.GetAllUsersAsync();
             }
 
             Users.ReplaceRange(users);
@@ -184,7 +188,7 @@ namespace ToolManagementAppV2.ViewModels
                         user.Salt = refreshed.Salt;
                         user.PasswordExpired = refreshed.PasswordExpired;
                     }
-                    LoadUsers();
+                    LoadUsersCommand.Execute(null);
                     _dialogService.ShowInfo("Password has been reset to default. Please enter the new password to login.",
                         "Password Reset");
                     continue;
