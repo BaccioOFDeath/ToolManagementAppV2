@@ -100,6 +100,33 @@ namespace ToolManagementAppV2.Tests.ViewModels
             Assert.Contains("cancel", vm.ImportExportLogs[0], StringComparison.OrdinalIgnoreCase);
             File.Delete(tmp);
         }
+
+        [Fact]
+        public async System.Threading.Tasks.Task ExportCustomersCommand_LogsSuccess()
+        {
+            var customerSvc = new CapturingCustomerService();
+            var fileDlg = new StubFileDialogService { FileToReturn = "path.csv" };
+            var vm = new ImportExportViewModel(new StubToolService(), customerSvc, fileDlg, new StubDatabaseBackupService(), new StubDialogService());
+
+            await vm.ExportCustomersCommand.ExecuteAsync(null);
+
+            Assert.True(customerSvc.ExportCalled);
+            Assert.Single(vm.ImportExportLogs);
+            Assert.StartsWith("Successfully exported customers", vm.ImportExportLogs[0]);
+        }
+
+        [Fact]
+        public async System.Threading.Tasks.Task ExportCustomersCommand_LogsFailure()
+        {
+            var customerSvc = new FailCustomerService();
+            var fileDlg = new StubFileDialogService { FileToReturn = "path.csv" };
+            var vm = new ImportExportViewModel(new StubToolService(), customerSvc, fileDlg, new StubDatabaseBackupService(), new StubDialogService());
+
+            await vm.ExportCustomersCommand.ExecuteAsync(null);
+
+            Assert.Single(vm.ImportExportLogs);
+            Assert.StartsWith("Failed to export customers", vm.ImportExportLogs[0]);
+        }
     }
 
     class StubFileDialogService : IFileDialogService
@@ -166,6 +193,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     class CapturingCustomerService : ICustomerService
     {
         public bool ImportCalled { get; private set; }
+        public bool ExportCalled { get; private set; }
         public IDictionary<string,string>? MapUsed { get; private set; }
         public CustomerImportResult ImportCustomersFromCsv(string filePath, IDictionary<string, string> map)
         {
@@ -173,8 +201,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
             MapUsed = map;
             return new CustomerImportResult();
         }
-        public void ExportCustomersToCsv(string filePath) { }
-        public System.Threading.Tasks.Task ExportCustomersToCsvAsync(string filePath) => System.Threading.Tasks.Task.CompletedTask;
+        public void ExportCustomersToCsv(string filePath) => ExportCalled = true;
+        public System.Threading.Tasks.Task ExportCustomersToCsvAsync(string filePath)
+        {
+            ExportCalled = true;
+            return System.Threading.Tasks.Task.CompletedTask;
+        }
         public void AddCustomer(Customer customer) => throw new NotImplementedException();
         public System.Threading.Tasks.Task AddCustomerAsync(Customer customer) => throw new NotImplementedException();
         public void UpdateCustomer(Customer customer) => throw new NotImplementedException();
@@ -243,6 +275,26 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public CustomerImportResult ImportCustomersFromCsv(string filePath, IDictionary<string, string> map) => new CustomerImportResult();
         public void ExportCustomersToCsv(string filePath) { }
         public System.Threading.Tasks.Task ExportCustomersToCsvAsync(string filePath) => System.Threading.Tasks.Task.CompletedTask;
+        public void AddCustomer(Customer customer) => throw new NotImplementedException();
+        public System.Threading.Tasks.Task AddCustomerAsync(Customer customer) => throw new NotImplementedException();
+        public void UpdateCustomer(Customer customer) => throw new NotImplementedException();
+        public System.Threading.Tasks.Task UpdateCustomerAsync(Customer customer) => throw new NotImplementedException();
+        public void DeleteCustomer(int customerID) => throw new NotImplementedException();
+        public System.Threading.Tasks.Task DeleteCustomerAsync(int customerID) => throw new NotImplementedException();
+        public Customer GetCustomerByID(int customerID) => throw new NotImplementedException();
+        public System.Threading.Tasks.Task<Customer> GetCustomerByIDAsync(int customerID) => throw new NotImplementedException();
+        public List<Customer> GetAllCustomers() => new();
+        public System.Threading.Tasks.Task<List<Customer>> GetAllCustomersAsync() => System.Threading.Tasks.Task.FromResult(new List<Customer>());
+        public List<Customer> SearchCustomers(string searchTerm) => new();
+        public System.Threading.Tasks.Task<List<Customer>> SearchCustomersAsync(string searchTerm) => System.Threading.Tasks.Task.FromResult(new List<Customer>());
+        public System.Threading.Tasks.Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map) => System.Threading.Tasks.Task.FromResult(new CustomerImportResult());
+    }
+
+    class FailCustomerService : ICustomerService
+    {
+        public CustomerImportResult ImportCustomersFromCsv(string filePath, IDictionary<string, string> map) => new CustomerImportResult();
+        public void ExportCustomersToCsv(string filePath) => throw new System.Exception("fail");
+        public System.Threading.Tasks.Task ExportCustomersToCsvAsync(string filePath) => System.Threading.Tasks.Task.FromException(new System.Exception("fail"));
         public void AddCustomer(Customer customer) => throw new NotImplementedException();
         public System.Threading.Tasks.Task AddCustomerAsync(Customer customer) => throw new NotImplementedException();
         public void UpdateCustomer(Customer customer) => throw new NotImplementedException();

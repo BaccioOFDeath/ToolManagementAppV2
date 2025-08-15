@@ -27,7 +27,7 @@ namespace ToolManagementAppV2.ViewModels
         public IAsyncRelayCommand ImportToolsCommand { get; }
         public IAsyncRelayCommand ExportToolsCommand { get; }
         public IAsyncRelayCommand ImportCustomersCommand { get; }
-        public IRelayCommand ExportCustomersCommand { get; }
+        public IAsyncRelayCommand ExportCustomersCommand { get; }
 
         /// <summary>
         /// Command that triggers an asynchronous database backup.
@@ -56,7 +56,7 @@ namespace ToolManagementAppV2.ViewModels
             ImportToolsCommand = new AsyncRelayCommand(ImportToolsAsync);
             ExportToolsCommand = new AsyncRelayCommand(ExportToolsAsync);
             ImportCustomersCommand = new AsyncRelayCommand(ImportCustomersAsync);
-            ExportCustomersCommand = new RelayCommand(ExportCustomers);
+            ExportCustomersCommand = new AsyncRelayCommand(ExportCustomersAsync);
             BackupDatabaseCommand = new AsyncRelayCommand(BackupDatabaseAsync);
         }
 
@@ -128,13 +128,13 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        void ExportCustomers()
+        async Task ExportCustomersAsync()
         {
             var path = _fileDialogService.SaveFile("CSV Files|*.csv");
             if (string.IsNullOrEmpty(path)) return;
             try
             {
-                _customerService.ExportCustomersToCsv(path);
+                await _customerService.ExportCustomersToCsvAsync(path);
                 ImportExportLogs.Add($"Successfully exported customers to {path}.");
             }
             catch (Exception ex)
