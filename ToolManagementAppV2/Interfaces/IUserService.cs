@@ -19,10 +19,7 @@ namespace ToolManagementAppV2.Interfaces
         Task AddUserAsync(User user);
         void UpdateUser(User user);
         Task UpdateUserAsync(User user);
-        bool TryDeleteUser(int userID);
         Task<bool> TryDeleteUserAsync(int userID);
-        void DeleteUser(int userID);
-        Task DeleteUserAsync(int userID);
         bool ChangeUserPassword(int userID, string newPassword);
         Task<bool> ChangeUserPasswordAsync(int userID, string newPassword);
     }

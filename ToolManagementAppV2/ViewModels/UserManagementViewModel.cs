@@ -57,7 +57,7 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand EditUserCommand { get; }
         public IRelayCommand EditUserFromRowCommand { get; }
         public IRelayCommand ResetPasswordFromRowCommand { get; }
-        public IRelayCommand DeleteUserFromRowCommand { get; }
+        public IAsyncRelayCommand<UserModel> DeleteUserFromRowCommand { get; }
 
         public UserManagementViewModel(IUserService userService,
                                        IFileDialogService fileDialogService,
@@ -79,7 +79,7 @@ namespace ToolManagementAppV2.ViewModels
             EditUserCommand = new RelayCommand(() => EditUser(SelectedUser), () => SelectedUser != null);
             EditUserFromRowCommand = new RelayCommand<UserModel>(EditUser);
             ResetPasswordFromRowCommand = new RelayCommand<UserModel>(ResetPasswordFor);
-            DeleteUserFromRowCommand = new RelayCommand<UserModel>(DeleteUser);
+            DeleteUserFromRowCommand = new AsyncRelayCommand<UserModel>(DeleteUserAsync);
         }
 
         public async Task LoadUsersAsync()
@@ -310,15 +310,22 @@ namespace ToolManagementAppV2.ViewModels
                 "Password Reset");
         }
 
-        void DeleteUser(UserModel user)
+        async Task DeleteUserAsync(UserModel user)
         {
             if (user == null) return;
             try
             {
-                _userService.DeleteUser(user.UserID);
-                _allUsers.Remove(user);
-                Users.Remove(user);
-                if (ReferenceEquals(SelectedUser, user)) SelectedUser = null;
+                var deleted = await _userService.TryDeleteUserAsync(user.UserID);
+                if (deleted)
+                {
+                    _allUsers.Remove(user);
+                    Users.Remove(user);
+                    if (ReferenceEquals(SelectedUser, user)) SelectedUser = null;
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to delete user {UserID}", user.UserID);
+                }
             }
             catch (Exception ex)
             {
