@@ -56,7 +56,7 @@ namespace ToolManagementAppV2.ViewModels
 
         public IRelayCommand EditUserCommand { get; }
         public IRelayCommand EditUserFromRowCommand { get; }
-        public IRelayCommand ResetPasswordFromRowCommand { get; }
+        public IAsyncRelayCommand<UserModel> ResetPasswordFromRowCommand { get; }
         public IRelayCommand DeleteUserFromRowCommand { get; }
 
         public UserManagementViewModel(IUserService userService,
@@ -78,7 +78,7 @@ namespace ToolManagementAppV2.ViewModels
 
             EditUserCommand = new RelayCommand(() => EditUser(SelectedUser), () => SelectedUser != null);
             EditUserFromRowCommand = new RelayCommand<UserModel>(EditUser);
-            ResetPasswordFromRowCommand = new RelayCommand<UserModel>(ResetPasswordFor);
+            ResetPasswordFromRowCommand = new AsyncRelayCommand<UserModel>(ResetPasswordFor);
             DeleteUserFromRowCommand = new RelayCommand<UserModel>(DeleteUser);
         }
 
@@ -291,22 +291,22 @@ namespace ToolManagementAppV2.ViewModels
             catch (Exception ex) { _logger.LogError(ex, "Failed to show UsersEditWindow"); }
         }
 
-        void ResetPasswordFor(UserModel user)
+        async Task ResetPasswordFor(UserModel user)
         {
             if (user == null) return;
             var newPassword = SecurityHelper.GeneratePassword();
-            _userService.ChangeUserPassword(user.UserID, newPassword);
-            var refreshed = _userService.GetUserByID(user.UserID);
+            await _userService.ChangeUserPasswordAsync(user.UserID, newPassword);
+            var refreshed = await _userService.GetUserByIDAsync(user.UserID);
             if (refreshed != null)
             {
                 refreshed.PasswordExpired = true;
-                _userService.UpdateUser(refreshed);
+                await _userService.UpdateUserAsync(refreshed);
                 user.Password = refreshed.Password;
                 user.Salt = refreshed.Salt;
                 user.PasswordExpired = true;
             }
             _dialogService.ShowInfo(
-                $"Password reset to: {newPassword}. Please change it at next login.",
+                "Password has been reset. The user must change it at next login.",
                 "Password Reset");
         }
 

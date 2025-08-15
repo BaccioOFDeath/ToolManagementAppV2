@@ -256,7 +256,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task ResetPasswordFromRowCommand_ChangesPassword()
+        public async Task ResetPasswordFromRowCommand_DoesNotExposePasswordAndSetsFlag()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -270,41 +270,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var user = vm.Users.First();
                 var original = userService.GetUserByID(user.UserID)!;
                 var oldPwd = original.Password;
-                vm.ResetPasswordFromRowCommand.Execute(user);
+                await vm.ResetPasswordFromRowCommand.ExecuteAsync(user);
                 var updated = userService.GetUserByID(user.UserID)!;
                 Assert.NotEqual(oldPwd, updated.Password);
                 Assert.True(updated.PasswordExpired);
                 Assert.Equal("Password Reset", dialog.LastInfoTitle);
-                var prefix = "Password reset to: ";
-                var suffix = ". Please change it at next login.";
-                Assert.StartsWith(prefix, dialog.LastInfoMessage);
-                Assert.EndsWith("Please change it at next login.", dialog.LastInfoMessage);
-                var newPwd = dialog.LastInfoMessage.Substring(prefix.Length,
-                    dialog.LastInfoMessage.Length - prefix.Length - suffix.Length);
-                Assert.True(SecurityHelper.VerifyPassword(newPwd, updated.Salt, updated.Password));
-            }
-            finally
-            {
-                if (File.Exists(dbPath))
-                    File.Delete(dbPath);
-            }
-        }
-
-        [Fact]
-        public async Task ResetPasswordFromRowCommand_SetsPasswordExpiredFlag()
-        {
-            var dbPath = Path.GetTempFileName();
-            try
-            {
-                var db = new DatabaseService(dbPath);
-                IUserService userService = new UserService(db, new ApplicationUserContext());
-                var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
-                userService.AddUser(new User { UserName = "user1", Password = "pw" });
-                await vm.LoadUsersAsync();
-                var user = vm.Users.First();
-                vm.ResetPasswordFromRowCommand.Execute(user);
-                var updated = userService.GetUserByID(user.UserID)!;
-                Assert.True(updated.PasswordExpired);
+                Assert.Equal("Password has been reset. The user must change it at next login.", dialog.LastInfoMessage);
             }
             finally
             {
