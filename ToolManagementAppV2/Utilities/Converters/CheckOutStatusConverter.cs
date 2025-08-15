@@ -3,12 +3,16 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.Utilities.Converters
 {
     public class CheckOutStatusConverter : IValueConverter
     {
-        private static readonly ILogger Logger = App.LoggerFactory.CreateLogger<CheckOutStatusConverter>();
+        private readonly ILogger<CheckOutStatusConverter> _logger;
+
+        public CheckOutStatusConverter(ILogger<CheckOutStatusConverter>? logger = null)
+            => _logger = logger ?? NullLogger<CheckOutStatusConverter>.Instance;
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             return value is bool isCheckedOut && isCheckedOut ? "Check In" : "Check Out";
@@ -27,7 +31,7 @@ namespace ToolManagementAppV2.Utilities.Converters
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "ConvertBack failed");
+                _logger.LogError(ex, "ConvertBack failed");
             }
             return System.Windows.Data.Binding.DoNothing;
         }

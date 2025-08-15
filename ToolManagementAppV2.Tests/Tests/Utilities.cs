@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
-using ToolManagementAppV2;
 using ToolManagementAppV2.Utilities.Helpers;
 using Xunit;
 
@@ -30,9 +29,9 @@ namespace ToolManagementAppV2.Tests
         public void GetAbsolutePath_InvalidCharacters_ReturnsNullAndLogs()
         {
             var logs = new List<LogEntry>();
-            var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
-            var originalFactory = App.LoggerFactory;
-            App.LoggerFactory = factory;
+            using var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
+            var original = PathHelper.Logger;
+            PathHelper.Configure(factory.CreateLogger<PathHelper>());
             try
             {
                 var result = PathHelper.GetAbsolutePath("invalid|path");
@@ -40,8 +39,7 @@ namespace ToolManagementAppV2.Tests
             }
             finally
             {
-                App.LoggerFactory = originalFactory;
-                factory.Dispose();
+                PathHelper.Configure(original);
             }
             Assert.Contains(logs, l => l.Level == LogLevel.Error);
         }

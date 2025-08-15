@@ -14,9 +14,9 @@ namespace ToolManagementAppV2.Tests.Utilities
         public void GetAbsolutePath_OutsideBaseDir_LogsWarning()
         {
             var logs = new List<LogEntry>();
-            var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
-            var originalFactory = App.LoggerFactory;
-            App.LoggerFactory = factory;
+            using var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
+            var original = PathHelper.Logger;
+            PathHelper.Configure(factory.CreateLogger<PathHelper>());
             try
             {
                 var result = PathHelper.GetAbsolutePath(Path.Combine("..", "outside.txt"));
@@ -24,8 +24,7 @@ namespace ToolManagementAppV2.Tests.Utilities
             }
             finally
             {
-                App.LoggerFactory = originalFactory;
-                factory.Dispose();
+                PathHelper.Configure(original);
             }
             Assert.Contains(logs, l => l.Level == LogLevel.Warning);
         }
