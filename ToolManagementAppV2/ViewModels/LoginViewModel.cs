@@ -24,7 +24,7 @@ namespace ToolManagementAppV2.ViewModels
     /// authentication workflow via <see cref="SelectUserCommand"/>. The process covers
     /// default password generation and resets so future logins remain possible. When a
     /// user successfully authenticates the <see cref="LoginSucceeded"/> event is raised
-    /// and the authenticated user is stored in <see cref="Application.Current"/>.
+    /// and the authenticated user is stored in <see cref="System.Windows.Application.Current"/>.
     /// </summary>
     public class LoginViewModel : ObservableObject
     {

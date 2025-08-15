@@ -14,10 +14,10 @@ namespace ToolManagementAppV2.Tests.Tests
         [Fact]
         public void NonAdminUser_HidesAdminButtons()
         {
-            if (Application.Current == null)
-                new Application();
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
 
-            Application.Current.Properties["CurrentUser"] = new UserModel { UserName = "user", IsAdmin = false };
+            System.Windows.Application.Current.Properties["CurrentUser"] = new UserModel { UserName = "user", IsAdmin = false };
             try
             {
                 var (window, dbPath) = TestHelpers.CreateMainWindow();
@@ -43,7 +43,7 @@ namespace ToolManagementAppV2.Tests.Tests
             }
             finally
             {
-                Application.Current.Properties.Remove("CurrentUser");
+                System.Windows.Application.Current.Properties.Remove("CurrentUser");
             }
         }
     }
