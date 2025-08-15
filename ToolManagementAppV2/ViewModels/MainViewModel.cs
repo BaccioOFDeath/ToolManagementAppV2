@@ -22,7 +22,7 @@ using ToolManagementAppV2.Utilities.IO;
 
 namespace ToolManagementAppV2.ViewModels
 {
-    public class MainViewModel : ObservableObject
+    public class MainViewModel : ObservableObject, IDisposable
     {
         readonly IToolService _toolService;
         readonly IUserService _userService;
@@ -338,6 +338,12 @@ namespace ToolManagementAppV2.ViewModels
                 _logger.LogError(ex, "Failed to import tools from CSV");
                 _dialogService.ShowInfo($"Failed to import tools: {ex.Message}", "Import Tools");
             }
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            ToolManagement.Dispose();
         }
     }
 }

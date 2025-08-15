@@ -5,6 +5,7 @@ using System.Windows.Documents;
 using System.Windows.Media.Imaging;
 using System.Windows.Controls; // WPF PrintDialog
 using ToolManagementAppV2.ViewModels;
+using ToolManagementAppV2.Utilities.Extensions;
 
 namespace ToolManagementAppV2.Views
 {
@@ -18,6 +19,7 @@ namespace ToolManagementAppV2.Views
         {
             InitializeComponent();
             DataContext = new PrintPreviewViewModel(OnPageSetup, OnPrint, Close);
+            this.DisposeDataContextOnUnload();
         }
 
         public void ShowPreview(FlowDocument document, string title, string? logoPath)

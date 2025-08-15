@@ -3,6 +3,7 @@ using System;
 using System.Windows;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.ViewModels;
+using ToolManagementAppV2.Utilities.Extensions;
 
 namespace ToolManagementAppV2.Views
 {
@@ -12,6 +13,7 @@ namespace ToolManagementAppV2.Views
         {
             InitializeComponent();
             DataContext = new UsersEditViewModel(user, onSave, onCancel, BrowseAvatar, onRemoveAvatar);
+            this.DisposeDataContextOnUnload();
         }
 
         private void BrowseAvatar()

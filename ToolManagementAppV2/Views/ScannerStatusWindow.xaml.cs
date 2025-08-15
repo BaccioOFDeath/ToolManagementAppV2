@@ -6,12 +6,10 @@ using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Services;
 using ToolManagementAppV2.ViewModels;
+using ToolManagementAppV2.Utilities.Extensions;
 
 namespace ToolManagementAppV2.Views
 {
-    /// <summary>
-    /// Interaction logic for ScannerStatusWindow.xaml
-    /// </summary>
     public partial class ScannerStatusWindow : Window
     {
         readonly DatabaseService _ownedDb;
@@ -23,6 +21,7 @@ namespace ToolManagementAppV2.Views
             _ownedDb = new DatabaseService(dbPath);
             var settingsService = new SettingsService(_ownedDb);
             DataContext = new ScannerStatusViewModel(new ScannerService(settingsService), new DialogService());
+            this.DisposeDataContextOnUnload();
             Closed += (_, __) => _ownedDb.Dispose();
         }
     }

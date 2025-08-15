@@ -4,6 +4,7 @@ using System.Windows;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Services.Core;
+using ToolManagementAppV2.Utilities.Extensions;
 
 namespace ToolManagementAppV2.Views
 {
@@ -14,6 +15,7 @@ namespace ToolManagementAppV2.Views
             InitializeComponent();
             var fileDialog = new FileDialogService();
             DataContext = new ToolEditViewModel(tool, onSave, onCancel, fileDialog);
+            this.DisposeDataContextOnUnload();
         }
     }
 }

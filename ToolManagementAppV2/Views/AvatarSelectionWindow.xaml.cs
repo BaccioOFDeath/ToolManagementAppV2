@@ -6,6 +6,7 @@ using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.ViewModels;
+using ToolManagementAppV2.Utilities.Extensions;
 
 
 namespace ToolManagementAppV2.Views
@@ -35,6 +36,7 @@ namespace ToolManagementAppV2.Views
                     .ToArray();
 
             DataContext = new AvatarSelectionViewModel(avatars, () => DialogResult = true);
+            this.DisposeDataContextOnUnload();
         }
     }
 }

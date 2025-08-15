@@ -5,6 +5,7 @@ using ToolManagementAppV2.Services;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Services.Settings;
+using ToolManagementAppV2.Utilities.Extensions;
 
 namespace ToolManagementAppV2
 {
@@ -28,6 +29,7 @@ namespace ToolManagementAppV2
 
             var vm = new LoginViewModel(userService, settingsService, dialogService ?? new DialogService(), userContext);
             DataContext = vm;
+            this.DisposeDataContextOnUnload();
 
             vm.LoginSucceeded += OnLoginSucceeded;
             Closed += (_, __) => vm.LoginSucceeded -= OnLoginSucceeded;
