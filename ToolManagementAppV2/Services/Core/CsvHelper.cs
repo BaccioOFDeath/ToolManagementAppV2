@@ -10,6 +10,14 @@ namespace ToolManagementAppV2.Utilities.IO
 {
     public static class CsvHelperUtil
     {
+        public static IEnumerable<string> ReadHeaders(string filePath)
+        {
+            using var parser = new TextFieldParser(filePath);
+            parser.SetDelimiters(",");
+            parser.HasFieldsEnclosedInQuotes = true;
+            return parser.EndOfData ? Array.Empty<string>() : parser.ReadFields().Select(h => h.Trim());
+        }
+
         public static List<ToolModel> LoadToolsFromCsv(string filePath, IDictionary<string, string> map, out List<int> invalidRows)
         {
             ValidateRequired(map, "ToolNumber");
