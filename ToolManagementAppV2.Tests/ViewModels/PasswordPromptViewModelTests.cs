@@ -53,7 +53,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 SelectedUser = new User { IsAdmin = false }
             };
 
-            vm.ResetPasswordCommand.Execute(null);
+            vm.ResetPasswordCommand.ExecuteAsync(null).GetAwaiter().GetResult();
 
             Assert.True(dialog.InfoShown);
             Assert.False(success);
@@ -70,7 +70,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 SelectedUser = new User { IsAdmin = true }
             };
 
-            vm.ResetPasswordCommand.Execute(null);
+            vm.ResetPasswordCommand.ExecuteAsync(null).GetAwaiter().GetResult();
 
             Assert.True(success);
             Assert.True(vm.IsPasswordResetRequested);

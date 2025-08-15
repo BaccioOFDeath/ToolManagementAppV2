@@ -202,12 +202,12 @@ namespace ToolManagementAppV2.ViewModels
             catch (InvalidOperationException ex)
             {
                 _logger.LogError(ex, "Failed to add tool due to invalid operation");
-                _dialogService.ShowInfo(ex.Message, "Error");
+                await _dialogService.ShowInfoAsync(ex.Message, "Error");
             }
             catch (ArgumentException ex)
             {
                 _logger.LogError(ex, "Failed to add tool due to invalid argument");
-                _dialogService.ShowInfo(ex.Message, "Error");
+                await _dialogService.ShowInfoAsync(ex.Message, "Error");
             }
         }
 
@@ -236,7 +236,7 @@ namespace ToolManagementAppV2.ViewModels
                 ToolImagePath = SelectedTool.ToolImagePath
             };
 
-            var updated = _dialogService.ShowEditToolDialog(clone);
+            var updated = await _dialogService.ShowEditToolDialogAsync(clone);
             if (updated == null) return;
 
             await _toolService.UpdateToolAsync(updated);
@@ -254,7 +254,7 @@ namespace ToolManagementAppV2.ViewModels
         async Task DeleteToolAsync()
         {
             if (SelectedTool == null) return;
-            var confirm = _dialogService.ShowConfirmation(
+            var confirm = await _dialogService.ShowConfirmationAsync(
                 $"Delete tool '{SelectedTool.NameDescription}'?",
                 "Confirm Delete");
             if (!confirm)
@@ -270,7 +270,7 @@ namespace ToolManagementAppV2.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to delete tool {ToolID}", SelectedTool.ToolID);
-                _dialogService.ShowInfo($"Failed to delete tool: {ex.Message}", "Error");
+                await _dialogService.ShowInfoAsync($"Failed to delete tool: {ex.Message}", "Error");
             }
         }
 
@@ -295,7 +295,7 @@ namespace ToolManagementAppV2.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to rent tool {ToolID}", SelectedTool?.ToolID);
-                _dialogService.ShowInfo($"Failed to rent tool: {ex.Message}", "Error");
+                await _dialogService.ShowInfoAsync($"Failed to rent tool: {ex.Message}", "Error");
             }
         }
 
