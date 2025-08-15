@@ -4,6 +4,7 @@ using System;
 using System.Collections.ObjectModel;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Services.Core;
+using ToolManagementAppV2.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -125,8 +126,14 @@ namespace ToolManagementAppV2.ViewModels
 
         void SaveCompanyLogo()
         {
-            if (!string.IsNullOrWhiteSpace(CompanyLogoPath))
-                _settingsService.SaveSetting("CompanyLogoPath", CompanyLogoPath);
+            var full = PathHelper.GetAbsolutePath(CompanyLogoPath);
+            if (string.IsNullOrEmpty(full))
+            {
+                _dialogService.ShowInfo("Selected logo path is invalid.", "Invalid Path");
+                return;
+            }
+
+            _settingsService.SaveSetting("CompanyLogoPath", full);
         }
     }
 }
