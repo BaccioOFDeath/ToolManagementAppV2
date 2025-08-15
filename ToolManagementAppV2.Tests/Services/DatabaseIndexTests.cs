@@ -17,6 +17,7 @@ namespace ToolManagementAppV2.Tests.Services
                 Assert.True(SqliteHelper.IndexExists(db.ConnectionString, "idx_Users_UserName"));
                 Assert.True(SqliteHelper.IndexExists(db.ConnectionString, "idx_Customers_Contact"));
                 Assert.True(SqliteHelper.IndexExists(db.ConnectionString, "idx_Rentals_ToolID_CustomerID"));
+                Assert.True(SqliteHelper.IndexExists(db.ConnectionString, "idx_Tools_Keywords"));
             }
             finally
             {
