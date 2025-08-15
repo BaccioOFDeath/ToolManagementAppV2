@@ -199,8 +199,16 @@ namespace ToolManagementAppV2.Services.Tools
         public void DeleteTool(int toolID)
         {
             using var conn = _dbService.CreateConnection();
-            SqliteHelper.ExecuteNonQuery(conn, "DELETE FROM Tools WHERE ToolID=@ID",
-                new[] { new SQLiteParameter("@ID", toolID) });
+            try
+            {
+                SqliteHelper.ExecuteNonQuery(conn, "DELETE FROM Tools WHERE ToolID=@ID",
+                    new[] { new SQLiteParameter("@ID", toolID) });
+            }
+            catch (SQLiteException ex)
+            {
+                _logger.LogError(ex, "Failed to delete tool {ToolID}", toolID);
+                throw new InvalidOperationException($"Failed to delete tool {toolID}.", ex);
+            }
         }
     
         public void ToggleToolCheckOutStatus(int toolID, string currentUser)
@@ -538,8 +546,16 @@ namespace ToolManagementAppV2.Services.Tools
         public async Task DeleteToolAsync(int toolID)
         {
             using var conn = _dbService.CreateConnection();
-            await SqliteHelper.ExecuteNonQueryAsync(conn, "DELETE FROM Tools WHERE ToolID=@ID",
-                new[] { new SQLiteParameter("@ID", toolID) });
+            try
+            {
+                await SqliteHelper.ExecuteNonQueryAsync(conn, "DELETE FROM Tools WHERE ToolID=@ID",
+                    new[] { new SQLiteParameter("@ID", toolID) });
+            }
+            catch (SQLiteException ex)
+            {
+                _logger.LogError(ex, "Failed to delete tool {ToolID}", toolID);
+                throw new InvalidOperationException($"Failed to delete tool {toolID}.", ex);
+            }
         }
 
         public async Task<ToolModel> GetToolByIDAsync(int toolID)
