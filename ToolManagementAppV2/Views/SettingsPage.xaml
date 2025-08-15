@@ -34,8 +34,14 @@
                             <ColumnDefinition Width="200"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
                         <TextBlock Text="Theme" VerticalAlignment="Center"/>
                         <ComboBox Grid.Column="1" SelectedItem="{Binding Theme}" ItemsSource="{Binding ThemeOptions}" Margin="8,0,0,0"/>
+                        <TextBlock Grid.Row="1" Text="Password Iterations" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding PasswordIterations}" Margin="8,0,0,0" PreviewTextInput="PasswordIterationsBox_PreviewTextInput"/>
                     </Grid>
                 </StackPanel>
             </Border>

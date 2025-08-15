@@ -335,6 +335,26 @@ namespace ToolManagementAppV2.Tests.Services
             }
         }
 
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        public void SavePasswordIterations_Invalid_Throws(int iterations)
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                ISettingsService service = new SettingsService(dbService);
+
+                Assert.Throws<ArgumentOutOfRangeException>(() => service.SavePasswordIterations(iterations));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
         [Fact]
         public async Task SaveAndRetrieveSettingAsync()
         {
