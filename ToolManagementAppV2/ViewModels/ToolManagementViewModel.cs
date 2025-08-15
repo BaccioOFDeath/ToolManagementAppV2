@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities;
@@ -76,12 +77,15 @@ namespace ToolManagementAppV2.ViewModels
             {
                 if (SetProperty(ref _selectedCategory, value))
                 {
-                    SearchCommand.Execute(null);
+                    _searchCts.Cancel();
+                    _searchCts.Dispose();
+                    _searchCts = new CancellationTokenSource();
+                    SearchCommand.Execute(_searchCts.Token);
                 }
             }
         }
 
-        public IAsyncRelayCommand SearchCommand { get; }
+        public IAsyncRelayCommand<CancellationToken> SearchCommand { get; }
         public IAsyncRelayCommand NewToolCommand { get; }
         public IAsyncRelayCommand EditToolCommand { get; }
         public IAsyncRelayCommand DeleteToolCommand { get; }
@@ -89,6 +93,7 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand ViewDetailsCommand { get; }
 
         readonly IDispatcherTimer _searchDebounceTimer;
+        CancellationTokenSource _searchCts = new();
 
         // Writable for TwoWay binding from XAML. Mirrors SearchTerm and triggers search.
         private string _searchText = string.Empty;
@@ -100,6 +105,7 @@ namespace ToolManagementAppV2.ViewModels
                 if (SetProperty(ref _searchText, value))
                 {
                     SearchTerm = value;
+                    _searchCts.Cancel();
                     _searchDebounceTimer.Stop();
                     _searchDebounceTimer.Start();
                 }
@@ -118,7 +124,7 @@ namespace ToolManagementAppV2.ViewModels
             _rentalService = rentalService;
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<ToolManagementViewModel>.Instance;
-            SearchCommand = new AsyncRelayCommand(FilterToolsAsync);
+            SearchCommand = new AsyncRelayCommand<CancellationToken>(FilterToolsAsync);
             _searchDebounceTimer = searchDebounceTimer ?? new DispatcherTimerWrapper { Interval = TimeSpan.FromMilliseconds(300) };
             _searchDebounceTimer.Tick += OnSearchDebounceTimerTick;
             NewToolCommand = new AsyncRelayCommand(AddToolAsync);
@@ -136,7 +142,9 @@ namespace ToolManagementAppV2.ViewModels
         void OnSearchDebounceTimerTick(object? s, EventArgs e)
         {
             _searchDebounceTimer.Stop();
-            SearchCommand.Execute(null);
+            _searchCts.Dispose();
+            _searchCts = new CancellationTokenSource();
+            SearchCommand.Execute(_searchCts.Token);
         }
 
         bool _suppressToolsChanged;
@@ -163,14 +171,14 @@ namespace ToolManagementAppV2.ViewModels
         /// Invoked by <see cref="SearchCommand"/> whenever the search text or
         /// <see cref="SelectedCategory"/> changes and recomputes <see cref="Categories"/>.
         /// </summary>
-        async Task FilterToolsAsync()
+        async Task FilterToolsAsync(CancellationToken cancellationToken)
         {
             var term = string.IsNullOrWhiteSpace(SearchTerm) ? string.Empty : SearchTerm.Trim();
             IEnumerable<ToolModel> source;
 
             if (!string.IsNullOrEmpty(term))
             {
-                source = await _toolService.SearchToolsAsync(term);
+                source = await _toolService.SearchToolsAsync(term, cancellationToken);
             }
             else
             {
@@ -198,7 +206,7 @@ namespace ToolManagementAppV2.ViewModels
             {
                 await _toolService.AddToolAsync(NewTool);
                 await LoadToolsAsync();
-                await FilterToolsAsync();
+                await FilterToolsAsync(CancellationToken.None);
                 NewTool = new ToolModel();
             }
             catch (InvalidOperationException ex)
@@ -243,7 +251,7 @@ namespace ToolManagementAppV2.ViewModels
 
             await _toolService.UpdateToolAsync(updated);
             await LoadToolsAsync();
-            await FilterToolsAsync();
+            await FilterToolsAsync(CancellationToken.None);
             SelectedTool = Tools.FirstOrDefault(t => t.ToolID == updated.ToolID);
         }
 
@@ -266,7 +274,7 @@ namespace ToolManagementAppV2.ViewModels
             {
                 await _toolService.DeleteToolAsync(SelectedTool.ToolID);
                 await LoadToolsAsync();
-                await FilterToolsAsync();
+                await FilterToolsAsync(CancellationToken.None);
                 SelectedTool = null;
             }
             catch (Exception ex)
@@ -346,6 +354,8 @@ namespace ToolManagementAppV2.ViewModels
         {
             _searchDebounceTimer.Tick -= OnSearchDebounceTimerTick;
             _searchDebounceTimer.Stop();
+            _searchCts.Cancel();
+            _searchCts.Dispose();
             Tools.CollectionChanged -= Tools_CollectionChanged;
         }
     }

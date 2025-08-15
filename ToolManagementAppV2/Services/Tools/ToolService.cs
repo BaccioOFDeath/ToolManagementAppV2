@@ -430,10 +430,14 @@ namespace ToolManagementAppV2.Services.Tools
             return await SqliteHelper.ExecuteReaderAsync(conn, AllToolsSql, null, MapTool);
         }
 
-        public async Task<List<ToolModel>> SearchToolsAsync(string? searchText)
+        public async Task<List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (string.IsNullOrWhiteSpace(searchText))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
                 return await GetAllToolsAsync();
+            }
 
             using var conn = _dbService.CreateConnection();
             var terms = searchText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -468,6 +472,7 @@ namespace ToolManagementAppV2.Services.Tools
                 parameters.Add(new SQLiteParameter(paramName, $"%{terms[i]}%"));
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             return await SqliteHelper.ExecuteReaderAsync(conn, sb.ToString(), parameters.ToArray(), MapTool);
         }
 

@@ -38,7 +38,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
                 toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Saw" });
                 vm.SearchTerm = "Ham";
-                await vm.SearchCommand.ExecuteAsync(null);
+                await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
                 Assert.Single(vm.SearchResults);
                 Assert.Equal("Hammer", vm.SearchResults.First().NameDescription);
             }
@@ -64,7 +64,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" });
                 toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Hammer", Brand = "BrandB" });
                 vm.SearchTerm = "Hammer BrandA";
-                await vm.SearchCommand.ExecuteAsync(null);
+                await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
                 Assert.Single(vm.SearchResults);
                 Assert.Equal("BrandA", vm.SearchResults.First().Brand);
             }
@@ -90,7 +90,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
                 toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Cordless Drill", IsPowerTool = true });
                 vm.SearchTerm = string.Empty;
-                await vm.SearchCommand.ExecuteAsync(null);
+                await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
                 Assert.Single(vm.HandTools);
                 Assert.Single(vm.PowerTools);
             }
@@ -116,7 +116,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" });
                 toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Saw", Brand = "BrandB" });
                 vm.SelectedCategory = "BrandA";
-                await vm.SearchCommand.ExecuteAsync(null);
+                await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
                 Assert.Single(vm.SearchResults);
                 Assert.Equal("BrandA", vm.SearchResults.First().Brand);
             }
@@ -559,7 +559,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             var toolService = new CountingToolService(tools);
             var vm = new ToolManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
             vm.SearchTerm = "Ham";
-            await vm.SearchCommand.ExecuteAsync(null);
+            await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
             Assert.Equal(1, toolService.SearchToolsAsyncCalls);
             Assert.Equal(0, toolService.GetAllToolsAsyncCalls);
         }
@@ -574,11 +574,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
             var toolService = new CountingToolService(tools);
             var vm = new ToolManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
 
-            await vm.SearchCommand.ExecuteAsync(null);
+            await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
             Assert.Equal(1, toolService.GetAllToolsAsyncCalls);
             Assert.Equal(0, toolService.SearchToolsAsyncCalls);
 
-            await vm.SearchCommand.ExecuteAsync(null);
+            await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
             Assert.Equal(1, toolService.GetAllToolsAsyncCalls);
         }
 
@@ -648,9 +648,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 return _tools.ToList();
             }
 
-            public Task<List<ToolModel>> SearchToolsAsync(string? searchText)
+            public Task<List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default)
             {
                 SearchToolsAsyncCalls++;
+                if (cancellationToken.IsCancellationRequested)
+                    return Task.FromCanceled<List<ToolModel>>(cancellationToken);
                 if (string.IsNullOrWhiteSpace(searchText))
                     return Task.FromResult(_tools.ToList());
                 var term = searchText.Trim();
@@ -700,7 +702,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             public List<ToolModel> GetAllTools() => new();
             public Task<List<ToolModel>> GetAllToolsAsync() => Task.FromResult(new List<ToolModel>());
             public List<ToolModel> SearchTools(string? searchText) => new();
-            public Task<List<ToolModel>> SearchToolsAsync(string? searchText) => Task.FromResult(new List<ToolModel>());
+            public Task<List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
             public void ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new NotImplementedException();
             public Task ToggleToolCheckOutStatusAsync(int toolID, string currentUser) => throw new NotImplementedException();
             public List<ToolModel> GetToolsCheckedOutBy(string userName) => new();

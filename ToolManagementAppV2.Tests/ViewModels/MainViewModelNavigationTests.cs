@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
@@ -290,7 +291,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 vm.GlobalSearchText = "Ham";
 
-                await vm.GlobalSearchCommand.ExecuteAsync(null);
+                await vm.GlobalSearchCommand.ExecuteAsync(CancellationToken.None);
 
                 var page = Assert.IsType<ToolSearchPage>(vm.CurrentPage);
                 Assert.Equal("Ham", vm.ToolManagement.SearchText);

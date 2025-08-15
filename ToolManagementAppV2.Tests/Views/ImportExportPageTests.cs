@@ -116,6 +116,7 @@ namespace ToolManagementAppV2.Tests.Views
         public void DeleteTool(int toolID) => throw new NotImplementedException();
         public ToolModel GetToolByID(int toolID) => throw new NotImplementedException();
         public System.Collections.Generic.List<ToolModel> SearchTools(string? searchText) => new();
+        public Task<System.Collections.Generic.List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new System.Collections.Generic.List<ToolModel>());
         public void ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new NotImplementedException();
         public System.Collections.Generic.List<ToolModel> GetToolsCheckedOutBy(string userName) => new();
         public void UpdateToolImage(int toolID, string imagePath) => throw new NotImplementedException();

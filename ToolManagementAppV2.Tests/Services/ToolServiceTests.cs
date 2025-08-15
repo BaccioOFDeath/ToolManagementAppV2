@@ -8,6 +8,7 @@ using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Interfaces;
 using Xunit;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ToolManagementAppV2.Tests;
@@ -790,6 +791,25 @@ namespace ToolManagementAppV2.Tests.Services
             finally
             {
                 if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task SearchToolsAsync_Cancelled_Throws()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var svc = new ToolService(dbService);
+                using var cts = new CancellationTokenSource();
+                cts.Cancel();
+                await Assert.ThrowsAsync<OperationCanceledException>(() => svc.SearchToolsAsync("test", cts.Token));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
             }
         }
     }
