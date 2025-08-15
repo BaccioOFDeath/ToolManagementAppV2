@@ -739,8 +739,10 @@ namespace ToolManagementAppV2.Tests.Services
                 var tool = svc.GetAllTools().Single();
 
                 var before = DateTime.UtcNow;
-                svc.ToggleToolCheckOutStatus(tool.ToolID, "user");
+                var result = svc.ToggleToolCheckOutStatus(tool.ToolID, "user");
                 var after = DateTime.UtcNow;
+
+                Assert.True(result);
 
                 var updated = svc.GetToolByID(tool.ToolID);
                 Assert.True(updated.IsCheckedOut);
@@ -783,8 +785,9 @@ namespace ToolManagementAppV2.Tests.Services
                 var svc = new ToolService(dbService);
                 await svc.AddToolAsync(new Tool { ToolNumber = "T2", QuantityOnHand = 1 });
                 var tool = (await svc.GetAllToolsAsync()).Single();
-                await svc.ToggleToolCheckOutStatusAsync(tool.ToolID, "u");
+                var success = await svc.ToggleToolCheckOutStatusAsync(tool.ToolID, "u");
                 var updated = await svc.GetToolByIDAsync(tool.ToolID);
+                Assert.True(success);
                 Assert.True(updated.IsCheckedOut);
                 Assert.Equal(0, updated.QuantityOnHand);
             }
@@ -811,6 +814,87 @@ namespace ToolManagementAppV2.Tests.Services
                 if (File.Exists(dbPath))
                     File.Delete(dbPath);
             }
+        }
+
+        [Fact]
+        public void ImportToolImages_CopyIOException_RecordsConflict()
+        {
+            var dbPath = Path.GetTempFileName();
+            var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(tempDir);
+            var imgPath = Path.Combine(tempDir, "T1.png");
+            File.WriteAllText(imgPath, "img");
+
+            try
+            {
+                var logs = new List<LogEntry>();
+                using var loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
+                var dbService = new DatabaseService(dbPath);
+                var svc = new FailingCopyToolService(dbService, loggerFactory.CreateLogger<ToolService>());
+
+                svc.AddTool(new Tool { ToolNumber = "T1" });
+
+                var result = svc.ImportToolImages(tempDir, t => new[] { t.ToolNumber });
+
+                Assert.Equal(0, result.ImportedCount);
+                Assert.Contains(imgPath, result.ConflictingFiles);
+                Assert.Contains(logs, l => l.Level == LogLevel.Error && l.Exception is IOException);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+                if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+
+                var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+                if (Directory.Exists(destDir)) Directory.Delete(destDir, true);
+            }
+        }
+
+        [Fact]
+        public void ImportToolImages_SingleImage_ImportsSuccessfully()
+        {
+            var dbPath = Path.GetTempFileName();
+            var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(tempDir);
+            var imgPath = Path.Combine(tempDir, "T1.png");
+            File.WriteAllText(imgPath, "img");
+
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var svc = new ToolService(dbService);
+
+                svc.AddTool(new Tool { ToolNumber = "T1" });
+
+                var result = svc.ImportToolImages(tempDir, t => new[] { t.ToolNumber });
+
+                Assert.Equal(1, result.ImportedCount);
+                Assert.Empty(result.ConflictingFiles);
+                Assert.Empty(result.UnmatchedFiles);
+
+                var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+                var destFile = Path.Combine(destDir, Path.GetFileName(imgPath));
+                Assert.True(File.Exists(destFile));
+
+                var tool = svc.GetAllTools().Single();
+                Assert.Equal($"Images/{Path.GetFileName(imgPath)}", tool.ToolImagePath);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+                if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+                var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+                if (Directory.Exists(destDir)) Directory.Delete(destDir, true);
+            }
+        }
+
+        private class FailingCopyToolService : ToolService
+        {
+            public FailingCopyToolService(DatabaseService dbService, ILogger<ToolService> logger)
+                : base(dbService, logger) { }
+
+            protected override void CopyFile(string sourceFileName, string destFileName)
+                => throw new IOException("fail");
         }
     }
 }

@@ -22,7 +22,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     public class NewPageViewModelTests
     {
         [Fact]
-        public void ActivityLogsViewModel_LoadsLogs()
+        public async Task ActivityLogsViewModel_LoadsLogsAsync()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -31,7 +31,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var service = new ActivityLogService(db);
                 service.LogAction(1, "user", "action");
                 var vm = new ActivityLogsViewModel(service);
-                vm.LoadLogs();
+                await vm.LoadLogsAsync();
                 Assert.NotEmpty(vm.Logs);
             }
             finally
@@ -250,7 +250,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public ToolModel GetToolByID(int toolID) => throw new System.NotImplementedException();
         public List<ToolModel> SearchTools(string? searchText) => new();
         public Task<List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
-        public void ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new System.NotImplementedException();
+        public bool ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new System.NotImplementedException();
+        public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser) => throw new System.NotImplementedException();
         public List<ToolModel> GetToolsCheckedOutBy(string userName) => new();
         public void UpdateToolImage(int toolID, string imagePath) => throw new System.NotImplementedException();
         public ImageImportResult ImportToolImages(string folderPath, System.Func<ToolModel, IEnumerable<string>> keySelector) => new();
@@ -270,7 +271,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public ToolModel GetToolByID(int toolID) => throw new System.NotImplementedException();
         public List<ToolModel> SearchTools(string? searchText) => new();
         public Task<List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
-        public void ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new System.NotImplementedException();
+        public bool ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new System.NotImplementedException();
+        public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser) => throw new System.NotImplementedException();
         public List<ToolModel> GetToolsCheckedOutBy(string userName) => new();
         public void UpdateToolImage(int toolID, string imagePath) => throw new System.NotImplementedException();
         public ImageImportResult ImportToolImages(string folderPath, System.Func<ToolModel, IEnumerable<string>> keySelector) => new();

@@ -316,6 +316,7 @@ namespace ToolManagementAppV2.ViewModels
                 else
                 {
                     _logger.LogWarning("Failed to delete user {UserID}", user.UserID);
+                    await _dialogService.ShowInfoAsync("Failed to delete user.", "Error");
                 }
             }
             catch (Exception ex)

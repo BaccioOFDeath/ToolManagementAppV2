@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Controls;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
@@ -117,7 +118,8 @@ namespace ToolManagementAppV2.Tests.Views
         public ToolModel GetToolByID(int toolID) => throw new NotImplementedException();
         public System.Collections.Generic.List<ToolModel> SearchTools(string? searchText) => new();
         public Task<System.Collections.Generic.List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new System.Collections.Generic.List<ToolModel>());
-        public void ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new NotImplementedException();
+        public bool ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new NotImplementedException();
+        public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser) => throw new NotImplementedException();
         public System.Collections.Generic.List<ToolModel> GetToolsCheckedOutBy(string userName) => new();
         public void UpdateToolImage(int toolID, string imagePath) => throw new NotImplementedException();
         public ImageImportResult ImportToolImages(string folderPath, Func<ToolModel, System.Collections.Generic.IEnumerable<string>> keySelector) => new();

@@ -49,7 +49,5 @@ namespace ToolManagementAppV2.ViewModels
                 return false;
             }
         }
-
-        public bool LoadLogs() => LoadLogsAsync().GetAwaiter().GetResult();
     }
 }

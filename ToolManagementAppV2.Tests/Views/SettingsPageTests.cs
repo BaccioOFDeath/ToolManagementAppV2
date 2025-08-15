@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Views;
@@ -24,6 +25,38 @@ namespace ToolManagementAppV2.Tests.Views
                     };
                     var page = new SettingsPage { DataContext = vm };
                     vm.TestDbCommand.Execute(null);
+                    app.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    threadException = ex;
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadException != null)
+                throw threadException;
+        }
+
+        [Fact]
+        public void SaveCompanyLogoCommand_InvalidPath_ShowsError()
+        {
+            Exception? threadException = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new System.Windows.Application();
+                    var settings = new StubSettingsService();
+                    var dialog = new StubDialogService();
+                    var vm = new SettingsViewModel(new StubFileDialogService(), settings, dialog)
+                    {
+                        CompanyLogoPath = Path.Combine("..", "logo.png")
+                    };
+                    var page = new SettingsPage { DataContext = vm };
+                    vm.SaveCompanyLogoCommand.Execute(null);
+                    Assert.Equal("Selected logo path is invalid.", dialog.LastMessage);
                     app.Shutdown();
                 }
                 catch (Exception ex)
