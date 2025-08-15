@@ -8,7 +8,7 @@ namespace ToolManagementAppV2
     {
         public static void ShowMainWindow()
         {
-            var current = Application.Current.MainWindow as MainWindow;
+            var current = System.Windows.Application.Current.MainWindow as MainWindow;
 
             if (current == null)
                 throw new InvalidOperationException("Main window is not initialized.");

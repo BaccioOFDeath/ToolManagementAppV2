@@ -20,12 +20,12 @@ namespace ToolManagementAppV2.Tests.Views
             {
                 try
                 {
-                    var app = new Application();
+                    var app = new System.Windows.Application();
                     var service = new DialogService();
                     var task = service.ShowInfoAsync("Message", "Title");
-                    Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                    System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        var win = Application.Current.Windows.OfType<InfoDialogWindow>().FirstOrDefault();
+                        var win = System.Windows.Application.Current.Windows.OfType<InfoDialogWindow>().FirstOrDefault();
                         win?.Close();
                     }), DispatcherPriority.ApplicationIdle);
                     Assert.True(task.Wait(TimeSpan.FromSeconds(1)));
@@ -51,12 +51,12 @@ namespace ToolManagementAppV2.Tests.Views
             {
                 try
                 {
-                    var app = new Application();
+                    var app = new System.Windows.Application();
                     var service = new DialogService();
                     var task = service.ShowConfirmationAsync("?", "Confirm");
-                    Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                    System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        var win = Application.Current.Windows.OfType<ConfirmDialogWindow>().FirstOrDefault();
+                        var win = System.Windows.Application.Current.Windows.OfType<ConfirmDialogWindow>().FirstOrDefault();
                         if (win != null)
                             win.DialogResult = true;
                     }), DispatcherPriority.ApplicationIdle);

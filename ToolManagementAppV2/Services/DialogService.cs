@@ -28,7 +28,7 @@ namespace ToolManagementAppV2.Services
         }
 
         public Task ShowInfoAsync(string message, string title) =>
-            Application.Current?.Dispatcher?.InvokeAsync(() => ShowInfo(message, title)).Task
+            System.Windows.Application.Current?.Dispatcher?.InvokeAsync(() => ShowInfo(message, title)).Task
             ?? Task.Run(() => ShowInfo(message, title));
 
         public bool ShowConfirmation(string message, string title)
@@ -38,7 +38,7 @@ namespace ToolManagementAppV2.Services
         }
 
         public Task<bool> ShowConfirmationAsync(string message, string title) =>
-            Application.Current?.Dispatcher?.InvokeAsync(() => ShowConfirmation(message, title)).Task
+            System.Windows.Application.Current?.Dispatcher?.InvokeAsync(() => ShowConfirmation(message, title)).Task
             ?? Task.FromResult(ShowConfirmation(message, title));
 
         public ToolModel? ShowEditToolDialog(ToolModel tool)
@@ -54,7 +54,7 @@ namespace ToolManagementAppV2.Services
         }
 
         public Task<ToolModel?> ShowEditToolDialogAsync(ToolModel tool) =>
-            Application.Current?.Dispatcher?.InvokeAsync(() => ShowEditToolDialog(tool)).Task
+            System.Windows.Application.Current?.Dispatcher?.InvokeAsync(() => ShowEditToolDialog(tool)).Task
             ?? Task.FromResult(ShowEditToolDialog(tool));
 
         public void ShowToolDetails(ToolModel tool)

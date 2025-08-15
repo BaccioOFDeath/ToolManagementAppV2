@@ -22,8 +22,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task SelectUserCommand_SetsCurrentUser()
         {
-            if (Application.Current == null)
-                new Application();
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
 
             var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
             try
@@ -54,8 +54,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task SelectUserCommand_PromptsForPasswordChange_WhenExpired()
         {
-            if (Application.Current == null)
-                new Application();
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
 
             var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
             try
@@ -91,8 +91,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task SelectUserCommand_PromptsForPassword_AuthenticatesAdmin()
         {
-            if (Application.Current == null)
-                new Application();
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
 
             var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
             try
@@ -126,8 +126,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task SelectUserCommand_CanBeCancelled()
         {
-            if (Application.Current == null)
-                new Application();
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
 
             var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
             try
@@ -163,8 +163,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public void ChangePasswordWindow_Dispose_ClosesWindow()
         {
-            if (Application.Current == null)
-                new Application();
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
 
             var win = new ChangePasswordWindow();
             var closed = false;

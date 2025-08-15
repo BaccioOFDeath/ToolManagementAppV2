@@ -21,8 +21,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public void SwitchUserCommand_UpdatesCurrentUser()
         {
-            if (Application.Current == null)
-                new Application();
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
 
             var dbPath = Path.GetTempFileName();
             try
@@ -64,8 +64,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public void SwitchUserCommand_ShowsWarning_WhenLoginCancelled()
         {
-            if (Application.Current == null)
-                new Application();
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
 
             var dbPath = Path.GetTempFileName();
             try
