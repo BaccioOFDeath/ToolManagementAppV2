@@ -12,6 +12,7 @@ using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Helpers;
+using ToolManagementAppV2.Views;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.ViewModels
@@ -157,6 +158,21 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 if (File.Exists(dbPath)) File.Delete(dbPath);
             }
+        }
+
+        [Fact]
+        public void ChangePasswordWindow_Dispose_ClosesWindow()
+        {
+            if (Application.Current == null)
+                new Application();
+
+            var win = new ChangePasswordWindow();
+            var closed = false;
+            win.Closed += (_, __) => closed = true;
+
+            win.Dispose();
+
+            Assert.True(closed);
         }
     }
 

@@ -1,4 +1,5 @@
 // Views/ChangePasswordWindow.xaml.cs
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using ToolManagementAppV2.ViewModels;
@@ -6,8 +7,10 @@ using ToolManagementAppV2.Utilities.Extensions;
 
 namespace ToolManagementAppV2.Views
 {
-    public partial class ChangePasswordWindow : Window
+    public partial class ChangePasswordWindow : Window, IDisposable
     {
+        bool _disposed;
+
         public ChangePasswordViewModel VM => (ChangePasswordViewModel)DataContext;
         public string NewPassword => VM.NewPassword;
 
@@ -23,5 +26,13 @@ namespace ToolManagementAppV2.Views
 
         void ConfirmPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
             => VM.ConfirmPassword = ((PasswordBox)sender).Password;
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+            _disposed = true;
+            Close();
+        }
     }
 }
