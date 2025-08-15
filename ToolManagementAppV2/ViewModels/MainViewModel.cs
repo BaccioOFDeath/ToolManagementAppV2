@@ -260,14 +260,7 @@ namespace ToolManagementAppV2.ViewModels
                 }
             });
 
-            GlobalSearchCommand = new AsyncRelayCommand(async () =>
-            {
-                ToolManagement.SearchText = GlobalSearchText;
-                await OpenSearchToolsCommand.ExecuteAsync(null);
-                if (ToolManagement.SearchCommand != null)
-                    await ToolManagement.SearchCommand.ExecuteAsync(null);
-                GlobalSearchText = string.Empty;
-            });
+            GlobalSearchCommand = new AsyncRelayCommand(GlobalSearchAsync);
 
             SwitchUserCommand = new AsyncRelayCommand(async () =>
             {
@@ -370,6 +363,15 @@ namespace ToolManagementAppV2.ViewModels
                 _logger.LogError(ex, "Failed to import tools from CSV");
                 await _dialogService.ShowInfoAsync($"Failed to import tools: {ex.Message}", "Import Tools");
             }
+        }
+
+        async Task GlobalSearchAsync(CancellationToken cancellationToken)
+        {
+            ToolManagement.SearchText = GlobalSearchText;
+            await OpenSearchToolsCommand.ExecuteAsync(null);
+            if (ToolManagement.SearchCommand != null)
+                await ToolManagement.SearchCommand.ExecuteAsync(cancellationToken);
+            GlobalSearchText = string.Empty;
         }
 
         /// <inheritdoc />
