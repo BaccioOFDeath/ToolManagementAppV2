@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Windows.Controls;
@@ -14,6 +15,12 @@ using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
 using System.Windows;
 using ToolManagementAppV2.Models.Domain;
+using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.Services.Customers;
+using ToolManagementAppV2.Services.Rentals;
+using ToolManagementAppV2.Services.Settings;
+using ToolManagementAppV2.Interfaces;
 
 namespace ToolManagementAppV2.Tests.Views
 {
@@ -116,6 +123,86 @@ namespace ToolManagementAppV2.Tests.Views
         }
 
         [Fact]
+        public void SwitchUserButton_UpdatesCurrentUser()
+        {
+            Exception? threadException = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    if (System.Windows.Application.Current == null)
+                        new System.Windows.Application();
+
+                    var dbPath = Path.GetTempFileName();
+                    try
+                    {
+                        var db = new DatabaseService(dbPath);
+                        var toolService = new ToolService(db);
+                        var userContext = new ApplicationUserContext();
+                        var userService = new UserService(db, userContext);
+                        var customerService = new CustomerService(db);
+                        var rentalService = new RentalService(db, toolService);
+                        var activityLogService = new ActivityLogService(db);
+                        var settingsService = new SettingsService(db);
+                        var dialog = new StubDialogService();
+                        var fileDialog = new StubFileDialogService();
+
+                        var newUser = new User { UserName = "newuser", IsAdmin = true };
+                        Func<Task<bool>> stubLogin = () =>
+                        {
+                            userContext.CurrentUser = newUser;
+                            return Task.FromResult(true);
+                        };
+
+                        var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                            fileDialog, activityLogService, settingsService, db, dialog, null, stubLogin);
+
+                        userContext.CurrentUser = new User { UserName = "old", IsAdmin = false };
+
+                        var window = new ToolManagementAppV2.MainWindow(vm, db);
+                        try
+                        {
+                            var button = (Button)window.FindName("SwitchUserButton");
+                            var cmd = Assert.IsAssignableFrom<IAsyncRelayCommand>(button.Command);
+                            var task = cmd.ExecuteAsync(null);
+                            var frame = new DispatcherFrame();
+                            task.ContinueWith(_ => frame.Continue = false);
+                            Dispatcher.PushFrame(frame);
+
+                            Assert.Equal("newuser", vm.CurrentUserName);
+                            Assert.True(vm.IsCurrentUserAdmin);
+                        }
+                        finally
+                        {
+                            window.Close();
+                            db.Dispose();
+                            if (File.Exists(dbPath))
+                                File.Delete(dbPath);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        threadException = ex;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    threadException = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadException != null)
+            {
+                throw threadException;
+            }
+        }
+
+        [Fact]
         public void RentalHistoryButton_BoundToSelectedTool()
         {
             Exception? threadException = null;
@@ -174,6 +261,29 @@ namespace ToolManagementAppV2.Tests.Views
                 }
             }
             return null;
+        }
+
+        class StubFileDialogService : IFileDialogService
+        {
+            public string OpenFile(string filter) => null;
+            public string SaveFile(string filter) => null;
+        }
+
+        class StubDialogService : IDialogService
+        {
+            public void ShowInfo(string message, string title) { }
+            public bool ShowConfirmation(string message, string title) => false;
+            public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
+            public void ShowToolDetails(ToolModel tool) { }
+            public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+            public CustomerModel? ShowAddCustomerDialog() => null;
+            public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
+            public void ShowRentalHistory(ToolModel tool, IEnumerable<RentalModel> history) { }
+            public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties) => null;
+            public Func<ToolModel, IEnumerable<string>>? ShowImageImportMapping() => null;
+            public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
+            public void ShowPrintLabelDialog() { }
+            public void ShowScannerStatus() { }
         }
 
         [Fact]

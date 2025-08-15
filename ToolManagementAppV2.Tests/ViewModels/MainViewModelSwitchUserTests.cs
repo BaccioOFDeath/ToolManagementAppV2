@@ -100,6 +100,44 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public async Task SwitchUserCommand_ShowsError_WhenLoginThrows()
+        {
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
+
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var userContext = new ApplicationUserContext();
+                var userService = new UserService(db, userContext);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var activityLogService = new ActivityLogService(db);
+                var settingsService = new SettingsService(db);
+
+                var dialog = new StubDialogService();
+                var logger = new StubLogger<MainViewModel>();
+
+                Func<Task<bool>> stubLogin = () => throw new InvalidOperationException("boom");
+
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                    new StubFileDialogService(), activityLogService, settingsService, db, dialog, logger, stubLogin);
+
+                await vm.SwitchUserCommand.ExecuteAsync(null);
+
+                Assert.True(dialog.InfoShown);
+                Assert.Equal("Switch user failed.", logger.LastError);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 
     class StubFileDialogService : IFileDialogService
@@ -129,6 +167,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     class StubLogger<T> : ILogger<T>
     {
         public string? LastWarning { get; private set; }
+        public string? LastError { get; private set; }
 
         public IDisposable BeginScope<TState>(TState state) => NullDisposable.Instance;
         public bool IsEnabled(LogLevel logLevel) => true;
@@ -136,6 +175,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             if (logLevel == LogLevel.Warning)
                 LastWarning = formatter(state, exception);
+            if (logLevel == LogLevel.Error)
+                LastError = formatter(state, exception);
         }
 
         private sealed class NullDisposable : IDisposable
