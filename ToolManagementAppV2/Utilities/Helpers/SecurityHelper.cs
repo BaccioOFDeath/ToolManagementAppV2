@@ -1,6 +1,7 @@
 using System;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 
@@ -9,8 +10,9 @@ namespace ToolManagementAppV2.Utilities.Helpers
     public static class SecurityHelper
     {
         const int DefaultIterations = 100_000;
-        static int? _iterations;
         static ISettingsService? _settingsService;
+        static int _iterationCache;
+        static readonly object _iterLock = new();
 
         public static ISettingsService? SettingsService
         {
@@ -18,21 +20,16 @@ namespace ToolManagementAppV2.Utilities.Helpers
             set
             {
                 _settingsService = value;
-                _iterations = null;
+                Volatile.Write(ref _iterationCache, 0);
             }
         }
+
         const string PasswordChars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789!@#$%^&*";
 
         public static bool IsSha256Hash(string input)
         {
-            if (string.IsNullOrWhiteSpace(input) || input.Length != 64)
-                return false;
-
-            foreach (var c in input)
-            {
-                if (!Uri.IsHexDigit(c))
-                    return false;
-            }
+            if (string.IsNullOrWhiteSpace(input) || input.Length != 64) return false;
+            foreach (var c in input) if (!Uri.IsHexDigit(c)) return false;
             return true;
         }
 
@@ -53,9 +50,7 @@ namespace ToolManagementAppV2.Utilities.Helpers
 
         public static bool VerifyPassword(string password, string salt, string hash)
         {
-            if (string.IsNullOrEmpty(salt) || string.IsNullOrEmpty(hash))
-                return false;
-
+            if (string.IsNullOrEmpty(salt) || string.IsNullOrEmpty(hash)) return false;
             var computed = HashPassword(password, salt);
             try
             {
@@ -74,39 +69,58 @@ namespace ToolManagementAppV2.Utilities.Helpers
             var bytes = new byte[length];
             RandomNumberGenerator.Fill(bytes);
             var chars = new char[length];
-            for (int i = 0; i < length; i++)
-            {
-                chars[i] = PasswordChars[bytes[i] % PasswordChars.Length];
-            }
+            for (int i = 0; i < length; i++) chars[i] = PasswordChars[bytes[i] % PasswordChars.Length];
             return new string(chars);
         }
 
-        // Legacy support for migrating existing SHA256 hashes
         public static string ComputeSha256HashLegacy(string rawData)
         {
             using var sha256Hash = SHA256.Create();
             var bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
-            var builder = new StringBuilder();
-            foreach (var b in bytes)
-            {
-                builder.Append(b.ToString("x2"));
-            }
-            return builder.ToString();
+            var sb = new StringBuilder(bytes.Length * 2);
+            foreach (var b in bytes) sb.Append(b.ToString("x2"));
+            return sb.ToString();
         }
 
         static int GetIterations()
         {
-            return GetIterationsAsync().GetAwaiter().GetResult();
-        }
+            var cached = Volatile.Read(ref _iterationCache);
+            if (cached > 0) return cached;
 
-        static async Task<int> GetIterationsAsync()
-        {
-            if (_iterations.HasValue)
-                return _iterations.Value;
+            lock (_iterLock)
+            {
+                cached = _iterationCache;
+                if (cached > 0) return cached;
 
-            var value = _settingsService != null ? await _settingsService.GetPasswordIterationsAsync() : 0;
-            _iterations = value > 0 ? value : DefaultIterations;
-            return _iterations.Value;
+                int value = 0;
+                var svc = _settingsService;
+                if (svc != null)
+                {
+                    var t = svc.GetType();
+
+                    var mSync = t.GetMethod("GetPasswordIterations", Type.EmptyTypes);
+                    if (mSync != null && mSync.ReturnType == typeof(int))
+                    {
+                        value = (int)mSync.Invoke(svc, null)!;
+                    }
+                    else
+                    {
+                        var mAsync = t.GetMethod("GetPasswordIterationsAsync", Type.EmptyTypes);
+                        if (mAsync != null)
+                        {
+                            var taskObj = mAsync.Invoke(svc, null);
+                            if (taskObj is Task<int> task)
+                            {
+                                value = task.ConfigureAwait(false).GetAwaiter().GetResult();
+                            }
+                        }
+                    }
+                }
+
+                if (value <= 0) value = DefaultIterations;
+                Volatile.Write(ref _iterationCache, value);
+                return value;
+            }
         }
     }
 }
