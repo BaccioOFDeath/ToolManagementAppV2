@@ -346,6 +346,34 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public async Task OpenHistory_ShowsDialogOnFailure()
+        {
+            var rentals = new List<Rental>
+            {
+                new Rental
+                {
+                    RentalID = 1,
+                    ToolID = 1,
+                    ToolNumber = "T1",
+                    CustomerID = 1,
+                    CustomerName = "C1",
+                    RentalDate = DateTime.Today,
+                    DueDate = DateTime.Today.AddDays(1),
+                    Status = "Rented"
+                }
+            };
+            var rentalService = new ExceptionRentalService(rentals);
+            var dialog = new StubDialogService();
+            var vm = new ManageRentalsViewModel(rentalService, dialog);
+            await vm.LoadRentalsAsync();
+            vm.SelectedRental = vm.Rentals.First();
+
+            await vm.OpenHistoryCommand.ExecuteAsync(null);
+
+            Assert.Contains("boom", dialog.LastInfoMessage);
+        }
+
+        [Fact]
         public async Task PrintRental_ShowsDialogOnFailure()
         {
             var rentals = new List<Rental>

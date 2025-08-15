@@ -205,22 +205,27 @@ namespace ToolManagementAppV2.ViewModels
         {
             if (SelectedRental == null)
                 return;
+
+            List<RentalModel> history;
             try
             {
-                var history = await _rentalService.GetRentalHistoryForToolAsync(SelectedRental.ToolID);
-                var tool = new ToolModel
-                {
-                    ToolID = SelectedRental.ToolID,
-                    ToolNumber = SelectedRental.ToolNumber,
-                    NameDescription = SelectedRental.ToolNumber
-                };
-                _dialogService.ShowRentalHistory(tool, history);
+                history = await _rentalService.GetRentalHistoryForToolAsync(SelectedRental.ToolID);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to open rental history for tool {ToolID}", SelectedRental.ToolID);
                 await _dialogService.ShowInfoAsync($"Failed to load rental history: {ex.Message}", "Error");
+                return;
             }
+
+            var tool = new ToolModel
+            {
+                ToolID = SelectedRental.ToolID,
+                ToolNumber = SelectedRental.ToolNumber,
+                NameDescription = SelectedRental.ToolNumber
+            };
+
+            _dialogService.ShowRentalHistory(tool, history);
         }
 
         void PrintRental()
