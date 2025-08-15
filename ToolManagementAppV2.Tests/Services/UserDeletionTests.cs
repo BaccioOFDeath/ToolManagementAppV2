@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using ToolManagementAppV2.Models.Domain;
@@ -21,9 +22,7 @@ public class UserDeletionTests
             userService.AddUser(admin);
 
             var added = userService.GetAllUsers().First();
-            var result = userService.TryDeleteUser(added.UserID);
-
-            Assert.False(result, "Deletion should be blocked when user is the last admin.");
+            Assert.Throws<InvalidOperationException>(() => userService.DeleteUser(added.UserID));
             Assert.Single(userService.GetAllUsers());
         }
         finally
