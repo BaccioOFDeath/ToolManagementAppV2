@@ -51,8 +51,15 @@ namespace ToolManagementAppV2.Services.Tools
             if (string.IsNullOrEmpty(path))
                 return null;
 
-            var full = Utilities.Helpers.PathHelper.GetAbsolutePath(path);
-            return !string.IsNullOrEmpty(full) && File.Exists(full) ? full : null;
+            try
+            {
+                var full = Utilities.Helpers.PathHelper.GetAbsolutePath(path, true);
+                return !string.IsNullOrEmpty(full) && File.Exists(full) ? full : null;
+            }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
         }
 
         private FlowDocument BuildDocument(string title, string? logoPath)
@@ -118,7 +125,14 @@ namespace ToolManagementAppV2.Services.Tools
             string imgPath = null;
             if (!string.IsNullOrEmpty(tool.ToolImagePath))
             {
-                imgPath = Utilities.Helpers.PathHelper.GetAbsolutePath(tool.ToolImagePath);
+                try
+                {
+                    imgPath = Utilities.Helpers.PathHelper.GetAbsolutePath(tool.ToolImagePath, true);
+                }
+                catch (InvalidOperationException)
+                {
+                    imgPath = null;
+                }
             }
 
             if (!string.IsNullOrEmpty(imgPath) && File.Exists(imgPath))
@@ -195,7 +209,15 @@ namespace ToolManagementAppV2.Services.Tools
 
         private Border CreateOptimizedImage(string path)
         {
-            var full = Utilities.Helpers.PathHelper.GetAbsolutePath(path);
+            string? full;
+            try
+            {
+                full = Utilities.Helpers.PathHelper.GetAbsolutePath(path, true);
+            }
+            catch (InvalidOperationException)
+            {
+                return new Border { Width = 120, Height = 120, CornerRadius = new CornerRadius(10) };
+            }
             if (string.IsNullOrEmpty(full))
                 return new Border { Width = 120, Height = 120, CornerRadius = new CornerRadius(10) };
 
@@ -222,7 +244,15 @@ namespace ToolManagementAppV2.Services.Tools
             if (string.IsNullOrEmpty(logoPath))
                 return;
 
-            var full = Utilities.Helpers.PathHelper.GetAbsolutePath(logoPath);
+            string? full;
+            try
+            {
+                full = Utilities.Helpers.PathHelper.GetAbsolutePath(logoPath, true);
+            }
+            catch (InvalidOperationException)
+            {
+                return;
+            }
             if (string.IsNullOrEmpty(full) || !File.Exists(full))
                 return;
             var bmp = new BitmapImage();

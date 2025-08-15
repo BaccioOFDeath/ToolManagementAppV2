@@ -88,10 +88,17 @@ namespace ToolManagementAppV2.ViewModels
             Uri logoUri;
             if (!string.IsNullOrWhiteSpace(logoPath))
             {
-                var full = PathHelper.GetAbsolutePath(logoPath);
-                logoUri = !string.IsNullOrEmpty(full) && File.Exists(full)
-                    ? new Uri(full)
-                    : new Uri("pack://application:,,,/Resources/DefaultLogo.png");
+                try
+                {
+                    var full = PathHelper.GetAbsolutePath(logoPath, true);
+                    logoUri = !string.IsNullOrEmpty(full) && File.Exists(full)
+                        ? new Uri(full)
+                        : new Uri("pack://application:,,,/Resources/DefaultLogo.png");
+                }
+                catch (InvalidOperationException)
+                {
+                    logoUri = new Uri("pack://application:,,,/Resources/DefaultLogo.png");
+                }
             }
             else
             {
