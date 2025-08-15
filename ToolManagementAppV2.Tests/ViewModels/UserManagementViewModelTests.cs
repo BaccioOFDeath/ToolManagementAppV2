@@ -158,102 +158,101 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task CommandsDisabledWhenNoUserSelected()
         {
-            var dbPath = Path.GetTempFileName();
-            try
-            {
-                var db = new DatabaseService(dbPath);
-                IUserService userService = new UserService(db, new ApplicationUserContext());
-                var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
-                userService.AddUser(new User { UserName = "user1", Password = "pw" });
-                await vm.LoadUsersAsync();
-                Assert.False(vm.UpdateUserCommand.CanExecute(null));
-                Assert.False(vm.EditUserCommand.CanExecute(null));
-                vm.SelectedUser = vm.Users.First();
-                Assert.True(vm.UpdateUserCommand.CanExecute(null));
-                Assert.True(vm.EditUserCommand.CanExecute(null));
-            }
-            finally
-            {
-                if (File.Exists(dbPath))
-                    File.Delete(dbPath);
-            }
+            var svc = new InMemoryUserService();
+            await svc.AddUserAsync(new User { UserName = "user1", Password = "pw" });
+            var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
+            await vm.LoadUsersAsync();
+            Assert.False(vm.UpdateUserCommand.CanExecute(null));
+            Assert.False(vm.EditUserCommand.CanExecute(null));
+            vm.SelectedUser = vm.Users.First();
+            Assert.True(vm.UpdateUserCommand.CanExecute(null));
+            Assert.True(vm.EditUserCommand.CanExecute(null));
         }
 
         [Fact]
-        public async Task AddUserCommand_AddsUser()
+        public async Task LoadUsersAsync_LoadsUsers()
         {
-            var dbPath = Path.GetTempFileName();
-            try
-            {
-                var db = new DatabaseService(dbPath);
-                IUserService userService = new UserService(db, new ApplicationUserContext());
-                var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
-                await vm.AddUserCommand.ExecuteAsync(null);
-                Assert.Single(vm.Users);
-                Assert.Single(userService.GetAllUsers());
-            }
-            finally
-            {
-                if (File.Exists(dbPath))
-                    File.Delete(dbPath);
-            }
+            var svc = new InMemoryUserService();
+            await svc.AddUserAsync(new User { UserName = "user1", Password = "pw" });
+            await svc.AddUserAsync(new User { UserName = "user2", Password = "pw" });
+            var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
+            await vm.LoadUsersAsync();
+            Assert.Equal(2, vm.Users.Count);
+            Assert.Contains(vm.Users, u => u.UserName == "user1");
+            Assert.Contains(vm.Users, u => u.UserName == "user2");
         }
 
         [Fact]
-        public async Task AddUserCommand_SkipsExistingNameFromService()
+        public async Task AddUserAsync_AddsUser()
         {
-            var dbPath = Path.GetTempFileName();
-            try
-            {
-                var db = new DatabaseService(dbPath);
-                IUserService userService = new UserService(db, new ApplicationUserContext());
-                // Pre-populate the database with a user named "user1"
-                userService.AddUser(new User { UserName = "user1", Password = "pw" });
-
-                // The view model has not loaded users, so its local collection is empty
-                var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
-                await vm.AddUserCommand.ExecuteAsync(null);
-
-                // Ensure a second user was added with an incremented name
-                var all = userService.GetAllUsers();
-                Assert.Equal(2, all.Count);
-                Assert.Contains(all, u => u.UserName == "user2");
-                Assert.Single(vm.Users);
-                Assert.Equal("user2", vm.Users.First().UserName);
-            }
-            finally
-            {
-                if (File.Exists(dbPath))
-                    File.Delete(dbPath);
-            }
+            var svc = new InMemoryUserService();
+            var vm = new PromptUserManagementViewModel(svc, "pw");
+            await vm.AddUserAsync();
+            Assert.Single(vm.Users);
+            Assert.Single(svc.Users);
+            Assert.Equal("pw", svc.Users[0].Password);
         }
 
         [Fact]
-        public async Task AddUserCommand_FindsFirstAvailableNumber()
+        public async Task AddUserAsync_SkipsExistingNameFromService()
         {
-            var dbPath = Path.GetTempFileName();
-            try
-            {
-                var db = new DatabaseService(dbPath);
-                IUserService userService = new UserService(db, new ApplicationUserContext());
-                // Create a gap: user1 and user3 exist
-                userService.AddUser(new User { UserName = "user1", Password = "pw" });
-                userService.AddUser(new User { UserName = "user3", Password = "pw" });
+            var svc = new InMemoryUserService();
+            await svc.AddUserAsync(new User { UserName = "user1", Password = "pw" });
+            var vm = new PromptUserManagementViewModel(svc, "pw");
+            await vm.AddUserAsync();
 
-                var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
-                await vm.AddUserCommand.ExecuteAsync(null);
+            Assert.Equal(2, svc.Users.Count);
+            Assert.Contains(svc.Users, u => u.UserName == "user2");
+            Assert.Single(vm.Users);
+            Assert.Equal("user2", vm.Users.First().UserName);
+        }
 
-                var all = userService.GetAllUsers();
-                Assert.Equal(3, all.Count);
-                Assert.Contains(all, u => u.UserName == "user2");
-                Assert.Single(vm.Users);
-                Assert.Equal("user2", vm.Users.First().UserName);
-            }
-            finally
-            {
-                if (File.Exists(dbPath))
-                    File.Delete(dbPath);
-            }
+        [Fact]
+        public async Task AddUserAsync_FindsFirstAvailableNumber()
+        {
+            var svc = new InMemoryUserService();
+            await svc.AddUserAsync(new User { UserName = "user1", Password = "pw" });
+            await svc.AddUserAsync(new User { UserName = "user3", Password = "pw" });
+            var vm = new PromptUserManagementViewModel(svc, "pw");
+            await vm.AddUserAsync();
+
+            Assert.Equal(3, svc.Users.Count);
+            Assert.Contains(svc.Users, u => u.UserName == "user2");
+            Assert.Single(vm.Users);
+            Assert.Equal("user2", vm.Users.First().UserName);
+        }
+
+        [Fact]
+        public async Task AddUserAsync_BlankPassword_SetsPasswordExpired()
+        {
+            var svc = new InMemoryUserService();
+            var vm = new PromptUserManagementViewModel(svc, "");
+            await vm.AddUserAsync();
+            var user = svc.Users.Single();
+            Assert.True(user.PasswordExpired);
+            Assert.False(string.IsNullOrEmpty(user.Password));
+            Assert.NotEqual("changeme", user.Password);
+        }
+
+        [Fact]
+        public async Task AddUserAsync_BlankPassword_SetsSalt()
+        {
+            var svc = new InMemoryUserService();
+            var vm = new PromptUserManagementViewModel(svc, "");
+            await vm.AddUserAsync();
+            var user = svc.Users.Single();
+            Assert.False(string.IsNullOrEmpty(user.Salt));
+        }
+
+        [Fact]
+        public async Task AddUserAsync_WithEnteredPassword_DoesNotExpire()
+        {
+            var svc = new InMemoryUserService();
+            var vm = new PromptUserManagementViewModel(svc, "secret");
+            await vm.AddUserAsync();
+            var user = svc.Users.Single();
+            Assert.False(user.PasswordExpired);
+            Assert.Equal("secret", user.Password);
         }
 
         [Fact]
@@ -317,73 +316,43 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task SearchAndClearUsers_WorkAsExpected()
         {
-            var dbPath = Path.GetTempFileName();
-            try
-            {
-                var db = new DatabaseService(dbPath);
-                IUserService userService = new UserService(db, new ApplicationUserContext());
-                var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
-                userService.AddUser(new User { UserName = "alice", Password = "pw" });
-                userService.AddUser(new User { UserName = "bob", Password = "pw" });
-                await vm.LoadUsersAsync();
+            var svc = new InMemoryUserService();
+            await svc.AddUserAsync(new User { UserName = "alice", Password = "pw" });
+            await svc.AddUserAsync(new User { UserName = "bob", Password = "pw" });
+            var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
+            await vm.LoadUsersAsync();
 
-                vm.UserSearchText = "alice";
-                vm.SearchUsersCommand.Execute(null);
-                Assert.Single(vm.Users);
-                Assert.Equal("alice", vm.Users.First().UserName);
+            vm.UserSearchText = "alice";
+            vm.SearchUsersCommand.Execute(null);
+            Assert.Single(vm.Users);
+            Assert.Equal("alice", vm.Users.First().UserName);
 
-                vm.ClearUserSearchCommand.Execute(null);
-                Assert.Equal(2, vm.Users.Count);
-            }
-            finally
-            {
-                if (File.Exists(dbPath))
-                    File.Delete(dbPath);
-            }
+            vm.ClearUserSearchCommand.Execute(null);
+            Assert.Equal(2, vm.Users.Count);
         }
 
         [Fact]
         public async Task DeleteUserFromRowCommand_RemovesUser()
         {
-            var dbPath = Path.GetTempFileName();
-            try
-            {
-                var db = new DatabaseService(dbPath);
-                IUserService userService = new UserService(db, new ApplicationUserContext());
-                var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
-                userService.AddUser(new User { UserName = "user1", Password = "pw" });
-                userService.AddUser(new User { UserName = "user2", Password = "pw" });
-                await vm.LoadUsersAsync();
-                var toDelete = vm.Users.First();
-                vm.DeleteUserFromRowCommand.Execute(toDelete);
-                Assert.Single(vm.Users);
-                Assert.Equal("user2", vm.Users.First().UserName);
-            }
-            finally
-            {
-                if (File.Exists(dbPath))
-                    File.Delete(dbPath);
-            }
+            var svc = new InMemoryUserService();
+            await svc.AddUserAsync(new User { UserName = "user1", Password = "pw" });
+            await svc.AddUserAsync(new User { UserName = "user2", Password = "pw" });
+            var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
+            await vm.LoadUsersAsync();
+            var toDelete = vm.Users.First();
+            vm.DeleteUserFromRowCommand.Execute(toDelete);
+            Assert.Single(vm.Users);
+            Assert.Equal("user2", vm.Users.First().UserName);
         }
 
         [Fact]
-        public async Task AddUserCommand_CancelledPrompt_DoesNotAddUser()
+        public async Task AddUserAsync_CancelledPrompt_DoesNotAddUser()
         {
-            var dbPath = Path.GetTempFileName();
-            try
-            {
-                var db = new DatabaseService(dbPath);
-                IUserService userService = new UserService(db, new ApplicationUserContext());
-                var vm = new CancelPromptUserManagementViewModel(userService, new StubFileDialogService());
-                await vm.AddUserCommand.ExecuteAsync(null);
-                Assert.Empty(vm.Users);
-                Assert.Empty(userService.GetAllUsers());
-            }
-            finally
-            {
-                if (File.Exists(dbPath))
-                    File.Delete(dbPath);
-            }
+            var svc = new InMemoryUserService();
+            var vm = new CancelPromptUserManagementViewModel(svc, new StubFileDialogService());
+            await vm.AddUserAsync();
+            Assert.Empty(vm.Users);
+            Assert.Empty(svc.Users);
         }
 
         [Fact]
@@ -471,6 +440,58 @@ class StubDialogService : IDialogService
     public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
     public void ShowPrintLabelDialog() { }
     public void ShowScannerStatus() { }
+}
+
+class InMemoryUserService : IUserService
+{
+    public List<User> Users { get; } = new();
+    public List<User> GetAllUsers() => Users;
+    public Task<List<User>> GetAllUsersAsync() => Task.FromResult(Users.ToList());
+    public User? GetUserByID(int userID) => Users.FirstOrDefault(u => u.UserID == userID);
+    public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult(GetUserByID(userID));
+    public User? AuthenticateUser(string userName, string password) => null;
+    public Task<User?> AuthenticateUserAsync(string userName, string password) => Task.FromResult<User?>(null);
+    public User? GetCurrentUser() => null;
+    public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
+    public void AddUser(User user)
+    {
+        user.UserID = Users.Count == 0 ? 1 : Users.Max(u => u.UserID) + 1;
+        Users.Add(user);
+    }
+    public Task AddUserAsync(User user) { AddUser(user); return Task.CompletedTask; }
+    public void UpdateUser(User user)
+    {
+        var idx = Users.FindIndex(u => u.UserID == user.UserID);
+        if (idx >= 0) Users[idx] = user;
+    }
+    public Task UpdateUserAsync(User user) { UpdateUser(user); return Task.CompletedTask; }
+    public bool TryDeleteUser(int userID)
+    {
+        var u = Users.FirstOrDefault(x => x.UserID == userID);
+        if (u != null) { Users.Remove(u); return true; }
+        return false;
+    }
+    public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(TryDeleteUser(userID));
+    public void DeleteUser(int userID) => TryDeleteUser(userID);
+    public Task DeleteUserAsync(int userID) { DeleteUser(userID); return Task.CompletedTask; }
+    public bool ChangeUserPassword(int userID, string newPassword) => false;
+    public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => Task.FromResult(false);
+}
+
+class PromptUserManagementViewModel : UserManagementViewModel
+{
+    readonly string _password;
+    public PromptUserManagementViewModel(IUserService svc, string password)
+        : base(svc, new StubFileDialogService(), new StubDialogService())
+    {
+        _password = password;
+    }
+
+    protected override bool TryPromptForPassword(UserModel newUser, out string password)
+    {
+        password = _password;
+        return true;
+    }
 }
 
 class FailingUserService : IUserService
