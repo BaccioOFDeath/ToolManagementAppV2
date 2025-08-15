@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -27,25 +28,21 @@ namespace ToolManagementAppV2.Services.Tools
 
         /// <summary>
         /// Prints a sorted list of tools with the given title.
-        /// If currentUserName is non‐null, only prints tools checked out by that user.
+        /// If currentUserName is non-null, only prints tools checked out by that user.
         /// </summary>
         public void PrintTools(IEnumerable<ToolModel> tools, string title, string currentUserName = null)
+            => PrintToolsAsync(tools, title, currentUserName).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Asynchronously prints tools, processing them in batches to keep the UI responsive.
+        /// </summary>
+        public async Task PrintToolsAsync(IEnumerable<ToolModel> tools, string title, string? currentUserName = null, int batchSize = 50)
         {
-            // 1) sort by Location
-            var list = tools.OrderBy(t => t.Location).ToList();
-
-            // 2) filter if needed
-            if (!string.IsNullOrEmpty(currentUserName))
-                list = list.Where(t => t.CheckedOutBy == currentUserName).ToList();
-
-            // 3) build the document
             var logoPath = LoadCompanyLogoPath();
-            var doc = BuildDocument(list, title, logoPath);
+            var doc = await BuildDocumentIncrementallyAsync(tools, title, logoPath, currentUserName, batchSize);
 
-            // 4) show preview window instead of calling PrintDialog directly
             var preview = new PrintPreviewWindow();
             preview.ShowPreview(doc, title, logoPath);
-            // printing now happens from inside the preview window
         }
 
         private string? LoadCompanyLogoPath()
@@ -58,7 +55,7 @@ namespace ToolManagementAppV2.Services.Tools
             return !string.IsNullOrEmpty(full) && File.Exists(full) ? full : null;
         }
 
-        private FlowDocument BuildDocument(List<ToolModel> tools, string title, string? logoPath)
+        private FlowDocument BuildDocument(string title, string? logoPath)
         {
             var doc = new FlowDocument
             {
@@ -69,7 +66,6 @@ namespace ToolManagementAppV2.Services.Tools
                 FontSize = 18
             };
 
-            // Header: logo + title
             var headerContainer = new BlockUIContainer();
             var headerStack = new StackPanel { Orientation = System.Windows.Controls.Orientation.Vertical };
             AddCompanyLogo(headerStack, logoPath);
@@ -77,7 +73,11 @@ namespace ToolManagementAppV2.Services.Tools
             headerContainer.Child = headerStack;
             doc.Blocks.Add(headerContainer);
 
-            // Each tool
+            return doc;
+        }
+
+        private void AddToolsBatch(FlowDocument doc, IEnumerable<ToolModel> tools)
+        {
             foreach (var t in tools)
             {
                 var row = CreateToolRow(t);
@@ -86,6 +86,20 @@ namespace ToolManagementAppV2.Services.Tools
                     Margin = new Thickness(0, 20, 0, 20)
                 };
                 doc.Blocks.Add(block);
+            }
+        }
+
+        private async Task<FlowDocument> BuildDocumentIncrementallyAsync(IEnumerable<ToolModel> tools, string title, string? logoPath, string? currentUserName, int batchSize)
+        {
+            var doc = BuildDocument(title, logoPath);
+            var ordered = tools.OrderBy(t => t.Location);
+            if (!string.IsNullOrEmpty(currentUserName))
+                ordered = ordered.Where(t => t.CheckedOutBy == currentUserName);
+
+            foreach (var batch in ordered.Chunk(batchSize))
+            {
+                AddToolsBatch(doc, batch);
+                await Task.Yield();
             }
 
             return doc;
