@@ -62,7 +62,7 @@ namespace ToolManagementAppV2.ViewModels
 
         public Func<string?> PromptForNewPassword { get; set; } = () =>
         {
-            var dlg = new Views.ChangePasswordWindow();
+            using var dlg = new Views.ChangePasswordWindow();
             return dlg.ShowDialog() == true ? dlg.NewPassword : null;
         };
 
