@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
@@ -12,7 +13,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     public class ActivityLogsViewModelTests
     {
         [Fact]
-        public void Constructor_LoadsLogs()
+        public async Task Constructor_LoadsLogs()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -21,6 +22,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var service = new ActivityLogService(db);
                 service.LogAction(1, "user", "action");
                 var vm = new ActivityLogsViewModel(service);
+                await vm.RefreshCommand.ExecutionTask;
                 Assert.Single(vm.Logs);
             }
             finally
@@ -31,7 +33,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void RefreshCommand_ReloadsLogs()
+        public async Task RefreshCommand_ReloadsLogs()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -40,10 +42,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var service = new ActivityLogService(db);
                 service.LogAction(1, "user", "first");
                 var vm = new ActivityLogsViewModel(service);
+                await vm.RefreshCommand.ExecutionTask;
                 Assert.Single(vm.Logs);
                 service.LogAction(1, "user", "second");
                 Assert.Single(vm.Logs);
-                vm.RefreshCommand.Execute(null);
+                await vm.RefreshCommand.ExecuteAsync(null);
                 Assert.Equal(2, vm.Logs.Count);
             }
             finally
@@ -54,7 +57,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void LoadLogs_ReturnsFalse_OnFailure()
+        public async Task LoadLogs_ReturnsFalse_OnFailure()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -62,7 +65,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var db = new DatabaseService(dbPath);
                 var service = new FailingActivityLogService(db);
                 var vm = new ActivityLogsViewModel(service);
-                Assert.False(vm.LoadLogs());
+                Assert.False(await vm.LoadLogsAsync());
                 Assert.Empty(vm.Logs);
             }
             finally
@@ -75,7 +78,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         class FailingActivityLogService : ActivityLogService
         {
             public FailingActivityLogService(DatabaseService db) : base(db) { }
-            public override List<ActivityLog>? GetRecentLogs(int count = 50) => throw new Exception("fail");
+            public override Task<List<ActivityLog>?> GetRecentLogsAsync(int count = 50) => throw new Exception("fail");
         }
     }
 }

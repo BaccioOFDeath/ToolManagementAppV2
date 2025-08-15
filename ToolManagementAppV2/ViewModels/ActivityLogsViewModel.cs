@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ToolManagementAppV2.Models.Domain;
@@ -16,22 +17,22 @@ namespace ToolManagementAppV2.ViewModels
 
         public ObservableCollection<ActivityLog> Logs { get; } = new();
 
-        public IRelayCommand RefreshCommand { get; }
+        public IAsyncRelayCommand RefreshCommand { get; }
 
         public ActivityLogsViewModel(ActivityLogService service, ILogger<ActivityLogsViewModel>? logger = null)
         {
             _service = service;
             _logger = logger ?? NullLogger<ActivityLogsViewModel>.Instance;
-            RefreshCommand = new RelayCommand(() => LoadLogs());
-            LoadLogs();
+            RefreshCommand = new AsyncRelayCommand(LoadLogsAsync);
+            _ = RefreshCommand.ExecuteAsync(null);
         }
 
-        public bool LoadLogs()
+        public async Task<bool> LoadLogsAsync()
         {
             try
             {
                 Logs.Clear();
-                var logs = _service.GetRecentLogs();
+                var logs = await _service.GetRecentLogsAsync();
                 if (logs == null)
                     return false;
                 foreach (var log in logs)
@@ -44,5 +45,7 @@ namespace ToolManagementAppV2.ViewModels
                 return false;
             }
         }
+
+        public bool LoadLogs() => LoadLogsAsync().GetAwaiter().GetResult();
     }
 }
