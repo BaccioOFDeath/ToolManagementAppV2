@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Threading.Tasks;
+using System.Threading;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
@@ -37,7 +38,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 bool success = false;
                 vm.LoginSucceeded += (_, __) => success = true;
 
-                vm.SelectUserCommand.Execute(vm.Users.First());
+                await vm.SelectUserCommand.ExecuteAsync(vm.Users.First());
 
                 Assert.True(success);
                 Assert.NotNull(userContext.CurrentUser);
@@ -73,12 +74,84 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 bool success = false;
                 vm.LoginSucceeded += (_, __) => success = true;
 
-                vm.SelectUserCommand.Execute(vm.Users.First());
+                await vm.SelectUserCommand.ExecuteAsync(vm.Users.First());
 
                 Assert.True(success);
                 var updated = userService.GetUserByID(user.UserID)!;
                 Assert.False(updated.PasswordExpired);
                 Assert.True(SecurityHelper.VerifyPassword("changed", updated.Salt, updated.Password));
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task SelectUserCommand_PromptsForPassword_AuthenticatesAdmin()
+        {
+            if (Application.Current == null)
+                new Application();
+
+            var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
+            try
+            {
+                using var dbService = new DatabaseService(dbPath);
+                var userContext = new ApplicationUserContext();
+                var userService = new UserService(dbService, userContext);
+                var settingsService = new SettingsService(dbService);
+                userService.AddUser(new User { UserName = "admin", Password = "secret", IsAdmin = true });
+
+                var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
+                {
+                    PromptForPasswordAsync = (u, ct) =>
+                        Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("secret", false))
+                };
+                await vm.LoadUsersCommand.ExecuteAsync(null);
+                bool success = false;
+                vm.LoginSucceeded += (_, __) => success = true;
+
+                await vm.SelectUserCommand.ExecuteAsync(vm.Users.First());
+
+                Assert.True(success);
+                Assert.Equal("admin", userContext.UserName);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task SelectUserCommand_CanBeCancelled()
+        {
+            if (Application.Current == null)
+                new Application();
+
+            var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
+            try
+            {
+                using var dbService = new DatabaseService(dbPath);
+                var userContext = new ApplicationUserContext();
+                var userService = new UserService(dbService, userContext);
+                var settingsService = new SettingsService(dbService);
+                userService.AddUser(new User { UserName = "admin", Password = "secret", IsAdmin = true });
+
+                var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
+                {
+                    PromptForPasswordAsync = async (u, ct) =>
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(5), ct);
+                        return new PasswordPromptResult("secret", false);
+                    }
+                };
+                await vm.LoadUsersCommand.ExecuteAsync(null);
+
+                var execTask = vm.SelectUserCommand.ExecuteAsync(vm.Users.First());
+                vm.SelectUserCommand.Cancel();
+
+                await Assert.ThrowsAsync<OperationCanceledException>(async () => await execTask);
+                Assert.Null(userContext.CurrentUser);
             }
             finally
             {
