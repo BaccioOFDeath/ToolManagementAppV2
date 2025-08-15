@@ -34,18 +34,9 @@ namespace ToolManagementAppV2.Services.Tools
             _userService = userService;
         }
 
-        public FlowDocument GenerateInventoryReport()
+        public async Task<FlowDocument> GenerateInventoryReport()
         {
-            var lines = _toolService.GetAllTools()
-                .Select(t =>
-                    $"Tool ID: {t.ToolID} | ToolNumber: {t.ToolNumber} | Qty: {t.QuantityOnHand} | " +
-                    $"Location: {t.Location} | Supplier: {t.Supplier}");
-            return BuildReport("Tool Inventory Report", lines);
-        }
-
-        public async Task<FlowDocument> GenerateInventoryReportAsync()
-        {
-            var tools = await _toolService.GetAllToolsAsync();
+            var tools = await _toolService.GetAllToolsAsync().ConfigureAwait(false);
             var lines = tools
                 .Select(t =>
                     $"Tool ID: {t.ToolID} | ToolNumber: {t.ToolNumber} | Qty: {t.QuantityOnHand} | " +
@@ -53,11 +44,14 @@ namespace ToolManagementAppV2.Services.Tools
             return BuildReport("Tool Inventory Report", lines);
         }
 
-        public FlowDocument GenerateRentalReport(bool activeOnly = true)
+        public FlowDocument GenerateInventoryReportSync() =>
+            GenerateInventoryReport().GetAwaiter().GetResult();
+
+        public async Task<FlowDocument> GenerateRentalReport(bool activeOnly = true)
         {
             var rentals = activeOnly
-                ? _rentalService.GetActiveRentals()
-                : _rentalService.GetAllRentals();
+                ? await _rentalService.GetActiveRentalsAsync().ConfigureAwait(false)
+                : await _rentalService.GetAllRentalsAsync().ConfigureAwait(false);
 
             var title = activeOnly
                 ? "Active Rental Report"
@@ -72,55 +66,24 @@ namespace ToolManagementAppV2.Services.Tools
             return BuildReport(title, lines);
         }
 
-        public async Task<FlowDocument> GenerateRentalReportAsync(bool activeOnly = true)
+        public FlowDocument GenerateRentalReportSync(bool activeOnly = true) =>
+            GenerateRentalReport(activeOnly).GetAwaiter().GetResult();
+
+        public async Task<FlowDocument> GenerateActivityLogReport()
         {
-            var rentals = activeOnly
-                ? await _rentalService.GetActiveRentalsAsync()
-                : await _rentalService.GetAllRentalsAsync();
-
-            var title = activeOnly
-                ? "Active Rental Report"
-                : "Full Rental History Report";
-
-            var lines = rentals.Select(r =>
-                $"Rental ID: {r.RentalID} | Tool ID: {r.ToolID} | Customer ID: {r.CustomerID} | " +
-                $"Rental Date: {r.RentalDate:yyyy-MM-dd} | Due Date: {r.DueDate:yyyy-MM-dd} | " +
-                $"Return Date: {(r.ReturnDate.HasValue ? r.ReturnDate.Value.ToString("yyyy-MM-dd") : "N/A")} | " +
-                $"Status: {r.Status}");
-
-            return BuildReport(title, lines);
-        }
-
-        public FlowDocument GenerateActivityLogReport()
-        {
-            var logs = _activityLogService.GetRecentLogs(100) ?? new List<ActivityLog>();
+            var logs = await _activityLogService.GetRecentLogsAsync(100).ConfigureAwait(false) ?? new List<ActivityLog>();
             var lines = logs.Select(l =>
                     $"LogID: {l.LogID} | UserID: {l.UserID} | User: {l.UserName} | " +
                     $"Action: {l.Action} | Timestamp: {l.Timestamp:yyyy-MM-dd HH:mm:ss}");
             return BuildReport("Activity Log Report", lines);
         }
 
-        public async Task<FlowDocument> GenerateActivityLogReportAsync()
-        {
-            var logs = await _activityLogService.GetRecentLogsAsync(100) ?? new List<ActivityLog>();
-            var lines = logs.Select(l =>
-                    $"LogID: {l.LogID} | UserID: {l.UserID} | User: {l.UserName} | " +
-                    $"Action: {l.Action} | Timestamp: {l.Timestamp:yyyy-MM-dd HH:mm:ss}");
-            return BuildReport("Activity Log Report", lines);
-        }
+        public FlowDocument GenerateActivityLogReportSync() =>
+            GenerateActivityLogReport().GetAwaiter().GetResult();
 
-        public FlowDocument GenerateCustomerReport()
+        public async Task<FlowDocument> GenerateCustomerReport()
         {
-            var lines = _customerService.GetAllCustomers()
-                .Select(c =>
-                    $"CustomerID: {c.CustomerID} | Company: {c.Company} | Email: {c.Email} | " +
-                    $"Contact: {c.Contact} | Phone: {c.Phone} | Mobile: {c.Mobile} | Address: {c.Address}");
-            return BuildReport("Customer Report", lines);
-        }
-
-        public async Task<FlowDocument> GenerateCustomerReportAsync()
-        {
-            var customers = await _customerService.GetAllCustomersAsync();
+            var customers = await _customerService.GetAllCustomersAsync().ConfigureAwait(false);
             var lines = customers
                 .Select(c =>
                     $"CustomerID: {c.CustomerID} | Company: {c.Company} | Email: {c.Email} | " +
@@ -128,44 +91,22 @@ namespace ToolManagementAppV2.Services.Tools
             return BuildReport("Customer Report", lines);
         }
 
-        public FlowDocument GenerateUserReport()
-        {
-            var lines = _userService.GetAllUsers()
-                .Select(u =>
-                    $"UserID: {u.UserID} | UserName: {u.UserName} | IsAdmin: {u.IsAdmin}");
-            return BuildReport("User Report", lines);
-        }
+        public FlowDocument GenerateCustomerReportSync() =>
+            GenerateCustomerReport().GetAwaiter().GetResult();
 
-        public async Task<FlowDocument> GenerateUserReportAsync()
+        public async Task<FlowDocument> GenerateUserReport()
         {
-            var users = await _userService.GetAllUsersAsync();
+            var users = await _userService.GetAllUsersAsync().ConfigureAwait(false);
             var lines = users
                 .Select(u =>
                     $"UserID: {u.UserID} | UserName: {u.UserName} | IsAdmin: {u.IsAdmin}");
             return BuildReport("User Report", lines);
         }
 
-        public FlowDocument GenerateSummaryReport()
-        {
-            var totalTools = _toolService.GetAllTools().Count;
-            var totalRentals = _rentalService.GetAllRentals().Count;
-            var totalActiveRentals = _rentalService.GetActiveRentals().Count;
-            var totalCustomers = _customerService.GetAllCustomers().Count;
-            var totalUsers = _userService.GetAllUsers().Count;
+        public FlowDocument GenerateUserReportSync() =>
+            GenerateUserReport().GetAwaiter().GetResult();
 
-            var lines = new[]
-            {
-                $"Total Tools: {totalTools}",
-                $"Total Rentals (History): {totalRentals}",
-                $"Active Rentals: {totalActiveRentals}",
-                $"Total Customers: {totalCustomers}",
-                $"Total Users: {totalUsers}"
-            };
-
-            return BuildReport("Application Summary Report", lines);
-        }
-
-        public async Task<FlowDocument> GenerateSummaryReportAsync()
+        public async Task<FlowDocument> GenerateSummaryReport()
         {
             var totalToolsTask = _toolService.GetAllToolsAsync();
             var totalRentalsTask = _rentalService.GetAllRentalsAsync();
@@ -194,6 +135,9 @@ namespace ToolManagementAppV2.Services.Tools
 
             return BuildReport("Application Summary Report", lines);
         }
+
+        public FlowDocument GenerateSummaryReportSync() =>
+            GenerateSummaryReport().GetAwaiter().GetResult();
 
         FlowDocument BuildReport(string title, IEnumerable<string> lines)
         {

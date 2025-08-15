@@ -16,7 +16,7 @@ namespace ToolManagementAppV2.Tests.Services
     public class ReportServiceTests
     {
         [Fact]
-        public void GenerateSummaryReportAsync_TaskRun_ReturnsSummary()
+        public void GenerateSummaryReport_TaskRun_ReturnsSummary()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -62,8 +62,8 @@ namespace ToolManagementAppV2.Tests.Services
 
                 rentalService.RentTool(tool.ToolID, customer.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
-                var task = Task.Run(() => reportService.GenerateSummaryReportAsync().Result);
-                Assert.True(task.Wait(TimeSpan.FromSeconds(5)), "GenerateSummaryReportAsync deadlocked.");
+                var task = Task.Run(() => reportService.GenerateSummaryReport().Result);
+                Assert.True(task.Wait(TimeSpan.FromSeconds(5)), "GenerateSummaryReport deadlocked.");
                 var doc = task.Result;
                 var text = new TextRange(doc.ContentStart, doc.ContentEnd).Text;
                 Assert.Contains("Total Tools: 1", text);
@@ -80,7 +80,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public async Task GenerateSummaryReportAsync_Await_ReturnsSummary()
+        public async Task GenerateSummaryReport_Await_ReturnsSummary()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -126,7 +126,7 @@ namespace ToolManagementAppV2.Tests.Services
 
                 rentalService.RentTool(tool.ToolID, customer.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
-                var doc = await reportService.GenerateSummaryReportAsync();
+                var doc = await reportService.GenerateSummaryReport();
                 var text = new TextRange(doc.ContentStart, doc.ContentEnd).Text;
                 Assert.Contains("Total Tools: 1", text);
                 Assert.Contains("Total Rentals (History): 1", text);
