@@ -142,7 +142,7 @@ namespace ToolManagementAppV2.ViewModels
             var users = await _userService.GetAllUsersAsync();
             if (users.Count == 0)
             {
-                _dialogService.ShowInfo(
+                await _dialogService.ShowInfoAsync(
                     "No users exist. A default admin account will be created (username: admin, password: admin).",
                     "Setup");
 
@@ -220,7 +220,7 @@ namespace ToolManagementAppV2.ViewModels
                         user.PasswordExpired = refreshed.PasswordExpired;
                     }
                     await LoadUsersCommand.ExecuteAsync(null);
-                    _dialogService.ShowInfo("Password has been reset to default. Please enter the new password to login.",
+                    await _dialogService.ShowInfoAsync("Password has been reset to default. Please enter the new password to login.",
                         "Password Reset");
                     continue;
                 }
@@ -228,7 +228,7 @@ namespace ToolManagementAppV2.ViewModels
                 credential = await _userService.AuthenticateUserAsync(user.UserName, promptResult.Password);
                 if (credential == null)
                 {
-                    _dialogService.ShowInfo("Incorrect password. Please try again.", "Login Failed");
+                    await _dialogService.ShowInfoAsync("Incorrect password. Please try again.", "Login Failed");
                 }
             }
 

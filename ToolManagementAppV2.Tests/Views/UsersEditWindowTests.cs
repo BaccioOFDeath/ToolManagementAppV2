@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Views;
@@ -22,7 +23,7 @@ namespace ToolManagementAppV2.Tests.Views
                     UsersEditWindow? window = null;
                     bool closed = false;
 
-                    Action onSave = () => window?.Close();
+                    Func<Task> onSave = () => { window?.Close(); return Task.CompletedTask; };
                     Action onCancel = () => window?.Close();
                     Action onRemove = () => { };
 

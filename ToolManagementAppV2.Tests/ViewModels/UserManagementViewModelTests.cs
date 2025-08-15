@@ -64,6 +64,117 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public async Task EditUserAsync_PersistsChanges()
+        {
+            var svc = new InMemoryUserService();
+            svc.AddUser(new User { UserName = "user1", Password = "pw" });
+            var dialog = new StubDialogService();
+            var vm = new UserManagementViewModel(svc, new StubFileDialogService(), dialog);
+            await vm.LoadUsersAsync();
+            var user = vm.Users.First();
+            vm.SelectedUser = user;
+
+            var clone = new User
+            {
+                UserID = user.UserID,
+                UserName = user.UserName,
+                Password = user.Password,
+                Salt = user.Salt,
+                UserPhotoPath = user.UserPhotoPath,
+                IsAdmin = user.IsAdmin,
+                Email = "edited@example.com",
+                Phone = user.Phone,
+                Mobile = user.Mobile,
+                Address = user.Address,
+                Role = user.Role,
+                IsActive = user.IsActive,
+                CreatedAt = user.CreatedAt
+            };
+
+            Func<Task> onSave = async () =>
+            {
+                try
+                {
+                    await svc.UpdateUserAsync(clone);
+                    var idx = vm.Users.IndexOf(user);
+                    if (idx >= 0) vm.Users[idx] = clone;
+                    var field = typeof(UserManagementViewModel).GetField("_allUsers", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var allUsers = (List<User>)field!.GetValue(vm);
+                    var idxAll = allUsers.IndexOf(user);
+                    if (idxAll >= 0) allUsers[idxAll] = clone;
+                    if (ReferenceEquals(vm.SelectedUser, user)) vm.SelectedUser = clone;
+                }
+                catch (Exception ex)
+                {
+                    dialog.ShowInfo($"Failed to update user: {ex.Message}", "Error");
+                }
+            };
+
+            var editVm = new UsersEditViewModel(clone, onSave, () => { }, () => { }, () => { });
+            await editVm.SaveCommand.ExecuteAsync(null);
+
+            Assert.Equal("edited@example.com", svc.Users.First().Email);
+            Assert.Equal("edited@example.com", vm.Users.First().Email);
+            var allField = typeof(UserManagementViewModel).GetField("_allUsers", BindingFlags.NonPublic | BindingFlags.Instance);
+            var allList = (List<User>)allField!.GetValue(vm);
+            Assert.Equal("edited@example.com", allList.First().Email);
+        }
+
+        [Fact]
+        public async Task EditUserAsync_ShowsErrorOnFailure()
+        {
+            var svc = new FailingUserService();
+            svc.AddUser(new User { UserID = 1, UserName = "user1", Password = "pw" });
+            var dialog = new StubDialogService();
+            var vm = new UserManagementViewModel(svc, new StubFileDialogService(), dialog);
+            await vm.LoadUsersAsync();
+            var user = vm.Users.First();
+            vm.SelectedUser = user;
+
+            var clone = new User
+            {
+                UserID = user.UserID,
+                UserName = user.UserName,
+                Password = user.Password,
+                Salt = user.Salt,
+                UserPhotoPath = user.UserPhotoPath,
+                IsAdmin = user.IsAdmin,
+                Email = "edited@example.com",
+                Phone = user.Phone,
+                Mobile = user.Mobile,
+                Address = user.Address,
+                Role = user.Role,
+                IsActive = user.IsActive,
+                CreatedAt = user.CreatedAt
+            };
+
+            Func<Task> onSave = async () =>
+            {
+                try
+                {
+                    await svc.UpdateUserAsync(clone);
+                    var idx = vm.Users.IndexOf(user);
+                    if (idx >= 0) vm.Users[idx] = clone;
+                    var field = typeof(UserManagementViewModel).GetField("_allUsers", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var allUsers = (List<User>)field!.GetValue(vm);
+                    var idxAll = allUsers.IndexOf(user);
+                    if (idxAll >= 0) allUsers[idxAll] = clone;
+                    if (ReferenceEquals(vm.SelectedUser, user)) vm.SelectedUser = clone;
+                }
+                catch (Exception ex)
+                {
+                    dialog.ShowInfo($"Failed to update user: {ex.Message}", "Error");
+                }
+            };
+
+            var editVm = new UsersEditViewModel(clone, onSave, () => { }, () => { }, () => { });
+            await editVm.SaveCommand.ExecuteAsync(null);
+
+            Assert.Equal("Error", dialog.LastInfoTitle);
+            Assert.StartsWith("Failed to update user:", dialog.LastInfoMessage);
+        }
+
+        [Fact]
         public async Task UploadUserPhotoCommand_SetsPhotoPathAndPersists()
         {
             var dbPath = Path.GetTempFileName();
@@ -256,7 +367,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task ResetPasswordFromRowCommand_ChangesPassword()
+        public async Task ResetPasswordFromRowCommand_DoesNotExposePasswordAndSetsFlag()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -270,41 +381,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var user = vm.Users.First();
                 var original = userService.GetUserByID(user.UserID)!;
                 var oldPwd = original.Password;
-                vm.ResetPasswordFromRowCommand.Execute(user);
+                await vm.ResetPasswordFromRowCommand.ExecuteAsync(user);
                 var updated = userService.GetUserByID(user.UserID)!;
                 Assert.NotEqual(oldPwd, updated.Password);
                 Assert.True(updated.PasswordExpired);
                 Assert.Equal("Password Reset", dialog.LastInfoTitle);
-                var prefix = "Password reset to: ";
-                var suffix = ". Please change it at next login.";
-                Assert.StartsWith(prefix, dialog.LastInfoMessage);
-                Assert.EndsWith("Please change it at next login.", dialog.LastInfoMessage);
-                var newPwd = dialog.LastInfoMessage.Substring(prefix.Length,
-                    dialog.LastInfoMessage.Length - prefix.Length - suffix.Length);
-                Assert.True(SecurityHelper.VerifyPassword(newPwd, updated.Salt, updated.Password));
-            }
-            finally
-            {
-                if (File.Exists(dbPath))
-                    File.Delete(dbPath);
-            }
-        }
-
-        [Fact]
-        public async Task ResetPasswordFromRowCommand_SetsPasswordExpiredFlag()
-        {
-            var dbPath = Path.GetTempFileName();
-            try
-            {
-                var db = new DatabaseService(dbPath);
-                IUserService userService = new UserService(db, new ApplicationUserContext());
-                var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
-                userService.AddUser(new User { UserName = "user1", Password = "pw" });
-                await vm.LoadUsersAsync();
-                var user = vm.Users.First();
-                vm.ResetPasswordFromRowCommand.Execute(user);
-                var updated = userService.GetUserByID(user.UserID)!;
-                Assert.True(updated.PasswordExpired);
+                Assert.Equal("Password has been reset. The user must change it at next login.", dialog.LastInfoMessage);
             }
             finally
             {
