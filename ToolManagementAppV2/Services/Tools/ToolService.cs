@@ -150,10 +150,10 @@ namespace ToolManagementAppV2.Services.Tools
 
         public Task DeleteToolAsync(int toolID) => DeleteToolInternalAsync(toolID);
 
-        public void ToggleToolCheckOutStatus(int toolID, string currentUser) =>
+        public bool ToggleToolCheckOutStatus(int toolID, string currentUser) =>
             RunSync(() => ToggleToolCheckOutStatusInternalAsync(toolID, currentUser));
 
-        public Task ToggleToolCheckOutStatusAsync(int toolID, string currentUser) =>
+        public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser) =>
             ToggleToolCheckOutStatusInternalAsync(toolID, currentUser);
     
         public List<ToolModel> GetToolsCheckedOutBy(string userName)
@@ -476,7 +476,7 @@ namespace ToolManagementAppV2.Services.Tools
             return await SqliteHelper.ExecuteReaderAsync(conn, sb.ToString(), parameters.ToArray(), MapTool);
         }
 
-        private async Task ToggleToolCheckOutStatusInternalAsync(int toolID, string currentUser)
+        private async Task<bool> ToggleToolCheckOutStatusInternalAsync(int toolID, string currentUser)
         {
             using var conn = _dbService.CreateConnection();
             var record = (await SqliteHelper.ExecuteReaderAsync(conn,
@@ -488,14 +488,14 @@ namespace ToolManagementAppV2.Services.Tools
                 throw new InvalidOperationException($"Tool {toolID} not found.");
 
             if (!record.Out && record.Qty <= 0)
-                return;
+                return false;
 
             var newStatus = record.Out ? 0 : 1;
             var time = record.Out ? (object)DBNull.Value : DateTime.UtcNow;
             var by = record.Out ? (object)DBNull.Value : currentUser;
             var qtyChange = record.Out ? 1 : -1;
 
-            await SqliteHelper.ExecuteNonQueryAsync(conn, @"
+            var rows = await SqliteHelper.ExecuteNonQueryAsync(conn, @"
                 UPDATE Tools SET
                   IsCheckedOut = @Out,
                   CheckedOutBy = @By,
@@ -509,6 +509,11 @@ namespace ToolManagementAppV2.Services.Tools
                 new SQLiteParameter("@Q", qtyChange),
                 new SQLiteParameter("@ID", toolID)
             });
+
+            if (rows == 0)
+                throw new InvalidOperationException("Check-out status update failed.");
+
+            return true;
         }
 
         public async Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName)

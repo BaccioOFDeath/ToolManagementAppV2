@@ -63,8 +63,8 @@ public class ReportServiceSyncTests
         public Task<Tool> GetToolByIDAsync(int toolID) => throw new NotImplementedException();
         public List<Tool> SearchTools(string? searchText) => throw new NotImplementedException();
         public Task<List<Tool>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public void ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new NotImplementedException();
-        public Task ToggleToolCheckOutStatusAsync(int toolID, string currentUser) => throw new NotImplementedException();
+        public bool ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new NotImplementedException();
+        public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser) => throw new NotImplementedException();
         public List<Tool> GetToolsCheckedOutBy(string userName) => throw new NotImplementedException();
         public Task<List<Tool>> GetToolsCheckedOutByAsync(string userName) => throw new NotImplementedException();
         public void UpdateToolImage(int toolID, string imagePath) => throw new NotImplementedException();

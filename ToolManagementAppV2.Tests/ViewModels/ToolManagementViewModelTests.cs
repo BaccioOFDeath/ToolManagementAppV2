@@ -673,8 +673,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
             public Task DeleteToolAsync(int toolID) => throw new NotImplementedException();
             public ToolModel GetToolByID(int toolID) => throw new NotImplementedException();
             public Task<ToolModel> GetToolByIDAsync(int toolID) => throw new NotImplementedException();
-            public void ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new NotImplementedException();
-            public Task ToggleToolCheckOutStatusAsync(int toolID, string currentUser) => throw new NotImplementedException();
+            public bool ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new NotImplementedException();
+            public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser) => throw new NotImplementedException();
             public List<ToolModel> GetToolsCheckedOutBy(string userName) => throw new NotImplementedException();
             public Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName) => throw new NotImplementedException();
             public void UpdateToolImage(int toolID, string imagePath) => throw new NotImplementedException();
@@ -703,8 +703,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
             public Task<List<ToolModel>> GetAllToolsAsync() => Task.FromResult(new List<ToolModel>());
             public List<ToolModel> SearchTools(string? searchText) => new();
             public Task<List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
-            public void ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new NotImplementedException();
-            public Task ToggleToolCheckOutStatusAsync(int toolID, string currentUser) => throw new NotImplementedException();
+            public bool ToggleToolCheckOutStatus(int toolID, string currentUser) => throw new NotImplementedException();
+            public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser) => throw new NotImplementedException();
             public List<ToolModel> GetToolsCheckedOutBy(string userName) => new();
             public Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName) => Task.FromResult(new List<ToolModel>());
             public void UpdateToolImage(int toolID, string imagePath) => throw new NotImplementedException();

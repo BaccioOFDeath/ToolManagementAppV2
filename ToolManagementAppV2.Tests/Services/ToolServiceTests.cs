@@ -739,8 +739,10 @@ namespace ToolManagementAppV2.Tests.Services
                 var tool = svc.GetAllTools().Single();
 
                 var before = DateTime.UtcNow;
-                svc.ToggleToolCheckOutStatus(tool.ToolID, "user");
+                var result = svc.ToggleToolCheckOutStatus(tool.ToolID, "user");
                 var after = DateTime.UtcNow;
+
+                Assert.True(result);
 
                 var updated = svc.GetToolByID(tool.ToolID);
                 Assert.True(updated.IsCheckedOut);
@@ -783,8 +785,9 @@ namespace ToolManagementAppV2.Tests.Services
                 var svc = new ToolService(dbService);
                 await svc.AddToolAsync(new Tool { ToolNumber = "T2", QuantityOnHand = 1 });
                 var tool = (await svc.GetAllToolsAsync()).Single();
-                await svc.ToggleToolCheckOutStatusAsync(tool.ToolID, "u");
+                var success = await svc.ToggleToolCheckOutStatusAsync(tool.ToolID, "u");
                 var updated = await svc.GetToolByIDAsync(tool.ToolID);
+                Assert.True(success);
                 Assert.True(updated.IsCheckedOut);
                 Assert.Equal(0, updated.QuantityOnHand);
             }
