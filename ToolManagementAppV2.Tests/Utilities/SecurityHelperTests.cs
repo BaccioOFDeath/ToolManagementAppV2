@@ -82,6 +82,23 @@ namespace ToolManagementAppV2.Tests.Utilities
             SecurityHelper.SettingsService = null;
         }
 
+        [Fact]
+        public void HashPassword_FallsBackToAsyncIterations()
+        {
+            var settings = new AsyncOnlySettingsService(7);
+            SecurityHelper.SettingsService = settings;
+
+            var saltBytes = Encoding.UTF8.GetBytes("1234567890ABCDEF");
+            var salt = Convert.ToBase64String(saltBytes);
+
+            using var pbkdf2 = new Rfc2898DeriveBytes("secret", saltBytes, 7, HashAlgorithmName.SHA256);
+            var expected = Convert.ToBase64String(pbkdf2.GetBytes(32));
+            var actual = SecurityHelper.HashPassword("secret", salt);
+            Assert.Equal(expected, actual);
+
+            SecurityHelper.SettingsService = null;
+        }
+
         class CountingSettingsService : ISettingsService
         {
             int _counter;
@@ -97,14 +114,55 @@ namespace ToolManagementAppV2.Tests.Utilities
                 return _iterations;
             }
 
+            public Task<int> GetPasswordIterationsAsync()
+            {
+                Interlocked.Increment(ref _counter);
+                return Task.FromResult(_iterations);
+            }
+
             public void SaveSetting(string key, string value) => throw new NotImplementedException();
+            public Task SaveSettingAsync(string key, string value) => throw new NotImplementedException();
             public string? GetSetting(string key) => throw new NotImplementedException();
+            public Task<string?> GetSettingAsync(string key) => throw new NotImplementedException();
             public Dictionary<string, string> GetAllSettings() => throw new NotImplementedException();
+            public Task<Dictionary<string, string>> GetAllSettingsAsync() => throw new NotImplementedException();
             public void UpdateSettings(Dictionary<string, string> settings) => throw new NotImplementedException();
+            public Task UpdateSettingsAsync(Dictionary<string, string> settings) => throw new NotImplementedException();
             public void DeleteSetting(string key) => throw new NotImplementedException();
+            public Task DeleteSettingAsync(string key) => throw new NotImplementedException();
             public IEnumerable<string> GetScannerIpAddresses() => throw new NotImplementedException();
+            public Task<IEnumerable<string>> GetScannerIpAddressesAsync() => throw new NotImplementedException();
             public IEnumerable<string> SaveScannerIpAddresses(IEnumerable<string>? ipAddresses) => throw new NotImplementedException();
+            public Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses) => throw new NotImplementedException();
             public void SavePasswordIterations(int iterations) => throw new NotImplementedException();
+            public Task SavePasswordIterationsAsync(int iterations) => throw new NotImplementedException();
+        }
+
+        class AsyncOnlySettingsService : ISettingsService
+        {
+            readonly int _iterations;
+
+            public AsyncOnlySettingsService(int iterations) => _iterations = iterations;
+
+            public int GetPasswordIterations() => 0;
+            public Task<int> GetPasswordIterationsAsync() => Task.FromResult(_iterations);
+
+            public void SaveSetting(string key, string value) => throw new NotImplementedException();
+            public Task SaveSettingAsync(string key, string value) => throw new NotImplementedException();
+            public string? GetSetting(string key) => throw new NotImplementedException();
+            public Task<string?> GetSettingAsync(string key) => throw new NotImplementedException();
+            public Dictionary<string, string> GetAllSettings() => throw new NotImplementedException();
+            public Task<Dictionary<string, string>> GetAllSettingsAsync() => throw new NotImplementedException();
+            public void UpdateSettings(Dictionary<string, string> settings) => throw new NotImplementedException();
+            public Task UpdateSettingsAsync(Dictionary<string, string> settings) => throw new NotImplementedException();
+            public void DeleteSetting(string key) => throw new NotImplementedException();
+            public Task DeleteSettingAsync(string key) => throw new NotImplementedException();
+            public IEnumerable<string> GetScannerIpAddresses() => throw new NotImplementedException();
+            public Task<IEnumerable<string>> GetScannerIpAddressesAsync() => throw new NotImplementedException();
+            public IEnumerable<string> SaveScannerIpAddresses(IEnumerable<string>? ipAddresses) => throw new NotImplementedException();
+            public Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses) => throw new NotImplementedException();
+            public void SavePasswordIterations(int iterations) => throw new NotImplementedException();
+            public Task SavePasswordIterationsAsync(int iterations) => throw new NotImplementedException();
         }
     }
 }
