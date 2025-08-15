@@ -61,7 +61,7 @@ namespace ToolManagementAppV2.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to refresh scanner devices");
-                _dialogService.ShowInfo($"Failed to refresh scanner devices: {ex.Message}", "Error");
+                await _dialogService.ShowInfoAsync($"Failed to refresh scanner devices: {ex.Message}", "Error");
             }
         }
     }

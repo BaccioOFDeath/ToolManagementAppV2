@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Documents;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.ViewModels;
@@ -25,11 +27,19 @@ namespace ToolManagementAppV2.Services
             dialog.ShowDialog();
         }
 
+        public Task ShowInfoAsync(string message, string title) =>
+            Application.Current?.Dispatcher?.InvokeAsync(() => ShowInfo(message, title)).Task
+            ?? Task.Run(() => ShowInfo(message, title));
+
         public bool ShowConfirmation(string message, string title)
         {
             var dialog = new ConfirmDialogWindow(message) { Title = title };
             return dialog.ShowDialog() == true;
         }
+
+        public Task<bool> ShowConfirmationAsync(string message, string title) =>
+            Application.Current?.Dispatcher?.InvokeAsync(() => ShowConfirmation(message, title)).Task
+            ?? Task.FromResult(ShowConfirmation(message, title));
 
         public ToolModel? ShowEditToolDialog(ToolModel tool)
         {
@@ -42,6 +52,10 @@ namespace ToolManagementAppV2.Services
             try { return win.ShowDialog() == true ? tool : null; }
             catch (Exception ex) { _logger.LogError(ex, "Failed to show ToolEditWindow"); return null; }
         }
+
+        public Task<ToolModel?> ShowEditToolDialogAsync(ToolModel tool) =>
+            Application.Current?.Dispatcher?.InvokeAsync(() => ShowEditToolDialog(tool)).Task
+            ?? Task.FromResult(ShowEditToolDialog(tool));
 
         public void ShowToolDetails(ToolModel tool)
         {

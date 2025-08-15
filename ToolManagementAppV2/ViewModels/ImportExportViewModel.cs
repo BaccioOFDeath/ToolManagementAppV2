@@ -71,21 +71,21 @@ namespace ToolManagementAppV2.ViewModels
                 var map = _dialogService.ShowImportMapping(headers, properties);
                 if (map == null)
                     return;
-                _dialogService.ShowInfo("Importing tools...", "Import Tools");
+                await _dialogService.ShowInfoAsync("Importing tools...", "Import Tools");
                 await _toolService.ImportToolsFromCsvAsync(path, map, cancellationToken);
                 ImportExportLogs.Add($"Successfully imported tools from {path}.");
-                _dialogService.ShowInfo($"Successfully imported tools from {path}.", "Import Tools");
+                await _dialogService.ShowInfoAsync($"Successfully imported tools from {path}.", "Import Tools");
             }
             catch (OperationCanceledException)
             {
                 ImportExportLogs.Add("Tool import was cancelled.");
-                _dialogService.ShowInfo("Tool import was cancelled.", "Import Tools");
+                await _dialogService.ShowInfoAsync("Tool import was cancelled.", "Import Tools");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to import tools from {Path}", path);
                 ImportExportLogs.Add($"Failed to import tools from {path}: {ex.Message}");
-                _dialogService.ShowInfo($"Failed to import tools from {path}: {ex.Message}", "Import Tools");
+                await _dialogService.ShowInfoAsync($"Failed to import tools from {path}: {ex.Message}", "Import Tools");
             }
         }
 
