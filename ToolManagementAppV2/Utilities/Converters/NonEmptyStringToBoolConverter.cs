@@ -11,6 +11,8 @@ namespace ToolManagementAppV2.Utilities.Converters
     {
         private readonly ILogger<NonEmptyStringToBoolConverter> _logger;
 
+        public NonEmptyStringToBoolConverter() : this(null) { }
+
         public NonEmptyStringToBoolConverter(ILogger<NonEmptyStringToBoolConverter>? logger = null)
             => _logger = logger ?? NullLogger<NonEmptyStringToBoolConverter>.Instance;
 
