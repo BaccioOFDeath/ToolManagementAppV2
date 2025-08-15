@@ -18,7 +18,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     public class MainViewModelCurrentUserTests
     {
         [Fact]
-        public void RefreshCurrentUser_RaisesPropertyChanged()
+        public void UserContextChange_RaisesPropertyChanged()
         {
             if (System.Windows.Application.Current == null)
                 new System.Windows.Application();
@@ -45,14 +45,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 };
 
                 userContext.CurrentUser = new User { UserName = "admin", IsAdmin = true };
-                vm.RefreshCurrentUser();
 
                 Assert.True(raised);
                 Assert.True(vm.IsCurrentUserAdmin);
 
                 raised = false;
                 userContext.CurrentUser = new User { UserName = "user", IsAdmin = false };
-                vm.RefreshCurrentUser();
 
                 Assert.True(raised);
                 Assert.False(vm.IsCurrentUserAdmin);

@@ -8,6 +8,8 @@ namespace ToolManagementAppV2.Services.Users
     {
         const string Key = "CurrentUser";
 
+        public event EventHandler<User?>? UserChanged;
+
         public User? CurrentUser
         {
             get => System.Windows.Application.Current?.Properties[Key] as User;
@@ -18,6 +20,8 @@ namespace ToolManagementAppV2.Services.Users
                     System.Windows.Application.Current.Properties.Remove(Key);
                 else
                     System.Windows.Application.Current.Properties[Key] = value;
+
+                UserChanged?.Invoke(this, value);
             }
         }
 

@@ -48,7 +48,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService(), null, stubLogin);
 
                 userContext.CurrentUser = new User { UserName = "old", IsAdmin = false };
-                vm.RefreshCurrentUser();
+                Assert.Equal("old", vm.CurrentUserName);
+                Assert.False(vm.IsCurrentUserAdmin);
 
                 await vm.SwitchUserCommand.ExecuteAsync(null);
 
