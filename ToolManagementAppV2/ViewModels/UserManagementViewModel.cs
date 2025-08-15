@@ -102,7 +102,11 @@ namespace ToolManagementAppV2.ViewModels
             if (SelectedUser == null) return;
             var path = _fileDialogService.OpenFile("Image Files|*.png;*.jpg;*.jpeg;*.bmp|All Files|*.*");
             var full = PathHelper.GetAbsolutePath(path);
-            if (string.IsNullOrEmpty(full)) return;
+            if (string.IsNullOrEmpty(full))
+            {
+                await _dialogService.ShowInfoAsync("Selected file path is invalid.", "Invalid Path");
+                return;
+            }
 
             SelectedUser.UserPhotoPath = full;
             try

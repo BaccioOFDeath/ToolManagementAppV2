@@ -20,10 +20,20 @@ namespace ToolManagementAppV2.Services.Tools
     public class Printer
     {
         private readonly ISettingsService _settingsService;
+        private readonly IDialogService? _dialogService;
 
-        public Printer(ISettingsService settingsService)
+        public Printer(ISettingsService settingsService, IDialogService? dialogService = null)
         {
             _settingsService = settingsService;
+            _dialogService = dialogService;
+        }
+
+        void Notify(string message, string title)
+        {
+            if (_dialogService != null)
+                _dialogService.ShowInfo(message, title);
+            else
+                MessageBox.Show(message, title);
         }
 
         /// <summary>
@@ -54,10 +64,14 @@ namespace ToolManagementAppV2.Services.Tools
             try
             {
                 var full = Utilities.Helpers.PathHelper.GetAbsolutePath(path, true);
-                return !string.IsNullOrEmpty(full) && File.Exists(full) ? full : null;
+                if (!string.IsNullOrEmpty(full) && File.Exists(full))
+                    return full;
+                Notify("Company logo path is invalid.", "Invalid Path");
+                return null;
             }
             catch (InvalidOperationException)
             {
+                Notify("Company logo path is invalid.", "Invalid Path");
                 return null;
             }
         }
@@ -217,10 +231,14 @@ namespace ToolManagementAppV2.Services.Tools
             }
             catch (InvalidOperationException)
             {
+                Notify("Image path is invalid.", "Invalid Path");
                 return new Border { Width = 120, Height = 120, CornerRadius = new CornerRadius(10) };
             }
-            if (string.IsNullOrEmpty(full))
+            if (string.IsNullOrEmpty(full) || !File.Exists(full))
+            {
+                Notify("Image path is invalid.", "Invalid Path");
                 return new Border { Width = 120, Height = 120, CornerRadius = new CornerRadius(10) };
+            }
 
             var bmp = new BitmapImage();
             bmp.BeginInit();
@@ -252,10 +270,14 @@ namespace ToolManagementAppV2.Services.Tools
             }
             catch (InvalidOperationException)
             {
+                Notify("Logo path is invalid.", "Invalid Path");
                 return;
             }
             if (string.IsNullOrEmpty(full) || !File.Exists(full))
+            {
+                Notify("Logo path is invalid.", "Invalid Path");
                 return;
+            }
             var bmp = new BitmapImage();
             bmp.BeginInit();
             bmp.CacheOption = BitmapCacheOption.OnLoad;

@@ -124,12 +124,19 @@ namespace ToolManagementAppV2.ViewModels
                 try
                 {
                     var full = PathHelper.GetAbsolutePath(logoPath, true);
-                    logoUri = !string.IsNullOrEmpty(full) && File.Exists(full)
-                        ? new Uri(full)
-                        : new Uri("pack://application:,,,/Resources/DefaultLogo.png");
+                    if (!string.IsNullOrEmpty(full) && File.Exists(full))
+                    {
+                        logoUri = new Uri(full);
+                    }
+                    else
+                    {
+                        await _dialogService.ShowInfoAsync("Company logo path is invalid; using default logo.", "Invalid Path");
+                        logoUri = new Uri("pack://application:,,,/Resources/DefaultLogo.png");
+                    }
                 }
                 catch (InvalidOperationException)
                 {
+                    await _dialogService.ShowInfoAsync("Company logo path is invalid; using default logo.", "Invalid Path");
                     logoUri = new Uri("pack://application:,,,/Resources/DefaultLogo.png");
                 }
             }
