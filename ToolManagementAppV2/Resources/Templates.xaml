@@ -31,4 +31,14 @@
             </StackPanel>
         </Grid>
     </DataTemplate>
+
+    <!-- Shared rental DataGrid columns -->
+    <DataGridTextColumn x:Key="RentalIdColumn" Header="Rental #" Binding="{Binding RentalId}" Width="120" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalToolNumberColumn" Header="Tool #" Binding="{Binding ToolNumber}" Width="120" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalToolNameColumn" Header="Tool" Binding="{Binding ToolName}" Width="*" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalCustomerColumn" Header="Customer" Binding="{Binding CustomerName}" Width="220" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalOutColumn" Header="Out" Binding="{Binding DateOut, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="180" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalDueColumn" Header="Due" Binding="{Binding DueDate, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="180" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalReturnedColumn" Header="Returned" Binding="{Binding DateReturned, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="180" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalStatusColumn" Header="Status" Binding="{Binding Status}" Width="140" x:Shared="False"/>
 </ResourceDictionary>

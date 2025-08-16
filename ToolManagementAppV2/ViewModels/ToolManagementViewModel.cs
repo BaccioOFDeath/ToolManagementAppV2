@@ -60,6 +60,7 @@ namespace ToolManagementAppV2.ViewModels
                     ((AsyncRelayCommand)OpenRentalsCommand).NotifyCanExecuteChanged();
                     ((AsyncRelayCommand)EditToolCommand).NotifyCanExecuteChanged();
                     ((RelayCommand)ViewDetailsCommand).NotifyCanExecuteChanged();
+                    ((AsyncRelayCommand)OpenRentalHistoryCommand).NotifyCanExecuteChanged();
                 }
             }
         }
@@ -91,6 +92,7 @@ namespace ToolManagementAppV2.ViewModels
         public IAsyncRelayCommand DeleteToolCommand { get; }
         public IAsyncRelayCommand OpenRentalsCommand { get; }
         public IRelayCommand ViewDetailsCommand { get; }
+        public IAsyncRelayCommand OpenRentalHistoryCommand { get; }
 
         readonly IDispatcherTimer _searchDebounceTimer;
         CancellationTokenSource _searchCts = new();
@@ -132,6 +134,7 @@ namespace ToolManagementAppV2.ViewModels
             DeleteToolCommand = new AsyncRelayCommand(ct => DeleteToolAsync(ct));
             OpenRentalsCommand = new AsyncRelayCommand(ct => OpenRentalsAsync(ct), () => SelectedTool != null);
             ViewDetailsCommand = new RelayCommand(ViewDetails, () => SelectedTool != null);
+            OpenRentalHistoryCommand = new AsyncRelayCommand(OpenRentalHistoryAsync, () => SelectedTool != null);
             // Ensure no duplicate event subscriptions when the view model is
             // constructed multiple times or the collection persists across
             // instances.
@@ -278,6 +281,20 @@ namespace ToolManagementAppV2.ViewModels
         {
             if (SelectedTool == null) return;
             _dialogService.ShowToolDetails(SelectedTool);
+        }
+
+        async Task OpenRentalHistoryAsync()
+        {
+            if (SelectedTool == null) return;
+            try
+            {
+                var history = await _rentalService.GetRentalHistoryForToolAsync(SelectedTool.ToolID);
+                _dialogService.ShowRentalHistory(SelectedTool, history);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to open rental history for tool {ToolID}", SelectedTool.ToolID);
+            }
         }
 
         async Task DeleteToolAsync(CancellationToken cancellationToken)

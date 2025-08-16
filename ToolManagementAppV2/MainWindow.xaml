@@ -35,7 +35,6 @@
 
                         <TextBlock Text="Rentals" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
                         <Button Style="{StaticResource NavButton}" Content="Manage Rentals" Command="{Binding OpenRentalsCommand}"/>
-                        <Button Style="{StaticResource NavButton}" Content="Rental History" Command="{Binding OpenRentalHistoryWindowCommand}" CommandParameter="{Binding SelectedTool}"/>
 
                         <Separator/>
 

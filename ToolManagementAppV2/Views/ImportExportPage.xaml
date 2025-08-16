@@ -19,7 +19,7 @@
             </WrapPanel>
         </Border>
         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
-            <DataGrid ItemsSource="{Binding ImportExportLogs}" IsReadOnly="True" AutoGenerateColumns="False">
+            <DataGrid ItemsSource="{Binding ImportExportLogs}" IsReadOnly="True" AutoGenerateColumns="False" EnableRowVirtualization="True" EnableColumnVirtualization="True" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Message" Binding="{Binding}" />
                 </DataGrid.Columns>

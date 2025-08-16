@@ -21,16 +21,20 @@
             <DataGrid ItemsSource="{Binding History}"
                       SelectedItem="{Binding SelectedEntry}"
                       IsReadOnly="True"
-                      AutoGenerateColumns="False">
+                      AutoGenerateColumns="False"
+                      EnableRowVirtualization="True"
+                      EnableColumnVirtualization="True"
+                      VirtualizingPanel.IsVirtualizing="True"
+                      VirtualizingPanel.VirtualizationMode="Recycling">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Rental #" Binding="{Binding RentalId}" Width="120"/>
-                    <DataGridTextColumn Header="Tool #" Binding="{Binding ToolNumber}" Width="120"/>
-                    <DataGridTextColumn Header="Tool" Binding="{Binding ToolName}" Width="*"/>
-                    <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="220"/>
-                    <DataGridTextColumn Header="Out" Binding="{Binding DateOut, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="180"/>
-                    <DataGridTextColumn Header="Due" Binding="{Binding DueDate, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="180"/>
-                    <DataGridTextColumn Header="Returned" Binding="{Binding DateReturned, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="180"/>
-                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="140"/>
+                    <StaticResource ResourceKey="RentalIdColumn"/>
+                    <StaticResource ResourceKey="RentalToolNumberColumn"/>
+                    <StaticResource ResourceKey="RentalToolNameColumn"/>
+                    <StaticResource ResourceKey="RentalCustomerColumn"/>
+                    <StaticResource ResourceKey="RentalOutColumn"/>
+                    <StaticResource ResourceKey="RentalDueColumn"/>
+                    <StaticResource ResourceKey="RentalReturnedColumn"/>
+                    <StaticResource ResourceKey="RentalStatusColumn"/>
                 </DataGrid.Columns>
             </DataGrid>
         </Border>
