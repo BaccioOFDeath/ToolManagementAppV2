@@ -1,9 +1,11 @@
-﻿// App.xaml.cs
 using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
@@ -20,69 +22,108 @@ using ToolManagementAppV2.Utilities.Helpers;
 
 namespace ToolManagementAppV2
 {
-    public partial class App : System.Windows.Application
+    public partial class App : Application
     {
-        private ServiceProvider? _serviceProvider;
+        public IHost Host { get; }
 
-        protected override async void OnStartup(StartupEventArgs e)
+        public App()
+        {
+            Host = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
+                .ConfigureLogging((context, logging) =>
+                {
+                    var logsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                        context.Configuration["Logging:Directory"] ?? "Logs");
+                    Directory.CreateDirectory(logsDir);
+                    var logFile = Path.Combine(logsDir, "app-.log");
+
+                    Log.Logger = new LoggerConfiguration()
+                        .MinimumLevel.Debug()
+                        .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                        .Enrich.FromLogContext()
+                        .WriteTo.Async(w => w.File(
+                            path: logFile,
+                            rollingInterval: RollingInterval.Day,
+                            retainedFileCountLimit: 14,
+                            shared: true,
+                            encoding: Encoding.UTF8))
+                        .CreateLogger();
+
+                    logging.ClearProviders();
+                    logging.AddSerilog(Log.Logger, dispose: true);
+                })
+                .ConfigureServices((context, services) =>
+                {
+                    services.AddSingleton<DatabaseService>(sp =>
+                    {
+                        var config = sp.GetRequiredService<IConfiguration>();
+                        var logger = sp.GetRequiredService<ILogger<DatabaseService>>();
+                        var dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                            config["Database:Path"] ?? "tool_inventory.db");
+                        return new DatabaseService(dbPath, logger);
+                    });
+                    services.AddSingleton<IDatabaseService>(sp => sp.GetRequiredService<DatabaseService>());
+                    services.AddSingleton<IDatabaseBackupService>(sp => sp.GetRequiredService<DatabaseService>());
+                    services.AddSingleton<IUserContext, ApplicationUserContext>();
+                    services.AddSingleton<IToolService, ToolService>();
+                    services.AddSingleton<ICustomerService, CustomerService>();
+                    services.AddSingleton<IUserService, UserService>();
+                    services.AddSingleton<IRentalService, RentalService>();
+                    services.AddSingleton<ActivityLogService>();
+                    services.AddSingleton<IFileDialogService, FileDialogService>();
+                    services.AddSingleton<ISettingsService, SettingsService>();
+                    services.AddSingleton<IDialogService, DialogService>();
+                    services.AddSingleton<IMainViewModel, MainViewModel>();
+                    services.AddSingleton<ILoginViewModel, LoginViewModel>();
+                    services.AddSingleton<IMainWindow>(sp =>
+                        new MainWindow(sp.GetRequiredService<IMainViewModel>()));
+                    services.AddSingleton<ILoginWindow>(sp =>
+                        new LoginWindow(sp.GetRequiredService<ILoginViewModel>()));
+                })
+                .Build();
+        }
+
+        [STAThread]
+        public static async Task Main()
+        {
+            var app = new App();
+            try
+            {
+                await app.StartAsync();
+                app.Run();
+            }
+            catch (Exception ex)
+            {
+                var logger = app.Host.Services.GetRequiredService<ILogger<App>>();
+                logger.LogCritical(ex, "Application failed to start");
+            }
+            finally
+            {
+                await app.Host.StopAsync();
+                app.Host.Dispose();
+                Log.CloseAndFlush();
+            }
+        }
+
+        public async Task StartAsync()
         {
             ShutdownMode = ShutdownMode.OnMainWindowClose;
-            base.OnStartup(e);
 
-            var logsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
-            Directory.CreateDirectory(logsDir);
-            var logFile = Path.Combine(logsDir, "app-.log");
+            await Host.StartAsync();
 
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                .Enrich.FromLogContext()
-                .WriteTo.Async(w => w.File(
-                    path: logFile,
-                    rollingInterval: RollingInterval.Day,
-                    retainedFileCountLimit: 14,
-                    shared: true,
-                    encoding: Encoding.UTF8))
-                .CreateLogger();
-
-            var services = new ServiceCollection();
-            services.AddLogging(builder =>
-            {
-                builder.ClearProviders();
-                builder.AddSerilog(Log.Logger, dispose: true);
-            });
-
-            _serviceProvider = services.BuildServiceProvider();
-
-            var loggerFactory = _serviceProvider.GetRequiredService<ILoggerFactory>();
+            var loggerFactory = Host.Services.GetRequiredService<ILoggerFactory>();
             PathHelper.Configure(loggerFactory.CreateLogger("PathHelper"));
+            SecurityHelper.SettingsService = Host.Services.GetRequiredService<ISettingsService>();
 
-            var db = new DatabaseService(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db"), loggerFactory.CreateLogger<DatabaseService>());
-            var toolService = new ToolService(db, loggerFactory.CreateLogger<ToolService>());
-            var customerService = new CustomerService(db, loggerFactory.CreateLogger<CustomerService>());
-            var userContext = new ApplicationUserContext();
-            var userService = new UserService(db, userContext, loggerFactory.CreateLogger<UserService>());
-            var rentalService = new RentalService(db, toolService, loggerFactory.CreateLogger<RentalService>());
-            var activityLogService = new ActivityLogService(db, loggerFactory.CreateLogger<ActivityLogService>());
-            var fileDialogService = new FileDialogService();
-            var settingsService = new SettingsService(db, loggerFactory.CreateLogger<SettingsService>());
-            SecurityHelper.SettingsService = settingsService;
-            IDialogService dialogService = new DialogService(loggerFactory.CreateLogger<DialogService>());
-
-            var mainVm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, fileDialogService, activityLogService, settingsService, db, dialogService, loggerFactory.CreateLogger<MainViewModel>());
-            var main = new MainWindow(mainVm, db);
-
+            var main = (Window)Host.Services.GetRequiredService<IMainWindow>();
             Current.MainWindow = main;
             main.Show();
 
-            var login = new LoginWindow(userContext, userService, settingsService, dialogService)
-            {
-                Owner = main,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner
-            };
+            var login = Host.Services.GetRequiredService<ILoginWindow>();
+            login.Owner = main;
+            login.WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
-            if (login.DataContext is LoginViewModel lvm)
-                await lvm.InitializeAsync();
+            var lvm = login.ViewModel;
+            await lvm.InitializeAsync();
 
             var ok = login.ShowDialog() == true;
             if (!ok)
@@ -98,7 +139,6 @@ namespace ToolManagementAppV2
 
         protected override void OnExit(ExitEventArgs e)
         {
-            _serviceProvider?.Dispose();
             Log.CloseAndFlush();
             base.OnExit(e);
         }

@@ -1,10 +1,6 @@
 using System;
 using System.Windows;
-using ToolManagementAppV2.ViewModels;
-using ToolManagementAppV2.Services;
 using ToolManagementAppV2.Interfaces;
-using ToolManagementAppV2.Services.Users;
-using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Utilities.Extensions;
 
 namespace ToolManagementAppV2
@@ -14,25 +10,22 @@ namespace ToolManagementAppV2
     /// Provides an <see cref="IUserContext"/> and optional <see cref="IDialogService"/>
     /// to the <see cref="LoginViewModel"/>.
     /// </summary>
-    public partial class LoginWindow : Window
+    public partial class LoginWindow : Window, ILoginWindow
     {
+        public ILoginViewModel ViewModel => (ILoginViewModel)DataContext;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="LoginWindow"/> class.
         /// </summary>
-        /// <param name="userContext">Context containing information about the current user.</param>
-        /// <param name="userService">Service used for user operations.</param>
-        /// <param name="settingsService">Service used for application settings.</param>
-        /// <param name="dialogService">Optional dialog service used by the view model.</param>
-        public LoginWindow(IUserContext userContext, IUserService userService, ISettingsService settingsService, IDialogService? dialogService = null)
+        public LoginWindow(ILoginViewModel viewModel)
         {
             InitializeComponent();
 
-            var vm = new LoginViewModel(userService, settingsService, dialogService ?? new DialogService(), userContext);
-            DataContext = vm;
+            DataContext = viewModel;
             this.DisposeDataContextOnUnload();
 
-            vm.LoginSucceeded += OnLoginSucceeded;
-            Closed += (_, __) => vm.LoginSucceeded -= OnLoginSucceeded;
+            viewModel.LoginSucceeded += OnLoginSucceeded;
+            Closed += (_, __) => viewModel.LoginSucceeded -= OnLoginSucceeded;
         }
 
         private void OnLoginSucceeded(object? sender, EventArgs e)

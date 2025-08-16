@@ -3,7 +3,9 @@ using System.IO;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.Services;
 using ToolManagementAppV2.Models.Domain;
+using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2;
 using Xunit;
 
@@ -19,7 +21,8 @@ namespace ToolManagementAppV2.Tests.Tests
             var userContext = new ApplicationUserContext();
             var userService = new UserService(db, userContext);
             var settingsService = new SettingsService(db);
-            var window = new LoginWindow(userContext, userService, settingsService);
+            var vm = new LoginViewModel(userService, settingsService, new DialogService(), userContext);
+            var window = new LoginWindow(vm);
             Assert.False(window.Topmost);
             window.Close();
         }
