@@ -223,7 +223,7 @@ namespace ToolManagementAppV2.ViewModels
                 (string.IsNullOrWhiteSpace(user.Password) ||
                  await SecurityHelper.VerifyPasswordAsync("newpassword", user.Salt, user.Password).ConfigureAwait(false)))
             {
-                if (user.PasswordExpired && !PromptChangePassword(user))
+                if (user.PasswordExpired && !await PromptChangePasswordAsync(user))
                     return;
                 _userContext.CurrentUser = user;
                 LoginSucceeded?.Invoke(this, EventArgs.Empty);
@@ -263,28 +263,28 @@ namespace ToolManagementAppV2.ViewModels
                 }
             }
 
-            if (credential.PasswordExpired && !PromptChangePassword(credential))
+            if (credential.PasswordExpired && !await PromptChangePasswordAsync(credential))
                 return;
             _userContext.CurrentUser = credential;
             LoginSucceeded?.Invoke(this, EventArgs.Empty);
         }
 
-        bool PromptChangePassword(User user)
+        async Task<bool> PromptChangePasswordAsync(User user)
         {
             var newPwd = PromptForNewPassword?.Invoke();
             if (string.IsNullOrWhiteSpace(newPwd))
                 return false;
             try
             {
-                _userService.ChangeUserPassword(user.UserID, newPwd);
+                await _userService.ChangeUserPasswordAsync(user.UserID, newPwd);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to change password for user {UserID}", user.UserID);
-                _dialogService.ShowInfo("Failed to update password.", "Error");
+                await _dialogService.ShowInfoAsync("Failed to update password.", "Error");
                 return false;
             }
-            var refreshed = _userService.GetUserByID(user.UserID);
+            var refreshed = await _userService.GetUserByIDAsync(user.UserID);
             if (refreshed != null)
             {
                 user.Password = refreshed.Password;
