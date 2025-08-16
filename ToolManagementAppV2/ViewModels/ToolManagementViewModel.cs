@@ -127,10 +127,10 @@ namespace ToolManagementAppV2.ViewModels
             SearchCommand = new AsyncRelayCommand<CancellationToken>(FilterToolsAsync);
             _searchDebounceTimer = searchDebounceTimer ?? new DispatcherTimerWrapper { Interval = TimeSpan.FromMilliseconds(300) };
             _searchDebounceTimer.Tick += OnSearchDebounceTimerTick;
-            NewToolCommand = new AsyncRelayCommand(AddToolAsync);
-            EditToolCommand = new AsyncRelayCommand(EditToolAsync, () => SelectedTool != null);
-            DeleteToolCommand = new AsyncRelayCommand(DeleteToolAsync);
-            OpenRentalsCommand = new AsyncRelayCommand(OpenRentalsAsync, () => SelectedTool != null);
+            NewToolCommand = new AsyncRelayCommand(ct => AddToolAsync(ct));
+            EditToolCommand = new AsyncRelayCommand(ct => EditToolAsync(ct), () => SelectedTool != null);
+            DeleteToolCommand = new AsyncRelayCommand(ct => DeleteToolAsync(ct));
+            OpenRentalsCommand = new AsyncRelayCommand(ct => OpenRentalsAsync(ct), () => SelectedTool != null);
             ViewDetailsCommand = new RelayCommand(ViewDetails, () => SelectedTool != null);
             // Ensure no duplicate event subscriptions when the view model is
             // constructed multiple times or the collection persists across
@@ -200,14 +200,18 @@ namespace ToolManagementAppV2.ViewModels
             LoadCategories(source, suppressSearch: true);
         }
 
-        async Task AddToolAsync()
+        async Task AddToolAsync(CancellationToken cancellationToken)
         {
             try
             {
-                await _toolService.AddToolAsync(NewTool);
+                await _toolService.AddToolAsync(NewTool, cancellationToken);
                 await LoadToolsAsync();
-                await FilterToolsAsync(CancellationToken.None);
+                await FilterToolsAsync(cancellationToken);
                 NewTool = new ToolModel();
+            }
+            catch (OperationCanceledException)
+            {
+                // Ignore cancellation
             }
             catch (UnauthorizedAccessException)
             {
@@ -225,7 +229,7 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        async Task EditToolAsync()
+        async Task EditToolAsync(CancellationToken cancellationToken)
         {
             if (SelectedTool == null) return;
 
@@ -255,10 +259,14 @@ namespace ToolManagementAppV2.ViewModels
 
             try
             {
-                await _toolService.UpdateToolAsync(updated);
+                await _toolService.UpdateToolAsync(updated, cancellationToken);
                 await LoadToolsAsync();
-                await FilterToolsAsync(CancellationToken.None);
+                await FilterToolsAsync(cancellationToken);
                 SelectedTool = Tools.FirstOrDefault(t => t.ToolID == updated.ToolID);
+            }
+            catch (OperationCanceledException)
+            {
+                // Ignore cancellation
             }
             catch (UnauthorizedAccessException)
             {
@@ -272,7 +280,7 @@ namespace ToolManagementAppV2.ViewModels
             _dialogService.ShowToolDetails(SelectedTool);
         }
 
-        async Task DeleteToolAsync()
+        async Task DeleteToolAsync(CancellationToken cancellationToken)
         {
             if (SelectedTool == null) return;
             var confirm = await _dialogService.ShowConfirmationAsync(
@@ -283,10 +291,14 @@ namespace ToolManagementAppV2.ViewModels
 
             try
             {
-                await _toolService.DeleteToolAsync(SelectedTool.ToolID);
+                await _toolService.DeleteToolAsync(SelectedTool.ToolID, cancellationToken);
                 await LoadToolsAsync();
-                await FilterToolsAsync(CancellationToken.None);
+                await FilterToolsAsync(cancellationToken);
                 SelectedTool = null;
+            }
+            catch (OperationCanceledException)
+            {
+                // Ignore cancellation
             }
             catch (UnauthorizedAccessException)
             {
@@ -299,13 +311,13 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        async Task OpenRentalsAsync()
+        async Task OpenRentalsAsync(CancellationToken cancellationToken)
         {
             if (SelectedTool == null) return;
 
             try
             {
-                var customers = await _customerService.GetAllCustomersAsync();
+                var customers = await _customerService.GetAllCustomersAsync(cancellationToken);
                 var result = _dialogService.ShowRentToolDialog(SelectedTool, customers);
                 if (result != null)
                 {
@@ -316,6 +328,10 @@ namespace ToolManagementAppV2.ViewModels
                         dueDate);
                     await LoadToolsAsync();
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // Ignore cancellation
             }
             catch (UnauthorizedAccessException)
             {

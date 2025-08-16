@@ -623,6 +623,21 @@ namespace ToolManagementAppV2.Tests.ViewModels
             Assert.False(timer.IsEnabled);
         }
 
+        [Fact]
+        public async Task SearchCommand_CanBeCancelled()
+        {
+            var tools = new List<ToolModel>
+            {
+                new Tool { ToolNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" }
+            };
+            var toolService = new CountingToolService(tools);
+            var vm = new ToolManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
+            vm.SearchTerm = "Ham";
+            var cts = new CancellationTokenSource();
+            cts.Cancel();
+            await Assert.ThrowsAsync<OperationCanceledException>(() => vm.SearchCommand.ExecuteAsync(cts.Token));
+        }
+
         class CountingToolService : IToolService
         {
             public int GetAllToolsAsyncCalls { get; private set; }

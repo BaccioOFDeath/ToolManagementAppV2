@@ -30,41 +30,41 @@ namespace ToolManagementAppV2.Services.Customers
             _logger = logger ?? NullLogger<CustomerService>.Instance;
         }
 
-        public Task AddCustomerAsync(CustomerModel customer)
+        public Task AddCustomerAsync(CustomerModel customer, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
-            return AddCustomerInternalAsync(customer, CancellationToken.None);
+            return AddCustomerInternalAsync(customer, cancellationToken);
         }
 
-        public Task UpdateCustomerAsync(CustomerModel customer)
+        public Task UpdateCustomerAsync(CustomerModel customer, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
-            return UpdateCustomerInternalAsync(customer, CancellationToken.None);
+            return UpdateCustomerInternalAsync(customer, cancellationToken);
         }
 
-        public Task DeleteCustomerAsync(int customerID)
+        public Task DeleteCustomerAsync(int customerID, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
-            return DeleteCustomerInternalAsync(customerID, CancellationToken.None);
+            return DeleteCustomerInternalAsync(customerID, cancellationToken);
         }
 
-        public Task<CustomerModel> GetCustomerByIDAsync(int customerID) =>
-            GetCustomerByIDInternalAsync(customerID, CancellationToken.None);
+        public Task<CustomerModel> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default) =>
+            GetCustomerByIDInternalAsync(customerID, cancellationToken);
 
-        public Task<List<CustomerModel>> GetAllCustomersAsync() =>
-            GetAllCustomersInternalAsync(CancellationToken.None);
+        public Task<List<CustomerModel>> GetAllCustomersAsync(CancellationToken cancellationToken = default) =>
+            GetAllCustomersInternalAsync(cancellationToken);
 
-        public Task<List<CustomerModel>> SearchCustomersAsync(string searchTerm) =>
-            SearchCustomersInternalAsync(searchTerm, CancellationToken.None);
+        public Task<List<CustomerModel>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default) =>
+            SearchCustomersInternalAsync(searchTerm, cancellationToken);
 
-        public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map)
+        public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
-            return ImportCustomersFromCsvInternalAsync(filePath, map, CancellationToken.None);
+            return ImportCustomersFromCsvInternalAsync(filePath, map, cancellationToken);
         }
 
-        public Task ExportCustomersToCsvAsync(string filePath) =>
-            ExportCustomersToCsvInternalAsync(filePath, CancellationToken.None);
+        public Task ExportCustomersToCsvAsync(string filePath, CancellationToken cancellationToken = default) =>
+            ExportCustomersToCsvInternalAsync(filePath, cancellationToken);
 
         async Task AddCustomerInternalAsync(CustomerModel customer, CancellationToken cancellationToken)
         {

@@ -9,6 +9,7 @@ using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.ViewModels;
 using Xunit;
+using System.Threading;
 
 namespace ToolManagementAppV2.Tests.ViewModels
 {
@@ -93,6 +94,33 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     nullParam == "openImportExportCommand" ? null : importCmd));
 
                 Assert.Equal(nullParam, ex.ParamName);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task LoadStatsAsync_CanBeCancelled()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IToolService toolService = new ToolService(db);
+                IUserService userService = new UserService(db, new ApplicationUserContext());
+                ICustomerService customerService = new CustomerService(db);
+                IRentalService rentalService = new RentalService(db);
+                var activityLogService = new ActivityLogService(db);
+                var vm = new DashboardViewModel(toolService, rentalService, customerService, userService, activityLogService,
+                    new RelayCommand(() => { }), new RelayCommand(() => { }), new RelayCommand(() => { }));
+                vm.StatCards.Clear();
+                var cts = new CancellationTokenSource();
+                cts.Cancel();
+                await vm.LoadStatsAsync(cts.Token);
+                Assert.Empty(vm.StatCards);
             }
             finally
             {

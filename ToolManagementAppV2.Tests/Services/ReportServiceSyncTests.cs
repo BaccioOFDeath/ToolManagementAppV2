@@ -100,21 +100,21 @@ public class ReportServiceAsyncTests
         public DelayCustomerService(int delay, int count)
         { _delay = delay; _customers = new List<Customer>(new Customer[count]); }
         public List<Customer> GetAllCustomers() => _customers;
-        public Task<List<Customer>> GetAllCustomersAsync() => Task.Delay(_delay).ContinueWith(_ => _customers);
+        public Task<List<Customer>> GetAllCustomersAsync(CancellationToken cancellationToken = default) => Task.Delay(_delay, cancellationToken).ContinueWith(_ => _customers, cancellationToken);
         public void AddCustomer(Customer customer) => throw new NotImplementedException();
-        public Task AddCustomerAsync(Customer customer) => throw new NotImplementedException();
+        public Task AddCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public void UpdateCustomer(Customer customer) => throw new NotImplementedException();
-        public Task UpdateCustomerAsync(Customer customer) => throw new NotImplementedException();
+        public Task UpdateCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public void DeleteCustomer(int customerID) => throw new NotImplementedException();
-        public Task DeleteCustomerAsync(int customerID) => throw new NotImplementedException();
+        public Task DeleteCustomerAsync(int customerID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Customer GetCustomerByID(int customerID) => throw new NotImplementedException();
-        public Task<Customer> GetCustomerByIDAsync(int customerID) => throw new NotImplementedException();
+        public Task<Customer> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public List<Customer> SearchCustomers(string searchTerm) => throw new NotImplementedException();
-        public Task<List<Customer>> SearchCustomersAsync(string searchTerm) => throw new NotImplementedException();
+        public Task<List<Customer>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public CustomerImportResult ImportCustomersFromCsv(string filePath, IDictionary<string, string> map) => throw new NotImplementedException();
-        public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map) => throw new NotImplementedException();
+        public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public void ExportCustomersToCsv(string filePath) => throw new NotImplementedException();
-        public Task ExportCustomersToCsvAsync(string filePath) => throw new NotImplementedException();
+        public Task ExportCustomersToCsvAsync(string filePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 
     class DelayUserService : IUserService

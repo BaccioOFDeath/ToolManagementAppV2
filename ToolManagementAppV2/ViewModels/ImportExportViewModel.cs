@@ -53,11 +53,11 @@ namespace ToolManagementAppV2.ViewModels
             _databaseService = databaseService;
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<ImportExportViewModel>.Instance;
-            ImportToolsCommand = new AsyncRelayCommand(ImportToolsAsync);
-            ExportToolsCommand = new AsyncRelayCommand(ExportToolsAsync);
-            ImportCustomersCommand = new AsyncRelayCommand(ImportCustomersAsync);
-            ExportCustomersCommand = new AsyncRelayCommand(ExportCustomersAsync);
-            BackupDatabaseCommand = new AsyncRelayCommand(BackupDatabaseAsync);
+            ImportToolsCommand = new AsyncRelayCommand(ct => ImportToolsAsync(ct));
+            ExportToolsCommand = new AsyncRelayCommand(ct => ExportToolsAsync(ct));
+            ImportCustomersCommand = new AsyncRelayCommand(ct => ImportCustomersAsync(ct));
+            ExportCustomersCommand = new AsyncRelayCommand(ct => ExportCustomersAsync(ct));
+            BackupDatabaseCommand = new AsyncRelayCommand(ct => BackupDatabaseAsync(ct));
         }
 
         async Task ImportToolsAsync(CancellationToken cancellationToken)
@@ -89,14 +89,18 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        async Task ExportToolsAsync()
+        async Task ExportToolsAsync(CancellationToken cancellationToken)
         {
             var path = _fileDialogService.SaveFile("CSV Files|*.csv");
             if (string.IsNullOrEmpty(path)) return;
             try
             {
-                await _toolService.ExportToolsToCsvAsync(path, CancellationToken.None);
+                await _toolService.ExportToolsToCsvAsync(path, cancellationToken);
                 ImportExportLogs.Add($"Successfully exported tools to {path}.");
+            }
+            catch (OperationCanceledException)
+            {
+                ImportExportLogs.Add("Tool export was cancelled.");
             }
             catch (Exception ex)
             {
@@ -105,7 +109,7 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        async Task ImportCustomersAsync()
+        async Task ImportCustomersAsync(CancellationToken cancellationToken)
         {
             var path = _fileDialogService.OpenFile("CSV Files|*.csv");
             if (string.IsNullOrEmpty(path)) return;
@@ -116,10 +120,14 @@ namespace ToolManagementAppV2.ViewModels
                 var map = _dialogService.ShowImportMapping(headers, properties);
                 if (map == null)
                     return;
-                var result = await _customerService.ImportCustomersFromCsvAsync(path, map);
+                var result = await _customerService.ImportCustomersFromCsvAsync(path, map, cancellationToken);
                 ImportExportLogs.Add($"Successfully imported customers from {path}. Imported {result.ImportedCount} customers.");
                 foreach (var msg in result.SkippedRows)
                     ImportExportLogs.Add($"Skipped {msg}");
+            }
+            catch (OperationCanceledException)
+            {
+                ImportExportLogs.Add("Customer import was cancelled.");
             }
             catch (Exception ex)
             {
@@ -128,14 +136,18 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        async Task ExportCustomersAsync()
+        async Task ExportCustomersAsync(CancellationToken cancellationToken)
         {
             var path = _fileDialogService.SaveFile("CSV Files|*.csv");
             if (string.IsNullOrEmpty(path)) return;
             try
             {
-                await _customerService.ExportCustomersToCsvAsync(path);
+                await _customerService.ExportCustomersToCsvAsync(path, cancellationToken);
                 ImportExportLogs.Add($"Successfully exported customers to {path}.");
+            }
+            catch (OperationCanceledException)
+            {
+                ImportExportLogs.Add("Customer export was cancelled.");
             }
             catch (Exception ex)
             {

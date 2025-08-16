@@ -242,11 +242,11 @@ namespace ToolManagementAppV2.ViewModels
                 CurrentPage = page;
             });
 
-            OpenImportMappingWindowCommand = new AsyncRelayCommand(OpenImportMappingWindowAsync);
+            OpenImportMappingWindowCommand = new AsyncRelayCommand(ct => OpenImportMappingWindowAsync(ct));
 
-            OpenImageImportMappingWindowCommand = new AsyncRelayCommand(OpenImageImportMappingWindowAsync);
+            OpenImageImportMappingWindowCommand = new AsyncRelayCommand(ct => OpenImageImportMappingWindowAsync(ct));
 
-            GlobalSearchCommand = new AsyncRelayCommand(GlobalSearchAsync);
+            GlobalSearchCommand = new AsyncRelayCommand(ct => GlobalSearchAsync(ct));
 
             SwitchUserCommand = new AsyncRelayCommand(async () =>
             {
@@ -324,7 +324,7 @@ namespace ToolManagementAppV2.ViewModels
             OpenDashboardCommand.Execute(null);
         }
 
-        async Task OpenImportMappingWindowAsync()
+        async Task OpenImportMappingWindowAsync(CancellationToken cancellationToken)
         {
             try
             {
@@ -345,7 +345,7 @@ namespace ToolManagementAppV2.ViewModels
                         string.Join(", ", headers),
                         mappingString);
                     await _dialogService.ShowInfoAsync("Importing tools...", "Import Tools");
-                    var invalid = await _toolService.ImportToolsFromCsvAsync(path, map, CancellationToken.None);
+                    var invalid = await _toolService.ImportToolsFromCsvAsync(path, map, cancellationToken);
                     var msg = invalid.Count == 0
                         ? "Successfully imported tools."
                         : $"Imported with {invalid.Count} invalid rows.";
@@ -359,7 +359,7 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        async Task OpenImageImportMappingWindowAsync()
+        async Task OpenImageImportMappingWindowAsync(CancellationToken cancellationToken)
         {
             using var dlg = new Forms.FolderBrowserDialog();
             if (dlg.ShowDialog() != Forms.DialogResult.OK)
@@ -367,7 +367,7 @@ namespace ToolManagementAppV2.ViewModels
             var selector = _dialogService.ShowImageImportMapping();
             if (selector != null)
             {
-                var result = await _toolService.ImportToolImagesAsync(dlg.SelectedPath, selector, CancellationToken.None);
+                var result = await _toolService.ImportToolImagesAsync(dlg.SelectedPath, selector, cancellationToken);
                 _dialogService.ShowInfo(
                     $"Imported {result.ImportedCount} images. Unmatched: {result.UnmatchedFiles.Count}, Conflicts: {result.ConflictingFiles.Count}",
                     "Import Images");

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using ToolManagementAppV2.Models.ImportExport;
 using Microsoft.Extensions.Logging;
 using ToolManagementAppV2.Tests;
+using System.Threading;
 
 namespace ToolManagementAppV2.Tests.Services
 {
@@ -205,6 +206,51 @@ namespace ToolManagementAppV2.Tests.Services
             }
             finally
             {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task GetAllCustomersAsync_RespectsCancellation()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var service = new CustomerService(dbService);
+                var cts = new CancellationTokenSource();
+                cts.Cancel();
+                await Assert.ThrowsAsync<OperationCanceledException>(() => service.GetAllCustomersAsync(cts.Token));
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task ImportCustomersFromCsvAsync_RespectsCancellation()
+        {
+            var dbPath = Path.GetTempFileName();
+            var csvPath = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(csvPath, "Company,Contact,Phone\nAcme,John,1\nBeta,Jane,2");
+                var dbService = new DatabaseService(dbPath);
+                var service = new CustomerService(dbService);
+                var map = new Dictionary<string, string>
+                {
+                    {"Company", "Company"},
+                    {"Contact", "Contact"},
+                    {"Phone", "Phone"}
+                };
+                var cts = new CancellationTokenSource();
+                cts.Cancel();
+                await Assert.ThrowsAsync<OperationCanceledException>(() => service.ImportCustomersFromCsvAsync(csvPath, map, cts.Token));
+            }
+            finally
+            {
+                if (File.Exists(csvPath)) File.Delete(csvPath);
                 if (File.Exists(dbPath)) File.Delete(dbPath);
             }
         }

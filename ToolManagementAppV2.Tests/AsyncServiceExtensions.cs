@@ -25,22 +25,22 @@ public static class AsyncServiceExtensions
         => svc.SearchToolsAsync(text, token).GetAwaiter().GetResult();
 
     // CustomerService wrappers
-    public static void AddCustomer(this ICustomerService svc, Customer customer)
-        => svc.AddCustomerAsync(customer).GetAwaiter().GetResult();
-    public static void UpdateCustomer(this ICustomerService svc, Customer customer)
-        => svc.UpdateCustomerAsync(customer).GetAwaiter().GetResult();
-    public static void DeleteCustomer(this ICustomerService svc, int id)
-        => svc.DeleteCustomerAsync(id).GetAwaiter().GetResult();
-    public static Customer GetCustomerByID(this ICustomerService svc, int id)
-        => svc.GetCustomerByIDAsync(id).GetAwaiter().GetResult();
-    public static List<Customer> GetAllCustomers(this ICustomerService svc)
-        => svc.GetAllCustomersAsync().GetAwaiter().GetResult();
-    public static List<Customer> SearchCustomers(this ICustomerService svc, string term)
-        => svc.SearchCustomersAsync(term).GetAwaiter().GetResult();
-    public static CustomerImportResult ImportCustomersFromCsv(this ICustomerService svc, string path, IDictionary<string,string> map)
-        => svc.ImportCustomersFromCsvAsync(path, map).GetAwaiter().GetResult();
-    public static void ExportCustomersToCsv(this ICustomerService svc, string path)
-        => svc.ExportCustomersToCsvAsync(path).GetAwaiter().GetResult();
+    public static void AddCustomer(this ICustomerService svc, Customer customer, CancellationToken token = default)
+        => svc.AddCustomerAsync(customer, token).GetAwaiter().GetResult();
+    public static void UpdateCustomer(this ICustomerService svc, Customer customer, CancellationToken token = default)
+        => svc.UpdateCustomerAsync(customer, token).GetAwaiter().GetResult();
+    public static void DeleteCustomer(this ICustomerService svc, int id, CancellationToken token = default)
+        => svc.DeleteCustomerAsync(id, token).GetAwaiter().GetResult();
+    public static Customer GetCustomerByID(this ICustomerService svc, int id, CancellationToken token = default)
+        => svc.GetCustomerByIDAsync(id, token).GetAwaiter().GetResult();
+    public static List<Customer> GetAllCustomers(this ICustomerService svc, CancellationToken token = default)
+        => svc.GetAllCustomersAsync(token).GetAwaiter().GetResult();
+    public static List<Customer> SearchCustomers(this ICustomerService svc, string term, CancellationToken token = default)
+        => svc.SearchCustomersAsync(term, token).GetAwaiter().GetResult();
+    public static CustomerImportResult ImportCustomersFromCsv(this ICustomerService svc, string path, IDictionary<string,string> map, CancellationToken token = default)
+        => svc.ImportCustomersFromCsvAsync(path, map, token).GetAwaiter().GetResult();
+    public static void ExportCustomersToCsv(this ICustomerService svc, string path, CancellationToken token = default)
+        => svc.ExportCustomersToCsvAsync(path, token).GetAwaiter().GetResult();
 
     // RentalService wrappers
     public static void RentTool(this IRentalService svc, int toolID, int customerID, DateTime rentalDate, DateTime dueDate)
