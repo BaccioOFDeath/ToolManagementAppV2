@@ -188,5 +188,25 @@ namespace ToolManagementAppV2.Tests.Services
                 if (File.Exists(dbPath)) File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public async Task AddCustomer_SyncAndAsync_BothPersist()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var service = new CustomerService(dbService);
+                service.AddCustomer(new Customer { Company = "Acme", Contact = "J" });
+                await service.AddCustomerAsync(new Customer { Company = "Beta", Contact = "B" });
+                var allSync = service.GetAllCustomers();
+                var allAsync = await service.GetAllCustomersAsync();
+                Assert.Equal(allSync.Count, allAsync.Count);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
     }
 }

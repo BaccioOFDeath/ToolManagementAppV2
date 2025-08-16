@@ -463,9 +463,6 @@ namespace ToolManagementAppV2.Services.Tools
             await CsvHelperUtil.ExportToolsToCsvAsync(filePath, tools);
         }
 
-        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector)
-            => Task.FromResult(ImportToolImages(folderPath, keySelector));
-
         public async Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default)
         {
             if (qtyChange <= 0) throw new ArgumentException("Quantity change must be positive.", nameof(qtyChange));
