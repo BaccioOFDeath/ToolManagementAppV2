@@ -284,11 +284,13 @@ namespace ToolManagementAppV2.Services.Core
         /// </summary>
         /// <param name="backupFilePath">Destination path for the backup file.</param>
         /// <param name="cancellationToken">Token to observe for cancellation.</param>
-        public Task BackupDatabaseAsync(string backupFilePath, CancellationToken cancellationToken)
-            => Task.Run(() =>
+        public async Task BackupDatabaseAsync(string backupFilePath, CancellationToken cancellationToken)
+        {
+            await Task.Run(() =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 BackupDatabase(backupFilePath);
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
+        }
     }
 }
