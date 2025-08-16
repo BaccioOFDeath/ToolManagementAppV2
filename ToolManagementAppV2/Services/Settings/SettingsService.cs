@@ -1,6 +1,7 @@
 ﻿using System.Data.SQLite;
 using System;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Interfaces;
@@ -24,7 +25,10 @@ namespace ToolManagementAppV2.Services.Settings
             _logger = logger ?? NullLogger<SettingsService>.Instance;
         }
 
-        public void SaveSetting(string key, string value)
+        public void SaveSetting(string key, string value, CancellationToken cancellationToken = default)
+            => SaveSettingAsync(key, value, cancellationToken).GetAwaiter().GetResult();
+
+        public async Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(key))
                 throw new ArgumentException("Key cannot be null or empty.", nameof(key));
@@ -37,7 +41,17 @@ namespace ToolManagementAppV2.Services.Settings
                     new SQLiteParameter("@Value", value)
                 };
                 using var conn = _dbService.CreateConnection();
-                SqliteHelper.ExecuteNonQuery(conn, UpsertSql, p);
+                await SqliteHelper.ExecuteNonQueryAsync(conn, UpsertSql, p, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException ex)
+            {
+                _logger.LogWarning(ex, "Saving setting {Key} canceled or timed out", key);
+                throw;
+            }
+            catch (SQLiteException ex) when (ex.ResultCode == SQLiteErrorCode.Busy)
+            {
+                _logger.LogWarning(ex, "Saving setting {Key} timed out", key);
+                throw;
             }
             catch (Exception ex)
             {
@@ -46,56 +60,29 @@ namespace ToolManagementAppV2.Services.Settings
             }
         }
 
-        public async Task SaveSettingAsync(string key, string value)
-        {
-            if (string.IsNullOrWhiteSpace(key))
-                throw new ArgumentException("Key cannot be null or empty.", nameof(key));
+        public string? GetSetting(string key, CancellationToken cancellationToken = default)
+            => GetSettingAsync(key, cancellationToken).GetAwaiter().GetResult();
 
-            try
-            {
-                var p = new[]
-                {
-                    new SQLiteParameter("@Key", key),
-                    new SQLiteParameter("@Value", value)
-                };
-                using var conn = _dbService.CreateConnection();
-                await SqliteHelper.ExecuteNonQueryAsync(conn, UpsertSql, p);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to save setting {Key}", key);
-                throw new InvalidOperationException($"Failed to save setting '{key}'.", ex);
-            }
-        }
-
-        public string? GetSetting(string key)
+        public async Task<string?> GetSettingAsync(string key, CancellationToken cancellationToken = default)
         {
             try
             {
                 const string sql = "SELECT Value FROM Settings WHERE Key = @Key";
                 using var conn = _dbService.CreateConnection();
-                using var cmd = new SQLiteCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@Key", key);
-                return cmd.ExecuteScalar()?.ToString();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to retrieve setting {Key}", key);
-                throw new InvalidOperationException($"Failed to retrieve setting '{key}'.", ex);
-            }
-        }
-
-        public async Task<string?> GetSettingAsync(string key)
-        {
-            try
-            {
-                const string sql = "SELECT Value FROM Settings WHERE Key = @Key";
-                using var conn = _dbService.CreateConnection();
-                using var cmd = new SQLiteCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@Key", key);
-                var result = await cmd.ExecuteScalarAsync();
+                var p = new[] { new SQLiteParameter("@Key", key) };
+                var result = await SqliteHelper.ExecuteScalarAsync(conn, sql, p, cancellationToken).ConfigureAwait(false);
                 return result?.ToString();
             }
+            catch (OperationCanceledException ex)
+            {
+                _logger.LogWarning(ex, "Retrieving setting {Key} canceled or timed out", key);
+                throw;
+            }
+            catch (SQLiteException ex) when (ex.ResultCode == SQLiteErrorCode.Busy)
+            {
+                _logger.LogWarning(ex, "Retrieving setting {Key} timed out", key);
+                throw;
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to retrieve setting {Key}", key);
@@ -103,27 +90,10 @@ namespace ToolManagementAppV2.Services.Settings
             }
         }
 
-        public Dictionary<string, string> GetAllSettings()
-        {
-            try
-            {
-                var dict = new Dictionary<string, string>();
-                const string sql = "SELECT Key, Value FROM Settings";
-                using var conn = _dbService.CreateConnection();
-                using var cmd = new SQLiteCommand(sql, conn);
-                using var rdr = cmd.ExecuteReader();
-                while (rdr.Read())
-                    dict[rdr["Key"].ToString()] = rdr["Value"].ToString();
-                return dict;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to retrieve all settings");
-                throw new InvalidOperationException("Failed to retrieve all settings.", ex);
-            }
-        }
+        public Dictionary<string, string> GetAllSettings(CancellationToken cancellationToken = default)
+            => GetAllSettingsAsync(cancellationToken).GetAwaiter().GetResult();
 
-        public async Task<Dictionary<string, string>> GetAllSettingsAsync()
+        public async Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default)
         {
             try
             {
@@ -131,10 +101,20 @@ namespace ToolManagementAppV2.Services.Settings
                 const string sql = "SELECT Key, Value FROM Settings";
                 using var conn = _dbService.CreateConnection();
                 using var cmd = new SQLiteCommand(sql, conn);
-                using var rdr = await cmd.ExecuteReaderAsync();
-                while (await rdr.ReadAsync())
+                using var rdr = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await rdr.ReadAsync(cancellationToken).ConfigureAwait(false))
                     dict[rdr["Key"].ToString()] = rdr["Value"].ToString();
                 return dict;
+            }
+            catch (OperationCanceledException ex)
+            {
+                _logger.LogWarning(ex, "Retrieving all settings canceled or timed out");
+                throw;
+            }
+            catch (SQLiteException ex) when (ex.ResultCode == SQLiteErrorCode.Busy)
+            {
+                _logger.LogWarning(ex, "Retrieving all settings timed out");
+                throw;
             }
             catch (Exception ex)
             {
@@ -153,7 +133,10 @@ namespace ToolManagementAppV2.Services.Settings
         /// <exception cref="InvalidOperationException">
         /// Thrown when a transaction cannot be started. The original exception is propagated to the caller.
         /// </exception>
-        public void UpdateSettings(Dictionary<string, string> settings)
+        public void UpdateSettings(Dictionary<string, string> settings, CancellationToken cancellationToken = default)
+            => UpdateSettingsAsync(settings, cancellationToken).GetAwaiter().GetResult();
+
+        public async Task UpdateSettingsAsync(Dictionary<string, string> settings, CancellationToken cancellationToken = default)
         {
             if (settings == null)
                 throw new ArgumentNullException(nameof(settings));
@@ -175,9 +158,21 @@ namespace ToolManagementAppV2.Services.Settings
                         new SQLiteParameter("@Key", kv.Key),
                         new SQLiteParameter("@Value", kv.Value)
                     };
-                    SqliteHelper.ExecuteNonQuery(conn, tx, UpsertSql, p);
+                    await SqliteHelper.ExecuteNonQueryAsync(conn, tx, UpsertSql, p, cancellationToken).ConfigureAwait(false);
                 }
                 tx.Commit();
+            }
+            catch (OperationCanceledException ex)
+            {
+                tx.Rollback();
+                _logger.LogWarning(ex, "Updating settings canceled or timed out");
+                throw;
+            }
+            catch (SQLiteException ex) when (ex.ResultCode == SQLiteErrorCode.Busy)
+            {
+                tx.Rollback();
+                _logger.LogWarning(ex, "Updating settings timed out");
+                throw;
             }
             catch (Exception ex)
             {
@@ -187,68 +182,29 @@ namespace ToolManagementAppV2.Services.Settings
             }
         }
 
-        public async Task UpdateSettingsAsync(Dictionary<string, string> settings)
-        {
-            if (settings == null)
-                throw new ArgumentNullException(nameof(settings));
+        public void DeleteSetting(string key, CancellationToken cancellationToken = default)
+            => DeleteSettingAsync(key, cancellationToken).GetAwaiter().GetResult();
 
-            foreach (var kv in settings)
-            {
-                if (string.IsNullOrWhiteSpace(kv.Key))
-                    throw new ArgumentException("Key cannot be null or empty.", nameof(settings));
-            }
-
-            using var conn = _dbService.CreateConnection();
-            using var tx = conn.BeginTransaction();
-            try
-            {
-                foreach (var kv in settings)
-                {
-                    var p = new[]
-                    {
-                        new SQLiteParameter("@Key", kv.Key),
-                        new SQLiteParameter("@Value", kv.Value)
-                    };
-                    await SqliteHelper.ExecuteNonQueryAsync(conn, tx, UpsertSql, p);
-                }
-                tx.Commit();
-            }
-            catch (Exception ex)
-            {
-                tx.Rollback();
-                _logger.LogError(ex, "Failed to update settings");
-                throw new InvalidOperationException("Failed to update settings.", ex);
-            }
-        }
-
-        public void DeleteSetting(string key)
+        public async Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default)
         {
             try
             {
                 const string sql = "DELETE FROM Settings WHERE Key = @Key";
                 var p = new[] { new SQLiteParameter("@Key", key) };
                 using var conn = _dbService.CreateConnection();
-                var affected = SqliteHelper.ExecuteNonQuery(conn, sql, p);
+                var affected = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken).ConfigureAwait(false);
                 if (affected == 0)
                     _logger.LogWarning("No setting found for key {Key}", key);
             }
-            catch (Exception ex)
+            catch (OperationCanceledException ex)
             {
-                _logger.LogError(ex, "Failed to delete setting {Key}", key);
-                throw new InvalidOperationException($"Failed to delete setting '{key}'.", ex);
+                _logger.LogWarning(ex, "Deleting setting {Key} canceled or timed out", key);
+                throw;
             }
-        }
-
-        public async Task DeleteSettingAsync(string key)
-        {
-            try
+            catch (SQLiteException ex) when (ex.ResultCode == SQLiteErrorCode.Busy)
             {
-                const string sql = "DELETE FROM Settings WHERE Key = @Key";
-                var p = new[] { new SQLiteParameter("@Key", key) };
-                using var conn = _dbService.CreateConnection();
-                var affected = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
-                if (affected == 0)
-                    _logger.LogWarning("No setting found for key {Key}", key);
+                _logger.LogWarning(ex, "Deleting setting {Key} timed out", key);
+                throw;
             }
             catch (Exception ex)
             {
@@ -260,9 +216,9 @@ namespace ToolManagementAppV2.Services.Settings
         const string ScannerIpKey = "ScannerIpAddresses";
         const string PasswordIterationsKey = "PasswordIterations";
 
-        public IEnumerable<string> GetScannerIpAddresses()
+        public IEnumerable<string> GetScannerIpAddresses(CancellationToken cancellationToken = default)
         {
-            var value = GetSetting(ScannerIpKey);
+            var value = GetSetting(ScannerIpKey, cancellationToken);
             if (string.IsNullOrWhiteSpace(value))
                 return Array.Empty<string>();
 
@@ -276,9 +232,9 @@ namespace ToolManagementAppV2.Services.Settings
             return valid;
         }
 
-        public async Task<IEnumerable<string>> GetScannerIpAddressesAsync()
+        public async Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default)
         {
-            var value = await GetSettingAsync(ScannerIpKey);
+            var value = await GetSettingAsync(ScannerIpKey, cancellationToken).ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(value))
                 return Array.Empty<string>();
 
@@ -292,11 +248,11 @@ namespace ToolManagementAppV2.Services.Settings
             return valid;
         }
 
-        public IEnumerable<string> SaveScannerIpAddresses(IEnumerable<string>? ipAddresses)
+        public IEnumerable<string> SaveScannerIpAddresses(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default)
         {
             if (ipAddresses == null)
             {
-                DeleteSetting(ScannerIpKey);
+                DeleteSetting(ScannerIpKey, cancellationToken);
                 return Array.Empty<string>();
             }
 
@@ -316,21 +272,21 @@ namespace ToolManagementAppV2.Services.Settings
             if (valid.Count > 0)
             {
                 var value = string.Join(';', valid);
-                SaveSetting(ScannerIpKey, value);
+                SaveSetting(ScannerIpKey, value, cancellationToken);
             }
             else
             {
-                DeleteSetting(ScannerIpKey);
+                DeleteSetting(ScannerIpKey, cancellationToken);
             }
 
             return invalid;
         }
 
-        public async Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses)
+        public async Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default)
         {
             if (ipAddresses == null)
             {
-                await DeleteSettingAsync(ScannerIpKey);
+                await DeleteSettingAsync(ScannerIpKey, cancellationToken).ConfigureAwait(false);
                 return Array.Empty<string>();
             }
 
@@ -350,41 +306,41 @@ namespace ToolManagementAppV2.Services.Settings
             if (valid.Count > 0)
             {
                 var value = string.Join(';', valid);
-                await SaveSettingAsync(ScannerIpKey, value);
+                await SaveSettingAsync(ScannerIpKey, value, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                await DeleteSettingAsync(ScannerIpKey);
+                await DeleteSettingAsync(ScannerIpKey, cancellationToken).ConfigureAwait(false);
             }
 
             return invalid;
         }
 
         // Password hashing configuration
-        public int GetPasswordIterations()
+        public int GetPasswordIterations(CancellationToken cancellationToken = default)
         {
-            var value = GetSetting(PasswordIterationsKey);
+            var value = GetSetting(PasswordIterationsKey, cancellationToken);
             return int.TryParse(value, out var i) ? i : 100_000;
         }
 
-        public void SavePasswordIterations(int iterations)
+        public void SavePasswordIterations(int iterations, CancellationToken cancellationToken = default)
         {
             if (iterations <= 0)
                 throw new ArgumentOutOfRangeException(nameof(iterations));
-            SaveSetting(PasswordIterationsKey, iterations.ToString());
+            SaveSetting(PasswordIterationsKey, iterations.ToString(), cancellationToken);
         }
 
-        public async Task<int> GetPasswordIterationsAsync()
+        public async Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default)
         {
-            var value = await GetSettingAsync(PasswordIterationsKey);
+            var value = await GetSettingAsync(PasswordIterationsKey, cancellationToken).ConfigureAwait(false);
             return int.TryParse(value, out var i) ? i : 100_000;
         }
 
-        public async Task SavePasswordIterationsAsync(int iterations)
+        public async Task SavePasswordIterationsAsync(int iterations, CancellationToken cancellationToken = default)
         {
             if (iterations <= 0)
                 throw new ArgumentOutOfRangeException(nameof(iterations));
-            await SaveSettingAsync(PasswordIterationsKey, iterations.ToString());
+            await SaveSettingAsync(PasswordIterationsKey, iterations.ToString(), cancellationToken).ConfigureAwait(false);
         }
     }
 }

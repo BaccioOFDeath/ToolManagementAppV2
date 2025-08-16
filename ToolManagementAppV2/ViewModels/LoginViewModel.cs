@@ -113,16 +113,16 @@ namespace ToolManagementAppV2.ViewModels
             LoadUsersCommand = new AsyncRelayCommand(LoadUsersAsync);
         }
 
-        public async Task InitializeAsync()
+        public async Task InitializeAsync(CancellationToken cancellationToken = default)
         {
-            CompanyLogo = await LoadLogoAsync();
-            WindowTitle = await GetWindowTitleAsync();
+            CompanyLogo = await LoadLogoAsync(cancellationToken);
+            WindowTitle = await GetWindowTitleAsync(cancellationToken);
             await LoadUsersCommand.ExecuteAsync(null);
         }
 
-        async Task<BitmapImage> LoadLogoAsync()
+        async Task<BitmapImage> LoadLogoAsync(CancellationToken cancellationToken)
         {
-            var logoPath = await _settingsService.GetSettingAsync("CompanyLogoPath");
+            var logoPath = await _settingsService.GetSettingAsync("CompanyLogoPath", cancellationToken);
             Uri logoUri;
             if (!string.IsNullOrWhiteSpace(logoPath))
             {
@@ -159,9 +159,9 @@ namespace ToolManagementAppV2.ViewModels
             return bitmap;
         }
 
-        async Task<string> GetWindowTitleAsync()
+        async Task<string> GetWindowTitleAsync(CancellationToken cancellationToken)
         {
-            var appName = await _settingsService.GetSettingAsync("ApplicationName");
+            var appName = await _settingsService.GetSettingAsync("ApplicationName", cancellationToken);
             return !string.IsNullOrWhiteSpace(appName)
                 ? $"{appName} – Login"
                 : "Tool Inventory Management – Login";
