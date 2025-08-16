@@ -18,10 +18,10 @@ using Xunit;
 
 namespace ToolManagementAppV2.Tests.Services;
 
-public class ReportServiceSyncTests
+public class ReportServiceAsyncTests
 {
     [Fact]
-    public void GenerateSummaryReportSync_UsesConcurrentAsyncCalls()
+    public void GenerateSummaryReport_UsesConcurrentAsyncCalls()
     {
         const int delay = 200;
         var toolService = new DelayToolService(delay, 3);
@@ -33,7 +33,7 @@ public class ReportServiceSyncTests
         var svc = new ReportService(toolService, rentalService, activity, customerService, userService);
 
         var sw = Stopwatch.StartNew();
-        var doc = svc.GenerateSummaryReportSync();
+        var doc = svc.GenerateSummaryReport().GetAwaiter().GetResult();
         sw.Stop();
 
         var text = new TextRange(doc.ContentStart, doc.ContentEnd).Text;

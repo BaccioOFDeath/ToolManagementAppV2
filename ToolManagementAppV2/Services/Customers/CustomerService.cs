@@ -27,50 +27,26 @@ namespace ToolManagementAppV2.Services.Customers
             _logger = logger ?? NullLogger<CustomerService>.Instance;
         }
 
-        public void AddCustomer(CustomerModel customer) =>
-            AddCustomerInternalAsync(customer, CancellationToken.None).GetAwaiter().GetResult();
-
         public Task AddCustomerAsync(CustomerModel customer) =>
             AddCustomerInternalAsync(customer, CancellationToken.None);
-
-        public void UpdateCustomer(CustomerModel customer) =>
-            UpdateCustomerInternalAsync(customer, CancellationToken.None).GetAwaiter().GetResult();
 
         public Task UpdateCustomerAsync(CustomerModel customer) =>
             UpdateCustomerInternalAsync(customer, CancellationToken.None);
 
-        public void DeleteCustomer(int customerID) =>
-            DeleteCustomerInternalAsync(customerID, CancellationToken.None).GetAwaiter().GetResult();
-
         public Task DeleteCustomerAsync(int customerID) =>
             DeleteCustomerInternalAsync(customerID, CancellationToken.None);
-
-        public CustomerModel GetCustomerByID(int customerID) =>
-            GetCustomerByIDInternalAsync(customerID, CancellationToken.None).GetAwaiter().GetResult();
 
         public Task<CustomerModel> GetCustomerByIDAsync(int customerID) =>
             GetCustomerByIDInternalAsync(customerID, CancellationToken.None);
 
-        public List<CustomerModel> GetAllCustomers() =>
-            GetAllCustomersInternalAsync(CancellationToken.None).GetAwaiter().GetResult();
-
         public Task<List<CustomerModel>> GetAllCustomersAsync() =>
             GetAllCustomersInternalAsync(CancellationToken.None);
-
-        public List<CustomerModel> SearchCustomers(string searchTerm) =>
-            SearchCustomersInternalAsync(searchTerm, CancellationToken.None).GetAwaiter().GetResult();
 
         public Task<List<CustomerModel>> SearchCustomersAsync(string searchTerm) =>
             SearchCustomersInternalAsync(searchTerm, CancellationToken.None);
 
-        public CustomerImportResult ImportCustomersFromCsv(string filePath, IDictionary<string, string> map) =>
-            ImportCustomersFromCsvInternalAsync(filePath, map, CancellationToken.None).GetAwaiter().GetResult();
-
         public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map) =>
             ImportCustomersFromCsvInternalAsync(filePath, map, CancellationToken.None);
-
-        public void ExportCustomersToCsv(string filePath) =>
-            ExportCustomersToCsvInternalAsync(filePath, CancellationToken.None).GetAwaiter().GetResult();
 
         public Task ExportCustomersToCsvAsync(string filePath) =>
             ExportCustomersToCsvInternalAsync(filePath, CancellationToken.None);

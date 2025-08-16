@@ -43,9 +43,6 @@ namespace ToolManagementAppV2.Services.Tools
             return BuildReport("Tool Inventory Report", lines);
         }
 
-        public FlowDocument GenerateInventoryReportSync() =>
-            GenerateInventoryReport().GetAwaiter().GetResult();
-
         public async Task<FlowDocument> GenerateRentalReport(bool activeOnly = true)
         {
             var rentals = activeOnly
@@ -60,9 +57,6 @@ namespace ToolManagementAppV2.Services.Tools
             return BuildReport(title, lines);
         }
 
-        public FlowDocument GenerateRentalReportSync(bool activeOnly = true) =>
-            GenerateRentalReport(activeOnly).GetAwaiter().GetResult();
-
         public async Task<FlowDocument> GenerateActivityLogReport()
         {
             var result = await _activityLogService.GetRecentLogsAsync(100).ConfigureAwait(false);
@@ -72,9 +66,6 @@ namespace ToolManagementAppV2.Services.Tools
             return BuildReport("Activity Log Report", lines);
         }
 
-        public FlowDocument GenerateActivityLogReportSync() =>
-            GenerateActivityLogReport().GetAwaiter().GetResult();
-
         public async Task<FlowDocument> GenerateCustomerReport()
         {
             var customers = await _customerService.GetAllCustomersAsync().ConfigureAwait(false);
@@ -83,9 +74,6 @@ namespace ToolManagementAppV2.Services.Tools
             return BuildReport("Customer Report", lines);
         }
 
-        public FlowDocument GenerateCustomerReportSync() =>
-            GenerateCustomerReport().GetAwaiter().GetResult();
-
         public async Task<FlowDocument> GenerateUserReport()
         {
             var users = await _userService.GetAllUsersAsync().ConfigureAwait(false);
@@ -93,9 +81,6 @@ namespace ToolManagementAppV2.Services.Tools
                 $"UserID: {u.UserID} | UserName: {u.UserName} | IsAdmin: {u.IsAdmin}");
             return BuildReport("User Report", lines);
         }
-
-        public FlowDocument GenerateUserReportSync() =>
-            GenerateUserReport().GetAwaiter().GetResult();
 
         public async Task<FlowDocument> GenerateSummaryReport()
         {
@@ -119,27 +104,6 @@ namespace ToolManagementAppV2.Services.Tools
             return BuildReport("Application Summary Report", lines);
         }
 
-        public FlowDocument GenerateSummaryReportSync()
-        {
-            var totalToolsTask = _toolService.GetAllToolsAsync();
-            var totalRentalsTask = _rentalService.GetAllRentalsAsync();
-            var totalActiveRentalsTask = _rentalService.GetActiveRentalsAsync();
-            var totalCustomersTask = _customerService.GetAllCustomersAsync();
-            var totalUsersTask = _userService.GetAllUsersAsync();
-
-            Task.WhenAll(totalToolsTask, totalRentalsTask, totalActiveRentalsTask, totalCustomersTask, totalUsersTask).GetAwaiter().GetResult();
-
-            var lines = new[]
-            {
-                $"Total Tools: {totalToolsTask.Result.Count}",
-                $"Total Rentals (History): {totalRentalsTask.Result.Count}",
-                $"Active Rentals: {totalActiveRentalsTask.Result.Count}",
-                $"Total Customers: {totalCustomersTask.Result.Count}",
-                $"Total Users: {totalUsersTask.Result.Count}"
-            };
-
-            return BuildReport("Application Summary Report", lines);
-        }
 
         FlowDocument BuildReport(string title, IEnumerable<string> lines)
         {
