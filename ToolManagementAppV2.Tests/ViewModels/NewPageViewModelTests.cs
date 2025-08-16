@@ -293,24 +293,24 @@ namespace ToolManagementAppV2.Tests.ViewModels
             return new CustomerImportResult();
         }
         public void ExportCustomersToCsv(string filePath) => ExportCalled = true;
-        public Task ExportCustomersToCsvAsync(string filePath)
+        public Task ExportCustomersToCsvAsync(string filePath, CancellationToken cancellationToken = default)
         {
             ExportCalled = true;
             return Task.CompletedTask;
         }
         public void AddCustomer(Customer customer) => throw new System.NotImplementedException();
-        public Task AddCustomerAsync(Customer customer) => throw new System.NotImplementedException();
+        public Task AddCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public void UpdateCustomer(Customer customer) => throw new System.NotImplementedException();
-        public Task UpdateCustomerAsync(Customer customer) => throw new System.NotImplementedException();
+        public Task UpdateCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public void DeleteCustomer(int customerID) => throw new System.NotImplementedException();
-        public Task DeleteCustomerAsync(int customerID) => throw new System.NotImplementedException();
+        public Task DeleteCustomerAsync(int customerID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Customer GetCustomerByID(int customerID) => throw new System.NotImplementedException();
-        public Task<Customer> GetCustomerByIDAsync(int customerID) => throw new System.NotImplementedException();
+        public Task<Customer> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public List<Customer> GetAllCustomers() => new();
-        public Task<List<Customer>> GetAllCustomersAsync() => Task.FromResult(new List<Customer>());
+        public Task<List<Customer>> GetAllCustomersAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<Customer>());
         public List<Customer> SearchCustomers(string searchTerm) => new();
-        public Task<List<Customer>> SearchCustomersAsync(string searchTerm) => Task.FromResult(new List<Customer>());
-        public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map)
+        public Task<List<Customer>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default) => Task.FromResult(new List<Customer>());
+        public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default)
         {
             ImportCalled = true;
             return Task.FromResult(new CustomerImportResult());
@@ -320,21 +320,21 @@ namespace ToolManagementAppV2.Tests.ViewModels
     class FailCustomerService : ICustomerService
     {
         public CustomerImportResult ImportCustomersFromCsv(string filePath, IDictionary<string, string> map) => throw new System.Exception("fail");
-        public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map) => throw new System.Exception("fail");
+        public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default) => throw new System.Exception("fail");
         public void ExportCustomersToCsv(string filePath) => throw new System.Exception("fail");
-        public Task ExportCustomersToCsvAsync(string filePath) => throw new System.Exception("fail");
+        public Task ExportCustomersToCsvAsync(string filePath, CancellationToken cancellationToken = default) => throw new System.Exception("fail");
         public void AddCustomer(Customer customer) => throw new System.NotImplementedException();
-        public Task AddCustomerAsync(Customer customer) => throw new System.NotImplementedException();
+        public Task AddCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public void UpdateCustomer(Customer customer) => throw new System.NotImplementedException();
-        public Task UpdateCustomerAsync(Customer customer) => throw new System.NotImplementedException();
+        public Task UpdateCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public void DeleteCustomer(int customerID) => throw new System.NotImplementedException();
-        public Task DeleteCustomerAsync(int customerID) => throw new System.NotImplementedException();
+        public Task DeleteCustomerAsync(int customerID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Customer GetCustomerByID(int customerID) => throw new System.NotImplementedException();
-        public Task<Customer> GetCustomerByIDAsync(int customerID) => throw new System.NotImplementedException();
+        public Task<Customer> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public List<Customer> GetAllCustomers() => new();
-        public Task<List<Customer>> GetAllCustomersAsync() => Task.FromResult(new List<Customer>());
+        public Task<List<Customer>> GetAllCustomersAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<Customer>());
         public List<Customer> SearchCustomers(string searchTerm) => new();
-        public Task<List<Customer>> SearchCustomersAsync(string searchTerm) => Task.FromResult(new List<Customer>());
+        public Task<List<Customer>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default) => Task.FromResult(new List<Customer>());
     }
 
     class StubDatabaseBackupService : IDatabaseBackupService

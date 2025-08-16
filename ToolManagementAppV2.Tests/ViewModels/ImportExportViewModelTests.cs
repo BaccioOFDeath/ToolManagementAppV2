@@ -196,24 +196,24 @@ namespace ToolManagementAppV2.Tests.ViewModels
             return new CustomerImportResult();
         }
         public void ExportCustomersToCsv(string filePath) => ExportCalled = true;
-        public System.Threading.Tasks.Task ExportCustomersToCsvAsync(string filePath)
+        public System.Threading.Tasks.Task ExportCustomersToCsvAsync(string filePath, CancellationToken cancellationToken = default)
         {
             ExportCalled = true;
             return System.Threading.Tasks.Task.CompletedTask;
         }
         public void AddCustomer(Customer customer) => throw new NotImplementedException();
-        public System.Threading.Tasks.Task AddCustomerAsync(Customer customer) => throw new NotImplementedException();
+        public System.Threading.Tasks.Task AddCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public void UpdateCustomer(Customer customer) => throw new NotImplementedException();
-        public System.Threading.Tasks.Task UpdateCustomerAsync(Customer customer) => throw new NotImplementedException();
+        public System.Threading.Tasks.Task UpdateCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public void DeleteCustomer(int customerID) => throw new NotImplementedException();
-        public System.Threading.Tasks.Task DeleteCustomerAsync(int customerID) => throw new NotImplementedException();
+        public System.Threading.Tasks.Task DeleteCustomerAsync(int customerID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Customer GetCustomerByID(int customerID) => throw new NotImplementedException();
-        public System.Threading.Tasks.Task<Customer> GetCustomerByIDAsync(int customerID) => throw new NotImplementedException();
+        public System.Threading.Tasks.Task<Customer> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public List<Customer> GetAllCustomers() => new();
-        public System.Threading.Tasks.Task<List<Customer>> GetAllCustomersAsync() => System.Threading.Tasks.Task.FromResult(new List<Customer>());
+        public System.Threading.Tasks.Task<List<Customer>> GetAllCustomersAsync(CancellationToken cancellationToken = default) => System.Threading.Tasks.Task.FromResult(new List<Customer>());
         public List<Customer> SearchCustomers(string searchTerm) => new();
-        public System.Threading.Tasks.Task<List<Customer>> SearchCustomersAsync(string searchTerm) => System.Threading.Tasks.Task.FromResult(new List<Customer>());
-        public System.Threading.Tasks.Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map)
+        public System.Threading.Tasks.Task<List<Customer>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default) => System.Threading.Tasks.Task.FromResult(new List<Customer>());
+        public System.Threading.Tasks.Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default)
         {
             ImportCalled = true;
             MapUsed = map;
@@ -264,40 +264,40 @@ namespace ToolManagementAppV2.Tests.ViewModels
     {
         public CustomerImportResult ImportCustomersFromCsv(string filePath, IDictionary<string, string> map) => new CustomerImportResult();
         public void ExportCustomersToCsv(string filePath) { }
-        public System.Threading.Tasks.Task ExportCustomersToCsvAsync(string filePath) => System.Threading.Tasks.Task.CompletedTask;
+        public System.Threading.Tasks.Task ExportCustomersToCsvAsync(string filePath, CancellationToken cancellationToken = default) => System.Threading.Tasks.Task.CompletedTask;
         public void AddCustomer(Customer customer) => throw new NotImplementedException();
-        public System.Threading.Tasks.Task AddCustomerAsync(Customer customer) => throw new NotImplementedException();
+        public System.Threading.Tasks.Task AddCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public void UpdateCustomer(Customer customer) => throw new NotImplementedException();
-        public System.Threading.Tasks.Task UpdateCustomerAsync(Customer customer) => throw new NotImplementedException();
+        public System.Threading.Tasks.Task UpdateCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public void DeleteCustomer(int customerID) => throw new NotImplementedException();
-        public System.Threading.Tasks.Task DeleteCustomerAsync(int customerID) => throw new NotImplementedException();
+        public System.Threading.Tasks.Task DeleteCustomerAsync(int customerID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Customer GetCustomerByID(int customerID) => throw new NotImplementedException();
-        public System.Threading.Tasks.Task<Customer> GetCustomerByIDAsync(int customerID) => throw new NotImplementedException();
+        public System.Threading.Tasks.Task<Customer> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public List<Customer> GetAllCustomers() => new();
-        public System.Threading.Tasks.Task<List<Customer>> GetAllCustomersAsync() => System.Threading.Tasks.Task.FromResult(new List<Customer>());
+        public System.Threading.Tasks.Task<List<Customer>> GetAllCustomersAsync(CancellationToken cancellationToken = default) => System.Threading.Tasks.Task.FromResult(new List<Customer>());
         public List<Customer> SearchCustomers(string searchTerm) => new();
-        public System.Threading.Tasks.Task<List<Customer>> SearchCustomersAsync(string searchTerm) => System.Threading.Tasks.Task.FromResult(new List<Customer>());
-        public System.Threading.Tasks.Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map) => System.Threading.Tasks.Task.FromResult(new CustomerImportResult());
+        public System.Threading.Tasks.Task<List<Customer>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default) => System.Threading.Tasks.Task.FromResult(new List<Customer>());
+        public System.Threading.Tasks.Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default) => System.Threading.Tasks.Task.FromResult(new CustomerImportResult());
     }
 
     class FailCustomerService : ICustomerService
     {
         public CustomerImportResult ImportCustomersFromCsv(string filePath, IDictionary<string, string> map) => new CustomerImportResult();
         public void ExportCustomersToCsv(string filePath) => throw new System.Exception("fail");
-        public System.Threading.Tasks.Task ExportCustomersToCsvAsync(string filePath) => System.Threading.Tasks.Task.FromException(new System.Exception("fail"));
+        public System.Threading.Tasks.Task ExportCustomersToCsvAsync(string filePath, CancellationToken cancellationToken = default) => System.Threading.Tasks.Task.FromException(new System.Exception("fail"));
         public void AddCustomer(Customer customer) => throw new NotImplementedException();
-        public System.Threading.Tasks.Task AddCustomerAsync(Customer customer) => throw new NotImplementedException();
+        public System.Threading.Tasks.Task AddCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public void UpdateCustomer(Customer customer) => throw new NotImplementedException();
-        public System.Threading.Tasks.Task UpdateCustomerAsync(Customer customer) => throw new NotImplementedException();
+        public System.Threading.Tasks.Task UpdateCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public void DeleteCustomer(int customerID) => throw new NotImplementedException();
-        public System.Threading.Tasks.Task DeleteCustomerAsync(int customerID) => throw new NotImplementedException();
+        public System.Threading.Tasks.Task DeleteCustomerAsync(int customerID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Customer GetCustomerByID(int customerID) => throw new NotImplementedException();
-        public System.Threading.Tasks.Task<Customer> GetCustomerByIDAsync(int customerID) => throw new NotImplementedException();
+        public System.Threading.Tasks.Task<Customer> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public List<Customer> GetAllCustomers() => new();
-        public System.Threading.Tasks.Task<List<Customer>> GetAllCustomersAsync() => System.Threading.Tasks.Task.FromResult(new List<Customer>());
+        public System.Threading.Tasks.Task<List<Customer>> GetAllCustomersAsync(CancellationToken cancellationToken = default) => System.Threading.Tasks.Task.FromResult(new List<Customer>());
         public List<Customer> SearchCustomers(string searchTerm) => new();
-        public System.Threading.Tasks.Task<List<Customer>> SearchCustomersAsync(string searchTerm) => System.Threading.Tasks.Task.FromResult(new List<Customer>());
-        public System.Threading.Tasks.Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map) => System.Threading.Tasks.Task.FromResult(new CustomerImportResult());
+        public System.Threading.Tasks.Task<List<Customer>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default) => System.Threading.Tasks.Task.FromResult(new List<Customer>());
+        public System.Threading.Tasks.Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default) => System.Threading.Tasks.Task.FromResult(new CustomerImportResult());
     }
 
     class StubDatabaseBackupService : IDatabaseBackupService

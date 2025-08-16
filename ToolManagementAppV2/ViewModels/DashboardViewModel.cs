@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Models.Domain;
@@ -69,23 +70,27 @@ namespace ToolManagementAppV2.ViewModels
                 catch (Exception ex) { _logger.LogError(ex, "Failed to open import/export page"); }
             });
 
-            _ = LoadStatsAsync();
+            _ = LoadStatsAsync(CancellationToken.None);
             LoadRecentActivity();
         }
 
-        async Task LoadStatsAsync()
+        internal async Task LoadStatsAsync(CancellationToken cancellationToken)
         {
             try
             {
                 StatCards.Clear();
-                var tools = await _toolService.GetAllToolsAsync(CancellationToken.None);
+                var tools = await _toolService.GetAllToolsAsync(cancellationToken);
                 StatCards.Add(new StatCard { Title = "Total Tools", Value = tools.Count.ToString() });
                 var activeRentals = await _rentalService.GetActiveRentalsAsync();
-                var customers = await _customerService.GetAllCustomersAsync();
+                var customers = await _customerService.GetAllCustomersAsync(cancellationToken);
                 var users = await _userService.GetAllUsersAsync();
                 StatCards.Add(new StatCard { Title = "Active Rentals", Value = activeRentals.Count.ToString() });
                 StatCards.Add(new StatCard { Title = "Total Customers", Value = customers.Count.ToString() });
                 StatCards.Add(new StatCard { Title = "Total Users", Value = users.Count.ToString() });
+            }
+            catch (OperationCanceledException)
+            {
+                // Swallow cancellations quietly.
             }
             catch (Exception ex)
             {
