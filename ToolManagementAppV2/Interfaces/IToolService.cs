@@ -21,7 +21,7 @@ namespace ToolManagementAppV2.Interfaces
         Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default);
         Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken);
         Task ExportToolsToCsvAsync(string filePath, CancellationToken cancellationToken = default);
-        Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector, CancellationToken cancellationToken = default);
+        Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default);
         Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental,
             SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default);
     }

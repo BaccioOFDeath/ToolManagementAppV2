@@ -250,7 +250,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
         public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, System.Func<ToolModel, IEnumerable<string>> keySelector, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
+        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, System.Func<ToolModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
         public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
     }
 
@@ -267,7 +267,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
         public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, System.Func<ToolModel, IEnumerable<string>> keySelector, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
+        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, System.Func<ToolModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
         public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
     }
 

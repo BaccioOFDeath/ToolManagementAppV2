@@ -177,7 +177,7 @@ namespace ToolManagementAppV2.Services.Customers
 
         async Task<CustomerImportResult> ImportCustomersFromCsvInternalAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken)
         {
-            var customers = CsvHelperUtil.LoadCustomersFromCsv(filePath, map);
+            var customers = await CsvHelperUtil.LoadCustomersFromCsvAsync(filePath, map, cancellationToken);
             var result = new CustomerImportResult();
             using var conn = _dbService.CreateConnection();
             using var tran = conn.BeginTransaction();

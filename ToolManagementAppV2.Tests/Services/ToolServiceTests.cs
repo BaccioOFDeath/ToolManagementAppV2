@@ -7,6 +7,7 @@ using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Models.ImportExport;
 using Xunit;
 using System.Threading;
 using System.Threading.Tasks;
@@ -909,12 +910,48 @@ namespace ToolManagementAppV2.Tests.Services
             }
         }
 
+        [Fact]
+        public async Task ImportToolImagesAsync_RespectsCancellation()
+        {
+            var dbPath = Path.GetTempFileName();
+            var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(tempDir);
+            var img1 = Path.Combine(tempDir, "T1.png");
+            var img2 = Path.Combine(tempDir, "T2.png");
+            File.WriteAllText(img1, "img");
+            File.WriteAllText(img2, "img");
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var svc = new ToolService(dbService);
+                svc.AddTool(new Tool { ToolNumber = "T1" });
+                svc.AddTool(new Tool { ToolNumber = "T2" });
+
+                var cts = new CancellationTokenSource();
+                var progress = new Progress<ImageImportProgress>(p =>
+                {
+                    if (p.Processed == 1)
+                        cts.Cancel();
+                });
+
+                await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                    svc.ImportToolImagesAsync(tempDir, t => new[] { t.ToolNumber }, progress, cts.Token));
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+                if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+                var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+                if (Directory.Exists(destDir)) Directory.Delete(destDir, true);
+            }
+        }
+
         private class FailingCopyToolService : ToolService
         {
             public FailingCopyToolService(DatabaseService dbService, ILogger<ToolService> logger)
                 : base(dbService, logger) { }
 
-            protected override void CopyFile(string sourceFileName, string destFileName)
+            protected override Task CopyFileAsync(string sourceFileName, string destFileName, CancellationToken cancellationToken)
                 => throw new IOException("fail");
         }
     }

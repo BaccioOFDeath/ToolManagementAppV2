@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualBasic.FileIO;
 using System.Linq;
@@ -71,6 +72,16 @@ namespace ToolManagementAppV2.Utilities.IO
             return list;
         }
 
+        public static async Task<(List<ToolModel> Tools, List<int> InvalidRows)> LoadToolsFromCsvAsync(
+            string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default)
+        {
+            return await Task.Run(() =>
+            {
+                var tools = LoadToolsFromCsv(filePath, map, out var invalid);
+                return (tools, invalid);
+            }, cancellationToken).ConfigureAwait(false);
+        }
+
         public static void ExportToolsToCsv(string filePath, List<ToolModel> tools)
         {
             var lines = new List<string>
@@ -139,6 +150,10 @@ namespace ToolManagementAppV2.Utilities.IO
 
             return list;
         }
+
+        public static async Task<List<CustomerModel>> LoadCustomersFromCsvAsync(string filePath, IDictionary<string, string> map,
+            CancellationToken cancellationToken = default)
+            => await Task.Run(() => LoadCustomersFromCsv(filePath, map), cancellationToken).ConfigureAwait(false);
 
 
         public static void ExportCustomersToCsv(string filePath, List<CustomerModel> customers)

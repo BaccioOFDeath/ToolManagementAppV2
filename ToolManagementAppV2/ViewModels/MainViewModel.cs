@@ -22,6 +22,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using ToolManagementAppV2.Utilities.IO;
 using ToolManagementAppV2.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
+using ToolManagementAppV2.Models.ImportExport;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -367,7 +368,9 @@ namespace ToolManagementAppV2.ViewModels
             var selector = _dialogService.ShowImageImportMapping();
             if (selector != null)
             {
-                var result = await _toolService.ImportToolImagesAsync(dlg.SelectedPath, selector, cancellationToken);
+                var progress = new Progress<ImageImportProgress>(p =>
+                    _logger.LogInformation("Imported {Processed}/{Total} images", p.Processed, p.Total));
+                var result = await _toolService.ImportToolImagesAsync(dlg.SelectedPath, selector, progress, cancellationToken);
                 _dialogService.ShowInfo(
                     $"Imported {result.ImportedCount} images. Unmatched: {result.UnmatchedFiles.Count}, Conflicts: {result.ConflictingFiles.Count}",
                     "Import Images");
