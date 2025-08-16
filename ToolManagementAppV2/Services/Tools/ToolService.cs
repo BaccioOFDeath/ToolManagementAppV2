@@ -14,6 +14,7 @@ using ToolManagementAppV2.Interfaces;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ToolManagementAppV2.Services.Users;
 
 namespace ToolManagementAppV2.Services.Tools
 {
@@ -30,10 +31,12 @@ namespace ToolManagementAppV2.Services.Tools
         const int MaxSearchTerms = 10;
     
         readonly ILogger<ToolService> _logger;
+        readonly IAuthorizationService _auth;
 
-        public ToolService(DatabaseService dbService, ILogger<ToolService>? logger = null)
+        public ToolService(DatabaseService dbService, IAuthorizationService? authorizationService = null, ILogger<ToolService>? logger = null)
         {
             _dbService = dbService;
+            _auth = authorizationService ?? new NoOpAuthorizationService();
             _logger = logger ?? NullLogger<ToolService>.Instance;
         }
 
@@ -44,16 +47,28 @@ namespace ToolManagementAppV2.Services.Tools
         }
 
         public Task AddToolAsync(ToolModel tool, CancellationToken cancellationToken = default)
-            => AddToolInternalAsync(tool, cancellationToken);
+        {
+            _auth.EnsureAdmin();
+            return AddToolInternalAsync(tool, cancellationToken);
+        }
 
         public Task UpdateToolAsync(ToolModel tool, CancellationToken cancellationToken = default)
-            => UpdateToolInternalAsync(tool, cancellationToken);
+        {
+            _auth.EnsureAdmin();
+            return UpdateToolInternalAsync(tool, cancellationToken);
+        }
 
         public Task DeleteToolAsync(int toolID, CancellationToken cancellationToken = default)
-            => DeleteToolInternalAsync(toolID, cancellationToken);
+        {
+            _auth.EnsureAdmin();
+            return DeleteToolInternalAsync(toolID, cancellationToken);
+        }
 
         public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default)
-            => ToggleToolCheckOutStatusInternalAsync(toolID, currentUser, cancellationToken);
+        {
+            _auth.EnsureAdmin();
+            return ToggleToolCheckOutStatusInternalAsync(toolID, currentUser, cancellationToken);
+        }
 
         public Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default)
         {
@@ -65,6 +80,7 @@ namespace ToolManagementAppV2.Services.Tools
 
         public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default)
         {
+            _auth.EnsureAdmin();
             const string sql = "UPDATE Tools SET ToolImagePath=@Img WHERE ToolID=@ID";
             var p = new[]
             {
@@ -76,13 +92,19 @@ namespace ToolManagementAppV2.Services.Tools
         }
 
         public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken)
-            => ImportToolsFromCsvInternalAsync(filePath, map, cancellationToken);
+        {
+            _auth.EnsureAdmin();
+            return ImportToolsFromCsvInternalAsync(filePath, map, cancellationToken);
+        }
 
         public Task ExportToolsToCsvAsync(string filePath, CancellationToken cancellationToken = default)
             => ExportToolsToCsvInternalAsync(filePath, cancellationToken);
 
         public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector, CancellationToken cancellationToken = default)
-            => ImportToolImagesInternalAsync(folderPath, keySelector, cancellationToken);
+        {
+            _auth.EnsureAdmin();
+            return ImportToolImagesInternalAsync(folderPath, keySelector, cancellationToken);
+        }
 
         async Task InsertToolAsync(SQLiteConnection conn, SQLiteTransaction? tran, ToolModel tool, CancellationToken cancellationToken)
         {

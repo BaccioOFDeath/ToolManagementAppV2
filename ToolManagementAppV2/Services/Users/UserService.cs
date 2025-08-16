@@ -17,11 +17,13 @@ namespace ToolManagementAppV2.Services.Users
         readonly DatabaseService _dbService;
         readonly IUserContext _context;
         readonly ILogger<UserService> _logger;
+        readonly IAuthorizationService _auth;
 
-        public UserService(DatabaseService dbService, IUserContext context, ILogger<UserService>? logger = null)
+        public UserService(DatabaseService dbService, IUserContext context, IAuthorizationService? authorizationService = null, ILogger<UserService>? logger = null)
         {
             _dbService = dbService;
             _context = context;
+            _auth = authorizationService ?? new NoOpAuthorizationService();
             _logger = logger ?? NullLogger<UserService>.Instance;
         }
 
@@ -166,6 +168,7 @@ namespace ToolManagementAppV2.Services.Users
 
         public async Task AddUserAsync(User user)
         {
+            _auth.EnsureAdmin();
             const string sql = @"
                 INSERT INTO Users
                   (UserName, Password, Salt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, FailedAttempts, LockoutUntil, PasswordExpired)
@@ -229,6 +232,7 @@ namespace ToolManagementAppV2.Services.Users
 
         public async Task UpdateUserAsync(User user)
         {
+            _auth.EnsureAdmin();
             const string sql = @"
                 UPDATE Users SET
                   UserName      = @UserName,
@@ -277,6 +281,7 @@ namespace ToolManagementAppV2.Services.Users
 
         public async Task<bool> ChangeUserPasswordAsync(int userID, string newPassword)
         {
+            _auth.EnsureAdmin();
             var sql = "UPDATE Users SET Password=@Pwd, Salt=@Salt, PasswordExpired=@Expired WHERE UserID=@ID";
             string hashed = string.Empty;
             string salt = string.Empty;
@@ -312,6 +317,7 @@ namespace ToolManagementAppV2.Services.Users
 
         public async Task<bool> TryDeleteUserAsync(int userID)
         {
+            _auth.EnsureAdmin();
             var user = await GetUserByIDAsync(userID);
             if (user == null) return false;
             if (user.IsAdmin)

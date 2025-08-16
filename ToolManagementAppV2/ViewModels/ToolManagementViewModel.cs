@@ -209,6 +209,10 @@ namespace ToolManagementAppV2.ViewModels
                 await FilterToolsAsync(CancellationToken.None);
                 NewTool = new ToolModel();
             }
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync("You are not authorized to add tools.", "Unauthorized");
+            }
             catch (InvalidOperationException ex)
             {
                 _logger.LogError(ex, "Failed to add tool due to invalid operation");
@@ -249,10 +253,17 @@ namespace ToolManagementAppV2.ViewModels
             var updated = await _dialogService.ShowEditToolDialogAsync(clone);
             if (updated == null) return;
 
-            await _toolService.UpdateToolAsync(updated);
-            await LoadToolsAsync();
-            await FilterToolsAsync(CancellationToken.None);
-            SelectedTool = Tools.FirstOrDefault(t => t.ToolID == updated.ToolID);
+            try
+            {
+                await _toolService.UpdateToolAsync(updated);
+                await LoadToolsAsync();
+                await FilterToolsAsync(CancellationToken.None);
+                SelectedTool = Tools.FirstOrDefault(t => t.ToolID == updated.ToolID);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync("You are not authorized to update tools.", "Unauthorized");
+            }
         }
 
         void ViewDetails()
@@ -276,6 +287,10 @@ namespace ToolManagementAppV2.ViewModels
                 await LoadToolsAsync();
                 await FilterToolsAsync(CancellationToken.None);
                 SelectedTool = null;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync("You are not authorized to delete tools.", "Unauthorized");
             }
             catch (Exception ex)
             {
@@ -301,6 +316,10 @@ namespace ToolManagementAppV2.ViewModels
                         dueDate);
                     await LoadToolsAsync();
                 }
+            }
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync("You are not authorized to rent tools.", "Unauthorized");
             }
             catch (Exception ex)
             {

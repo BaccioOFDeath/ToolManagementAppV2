@@ -122,6 +122,10 @@ namespace ToolManagementAppV2.ViewModels
                 var idx = Users.IndexOf(SelectedUser);
                 if (idx >= 0) Users[idx] = SelectedUser;
             }
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync("You are not authorized to update users.", "Unauthorized");
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to update user photo");
@@ -139,6 +143,10 @@ namespace ToolManagementAppV2.ViewModels
                 if (idxAll >= 0) _allUsers[idxAll] = SelectedUser;
                 var idx = Users.IndexOf(SelectedUser);
                 if (idx >= 0) Users[idx] = SelectedUser;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync("You are not authorized to update users.", "Unauthorized");
             }
             catch (Exception ex)
             {
@@ -189,6 +197,10 @@ namespace ToolManagementAppV2.ViewModels
                 _allUsers.Add(newUser);
                 Users.Add(newUser);
                 SelectedUser = newUser;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync("You are not authorized to add users.", "Unauthorized");
             }
             catch (Exception ex)
             {
@@ -282,6 +294,10 @@ namespace ToolManagementAppV2.ViewModels
                         if (ReferenceEquals(SelectedUser, user)) SelectedUser = clone;
                         win.DialogResult = true;
                     }
+                    catch (UnauthorizedAccessException)
+                    {
+                        _dialogService.ShowInfo("You are not authorized to update users.", "Unauthorized");
+                    }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Failed to update user");
@@ -299,17 +315,24 @@ namespace ToolManagementAppV2.ViewModels
         {
             if (user == null) return;
             var newPassword = SecurityHelper.GeneratePassword();
-            await _userService.ChangeUserPasswordAsync(user.UserID, newPassword);
-            var refreshed = await _userService.GetUserByIDAsync(user.UserID);
-            if (refreshed != null)
+            try
             {
-                refreshed.PasswordExpired = true;
-                await _userService.UpdateUserAsync(refreshed);
-                user.Password = refreshed.Password;
-                user.Salt = refreshed.Salt;
-                user.PasswordExpired = true;
+                await _userService.ChangeUserPasswordAsync(user.UserID, newPassword);
+                var refreshed = await _userService.GetUserByIDAsync(user.UserID);
+                if (refreshed != null)
+                {
+                    refreshed.PasswordExpired = true;
+                    await _userService.UpdateUserAsync(refreshed);
+                    user.Password = refreshed.Password;
+                    user.Salt = refreshed.Salt;
+                    user.PasswordExpired = true;
+                }
+                _dialogService.ShowInfo("Password has been reset. The user must change it at next login.", "Password Reset");
             }
-            _dialogService.ShowInfo("Password has been reset. The user must change it at next login.", "Password Reset");
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync("You are not authorized to reset passwords.", "Unauthorized");
+            }
         }
 
         async Task DeleteUserAsync(UserModel user)
@@ -329,6 +352,10 @@ namespace ToolManagementAppV2.ViewModels
                     _logger.LogWarning("Failed to delete user {UserID}", user.UserID);
                     await _dialogService.ShowInfoAsync("Failed to delete user.", "Error");
                 }
+            }
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync("You are not authorized to delete users.", "Unauthorized");
             }
             catch (Exception ex)
             {

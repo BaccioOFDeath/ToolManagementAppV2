@@ -91,9 +91,16 @@ namespace ToolManagementAppV2.ViewModels
             var customer = _dialogService.ShowAddCustomerDialog();
             if (customer == null) return;
 
-            await _customerService.AddCustomerAsync(customer);
-            await LoadCustomersAsync();
-            ClearNewCustomerFields();
+            try
+            {
+                await _customerService.AddCustomerAsync(customer);
+                await LoadCustomersAsync();
+                ClearNewCustomerFields();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync("You are not authorized to add customers.", "Unauthorized");
+            }
         }
 
         async Task UpdateCustomerAsync()
@@ -110,8 +117,15 @@ namespace ToolManagementAppV2.ViewModels
                 Address = NewCustomerAddress
             };
 
-            await _customerService.UpdateCustomerAsync(updated);
-            await LoadCustomersAsync();
+            try
+            {
+                await _customerService.UpdateCustomerAsync(updated);
+                await LoadCustomersAsync();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync("You are not authorized to update customers.", "Unauthorized");
+            }
         }
 
         async Task SearchCustomersAsync()
@@ -146,9 +160,16 @@ namespace ToolManagementAppV2.ViewModels
             if (SelectedCustomer == null)
                 return;
 
-            await _customerService.DeleteCustomerAsync(SelectedCustomer.CustomerID);
-            await SearchCustomersAsync();
-            SelectedCustomer = null;
+            try
+            {
+                await _customerService.DeleteCustomerAsync(SelectedCustomer.CustomerID);
+                await SearchCustomersAsync();
+                SelectedCustomer = null;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync("You are not authorized to delete customers.", "Unauthorized");
+            }
         }
     }
 }

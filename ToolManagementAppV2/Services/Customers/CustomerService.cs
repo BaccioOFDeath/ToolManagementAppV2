@@ -13,6 +13,7 @@ using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Models.ImportExport;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Utilities.IO;
+using ToolManagementAppV2.Services.Users;
 
 namespace ToolManagementAppV2.Services.Customers
 {
@@ -20,21 +21,32 @@ namespace ToolManagementAppV2.Services.Customers
     {
         readonly DatabaseService _dbService;
         readonly ILogger<CustomerService> _logger;
+        readonly IAuthorizationService _auth;
 
-        public CustomerService(DatabaseService dbService, ILogger<CustomerService>? logger = null)
+        public CustomerService(DatabaseService dbService, IAuthorizationService? authorizationService = null, ILogger<CustomerService>? logger = null)
         {
             _dbService = dbService;
+            _auth = authorizationService ?? new NoOpAuthorizationService();
             _logger = logger ?? NullLogger<CustomerService>.Instance;
         }
 
-        public Task AddCustomerAsync(CustomerModel customer) =>
-            AddCustomerInternalAsync(customer, CancellationToken.None);
+        public Task AddCustomerAsync(CustomerModel customer)
+        {
+            _auth.EnsureAdmin();
+            return AddCustomerInternalAsync(customer, CancellationToken.None);
+        }
 
-        public Task UpdateCustomerAsync(CustomerModel customer) =>
-            UpdateCustomerInternalAsync(customer, CancellationToken.None);
+        public Task UpdateCustomerAsync(CustomerModel customer)
+        {
+            _auth.EnsureAdmin();
+            return UpdateCustomerInternalAsync(customer, CancellationToken.None);
+        }
 
-        public Task DeleteCustomerAsync(int customerID) =>
-            DeleteCustomerInternalAsync(customerID, CancellationToken.None);
+        public Task DeleteCustomerAsync(int customerID)
+        {
+            _auth.EnsureAdmin();
+            return DeleteCustomerInternalAsync(customerID, CancellationToken.None);
+        }
 
         public Task<CustomerModel> GetCustomerByIDAsync(int customerID) =>
             GetCustomerByIDInternalAsync(customerID, CancellationToken.None);
@@ -45,8 +57,11 @@ namespace ToolManagementAppV2.Services.Customers
         public Task<List<CustomerModel>> SearchCustomersAsync(string searchTerm) =>
             SearchCustomersInternalAsync(searchTerm, CancellationToken.None);
 
-        public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map) =>
-            ImportCustomersFromCsvInternalAsync(filePath, map, CancellationToken.None);
+        public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map)
+        {
+            _auth.EnsureAdmin();
+            return ImportCustomersFromCsvInternalAsync(filePath, map, CancellationToken.None);
+        }
 
         public Task ExportCustomersToCsvAsync(string filePath) =>
             ExportCustomersToCsvInternalAsync(filePath, CancellationToken.None);

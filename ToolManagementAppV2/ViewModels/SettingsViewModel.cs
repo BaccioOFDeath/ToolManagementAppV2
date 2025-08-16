@@ -104,7 +104,16 @@ namespace ToolManagementAppV2.ViewModels
                     }
                 }
                 if (SetProperty(ref _passwordIterations, newValue))
-                    _settingsService.SavePasswordIterations(newValue);
+                {
+                    try
+                    {
+                        _settingsService.SavePasswordIterations(newValue);
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+                    }
+                }
             }
         }
 
@@ -147,7 +156,14 @@ namespace ToolManagementAppV2.ViewModels
                 return;
             }
 
-            _settingsService.SaveSetting("CompanyLogoPath", full);
+            try
+            {
+                _settingsService.SaveSetting("CompanyLogoPath", full);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+            }
         }
     }
 }

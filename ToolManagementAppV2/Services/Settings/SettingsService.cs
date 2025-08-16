@@ -7,6 +7,7 @@ using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ToolManagementAppV2.Services.Users;
 
 namespace ToolManagementAppV2.Services.Settings
 {
@@ -14,14 +15,16 @@ namespace ToolManagementAppV2.Services.Settings
     {
         readonly DatabaseService _dbService;
         readonly ILogger<SettingsService> _logger;
+        readonly IAuthorizationService _auth;
         const string UpsertSql = @"
             INSERT INTO Settings (Key, Value) 
             VALUES (@Key, @Value)
             ON CONFLICT(Key) DO UPDATE SET Value = @Value";
 
-        public SettingsService(DatabaseService dbService, ILogger<SettingsService>? logger = null)
+        public SettingsService(DatabaseService dbService, IAuthorizationService? authorizationService = null, ILogger<SettingsService>? logger = null)
         {
             _dbService = dbService;
+            _auth = authorizationService ?? new NoOpAuthorizationService();
             _logger = logger ?? NullLogger<SettingsService>.Instance;
         }
 
@@ -30,6 +33,7 @@ namespace ToolManagementAppV2.Services.Settings
 
         public async Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default)
         {
+            _auth.EnsureAdmin();
             if (string.IsNullOrWhiteSpace(key))
                 throw new ArgumentException("Key cannot be null or empty.", nameof(key));
 
@@ -138,6 +142,7 @@ namespace ToolManagementAppV2.Services.Settings
 
         public async Task UpdateSettingsAsync(Dictionary<string, string> settings, CancellationToken cancellationToken = default)
         {
+            _auth.EnsureAdmin();
             if (settings == null)
                 throw new ArgumentNullException(nameof(settings));
 
@@ -187,6 +192,7 @@ namespace ToolManagementAppV2.Services.Settings
 
         public async Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default)
         {
+            _auth.EnsureAdmin();
             try
             {
                 const string sql = "DELETE FROM Settings WHERE Key = @Key";
@@ -284,6 +290,7 @@ namespace ToolManagementAppV2.Services.Settings
 
         public async Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default)
         {
+            _auth.EnsureAdmin();
             if (ipAddresses == null)
             {
                 await DeleteSettingAsync(ScannerIpKey, cancellationToken).ConfigureAwait(false);
@@ -338,6 +345,7 @@ namespace ToolManagementAppV2.Services.Settings
 
         public async Task SavePasswordIterationsAsync(int iterations, CancellationToken cancellationToken = default)
         {
+            _auth.EnsureAdmin();
             if (iterations <= 0)
                 throw new ArgumentOutOfRangeException(nameof(iterations));
             await SaveSettingAsync(PasswordIterationsKey, iterations.ToString(), cancellationToken).ConfigureAwait(false);
