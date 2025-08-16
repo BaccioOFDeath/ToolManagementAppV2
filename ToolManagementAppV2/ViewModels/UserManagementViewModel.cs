@@ -169,8 +169,9 @@ namespace ToolManagementAppV2.ViewModels
             if (string.IsNullOrWhiteSpace(entered))
             {
                 const string defaultPwd = "changeme";
-                newUser.Password = SecurityHelper.HashPassword(defaultPwd, out var salt);
-                newUser.Salt = salt;
+                var result = SecurityHelper.HashPasswordAsync(defaultPwd).GetAwaiter().GetResult();
+                newUser.Password = result.hash;
+                newUser.Salt = result.salt;
                 newUser.PasswordExpired = true;
             }
             else

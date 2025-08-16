@@ -13,6 +13,7 @@ namespace ToolManagementAppV2.Utilities.Helpers
         static ISettingsService? _settingsService;
         static int _iterationCache;
         static readonly object _iterLock = new();
+        static readonly SemaphoreSlim _iterSemaphore = new(1, 1);
 
         public static ISettingsService? SettingsService
         {
@@ -35,16 +36,28 @@ namespace ToolManagementAppV2.Utilities.Helpers
 
         public static string HashPassword(string password, out string salt)
         {
-            var saltBytes = new byte[16];
-            RandomNumberGenerator.Fill(saltBytes);
-            salt = Convert.ToBase64String(saltBytes);
-            return HashPassword(password, salt);
+            var result = HashPasswordAsync(password).GetAwaiter().GetResult();
+            salt = result.salt;
+            return result.hash;
         }
 
-        public static string HashPassword(string password, string salt)
+        public static string HashPassword(string password, string salt) =>
+            HashPasswordAsync(password, salt).GetAwaiter().GetResult();
+
+        public static async Task<(string hash, string salt)> HashPasswordAsync(string password)
+        {
+            var saltBytes = new byte[16];
+            RandomNumberGenerator.Fill(saltBytes);
+            var salt = Convert.ToBase64String(saltBytes);
+            var hash = await HashPasswordAsync(password, salt).ConfigureAwait(false);
+            return (hash, salt);
+        }
+
+        public static async Task<string> HashPasswordAsync(string password, string salt)
         {
             var saltBytes = Convert.FromBase64String(salt);
-            using var pbkdf2 = new Rfc2898DeriveBytes(password, saltBytes, GetIterations(), HashAlgorithmName.SHA256);
+            var iterations = await GetIterationsAsync().ConfigureAwait(false);
+            using var pbkdf2 = new Rfc2898DeriveBytes(password, saltBytes, iterations, HashAlgorithmName.SHA256);
             return Convert.ToBase64String(pbkdf2.GetBytes(32));
         }
 
@@ -52,6 +65,22 @@ namespace ToolManagementAppV2.Utilities.Helpers
         {
             if (string.IsNullOrEmpty(salt) || string.IsNullOrEmpty(hash)) return false;
             var computed = HashPassword(password, salt);
+            try
+            {
+                var computedBytes = Convert.FromBase64String(computed);
+                var hashBytes = Convert.FromBase64String(hash);
+                return CryptographicOperations.FixedTimeEquals(computedBytes, hashBytes);
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
+        }
+
+        public static async Task<bool> VerifyPasswordAsync(string password, string salt, string hash)
+        {
+            if (string.IsNullOrEmpty(salt) || string.IsNullOrEmpty(hash)) return false;
+            var computed = await HashPasswordAsync(password, salt).ConfigureAwait(false);
             try
             {
                 var computedBytes = Convert.FromBase64String(computed);
@@ -97,13 +126,6 @@ namespace ToolManagementAppV2.Utilities.Helpers
                 if (svc != null)
                 {
                     value = svc.GetPasswordIterations();
-                    if (value <= 0)
-                    {
-                        value = svc.GetPasswordIterationsAsync()
-                            .ConfigureAwait(false)
-                            .GetAwaiter()
-                            .GetResult();
-                    }
                 }
 
                 if (value <= 0)
@@ -111,6 +133,36 @@ namespace ToolManagementAppV2.Utilities.Helpers
 
                 Volatile.Write(ref _iterationCache, value);
                 return value;
+            }
+        }
+
+        static async Task<int> GetIterationsAsync()
+        {
+            var cached = Volatile.Read(ref _iterationCache);
+            if (cached > 0) return cached;
+
+            await _iterSemaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                cached = _iterationCache;
+                if (cached > 0) return cached;
+
+                int value = DefaultIterations;
+                var svc = _settingsService;
+                if (svc != null)
+                {
+                    value = await svc.GetPasswordIterationsAsync().ConfigureAwait(false);
+                }
+
+                if (value <= 0)
+                    value = DefaultIterations;
+
+                Volatile.Write(ref _iterationCache, value);
+                return value;
+            }
+            finally
+            {
+                _iterSemaphore.Release();
             }
         }
     }

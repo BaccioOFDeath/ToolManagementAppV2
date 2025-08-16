@@ -99,6 +99,19 @@ namespace ToolManagementAppV2.Tests.Utilities
             SecurityHelper.SettingsService = null;
         }
 
+        [Fact]
+        public void HashPasswordAsync_DoesNotDeadlock()
+        {
+            var settings = new AsyncOnlySettingsService(7);
+            SecurityHelper.SettingsService = settings;
+
+            var task = SecurityHelper.HashPasswordAsync("secret");
+            var completed = task.Wait(1000);
+            Assert.True(completed, "HashPasswordAsync timed out, possible deadlock.");
+
+            SecurityHelper.SettingsService = null;
+        }
+
         class CountingSettingsService : ISettingsService
         {
             int _counter;

@@ -69,16 +69,16 @@ namespace ToolManagementAppV2.Services.Users
                 success = u.Password == legacy;
                 if (success)
                 {
-                    var upgraded = SecurityHelper.HashPassword(password ?? string.Empty, out var salt);
+                    var upgradedResult = SecurityHelper.HashPasswordAsync(password ?? string.Empty).GetAwaiter().GetResult();
                     var p = new[]
                     {
-                        new SQLiteParameter("@Pwd", upgraded),
-                        new SQLiteParameter("@Salt", salt),
+                        new SQLiteParameter("@Pwd", upgradedResult.hash),
+                        new SQLiteParameter("@Salt", upgradedResult.salt),
                         new SQLiteParameter("@ID", u.UserID)
                     };
                     SqliteHelper.ExecuteNonQuery(conn, "UPDATE Users SET Password=@Pwd, Salt=@Salt WHERE UserID=@ID", p);
-                    u.Password = upgraded;
-                    u.Salt = salt;
+                    u.Password = upgradedResult.hash;
+                    u.Salt = upgradedResult.salt;
                 }
             }
             else
@@ -146,7 +146,9 @@ namespace ToolManagementAppV2.Services.Users
                 }
                 else
                 {
-                    hashed = SecurityHelper.HashPassword(user.Password, out salt);
+                    var result = SecurityHelper.HashPasswordAsync(user.Password).GetAwaiter().GetResult();
+                    hashed = result.hash;
+                    salt = result.salt;
                 }
             }
 
@@ -205,7 +207,9 @@ namespace ToolManagementAppV2.Services.Users
             string salt = user.Salt;
             if (!string.IsNullOrWhiteSpace(user.Password) && string.IsNullOrWhiteSpace(user.Salt))
             {
-                hashed = SecurityHelper.HashPassword(user.Password, out salt);
+                var result = SecurityHelper.HashPasswordAsync(user.Password).GetAwaiter().GetResult();
+                hashed = result.hash;
+                salt = result.salt;
             }
 
             var p = new[]
@@ -238,7 +242,9 @@ namespace ToolManagementAppV2.Services.Users
             string salt = string.Empty;
             if (!string.IsNullOrWhiteSpace(newPassword))
             {
-                hashed = SecurityHelper.HashPassword(newPassword, out salt);
+                var result = SecurityHelper.HashPasswordAsync(newPassword).GetAwaiter().GetResult();
+                hashed = result.hash;
+                salt = result.salt;
             }
 
             var expired = newPassword == "admin" || newPassword == "changeme" || newPassword == "newpassword";
@@ -342,16 +348,16 @@ namespace ToolManagementAppV2.Services.Users
                 success = u.Password == legacy;
                 if (success)
                 {
-                    var upgraded = SecurityHelper.HashPassword(password ?? string.Empty, out var salt);
+                    var upgradedResult = await SecurityHelper.HashPasswordAsync(password ?? string.Empty).ConfigureAwait(false);
                     var p = new[]
                     {
-                new SQLiteParameter("@Pwd", upgraded),
-                new SQLiteParameter("@Salt", salt),
+                new SQLiteParameter("@Pwd", upgradedResult.hash),
+                new SQLiteParameter("@Salt", upgradedResult.salt),
                 new SQLiteParameter("@ID", u.UserID)
             };
                     await SqliteHelper.ExecuteNonQueryAsync(conn, "UPDATE Users SET Password=@Pwd, Salt=@Salt WHERE UserID=@ID", p);
-                    u.Password = upgraded;
-                    u.Salt = salt;
+                    u.Password = upgradedResult.hash;
+                    u.Salt = upgradedResult.salt;
                 }
             }
             else
@@ -420,7 +426,9 @@ namespace ToolManagementAppV2.Services.Users
                 }
                 else
                 {
-                    hashed = SecurityHelper.HashPassword(user.Password, out salt);
+                    var result = await SecurityHelper.HashPasswordAsync(user.Password).ConfigureAwait(false);
+                    hashed = result.hash;
+                    salt = result.salt;
                 }
             }
 
@@ -478,7 +486,9 @@ namespace ToolManagementAppV2.Services.Users
             string salt = user.Salt;
             if (!string.IsNullOrWhiteSpace(user.Password) && string.IsNullOrWhiteSpace(user.Salt))
             {
-                hashed = SecurityHelper.HashPassword(user.Password, out salt);
+                var result = await SecurityHelper.HashPasswordAsync(user.Password).ConfigureAwait(false);
+                hashed = result.hash;
+                salt = result.salt;
             }
 
             var p = new[]
@@ -510,7 +520,9 @@ namespace ToolManagementAppV2.Services.Users
             string salt = string.Empty;
             if (!string.IsNullOrWhiteSpace(newPassword))
             {
-                hashed = SecurityHelper.HashPassword(newPassword, out salt);
+                var result = await SecurityHelper.HashPasswordAsync(newPassword).ConfigureAwait(false);
+                hashed = result.hash;
+                salt = result.salt;
             }
 
             var expired = newPassword == "admin" || newPassword == "changeme" || newPassword == "newpassword";
