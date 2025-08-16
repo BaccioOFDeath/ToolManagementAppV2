@@ -262,7 +262,7 @@
     <Resource Include="Resources\Styles.xaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\Theme.xaml">
+    <Resource Include="Resources\Converters.xaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>

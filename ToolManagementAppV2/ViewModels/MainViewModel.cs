@@ -108,7 +108,6 @@ namespace ToolManagementAppV2.ViewModels
         public IAsyncRelayCommand GlobalSearchCommand { get; }
         public IAsyncRelayCommand SwitchUserCommand { get; }
 
-        public IAsyncRelayCommand<ToolModel?> OpenRentalHistoryWindowCommand { get; }
         public IRelayCommand OpenPrintPreviewWindowCommand { get; }
         public IRelayCommand OpenPrintLabelWindowCommand { get; }
         public IRelayCommand OpenScannerStatusWindowCommand { get; }
@@ -154,7 +153,6 @@ namespace ToolManagementAppV2.ViewModels
                 if (e.PropertyName == nameof(ToolManagementViewModel.SelectedTool))
                 {
                     OnPropertyChanged(nameof(SelectedTool));
-                    OpenRentalHistoryWindowCommand.NotifyCanExecuteChanged();
                 }
             };
             ToolManagement.PropertyChanged += _toolManagementPropertyChangedHandler;
@@ -290,13 +288,6 @@ namespace ToolManagementAppV2.ViewModels
                     }
                 }
             });
-
-            OpenRentalHistoryWindowCommand = new AsyncRelayCommand<ToolModel?>(async tool =>
-            {
-                if (tool == null) return;
-                var history = await _rentalService.GetRentalHistoryForToolAsync(tool.ToolID);
-                _dialogService.ShowRentalHistory(tool, history);
-            }, tool => tool != null);
 
             OpenPrintPreviewWindowCommand = new RelayCommand(() =>
             {
