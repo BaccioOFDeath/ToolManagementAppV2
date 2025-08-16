@@ -177,6 +177,10 @@ namespace ToolManagementAppV2.ViewModels
                 await _rentalService.ReturnToolAsync(SelectedRental.RentalID, DateTime.Today);
                 await LoadRentalsAsync();
             }
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync("You are not authorized to check in rentals.", "Unauthorized");
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to check in rental {RentalID}", SelectedRental.RentalID);
@@ -193,6 +197,10 @@ namespace ToolManagementAppV2.ViewModels
                 var newDueDate = SelectedRental.DueDate.AddDays(7);
                 await _rentalService.ExtendRentalAsync(SelectedRental.RentalID, newDueDate);
                 await LoadRentalsAsync();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync("You are not authorized to extend rentals.", "Unauthorized");
             }
             catch (Exception ex)
             {
@@ -295,6 +303,10 @@ namespace ToolManagementAppV2.ViewModels
                 _allRentals.Remove(rentalToDelete);
                 Rentals.Remove(rentalToDelete);
                 SelectedRental = null;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync("You are not authorized to delete rentals.", "Unauthorized");
             }
             catch (Exception ex)
             {

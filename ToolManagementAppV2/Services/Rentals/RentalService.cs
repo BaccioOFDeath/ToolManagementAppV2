@@ -9,6 +9,7 @@ using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ToolManagementAppV2.Services.Users;
 
 namespace ToolManagementAppV2.Services.Rentals
 {
@@ -17,10 +18,12 @@ namespace ToolManagementAppV2.Services.Rentals
         private readonly DatabaseService _dbService;
         private readonly IToolService? _toolService;
         private readonly ILogger<RentalService> _logger;
+        private readonly IAuthorizationService _auth;
 
-        public RentalService(DatabaseService dbService, IToolService? toolService = null, ILogger<RentalService>? logger = null)
+        public RentalService(DatabaseService dbService, IAuthorizationService? authorizationService = null, IToolService? toolService = null, ILogger<RentalService>? logger = null)
         {
             _dbService = dbService ?? throw new ArgumentNullException(nameof(dbService));
+            _auth = authorizationService ?? new NoOpAuthorizationService();
             _toolService = toolService; // may be null if inventory sync not desired
             _logger = logger ?? NullLogger<RentalService>.Instance;
         }
@@ -83,6 +86,7 @@ namespace ToolManagementAppV2.Services.Rentals
 
         public async Task RentToolAsync(int toolID, int customerID, DateTime rentalDate, DateTime dueDate)
         {
+            _auth.EnsureAdmin();
             await ExecuteWithTransactionAsync(async (conn, tx) =>
             {
                 var availCmd = new SQLiteCommand(
@@ -111,6 +115,7 @@ namespace ToolManagementAppV2.Services.Rentals
 
         public async Task ReturnToolAsync(int rentalID, DateTime returnDate)
         {
+            _auth.EnsureAdmin();
             await ExecuteWithTransactionAsync(async (conn, tx) =>
             {
                 var selCmd = new SQLiteCommand(
@@ -135,6 +140,7 @@ namespace ToolManagementAppV2.Services.Rentals
 
         public async Task ExtendRentalAsync(int rentalID, DateTime newDueDate)
         {
+            _auth.EnsureAdmin();
             await ExecuteWithTransactionAsync(async (conn, tx) =>
             {
                 var selectCmd = new SQLiteCommand(
@@ -168,6 +174,7 @@ namespace ToolManagementAppV2.Services.Rentals
 
         public async Task DeleteRentalAsync(int rentalID)
         {
+            _auth.EnsureAdmin();
             const string sql = "DELETE FROM Rentals WHERE RentalID = @RentalID";
             var p = new[] { new SQLiteParameter("@RentalID", rentalID) };
             using var conn = _dbService.CreateConnection();

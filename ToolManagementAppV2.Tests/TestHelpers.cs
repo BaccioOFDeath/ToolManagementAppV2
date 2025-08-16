@@ -21,14 +21,15 @@ namespace ToolManagementAppV2.Tests
         {
             var dbPath = Path.GetTempFileName();
             var db = new DatabaseService(dbPath);
-            var toolService = new ToolService(db);
-            var customerService = new CustomerService(db);
+            var auth = new AllowAllAuthorizationService();
+            var toolService = new ToolService(db, auth);
+            var customerService = new CustomerService(db, auth);
             var userContext = new ApplicationUserContext();
-            var userService = new UserService(db, userContext);
-            var rentalService = new RentalService(db, toolService);
+            var userService = new UserService(db, userContext, auth);
+            var rentalService = new RentalService(db, auth, toolService);
             var activityLogService = new ActivityLogService(db);
             var fileDialogService = new StubFileDialogService();
-            var settingsService = new SettingsService(db);
+            var settingsService = new SettingsService(db, auth);
             var dialogService = new StubDialogService();
             var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
                 fileDialogService, activityLogService, settingsService, db, dialogService);
