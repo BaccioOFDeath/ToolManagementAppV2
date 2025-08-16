@@ -1,17 +1,18 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using System.IO;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Models.ImportExport;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Utilities.IO;
-using ToolManagementAppV2.Interfaces;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using System.Linq;
 
 namespace ToolManagementAppV2.Services.Customers
 {
@@ -26,126 +27,60 @@ namespace ToolManagementAppV2.Services.Customers
             _logger = logger ?? NullLogger<CustomerService>.Instance;
         }
 
-        public CustomerImportResult ImportCustomersFromCsv(string filePath, IDictionary<string, string> map)
-        {
-            var customers = CsvHelperUtil.LoadCustomersFromCsv(filePath, map);
-            var result = new CustomerImportResult();
-            using var conn = _dbService.CreateConnection();
-            using var tran = conn.BeginTransaction();
-            try
-            {
-                for (int i = 0; i < customers.Count; i++)
-                {
-                    var c = customers[i];
-                    var row = i + 2; // account for header row
-                    var reason = GetSkipReason(c);
-                    if (reason != null)
-                    {
-                        var msg = $"Row {row}: {reason}";
-                        result.SkippedRows.Add(msg);
-                        _logger.LogInformation("{Message}", msg);
-                        continue;
-                    }
+        public void AddCustomer(CustomerModel customer) =>
+            AddCustomerInternalAsync(customer, CancellationToken.None).GetAwaiter().GetResult();
 
-                    if (CustomerExists(c.Contact, c.Phone, c.Mobile))
-                    {
-                        var msg = $"Row {row}: Duplicate customer";
-                        result.SkippedRows.Add(msg);
-                        _logger.LogInformation("{Message}", msg);
-                        continue;
-                    }
+        public Task AddCustomerAsync(CustomerModel customer) =>
+            AddCustomerInternalAsync(customer, CancellationToken.None);
 
-                    InsertCustomer(conn, tran, c);
-                    result.ImportedCount++;
-                }
-                tran.Commit();
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to import customers from CSV");
-                tran.Rollback();
-                throw;
-            }
-        }
+        public void UpdateCustomer(CustomerModel customer) =>
+            UpdateCustomerInternalAsync(customer, CancellationToken.None).GetAwaiter().GetResult();
 
-        static string? GetSkipReason(CustomerModel c)
-        {
-            var reasons = new List<string>();
-            if (string.IsNullOrWhiteSpace(c.Company)) reasons.Add("Company missing");
-            if (string.IsNullOrWhiteSpace(c.Contact)) reasons.Add("Contact missing");
-            if (string.IsNullOrWhiteSpace(c.Phone) && string.IsNullOrWhiteSpace(c.Mobile)) reasons.Add("Phone and Mobile missing");
-            return reasons.Count > 0 ? string.Join(", ", reasons) : null;
-        }
+        public Task UpdateCustomerAsync(CustomerModel customer) =>
+            UpdateCustomerInternalAsync(customer, CancellationToken.None);
 
+        public void DeleteCustomer(int customerID) =>
+            DeleteCustomerInternalAsync(customerID, CancellationToken.None).GetAwaiter().GetResult();
 
+        public Task DeleteCustomerAsync(int customerID) =>
+            DeleteCustomerInternalAsync(customerID, CancellationToken.None);
 
-        public void ExportCustomersToCsv(string filePath)
-        {
-            var all = GetAllCustomers();
-            CsvHelperUtil.ExportCustomersToCsv(filePath, all);
-        }
+        public CustomerModel GetCustomerByID(int customerID) =>
+            GetCustomerByIDInternalAsync(customerID, CancellationToken.None).GetAwaiter().GetResult();
 
-        public List<CustomerModel> GetAllCustomers()
-        {
-            const string sql = "SELECT * FROM Customers";
-            using var conn = _dbService.CreateConnection();
-            try
-            {
-                return SqliteHelper.ExecuteReader(conn, sql, null, MapCustomer);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to get all customers");
-                throw;
-            }
-        }
+        public Task<CustomerModel> GetCustomerByIDAsync(int customerID) =>
+            GetCustomerByIDInternalAsync(customerID, CancellationToken.None);
 
-        public List<CustomerModel> SearchCustomers(string searchTerm)
-        {
-            const string sql = @"
-                SELECT * FROM Customers
-                WHERE Company LIKE @t OR Email LIKE @t OR Phone LIKE @t OR Mobile LIKE @t OR Address LIKE @t";
-            var p = new[] { new SQLiteParameter("@t", $"%{searchTerm}%") };
-            using var conn = _dbService.CreateConnection();
-            try
-            {
-                return SqliteHelper.ExecuteReader(conn, sql, p, MapCustomer);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to search customers with term {SearchTerm}", searchTerm);
-                throw;
-            }
-        }
+        public List<CustomerModel> GetAllCustomers() =>
+            GetAllCustomersInternalAsync(CancellationToken.None).GetAwaiter().GetResult();
 
-        public CustomerModel GetCustomerByID(int customerID)
-        {
-            const string sql = "SELECT * FROM Customers WHERE CustomerID = @id";
-            var p = new[] { new SQLiteParameter("@id", customerID) };
-            using var conn = _dbService.CreateConnection();
-            try
-            {
-                return SqliteHelper.ExecuteReader(conn, sql, p, MapCustomer).FirstOrDefault();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to get customer {CustomerID}", customerID);
-                throw;
-            }
-        }
+        public Task<List<CustomerModel>> GetAllCustomersAsync() =>
+            GetAllCustomersInternalAsync(CancellationToken.None);
 
-        /// <summary>
-        /// Adds a single customer to the database. Bulk import operations call the
-        /// underlying InsertCustomer method inside their own transaction scope, so
-        /// transaction management is handled by the caller in those scenarios.
-        /// </summary>
-        public void AddCustomer(CustomerModel customer)
+        public List<CustomerModel> SearchCustomers(string searchTerm) =>
+            SearchCustomersInternalAsync(searchTerm, CancellationToken.None).GetAwaiter().GetResult();
+
+        public Task<List<CustomerModel>> SearchCustomersAsync(string searchTerm) =>
+            SearchCustomersInternalAsync(searchTerm, CancellationToken.None);
+
+        public CustomerImportResult ImportCustomersFromCsv(string filePath, IDictionary<string, string> map) =>
+            ImportCustomersFromCsvInternalAsync(filePath, map, CancellationToken.None).GetAwaiter().GetResult();
+
+        public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map) =>
+            ImportCustomersFromCsvInternalAsync(filePath, map, CancellationToken.None);
+
+        public void ExportCustomersToCsv(string filePath) =>
+            ExportCustomersToCsvInternalAsync(filePath, CancellationToken.None).GetAwaiter().GetResult();
+
+        public Task ExportCustomersToCsvAsync(string filePath) =>
+            ExportCustomersToCsvInternalAsync(filePath, CancellationToken.None);
+
+        async Task AddCustomerInternalAsync(CustomerModel customer, CancellationToken cancellationToken)
         {
             using var conn = _dbService.CreateConnection();
             try
             {
-                InsertCustomer(conn, null, customer);
+                await InsertCustomerAsync(conn, null, customer, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -154,162 +89,7 @@ namespace ToolManagementAppV2.Services.Customers
             }
         }
 
-        void InsertCustomer(SQLiteConnection conn, SQLiteTransaction? tran, CustomerModel customer)
-        {
-            const string sql = @"
-        INSERT INTO Customers (Company, Email, Contact, Phone, Mobile, Address)
-        VALUES (@Company, @Email, @Contact, @Phone, @Mobile, @Address);
-        SELECT last_insert_rowid();";
-
-            var p = new[]
-            {
-                new SQLiteParameter("@Company", customer.Company ?? string.Empty),
-                new SQLiteParameter("@Email",   customer.Email ?? string.Empty),
-                new SQLiteParameter("@Contact", customer.Contact ?? string.Empty),
-                new SQLiteParameter("@Phone",   customer.Phone ?? string.Empty),
-                new SQLiteParameter("@Mobile",  customer.Mobile ?? string.Empty),
-                new SQLiteParameter("@Address", customer.Address ?? string.Empty)
-            };
-
-            try
-            {
-                using var cmd = new SQLiteCommand(sql, conn, tran);
-                cmd.Parameters.AddRange(p);
-                customer.CustomerID = Convert.ToInt32(cmd.ExecuteScalar());
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to insert customer {Contact}", customer.Contact);
-                throw;
-            }
-        }
-
-        async Task InsertCustomerAsync(SQLiteConnection conn, SQLiteTransaction? tran, CustomerModel customer)
-        {
-            const string sql = @"
-        INSERT INTO Customers (Company, Email, Contact, Phone, Mobile, Address)
-        VALUES (@Company, @Email, @Contact, @Phone, @Mobile, @Address);
-        SELECT last_insert_rowid();";
-
-            var p = new[]
-            {
-                new SQLiteParameter("@Company", customer.Company ?? string.Empty),
-                new SQLiteParameter("@Email",   customer.Email ?? string.Empty),
-                new SQLiteParameter("@Contact", customer.Contact ?? string.Empty),
-                new SQLiteParameter("@Phone",   customer.Phone ?? string.Empty),
-                new SQLiteParameter("@Mobile",  customer.Mobile ?? string.Empty),
-                new SQLiteParameter("@Address", customer.Address ?? string.Empty)
-            };
-
-            try
-            {
-                using var cmd = new SQLiteCommand(sql, conn, tran);
-                cmd.Parameters.AddRange(p);
-                customer.CustomerID = Convert.ToInt32(await cmd.ExecuteScalarAsync());
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to insert customer {Contact}", customer.Contact);
-                throw;
-            }
-        }
-
-
-        public void UpdateCustomer(CustomerModel customer)
-        {
-            const string sql = @"
-                UPDATE Customers
-                SET Company = @Company, Email = @Email, Contact = @Contact,
-                    Phone = @Phone, Mobile = @Mobile, Address = @Address
-                WHERE CustomerID = @CustomerID";
-            var p = new[]
-            {
-                new SQLiteParameter("@Company", customer.Company),
-                new SQLiteParameter("@Email", customer.Email),
-                new SQLiteParameter("@Contact", customer.Contact),
-                new SQLiteParameter("@Phone", customer.Phone),
-                new SQLiteParameter("@Mobile", customer.Mobile),
-                new SQLiteParameter("@Address", customer.Address),
-                new SQLiteParameter("@CustomerID", customer.CustomerID)
-            };
-            using var conn = _dbService.CreateConnection();
-            try
-            {
-                SqliteHelper.ExecuteNonQuery(conn, sql, p);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to update customer {CustomerID}", customer.CustomerID);
-                throw;
-            }
-        }
-
-        public void DeleteCustomer(int customerID)
-        {
-            const string sql = "DELETE FROM Customers WHERE CustomerID = @CustomerID";
-            var p = new[] { new SQLiteParameter("@CustomerID", customerID) };
-            using var conn = _dbService.CreateConnection();
-            try
-            {
-                SqliteHelper.ExecuteNonQuery(conn, sql, p);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to delete customer {CustomerID}", customerID);
-                throw;
-            }
-        }
-
-        private bool CustomerExists(string contact, string phone, string mobile)
-        {
-            const string sql = @"
-        SELECT COUNT(*) FROM Customers
-         WHERE Contact = @Contact AND (Phone = @Phone OR Mobile = @Mobile)";
-            using var conn = _dbService.CreateConnection();
-            try
-            {
-                var count = Convert.ToInt32(SqliteHelper.ExecuteScalar(conn, sql, new[]
-                {
-                    new SQLiteParameter("@Contact", contact),
-                    new SQLiteParameter("@Phone", phone ?? ""),
-                    new SQLiteParameter("@Mobile", mobile ?? "")
-                }));
-                return count > 0;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to check if customer exists");
-                throw;
-            }
-        }
-
-
-        private CustomerModel MapCustomer(IDataRecord r) => new()
-        {
-            CustomerID = Convert.ToInt32(r["CustomerID"]),
-            Company = r["Company"].ToString(),
-            Email = r["Email"].ToString(),
-            Contact = r["Contact"].ToString(),
-            Phone = r["Phone"].ToString(),
-            Mobile = r["Mobile"].ToString(),
-            Address = r["Address"].ToString()
-        };
-
-        public async Task AddCustomerAsync(CustomerModel customer)
-        {
-            using var conn = _dbService.CreateConnection();
-            try
-            {
-                await InsertCustomerAsync(conn, null, customer);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to add customer {Contact}", customer.Contact);
-                throw;
-            }
-        }
-
-        public async Task UpdateCustomerAsync(CustomerModel customer)
+        async Task UpdateCustomerInternalAsync(CustomerModel customer, CancellationToken cancellationToken)
         {
             const string sql = @"
                 UPDATE Customers
@@ -329,7 +109,7 @@ namespace ToolManagementAppV2.Services.Customers
             using var conn = _dbService.CreateConnection();
             try
             {
-                await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
+                await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -338,14 +118,14 @@ namespace ToolManagementAppV2.Services.Customers
             }
         }
 
-        public async Task DeleteCustomerAsync(int customerID)
+        async Task DeleteCustomerInternalAsync(int customerID, CancellationToken cancellationToken)
         {
             const string sql = "DELETE FROM Customers WHERE CustomerID = @CustomerID";
             var p = new[] { new SQLiteParameter("@CustomerID", customerID) };
             using var conn = _dbService.CreateConnection();
             try
             {
-                await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
+                await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -354,14 +134,14 @@ namespace ToolManagementAppV2.Services.Customers
             }
         }
 
-        public async Task<CustomerModel> GetCustomerByIDAsync(int customerID)
+        async Task<CustomerModel> GetCustomerByIDInternalAsync(int customerID, CancellationToken cancellationToken)
         {
             const string sql = "SELECT * FROM Customers WHERE CustomerID = @id";
             var p = new[] { new SQLiteParameter("@id", customerID) };
             using var conn = _dbService.CreateConnection();
             try
             {
-                var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapCustomer);
+                var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapCustomer, cancellationToken);
                 return list.FirstOrDefault();
             }
             catch (Exception ex)
@@ -371,13 +151,13 @@ namespace ToolManagementAppV2.Services.Customers
             }
         }
 
-        public async Task<List<CustomerModel>> GetAllCustomersAsync()
+        async Task<List<CustomerModel>> GetAllCustomersInternalAsync(CancellationToken cancellationToken)
         {
             const string sql = "SELECT * FROM Customers";
             using var conn = _dbService.CreateConnection();
             try
             {
-                return await SqliteHelper.ExecuteReaderAsync(conn, sql, null, MapCustomer);
+                return await SqliteHelper.ExecuteReaderAsync(conn, sql, null, MapCustomer, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -386,7 +166,7 @@ namespace ToolManagementAppV2.Services.Customers
             }
         }
 
-        public async Task<List<CustomerModel>> SearchCustomersAsync(string searchTerm)
+        async Task<List<CustomerModel>> SearchCustomersInternalAsync(string searchTerm, CancellationToken cancellationToken)
         {
             const string sql = @"
                 SELECT * FROM Customers
@@ -395,7 +175,7 @@ namespace ToolManagementAppV2.Services.Customers
             using var conn = _dbService.CreateConnection();
             try
             {
-                return await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapCustomer);
+                return await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapCustomer, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -404,13 +184,128 @@ namespace ToolManagementAppV2.Services.Customers
             }
         }
 
-        public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map)
-            => Task.FromResult(ImportCustomersFromCsv(filePath, map));
-
-        public Task ExportCustomersToCsvAsync(string filePath)
+        async Task<CustomerImportResult> ImportCustomersFromCsvInternalAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken)
         {
-            ExportCustomersToCsv(filePath);
-            return Task.CompletedTask;
+            var customers = CsvHelperUtil.LoadCustomersFromCsv(filePath, map);
+            var result = new CustomerImportResult();
+            using var conn = _dbService.CreateConnection();
+            using var tran = conn.BeginTransaction();
+            try
+            {
+                for (int i = 0; i < customers.Count; i++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var c = customers[i];
+                    var row = i + 2;
+                    var reason = GetSkipReason(c);
+                    if (reason != null)
+                    {
+                        var msg = $"Row {row}: {reason}";
+                        result.SkippedRows.Add(msg);
+                        _logger.LogInformation("{Message}", msg);
+                        continue;
+                    }
+
+                    if (await CustomerExistsAsync(c.Contact, c.Phone, c.Mobile, cancellationToken))
+                    {
+                        var msg = $"Row {row}: Duplicate customer";
+                        result.SkippedRows.Add(msg);
+                        _logger.LogInformation("{Message}", msg);
+                        continue;
+                    }
+
+                    await InsertCustomerAsync(conn, tran, c, cancellationToken);
+                    result.ImportedCount++;
+                }
+                tran.Commit();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to import customers from CSV");
+                tran.Rollback();
+                throw;
+            }
         }
+
+        async Task ExportCustomersToCsvInternalAsync(string filePath, CancellationToken cancellationToken)
+        {
+            var all = await GetAllCustomersInternalAsync(cancellationToken);
+            await Task.Run(() => CsvHelperUtil.ExportCustomersToCsv(filePath, all), cancellationToken);
+        }
+
+        async Task InsertCustomerAsync(SQLiteConnection conn, SQLiteTransaction? tran, CustomerModel customer, CancellationToken cancellationToken)
+        {
+            const string sql = @"
+        INSERT INTO Customers (Company, Email, Contact, Phone, Mobile, Address)
+        VALUES (@Company, @Email, @Contact, @Phone, @Mobile, @Address);
+        SELECT last_insert_rowid();";
+
+            var p = new[]
+            {
+                new SQLiteParameter("@Company", customer.Company ?? string.Empty),
+                new SQLiteParameter("@Email",   customer.Email ?? string.Empty),
+                new SQLiteParameter("@Contact", customer.Contact ?? string.Empty),
+                new SQLiteParameter("@Phone",   customer.Phone ?? string.Empty),
+                new SQLiteParameter("@Mobile",  customer.Mobile ?? string.Empty),
+                new SQLiteParameter("@Address", customer.Address ?? string.Empty)
+            };
+
+            try
+            {
+                using var cmd = new SQLiteCommand(sql, conn, tran);
+                cmd.Parameters.AddRange(p);
+                customer.CustomerID = Convert.ToInt32(await cmd.ExecuteScalarAsync(cancellationToken));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to insert customer {Contact}", customer.Contact);
+                throw;
+            }
+        }
+
+        async Task<bool> CustomerExistsAsync(string contact, string phone, string mobile, CancellationToken cancellationToken)
+        {
+            const string sql = @"
+        SELECT COUNT(*) FROM Customers
+         WHERE Contact = @Contact AND (Phone = @Phone OR Mobile = @Mobile)";
+            using var conn = _dbService.CreateConnection();
+            try
+            {
+                var count = Convert.ToInt32(await SqliteHelper.ExecuteScalarAsync(conn, sql, new[]
+                {
+                    new SQLiteParameter("@Contact", contact),
+                    new SQLiteParameter("@Phone", phone ?? string.Empty),
+                    new SQLiteParameter("@Mobile", mobile ?? string.Empty)
+                }, cancellationToken));
+                return count > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to check if customer exists");
+                throw;
+            }
+        }
+
+        static string? GetSkipReason(CustomerModel c)
+        {
+            var reasons = new List<string>();
+            if (string.IsNullOrWhiteSpace(c.Company)) reasons.Add("Company missing");
+            if (string.IsNullOrWhiteSpace(c.Contact)) reasons.Add("Contact missing");
+            if (string.IsNullOrWhiteSpace(c.Phone) && string.IsNullOrWhiteSpace(c.Mobile)) reasons.Add("Phone and Mobile missing");
+            return reasons.Count > 0 ? string.Join(", ", reasons) : null;
+        }
+
+        CustomerModel MapCustomer(IDataRecord r) => new()
+        {
+            CustomerID = Convert.ToInt32(r["CustomerID"]),
+            Company = r["Company"].ToString(),
+            Email = r["Email"].ToString(),
+            Contact = r["Contact"].ToString(),
+            Phone = r["Phone"].ToString(),
+            Mobile = r["Mobile"].ToString(),
+            Address = r["Address"].ToString()
+        };
     }
 }
+
