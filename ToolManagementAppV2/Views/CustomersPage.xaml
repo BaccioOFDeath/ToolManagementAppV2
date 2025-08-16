@@ -19,7 +19,7 @@
             <DataGrid ItemsSource="{Binding Customers}" SelectedItem="{Binding SelectedCustomer}" IsReadOnly="True">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Company" Binding="{Binding Company}" Width="*"/>
-                    <DataGridTextColumn Header="Contact" Binding="{Binding ContactName}" Width="220"/>
+                    <DataGridTextColumn Header="Contact" Binding="{Binding Contact}" Width="220"/>
                     <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="180"/>
                     <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="240"/>
                 </DataGrid.Columns>

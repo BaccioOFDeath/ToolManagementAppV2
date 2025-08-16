@@ -40,6 +40,35 @@ namespace ToolManagementAppV2.Tests.Tests
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public async System.Threading.Tasks.Task DataGrid_ShowsContactNames()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var customerService = new CustomerService(db);
+                // Add a customer with a contact name
+                customerService.AddCustomer(new CustomerModel { Company = "ACME", Contact = "John Doe" });
+                var vm = new CustomerManagementViewModel(customerService, new StubDialogService());
+                await vm.LoadCustomersAsync();
+
+                var page = new CustomersPage { DataContext = vm };
+                var grid = (Grid)page.Content;
+                var border = (Border)grid.Children[1];
+                var dataGrid = (DataGrid)border.Child;
+
+                dataGrid.UpdateLayout();
+                var cell = (TextBlock)dataGrid.Columns[1].GetCellContent(dataGrid.Items[0]);
+                Assert.Equal("John Doe", cell.Text);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 
     class StubDialogService : IDialogService
