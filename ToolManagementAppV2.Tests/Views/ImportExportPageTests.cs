@@ -114,7 +114,7 @@ namespace ToolManagementAppV2.Tests.Views
         public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<System.Collections.Generic.List<ToolModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new System.Collections.Generic.List<ToolModel>());
         public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, System.Collections.Generic.IEnumerable<string>> keySelector, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
+        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, System.Collections.Generic.IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
         public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, System.Data.SQLite.SQLiteConnection? conn = null, System.Data.SQLite.SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 

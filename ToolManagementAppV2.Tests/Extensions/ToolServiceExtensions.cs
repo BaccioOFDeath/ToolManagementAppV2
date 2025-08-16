@@ -44,7 +44,7 @@ namespace ToolManagementAppV2.Tests.Extensions
             service.ExportToolsToCsvAsync(filePath, CancellationToken.None).GetAwaiter().GetResult();
 
         public static ImageImportResult ImportToolImages(this IToolService service, string folderPath, Func<ToolModel, IEnumerable<string>> selector) =>
-            service.ImportToolImagesAsync(folderPath, selector, CancellationToken.None).GetAwaiter().GetResult();
+            service.ImportToolImagesAsync(folderPath, selector, null, CancellationToken.None).GetAwaiter().GetResult();
 
         public static void UpdateToolQuantities(this IToolService service, int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null) =>
             service.UpdateToolQuantitiesAsync(toolID, qtyChange, isRental, conn, tx, CancellationToken.None).GetAwaiter().GetResult();

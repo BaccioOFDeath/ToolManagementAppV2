@@ -74,6 +74,29 @@ public class CsvImportTests
     }
 
     [Fact]
+    public async Task LoadToolsFromCsvAsync_RespectsCancellation()
+    {
+        var csv = string.Join('\n',
+            "ToolNumber,NameDescription",
+            "T1,Hammer");
+        var path = Path.GetTempFileName();
+        File.WriteAllText(path, csv);
+
+        var map = new Dictionary<string, string>
+        {
+            {"ToolNumber", "ToolNumber"},
+            {"NameDescription", "NameDescription"}
+        };
+
+        var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() => CsvHelperUtil.LoadToolsFromCsvAsync(path, map, cts.Token));
+
+        if (File.Exists(path)) File.Delete(path);
+    }
+
+    [Fact]
     public async System.Threading.Tasks.Task ImportToolsFromCsvAsync_SkipsInvalidRows()
     {
         var dbPath = Path.GetTempFileName();

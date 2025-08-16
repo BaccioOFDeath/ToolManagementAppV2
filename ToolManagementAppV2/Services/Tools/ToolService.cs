@@ -100,10 +100,10 @@ namespace ToolManagementAppV2.Services.Tools
         public Task ExportToolsToCsvAsync(string filePath, CancellationToken cancellationToken = default)
             => ExportToolsToCsvInternalAsync(filePath, cancellationToken);
 
-        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector, CancellationToken cancellationToken = default)
+        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
-            return ImportToolImagesInternalAsync(folderPath, keySelector, cancellationToken);
+            return ImportToolImagesInternalAsync(folderPath, keySelector, progress, cancellationToken);
         }
 
         async Task InsertToolAsync(SQLiteConnection conn, SQLiteTransaction? tran, ToolModel tool, CancellationToken cancellationToken)
@@ -132,7 +132,7 @@ namespace ToolManagementAppV2.Services.Tools
                 tool.ToolID = Convert.ToInt32(result);
         }
     
-        private async Task<ImageImportResult> ImportToolImagesInternalAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector, CancellationToken cancellationToken)
+        private async Task<ImageImportResult> ImportToolImagesInternalAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress, CancellationToken cancellationToken)
         {
             var result = new ImageImportResult();
             if (string.IsNullOrWhiteSpace(folderPath) || keySelector == null)
@@ -173,7 +173,10 @@ namespace ToolManagementAppV2.Services.Tools
 
             var supported = new HashSet<string>(new[] { ".png", ".jpg", ".jpeg", ".bmp", ".gif" }, StringComparer.OrdinalIgnoreCase);
 
-            foreach (var file in Directory.EnumerateFiles(folderPath))
+            var files = await Task.Run(() => Directory.EnumerateFiles(folderPath).ToList(), cancellationToken);
+            var total = files.Count;
+            var processed = 0;
+            foreach (var file in files)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var ext = Path.GetExtension(file);
@@ -202,7 +205,7 @@ namespace ToolManagementAppV2.Services.Tools
                 {
                     try
                     {
-                        CopyFile(file, dest);
+                        await CopyFileAsync(file, dest, cancellationToken);
                     }
                     catch (IOException ex)
                     {
@@ -214,13 +217,19 @@ namespace ToolManagementAppV2.Services.Tools
                 var relative = $"Images/{Path.GetFileName(dest)}";
                 await UpdateToolImageAsync(tool.ToolID, relative, cancellationToken);
                 result.ImportedCount++;
+                processed++;
+                progress?.Report(new ImageImportProgress { Processed = processed, Total = total });
             }
 
             return result;
         }
 
-        protected virtual void CopyFile(string sourceFileName, string destFileName)
-            => File.Copy(sourceFileName, destFileName, true);
+        protected virtual async Task CopyFileAsync(string sourceFileName, string destFileName, CancellationToken cancellationToken)
+        {
+            await using var source = new FileStream(sourceFileName, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, true);
+            await using var destination = new FileStream(destFileName, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
+            await source.CopyToAsync(destination, cancellationToken);
+        }
 
         private async Task<bool> ToolExistsAsync(string toolNumber, int? exceptId = null, CancellationToken cancellationToken = default)
         {
@@ -449,7 +458,7 @@ namespace ToolManagementAppV2.Services.Tools
 
         private async Task<List<int>> ImportToolsFromCsvInternalAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken)
         {
-            var tools = CsvHelperUtil.LoadToolsFromCsv(filePath, map, out var invalidRows);
+            var (tools, invalidRows) = await CsvHelperUtil.LoadToolsFromCsvAsync(filePath, map, cancellationToken);
             using var conn = _dbService.CreateConnection();
             var existingNumbers = new HashSet<string>(
                 await SqliteHelper.ExecuteReaderAsync(conn,
