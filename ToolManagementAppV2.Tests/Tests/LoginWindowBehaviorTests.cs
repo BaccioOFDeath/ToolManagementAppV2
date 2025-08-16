@@ -8,6 +8,7 @@ using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2;
 using Xunit;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ToolManagementAppV2.Tests.Tests
 {
@@ -21,7 +22,8 @@ namespace ToolManagementAppV2.Tests.Tests
             var userContext = new ApplicationUserContext();
             var userService = new UserService(db, userContext);
             var settingsService = new SettingsService(db);
-            var vm = new LoginViewModel(userService, settingsService, new DialogService(), userContext);
+            var serviceProvider = new ServiceCollection().BuildServiceProvider();
+            var vm = new LoginViewModel(userService, settingsService, new DialogService(serviceProvider), userContext);
             var window = new LoginWindow(vm);
             Assert.False(window.Topmost);
             window.Close();

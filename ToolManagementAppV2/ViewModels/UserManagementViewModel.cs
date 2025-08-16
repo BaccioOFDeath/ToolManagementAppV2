@@ -12,6 +12,7 @@ using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.Views;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -21,6 +22,7 @@ namespace ToolManagementAppV2.ViewModels
         private readonly IFileDialogService _fileDialogService;
         private readonly IDialogService _dialogService;
         private readonly ILogger<UserManagementViewModel> _logger;
+        private readonly IServiceProvider? _serviceProvider;
 
         private List<UserModel> _allUsers = new();
 
@@ -63,12 +65,14 @@ namespace ToolManagementAppV2.ViewModels
         public UserManagementViewModel(IUserService userService,
                                        IFileDialogService fileDialogService,
                                        IDialogService dialogService,
-                                       ILogger<UserManagementViewModel>? logger = null)
+                                       ILogger<UserManagementViewModel>? logger = null,
+                                       IServiceProvider? serviceProvider = null)
         {
             _userService = userService;
             _fileDialogService = fileDialogService;
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<UserManagementViewModel>.Instance;
+            _serviceProvider = serviceProvider;
 
             LoadUsersCommand = new AsyncRelayCommand(LoadUsersAsync);
             UploadUserPhotoCommand = new AsyncRelayCommand(UploadUserPhotoAsync);
@@ -200,7 +204,12 @@ namespace ToolManagementAppV2.ViewModels
             {
                 try
                 {
-                    var prompt = new PasswordPromptWindow(_dialogService) { SelectedUser = newUser };
+                    PasswordPromptWindow prompt;
+                    if (_serviceProvider != null)
+                        prompt = _serviceProvider.GetRequiredService<PasswordPromptWindow>();
+                    else
+                        prompt = new PasswordPromptWindow(_dialogService);
+                    prompt.SelectedUser = newUser;
                     if (prompt.ShowDialog() == true)
                     {
                         password = prompt.EnteredPassword;

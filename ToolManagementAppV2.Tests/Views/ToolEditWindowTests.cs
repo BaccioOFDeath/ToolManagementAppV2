@@ -3,6 +3,7 @@ using System.Threading;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Views;
+using ToolManagementAppV2.Services.Core;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.Views
@@ -25,7 +26,7 @@ namespace ToolManagementAppV2.Tests.Views
                     Action onSave = () => window?.Close();
                     Action onCancel = () => window?.Close();
 
-                    window = new ToolEditWindow(tool, onSave, onCancel);
+                    window = new ToolEditWindow(tool, onSave, onCancel, new FileDialogService());
                     window.Closed += (_, __) => closed = true;
 
                     Assert.IsType<ToolEditViewModel>(window.DataContext);
@@ -68,7 +69,7 @@ namespace ToolManagementAppV2.Tests.Views
                     Action onSave = () => window?.Close();
                     Action onCancel = () => window?.Close();
 
-                    window = new ToolEditWindow(tool, onSave, onCancel);
+                    window = new ToolEditWindow(tool, onSave, onCancel, new FileDialogService());
                     window.Closed += (_, __) => closed = true;
 
                     var vm = (ToolEditViewModel)window.DataContext;
@@ -102,7 +103,7 @@ namespace ToolManagementAppV2.Tests.Views
                 Action onSave = () => window?.Close();
                 Action onCancel = () => window?.Close();
 
-                window = new ToolEditWindow(tool, onSave, onCancel);
+                window = new ToolEditWindow(tool, onSave, onCancel, new FileDialogService());
                 window.ShowDialog();
             });
 

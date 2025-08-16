@@ -8,6 +8,7 @@ using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.ViewModels.Rental;
 using ToolManagementAppV2.Views;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -15,10 +16,12 @@ namespace ToolManagementAppV2.Services
 {
     public class DialogService : IDialogService
     {
+        readonly IServiceProvider _serviceProvider;
         readonly ILogger<DialogService> _logger;
 
-        public DialogService(ILogger<DialogService>? logger = null)
+        public DialogService(IServiceProvider serviceProvider, ILogger<DialogService>? logger = null)
         {
+            _serviceProvider = serviceProvider;
             _logger = logger ?? NullLogger<DialogService>.Instance;
         }
         public void ShowInfo(string message, string title)
@@ -43,10 +46,11 @@ namespace ToolManagementAppV2.Services
 
         public ToolModel? ShowEditToolDialog(ToolModel tool)
         {
-            ToolEditWindow win = null!;
-            win = new ToolEditWindow(tool,
-                onSave: () => win.DialogResult = true,
-                onCancel: () => win.DialogResult = false);
+            ToolEditWindow? win = null;
+            win = ActivatorUtilities.CreateInstance<ToolEditWindow>(_serviceProvider,
+                tool,
+                (Action)(() => win!.DialogResult = true),
+                (Action)(() => win!.DialogResult = false));
             try { win.Owner = System.Windows.Application.Current?.MainWindow; }
             catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for ToolEditWindow"); }
             try { return win.ShowDialog() == true ? tool : null; }
@@ -161,7 +165,7 @@ namespace ToolManagementAppV2.Services
 
         public void ShowPrintLabelDialog()
         {
-            var win = new PrintLabelWindow(this);
+            var win = _serviceProvider.GetRequiredService<PrintLabelWindow>();
             try { win.Owner = System.Windows.Application.Current?.MainWindow; }
             catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for PrintLabelWindow"); }
             try { win.ShowDialog(); }
@@ -170,7 +174,7 @@ namespace ToolManagementAppV2.Services
 
         public void ShowScannerStatus()
         {
-            var win = new ScannerStatusWindow();
+            var win = _serviceProvider.GetRequiredService<ScannerStatusWindow>();
             try { win.Owner = System.Windows.Application.Current?.MainWindow; }
             catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for ScannerStatusWindow"); }
             try { win.ShowDialog(); }
