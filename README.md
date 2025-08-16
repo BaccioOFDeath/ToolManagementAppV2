@@ -27,6 +27,9 @@ This project adheres to the rules in `AGENTS.md`, including:
 - Running `dotnet test` before commits and updating tests for new functionality.
 - Summarizing changes and referencing test results in pull requests.
 
+### Error Handling
+Global exception handlers are wired in `App.xaml.cs` for dispatcher, domain, and background task errors. These handlers log through `ILogger<App>`/Serilog and notify users via `IDialogService`, marking exceptions as handled when possible to keep the application running.
+
 ### Resource Management
 `DatabaseService` implements `IDisposable` and should be disposed when no longer in use.
 `MainWindow` requires a `MainViewModel` and optionally an owned `DatabaseService`. Pass the
