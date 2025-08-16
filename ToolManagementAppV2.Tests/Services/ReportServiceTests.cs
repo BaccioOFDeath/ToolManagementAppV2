@@ -62,7 +62,7 @@ namespace ToolManagementAppV2.Tests.Services
 
                 rentalService.RentTool(tool.ToolID, customer.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
-                var task = Task.Run(() => reportService.GenerateSummaryReport().Result);
+                var task = reportService.GenerateSummaryReportAsync();
                 Assert.True(task.Wait(TimeSpan.FromSeconds(5)), "GenerateSummaryReport deadlocked.");
                 var doc = task.Result;
                 var text = new TextRange(doc.ContentStart, doc.ContentEnd).Text;
@@ -126,7 +126,7 @@ namespace ToolManagementAppV2.Tests.Services
 
                 rentalService.RentTool(tool.ToolID, customer.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
-                var doc = await reportService.GenerateSummaryReport();
+                var doc = await reportService.GenerateSummaryReportAsync();
                 var text = new TextRange(doc.ContentStart, doc.ContentEnd).Text;
                 Assert.Contains("Total Tools: 1", text);
                 Assert.Contains("Total Rentals (History): 1", text);

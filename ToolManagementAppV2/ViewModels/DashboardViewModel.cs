@@ -82,7 +82,8 @@ namespace ToolManagementAppV2.ViewModels
                 StatCards.Add(new StatCard { Title = "Total Tools", Value = tools.Count.ToString() });
                 StatCards.Add(new StatCard { Title = "Active Rentals", Value = _rentalService.GetActiveRentals().Count.ToString() });
                 StatCards.Add(new StatCard { Title = "Total Customers", Value = _customerService.GetAllCustomers().Count.ToString() });
-                StatCards.Add(new StatCard { Title = "Total Users", Value = _userService.GetAllUsers().Count.ToString() });
+                var users = await _userService.GetAllUsersAsync();
+                StatCards.Add(new StatCard { Title = "Total Users", Value = users.Count.ToString() });
             }
             catch (Exception ex)
             {

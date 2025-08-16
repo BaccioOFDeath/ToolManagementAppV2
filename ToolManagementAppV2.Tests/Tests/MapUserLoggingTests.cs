@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
@@ -14,7 +15,7 @@ namespace ToolManagementAppV2.Tests
     public class MapUserLoggingTests
     {
         [Fact]
-        public void GetAllUsers_InvalidPackPath_LogsException()
+        public async Task GetAllUsers_InvalidPackPath_LogsException()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -27,7 +28,7 @@ namespace ToolManagementAppV2.Tests
                 try
                 {
                     service.AddUser(new User { UserName = "u", Password = "p", UserPhotoPath = "pack://application:,,,/Resources/NoImage.png" });
-                    service.GetAllUsers();
+                    await service.GetAllUsersAsync();
                 }
                 finally
                 {
@@ -42,7 +43,7 @@ namespace ToolManagementAppV2.Tests
         }
 
         [Fact]
-        public void GetAllUsers_InvalidFilePath_LogsException()
+        public async Task GetAllUsers_InvalidFilePath_LogsException()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -55,7 +56,7 @@ namespace ToolManagementAppV2.Tests
                 try
                 {
                     service.AddUser(new User { UserName = "u", Password = "p", UserPhotoPath = "invalid|path.png" });
-                    service.GetAllUsers();
+                    await service.GetAllUsersAsync();
                 }
                 finally
                 {

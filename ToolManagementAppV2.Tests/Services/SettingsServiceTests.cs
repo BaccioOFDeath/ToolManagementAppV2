@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Models.Domain;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.Services
@@ -26,6 +27,42 @@ namespace ToolManagementAppV2.Tests.Services
                 ISettingsService service = new SettingsService(dbService);
 
                 Assert.Throws<ArgumentException>(() => service.SaveSetting(key!, "Value1"));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void SaveSetting_NonAdmin_Throws()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var context = new NonAdminContext();
+                var service = new SettingsService(dbService, context);
+                Assert.Throws<UnauthorizedAccessException>(() => service.SaveSetting("Key", "Value"));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task SaveSettingAsync_NonAdmin_Throws()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var context = new NonAdminContext();
+                var service = new SettingsService(dbService, context);
+                await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.SaveSettingAsync("Key", "Value"));
             }
             finally
             {
@@ -197,7 +234,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var logs = new List<LogEntry>();
                 using var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
                 var logger = factory.CreateLogger<SettingsService>();
-                ISettingsService service = new SettingsService(dbService, logger);
+                ISettingsService service = new SettingsService(dbService, null, logger);
 
                 service.DeleteSetting("MissingKey");
 
@@ -221,7 +258,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var logs = new List<LogEntry>();
                 using var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
                 var logger = factory.CreateLogger<SettingsService>();
-                var service = new SettingsService(dbService, logger);
+                var service = new SettingsService(dbService, null, logger);
 
                 var invalid = service.SaveScannerIpAddresses(new[] { "192.168.1.1", "bad", "999.999.999.999" }).ToList();
 
@@ -253,7 +290,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var logs = new List<LogEntry>();
                 using var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
                 var logger = factory.CreateLogger<SettingsService>();
-                var service = new SettingsService(dbService, logger);
+                var service = new SettingsService(dbService, null, logger);
 
                 var invalid = service.SaveScannerIpAddresses(new[] { "127.0.0.1", "10.0.0.2" });
                 Assert.Empty(invalid);
@@ -419,6 +456,15 @@ namespace ToolManagementAppV2.Tests.Services
                 if (File.Exists(dbPath))
                     File.Delete(dbPath);
             }
+        }
+
+        class NonAdminContext : IUserContext
+        {
+            public User? CurrentUser { get; set; } = new User { UserName = "u", IsAdmin = false };
+            public event EventHandler<User?>? UserChanged { add { } remove { } }
+            public bool IsAdmin => false;
+            public string UserName => CurrentUser?.UserName ?? "";
+            public string Role => "User";
         }
     }
 }

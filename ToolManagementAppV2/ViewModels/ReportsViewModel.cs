@@ -61,13 +61,13 @@ namespace ToolManagementAppV2.ViewModels
         {
             FlowDocument doc = SelectedReport switch
             {
-                "Summary" => await _reportService.GenerateSummaryReport(),
-                "Inventory" => await _reportService.GenerateInventoryReport(),
-                "Activity Log" => await _reportService.GenerateActivityLogReport(),
-                "Customers" => await _reportService.GenerateCustomerReport(),
-                "Users" => await _reportService.GenerateUserReport(),
-                "Active Rentals" => await _reportService.GenerateRentalReport(true),
-                "Full Rental History" => await _reportService.GenerateRentalReport(false),
+                "Summary" => await _reportService.GenerateSummaryReportAsync(),
+                "Inventory" => await _reportService.GenerateInventoryReportAsync(),
+                "Activity Log" => await _reportService.GenerateActivityLogReportAsync(),
+                "Customers" => await _reportService.GenerateCustomerReportAsync(),
+                "Users" => await _reportService.GenerateUserReportAsync(),
+                "Active Rentals" => await _reportService.GenerateRentalReportAsync(true),
+                "Full Rental History" => await _reportService.GenerateRentalReportAsync(false),
                 _ => null
             };
 

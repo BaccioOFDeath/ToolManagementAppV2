@@ -65,7 +65,7 @@ namespace ToolManagementAppV2
             var rentalService = new RentalService(db, toolService, loggerFactory.CreateLogger<RentalService>());
             var activityLogService = new ActivityLogService(db, loggerFactory.CreateLogger<ActivityLogService>());
             var fileDialogService = new FileDialogService();
-            var settingsService = new SettingsService(db, loggerFactory.CreateLogger<SettingsService>());
+            var settingsService = new SettingsService(db, userContext, loggerFactory.CreateLogger<SettingsService>());
             SecurityHelper.SettingsService = settingsService;
             IDialogService dialogService = new DialogService(loggerFactory.CreateLogger<DialogService>());
 

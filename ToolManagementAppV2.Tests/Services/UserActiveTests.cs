@@ -5,6 +5,7 @@ using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Tests.Extensions;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.Services

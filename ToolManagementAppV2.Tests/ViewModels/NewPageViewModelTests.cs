@@ -355,11 +355,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
     class StubUserService : IUserService
     {
-        public List<User> GetAllUsers() => new();
         public Task<List<User>> GetAllUsersAsync() => Task.FromResult(new List<User>());
         public User? GetUserByID(int userID) => null;
         public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult<User?>(null);
-        public User? AuthenticateUser(string userName, string password) => null;
         public Task<User?> AuthenticateUserAsync(string userName, string password) => Task.FromResult<User?>(null);
         public User? GetCurrentUser() => null;
         public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);

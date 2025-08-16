@@ -13,6 +13,7 @@ using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.ViewModels.Rental;
 using ToolManagementAppV2.Views;
 using ToolManagementAppV2.Utilities.Helpers;
+using ToolManagementAppV2.Tests.Extensions;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.ViewModels
@@ -568,11 +569,9 @@ class StubDialogService : IDialogService
 class InMemoryUserService : IUserService
 {
     public List<User> Users { get; } = new();
-    public List<User> GetAllUsers() => Users;
     public Task<List<User>> GetAllUsersAsync() => Task.FromResult(Users.ToList());
     public User? GetUserByID(int userID) => Users.FirstOrDefault(u => u.UserID == userID);
     public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult(GetUserByID(userID));
-    public User? AuthenticateUser(string userName, string password) => null;
     public Task<User?> AuthenticateUserAsync(string userName, string password) => Task.FromResult<User?>(null);
     public User? GetCurrentUser() => null;
     public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
@@ -617,11 +616,9 @@ class PromptUserManagementViewModel : UserManagementViewModel
 class FailingUserService : IUserService
 {
     readonly List<User> _users = new();
-    public List<User> GetAllUsers() => _users;
     public Task<List<User>> GetAllUsersAsync() => Task.FromResult(_users);
     public User? GetUserByID(int userID) => _users.FirstOrDefault(u => u.UserID == userID);
     public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult(GetUserByID(userID));
-    public User? AuthenticateUser(string userName, string password) => null;
     public Task<User?> AuthenticateUserAsync(string userName, string password) => Task.FromResult<User?>(null);
     public User? GetCurrentUser() => null;
     public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
@@ -636,11 +633,9 @@ class FailingUserService : IUserService
 
 class GetAllUsersFailingUserService : IUserService
 {
-    public List<User> GetAllUsers() => throw new Exception("load failed");
     public Task<List<User>> GetAllUsersAsync() => Task.FromException<List<User>>(new Exception("load failed"));
     public User? GetUserByID(int userID) => null;
     public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult<User?>(null);
-    public User? AuthenticateUser(string userName, string password) => null;
     public Task<User?> AuthenticateUserAsync(string userName, string password) => Task.FromResult<User?>(null);
     public User? GetCurrentUser() => null;
     public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);

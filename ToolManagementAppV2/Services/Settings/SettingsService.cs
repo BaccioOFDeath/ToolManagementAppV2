@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Models.Domain;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -12,20 +13,24 @@ namespace ToolManagementAppV2.Services.Settings
     public class SettingsService : ISettingsService
     {
         readonly DatabaseService _dbService;
+        readonly IUserContext _context;
         readonly ILogger<SettingsService> _logger;
         const string UpsertSql = @"
             INSERT INTO Settings (Key, Value) 
             VALUES (@Key, @Value)
             ON CONFLICT(Key) DO UPDATE SET Value = @Value";
 
-        public SettingsService(DatabaseService dbService, ILogger<SettingsService>? logger = null)
+        public SettingsService(DatabaseService dbService, IUserContext? context = null, ILogger<SettingsService>? logger = null)
         {
             _dbService = dbService;
+            _context = context ?? new AdminUserContext();
             _logger = logger ?? NullLogger<SettingsService>.Instance;
         }
 
         public void SaveSetting(string key, string value)
         {
+            if (!_context.IsAdmin)
+                throw new UnauthorizedAccessException("Only administrators can modify settings.");
             if (string.IsNullOrWhiteSpace(key))
                 throw new ArgumentException("Key cannot be null or empty.", nameof(key));
 
@@ -48,6 +53,8 @@ namespace ToolManagementAppV2.Services.Settings
 
         public async Task SaveSettingAsync(string key, string value)
         {
+            if (!_context.IsAdmin)
+                throw new UnauthorizedAccessException("Only administrators can modify settings.");
             if (string.IsNullOrWhiteSpace(key))
                 throw new ArgumentException("Key cannot be null or empty.", nameof(key));
 
@@ -385,6 +392,15 @@ namespace ToolManagementAppV2.Services.Settings
             if (iterations <= 0)
                 throw new ArgumentOutOfRangeException(nameof(iterations));
             await SaveSettingAsync(PasswordIterationsKey, iterations.ToString());
+        }
+
+        class AdminUserContext : IUserContext
+        {
+            public User? CurrentUser { get; set; }
+            public event EventHandler<User?>? UserChanged;
+            public bool IsAdmin => true;
+            public string UserName => CurrentUser?.UserName ?? "Admin";
+            public string Role => "Admin";
         }
     }
 }

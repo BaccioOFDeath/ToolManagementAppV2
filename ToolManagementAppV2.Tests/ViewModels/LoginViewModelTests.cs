@@ -16,6 +16,7 @@ using ToolManagementAppV2.Views;
 using Xunit;
 using Microsoft.Extensions.Logging;
 using ToolManagementAppV2.Tests;
+using ToolManagementAppV2.Tests.Extensions;
 
 namespace ToolManagementAppV2.Tests.ViewModels
 {
@@ -314,11 +315,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
             _tcs = tcs;
         }
 
-        public List<User> GetAllUsers() => _users.ToList();
         public Task<List<User>> GetAllUsersAsync() => Task.FromResult(_users.ToList());
         public User? GetUserByID(int userID) => null;
         public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult<User?>(null);
-        public User? AuthenticateUser(string userName, string password) => null;
         public Task<User?> AuthenticateUserAsync(string userName, string password) => Task.FromResult<User?>(null);
         public User? GetCurrentUser() => null;
         public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
@@ -344,11 +343,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
             _users = new List<User> { user };
         }
 
-        public List<User> GetAllUsers() => _users.ToList();
-        public Task<List<User>> GetAllUsersAsync() => Task.FromResult(GetAllUsers());
+        public Task<List<User>> GetAllUsersAsync() => Task.FromResult(_users.ToList());
         public User? GetUserByID(int userID) => _users.FirstOrDefault(u => u.UserID == userID);
         public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult(GetUserByID(userID));
-        public User? AuthenticateUser(string userName, string password) => null;
         public Task<User?> AuthenticateUserAsync(string userName, string password) => Task.FromResult<User?>(null);
         public User? GetCurrentUser() => null;
         public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);

@@ -6,6 +6,7 @@ using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Helpers;
+using ToolManagementAppV2.Tests.Extensions;
 using Xunit;
 
 public class UserServiceTests
@@ -204,5 +205,33 @@ public class UserServiceTests
         {
             if (File.Exists(dbPath)) File.Delete(dbPath);
         }
+    }
+
+    [Fact]
+    public async Task UpdateUserAsync_NonAdmin_Throws()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            var context = new NonAdminContext();
+            var userService = new UserService(dbService, context);
+            await userService.AddUserAsync(new User { UserName = "u", Password = "p" });
+            var user = (await userService.GetAllUsersAsync())[0];
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => userService.UpdateUserAsync(user));
+        }
+        finally
+        {
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    class NonAdminContext : IUserContext
+    {
+        public User? CurrentUser { get; set; } = new User { UserName = "u", IsAdmin = false };
+        public event EventHandler<User?>? UserChanged { add { } remove { } }
+        public bool IsAdmin => false;
+        public string UserName => CurrentUser?.UserName ?? "";
+        public string Role => "User";
     }
 }

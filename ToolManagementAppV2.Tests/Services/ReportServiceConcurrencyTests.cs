@@ -18,10 +18,10 @@ using Xunit;
 
 namespace ToolManagementAppV2.Tests.Services;
 
-public class ReportServiceSyncTests
+public class ReportServiceConcurrencyTests
 {
     [Fact]
-    public void GenerateSummaryReportSync_UsesConcurrentAsyncCalls()
+    public async Task GenerateSummaryReportAsync_UsesConcurrentAsyncCalls()
     {
         const int delay = 200;
         var toolService = new DelayToolService(delay, 3);
@@ -33,7 +33,7 @@ public class ReportServiceSyncTests
         var svc = new ReportService(toolService, rentalService, activity, customerService, userService);
 
         var sw = Stopwatch.StartNew();
-        var doc = svc.GenerateSummaryReportSync();
+        var doc = await svc.GenerateSummaryReportAsync();
         sw.Stop();
 
         var text = new TextRange(doc.ContentStart, doc.ContentEnd).Text;
@@ -122,17 +122,14 @@ public class ReportServiceSyncTests
         readonly int _delay; readonly List<User> _users;
         public DelayUserService(int delay, int count)
         { _delay = delay; _users = new List<User>(new User[count]); }
-        public List<User> GetAllUsers() => _users;
         public Task<List<User>> GetAllUsersAsync() => Task.Delay(_delay).ContinueWith(_ => _users);
         public User? GetUserByID(int userID) => throw new NotImplementedException();
         public Task<User?> GetUserByIDAsync(int userID) => throw new NotImplementedException();
-        public User? AuthenticateUser(string userName, string password) => throw new NotImplementedException();
         public Task<User?> AuthenticateUserAsync(string userName, string password) => throw new NotImplementedException();
         public User? GetCurrentUser() => null;
         public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
         public void AddUser(User user) => throw new NotImplementedException();
         public Task AddUserAsync(User user) => throw new NotImplementedException();
-        public void UpdateUser(User user) => throw new NotImplementedException();
         public Task UpdateUserAsync(User user) => throw new NotImplementedException();
         public Task<bool> TryDeleteUserAsync(int userID) => throw new NotImplementedException();
         public bool ChangeUserPassword(int userID, string newPassword) => throw new NotImplementedException();
