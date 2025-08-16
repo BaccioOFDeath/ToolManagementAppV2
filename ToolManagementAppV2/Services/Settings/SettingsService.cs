@@ -327,7 +327,7 @@ namespace ToolManagementAppV2.Services.Settings
         public int GetPasswordIterations(CancellationToken cancellationToken = default)
         {
             var value = GetSetting(PasswordIterationsKey, cancellationToken);
-            return int.TryParse(value, out var i) ? i : 100_000;
+            return int.TryParse(value, out var i) && i > 0 ? i : 100_000;
         }
 
         public void SavePasswordIterations(int iterations, CancellationToken cancellationToken = default)
@@ -340,7 +340,7 @@ namespace ToolManagementAppV2.Services.Settings
         public async Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default)
         {
             var value = await GetSettingAsync(PasswordIterationsKey, cancellationToken).ConfigureAwait(false);
-            return int.TryParse(value, out var i) ? i : 100_000;
+            return int.TryParse(value, out var i) && i > 0 ? i : 100_000;
         }
 
         public async Task SavePasswordIterationsAsync(int iterations, CancellationToken cancellationToken = default)

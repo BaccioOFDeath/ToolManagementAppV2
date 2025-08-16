@@ -4,7 +4,6 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.VisualBasic.FileIO;
 using System.Linq;
-using System.Threading.Tasks;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Models.ImportExport;
 
@@ -25,8 +24,9 @@ namespace ToolManagementAppV2.Utilities.IO
             using var parser = new TextFieldParser(filePath);
             parser.SetDelimiters(",");
             parser.HasFieldsEnclosedInQuotes = true;
-            return await Task.Run(() =>
-                parser.EndOfData ? Array.Empty<string>() : parser.ReadFields().Select(h => h.Trim()));
+            return await Task.Run(()
+                parser.EndOfData ? Array.Empty<string>() : parser.ReadFields().Select(h => h.Trim())
+            ).ConfigureAwait(false);
         }
 
         public static List<ToolModel> LoadToolsFromCsv(string filePath, IDictionary<string, string> map, out List<int> invalidRows)
@@ -92,7 +92,7 @@ namespace ToolManagementAppV2.Utilities.IO
             File.WriteAllLines(filePath, lines);
         }
 
-        public static Task ExportToolsToCsvAsync(string filePath, List<ToolModel> tools)
+        public static async Task ExportToolsToCsvAsync(string filePath, List<ToolModel> tools)
         {
             var lines = new List<string>
             {
@@ -110,7 +110,7 @@ namespace ToolManagementAppV2.Utilities.IO
                     Quote(t.Notes),
                     Quote(t.QuantityOnHand.ToString()),
                     Quote(t.IsPowerTool ? "1" : "0"))));
-            return File.WriteAllLinesAsync(filePath, lines);
+            await File.WriteAllLinesAsync(filePath, lines).ConfigureAwait(false);
         }
 
         public static List<CustomerModel> LoadCustomersFromCsv(string filePath, IDictionary<string, string> map)

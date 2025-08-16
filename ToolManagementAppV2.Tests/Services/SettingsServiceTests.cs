@@ -356,6 +356,24 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
+        public void GetPasswordIterations_InvalidStoredValue_ReturnsDefault()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var service = new SettingsService(dbService);
+                service.SaveSetting("PasswordIterations", "-5");
+                Assert.Equal(100_000, service.GetPasswordIterations());
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public async Task SaveAndRetrieveSettingAsync()
         {
             var dbPath = Path.GetTempFileName();
