@@ -105,26 +105,10 @@ namespace ToolManagementAppV2
             })
             .Build();
 
-        [STAThread]
-        public static async Task Main()
+        protected async override void OnStartup(StartupEventArgs e)
         {
-            var app = new App();
-            try
-            {
-                await app.StartAsync();
-                app.Run();
-            }
-            catch (Exception ex)
-            {
-                var logger = app.Host.Services.GetRequiredService<ILogger<App>>();
-                logger.LogCritical(ex, "Application failed to start");
-            }
-            finally
-            {
-                await app.Host.StopAsync();
-                app.Host.Dispose();
-                Log.CloseAndFlush();
-            }
+            await StartAsync();
+            base.OnStartup(e);
         }
 
         public async Task StartAsync()
@@ -182,6 +166,8 @@ namespace ToolManagementAppV2
 
         protected override void OnExit(ExitEventArgs e)
         {
+            Host.StopAsync().GetAwaiter().GetResult();
+            Host.Dispose();
             Log.CloseAndFlush();
             base.OnExit(e);
         }
