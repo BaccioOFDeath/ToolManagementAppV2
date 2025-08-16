@@ -11,7 +11,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using Forms = System.Windows.Forms;
-using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services;
 using ToolManagementAppV2.Services.Rentals;
@@ -21,10 +20,12 @@ using ToolManagementAppV2.Views;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ToolManagementAppV2.Utilities.IO;
+using ToolManagementAppV2.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ToolManagementAppV2.ViewModels
 {
-    public class MainViewModel : ObservableObject, IDisposable
+    public class MainViewModel : ObservableObject, IMainViewModel, IDisposable
     {
         readonly IToolService _toolService;
         readonly IUserService _userService;
@@ -136,12 +137,10 @@ namespace ToolManagementAppV2.ViewModels
             _logger = logger ?? NullLogger<MainViewModel>.Instance;
             _showLoginWindow = showLoginWindow ?? new Func<Task<bool>>(async () =>
             {
-                var login = new LoginWindow(_userContext, _userService, _settingsService, _dialogService)
-                {
-                    Owner = System.Windows.Application.Current.MainWindow
-                };
-                if (login.DataContext is LoginViewModel lvm)
-                    await lvm.InitializeAsync();
+                var app = (App)Application.Current;
+                var login = app.Host.Services.GetRequiredService<ILoginWindow>();
+                login.Owner = Application.Current.MainWindow;
+                await login.ViewModel.InitializeAsync();
                 return login.ShowDialog() == true;
             });
 

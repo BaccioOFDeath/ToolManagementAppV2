@@ -13,7 +13,7 @@ namespace ToolManagementAppV2.Services.Core
     /// Provides SQLite database access for the application. Instances should be
     /// disposed when no longer needed to release pooled connections.
     /// </summary>
-    public class DatabaseService : IDisposable, IDatabaseBackupService
+    public class DatabaseService : IDisposable, IDatabaseBackupService, IDatabaseService
     {
         public string ConnectionString { get; }
         private readonly ILogger<DatabaseService> _logger;

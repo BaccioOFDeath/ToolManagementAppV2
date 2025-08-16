@@ -1,15 +1,14 @@
 // MainWindow.xaml.cs
 using System;
 using System.Windows;
-using ToolManagementAppV2.Services.Core;
-using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Utilities.Extensions;
+using ToolManagementAppV2.Interfaces;
 
 namespace ToolManagementAppV2
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, IMainWindow
     {
-        readonly DatabaseService? _ownedDb;
+        readonly IDatabaseService? _ownedDb;
 
         /// <summary>
         /// Initializes a new instance of <see cref="MainWindow"/> with the provided services.
@@ -18,7 +17,7 @@ namespace ToolManagementAppV2
         /// </summary>
         /// <param name="viewModel">View model to use as the window's data context.</param>
         /// <param name="ownedDatabaseService">Database service owned by the window; disposed on close.</param>
-        public MainWindow(MainViewModel viewModel, DatabaseService? ownedDatabaseService = null)
+        public MainWindow(IMainViewModel viewModel, IDatabaseService? ownedDatabaseService = null)
         {
             InitializeComponent();
 

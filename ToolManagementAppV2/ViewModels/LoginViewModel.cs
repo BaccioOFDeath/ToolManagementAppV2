@@ -28,7 +28,7 @@ namespace ToolManagementAppV2.ViewModels
     /// user successfully authenticates the <see cref="LoginSucceeded"/> event is raised
     /// and the authenticated user is stored in <see cref="System.Windows.Application.Current"/>.
     /// </summary>
-    public class LoginViewModel : ObservableObject
+    public class LoginViewModel : ObservableObject, ILoginViewModel
     {
         readonly IUserService _userService;
         readonly ISettingsService _settingsService;
