@@ -36,13 +36,19 @@ namespace ToolManagementAppV2.Utilities.Helpers
 
         public static string HashPassword(string password, out string salt)
         {
-            var result = HashPasswordAsync(password).GetAwaiter().GetResult();
-            salt = result.salt;
-            return result.hash;
+            var saltBytes = new byte[16];
+            RandomNumberGenerator.Fill(saltBytes);
+            salt = Convert.ToBase64String(saltBytes);
+            return HashPassword(password, salt);
         }
 
-        public static string HashPassword(string password, string salt) =>
-            HashPasswordAsync(password, salt).GetAwaiter().GetResult();
+        public static string HashPassword(string password, string salt)
+        {
+            var saltBytes = Convert.FromBase64String(salt);
+            var iterations = GetIterations();
+            using var pbkdf2 = new Rfc2898DeriveBytes(password, saltBytes, iterations, HashAlgorithmName.SHA256);
+            return Convert.ToBase64String(pbkdf2.GetBytes(32));
+        }
 
         public static async Task<(string hash, string salt)> HashPasswordAsync(string password)
         {
@@ -64,12 +70,14 @@ namespace ToolManagementAppV2.Utilities.Helpers
         public static bool VerifyPassword(string password, string salt, string hash)
         {
             if (string.IsNullOrEmpty(salt) || string.IsNullOrEmpty(hash)) return false;
-            var computed = HashPassword(password, salt);
             try
             {
-                var computedBytes = Convert.FromBase64String(computed);
+                var saltBytes = Convert.FromBase64String(salt);
                 var hashBytes = Convert.FromBase64String(hash);
-                return CryptographicOperations.FixedTimeEquals(computedBytes, hashBytes);
+                var iterations = GetIterations();
+                using var pbkdf2 = new Rfc2898DeriveBytes(password, saltBytes, iterations, HashAlgorithmName.SHA256);
+                var computed = pbkdf2.GetBytes(32);
+                return CryptographicOperations.FixedTimeEquals(computed, hashBytes);
             }
             catch (FormatException)
             {
@@ -80,12 +88,14 @@ namespace ToolManagementAppV2.Utilities.Helpers
         public static async Task<bool> VerifyPasswordAsync(string password, string salt, string hash)
         {
             if (string.IsNullOrEmpty(salt) || string.IsNullOrEmpty(hash)) return false;
-            var computed = await HashPasswordAsync(password, salt).ConfigureAwait(false);
             try
             {
-                var computedBytes = Convert.FromBase64String(computed);
+                var saltBytes = Convert.FromBase64String(salt);
                 var hashBytes = Convert.FromBase64String(hash);
-                return CryptographicOperations.FixedTimeEquals(computedBytes, hashBytes);
+                var iterations = await GetIterationsAsync().ConfigureAwait(false);
+                using var pbkdf2 = new Rfc2898DeriveBytes(password, saltBytes, iterations, HashAlgorithmName.SHA256);
+                var computed = pbkdf2.GetBytes(32);
+                return CryptographicOperations.FixedTimeEquals(computed, hashBytes);
             }
             catch (FormatException)
             {

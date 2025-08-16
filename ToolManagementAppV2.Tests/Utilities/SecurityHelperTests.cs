@@ -65,6 +65,28 @@ namespace ToolManagementAppV2.Tests.Utilities
         }
 
         [Fact]
+        public async Task HashPasswordAsync_ReturnsExpectedHash()
+        {
+            SecurityHelper.SettingsService = null;
+            var saltBytes = Encoding.UTF8.GetBytes("1234567890ABCDEF");
+            var salt = Convert.ToBase64String(saltBytes);
+
+            using var pbkdf2 = new Rfc2898DeriveBytes("secret", saltBytes, 100_000, HashAlgorithmName.SHA256);
+            var expected = Convert.ToBase64String(pbkdf2.GetBytes(32));
+            var actual = await SecurityHelper.HashPasswordAsync("secret", salt);
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public async Task VerifyPasswordAsync_ReturnsTrueForValidHash()
+        {
+            SecurityHelper.SettingsService = null;
+            var (hash, salt) = await SecurityHelper.HashPasswordAsync("secret");
+            var result = await SecurityHelper.VerifyPasswordAsync("secret", salt, hash);
+            Assert.True(result);
+        }
+
+        [Fact]
         public void HashPassword_OnlyFetchesIterationsOnceAcrossThreads()
         {
             var settings = new CountingSettingsService(5);

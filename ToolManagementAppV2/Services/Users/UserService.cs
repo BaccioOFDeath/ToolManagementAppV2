@@ -124,7 +124,7 @@ namespace ToolManagementAppV2.Services.Users
             }
             else
             {
-                success = SecurityHelper.VerifyPassword(password ?? string.Empty, u.Salt, u.Password);
+                success = await SecurityHelper.VerifyPasswordAsync(password ?? string.Empty, u.Salt, u.Password).ConfigureAwait(false);
             }
 
             if (success)

@@ -221,7 +221,7 @@ namespace ToolManagementAppV2.ViewModels
 
             if (!user.IsAdmin &&
                 (string.IsNullOrWhiteSpace(user.Password) ||
-                 SecurityHelper.VerifyPassword("newpassword", user.Salt, user.Password)))
+                 await SecurityHelper.VerifyPasswordAsync("newpassword", user.Salt, user.Password).ConfigureAwait(false)))
             {
                 if (user.PasswordExpired && !PromptChangePassword(user))
                     return;
