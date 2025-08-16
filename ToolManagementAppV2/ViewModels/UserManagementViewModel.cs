@@ -155,6 +155,7 @@ namespace ToolManagementAppV2.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to retrieve existing users");
+                await _dialogService.ShowInfoAsync($"Failed to retrieve existing users: {ex.Message}", "Error");
                 return;
             }
 
@@ -189,6 +190,7 @@ namespace ToolManagementAppV2.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to add user");
+                await _dialogService.ShowInfoAsync($"Failed to add user: {ex.Message}", "Error");
             }
         }
 
@@ -211,6 +213,7 @@ namespace ToolManagementAppV2.ViewModels
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to prompt for password");
+                    _dialogService.ShowInfo($"Failed to prompt for password: {ex.Message}", "Error");
                 }
             }
 
@@ -289,18 +292,26 @@ namespace ToolManagementAppV2.ViewModels
         async Task ResetPasswordFor(UserModel user)
         {
             if (user == null) return;
-            var newPassword = SecurityHelper.GeneratePassword();
-            await _userService.ChangeUserPasswordAsync(user.UserID, newPassword);
-            var refreshed = await _userService.GetUserByIDAsync(user.UserID);
-            if (refreshed != null)
+            try
             {
-                refreshed.PasswordExpired = true;
-                await _userService.UpdateUserAsync(refreshed);
-                user.Password = refreshed.Password;
-                user.Salt = refreshed.Salt;
-                user.PasswordExpired = true;
+                var newPassword = SecurityHelper.GeneratePassword();
+                await _userService.ChangeUserPasswordAsync(user.UserID, newPassword);
+                var refreshed = await _userService.GetUserByIDAsync(user.UserID);
+                if (refreshed != null)
+                {
+                    refreshed.PasswordExpired = true;
+                    await _userService.UpdateUserAsync(refreshed);
+                    user.Password = refreshed.Password;
+                    user.Salt = refreshed.Salt;
+                    user.PasswordExpired = true;
+                }
+                _dialogService.ShowInfo("Password has been reset. The user must change it at next login.", "Password Reset");
             }
-            _dialogService.ShowInfo("Password has been reset. The user must change it at next login.", "Password Reset");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to reset password for user {UserID}", user.UserID);
+                await _dialogService.ShowInfoAsync($"Failed to reset password: {ex.Message}", "Error");
+            }
         }
 
         async Task DeleteUserAsync(UserModel user)
@@ -324,6 +335,7 @@ namespace ToolManagementAppV2.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to delete user {UserID}", user.UserID);
+                await _dialogService.ShowInfoAsync($"Failed to delete user: {ex.Message}", "Error");
             }
         }
     }

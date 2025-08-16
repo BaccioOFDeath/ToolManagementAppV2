@@ -175,43 +175,81 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenSearchToolsCommand = new AsyncRelayCommand(async () =>
             {
-                await ToolManagement.LoadToolsAsync();
-                var page = new ToolSearchPage { DataContext = ToolManagement, Title = "Search Tools" };
-                // If your ToolManagement VM supports a query setter, apply GlobalSearchText there.
-                CurrentPage = page;
+                try
+                {
+                    await ToolManagement.LoadToolsAsync();
+                    var page = new ToolSearchPage { DataContext = ToolManagement, Title = "Search Tools" };
+                    CurrentPage = page;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open search tools page");
+                    await _dialogService.ShowInfoAsync($"Failed to open search tools page: {ex.Message}", "Error");
+                }
             });
 
             OpenManageToolsCommand = new AsyncRelayCommand(async () =>
             {
-                await ToolManagement.LoadToolsAsync();
-                var page = new ManageToolsPage { DataContext = ToolManagement, Title = "Manage Tools" };
-                CurrentPage = page;
+                try
+                {
+                    await ToolManagement.LoadToolsAsync();
+                    var page = new ManageToolsPage { DataContext = ToolManagement, Title = "Manage Tools" };
+                    CurrentPage = page;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open manage tools page");
+                    await _dialogService.ShowInfoAsync($"Failed to open manage tools page: {ex.Message}", "Error");
+                }
             });
 
             OpenRentalsCommand = new AsyncRelayCommand(async () =>
             {
-                await ManageRentals.LoadRentalsAsync();
-                var page = new ManageRentalsPage { DataContext = ManageRentals, Title = "Manage Rentals" };
-                CurrentPage = page;
+                try
+                {
+                    await ManageRentals.LoadRentalsAsync();
+                    var page = new ManageRentalsPage { DataContext = ManageRentals, Title = "Manage Rentals" };
+                    CurrentPage = page;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open rentals page");
+                    await _dialogService.ShowInfoAsync($"Failed to open rentals page: {ex.Message}", "Error");
+                }
             });
 
             OpenCustomersCommand = new AsyncRelayCommand(async () =>
             {
-                await CustomerManagement.LoadCustomersAsync();
-                var page = new CustomersPage { DataContext = CustomerManagement, Title = "Customers" };
-                CurrentPage = page;
+                try
+                {
+                    await CustomerManagement.LoadCustomersAsync();
+                    var page = new CustomersPage { DataContext = CustomerManagement, Title = "Customers" };
+                    CurrentPage = page;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open customers page");
+                    await _dialogService.ShowInfoAsync($"Failed to open customers page: {ex.Message}", "Error");
+                }
             });
 
             OpenUsersCommand = new AsyncRelayCommand(async () =>
             {
-                await UserManagement.LoadUsersAsync();
-                var page = new UsersPage
+                try
                 {
-                    // UsersPage expects a UserManagementViewModel as its DataContext
-                    DataContext = UserManagement,
-                    Title = "Users"
-                };
-                CurrentPage = page;
+                    await UserManagement.LoadUsersAsync();
+                    var page = new UsersPage
+                    {
+                        DataContext = UserManagement,
+                        Title = "Users"
+                    };
+                    CurrentPage = page;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open users page");
+                    await _dialogService.ShowInfoAsync($"Failed to open users page: {ex.Message}", "Error");
+                }
             });
 
             OpenSettingsCommand = new RelayCommand(() =>
@@ -232,9 +270,17 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenActivityLogsCommand = new AsyncRelayCommand(async () =>
             {
-                await ActivityLogs.LoadLogsAsync();
-                var page = new ActivityLogsPage { DataContext = ActivityLogs, Title = "Activity Logs" };
-                CurrentPage = page;
+                try
+                {
+                    await ActivityLogs.LoadLogsAsync();
+                    var page = new ActivityLogsPage { DataContext = ActivityLogs, Title = "Activity Logs" };
+                    CurrentPage = page;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open activity logs page");
+                    await _dialogService.ShowInfoAsync($"Failed to open activity logs page: {ex.Message}", "Error");
+                }
             });
 
             OpenReportsCommand = new RelayCommand(() =>
@@ -294,14 +340,30 @@ namespace ToolManagementAppV2.ViewModels
             OpenRentalHistoryWindowCommand = new AsyncRelayCommand<ToolModel?>(async tool =>
             {
                 if (tool == null) return;
-                var history = await _rentalService.GetRentalHistoryForToolAsync(tool.ToolID);
-                _dialogService.ShowRentalHistory(tool, history);
+                try
+                {
+                    var history = await _rentalService.GetRentalHistoryForToolAsync(tool.ToolID);
+                    _dialogService.ShowRentalHistory(tool, history);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open rental history window");
+                    await _dialogService.ShowInfoAsync($"Failed to open rental history: {ex.Message}", "Error");
+                }
             }, tool => tool != null);
 
             OpenPrintPreviewWindowCommand = new RelayCommand(() =>
             {
-                var doc = new FlowDocument(new Paragraph(new Run("Preview document")));
-                _dialogService.ShowPrintPreview(doc, "Print Preview", string.Empty);
+                try
+                {
+                    var doc = new FlowDocument(new Paragraph(new Run("Preview document")));
+                    _dialogService.ShowPrintPreview(doc, "Print Preview", string.Empty);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open print preview");
+                    _dialogService.ShowInfo($"Failed to open print preview: {ex.Message}", "Error");
+                }
             });
 
             OpenPrintLabelWindowCommand = new RelayCommand(() =>
@@ -319,7 +381,15 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenScannerStatusWindowCommand = new RelayCommand(() =>
             {
-                _dialogService.ShowScannerStatus();
+                try
+                {
+                    _dialogService.ShowScannerStatus();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open scanner status window");
+                    _dialogService.ShowInfo($"Failed to open scanner status: {ex.Message}", "Error");
+                }
             });
 
             OpenDashboardCommand.Execute(null);
@@ -368,10 +438,18 @@ namespace ToolManagementAppV2.ViewModels
             var selector = _dialogService.ShowImageImportMapping();
             if (selector != null)
             {
-                var result = await _toolService.ImportToolImagesAsync(dlg.SelectedPath, selector, CancellationToken.None);
-                _dialogService.ShowInfo(
-                    $"Imported {result.ImportedCount} images. Unmatched: {result.UnmatchedFiles.Count}, Conflicts: {result.ConflictingFiles.Count}",
-                    "Import Images");
+                try
+                {
+                    var result = await _toolService.ImportToolImagesAsync(dlg.SelectedPath, selector, CancellationToken.None);
+                    _dialogService.ShowInfo(
+                        $"Imported {result.ImportedCount} images. Unmatched: {result.UnmatchedFiles.Count}, Conflicts: {result.ConflictingFiles.Count}",
+                        "Import Images");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to import tool images");
+                    _dialogService.ShowInfo($"Failed to import images: {ex.Message}", "Import Images");
+                }
             }
         }
 
