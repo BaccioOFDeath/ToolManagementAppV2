@@ -27,7 +27,7 @@ namespace ToolManagementAppV2.Services.Devices
             cancellationToken.ThrowIfCancellationRequested();
 
             using var semaphore = new SemaphoreSlim(5);
-            var tasks = _settingsService.GetScannerIpAddresses().Distinct().Select(async ip =>
+            var tasks = _settingsService.GetScannerIpAddresses(cancellationToken).Distinct().Select(async ip =>
             {
                 await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
                 try

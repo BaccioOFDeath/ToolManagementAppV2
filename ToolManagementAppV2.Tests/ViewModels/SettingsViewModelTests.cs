@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Interfaces;
@@ -159,48 +160,48 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public string SavedValue { get; private set; }
         public string? GetSettingValue { get; set; } = string.Empty;
 
-        public void SaveSetting(string key, string value)
+        public void SaveSetting(string key, string value, CancellationToken cancellationToken = default)
         {
             SavedKey = key;
             SavedValue = value;
         }
 
-        public string? GetSetting(string key) => GetSettingValue;
-        public Dictionary<string, string> GetAllSettings() => new();
-        public void UpdateSettings(Dictionary<string, string> settings) { }
-        public void DeleteSetting(string key) { }
+        public string? GetSetting(string key, CancellationToken cancellationToken = default) => GetSettingValue;
+        public Dictionary<string, string> GetAllSettings(CancellationToken cancellationToken = default) => new();
+        public void UpdateSettings(Dictionary<string, string> settings, CancellationToken cancellationToken = default) { }
+        public void DeleteSetting(string key, CancellationToken cancellationToken = default) { }
         public IEnumerable<string> ScannerIps { get; set; } = Array.Empty<string>();
-        public IEnumerable<string> GetScannerIpAddresses() => ScannerIps;
-        public IEnumerable<string> SaveScannerIpAddresses(IEnumerable<string>? ipAddresses)
+        public IEnumerable<string> GetScannerIpAddresses(CancellationToken cancellationToken = default) => ScannerIps;
+        public IEnumerable<string> SaveScannerIpAddresses(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default)
         {
             ScannerIps = ipAddresses ?? Array.Empty<string>();
             return Array.Empty<string>();
         }
         public int PasswordIterations { get; set; } = 100_000;
-        public int GetPasswordIterations() => PasswordIterations;
-        public void SavePasswordIterations(int iterations) => PasswordIterations = iterations;
+        public int GetPasswordIterations(CancellationToken cancellationToken = default) => PasswordIterations;
+        public void SavePasswordIterations(int iterations, CancellationToken cancellationToken = default) => PasswordIterations = iterations;
 
-        public Task SaveSettingAsync(string key, string value)
+        public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default)
         {
             SaveSetting(key, value);
             return Task.CompletedTask;
         }
-        public Task<string?> GetSettingAsync(string key) => Task.FromResult(GetSetting(key));
-        public Task<Dictionary<string, string>> GetAllSettingsAsync() => Task.FromResult(GetAllSettings());
-        public Task UpdateSettingsAsync(Dictionary<string, string> settings)
+        public Task<string?> GetSettingAsync(string key, CancellationToken cancellationToken = default) => Task.FromResult(GetSetting(key));
+        public Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default) => Task.FromResult(GetAllSettings());
+        public Task UpdateSettingsAsync(Dictionary<string, string> settings, CancellationToken cancellationToken = default)
         {
             UpdateSettings(settings);
             return Task.CompletedTask;
         }
-        public Task DeleteSettingAsync(string key)
+        public Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default)
         {
             DeleteSetting(key);
             return Task.CompletedTask;
         }
-        public Task<IEnumerable<string>> GetScannerIpAddressesAsync() => Task.FromResult(GetScannerIpAddresses());
-        public Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses) => Task.FromResult(SaveScannerIpAddresses(ipAddresses));
-        public Task<int> GetPasswordIterationsAsync() => Task.FromResult(GetPasswordIterations());
-        public Task SavePasswordIterationsAsync(int iterations)
+        public Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default) => Task.FromResult(GetScannerIpAddresses());
+        public Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default) => Task.FromResult(SaveScannerIpAddresses(ipAddresses));
+        public Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default) => Task.FromResult(GetPasswordIterations());
+        public Task SavePasswordIterationsAsync(int iterations, CancellationToken cancellationToken = default)
         {
             SavePasswordIterations(iterations);
             return Task.CompletedTask;
