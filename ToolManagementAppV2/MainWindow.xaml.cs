@@ -27,5 +27,9 @@ namespace ToolManagementAppV2
 
             Closed += (_, __) => _ownedDb?.Dispose();
         }
+
+        void IMainWindow.Activate() => base.Activate();
+
+        void IMainWindow.Focus() => base.Focus();
     }
 }
