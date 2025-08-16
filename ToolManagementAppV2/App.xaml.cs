@@ -24,7 +24,7 @@ using ToolManagementAppV2.Services.Devices;
 
 namespace ToolManagementAppV2
 {
-    public partial class App : Application
+    public partial class App : System.Windows.Application
     {
         public IHost Host { get; }
 
