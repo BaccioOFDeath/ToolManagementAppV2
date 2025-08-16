@@ -1,0 +1,80 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Models;
+using ToolManagementAppV2.Models.Domain;
+using ToolManagementAppV2.Models.ImportExport;
+
+namespace ToolManagementAppV2.Tests;
+
+public static class AsyncServiceExtensions
+{
+    // ToolService wrappers
+    public static void AddTool(this IToolService svc, Tool tool, CancellationToken token = default)
+        => svc.AddToolAsync(tool, token).GetAwaiter().GetResult();
+    public static void UpdateTool(this IToolService svc, Tool tool, CancellationToken token = default)
+        => svc.UpdateToolAsync(tool, token).GetAwaiter().GetResult();
+    public static void DeleteTool(this IToolService svc, int id, CancellationToken token = default)
+        => svc.DeleteToolAsync(id, token).GetAwaiter().GetResult();
+    public static Tool? GetToolByID(this IToolService svc, int id, CancellationToken token = default)
+        => svc.GetToolByIDAsync(id, token).GetAwaiter().GetResult();
+    public static List<Tool> GetAllTools(this IToolService svc, CancellationToken token = default)
+        => svc.GetAllToolsAsync(token).GetAwaiter().GetResult();
+    public static List<Tool> SearchTools(this IToolService svc, string? text, CancellationToken token = default)
+        => svc.SearchToolsAsync(text, token).GetAwaiter().GetResult();
+
+    // CustomerService wrappers
+    public static void AddCustomer(this ICustomerService svc, Customer customer)
+        => svc.AddCustomerAsync(customer).GetAwaiter().GetResult();
+    public static void UpdateCustomer(this ICustomerService svc, Customer customer)
+        => svc.UpdateCustomerAsync(customer).GetAwaiter().GetResult();
+    public static void DeleteCustomer(this ICustomerService svc, int id)
+        => svc.DeleteCustomerAsync(id).GetAwaiter().GetResult();
+    public static Customer GetCustomerByID(this ICustomerService svc, int id)
+        => svc.GetCustomerByIDAsync(id).GetAwaiter().GetResult();
+    public static List<Customer> GetAllCustomers(this ICustomerService svc)
+        => svc.GetAllCustomersAsync().GetAwaiter().GetResult();
+    public static List<Customer> SearchCustomers(this ICustomerService svc, string term)
+        => svc.SearchCustomersAsync(term).GetAwaiter().GetResult();
+    public static CustomerImportResult ImportCustomersFromCsv(this ICustomerService svc, string path, IDictionary<string,string> map)
+        => svc.ImportCustomersFromCsvAsync(path, map).GetAwaiter().GetResult();
+    public static void ExportCustomersToCsv(this ICustomerService svc, string path)
+        => svc.ExportCustomersToCsvAsync(path).GetAwaiter().GetResult();
+
+    // RentalService wrappers
+    public static void RentTool(this IRentalService svc, int toolID, int customerID, DateTime rentalDate, DateTime dueDate)
+        => svc.RentToolAsync(toolID, customerID, rentalDate, dueDate).GetAwaiter().GetResult();
+    public static void ReturnTool(this IRentalService svc, int rentalID, DateTime returnDate)
+        => svc.ReturnToolAsync(rentalID, returnDate).GetAwaiter().GetResult();
+    public static void ExtendRental(this IRentalService svc, int rentalID, DateTime newDueDate)
+        => svc.ExtendRentalAsync(rentalID, newDueDate).GetAwaiter().GetResult();
+    public static void DeleteRental(this IRentalService svc, int rentalID)
+        => svc.DeleteRentalAsync(rentalID).GetAwaiter().GetResult();
+    public static List<Rental> GetActiveRentals(this IRentalService svc)
+        => svc.GetActiveRentalsAsync().GetAwaiter().GetResult();
+    public static List<Rental> GetOverdueRentals(this IRentalService svc)
+        => svc.GetOverdueRentalsAsync().GetAwaiter().GetResult();
+    public static List<Rental> GetAllRentals(this IRentalService svc)
+        => svc.GetAllRentalsAsync().GetAwaiter().GetResult();
+    public static List<Rental> GetRentalHistoryForTool(this IRentalService svc, int toolID)
+        => svc.GetRentalHistoryForToolAsync(toolID).GetAwaiter().GetResult();
+    public static List<Rental> GetRentalHistoryForCustomer(this IRentalService svc, int customerID)
+        => svc.GetRentalHistoryForCustomerAsync(customerID).GetAwaiter().GetResult();
+
+    // UserService wrappers
+    public static List<User> GetAllUsers(this IUserService svc)
+        => svc.GetAllUsersAsync().GetAwaiter().GetResult();
+    public static User? GetUserByID(this IUserService svc, int id)
+        => svc.GetUserByIDAsync(id).GetAwaiter().GetResult();
+    public static User? AuthenticateUser(this IUserService svc, string userName, string password)
+        => svc.AuthenticateUserAsync(userName, password).GetAwaiter().GetResult();
+    public static User? GetCurrentUser(this IUserService svc)
+        => svc.GetCurrentUserAsync().GetAwaiter().GetResult();
+    public static void AddUser(this IUserService svc, User user)
+        => svc.AddUserAsync(user).GetAwaiter().GetResult();
+    public static void UpdateUser(this IUserService svc, User user)
+        => svc.UpdateUserAsync(user).GetAwaiter().GetResult();
+    public static bool ChangeUserPassword(this IUserService svc, int id, string newPassword)
+        => svc.ChangeUserPasswordAsync(id, newPassword).GetAwaiter().GetResult();
+}

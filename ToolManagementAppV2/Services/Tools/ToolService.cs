@@ -82,7 +82,7 @@ namespace ToolManagementAppV2.Services.Tools
             => ExportToolsToCsvInternalAsync(filePath, cancellationToken);
 
         public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector, CancellationToken cancellationToken = default)
-            => Task.Run(() => ImportToolImagesInternal(folderPath, keySelector, cancellationToken), cancellationToken);
+            => ImportToolImagesInternalAsync(folderPath, keySelector, cancellationToken);
 
         async Task InsertToolAsync(SQLiteConnection conn, SQLiteTransaction? tran, ToolModel tool, CancellationToken cancellationToken)
         {
@@ -110,14 +110,14 @@ namespace ToolManagementAppV2.Services.Tools
                 tool.ToolID = Convert.ToInt32(result);
         }
     
-        private ImageImportResult ImportToolImagesInternal(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector, CancellationToken cancellationToken)
+        private async Task<ImageImportResult> ImportToolImagesInternalAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector, CancellationToken cancellationToken)
         {
             var result = new ImageImportResult();
             if (string.IsNullOrWhiteSpace(folderPath) || keySelector == null)
                 return result;
 
             cancellationToken.ThrowIfCancellationRequested();
-            var tools = GetAllToolsAsync(cancellationToken).GetAwaiter().GetResult();
+            var tools = await GetAllToolsAsync(cancellationToken);
             var groups = new Dictionary<string, List<ToolModel>>(StringComparer.OrdinalIgnoreCase);
             foreach (var tool in tools)
             {
@@ -190,7 +190,7 @@ namespace ToolManagementAppV2.Services.Tools
                     }
                 }
                 var relative = $"Images/{Path.GetFileName(dest)}";
-                UpdateToolImageAsync(tool.ToolID, relative, cancellationToken).GetAwaiter().GetResult();
+                await UpdateToolImageAsync(tool.ToolID, relative, cancellationToken);
                 result.ImportedCount++;
             }
 

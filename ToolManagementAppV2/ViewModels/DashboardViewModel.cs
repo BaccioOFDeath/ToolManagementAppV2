@@ -80,9 +80,12 @@ namespace ToolManagementAppV2.ViewModels
                 StatCards.Clear();
                 var tools = await _toolService.GetAllToolsAsync(CancellationToken.None);
                 StatCards.Add(new StatCard { Title = "Total Tools", Value = tools.Count.ToString() });
-                StatCards.Add(new StatCard { Title = "Active Rentals", Value = _rentalService.GetActiveRentals().Count.ToString() });
-                StatCards.Add(new StatCard { Title = "Total Customers", Value = _customerService.GetAllCustomers().Count.ToString() });
-                StatCards.Add(new StatCard { Title = "Total Users", Value = _userService.GetAllUsers().Count.ToString() });
+                var activeRentals = await _rentalService.GetActiveRentalsAsync();
+                var customers = await _customerService.GetAllCustomersAsync();
+                var users = await _userService.GetAllUsersAsync();
+                StatCards.Add(new StatCard { Title = "Active Rentals", Value = activeRentals.Count.ToString() });
+                StatCards.Add(new StatCard { Title = "Total Customers", Value = customers.Count.ToString() });
+                StatCards.Add(new StatCard { Title = "Total Users", Value = users.Count.ToString() });
             }
             catch (Exception ex)
             {

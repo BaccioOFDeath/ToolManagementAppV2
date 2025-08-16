@@ -17,7 +17,6 @@ namespace ToolManagementAppV2.Interfaces
         /// <param name="customerID">Identifier of the customer renting the tool.</param>
         /// <param name="rentalDate">The date the rental begins.</param>
         /// <param name="dueDate">The date the tool is due to be returned.</param>
-        void RentTool(int toolID, int customerID, DateTime rentalDate, DateTime dueDate);
         Task RentToolAsync(int toolID, int customerID, DateTime rentalDate, DateTime dueDate);
 
         /// <summary>
@@ -27,21 +26,13 @@ namespace ToolManagementAppV2.Interfaces
         /// </summary>
         /// <param name="rentalID">Identifier of the rental record.</param>
         /// <param name="returnDate">The date the tool is returned.</param>
-        void ReturnTool(int rentalID, DateTime returnDate);
         Task ReturnToolAsync(int rentalID, DateTime returnDate);
-        void ExtendRental(int rentalID, DateTime newDueDate);
         Task ExtendRentalAsync(int rentalID, DateTime newDueDate);
-        void DeleteRental(int rentalID);
         Task DeleteRentalAsync(int rentalID);
-        List<Rental> GetActiveRentals();
         Task<List<Rental>> GetActiveRentalsAsync();
-        List<Rental> GetOverdueRentals();
         Task<List<Rental>> GetOverdueRentalsAsync();
-        List<Rental> GetAllRentals();
         Task<List<Rental>> GetAllRentalsAsync();
-        List<Rental> GetRentalHistoryForTool(int toolID);
         Task<List<Rental>> GetRentalHistoryForToolAsync(int toolID);
-        List<Rental> GetRentalHistoryForCustomer(int customerID);
         Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID);
     }
 }
