@@ -7,6 +7,7 @@ using System.Windows.Threading;
 using ToolManagementAppV2.Services;
 using ToolManagementAppV2.Views;
 using Xunit;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ToolManagementAppV2.Tests.Views
 {
@@ -21,7 +22,8 @@ namespace ToolManagementAppV2.Tests.Views
                 try
                 {
                     var app = new System.Windows.Application();
-                    var service = new DialogService();
+                    var serviceProvider = new ServiceCollection().BuildServiceProvider();
+                    var service = new DialogService(serviceProvider);
                     var task = service.ShowInfoAsync("Message", "Title");
                     System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                     {
@@ -52,7 +54,8 @@ namespace ToolManagementAppV2.Tests.Views
                 try
                 {
                     var app = new System.Windows.Application();
-                    var service = new DialogService();
+                    var serviceProvider = new ServiceCollection().BuildServiceProvider();
+                    var service = new DialogService(serviceProvider);
                     var task = service.ShowConfirmationAsync("?", "Confirm");
                     System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                     {

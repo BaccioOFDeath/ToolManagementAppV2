@@ -3,18 +3,20 @@ using System;
 using System.Windows;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.ViewModels;
-using ToolManagementAppV2.Services.Core;
+using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities.Extensions;
 
 namespace ToolManagementAppV2.Views
 {
     public partial class ToolEditWindow : Window
     {
-        public ToolEditWindow(ToolModel tool, Action onSave, Action onCancel)
+        private readonly IFileDialogService _fileDialogService;
+
+        public ToolEditWindow(ToolModel tool, Action onSave, Action onCancel, IFileDialogService fileDialogService)
         {
             InitializeComponent();
-            var fileDialog = new FileDialogService();
-            DataContext = new ToolEditViewModel(tool, onSave, onCancel, fileDialog);
+            _fileDialogService = fileDialogService;
+            DataContext = new ToolEditViewModel(tool, onSave, onCancel, _fileDialogService);
             this.DisposeDataContextOnUnload();
         }
     }

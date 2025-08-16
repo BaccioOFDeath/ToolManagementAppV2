@@ -3,7 +3,6 @@ using System;
 using System.Windows;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
-using ToolManagementAppV2.Services;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Utilities.Extensions;
 
@@ -13,6 +12,7 @@ namespace ToolManagementAppV2.Views
     {
         private const int MaxAttempts = 2;
         private int _attemptCount;
+        private readonly IDialogService _dialogService;
 
         public PasswordPromptViewModel VM => (PasswordPromptViewModel)DataContext;
         public string EnteredPassword => VM.EnteredPassword;
@@ -35,16 +35,15 @@ namespace ToolManagementAppV2.Views
         public PasswordPromptWindow(IDialogService dialogService)
         {
             InitializeComponent();
+            _dialogService = dialogService;
             DataContext = new PasswordPromptViewModel(
-                dialogService,
+                _dialogService,
                 () => { DialogResult = true; },
                 () => { DialogResult = false; },
                 ShowError);
             this.DisposeDataContextOnUnload();
             Loaded += OnLoaded;
         }
-
-        public PasswordPromptWindow() : this(new DialogService()) { }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {

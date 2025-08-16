@@ -22,13 +22,14 @@ namespace ToolManagementAppV2.Views
     /// </summary>
     public partial class PrintLabelWindow : Window
     {
+        private readonly IDialogService _dialogService;
+
         public PrintLabelWindow(IDialogService dialogService)
         {
             InitializeComponent();
-            DataContext = new PrintLabelViewModel(dialogService, () => Close());
+            _dialogService = dialogService;
+            DataContext = new PrintLabelViewModel(_dialogService, () => Close());
             this.DisposeDataContextOnUnload();
         }
-
-        public PrintLabelWindow() : this(new ToolManagementAppV2.Services.DialogService()) { }
     }
 }

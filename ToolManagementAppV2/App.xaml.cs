@@ -19,6 +19,8 @@ using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Utilities.Helpers;
+using ToolManagementAppV2.Views;
+using ToolManagementAppV2.Services.Devices;
 
 namespace ToolManagementAppV2
 {
@@ -72,8 +74,14 @@ namespace ToolManagementAppV2
                     services.AddSingleton<IFileDialogService, FileDialogService>();
                     services.AddSingleton<ISettingsService, SettingsService>();
                     services.AddSingleton<IDialogService, DialogService>();
+                    services.AddSingleton<IScannerService, ScannerService>();
                     services.AddSingleton<IMainViewModel, MainViewModel>();
                     services.AddSingleton<ILoginViewModel, LoginViewModel>();
+                    services.AddTransient<ToolEditWindow>();
+                    services.AddTransient<AvatarSelectionWindow>();
+                    services.AddTransient<ScannerStatusWindow>();
+                    services.AddTransient<PasswordPromptWindow>();
+                    services.AddTransient<PrintLabelWindow>();
                     services.AddSingleton<IMainWindow>(sp =>
                         new MainWindow(sp.GetRequiredService<IMainViewModel>()));
                     services.AddSingleton<ILoginWindow>(sp =>

@@ -5,6 +5,7 @@ using System.Windows;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Utilities.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ToolManagementAppV2.Views
 {
@@ -20,7 +21,7 @@ namespace ToolManagementAppV2.Views
         private void BrowseAvatar()
         {
             var vm = (UsersEditViewModel)DataContext;
-            var avatarWin = new AvatarSelectionWindow();
+            var avatarWin = ((App)Application.Current).Host.Services.GetRequiredService<AvatarSelectionWindow>();
 
             try { avatarWin.Owner = this; } catch { }
 

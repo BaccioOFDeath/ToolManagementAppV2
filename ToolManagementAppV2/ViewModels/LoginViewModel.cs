@@ -17,6 +17,7 @@ using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.Views;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -35,6 +36,7 @@ namespace ToolManagementAppV2.ViewModels
         readonly IDialogService _dialogService;
         readonly IUserContext _userContext;
         readonly ILogger<LoginViewModel> _logger;
+        readonly IServiceProvider? _serviceProvider;
 
         public ObservableCollection<User> Users { get; } = new();
 
@@ -83,22 +85,25 @@ namespace ToolManagementAppV2.ViewModels
         public Func<User, CancellationToken, Task<PasswordPromptResult?>>? PromptForPasswordAsync { get; set; }
             
 
-        public LoginViewModel(IUserService userService, ISettingsService settingsService, IDialogService dialogService, IUserContext userContext, ILogger<LoginViewModel>? logger = null)
+        public LoginViewModel(IUserService userService, ISettingsService settingsService, IDialogService dialogService, IUserContext userContext, ILogger<LoginViewModel>? logger = null, IServiceProvider? serviceProvider = null)
         {
             _settingsService = settingsService;
             _userService = userService;
             _dialogService = dialogService;
             _userContext = userContext;
             _logger = logger ?? NullLogger<LoginViewModel>.Instance;
+            _serviceProvider = serviceProvider;
 
             SelectUserCommand = new AsyncRelayCommand<User>(OnUserSelected);
 
             PromptForPasswordAsync = (u, ct) =>
             {
-                var prompt = new PasswordPromptWindow(_dialogService)
-                {
-                    SelectedUser = u
-                };
+                PasswordPromptWindow prompt;
+                if (_serviceProvider != null)
+                    prompt = _serviceProvider.GetRequiredService<PasswordPromptWindow>();
+                else
+                    prompt = new PasswordPromptWindow(_dialogService);
+                prompt.SelectedUser = u;
                 var result = prompt.ShowDialog();
                 if (result == true)
                     return Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult(prompt.EnteredPassword, prompt.IsPasswordResetRequested));

@@ -11,6 +11,7 @@ using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Services;
 using ToolManagementAppV2.ViewModels;
 using Xunit;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ToolManagementAppV2.Tests.Tests
 {
@@ -24,7 +25,8 @@ namespace ToolManagementAppV2.Tests.Tests
             var userContext = new ApplicationUserContext();
             var userService = new UserService(db, userContext);
             var settingsService = new SettingsService(db);
-            var vm = new LoginViewModel(userService, settingsService, new DialogService(), userContext);
+            var serviceProvider = new ServiceCollection().BuildServiceProvider();
+            var vm = new LoginViewModel(userService, settingsService, new DialogService(serviceProvider), userContext);
             var window = new LoginWindow(vm);
             var panel = window.UsersListBox.ItemsPanel.LoadContent();
             var stackPanel = Assert.IsType<VirtualizingStackPanel>(panel);
@@ -43,7 +45,8 @@ namespace ToolManagementAppV2.Tests.Tests
             var userContext = new ApplicationUserContext();
             var userService = new UserService(db, userContext);
             var settingsService = new SettingsService(db);
-            var vm = new LoginViewModel(userService, settingsService, new DialogService(), userContext);
+            var serviceProvider = new ServiceCollection().BuildServiceProvider();
+            var vm = new LoginViewModel(userService, settingsService, new DialogService(serviceProvider), userContext);
             var window = new LoginWindow(vm);
             window.UsersListBox.ItemsSource = Enumerable.Range(0, 1000)
                 .Select(i => new User { UserID = i, UserName = $"User {i}" })
