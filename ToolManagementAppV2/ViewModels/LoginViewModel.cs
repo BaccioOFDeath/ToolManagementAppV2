@@ -113,7 +113,10 @@ namespace ToolManagementAppV2.ViewModels
             LoadUsersCommand = new AsyncRelayCommand(LoadUsersAsync);
         }
 
-        public async Task InitializeAsync(CancellationToken cancellationToken = default)
+        public Task InitializeAsync()
+            => InitializeAsync(default);
+
+        public async Task InitializeAsync(CancellationToken cancellationToken)
         {
             CompanyLogo = await LoadLogoAsync(cancellationToken);
             WindowTitle = await GetWindowTitleAsync(cancellationToken);
