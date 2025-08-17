@@ -10,6 +10,54 @@ using Xunit;
 
 public class UserServiceTests
 {
+    class StubUserContext : IUserContext
+    {
+        public User? CurrentUser { get; set; }
+        public event EventHandler<User?>? UserChanged;
+        public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
+        public string UserName => CurrentUser?.UserName ?? string.Empty;
+        public string Role => CurrentUser?.Role ?? string.Empty;
+    }
+
+    [Fact]
+    public async Task AddUserAsync_AllowsSeedingAdminWithoutAuthorization()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            var ctx = new StubUserContext { CurrentUser = new User { UserName = "seed", IsAdmin = false } };
+            var auth = new AuthorizationService(ctx);
+            var userService = new UserService(dbService, ctx, auth);
+            var admin = new User { UserName = "admin", Password = "pw", IsAdmin = true };
+            await userService.AddUserAsync(admin);
+            Assert.NotEqual(0, admin.UserID);
+        }
+        finally
+        {
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public async Task AddUserAsync_RequiresAdminAfterSeeding()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            var ctx = new StubUserContext { CurrentUser = new User { UserName = "seed", IsAdmin = false } };
+            var auth = new AuthorizationService(ctx);
+            var userService = new UserService(dbService, ctx, auth);
+            var admin = new User { UserName = "admin", Password = "pw", IsAdmin = true };
+            await userService.AddUserAsync(admin);
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => userService.AddUserAsync(new User { UserName = "user", Password = "pw" }));
+        }
+        finally
+        {
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
     [Fact]
     public async Task TryDeleteUserAsync_ReturnsFalse_WhenDeletingOnlyAdmin()
     {
