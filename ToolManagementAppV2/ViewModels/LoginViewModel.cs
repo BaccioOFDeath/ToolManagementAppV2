@@ -210,6 +210,10 @@ namespace ToolManagementAppV2.ViewModels
         {
             if (user == null) return;
 
+            var dbUser = await _userService.GetUserByIDAsync(user.UserID);
+            if (dbUser == null) return;
+            user = dbUser;
+
             if (user.IsAdmin && string.IsNullOrWhiteSpace(user.Password))
             {
                 try

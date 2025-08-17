@@ -361,6 +361,32 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 if (File.Exists(dbPath)) File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public async Task SelectUserCommand_DoesNotResetAdminPassword_WhenPasswordPresentInDatabase()
+        {
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
+
+            var hashed = SecurityHelper.HashPassword("secret", out var salt);
+            var dbUser = new User { UserID = 1, UserName = "admin", Password = hashed, Salt = salt, IsAdmin = true };
+            var userService = new OmittingPasswordUserService(dbUser);
+            var settingsService = new StubSettingsService();
+            var userContext = new ApplicationUserContext();
+
+            var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
+            {
+                PromptForPasswordAsync = (u, ct) => Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("secret", false))
+            };
+            await vm.LoadUsersCommand.ExecuteAsync(null);
+            bool success = false;
+            vm.LoginSucceeded += (_, __) => success = true;
+
+            await vm.SelectUserCommand.ExecuteAsync(vm.Users[0]);
+
+            Assert.True(success);
+            Assert.False(userService.ChangePasswordCalled);
+        }
     }
 
     class StubDialogService : IDialogService
@@ -439,6 +465,42 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
         public bool ChangeUserPassword(int userID, string newPassword) => throw new InvalidOperationException();
         public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => throw new InvalidOperationException();
+    }
+
+    class OmittingPasswordUserService : IUserService
+    {
+        readonly User _dbUser;
+        public bool ChangePasswordCalled { get; private set; }
+
+        public OmittingPasswordUserService(User dbUser)
+        {
+            _dbUser = dbUser;
+        }
+
+        public Task<List<User>> GetAllUsersAsync()
+            => Task.FromResult(new List<User>
+            {
+                new User { UserID = _dbUser.UserID, UserName = _dbUser.UserName, IsAdmin = _dbUser.IsAdmin }
+            });
+
+        public Task<User?> GetUserByIDAsync(int userID)
+            => Task.FromResult(userID == _dbUser.UserID ? _dbUser : null);
+
+        public Task<User?> AuthenticateUserAsync(string userName, string password)
+            => Task.FromResult(
+                userName == _dbUser.UserName && SecurityHelper.VerifyPassword(password, _dbUser.Salt, _dbUser.Password)
+                    ? _dbUser
+                    : null);
+
+        public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
+        public Task AddUserAsync(User user) => Task.CompletedTask;
+        public Task UpdateUserAsync(User user) => Task.CompletedTask;
+        public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
+        public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword)
+        {
+            ChangePasswordCalled = true;
+            return Task.FromResult(true);
+        }
     }
 
     class CapturingDialogService : IDialogService
