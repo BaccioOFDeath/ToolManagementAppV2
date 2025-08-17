@@ -32,10 +32,7 @@
                       AutoGenerateColumns="False"
                       SelectionMode="Single"
                       CanUserAddRows="False"
-                      EnableRowVirtualization="True"
-                      EnableColumnVirtualization="True"
-                      VirtualizingPanel.IsVirtualizing="True"
-                      VirtualizingPanel.VirtualizationMode="Recycling">
+                      Style="{StaticResource VirtualizedDataGridStyle}">
                 <DataGrid.Columns>
                     <DataGridTemplateColumn Header="Avatar" Width="60">
                         <DataGridTemplateColumn.CellTemplate>
