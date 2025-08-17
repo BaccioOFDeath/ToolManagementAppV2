@@ -29,7 +29,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         private class StubFileDialogService : IFileDialogService
         {
             public string? OpenPath { get; set; }
-            public string? OpenFile(string filter) => OpenPath;
+            public string? OpenFile(string filter, string? initialDirectory = null) => OpenPath;
             public string? SaveFile(string filter) => null;
         }
     }

@@ -109,7 +109,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
         class StubFileDialogService : IFileDialogService
         {
-            public string OpenFile(string filter) => null;
+            public string OpenFile(string filter, string? initialDirectory = null) => null;
             public string SaveFile(string filter) => null;
         }
     }

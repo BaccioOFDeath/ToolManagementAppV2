@@ -538,7 +538,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 class StubFileDialogService : IFileDialogService
 {
     public string FileToReturn { get; set; }
-    public string OpenFile(string filter) => FileToReturn;
+    public string OpenFile(string filter, string? initialDirectory = null) => FileToReturn;
     public string SaveFile(string filter) => FileToReturn;
 }
 

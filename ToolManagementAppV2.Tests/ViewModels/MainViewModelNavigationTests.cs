@@ -402,7 +402,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 class StubFileDialogService : ToolManagementAppV2.Interfaces.IFileDialogService
 {
     public string FileToOpen;
-    public string OpenFile(string filter) => FileToOpen;
+    public string OpenFile(string filter, string? initialDirectory = null) => FileToOpen;
     public string SaveFile(string filter) => null;
 }
 
