@@ -2,6 +2,7 @@
 <Window x:Class="ToolManagementAppV2.Views.ImportMappingWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:ToolManagementAppV2.Controls"
         Title="Import Mapping"
         Width="1200" Height="700"
         WindowStartupLocation="CenterScreen"
@@ -38,16 +39,10 @@
             </DataGrid>
         </Border>
 
-        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Style="{StaticResource PrimaryButton}"
-                    Content="OK"
-                    Width="140"
-                    Command="{Binding OkCommand}"/>
-            <Button Style="{StaticResource PrimaryButton}"
-                    Content="Cancel"
-                    Width="140"
-                    Margin="8,0,0,0"
-                    Command="{Binding CancelCommand}"/>
-        </StackPanel>
+        <controls:DialogButtonBar DockPanel.Dock="Bottom"
+                                  LeftButtonText="Cancel"
+                                  LeftCommand="{Binding CancelCommand}"
+                                  RightButtonText="OK"
+                                  RightCommand="{Binding OkCommand}"/>
     </DockPanel>
 </Window>

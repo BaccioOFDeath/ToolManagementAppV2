@@ -1,0 +1,15 @@
+<UserControl x:Class="ToolManagementAppV2.Controls.DialogButtonBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+        <Button Style="{StaticResource PrimaryButton}"
+                Content="{Binding LeftButtonText, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                Command="{Binding LeftCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                IsCancel="True"/>
+        <Button Style="{StaticResource PrimaryButton}"
+                Content="{Binding RightButtonText, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                Command="{Binding RightCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                Margin="8,0,0,0"
+                IsDefault="True"/>
+    </StackPanel>
+</UserControl>
