@@ -101,7 +101,13 @@
 
  <ItemGroup>
    <Page Remove="Resources\Colors.xaml" />
-   <Page Remove="Resources\Templates.xaml" />
+ </ItemGroup>
+
+ <ItemGroup>
+   <Page Include="Resources\Templates.xaml">
+     <Generator>MSBuild:Compile</Generator>
+     <SubType>Designer</SubType>
+   </Page>
  </ItemGroup>
 
   <ItemGroup>
@@ -241,11 +247,6 @@
     <Content Include="Resources\Avatars\9.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Resource Include="Resources\Templates.xaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Resource>
     <Resource Include="Resources\DefaultLogo.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
