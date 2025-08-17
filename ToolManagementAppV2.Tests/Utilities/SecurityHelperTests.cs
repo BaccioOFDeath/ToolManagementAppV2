@@ -23,7 +23,7 @@ namespace ToolManagementAppV2.Tests.Utilities
             {
                 var dbService = new DatabaseService(dbPath);
                 ISettingsService settings = new SettingsService(dbService);
-                settings.SavePasswordIterations(5);
+                settings.SavePasswordIterationsAsync(5).GetAwaiter().GetResult();
                 SecurityHelper.SettingsService = settings;
 
                 var saltBytes = Encoding.UTF8.GetBytes("1234567890ABCDEF");
@@ -143,33 +143,18 @@ namespace ToolManagementAppV2.Tests.Utilities
 
             public int Counter => _counter;
 
-            public int GetPasswordIterations(CancellationToken cancellationToken = default)
-            {
-                Interlocked.Increment(ref _counter);
-                return _iterations;
-            }
-
             public Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default)
             {
                 Interlocked.Increment(ref _counter);
                 return Task.FromResult(_iterations);
             }
-
-            public void SaveSetting(string key, string value, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public string? GetSetting(string key, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<string?> GetSettingAsync(string key, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Dictionary<string, string> GetAllSettings(CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public void UpdateSettings(Dictionary<string, string> settings, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task UpdateSettingsAsync(Dictionary<string, string> settings, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public void DeleteSetting(string key, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public IEnumerable<string> GetScannerIpAddresses(CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public IEnumerable<string> SaveScannerIpAddresses(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public void SavePasswordIterations(int iterations, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task SavePasswordIterationsAsync(int iterations, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         }
 
@@ -178,25 +163,15 @@ namespace ToolManagementAppV2.Tests.Utilities
             readonly int _iterations;
 
             public AsyncOnlySettingsService(int iterations) => _iterations = iterations;
-
-            public int GetPasswordIterations(CancellationToken cancellationToken = default) => 0;
             public Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default) => Task.FromResult(_iterations);
 
-            public void SaveSetting(string key, string value, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public string? GetSetting(string key, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<string?> GetSettingAsync(string key, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Dictionary<string, string> GetAllSettings(CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public void UpdateSettings(Dictionary<string, string> settings, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task UpdateSettingsAsync(Dictionary<string, string> settings, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public void DeleteSetting(string key, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public IEnumerable<string> GetScannerIpAddresses(CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public IEnumerable<string> SaveScannerIpAddresses(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public void SavePasswordIterations(int iterations, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task SavePasswordIterationsAsync(int iterations, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         }
     }

@@ -28,9 +28,6 @@ namespace ToolManagementAppV2.Services.Settings
             _logger = logger ?? NullLogger<SettingsService>.Instance;
         }
 
-        public void SaveSetting(string key, string value, CancellationToken cancellationToken = default)
-            => SaveSettingAsync(key, value, cancellationToken).GetAwaiter().GetResult();
-
         public async Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
@@ -64,9 +61,6 @@ namespace ToolManagementAppV2.Services.Settings
             }
         }
 
-        public string? GetSetting(string key, CancellationToken cancellationToken = default)
-            => GetSettingAsync(key, cancellationToken).GetAwaiter().GetResult();
-
         public async Task<string?> GetSettingAsync(string key, CancellationToken cancellationToken = default)
         {
             try
@@ -93,9 +87,6 @@ namespace ToolManagementAppV2.Services.Settings
                 throw new InvalidOperationException($"Failed to retrieve setting '{key}'.", ex);
             }
         }
-
-        public Dictionary<string, string> GetAllSettings(CancellationToken cancellationToken = default)
-            => GetAllSettingsAsync(cancellationToken).GetAwaiter().GetResult();
 
         public async Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default)
         {
@@ -137,9 +128,6 @@ namespace ToolManagementAppV2.Services.Settings
         /// <exception cref="InvalidOperationException">
         /// Thrown when a transaction cannot be started. The original exception is propagated to the caller.
         /// </exception>
-        public void UpdateSettings(Dictionary<string, string> settings, CancellationToken cancellationToken = default)
-            => UpdateSettingsAsync(settings, cancellationToken).GetAwaiter().GetResult();
-
         public async Task UpdateSettingsAsync(Dictionary<string, string> settings, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
@@ -187,9 +175,6 @@ namespace ToolManagementAppV2.Services.Settings
             }
         }
 
-        public void DeleteSetting(string key, CancellationToken cancellationToken = default)
-            => DeleteSettingAsync(key, cancellationToken).GetAwaiter().GetResult();
-
         public async Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
@@ -222,22 +207,6 @@ namespace ToolManagementAppV2.Services.Settings
         const string ScannerIpKey = "ScannerIpAddresses";
         const string PasswordIterationsKey = "PasswordIterations";
 
-        public IEnumerable<string> GetScannerIpAddresses(CancellationToken cancellationToken = default)
-        {
-            var value = GetSetting(ScannerIpKey, cancellationToken);
-            if (string.IsNullOrWhiteSpace(value))
-                return Array.Empty<string>();
-
-            var valid = new List<string>();
-            foreach (var ip in value.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-            {
-                if (IPAddress.TryParse(ip, out _))
-                    valid.Add(ip);
-            }
-
-            return valid;
-        }
-
         public async Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default)
         {
             var value = await GetSettingAsync(ScannerIpKey, cancellationToken).ConfigureAwait(false);
@@ -252,40 +221,6 @@ namespace ToolManagementAppV2.Services.Settings
             }
 
             return valid;
-        }
-
-        public IEnumerable<string> SaveScannerIpAddresses(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default)
-        {
-            if (ipAddresses == null)
-            {
-                DeleteSetting(ScannerIpKey, cancellationToken);
-                return Array.Empty<string>();
-            }
-
-            var valid = new List<string>();
-            var invalid = new List<string>();
-            foreach (var ip in ipAddresses)
-            {
-                if (IPAddress.TryParse(ip, out _))
-                    valid.Add(ip);
-                else
-                    invalid.Add(ip);
-            }
-
-            if (invalid.Count > 0)
-                _logger.LogWarning("Ignoring invalid IP addresses: {InvalidIps}", string.Join(", ", invalid));
-
-            if (valid.Count > 0)
-            {
-                var value = string.Join(';', valid);
-                SaveSetting(ScannerIpKey, value, cancellationToken);
-            }
-            else
-            {
-                DeleteSetting(ScannerIpKey, cancellationToken);
-            }
-
-            return invalid;
         }
 
         public async Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default)
@@ -324,19 +259,6 @@ namespace ToolManagementAppV2.Services.Settings
         }
 
         // Password hashing configuration
-        public int GetPasswordIterations(CancellationToken cancellationToken = default)
-        {
-            var value = GetSetting(PasswordIterationsKey, cancellationToken);
-            return int.TryParse(value, out var i) && i > 0 ? i : 100_000;
-        }
-
-        public void SavePasswordIterations(int iterations, CancellationToken cancellationToken = default)
-        {
-            if (iterations <= 0)
-                throw new ArgumentOutOfRangeException(nameof(iterations));
-            SaveSetting(PasswordIterationsKey, iterations.ToString(), cancellationToken);
-        }
-
         public async Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default)
         {
             var value = await GetSettingAsync(PasswordIterationsKey, cancellationToken).ConfigureAwait(false);
