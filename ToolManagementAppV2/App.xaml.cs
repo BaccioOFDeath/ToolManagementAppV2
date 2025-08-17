@@ -100,7 +100,7 @@ namespace ToolManagementAppV2
                 services.AddTransient<PrintLabelWindow>();
                 services.AddSingleton<IMainWindow>(sp =>
                     new MainWindow(sp.GetRequiredService<IMainViewModel>()));
-                services.AddSingleton<ILoginWindow>(sp =>
+                services.AddTransient<ILoginWindow>(sp =>
                     new LoginWindow(sp.GetRequiredService<ILoginViewModel>()));
             })
             .Build();
