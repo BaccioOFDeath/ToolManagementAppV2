@@ -164,9 +164,9 @@ namespace ToolManagementAppV2
             if (e != null) e.SetObserved();
         }
 
-        protected override void OnExit(ExitEventArgs e)
+        protected async override void OnExit(ExitEventArgs e)
         {
-            Host.StopAsync().GetAwaiter().GetResult();
+            await Host.StopAsync();
             Host.Dispose();
             Log.CloseAndFlush();
             base.OnExit(e);
