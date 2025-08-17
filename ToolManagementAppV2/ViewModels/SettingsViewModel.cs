@@ -2,6 +2,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
+using System.Threading;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Utilities.Helpers;
@@ -44,7 +46,7 @@ namespace ToolManagementAppV2.ViewModels
                 }
             });
             BrowseCompanyLogoCommand = new RelayCommand(BrowseCompanyLogo);
-            SaveCompanyLogoCommand = new RelayCommand(SaveCompanyLogo);
+            SaveCompanyLogoCommand = new AsyncRelayCommand(SaveCompanyLogoAsync);
         }
 
         private string _applicationName;
@@ -87,32 +89,43 @@ namespace ToolManagementAppV2.ViewModels
         public int PasswordIterations
         {
             get => _passwordIterations;
-            set
+            set => SetPasswordIterationsAsync(value).GetAwaiter().GetResult();
+        }
+
+        async Task SetPasswordIterationsAsync(int value, CancellationToken token = default)
+        {
+            if (value <= 0) return;
+            var newValue = value;
+            if (value > MaxPasswordIterations)
             {
-                if (value <= 0) return;
-                var newValue = value;
-                if (value > MaxPasswordIterations)
+                newValue = MaxPasswordIterations;
+                try
                 {
-                    newValue = MaxPasswordIterations;
-                    try
-                    {
-                        _dialogService.ShowInfo($"Password iterations cannot exceed {MaxPasswordIterations} and have been set to {MaxPasswordIterations}.", "Password Iterations");
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to display info dialog.");
-                    }
+                    _dialogService.ShowInfo($"Password iterations cannot exceed {MaxPasswordIterations} and have been set to {MaxPasswordIterations}.", "Password Iterations");
                 }
-                if (SetProperty(ref _passwordIterations, newValue))
+                catch (Exception ex)
                 {
-                    try
-                    {
-                        _settingsService.SavePasswordIterationsAsync(newValue).GetAwaiter().GetResult();
-                    }
-                    catch (UnauthorizedAccessException)
-                    {
-                        _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
-                    }
+                    _logger.LogError(ex, "Failed to display info dialog.");
+                }
+            }
+            if (SetProperty(ref _passwordIterations, newValue))
+            {
+                try
+                {
+                    await _settingsService.SavePasswordIterationsAsync(newValue, token).ConfigureAwait(false);
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    _logger.LogWarning(ex, "Unauthorized to change password iterations.");
+                    _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+                }
+                catch (OperationCanceledException ex)
+                {
+                    _logger.LogInformation(ex, "Saving password iterations was canceled.");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to save password iterations.");
                 }
             }
         }
@@ -121,7 +134,7 @@ namespace ToolManagementAppV2.ViewModels
 
         public IRelayCommand TestDbCommand { get; }
         public IRelayCommand BrowseCompanyLogoCommand { get; }
-        public IRelayCommand SaveCompanyLogoCommand { get; }
+        public IAsyncRelayCommand SaveCompanyLogoCommand { get; }
 
         internal bool TestDbConnection(out string message)
         {
@@ -147,7 +160,7 @@ namespace ToolManagementAppV2.ViewModels
                 CompanyLogoPath = path;
         }
 
-        void SaveCompanyLogo()
+        async Task SaveCompanyLogoAsync(CancellationToken token = default)
         {
             var full = PathHelper.GetAbsolutePath(CompanyLogoPath);
             if (string.IsNullOrEmpty(full))
@@ -158,11 +171,20 @@ namespace ToolManagementAppV2.ViewModels
 
             try
             {
-                _settingsService.SaveSettingAsync("CompanyLogoPath", full).GetAwaiter().GetResult();
+                await _settingsService.SaveSettingAsync("CompanyLogoPath", full, token).ConfigureAwait(false);
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedAccessException ex)
             {
+                _logger.LogWarning(ex, "Unauthorized to change settings.");
                 _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+            }
+            catch (OperationCanceledException ex)
+            {
+                _logger.LogInformation(ex, "Saving company logo was canceled.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save company logo path.");
             }
         }
     }

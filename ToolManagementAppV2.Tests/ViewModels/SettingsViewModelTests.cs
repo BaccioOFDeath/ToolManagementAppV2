@@ -76,7 +76,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 CompanyLogoPath = "logo.png"
             };
-            vm.SaveCompanyLogoCommand.Execute(null);
+            vm.SaveCompanyLogoCommand.ExecuteAsync(null).GetAwaiter().GetResult();
             Assert.Equal("CompanyLogoPath", settings.SavedKey);
             Assert.Equal(expected, settings.SavedValue);
         }
@@ -90,7 +90,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 CompanyLogoPath = Path.Combine("..", "logo.png")
             };
-            vm.SaveCompanyLogoCommand.Execute(null);
+            vm.SaveCompanyLogoCommand.ExecuteAsync(null).GetAwaiter().GetResult();
             Assert.Null(settings.SavedKey);
             Assert.Equal("Selected logo path is invalid.", dialog.LastMessage);
             Assert.Equal("Invalid Path", dialog.LastTitle);
