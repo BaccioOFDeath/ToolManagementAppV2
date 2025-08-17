@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Documents;
 using System.Data.SQLite;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Models.ImportExport;
 using ToolManagementAppV2.Services.Core;
@@ -128,7 +129,7 @@ public class ReportServiceAsyncTests
         public User? GetUserByID(int userID) => throw new NotImplementedException();
         public Task<User?> GetUserByIDAsync(int userID) => throw new NotImplementedException();
         public User? AuthenticateUser(string userName, string password) => throw new NotImplementedException();
-        public Task<User?> AuthenticateUserAsync(string userName, string password) => throw new NotImplementedException();
+        public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => throw new NotImplementedException();
         public User? GetCurrentUser() => null;
         public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
         public void AddUser(User user) => throw new NotImplementedException();

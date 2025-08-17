@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Services.Users;
@@ -274,7 +275,14 @@ namespace ToolManagementAppV2.ViewModels
                     continue;
                 }
 
-                credential = await _userService.AuthenticateUserAsync(user.UserName, promptResult.Password);
+                var authResult = await _userService.AuthenticateUserAsync(user.UserName, promptResult.Password);
+                if (authResult.Result == AuthenticationResult.LockedOut)
+                {
+                    await _dialogService.ShowInfoAsync($"Account locked until {authResult.User?.LockoutUntil}.", "Login Failed");
+                    return;
+                }
+
+                credential = authResult.User;
                 if (credential == null)
                 {
                     await _dialogService.ShowInfoAsync("Incorrect password. Please try again.", "Login Failed");

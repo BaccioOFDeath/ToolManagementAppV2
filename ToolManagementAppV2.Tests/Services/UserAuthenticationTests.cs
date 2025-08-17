@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Data.SQLite;
 using System.Threading.Tasks;
+using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
@@ -31,7 +32,8 @@ public class UserAuthenticationTests
             Assert.True(SecurityHelper.VerifyPassword("secret", added.Salt, added.Password));
 
             var auth = userService.AuthenticateUser("test", "secret");
-            Assert.NotNull(auth);
+            Assert.Equal(AuthenticationResult.Success, auth.Result);
+            Assert.NotNull(auth.User);
         }
         finally
         {
@@ -59,9 +61,10 @@ public class UserAuthenticationTests
             }
 
             var auth = userService.AuthenticateUser("legacy", "secret");
-            Assert.NotNull(auth);
+            Assert.Equal(AuthenticationResult.Success, auth.Result);
+            Assert.NotNull(auth.User);
 
-            var updated = userService.GetUserByID(auth!.UserID)!;
+            var updated = userService.GetUserByID(auth.User!.UserID)!;
             Assert.False(SecurityHelper.IsSha256Hash(updated.Password));
             Assert.False(string.IsNullOrWhiteSpace(updated.Salt));
             Assert.True(SecurityHelper.VerifyPassword("secret", updated.Salt, updated.Password));
@@ -93,7 +96,8 @@ public class UserAuthenticationTests
             }
 
             var auth = userService.AuthenticateUser("emptysalt", "secret");
-            Assert.Null(auth);
+            Assert.Equal(AuthenticationResult.Failed, auth.Result);
+            Assert.Null(auth.User);
         }
         finally
         {
@@ -117,7 +121,10 @@ public class UserAuthenticationTests
             for (int i = 0; i < 3; i++)
             {
                 var auth = userService.AuthenticateUser("lock", "bad");
-                Assert.Null(auth);
+                if (i < 2)
+                    Assert.Equal(AuthenticationResult.Failed, auth.Result);
+                else
+                    Assert.Equal(AuthenticationResult.LockedOut, auth.Result);
             }
 
             var stored = userService.GetAllUsers().First();
@@ -125,7 +132,7 @@ public class UserAuthenticationTests
             Assert.NotNull(stored.LockoutUntil);
 
             var afterLock = userService.AuthenticateUser("lock", "secret");
-            Assert.Null(afterLock);
+            Assert.Equal(AuthenticationResult.LockedOut, afterLock.Result);
         }
         finally
         {
@@ -147,7 +154,7 @@ public class UserAuthenticationTests
             userService.AddUser(user);
 
             for (int i = 0; i < 3; i++)
-                userService.AuthenticateUser("reset", "bad");
+            userService.AuthenticateUser("reset", "bad");
 
             using (var conn = dbService.CreateConnection())
             using (var cmd = new SQLiteCommand("UPDATE Users SET LockoutUntil=@t WHERE UserID=@id", conn))
@@ -158,7 +165,8 @@ public class UserAuthenticationTests
             }
 
             var auth = userService.AuthenticateUser("reset", "secret");
-            Assert.NotNull(auth);
+            Assert.Equal(AuthenticationResult.Success, auth.Result);
+            Assert.NotNull(auth.User);
 
             var stored = userService.GetAllUsers().First(u => u.UserName == "reset");
             Assert.Equal(0, stored.FailedAttempts);
@@ -217,7 +225,8 @@ public class UserAuthenticationTests
             Assert.True(SecurityHelper.VerifyPassword("secret", added.Salt, added.Password));
 
             var auth = await userService.AuthenticateUserAsync("atest", "secret");
-            Assert.NotNull(auth);
+            Assert.Equal(AuthenticationResult.Success, auth.Result);
+            Assert.NotNull(auth.User);
         }
         finally
         {
@@ -241,7 +250,10 @@ public class UserAuthenticationTests
             for (int i = 0; i < 3; i++)
             {
                 var auth = await userService.AuthenticateUserAsync("lockasync", "bad");
-                Assert.Null(auth);
+                if (i < 2)
+                    Assert.Equal(AuthenticationResult.Failed, auth.Result);
+                else
+                    Assert.Equal(AuthenticationResult.LockedOut, auth.Result);
             }
 
             var stored = userService.GetAllUsers().First(u => u.UserName == "lockasync");
@@ -249,7 +261,7 @@ public class UserAuthenticationTests
             Assert.NotNull(stored.LockoutUntil);
 
             var afterLock = await userService.AuthenticateUserAsync("lockasync", "secret");
-            Assert.Null(afterLock);
+            Assert.Equal(AuthenticationResult.LockedOut, afterLock.Result);
         }
         finally
         {

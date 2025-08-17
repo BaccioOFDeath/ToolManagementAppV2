@@ -9,7 +9,7 @@ namespace ToolManagementAppV2.Interfaces
     {
         Task<List<User>> GetAllUsersAsync();
         Task<User?> GetUserByIDAsync(int userID);
-        Task<User?> AuthenticateUserAsync(string userName, string password);
+        Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password);
         Task<User?> GetCurrentUserAsync();
         Task AddUserAsync(User user);
         Task UpdateUserAsync(User user);
