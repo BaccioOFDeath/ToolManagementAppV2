@@ -21,6 +21,7 @@ using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Controls;
 
 namespace ToolManagementAppV2.Tests.Views
 {
@@ -38,7 +39,10 @@ namespace ToolManagementAppV2.Tests.Views
                     var (window, dbPath) = TestHelpers.CreateMainWindow();
                     try
                     {
-                        var textBox = (TextBox)window.FindName("GlobalSearchTextBox");
+                        var searchBar = (SearchBar)window.FindName("GlobalSearchBar");
+                        Assert.NotNull(searchBar);
+
+                        var textBox = (TextBox)searchBar.FindName("SearchTextBox");
                         Assert.NotNull(textBox);
 
                         var vm = Assert.IsType<MainViewModel>(window.DataContext);
