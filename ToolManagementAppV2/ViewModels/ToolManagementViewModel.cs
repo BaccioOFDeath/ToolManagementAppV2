@@ -97,6 +97,9 @@ namespace ToolManagementAppV2.ViewModels
         readonly IDispatcherTimer _searchDebounceTimer;
         CancellationTokenSource _searchCts = new();
 
+        bool _suppressToolsChanged;
+        bool _disposed;
+
         // Writable for TwoWay binding from XAML. Mirrors SearchTerm and triggers search.
         private string _searchText = string.Empty;
         public string SearchText
@@ -149,8 +152,6 @@ namespace ToolManagementAppV2.ViewModels
             _searchCts = new CancellationTokenSource();
             SearchCommand.Execute(_searchCts.Token);
         }
-
-        bool _suppressToolsChanged;
 
         public async Task LoadToolsAsync()
         {
@@ -404,10 +405,23 @@ namespace ToolManagementAppV2.ViewModels
         /// <inheritdoc />
         public void Dispose()
         {
+            if (_disposed)
+                return;
+            _disposed = true;
+
             _searchDebounceTimer.Tick -= OnSearchDebounceTimerTick;
             _searchDebounceTimer.Stop();
-            _searchCts.Cancel();
-            _searchCts.Dispose();
+
+            var cts = Interlocked.Exchange(ref _searchCts, null!);
+            try
+            {
+                cts?.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+            cts?.Dispose();
+
             Tools.CollectionChanged -= Tools_CollectionChanged;
         }
     }

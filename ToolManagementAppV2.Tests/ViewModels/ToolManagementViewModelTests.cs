@@ -619,7 +619,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
             Assert.True(timer.IsEnabled);
 
             vm.Dispose();
-
+            var ex = Record.Exception(() => vm.Dispose());
+            Assert.Null(ex);
             Assert.False(timer.IsEnabled);
         }
 
