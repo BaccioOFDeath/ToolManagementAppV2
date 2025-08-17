@@ -135,7 +135,7 @@ namespace ToolManagementAppV2.Utilities.Helpers
                 var svc = _settingsService;
                 if (svc != null)
                 {
-                    value = svc.GetPasswordIterations();
+                    value = svc.GetPasswordIterationsAsync().GetAwaiter().GetResult();
                 }
 
                 if (value <= 0)

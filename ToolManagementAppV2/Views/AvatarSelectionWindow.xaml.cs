@@ -20,7 +20,7 @@ namespace ToolManagementAppV2.Views
         {
             InitializeComponent();
             _settingsService = settingsService;
-            var appName = _settingsService.GetSetting("ApplicationName");
+            var appName = _settingsService.GetSettingAsync("ApplicationName").GetAwaiter().GetResult();
             if (!string.IsNullOrWhiteSpace(appName))
                 Title = $"{appName} – Select Avatar";
 

@@ -25,7 +25,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var dbService = new DatabaseService(dbPath);
                 ISettingsService service = new SettingsService(dbService);
 
-                Assert.Throws<ArgumentException>(() => service.SaveSetting(key!, "Value1"));
+                Assert.Throws<ArgumentException>(() => service.SaveSettingAsync(key!, "Value1").GetAwaiter().GetResult());
             }
             finally
             {
@@ -44,7 +44,7 @@ namespace ToolManagementAppV2.Tests.Services
                 ISettingsService service = new SettingsService(dbService);
 
                 var settings = new Dictionary<string, string> { [""] = "Value1" };
-                Assert.Throws<ArgumentException>(() => service.UpdateSettings(settings));
+                Assert.Throws<ArgumentException>(() => service.UpdateSettingsAsync(settings).GetAwaiter().GetResult());
             }
             finally
             {
@@ -62,7 +62,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var dbService = new DatabaseService(dbPath);
                 ISettingsService service = new SettingsService(dbService);
 
-                Assert.Throws<ArgumentNullException>(() => service.UpdateSettings(null!));
+                Assert.Throws<ArgumentNullException>(() => service.UpdateSettingsAsync(null!).GetAwaiter().GetResult());
             }
             finally
             {
@@ -87,7 +87,7 @@ namespace ToolManagementAppV2.Tests.Services
                 }
 
                 var settings = new Dictionary<string, string> { ["Key1"] = "Value1" };
-                Assert.Throws<InvalidOperationException>(() => service.UpdateSettings(settings));
+                Assert.Throws<InvalidOperationException>(() => service.UpdateSettingsAsync(settings).GetAwaiter().GetResult());
             }
             finally
             {
@@ -111,7 +111,7 @@ namespace ToolManagementAppV2.Tests.Services
                     cmd.ExecuteNonQuery();
                 }
 
-                Assert.Throws<InvalidOperationException>(() => service.SaveSetting("Key1", "Value1"));
+                Assert.Throws<InvalidOperationException>(() => service.SaveSettingAsync("Key1", "Value1").GetAwaiter().GetResult());
             }
             finally
             {
@@ -135,7 +135,7 @@ namespace ToolManagementAppV2.Tests.Services
                     cmd.ExecuteNonQuery();
                 }
 
-                Assert.Throws<InvalidOperationException>(() => service.GetSetting("Key1"));
+                Assert.Throws<InvalidOperationException>(() => service.GetSettingAsync("Key1").GetAwaiter().GetResult());
             }
             finally
             {
@@ -153,7 +153,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var dbService = new DatabaseService(dbPath);
                 ISettingsService service = new SettingsService(dbService);
 
-                var result = service.GetSetting("NonExistentKey");
+                var result = service.GetSettingAsync("NonExistentKey").GetAwaiter().GetResult();
                 Assert.Null(result);
             }
             finally
@@ -178,7 +178,7 @@ namespace ToolManagementAppV2.Tests.Services
                     cmd.ExecuteNonQuery();
                 }
 
-                Assert.Throws<InvalidOperationException>(() => service.DeleteSetting("Key1"));
+                Assert.Throws<InvalidOperationException>(() => service.DeleteSettingAsync("Key1").GetAwaiter().GetResult());
             }
             finally
             {
@@ -199,7 +199,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var logger = factory.CreateLogger<SettingsService>();
                 ISettingsService service = new SettingsService(dbService, logger);
 
-                service.DeleteSetting("MissingKey");
+                service.DeleteSettingAsync("MissingKey").GetAwaiter().GetResult();
 
                 Assert.Single(logs);
                 Assert.Equal(LogLevel.Warning, logs[0].Level);
@@ -223,11 +223,11 @@ namespace ToolManagementAppV2.Tests.Services
                 var logger = factory.CreateLogger<SettingsService>();
                 var service = new SettingsService(dbService, logger);
 
-                var invalid = service.SaveScannerIpAddresses(new[] { "192.168.1.1", "bad", "999.999.999.999" }).ToList();
+                var invalid = service.SaveScannerIpAddressesAsync(new[] { "192.168.1.1", "bad", "999.999.999.999" }).GetAwaiter().GetResult().ToList();
 
                 Assert.Equal(new[] { "bad", "999.999.999.999" }, invalid);
 
-                var saved = service.GetScannerIpAddresses().ToList();
+                var saved = service.GetScannerIpAddressesAsync().GetAwaiter().GetResult().ToList();
                 Assert.Single(saved);
                 Assert.Equal("192.168.1.1", saved[0]);
 
@@ -255,10 +255,10 @@ namespace ToolManagementAppV2.Tests.Services
                 var logger = factory.CreateLogger<SettingsService>();
                 var service = new SettingsService(dbService, logger);
 
-                var invalid = service.SaveScannerIpAddresses(new[] { "127.0.0.1", "10.0.0.2" });
+                var invalid = service.SaveScannerIpAddressesAsync(new[] { "127.0.0.1", "10.0.0.2" }).GetAwaiter().GetResult();
                 Assert.Empty(invalid);
 
-                var saved = service.GetScannerIpAddresses().ToList();
+                var saved = service.GetScannerIpAddressesAsync().GetAwaiter().GetResult().ToList();
                 Assert.Equal(2, saved.Count);
                 Assert.Contains("127.0.0.1", saved);
                 Assert.Contains("10.0.0.2", saved);
@@ -283,12 +283,12 @@ namespace ToolManagementAppV2.Tests.Services
                 var dbService = new DatabaseService(dbPath);
                 var service = new SettingsService(dbService);
 
-                service.SaveScannerIpAddresses(new[] { "192.168.0.1" });
-                Assert.Single(service.GetScannerIpAddresses());
+                service.SaveScannerIpAddressesAsync(new[] { "192.168.0.1" }).GetAwaiter().GetResult();
+                Assert.Single(service.GetScannerIpAddressesAsync().GetAwaiter().GetResult());
 
-                var invalid = service.SaveScannerIpAddresses(input).ToList();
+                var invalid = service.SaveScannerIpAddressesAsync(input).GetAwaiter().GetResult().ToList();
                 Assert.Empty(invalid);
-                Assert.Empty(service.GetScannerIpAddresses());
+                Assert.Empty(service.GetScannerIpAddressesAsync().GetAwaiter().GetResult());
             }
             finally
             {
@@ -306,7 +306,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var dbService = new DatabaseService(dbPath);
                 ISettingsService service = new SettingsService(dbService);
 
-                var iterations = service.GetPasswordIterations();
+                var iterations = service.GetPasswordIterationsAsync().GetAwaiter().GetResult();
                 Assert.Equal(100_000, iterations);
             }
             finally
@@ -325,8 +325,8 @@ namespace ToolManagementAppV2.Tests.Services
                 var dbService = new DatabaseService(dbPath);
                 ISettingsService service = new SettingsService(dbService);
 
-                service.SavePasswordIterations(50_000);
-                Assert.Equal(50_000, service.GetPasswordIterations());
+                service.SavePasswordIterationsAsync(50_000).GetAwaiter().GetResult();
+                Assert.Equal(50_000, service.GetPasswordIterationsAsync().GetAwaiter().GetResult());
             }
             finally
             {
@@ -346,7 +346,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var dbService = new DatabaseService(dbPath);
                 ISettingsService service = new SettingsService(dbService);
 
-                Assert.Throws<ArgumentOutOfRangeException>(() => service.SavePasswordIterations(iterations));
+                Assert.Throws<ArgumentOutOfRangeException>(() => service.SavePasswordIterationsAsync(iterations).GetAwaiter().GetResult());
             }
             finally
             {
@@ -363,8 +363,8 @@ namespace ToolManagementAppV2.Tests.Services
             {
                 var dbService = new DatabaseService(dbPath);
                 var service = new SettingsService(dbService);
-                service.SaveSetting("PasswordIterations", "-5");
-                Assert.Equal(100_000, service.GetPasswordIterations());
+                service.SaveSettingAsync("PasswordIterations", "-5").GetAwaiter().GetResult();
+                Assert.Equal(100_000, service.GetPasswordIterationsAsync().GetAwaiter().GetResult());
             }
             finally
             {

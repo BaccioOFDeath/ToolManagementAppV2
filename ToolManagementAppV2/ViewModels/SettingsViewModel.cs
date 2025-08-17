@@ -24,13 +24,13 @@ namespace ToolManagementAppV2.ViewModels
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<SettingsViewModel>.Instance;
 
-            var logoPath = _settingsService.GetSetting("CompanyLogoPath");
+            var logoPath = _settingsService.GetSettingAsync("CompanyLogoPath").GetAwaiter().GetResult();
             if (!string.IsNullOrWhiteSpace(logoPath))
                 CompanyLogoPath = logoPath;
 
             ThemeOptions = new ObservableCollection<string> { "Light", "Dark" };
             _theme = ThemeOptions[0];
-            _passwordIterations = _settingsService.GetPasswordIterations();
+            _passwordIterations = _settingsService.GetPasswordIterationsAsync().GetAwaiter().GetResult();
             TestDbCommand = new RelayCommand(() =>
             {
                 var success = TestDbConnection(out var message);
@@ -107,7 +107,7 @@ namespace ToolManagementAppV2.ViewModels
                 {
                     try
                     {
-                        _settingsService.SavePasswordIterations(newValue);
+                        _settingsService.SavePasswordIterationsAsync(newValue).GetAwaiter().GetResult();
                     }
                     catch (UnauthorizedAccessException)
                     {
@@ -158,7 +158,7 @@ namespace ToolManagementAppV2.ViewModels
 
             try
             {
-                _settingsService.SaveSetting("CompanyLogoPath", full);
+                _settingsService.SaveSettingAsync("CompanyLogoPath", full).GetAwaiter().GetResult();
             }
             catch (UnauthorizedAccessException)
             {

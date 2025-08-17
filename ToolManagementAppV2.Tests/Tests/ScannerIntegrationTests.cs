@@ -19,7 +19,7 @@ namespace ToolManagementAppV2.Tests.Tests
             {
                 var db = new DatabaseService(dbPath);
                 var settings = new SettingsService(db);
-                settings.SaveScannerIpAddresses(new[] { "127.0.0.1" });
+                await settings.SaveScannerIpAddressesAsync(new[] { "127.0.0.1" });
 
                 var service = new ScannerService(settings);
                 var devices = await service.GetScannerDevicesAsync(CancellationToken.None);

@@ -20,7 +20,7 @@ namespace ToolManagementAppV2.Tests.Services
             {
                 var db = new DatabaseService(dbPath);
                 var settings = new SettingsService(db);
-                settings.SaveScannerIpAddresses(new[] { "127.0.0.1" });
+                await settings.SaveScannerIpAddressesAsync(new[] { "127.0.0.1" });
 
                 var service = new ScannerService(settings);
 
@@ -47,7 +47,7 @@ namespace ToolManagementAppV2.Tests.Services
             {
                 var db = new DatabaseService(dbPath);
                 var settings = new SettingsService(db);
-                settings.SaveScannerIpAddresses(new[] { "127.0.0.1", "127.0.0.2" });
+                await settings.SaveScannerIpAddressesAsync(new[] { "127.0.0.1", "127.0.0.2" });
 
                 var service = new ScannerService(settings);
 
@@ -71,7 +71,7 @@ namespace ToolManagementAppV2.Tests.Services
             {
                 var db = new DatabaseService(dbPath);
                 var settings = new SettingsService(db);
-                settings.SaveScannerIpAddresses(new[] { "127.0.0.1", "127.0.0.1" });
+                await settings.SaveScannerIpAddressesAsync(new[] { "127.0.0.1", "127.0.0.1" });
 
                 var service = new ScannerService(settings);
 
@@ -93,7 +93,7 @@ namespace ToolManagementAppV2.Tests.Services
             {
                 var db = new DatabaseService(dbPath);
                 var settings = new SettingsService(db);
-                settings.SaveScannerIpAddresses(new[] { "127.0.0.1" });
+                await settings.SaveScannerIpAddressesAsync(new[] { "127.0.0.1" });
 
                 var service = new ScannerService(settings);
 
