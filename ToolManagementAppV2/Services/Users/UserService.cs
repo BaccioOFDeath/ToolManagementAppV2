@@ -2,6 +2,7 @@
 using System.Data.SQLite;
 using System.Data;
 using System.Threading.Tasks;
+using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Utilities.Helpers;
@@ -74,7 +75,7 @@ namespace ToolManagementAppV2.Services.Users
             return list.FirstOrDefault();
         }
 
-        public async Task<User?> AuthenticateUserAsync(string userName, string password)
+        public async Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password)
         {
             using var conn = _dbService.CreateConnection();
 
@@ -88,9 +89,10 @@ namespace ToolManagementAppV2.Services.Users
                 new[] { new SQLiteParameter("@UserName", userName) }, MapUser);
 
             var u = users.FirstOrDefault();
-            if (u == null) return null;
+            if (u == null) return (AuthenticationResult.Failed, null);
 
-            if (u.LockoutUntil.HasValue && u.LockoutUntil > DateTime.UtcNow) return null;
+            if (u.LockoutUntil.HasValue && u.LockoutUntil > DateTime.UtcNow)
+                return (AuthenticationResult.LockedOut, u);
 
             if (u.LockoutUntil.HasValue && u.LockoutUntil <= DateTime.UtcNow)
             {
@@ -140,7 +142,7 @@ namespace ToolManagementAppV2.Services.Users
                 await SqliteHelper.ExecuteNonQueryAsync(conn, "UPDATE Users SET FailedAttempts=IFNULL(@Attempts,0), LockoutUntil=@Lockout WHERE UserID=@ID", reset);
                 u.FailedAttempts = 0;
                 u.LockoutUntil = null;
-                return u;
+                return (AuthenticationResult.Success, u);
             }
 
             u.FailedAttempts = Math.Max(0, u.FailedAttempts) + 1;
@@ -155,7 +157,9 @@ namespace ToolManagementAppV2.Services.Users
     };
             await SqliteHelper.ExecuteNonQueryAsync(conn, "UPDATE Users SET FailedAttempts=IFNULL(@Attempts,0), LockoutUntil=@Lockout WHERE UserID=@ID", update);
             u.LockoutUntil = lockout;
-            return null;
+            return (u.LockoutUntil.HasValue && u.LockoutUntil > DateTime.UtcNow)
+                ? (AuthenticationResult.LockedOut, u)
+                : (AuthenticationResult.Failed, null);
         }
 
 

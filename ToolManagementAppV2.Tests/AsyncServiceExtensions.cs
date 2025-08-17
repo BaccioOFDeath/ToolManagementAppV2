@@ -69,7 +69,7 @@ public static class AsyncServiceExtensions
         => svc.GetAllUsersAsync().GetAwaiter().GetResult();
     public static User? GetUserByID(this IUserService svc, int id)
         => svc.GetUserByIDAsync(id).GetAwaiter().GetResult();
-    public static User? AuthenticateUser(this IUserService svc, string userName, string password)
+    public static (AuthenticationResult Result, User? User) AuthenticateUser(this IUserService svc, string userName, string password)
         => svc.AuthenticateUserAsync(userName, password).GetAwaiter().GetResult();
     public static User? GetCurrentUser(this IUserService svc)
         => svc.GetCurrentUserAsync().GetAwaiter().GetResult();

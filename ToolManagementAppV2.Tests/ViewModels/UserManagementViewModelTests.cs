@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
@@ -573,7 +574,7 @@ class InMemoryUserService : IUserService
     public User? GetUserByID(int userID) => Users.FirstOrDefault(u => u.UserID == userID);
     public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult(GetUserByID(userID));
     public User? AuthenticateUser(string userName, string password) => null;
-    public Task<User?> AuthenticateUserAsync(string userName, string password) => Task.FromResult<User?>(null);
+    public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => Task.FromResult<(AuthenticationResult, User?)>((AuthenticationResult.Failed, null));
     public User? GetCurrentUser() => null;
     public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
     public void AddUser(User user)
@@ -622,7 +623,7 @@ class FailingUserService : IUserService
     public User? GetUserByID(int userID) => _users.FirstOrDefault(u => u.UserID == userID);
     public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult(GetUserByID(userID));
     public User? AuthenticateUser(string userName, string password) => null;
-    public Task<User?> AuthenticateUserAsync(string userName, string password) => Task.FromResult<User?>(null);
+    public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => Task.FromResult<(AuthenticationResult, User?)>((AuthenticationResult.Failed, null));
     public User? GetCurrentUser() => null;
     public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
     public void AddUser(User user) => _users.Add(user);
@@ -641,7 +642,7 @@ class GetAllUsersFailingUserService : IUserService
     public User? GetUserByID(int userID) => null;
     public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult<User?>(null);
     public User? AuthenticateUser(string userName, string password) => null;
-    public Task<User?> AuthenticateUserAsync(string userName, string password) => Task.FromResult<User?>(null);
+    public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => Task.FromResult<(AuthenticationResult, User?)>((AuthenticationResult.Failed, null));
     public User? GetCurrentUser() => null;
     public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
     public void AddUser(User user) { }

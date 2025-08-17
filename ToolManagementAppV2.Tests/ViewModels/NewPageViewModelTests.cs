@@ -362,7 +362,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public User? GetUserByID(int userID) => null;
         public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult<User?>(null);
         public User? AuthenticateUser(string userName, string password) => null;
-        public Task<User?> AuthenticateUserAsync(string userName, string password) => Task.FromResult<User?>(null);
+        public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => Task.FromResult<(AuthenticationResult, User?)>((AuthenticationResult.Failed, null));
         public User? GetCurrentUser() => null;
         public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
         public void AddUser(User user) { }

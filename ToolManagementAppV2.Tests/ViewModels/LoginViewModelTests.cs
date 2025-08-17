@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows;
 using System.Threading.Tasks;
 using System.Threading;
+using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
@@ -387,6 +388,41 @@ namespace ToolManagementAppV2.Tests.ViewModels
             Assert.True(success);
             Assert.False(userService.ChangePasswordCalled);
         }
+
+        [Fact]
+        public async Task SelectUserCommand_ShowsLockoutMessage_WhenAccountLocked()
+        {
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
+
+            var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
+            try
+            {
+                using var dbService = new DatabaseService(dbPath);
+                var userContext = new ApplicationUserContext();
+                var auth = new AuthorizationService(userContext);
+                var userService = new UserService(dbService, userContext, auth);
+                var settingsService = new SettingsService(dbService);
+                var lockout = DateTime.UtcNow.AddMinutes(15);
+                await userService.AddUserAsync(new User { UserName = "locked", Password = "newpassword", LockoutUntil = lockout });
+
+                var dialog = new CapturingDialogService();
+                var vm = new LoginViewModel(userService, settingsService, dialog, userContext)
+                {
+                    PromptForPasswordAsync = (u, ct) => Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("secret", false))
+                };
+                await vm.InitializeAsync();
+
+                await vm.SelectUserCommand.ExecuteAsync(vm.Users.First());
+
+                Assert.True(dialog.InfoShown);
+                Assert.Contains(lockout.ToString(), dialog.LastMessage);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
     }
 
     class StubDialogService : IDialogService
@@ -421,7 +457,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public User? GetUserByID(int userID) => null;
         public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult<User?>(null);
         public User? AuthenticateUser(string userName, string password) => null;
-        public Task<User?> AuthenticateUserAsync(string userName, string password) => Task.FromResult<User?>(null);
+        public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => Task.FromResult<(AuthenticationResult, User?)>((AuthenticationResult.Failed, null));
         public User? GetCurrentUser() => null;
         public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
         public void AddUser(User user) => _users.Add(user);
@@ -451,7 +487,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public User? GetUserByID(int userID) => _users.FirstOrDefault(u => u.UserID == userID);
         public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult(GetUserByID(userID));
         public User? AuthenticateUser(string userName, string password) => null;
-        public Task<User?> AuthenticateUserAsync(string userName, string password) => Task.FromResult<User?>(null);
+        public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => Task.FromResult<(AuthenticationResult, User?)>((AuthenticationResult.Failed, null));
         public User? GetCurrentUser() => null;
         public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
         public void AddUser(User user) => _users.Add(user);
@@ -486,11 +522,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Task<User?> GetUserByIDAsync(int userID)
             => Task.FromResult(userID == _dbUser.UserID ? _dbUser : null);
 
-        public Task<User?> AuthenticateUserAsync(string userName, string password)
+        public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password)
             => Task.FromResult(
                 userName == _dbUser.UserName && SecurityHelper.VerifyPassword(password, _dbUser.Salt, _dbUser.Password)
-                    ? _dbUser
-                    : null);
+                    ? (AuthenticationResult.Success, (User?)_dbUser)
+                    : (AuthenticationResult.Failed, (User?)null));
 
         public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
         public Task AddUserAsync(User user) => Task.CompletedTask;
@@ -506,7 +542,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
     class CapturingDialogService : IDialogService
     {
         public bool InfoShown { get; private set; }
-        public void ShowInfo(string message, string title) => InfoShown = true;
+        public string? LastMessage { get; private set; }
+        public void ShowInfo(string message, string title)
+        {
+            InfoShown = true;
+            LastMessage = message;
+        }
         public bool ShowConfirmation(string message, string title) => true;
         public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
         public void ShowToolDetails(ToolModel tool) { }
