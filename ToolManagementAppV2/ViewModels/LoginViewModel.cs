@@ -212,7 +212,15 @@ namespace ToolManagementAppV2.ViewModels
 
             if (user.IsAdmin && string.IsNullOrWhiteSpace(user.Password))
             {
-                await _userService.ChangeUserPasswordAsync(user.UserID, "admin");
+                try
+                {
+                    await _userService.ChangeUserPasswordAsync(user.UserID, "admin");
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    _logger.LogWarning(ex, "Failed to set default password for admin user {UserID}", user.UserID);
+                }
+
                 var refreshed = await _userService.GetUserByIDAsync(user.UserID);
                 if (refreshed != null)
                 {
