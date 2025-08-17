@@ -265,6 +265,7 @@
     </Resource>
     <Resource Include="Resources\Converters.xaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Generator>MSBuild:Compile</Generator>
     </Resource>
   </ItemGroup>
 
