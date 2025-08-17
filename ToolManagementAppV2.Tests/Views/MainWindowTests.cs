@@ -97,11 +97,12 @@ namespace ToolManagementAppV2.Tests.Views
                     var (window, dbPath) = TestHelpers.CreateMainWindow();
                     try
                     {
-                        var button = (Button)window.FindName("SwitchUserButton");
+                        var button = TestHelpers.FindVisualChildren<Button>(window)
+                            .FirstOrDefault(b => Equals(b.Content, "Switch User"));
                         Assert.NotNull(button);
 
                         var vm = Assert.IsType<MainViewModel>(window.DataContext);
-                        Assert.Same(vm.SwitchUserCommand, button.Command);
+                        Assert.Same(vm.SwitchUserCommand, button!.Command);
                     }
                     finally
                     {
@@ -167,8 +168,9 @@ namespace ToolManagementAppV2.Tests.Views
                         var window = new ToolManagementAppV2.MainWindow(vm, db);
                         try
                         {
-                            var button = (Button)window.FindName("SwitchUserButton");
-                            var cmd = Assert.IsAssignableFrom<IAsyncRelayCommand>(button.Command);
+                            var button = TestHelpers.FindVisualChildren<Button>(window)
+                                .FirstOrDefault(b => Equals(b.Content, "Switch User"));
+                            var cmd = Assert.IsAssignableFrom<IAsyncRelayCommand>(button!.Command);
                             var task = cmd.ExecuteAsync(null);
                             var frame = new DispatcherFrame();
                             task.ContinueWith(_ => frame.Continue = false);
