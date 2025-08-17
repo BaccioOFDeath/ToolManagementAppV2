@@ -297,7 +297,7 @@ namespace ToolManagementAppV2.Services.Users
             if (newPassword.Length == 0)
                 return false;
 
-            var sql = "UPDATE Users SET Password=@Pwd, Salt=@Salt, PasswordExpired=@Expired, FailedAttempts=@Attempts, LockoutUntil=@Lockout WHERE UserID=@ID";
+            var sql = "UPDATE Users SET Password=@Pwd, Salt=@Salt, PasswordExpired=@Expired, FailedAttempts=IFNULL(@Attempts,0), LockoutUntil=@Lockout WHERE UserID=@ID";
             var result = await SecurityHelper.HashPasswordAsync(newPassword).ConfigureAwait(false);
             string hashed = result.hash;
             string salt = result.salt;
@@ -309,7 +309,7 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@Pwd", hashed),
                 new SQLiteParameter("@Salt", salt),
                 new SQLiteParameter("@Expired", expired ? 1 : 0),
-                new SQLiteParameter("@Attempts", 0),
+                new SQLiteParameter("@Attempts", DbType.Int32) { Value = 0 },
                 new SQLiteParameter("@Lockout", DBNull.Value),
                 new SQLiteParameter("@ID",  userID)
             };

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Data.SQLite;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
@@ -260,6 +261,37 @@ public class UserServiceTests
             Assert.NotNull(updated);
             Assert.Equal(0, updated!.FailedAttempts);
             Assert.Null(updated.LockoutUntil);
+        }
+        finally
+        {
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public async Task ChangeUserPasswordAsync_AllowsNullFailedAttempts()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+            var user = new User { UserName = "nulltest", Password = "pw" };
+            await userService.AddUserAsync(user);
+
+            using (var conn = dbService.CreateConnection())
+            {
+                await SqliteHelper.ExecuteNonQueryAsync(conn,
+                    "UPDATE Users SET FailedAttempts=NULL WHERE UserID=@ID",
+                    new[] { new SQLiteParameter("@ID", user.UserID) });
+            }
+
+            var changed = await userService.ChangeUserPasswordAsync(user.UserID, "newpass");
+            Assert.True(changed);
+
+            var updated = userService.GetUserByID(user.UserID);
+            Assert.NotNull(updated);
+            Assert.Equal(0, updated!.FailedAttempts);
         }
         finally
         {
