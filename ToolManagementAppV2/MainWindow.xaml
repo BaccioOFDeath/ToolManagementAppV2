@@ -93,7 +93,7 @@
                         <controls:SearchBar x:Name="GlobalSearchBar"
                                             Text="{Binding GlobalSearchText}"
                                             SearchCommand="{Binding GlobalSearchCommand}"/>
-                        <Button x:Name="SwitchUserButton" Style="{StaticResource PrimaryButton}" Content="Switch User" Command="{Binding SwitchUserCommand}" Margin="8,0,0,0"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Switch User" Command="{Binding SwitchUserCommand}" Margin="8,0,0,0"/>
                     </StackPanel>
                 </DockPanel>
             </Border>
