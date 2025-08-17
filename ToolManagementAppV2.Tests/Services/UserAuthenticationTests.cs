@@ -96,7 +96,7 @@ public class UserAuthenticationTests
             }
 
             var auth = userService.AuthenticateUser("emptysalt", "secret");
-            Assert.Equal(AuthenticationResult.Failed, auth.Result);
+            Assert.Equal(AuthenticationResult.IncorrectPassword, auth.Result);
             Assert.Null(auth.User);
         }
         finally
@@ -122,7 +122,7 @@ public class UserAuthenticationTests
             {
                 var auth = userService.AuthenticateUser("lock", "bad");
                 if (i < 2)
-                    Assert.Equal(AuthenticationResult.Failed, auth.Result);
+                    Assert.Equal(AuthenticationResult.IncorrectPassword, auth.Result);
                 else
                     Assert.Equal(AuthenticationResult.LockedOut, auth.Result);
             }
@@ -251,7 +251,7 @@ public class UserAuthenticationTests
             {
                 var auth = await userService.AuthenticateUserAsync("lockasync", "bad");
                 if (i < 2)
-                    Assert.Equal(AuthenticationResult.Failed, auth.Result);
+                    Assert.Equal(AuthenticationResult.IncorrectPassword, auth.Result);
                 else
                     Assert.Equal(AuthenticationResult.LockedOut, auth.Result);
             }
@@ -262,6 +262,44 @@ public class UserAuthenticationTests
 
             var afterLock = await userService.AuthenticateUserAsync("lockasync", "secret");
             Assert.Equal(AuthenticationResult.LockedOut, afterLock.Result);
+        }
+        finally
+        {
+            if (File.Exists(dbPath))
+                File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public async Task AuthenticateUserAsync_ResetAfterSuccess()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+
+            var user = new User { UserName = "areset", Password = "secret", IsAdmin = false };
+            await userService.AddUserAsync(user);
+
+            for (int i = 0; i < 3; i++)
+                await userService.AuthenticateUserAsync("areset", "bad");
+
+            using (var conn = dbService.CreateConnection())
+            using (var cmd = new SQLiteCommand("UPDATE Users SET LockoutUntil=@t WHERE UserID=@id", conn))
+            {
+                cmd.Parameters.AddWithValue("@t", DateTime.UtcNow.AddMinutes(-1));
+                cmd.Parameters.AddWithValue("@id", user.UserID);
+                cmd.ExecuteNonQuery();
+            }
+
+            var auth = await userService.AuthenticateUserAsync("areset", "secret");
+            Assert.Equal(AuthenticationResult.Success, auth.Result);
+            Assert.NotNull(auth.User);
+
+            var stored = (await userService.GetAllUsersAsync()).First(u => u.UserName == "areset");
+            Assert.Equal(0, stored.FailedAttempts);
+            Assert.Null(stored.LockoutUntil);
         }
         finally
         {

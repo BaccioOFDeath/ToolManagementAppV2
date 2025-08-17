@@ -276,16 +276,17 @@ namespace ToolManagementAppV2.ViewModels
                 }
 
                 var authResult = await _userService.AuthenticateUserAsync(user.UserName, promptResult.Password);
-                if (authResult.Result == AuthenticationResult.LockedOut)
+                switch (authResult.Result)
                 {
-                    await _dialogService.ShowInfoAsync($"Account locked until {authResult.User?.LockoutUntil}.", "Login Failed");
-                    return;
-                }
-
-                credential = authResult.User;
-                if (credential == null)
-                {
-                    await _dialogService.ShowInfoAsync("Incorrect password. Please try again.", "Login Failed");
+                    case AuthenticationResult.LockedOut:
+                        await _dialogService.ShowInfoAsync($"Account locked until {authResult.User?.LockoutUntil}.", "Login Failed");
+                        return;
+                    case AuthenticationResult.IncorrectPassword:
+                        await _dialogService.ShowInfoAsync("Incorrect password. Please try again.", "Login Failed");
+                        continue;
+                    case AuthenticationResult.Success:
+                        credential = authResult.User;
+                        break;
                 }
             }
 

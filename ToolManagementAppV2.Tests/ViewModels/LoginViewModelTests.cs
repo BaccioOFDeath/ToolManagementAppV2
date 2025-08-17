@@ -457,7 +457,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public User? GetUserByID(int userID) => null;
         public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult<User?>(null);
         public User? AuthenticateUser(string userName, string password) => null;
-        public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => Task.FromResult<(AuthenticationResult, User?)>((AuthenticationResult.Failed, null));
+        public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => Task.FromResult<(AuthenticationResult, User?)>((AuthenticationResult.IncorrectPassword, null));
         public User? GetCurrentUser() => null;
         public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
         public void AddUser(User user) => _users.Add(user);
@@ -487,7 +487,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public User? GetUserByID(int userID) => _users.FirstOrDefault(u => u.UserID == userID);
         public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult(GetUserByID(userID));
         public User? AuthenticateUser(string userName, string password) => null;
-        public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => Task.FromResult<(AuthenticationResult, User?)>((AuthenticationResult.Failed, null));
+        public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => Task.FromResult<(AuthenticationResult, User?)>((AuthenticationResult.IncorrectPassword, null));
         public User? GetCurrentUser() => null;
         public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
         public void AddUser(User user) => _users.Add(user);
@@ -526,7 +526,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             => Task.FromResult(
                 userName == _dbUser.UserName && SecurityHelper.VerifyPassword(password, _dbUser.Salt, _dbUser.Password)
                     ? (AuthenticationResult.Success, (User?)_dbUser)
-                    : (AuthenticationResult.Failed, (User?)null));
+                    : (AuthenticationResult.IncorrectPassword, (User?)null));
 
         public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
         public Task AddUserAsync(User user) => Task.CompletedTask;
