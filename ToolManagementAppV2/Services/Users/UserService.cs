@@ -89,7 +89,7 @@ namespace ToolManagementAppV2.Services.Users
                 new[] { new SQLiteParameter("@UserName", userName) }, MapUser);
 
             var u = users.FirstOrDefault();
-            if (u == null) return (AuthenticationResult.Failed, null);
+            if (u == null) return (AuthenticationResult.IncorrectPassword, null);
 
             if (u.LockoutUntil.HasValue && u.LockoutUntil > DateTime.UtcNow)
                 return (AuthenticationResult.LockedOut, u);
@@ -159,7 +159,7 @@ namespace ToolManagementAppV2.Services.Users
             u.LockoutUntil = lockout;
             return (u.LockoutUntil.HasValue && u.LockoutUntil > DateTime.UtcNow)
                 ? (AuthenticationResult.LockedOut, u)
-                : (AuthenticationResult.Failed, null);
+                : (AuthenticationResult.IncorrectPassword, null);
         }
 
 
