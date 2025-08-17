@@ -137,9 +137,9 @@ namespace ToolManagementAppV2.ViewModels
             _logger = logger ?? NullLogger<MainViewModel>.Instance;
             _showLoginWindow = showLoginWindow ?? new Func<Task<bool>>(async () =>
             {
-                var app = (App)Application.Current;
+                var app = (App)System.Windows.Application.Current;
                 var login = app.Host.Services.GetRequiredService<ILoginWindow>();
-                login.Owner = Application.Current.MainWindow;
+                login.Owner =  System.Windows.Application.Current.MainWindow;
                 await login.ViewModel.InitializeAsync();
                 return login.ShowDialog() == true;
             });

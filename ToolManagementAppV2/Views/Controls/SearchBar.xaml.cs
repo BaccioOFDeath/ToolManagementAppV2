@@ -4,7 +4,7 @@ using System.Windows.Input;
 
 namespace ToolManagementAppV2.Controls
 {
-    public partial class SearchBar : UserControl
+    public partial class SearchBar : System.Windows.Controls.UserControl
     {
         public SearchBar()
         {

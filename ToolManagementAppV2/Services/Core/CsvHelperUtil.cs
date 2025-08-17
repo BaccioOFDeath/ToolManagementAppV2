@@ -25,10 +25,12 @@ namespace ToolManagementAppV2.Utilities.IO
             using var parser = new TextFieldParser(filePath);
             parser.SetDelimiters(",");
             parser.HasFieldsEnclosedInQuotes = true;
-            return await Task.Run(()
-                parser.EndOfData ? Array.Empty<string>() : parser.ReadFields().Select(h => h.Trim())
-            ).ConfigureAwait(false);
+            return await Task.Run(() =>
+            {
+                return parser.EndOfData ? Array.Empty<string>() : parser.ReadFields().Select(h => h.Trim());
+            }).ConfigureAwait(false);
         }
+
 
         public static List<ToolModel> LoadToolsFromCsv(string filePath, IDictionary<string, string> map, out List<int> invalidRows)
         {

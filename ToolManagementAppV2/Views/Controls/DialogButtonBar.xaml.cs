@@ -1,10 +1,10 @@
+// ToolManagementAppV2/Views/Controls/DialogButtonBar.xaml.cs
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace ToolManagementAppV2.Controls
 {
-    public partial class DialogButtonBar : UserControl
+    public partial class DialogButtonBar : System.Windows.Controls.UserControl
     {
         public DialogButtonBar()
         {

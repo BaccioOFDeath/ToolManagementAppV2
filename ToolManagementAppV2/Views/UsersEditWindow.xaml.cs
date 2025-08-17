@@ -21,7 +21,7 @@ namespace ToolManagementAppV2.Views
         private void BrowseAvatar()
         {
             var vm = (UsersEditViewModel)DataContext;
-            var avatarWin = ((App)Application.Current).Host.Services.GetRequiredService<AvatarSelectionWindow>();
+            var avatarWin = ((App)System.Windows.Application.Current).Host.Services.GetRequiredService<AvatarSelectionWindow>();
 
             try { avatarWin.Owner = this; } catch { }
 
