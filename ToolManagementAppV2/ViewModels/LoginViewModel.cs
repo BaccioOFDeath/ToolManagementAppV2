@@ -306,7 +306,18 @@ namespace ToolManagementAppV2.ViewModels
                 return false;
             try
             {
-                await _userService.ChangeUserPasswordAsync(user.UserID, newPwd);
+                // Ensure the current user context is set so the service
+                // authorizes the password change for self-service updates
+                // during first-time login or after a reset.
+                if (_userContext.CurrentUser == null)
+                    _userContext.CurrentUser = user;
+
+                var updated = await _userService.ChangeUserPasswordAsync(user.UserID, newPwd);
+                if (!updated)
+                {
+                    await _dialogService.ShowInfoAsync("Failed to update password.", "Error");
+                    return false;
+                }
             }
             catch (Exception ex)
             {

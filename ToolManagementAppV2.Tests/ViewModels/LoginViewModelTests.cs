@@ -17,6 +17,7 @@ using ToolManagementAppV2.Views;
 using Xunit;
 using Microsoft.Extensions.Logging;
 using ToolManagementAppV2.Tests;
+using System.Reflection;
 
 namespace ToolManagementAppV2.Tests.ViewModels
 {
@@ -329,6 +330,53 @@ namespace ToolManagementAppV2.Tests.ViewModels
             Assert.True(dialog.InfoShown);
             Assert.Null(userContext.CurrentUser);
             Assert.NotNull(logger.LastException);
+        }
+
+        [Fact]
+        public async Task PromptChangePassword_SetsCurrentUserWhenNull()
+        {
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
+
+            var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
+            try
+            {
+                using var dbService = new DatabaseService(dbPath);
+                var userContext = new ApplicationUserContext();
+                var auth = new AuthorizationService(userContext);
+                var userService = new UserService(dbService, userContext, auth);
+                var settingsService = new SettingsService(dbService);
+                SecurityHelper.SettingsService = settingsService;
+
+                var result = await SecurityHelper.HashPasswordAsync("admin");
+                var admin = new User
+                {
+                    UserID = 1,
+                    UserName = "admin",
+                    Password = result.hash,
+                    Salt = result.salt,
+                    IsAdmin = true,
+                    PasswordExpired = true
+                };
+                await userService.AddUserAsync(admin);
+
+                var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
+                {
+                    PromptForNewPassword = () => "changed"
+                };
+
+                var method = typeof(LoginViewModel).GetMethod("PromptChangePasswordAsync", BindingFlags.NonPublic | BindingFlags.Instance);
+                var task = (Task<bool>)method.Invoke(vm, new object[] { admin });
+                var ok = await task;
+
+                Assert.True(ok);
+                var authResult = await userService.AuthenticateUserAsync("admin", "changed");
+                Assert.Equal(AuthenticationResult.Success, authResult.Result);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
         }
 
         [Fact]
