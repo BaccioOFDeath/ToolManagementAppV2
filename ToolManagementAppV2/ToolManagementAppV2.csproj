@@ -7,6 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
+    <EnableDefaultPageItems>false</EnableDefaultPageItems>
   </PropertyGroup>
 
   <ItemGroup>
@@ -52,7 +53,7 @@
     <Page Remove="Views\User\**" />
   </ItemGroup>
 
- <ItemGroup>
+  <ItemGroup>
     <None Remove="Resources\Avatars\1.png" />
     <None Remove="Resources\Avatars\10.png" />
     <None Remove="Resources\Avatars\11.png" />
@@ -99,16 +100,16 @@
     <None Remove="Resources\DefaultUserPhoto.png" />
   </ItemGroup>
 
- <ItemGroup>
-   <Page Remove="Resources\Colors.xaml" />
- </ItemGroup>
+  <ItemGroup>
+    <Page Remove="Resources\Colors.xaml" />
+  </ItemGroup>
 
- <ItemGroup>
-   <Page Include="Resources\Templates.xaml">
-     <Generator>MSBuild:Compile</Generator>
-     <SubType>Designer</SubType>
-   </Page>
- </ItemGroup>
+  <ItemGroup>
+    <Page Include="Resources\Templates.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
