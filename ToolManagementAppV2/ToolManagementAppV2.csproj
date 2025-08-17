@@ -53,15 +53,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Include="Views/**/*.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Compile Include="Views/**/*.xaml.cs">
-      <DependentUpon>%(Filename)</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="Resources\Avatars\1.png" />
     <None Remove="Resources\Avatars\10.png" />
     <None Remove="Resources\Avatars\11.png" />
@@ -113,7 +104,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Include="Resources\Templates.xaml">
+    <Page Update="Resources\Templates.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
