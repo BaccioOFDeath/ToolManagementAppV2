@@ -118,7 +118,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 var activityLogService = new ActivityLogService(db);
-                activityLogService.LogAction(1, "user", "action");
+                await activityLogService.LogActionAsync(1, "user", "action");
                 IToolService toolService = new ToolService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);

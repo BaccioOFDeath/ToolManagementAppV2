@@ -71,7 +71,7 @@ namespace ToolManagementAppV2.ViewModels
             });
 
             _ = LoadStatsAsync(CancellationToken.None);
-            LoadRecentActivity();
+            _ = LoadRecentActivityAsync(CancellationToken.None);
         }
 
         internal async Task LoadStatsAsync(CancellationToken cancellationToken)
@@ -98,12 +98,12 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        void LoadRecentActivity()
+        internal async Task LoadRecentActivityAsync(CancellationToken cancellationToken)
         {
             try
             {
                 RecentActivity.Clear();
-                var result = _activityLogService.GetRecentLogs(10);
+                var result = await _activityLogService.GetRecentLogsAsync(10, cancellationToken).ConfigureAwait(false);
                 if (!result.Success || result.Value == null)
                 {
                     _logger.LogError("Failed to load recent activity: {Error}", result.ErrorMessage);
@@ -111,6 +111,10 @@ namespace ToolManagementAppV2.ViewModels
                 }
                 foreach (var log in result.Value)
                     RecentActivity.Add(log);
+            }
+            catch (OperationCanceledException)
+            {
+                // Swallow cancellations quietly.
             }
             catch (Exception ex)
             {

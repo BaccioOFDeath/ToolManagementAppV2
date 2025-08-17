@@ -29,7 +29,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 var service = new ActivityLogService(db);
-                service.LogAction(1, "user", "action");
+                await service.LogActionAsync(1, "user", "action");
                 var vm = new ActivityLogsViewModel(service);
                 await vm.LoadLogsAsync();
                 Assert.NotEmpty(vm.Logs);

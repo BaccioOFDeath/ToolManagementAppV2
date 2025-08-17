@@ -10,13 +10,14 @@ using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.ViewModels;
 using Xunit;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ToolManagementAppV2.Tests.ViewModels
 {
     public class DashboardViewModelTests
     {
         [Fact]
-        public void Constructor_LoadsStatsAndActivity_AndCommandsExecute()
+        public async Task Constructor_LoadsStatsAndActivity_AndCommandsExecute()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -27,7 +28,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
                 var activityLogService = new ActivityLogService(db);
-                activityLogService.LogAction(1, "user", "action");
+                await activityLogService.LogActionAsync(1, "user", "action");
 
                 bool newTool = false, rentals = false, import = false;
 
@@ -41,6 +42,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     new RelayCommand(() => rentals = true),
                     new RelayCommand(() => import = true));
 
+                await Task.Delay(50);
                 Assert.NotEmpty(vm.StatCards);
                 Assert.NotEmpty(vm.RecentActivity);
 

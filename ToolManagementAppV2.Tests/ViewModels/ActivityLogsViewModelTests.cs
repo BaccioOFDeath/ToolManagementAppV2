@@ -20,7 +20,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 var service = new ActivityLogService(db);
-                service.LogAction(1, "user", "action");
+                await service.LogActionAsync(1, "user", "action");
                 var vm = new ActivityLogsViewModel(service);
                 await vm.RefreshCommand.ExecutionTask;
                 Assert.Single(vm.Logs);
@@ -40,11 +40,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 var service = new ActivityLogService(db);
-                service.LogAction(1, "user", "first");
+                await service.LogActionAsync(1, "user", "first");
                 var vm = new ActivityLogsViewModel(service);
                 await vm.RefreshCommand.ExecutionTask;
                 Assert.Single(vm.Logs);
-                service.LogAction(1, "user", "second");
+                await service.LogActionAsync(1, "user", "second");
                 Assert.Single(vm.Logs);
                 await vm.RefreshCommand.ExecuteAsync(null);
                 Assert.Equal(2, vm.Logs.Count);

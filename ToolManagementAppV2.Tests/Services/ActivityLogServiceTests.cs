@@ -12,7 +12,7 @@ namespace ToolManagementAppV2.Tests.Services
     public class ActivityLogServiceTests
     {
         [Fact]
-        public void LogAction_ReturnsFailure_WhenTableMissing()
+        public async Task LogAction_ReturnsFailure_WhenTableMissing()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -23,7 +23,7 @@ namespace ToolManagementAppV2.Tests.Services
                     cmd.ExecuteNonQuery();
 
                 var service = new ActivityLogService(db);
-                var result = service.LogAction(1, "user", "action");
+                var result = await service.LogActionAsync(1, "user", "action");
                 Assert.False(result.Success);
                 Assert.NotNull(result.ErrorMessage);
             }
@@ -34,7 +34,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void GetRecentLogs_ReturnsFailure_WhenTableMissing()
+        public async Task GetRecentLogs_ReturnsFailure_WhenTableMissing()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -45,7 +45,7 @@ namespace ToolManagementAppV2.Tests.Services
                     cmd.ExecuteNonQuery();
 
                 var service = new ActivityLogService(db);
-                var result = service.GetRecentLogs();
+                var result = await service.GetRecentLogsAsync();
                 Assert.False(result.Success);
                 Assert.NotNull(result.ErrorMessage);
             }
@@ -63,7 +63,7 @@ namespace ToolManagementAppV2.Tests.Services
             {
                 using var db = new DatabaseService(dbPath);
                 var service = new ActivityLogService(db);
-                var logResult = service.LogAction(1, "user", "action");
+                var logResult = await service.LogActionAsync(1, "user", "action");
                 Assert.True(logResult.Success);
 
                 var recent = await service.GetRecentLogsAsync();
