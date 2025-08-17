@@ -168,7 +168,9 @@ namespace ToolManagementAppV2.Services.Users
 
         public async Task AddUserAsync(User user)
         {
-            _auth.EnsureAdmin();
+            var existingUsers = await GetAllUsersAsync();
+            if (existingUsers.Count > 0)
+                _auth.EnsureAdmin();
             const string sql = @"
                 INSERT INTO Users
                   (UserName, Password, Salt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, FailedAttempts, LockoutUntil, PasswordExpired)
