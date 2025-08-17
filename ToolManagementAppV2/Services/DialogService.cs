@@ -30,9 +30,15 @@ namespace ToolManagementAppV2.Services
             dialog.ShowDialog();
         }
 
-        public Task ShowInfoAsync(string message, string title) =>
-            System.Windows.Application.Current?.Dispatcher?.InvokeAsync(() => ShowInfo(message, title)).Task
-            ?? Task.Run(() => ShowInfo(message, title));
+        public Task ShowInfoAsync(string message, string title)
+        {
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher != null)
+                return dispatcher.InvokeAsync(() => ShowInfo(message, title)).Task;
+
+            _logger.LogWarning("No dispatcher available for ShowInfoAsync; dialog not shown.");
+            return Task.CompletedTask;
+        }
 
         public bool ShowConfirmation(string message, string title)
         {
@@ -40,9 +46,15 @@ namespace ToolManagementAppV2.Services
             return dialog.ShowDialog() == true;
         }
 
-        public Task<bool> ShowConfirmationAsync(string message, string title) =>
-            System.Windows.Application.Current?.Dispatcher?.InvokeAsync(() => ShowConfirmation(message, title)).Task
-            ?? Task.FromResult(ShowConfirmation(message, title));
+        public Task<bool> ShowConfirmationAsync(string message, string title)
+        {
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher != null)
+                return dispatcher.InvokeAsync(() => ShowConfirmation(message, title)).Task;
+
+            _logger.LogWarning("No dispatcher available for ShowConfirmationAsync; returning false.");
+            return Task.FromResult(false);
+        }
 
         public ToolModel? ShowEditToolDialog(ToolModel tool)
         {
@@ -57,9 +69,15 @@ namespace ToolManagementAppV2.Services
             catch (Exception ex) { _logger.LogError(ex, "Failed to show ToolEditWindow"); return null; }
         }
 
-        public Task<ToolModel?> ShowEditToolDialogAsync(ToolModel tool) =>
-            System.Windows.Application.Current?.Dispatcher?.InvokeAsync(() => ShowEditToolDialog(tool)).Task
-            ?? Task.FromResult(ShowEditToolDialog(tool));
+        public Task<ToolModel?> ShowEditToolDialogAsync(ToolModel tool)
+        {
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher != null)
+                return dispatcher.InvokeAsync(() => ShowEditToolDialog(tool)).Task;
+
+            _logger.LogWarning("No dispatcher available for ShowEditToolDialogAsync; returning null.");
+            return Task.FromResult<ToolModel?>(null);
+        }
 
         public void ShowToolDetails(ToolModel tool)
         {

@@ -12,15 +12,15 @@ namespace ToolManagementAppV2.Interfaces
         void ShowInfo(string message, string title);
         Task ShowInfoAsync(string message, string title) =>
             System.Windows.Application.Current?.Dispatcher?.InvokeAsync(() => ShowInfo(message, title)).Task
-            ?? Task.Run(() => ShowInfo(message, title));
+            ?? Task.CompletedTask;
         bool ShowConfirmation(string message, string title);
         Task<bool> ShowConfirmationAsync(string message, string title) =>
             System.Windows.Application.Current?.Dispatcher?.InvokeAsync(() => ShowConfirmation(message, title)).Task
-            ?? Task.FromResult(ShowConfirmation(message, title));
+            ?? Task.FromResult(false);
         ToolModel? ShowEditToolDialog(ToolModel tool);
         Task<ToolModel?> ShowEditToolDialogAsync(ToolModel tool) =>
             System.Windows.Application.Current?.Dispatcher?.InvokeAsync(() => ShowEditToolDialog(tool)).Task
-            ?? Task.FromResult(ShowEditToolDialog(tool));
+            ?? Task.FromResult<ToolModel?>(null);
         void ShowToolDetails(ToolModel tool);
         (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers);
         CustomerModel? ShowAddCustomerDialog();
