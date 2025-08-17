@@ -32,7 +32,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 using var dbService = new DatabaseService(dbPath);
                 var userContext = new ApplicationUserContext();
-                var userService = new UserService(dbService, userContext);
+                var auth = new AuthorizationService(userContext);
+                var userService = new UserService(dbService, userContext, auth);
                 var settingsService = new SettingsService(dbService);
                 await settingsService.SaveSettingAsync("ApplicationName", "TestApp");
 
@@ -60,7 +61,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 using var dbService = new DatabaseService(dbPath);
                 var userContext = new ApplicationUserContext();
-                var userService = new UserService(dbService, userContext);
+                var auth = new AuthorizationService(userContext);
+                var userService = new UserService(dbService, userContext, auth);
                 var settingsService = new SettingsService(dbService);
 
                 var logs = new List<LogEntry>();
@@ -90,7 +92,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 using var dbService = new DatabaseService(dbPath);
                 var userContext = new ApplicationUserContext();
-                var userService = new UserService(dbService, userContext);
+                var auth = new AuthorizationService(userContext);
+                var userService = new UserService(dbService, userContext, auth);
                 var settingsService = new SettingsService(dbService);
                 userService.AddUser(new User { UserName = "user", Password = "newpassword", IsAdmin = false });
 
@@ -122,7 +125,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 using var dbService = new DatabaseService(dbPath);
                 var userContext = new ApplicationUserContext();
-                var userService = new UserService(dbService, userContext);
+                var auth = new AuthorizationService(userContext);
+                var userService = new UserService(dbService, userContext, auth);
                 var settingsService = new SettingsService(dbService);
                 var user = new User { UserName = "user", Password = "newpassword", IsAdmin = false, PasswordExpired = true };
                 userService.AddUser(user);
@@ -139,6 +143,46 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 Assert.True(success);
                 var updated = userService.GetUserByID(user.UserID)!;
+                Assert.False(updated.PasswordExpired);
+                Assert.True(SecurityHelper.VerifyPassword("changed", updated.Salt, updated.Password));
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task SelectUserCommand_PromptsForPasswordChange_WhenAdminExpired()
+        {
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
+
+            var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
+            try
+            {
+                using var dbService = new DatabaseService(dbPath);
+                var userContext = new ApplicationUserContext();
+                var auth = new AuthorizationService(userContext);
+                var userService = new UserService(dbService, userContext, auth);
+                var settingsService = new SettingsService(dbService);
+                var admin = new User { UserName = "admin", Password = "secret", IsAdmin = true, PasswordExpired = true };
+                userService.AddUser(admin);
+
+                var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
+                {
+                    PromptForPasswordAsync = (u, ct) =>
+                        Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("secret", false)),
+                    PromptForNewPassword = () => "changed"
+                };
+                await vm.InitializeAsync();
+                bool success = false;
+                vm.LoginSucceeded += (_, __) => success = true;
+
+                await vm.SelectUserCommand.ExecuteAsync(vm.Users.First());
+
+                Assert.True(success);
+                var updated = userService.GetUserByID(admin.UserID)!;
                 Assert.False(updated.PasswordExpired);
                 Assert.True(SecurityHelper.VerifyPassword("changed", updated.Salt, updated.Password));
             }

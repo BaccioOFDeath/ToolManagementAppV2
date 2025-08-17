@@ -234,9 +234,12 @@ namespace ToolManagementAppV2.ViewModels
                 (string.IsNullOrWhiteSpace(user.Password) ||
                  await SecurityHelper.VerifyPasswordAsync("newpassword", user.Salt, user.Password).ConfigureAwait(false)))
             {
-                if (user.PasswordExpired && !await PromptChangePasswordAsync(user))
-                    return;
                 _userContext.CurrentUser = user;
+                if (user.PasswordExpired && !await PromptChangePasswordAsync(user))
+                {
+                    _userContext.CurrentUser = null;
+                    return;
+                }
                 LoginSucceeded?.Invoke(this, EventArgs.Empty);
                 return;
             }
@@ -274,9 +277,12 @@ namespace ToolManagementAppV2.ViewModels
                 }
             }
 
-            if (credential.PasswordExpired && !await PromptChangePasswordAsync(credential))
-                return;
             _userContext.CurrentUser = credential;
+            if (credential.PasswordExpired && !await PromptChangePasswordAsync(credential))
+            {
+                _userContext.CurrentUser = null;
+                return;
+            }
             LoginSucceeded?.Invoke(this, EventArgs.Empty);
         }
 

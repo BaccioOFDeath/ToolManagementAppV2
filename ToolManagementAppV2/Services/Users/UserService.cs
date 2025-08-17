@@ -283,7 +283,8 @@ namespace ToolManagementAppV2.Services.Users
 
         public async Task<bool> ChangeUserPasswordAsync(int userID, string newPassword)
         {
-            _auth.EnsureAdmin();
+            if (_context.CurrentUser?.UserID != userID)
+                _auth.EnsureAdmin();
             var sql = "UPDATE Users SET Password=@Pwd, Salt=@Salt, PasswordExpired=@Expired WHERE UserID=@ID";
             string hashed = string.Empty;
             string salt = string.Empty;
