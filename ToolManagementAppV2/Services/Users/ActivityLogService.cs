@@ -23,9 +23,6 @@ namespace ToolManagementAppV2.Services.Users
             _logger = logger ?? NullLogger<ActivityLogService>.Instance;
         }
 
-        public virtual Result LogAction(int userID, string userName, string action, CancellationToken cancellationToken = default)
-            => LogActionAsync(userID, userName, action, cancellationToken).GetAwaiter().GetResult();
-
         public virtual async Task<Result> LogActionAsync(int userID, string userName, string action, CancellationToken cancellationToken = default)
         {
             try
@@ -60,9 +57,6 @@ namespace ToolManagementAppV2.Services.Users
             }
         }
 
-        public virtual Result<List<ActivityLog>> GetRecentLogs(int count = 50, CancellationToken cancellationToken = default)
-            => GetRecentLogsAsync(count, cancellationToken).GetAwaiter().GetResult();
-
         public virtual async Task<Result<List<ActivityLog>>> GetRecentLogsAsync(int count = 50, CancellationToken cancellationToken = default)
         {
             try
@@ -92,9 +86,6 @@ namespace ToolManagementAppV2.Services.Users
                 return new Result<List<ActivityLog>>(null, false, ex.Message);
             }
         }
-
-        public virtual Result PurgeOldLogs(DateTime threshold, CancellationToken cancellationToken = default)
-            => PurgeOldLogsAsync(threshold, cancellationToken).GetAwaiter().GetResult();
 
         public virtual async Task<Result> PurgeOldLogsAsync(DateTime threshold, CancellationToken cancellationToken = default)
         {
