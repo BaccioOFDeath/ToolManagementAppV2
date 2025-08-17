@@ -56,17 +56,20 @@
                     <ContextMenu>
                         <MenuItem Header="Edit"
                                   Command="{Binding PlacementTarget.DataContext.EditUserFromRowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                  CommandParameter="{Binding SelectedItem, Source={x:Reference UsersDataGrid}}"/>
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem,
+                                                          RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                         <MenuItem Header="Reset Password"
                                   Command="{Binding PlacementTarget.DataContext.ResetPasswordFromRowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                  CommandParameter="{Binding SelectedItem, Source={x:Reference UsersDataGrid}}"/>
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem,
+                                                          RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                         <MenuItem Header="Upload Photo"
                                   Command="{Binding PlacementTarget.DataContext.UploadUserPhotoCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                         <MenuItem Header="Update"
                                   Command="{Binding PlacementTarget.DataContext.UpdateUserCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                         <MenuItem Header="Delete"
                                   Command="{Binding PlacementTarget.DataContext.DeleteUserFromRowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                  CommandParameter="{Binding SelectedItem, Source={x:Reference UsersDataGrid}}"/>
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem,
+                                                          RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                     </ContextMenu>
                 </DataGrid.ContextMenu>
             </DataGrid>
