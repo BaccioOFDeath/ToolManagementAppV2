@@ -106,6 +106,15 @@ namespace ToolManagementAppV2.Services.Tools
             return ImportToolImagesInternalAsync(folderPath, keySelector, progress, cancellationToken);
         }
 
+        public async Task<string> GenerateNextToolNumberAsync(CancellationToken cancellationToken = default)
+        {
+            const string sql = "SELECT IFNULL(MAX(CAST(SUBSTR(ToolNumber, 2) AS INTEGER)), 0) FROM Tools WHERE ToolNumber LIKE 'T%'";
+            using var conn = _dbService.CreateConnection();
+            var result = await SqliteHelper.ExecuteScalarAsync(conn, sql, null, cancellationToken);
+            var max = result == null || result == DBNull.Value ? 0 : Convert.ToInt32(result);
+            return $"T{max + 1}";
+        }
+
         async Task InsertToolAsync(SQLiteConnection conn, SQLiteTransaction? tran, ToolModel tool, CancellationToken cancellationToken)
         {
             ValidateQuantity(tool.QuantityOnHand);
@@ -277,7 +286,7 @@ namespace ToolManagementAppV2.Services.Tools
         private async Task AddToolInternalAsync(ToolModel tool, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(tool?.ToolNumber))
-                throw new ArgumentException("ToolNumber is required.", nameof(tool));
+                tool.ToolNumber = await GenerateNextToolNumberAsync(cancellationToken);
             if (await ToolExistsAsync(tool.ToolNumber, null, cancellationToken))
                 throw new InvalidOperationException($"Tool {tool.ToolNumber} already exists.");
             ValidateQuantity(tool.QuantityOnHand);

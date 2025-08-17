@@ -232,7 +232,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void AddTool_NullToolNumber_ThrowsArgumentException()
+        public void AddTool_BlankToolNumber_GeneratesNumber()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -241,7 +241,10 @@ namespace ToolManagementAppV2.Tests.Services
                 IToolService service = new ToolService(dbService);
 
                 var tool = new Tool { ToolNumber = "" };
-                Assert.Throws<ArgumentException>(() => service.AddTool(tool));
+                service.AddTool(tool);
+
+                Assert.Equal("T1", tool.ToolNumber);
+                Assert.Single(service.GetAllTools());
             }
             finally
             {
