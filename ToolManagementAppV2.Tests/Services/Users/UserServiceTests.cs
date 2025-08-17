@@ -192,6 +192,48 @@ public class UserServiceTests
     }
 
     [Fact]
+    public async Task ChangeUserPasswordAsync_TrimsInputBeforeHashing()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+            var user = new User { UserName = "trim", Password = "pw" };
+            await userService.AddUserAsync(user);
+            var result = await userService.ChangeUserPasswordAsync(user.UserID, "  newpass  ");
+            Assert.True(result);
+            var auth = await userService.AuthenticateUserAsync("trim", "newpass");
+            Assert.Equal(AuthenticationResult.Success, auth.Result);
+        }
+        finally
+        {
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public async Task ChangeUserPasswordAsync_ReturnsFalse_WhenPasswordIsWhitespace()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+            var user = new User { UserName = "blank", Password = "pw" };
+            await userService.AddUserAsync(user);
+            var result = await userService.ChangeUserPasswordAsync(user.UserID, "   ");
+            Assert.False(result);
+            var auth = await userService.AuthenticateUserAsync("blank", "pw");
+            Assert.Equal(AuthenticationResult.Success, auth.Result);
+        }
+        finally
+        {
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
     public void GetAllUsers_DoesNotIncludeSensitiveFields()
     {
         var dbPath = Path.GetTempFileName();

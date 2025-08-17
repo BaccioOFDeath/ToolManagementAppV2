@@ -292,15 +292,15 @@ namespace ToolManagementAppV2.Services.Users
         {
             if (_context.CurrentUser?.UserID != userID)
                 _auth.EnsureAdmin();
+
+            newPassword = (newPassword ?? string.Empty).Trim();
+            if (newPassword.Length == 0)
+                return false;
+
             var sql = "UPDATE Users SET Password=@Pwd, Salt=@Salt, PasswordExpired=@Expired WHERE UserID=@ID";
-            string hashed = string.Empty;
-            string salt = string.Empty;
-            if (!string.IsNullOrWhiteSpace(newPassword))
-            {
-                var result = await SecurityHelper.HashPasswordAsync(newPassword).ConfigureAwait(false);
-                hashed = result.hash;
-                salt = result.salt;
-            }
+            var result = await SecurityHelper.HashPasswordAsync(newPassword).ConfigureAwait(false);
+            string hashed = result.hash;
+            string salt = result.salt;
 
             var expired = newPassword == "admin" || newPassword == "changeme" || newPassword == "newpassword";
 
