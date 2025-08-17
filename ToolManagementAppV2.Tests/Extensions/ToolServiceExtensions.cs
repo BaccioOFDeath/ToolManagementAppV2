@@ -27,6 +27,8 @@ namespace ToolManagementAppV2.Tests.Extensions
 
         public static List<ToolModel> SearchTools(this IToolService service, string? searchText) =>
             service.SearchToolsAsync(searchText).GetAwaiter().GetResult();
+        public static string GenerateNextToolNumber(this IToolService service) =>
+            service.GenerateNextToolNumberAsync().GetAwaiter().GetResult();
 
         public static bool ToggleToolCheckOutStatus(this IToolService service, int toolID, string currentUser) =>
             service.ToggleToolCheckOutStatusAsync(toolID, currentUser).GetAwaiter().GetResult();

@@ -208,6 +208,8 @@ namespace ToolManagementAppV2.ViewModels
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(NewTool.ToolNumber))
+                    NewTool.ToolNumber = await _toolService.GenerateNextToolNumberAsync(cancellationToken);
                 await _toolService.AddToolAsync(NewTool, cancellationToken);
                 await LoadToolsAsync();
                 await FilterToolsAsync(cancellationToken);
