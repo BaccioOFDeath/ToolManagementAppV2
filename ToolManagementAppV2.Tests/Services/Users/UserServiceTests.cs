@@ -234,6 +234,40 @@ public class UserServiceTests
     }
 
     [Fact]
+    public async Task ChangeUserPasswordAsync_ResetsFailedAttemptsAndLockout()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+            var user = new User { UserName = "lock", Password = "pw" };
+            await userService.AddUserAsync(user);
+
+            await userService.AuthenticateUserAsync("lock", "bad");
+            await userService.AuthenticateUserAsync("lock", "bad");
+            await userService.AuthenticateUserAsync("lock", "bad");
+
+            var locked = userService.GetUserByID(user.UserID);
+            Assert.NotNull(locked);
+            Assert.True(locked!.FailedAttempts >= 3);
+            Assert.NotNull(locked.LockoutUntil);
+
+            var changed = await userService.ChangeUserPasswordAsync(user.UserID, "newpass");
+            Assert.True(changed);
+
+            var updated = userService.GetUserByID(user.UserID);
+            Assert.NotNull(updated);
+            Assert.Equal(0, updated!.FailedAttempts);
+            Assert.Null(updated.LockoutUntil);
+        }
+        finally
+        {
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
     public void GetAllUsers_DoesNotIncludeSensitiveFields()
     {
         var dbPath = Path.GetTempFileName();
