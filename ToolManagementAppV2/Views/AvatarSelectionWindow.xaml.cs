@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Utilities.Extensions;
@@ -25,15 +26,7 @@ namespace ToolManagementAppV2.Views
             _settingsService = settingsService;
             _logger = logger ?? NullLogger<AvatarSelectionWindow>.Instance;
 
-            var avatarDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Avatars");
-            var avatars = Array.Empty<Uri>();
-            if (Directory.Exists(avatarDir))
-                avatars = Directory
-                    .EnumerateFiles(avatarDir, "*.png")
-                    .Select(path => new Uri(path, UriKind.Absolute))
-                    .ToArray();
-
-            DataContext = new AvatarSelectionViewModel(avatars, () => DialogResult = true);
+            DataContext = new AvatarSelectionViewModel(Array.Empty<Uri>(), () => DialogResult = true);
             this.DisposeDataContextOnUnload();
             Loaded += OnLoaded;
         }
@@ -42,13 +35,26 @@ namespace ToolManagementAppV2.Views
         {
             try
             {
+                var avatarDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Avatars");
+                if (Directory.Exists(avatarDir))
+                {
+                    var avatars = await Task.Run(() =>
+                        Directory.EnumerateFiles(avatarDir, "*.png")
+                            .Select(path => new Uri(path, UriKind.Absolute))
+                            .ToArray());
+
+                    VM.Avatars.Clear();
+                    foreach (var uri in avatars)
+                        VM.Avatars.Add(uri);
+                }
+
                 var appName = await _settingsService.GetSettingAsync("ApplicationName");
                 if (!string.IsNullOrWhiteSpace(appName))
                     Title = $"{appName} – Select Avatar";
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to load ApplicationName setting");
+                _logger.LogError(ex, "Failed to load avatars or ApplicationName setting");
             }
         }
     }
