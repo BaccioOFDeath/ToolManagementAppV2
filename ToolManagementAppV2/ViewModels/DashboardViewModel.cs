@@ -98,12 +98,12 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        internal async Task LoadRecentActivityAsync(CancellationToken cancellationToken)
+        internal async Task LoadRecentActivityAsync(CancellationToken token)
         {
             try
             {
                 RecentActivity.Clear();
-                var result = await _activityLogService.GetRecentLogsAsync(10, cancellationToken).ConfigureAwait(false);
+                var result = await _activityLogService.GetRecentLogsAsync(10, token).ConfigureAwait(false);
                 if (!result.Success || result.Value == null)
                 {
                     _logger.LogError("Failed to load recent activity: {Error}", result.ErrorMessage);
