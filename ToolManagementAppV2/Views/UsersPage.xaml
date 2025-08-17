@@ -26,7 +26,8 @@
         </Border>
 
         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
-            <DataGrid ItemsSource="{Binding Users}"
+            <DataGrid x:Name="UsersDataGrid"
+                      ItemsSource="{Binding Users}"
                       SelectedItem="{Binding SelectedUser}"
                       IsReadOnly="True"
                       AutoGenerateColumns="False"
@@ -53,11 +54,19 @@
                 </DataGrid.Columns>
                 <DataGrid.ContextMenu>
                     <ContextMenu>
-                        <MenuItem Header="Edit" Command="{Binding PlacementTarget.DataContext.EditUserFromRowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
-                        <MenuItem Header="Reset Password" Command="{Binding PlacementTarget.DataContext.ResetPasswordFromRowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
-                        <MenuItem Header="Upload Photo" Command="{Binding PlacementTarget.DataContext.UploadUserPhotoCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                        <MenuItem Header="Update" Command="{Binding PlacementTarget.DataContext.UpdateUserCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                        <MenuItem Header="Delete" Command="{Binding PlacementTarget.DataContext.DeleteUserFromRowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
+                        <MenuItem Header="Edit"
+                                  Command="{Binding PlacementTarget.DataContext.EditUserFromRowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding SelectedItem, Source={x:Reference UsersDataGrid}}"/>
+                        <MenuItem Header="Reset Password"
+                                  Command="{Binding PlacementTarget.DataContext.ResetPasswordFromRowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding SelectedItem, Source={x:Reference UsersDataGrid}}"/>
+                        <MenuItem Header="Upload Photo"
+                                  Command="{Binding PlacementTarget.DataContext.UploadUserPhotoCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                        <MenuItem Header="Update"
+                                  Command="{Binding PlacementTarget.DataContext.UpdateUserCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                        <MenuItem Header="Delete"
+                                  Command="{Binding PlacementTarget.DataContext.DeleteUserFromRowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding SelectedItem, Source={x:Reference UsersDataGrid}}"/>
                     </ContextMenu>
                 </DataGrid.ContextMenu>
             </DataGrid>

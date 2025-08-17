@@ -4,6 +4,7 @@ using System.Threading;
 using System.Windows.Controls;
 using System.Reflection;
 using System.Collections.Generic;
+using System.IO;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
@@ -128,6 +129,60 @@ namespace ToolManagementAppV2.Tests.Views
             {
                 if (System.IO.File.Exists(dbPath))
                     System.IO.File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void ContextMenuEditCommand_BindsSelectedItem()
+        {
+            var dbPath = Path.GetTempFileName();
+            Exception? threadException = null;
+
+            try
+            {
+                var thread = new Thread(() =>
+                {
+                    try
+                    {
+                        var db = new DatabaseService(dbPath);
+                        IUserService userService = new UserService(db, new ApplicationUserContext());
+                        var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
+                        userService.AddUser(new User { UserName = "user1", Password = "pw" });
+                        vm.LoadUsers();
+
+                        var page = new UsersPage { DataContext = vm };
+                        var grid = (Grid)page.Content;
+                        var dataGrid = (DataGrid)((Border)grid.Children[1]).Child;
+
+                        dataGrid.SelectedItem = vm.Users.First();
+                        dataGrid.ContextMenu.PlacementTarget = dataGrid;
+                        dataGrid.ContextMenu.IsOpen = true;
+
+                        var editItem = (MenuItem)dataGrid.ContextMenu.Items[0];
+
+                        Assert.Equal(vm.Users.First(), editItem.CommandParameter);
+
+                        dataGrid.ContextMenu.IsOpen = false;
+                    }
+                    catch (Exception ex)
+                    {
+                        threadException = ex;
+                    }
+                });
+
+                thread.SetApartmentState(ApartmentState.STA);
+                thread.Start();
+                thread.Join();
+
+                if (threadException != null)
+                {
+                    throw threadException;
+                }
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
             }
         }
     }
