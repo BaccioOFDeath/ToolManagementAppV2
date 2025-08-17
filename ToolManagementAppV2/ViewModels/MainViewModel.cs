@@ -320,7 +320,7 @@ namespace ToolManagementAppV2.ViewModels
         {
             try
             {
-                var path = _fileDialogService.OpenFile("CSV Files|*.csv");
+                var path = _fileDialogService.OpenFile("CSV Files|*.csv", AppContext.BaseDirectory);
                 if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
                     return;
 

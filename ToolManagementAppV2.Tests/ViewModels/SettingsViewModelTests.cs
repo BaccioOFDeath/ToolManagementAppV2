@@ -150,7 +150,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     class StubFileDialogService : ToolManagementAppV2.Interfaces.IFileDialogService
     {
         public string OpenPath { get; set; } = string.Empty;
-        public string? OpenFile(string filter) => OpenPath;
+        public string? OpenFile(string filter, string? initialDirectory = null) => OpenPath;
         public string? SaveFile(string filter) => null;
     }
 

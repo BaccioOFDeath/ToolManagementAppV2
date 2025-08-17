@@ -62,7 +62,7 @@ namespace ToolManagementAppV2.ViewModels
 
         async Task ImportToolsAsync(CancellationToken cancellationToken)
         {
-            var path = _fileDialogService.OpenFile("CSV Files|*.csv");
+            var path = _fileDialogService.OpenFile("CSV Files|*.csv", AppContext.BaseDirectory);
             if (string.IsNullOrEmpty(path)) return;
             try
             {
@@ -111,7 +111,7 @@ namespace ToolManagementAppV2.ViewModels
 
         async Task ImportCustomersAsync(CancellationToken cancellationToken)
         {
-            var path = _fileDialogService.OpenFile("CSV Files|*.csv");
+            var path = _fileDialogService.OpenFile("CSV Files|*.csv", AppContext.BaseDirectory);
             if (string.IsNullOrEmpty(path)) return;
             try
             {

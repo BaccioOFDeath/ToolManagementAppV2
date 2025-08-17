@@ -27,6 +27,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
             Assert.True(dialog.ShowImportMappingCalled);
             Assert.True(toolSvc.ImportCalled);
+            Assert.Equal(AppContext.BaseDirectory, fileDlg.InitialDirectoryUsed);
             Assert.Equal("ToolNumber", toolSvc.MapUsed!["ToolNumber"]);
             File.Delete(tmp);
         }
@@ -45,6 +46,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
             Assert.True(dialog.ShowImportMappingCalled);
             Assert.True(customerSvc.ImportCalled);
+            Assert.Equal(AppContext.BaseDirectory, fileDlg.InitialDirectoryUsed);
             Assert.Equal("Company", customerSvc.MapUsed!["Company"]);
             File.Delete(tmp);
         }
@@ -133,7 +135,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
     class StubFileDialogService : IFileDialogService
     {
         public string FileToReturn { get; set; } = string.Empty;
-        public string OpenFile(string filter) => FileToReturn;
+        public string? InitialDirectoryUsed { get; private set; }
+        public string OpenFile(string filter, string? initialDirectory = null)
+        {
+            InitialDirectoryUsed = initialDirectory;
+            return FileToReturn;
+        }
         public string SaveFile(string filter) => FileToReturn;
     }
 
