@@ -79,6 +79,9 @@ namespace ToolManagementAppV2.Services.Users
         {
             using var conn = _dbService.CreateConnection();
 
+            userName = (userName ?? string.Empty).Trim();
+            password = (password ?? string.Empty).Trim();
+
             await SqliteHelper.ExecuteNonQueryAsync(
                 conn,
                 "UPDATE Users SET FailedAttempts=IFNULL(FailedAttempts,0) WHERE FailedAttempts IS NULL"
@@ -110,11 +113,11 @@ namespace ToolManagementAppV2.Services.Users
             bool success;
             if (string.IsNullOrWhiteSpace(u.Salt) && SecurityHelper.IsSha256Hash(u.Password))
             {
-                var legacy = SecurityHelper.ComputeSha256HashLegacy(password ?? string.Empty);
+                var legacy = SecurityHelper.ComputeSha256HashLegacy(password);
                 success = u.Password == legacy;
                 if (success)
                 {
-                    var upgradedResult = await SecurityHelper.HashPasswordAsync(password ?? string.Empty).ConfigureAwait(false);
+                    var upgradedResult = await SecurityHelper.HashPasswordAsync(password).ConfigureAwait(false);
                     var p = new[]
                     {
                 new SQLiteParameter("@Pwd", upgradedResult.hash),
@@ -128,7 +131,7 @@ namespace ToolManagementAppV2.Services.Users
             }
             else
             {
-                success = await SecurityHelper.VerifyPasswordAsync(password ?? string.Empty, u.Salt, u.Password).ConfigureAwait(false);
+                success = await SecurityHelper.VerifyPasswordAsync(password, u.Salt, u.Password).ConfigureAwait(false);
             }
 
             if (success)

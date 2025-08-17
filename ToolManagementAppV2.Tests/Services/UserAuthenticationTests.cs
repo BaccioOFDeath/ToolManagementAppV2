@@ -224,7 +224,7 @@ public class UserAuthenticationTests
             Assert.False(string.IsNullOrWhiteSpace(added.Salt));
             Assert.True(SecurityHelper.VerifyPassword("secret", added.Salt, added.Password));
 
-            var auth = await userService.AuthenticateUserAsync("atest", "secret");
+            var auth = await userService.AuthenticateUserAsync(" atest ", " secret ");
             Assert.Equal(AuthenticationResult.Success, auth.Result);
             Assert.NotNull(auth.User);
         }
@@ -249,7 +249,7 @@ public class UserAuthenticationTests
 
             for (int i = 0; i < 3; i++)
             {
-                var auth = await userService.AuthenticateUserAsync("lockasync", "bad");
+                var auth = await userService.AuthenticateUserAsync(" lockasync ", " bad ");
                 if (i < 2)
                     Assert.Equal(AuthenticationResult.IncorrectPassword, auth.Result);
                 else
@@ -260,7 +260,7 @@ public class UserAuthenticationTests
             Assert.Equal(3, stored.FailedAttempts);
             Assert.NotNull(stored.LockoutUntil);
 
-            var afterLock = await userService.AuthenticateUserAsync("lockasync", "secret");
+            var afterLock = await userService.AuthenticateUserAsync(" lockasync ", " secret ");
             Assert.Equal(AuthenticationResult.LockedOut, afterLock.Result);
         }
         finally
@@ -283,7 +283,7 @@ public class UserAuthenticationTests
             await userService.AddUserAsync(user);
 
             for (int i = 0; i < 3; i++)
-                await userService.AuthenticateUserAsync("areset", "bad");
+                await userService.AuthenticateUserAsync(" areset ", " bad ");
 
             using (var conn = dbService.CreateConnection())
             using (var cmd = new SQLiteCommand("UPDATE Users SET LockoutUntil=@t WHERE UserID=@id", conn))
@@ -293,7 +293,7 @@ public class UserAuthenticationTests
                 cmd.ExecuteNonQuery();
             }
 
-            var auth = await userService.AuthenticateUserAsync("areset", "secret");
+            var auth = await userService.AuthenticateUserAsync(" areset ", " secret ");
             Assert.Equal(AuthenticationResult.Success, auth.Result);
             Assert.NotNull(auth.User);
 
