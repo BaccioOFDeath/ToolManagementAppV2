@@ -19,7 +19,15 @@
             <Border Style="{StaticResource Card}" Grid.Column="0">
                 <StackPanel>
                     <TextBlock Text="Recent Activity" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                    <ListView ItemsSource="{Binding RecentActivity}"/>
+                    <ListView ItemsSource="{Binding RecentActivity}"
+                              VirtualizingPanel.IsVirtualizing="True"
+                              VirtualizingPanel.VirtualizationMode="Recycling">
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel/>
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                    </ListView>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource Card}" Grid.Column="1">
