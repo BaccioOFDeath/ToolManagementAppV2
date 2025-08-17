@@ -19,10 +19,7 @@
                       SelectedItem="{Binding SelectedRental}"
                       IsReadOnly="True"
                       AutoGenerateColumns="False"
-                      EnableRowVirtualization="True"
-                      EnableColumnVirtualization="True"
-                      VirtualizingPanel.IsVirtualizing="True"
-                      VirtualizingPanel.VirtualizationMode="Recycling">
+                      Style="{StaticResource VirtualizedDataGridStyle}">
                 <DataGrid.Columns>
                     <StaticResource ResourceKey="RentalIdColumn"/>
                     <StaticResource ResourceKey="RentalToolNumberColumn"/>
