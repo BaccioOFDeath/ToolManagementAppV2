@@ -38,5 +38,17 @@ namespace ToolManagementAppV2.Tests.Tests
             Assert.NotNull(provider.GetService<IMainWindow>());
             Assert.NotNull(provider.GetService<ILoginWindow>());
         }
+
+        [Fact]
+        public void LoginWindow_Is_Transient()
+        {
+            var app = new ToolManagementAppV2.App();
+            var provider = app.Host.Services;
+
+            var first = provider.GetRequiredService<ILoginWindow>();
+            var second = provider.GetRequiredService<ILoginWindow>();
+
+            Assert.NotSame(first, second);
+        }
     }
 }
