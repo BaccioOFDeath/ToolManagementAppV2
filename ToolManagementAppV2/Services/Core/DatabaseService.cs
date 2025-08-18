@@ -263,7 +263,14 @@ namespace ToolManagementAppV2.Services.Core
             try
             {
                 using var source = CreateConnection();
-                using var destination = new SQLiteConnection($"Data Source={backupFilePath};Version=3;Pooling=True;Cache=Shared;");
+                var builder = new SQLiteConnectionStringBuilder
+                {
+                    DataSource = backupFilePath,
+                    Version = 3,
+                    Pooling = true
+                };
+                builder["Cache"] = "Shared";
+                using var destination = new SQLiteConnection(builder.ToString());
                 destination.Open();
 
                 source.BackupDatabase(destination, "main", "main", -1, null, 0);
@@ -280,13 +287,11 @@ namespace ToolManagementAppV2.Services.Core
         /// </summary>
         /// <param name="backupFilePath">Destination path for the backup file.</param>
         /// <param name="cancellationToken">Token to observe for cancellation.</param>
-        public async Task BackupDatabaseAsync(string backupFilePath, CancellationToken cancellationToken)
-        {
-            await Task.Run(() =>
+        public Task BackupDatabaseAsync(string backupFilePath, CancellationToken cancellationToken)
+            => Task.Run(() =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 BackupDatabase(backupFilePath);
-            }, cancellationToken).ConfigureAwait(false);
-        }
+            }, cancellationToken);
     }
 }
