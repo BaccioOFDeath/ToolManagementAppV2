@@ -38,7 +38,6 @@ namespace ToolManagementAppV2.ViewModels
         readonly IUserContext _userContext;
         readonly ILogger<LoginViewModel> _logger;
         readonly IServiceProvider? _serviceProvider;
-        readonly ISetupWizard? _setupWizard;
 
         public ObservableCollection<User> Users { get; } = new();
 
@@ -87,7 +86,7 @@ namespace ToolManagementAppV2.ViewModels
         public Func<User, CancellationToken, Task<PasswordPromptResult?>>? PromptForPasswordAsync { get; set; }
             
 
-        public LoginViewModel(IUserService userService, ISettingsService settingsService, IDialogService dialogService, IUserContext userContext, ILogger<LoginViewModel>? logger = null, IServiceProvider? serviceProvider = null, ISetupWizard? setupWizard = null)
+        public LoginViewModel(IUserService userService, ISettingsService settingsService, IDialogService dialogService, IUserContext userContext, ILogger<LoginViewModel>? logger = null, IServiceProvider? serviceProvider = null)
         {
             _settingsService = settingsService;
             _userService = userService;
@@ -95,7 +94,6 @@ namespace ToolManagementAppV2.ViewModels
             _userContext = userContext;
             _logger = logger ?? NullLogger<LoginViewModel>.Instance;
             _serviceProvider = serviceProvider;
-            _setupWizard = setupWizard;
 
             SelectUserCommand = new AsyncRelayCommand<User>(OnUserSelected);
 
@@ -176,30 +174,17 @@ namespace ToolManagementAppV2.ViewModels
         async Task LoadUsersAsync()
         {
             var users = await _userService.GetAllUsersAsync();
-            if (users.Count == 0 && _setupWizard != null)
+            if (users.Count == 0)
             {
-                var result = await _setupWizard.RunAsync();
-                if (result == null || string.IsNullOrWhiteSpace(result.Password))
-                    return;
-
-                if (!PasswordValidator.IsValid(result.Password, out var error))
-                {
-                    await _dialogService.ShowInfoAsync(error!, "Invalid Password");
-                    return;
-                }
-
-                var hash = await SecurityHelper.HashPasswordAsync(result.Password).ConfigureAwait(false);
                 var admin = new User
                 {
                     UserName = "admin",
-                    PasswordHash = hash.hash,
-                    PasswordSalt = hash.salt,
-                    IsAdmin = true
+                    PasswordHash = "admin",
+                    IsAdmin = true,
+                    PasswordExpired = true
                 };
                 await _userService.AddUserAsync(admin);
                 _logger.LogInformation("Created admin user {UserName}", admin.UserName);
-                if (result.IsRandom)
-                    await _dialogService.ShowInfoAsync($"Generated admin password: {result.Password}", "Setup");
                 users = await _userService.GetAllUsersAsync();
             }
 

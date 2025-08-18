@@ -57,7 +57,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task LoadUsersAsync_UsesSetupWizard_WhenNoUsers()
+        public async Task LoadUsersAsync_CreatesAdminUser_WhenNoUsers()
         {
             if (System.Windows.Application.Current == null)
                 new System.Windows.Application();
@@ -71,19 +71,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var userService = new UserService(dbService, userContext, auth);
                 var settingsService = new SettingsService(dbService);
 
-                var logs = new List<LogEntry>();
-                using var provider = new ListLoggerProvider(logs);
-                using var loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(provider));
-                var logger = loggerFactory.CreateLogger<LoginViewModel>();
-
-                var dialog = new CapturingDialogService();
-                var setup = new StubSetupWizard("Str0ngP@ss!", true);
-                var vm = new LoginViewModel(userService, settingsService, dialog, userContext, logger, null, setup);
+                var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext);
                 await vm.LoadUsersCommand.ExecuteAsync(null);
 
-                Assert.True(setup.Invoked);
-                Assert.Contains(logs, l => l.Level == LogLevel.Information && l.Message.Contains("admin"));
-                Assert.Contains("Str0ngP@ss!", dialog.LastMessage);
+                Assert.Single(vm.Users);
+                var admin = vm.Users[0];
+                Assert.Equal("admin", admin.UserName);
+                Assert.True(admin.IsAdmin);
+                Assert.True(admin.PasswordExpired);
             }
             finally
             {
@@ -288,41 +283,6 @@ namespace ToolManagementAppV2.Tests.ViewModels
             win.Dispose();
 
             Assert.True(closed);
-        }
-
-        [Fact]
-        public async Task LoadUsersAsync_AwaitsSetupWizard()
-        {
-            if (System.Windows.Application.Current == null)
-                new System.Windows.Application();
-
-            var tcs = new TaskCompletionSource<SetupWizardResult?>();
-            var setup = new AwaitableSetupWizard(tcs.Task);
-            var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
-            try
-            {
-                using var dbService = new DatabaseService(dbPath);
-                var userContext = new ApplicationUserContext();
-                var auth = new AuthorizationService(userContext);
-                var userService = new UserService(dbService, userContext, auth);
-                var settingsService = new SettingsService(dbService);
-                var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext, null, null, setup);
-
-                var loadTask = vm.LoadUsersCommand.ExecuteAsync(null);
-
-                await Task.Delay(50);
-                Assert.False(loadTask.IsCompleted);
-
-                tcs.SetResult(new SetupWizardResult("Str0ngP@ss!", false));
-                await loadTask;
-
-                Assert.Single(vm.Users);
-                Assert.Equal("admin", vm.Users[0].UserName);
-            }
-            finally
-            {
-                if (File.Exists(dbPath)) File.Delete(dbPath);
-            }
         }
 
         [Fact]
@@ -581,33 +541,6 @@ namespace ToolManagementAppV2.Tests.ViewModels
             return Task.FromResult(true);
         }
         public Task UnlockUserAsync(int userId) => Task.CompletedTask;
-    }
-
-    class StubSetupWizard : ISetupWizard
-    {
-        readonly SetupWizardResult _result;
-        public bool Invoked { get; private set; }
-        public StubSetupWizard(string password, bool isRandom = false)
-        {
-            _result = new SetupWizardResult(password, isRandom);
-        }
-
-        public Task<SetupWizardResult?> RunAsync()
-        {
-            Invoked = true;
-            return Task.FromResult<SetupWizardResult?>(_result);
-        }
-    }
-
-    class AwaitableSetupWizard : ISetupWizard
-    {
-        readonly Task<SetupWizardResult?> _task;
-        public AwaitableSetupWizard(Task<SetupWizardResult?> task)
-        {
-            _task = task;
-        }
-
-        public Task<SetupWizardResult?> RunAsync() => _task;
     }
 
     class CapturingDialogService : IDialogService
