@@ -597,6 +597,16 @@ class InMemoryUserService : IUserService
     }
     public bool ChangeUserPassword(int userID, string newPassword) => false;
     public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => Task.FromResult(false);
+    public Task UnlockUserAsync(int userId)
+    {
+        var user = Users.FirstOrDefault(u => u.UserID == userId);
+        if (user != null)
+        {
+            user.FailedAttempts = 0;
+            user.LockoutUntil = null;
+        }
+        return Task.CompletedTask;
+    }
 }
 
 class PromptUserManagementViewModel : UserManagementViewModel
@@ -633,6 +643,7 @@ class FailingUserService : IUserService
     public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
     public bool ChangeUserPassword(int userID, string newPassword) => false;
     public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => Task.FromResult(false);
+    public Task UnlockUserAsync(int userId) => Task.CompletedTask;
 }
 
 class GetAllUsersFailingUserService : IUserService
@@ -652,6 +663,7 @@ class GetAllUsersFailingUserService : IUserService
     public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
     public bool ChangeUserPassword(int userID, string newPassword) => false;
     public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => Task.FromResult(false);
+    public Task UnlockUserAsync(int userId) => Task.CompletedTask;
 }
 
 class CancelPromptUserManagementViewModel : UserManagementViewModel

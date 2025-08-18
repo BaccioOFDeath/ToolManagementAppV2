@@ -261,6 +261,7 @@ public class UserServiceTests
             Assert.NotNull(updated);
             Assert.Equal(0, updated!.FailedAttempts);
             Assert.Null(updated.LockoutUntil);
+            Assert.False(updated.IsLocked);
         }
         finally
         {
@@ -292,6 +293,7 @@ public class UserServiceTests
             var updated = userService.GetUserByID(user.UserID);
             Assert.NotNull(updated);
             Assert.Equal(0, updated!.FailedAttempts);
+            Assert.False(updated.IsLocked);
         }
         finally
         {

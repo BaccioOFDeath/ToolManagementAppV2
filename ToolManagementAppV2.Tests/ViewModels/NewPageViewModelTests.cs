@@ -372,5 +372,6 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
         public bool ChangeUserPassword(int userID, string newPassword) => false;
         public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => Task.FromResult(false);
+        public Task UnlockUserAsync(int userId) => Task.CompletedTask;
     }
 }

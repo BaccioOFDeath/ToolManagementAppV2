@@ -79,4 +79,6 @@ public static class AsyncServiceExtensions
         => svc.UpdateUserAsync(user).GetAwaiter().GetResult();
     public static bool ChangeUserPassword(this IUserService svc, int id, string newPassword)
         => svc.ChangeUserPasswordAsync(id, newPassword).GetAwaiter().GetResult();
+    public static void UnlockUser(this IUserService svc, int id)
+        => svc.UnlockUserAsync(id).GetAwaiter().GetResult();
 }

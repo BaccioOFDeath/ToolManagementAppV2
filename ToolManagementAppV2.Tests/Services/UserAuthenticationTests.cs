@@ -130,6 +130,7 @@ public class UserAuthenticationTests
             var stored = userService.GetAllUsers().First();
             Assert.Equal(3, stored.FailedAttempts);
             Assert.NotNull(stored.LockoutUntil);
+            Assert.True(stored.IsLocked);
 
             var afterLock = userService.AuthenticateUser("lock", "secret");
             Assert.Equal(AuthenticationResult.LockedOut, afterLock.Result);
@@ -171,6 +172,7 @@ public class UserAuthenticationTests
             var stored = userService.GetAllUsers().First(u => u.UserName == "reset");
             Assert.Equal(0, stored.FailedAttempts);
             Assert.Null(stored.LockoutUntil);
+            Assert.False(stored.IsLocked);
         }
         finally
         {
@@ -259,6 +261,7 @@ public class UserAuthenticationTests
             var stored = userService.GetAllUsers().First(u => u.UserName == "lockasync");
             Assert.Equal(3, stored.FailedAttempts);
             Assert.NotNull(stored.LockoutUntil);
+            Assert.True(stored.IsLocked);
 
             var afterLock = await userService.AuthenticateUserAsync(" lockasync ", " secret ");
             Assert.Equal(AuthenticationResult.LockedOut, afterLock.Result);
@@ -300,6 +303,7 @@ public class UserAuthenticationTests
             var stored = (await userService.GetAllUsersAsync()).First(u => u.UserName == "areset");
             Assert.Equal(0, stored.FailedAttempts);
             Assert.Null(stored.LockoutUntil);
+            Assert.False(stored.IsLocked);
         }
         finally
         {
