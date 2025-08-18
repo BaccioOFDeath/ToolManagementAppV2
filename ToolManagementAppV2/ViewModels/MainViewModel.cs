@@ -202,9 +202,17 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenUsersCommand = new AsyncRelayCommand(async () =>
             {
-                await UserManagement.LoadUsersAsync();
-                var page = new UsersPage(UserManagement) { Title = "Users" };
-                CurrentPage = page;
+                try
+                {
+                    await UserManagement.LoadUsersAsync();
+                    var page = new UsersPage(UserManagement) { Title = "Users" };
+                    CurrentPage = page;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open users page");
+                    _dialogService.ShowInfo($"Failed to open users page: {ex.Message}", "Users");
+                }
             });
 
             OpenSettingsCommand = new RelayCommand(() =>
