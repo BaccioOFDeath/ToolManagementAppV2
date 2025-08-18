@@ -51,7 +51,7 @@ public class UserAuthenticationTests
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
-            var legacy = SecurityHelper.ComputeSha256HashLegacy("secret");
+            var legacy = SecurityHelper.ComputeSha256HashLegacy("Strong1!");
             using (var conn = dbService.CreateConnection())
             using (var cmd = new SQLiteCommand("INSERT INTO Users (UserName, PasswordHash, IsAdmin) VALUES (@u,@p,0);", conn))
             {
@@ -60,14 +60,14 @@ public class UserAuthenticationTests
                 cmd.ExecuteNonQuery();
             }
 
-            var auth = userService.AuthenticateUser("legacy", "secret");
+            var auth = userService.AuthenticateUser("legacy", "Strong1!");
             Assert.Equal(AuthenticationResult.Success, auth.Result);
             Assert.NotNull(auth.User);
 
             var updated = userService.GetUserByID(auth.User!.UserID)!;
             Assert.False(SecurityHelper.IsSha256Hash(updated.PasswordHash));
             Assert.False(string.IsNullOrWhiteSpace(updated.PasswordSalt));
-            Assert.True(SecurityHelper.VerifyPassword("secret", updated.PasswordSalt, updated.PasswordHash));
+            Assert.True(SecurityHelper.VerifyPassword("Strong1!", updated.PasswordSalt, updated.PasswordHash));
         }
         finally
         {
@@ -85,7 +85,7 @@ public class UserAuthenticationTests
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
-            var user = new User { UserName = "emptysalt", PasswordHash = "secret", IsAdmin = false };
+            var user = new User { UserName = "emptysalt", PasswordHash = "Strong1!", IsAdmin = false };
             userService.AddUser(user);
 
             using (var conn = dbService.CreateConnection())
@@ -95,7 +95,7 @@ public class UserAuthenticationTests
                 cmd.ExecuteNonQuery();
             }
 
-            var auth = userService.AuthenticateUser("emptysalt", "secret");
+            var auth = userService.AuthenticateUser("emptysalt", "Strong1!");
             Assert.Equal(AuthenticationResult.IncorrectPassword, auth.Result);
             Assert.Null(auth.User);
         }
@@ -115,7 +115,7 @@ public class UserAuthenticationTests
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
-            var user = new User { UserName = "lock", PasswordHash = "secret", IsAdmin = false };
+            var user = new User { UserName = "lock", PasswordHash = "Strong1!", IsAdmin = false };
             userService.AddUser(user);
 
             for (int i = 0; i < 3; i++)
@@ -133,7 +133,7 @@ public class UserAuthenticationTests
             Assert.Equal(DateTimeKind.Utc, stored.LockoutUntil!.Value.Kind);
             Assert.True(stored.IsLocked);
 
-            var afterLock = userService.AuthenticateUser("lock", "secret");
+            var afterLock = userService.AuthenticateUser("lock", "Strong1!");
             Assert.Equal(AuthenticationResult.LockedOut, afterLock.Result);
         }
         finally
@@ -152,7 +152,7 @@ public class UserAuthenticationTests
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
-            var user = new User { UserName = "reset", PasswordHash = "secret", IsAdmin = false };
+            var user = new User { UserName = "reset", PasswordHash = "Strong1!", IsAdmin = false };
             userService.AddUser(user);
 
             for (int i = 0; i < 3; i++)
@@ -166,7 +166,7 @@ public class UserAuthenticationTests
                 cmd.ExecuteNonQuery();
             }
 
-            var auth = userService.AuthenticateUser("reset", "secret");
+            var auth = userService.AuthenticateUser("reset", "Strong1!");
             Assert.Equal(AuthenticationResult.Success, auth.Result);
             Assert.NotNull(auth.User);
 
@@ -183,7 +183,7 @@ public class UserAuthenticationTests
     }
 
     [Fact]
-    public void ChangeUserPassword_SetsPasswordExpiredFlag()
+    public void ChangeUserPassword_Throws_ForDefaultPassword()
     {
         var dbPath = Path.GetTempFileName();
         try
@@ -191,16 +191,10 @@ public class UserAuthenticationTests
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
-            var user = new User { UserName = "flag", PasswordHash = "secret", IsAdmin = false };
+            var user = new User { UserName = "flag", PasswordHash = "Strong1!", IsAdmin = false };
             userService.AddUser(user);
 
-            userService.ChangeUserPassword(user.UserID, "admin");
-            var updated = userService.GetAllUsers().First();
-            Assert.True(updated.PasswordExpired);
-
-            userService.ChangeUserPassword(user.UserID, "newpass");
-            updated = userService.GetAllUsers().First();
-            Assert.False(updated.PasswordExpired);
+            Assert.Throws<ArgumentException>(() => userService.ChangeUserPassword(user.UserID, "admin"));
         }
         finally
         {
@@ -218,16 +212,16 @@ public class UserAuthenticationTests
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
-            var user = new User { UserName = "atest", PasswordHash = "secret", IsAdmin = false };
+            var user = new User { UserName = "atest", PasswordHash = "Strong1!", IsAdmin = false };
             userService.AddUser(user);
             var added = userService.GetUserByID(user.UserID)!;
 
-            Assert.NotEqual("secret", added.PasswordHash);
+            Assert.NotEqual("Strong1!", added.PasswordHash);
             Assert.False(SecurityHelper.IsSha256Hash(added.PasswordHash));
             Assert.False(string.IsNullOrWhiteSpace(added.PasswordSalt));
-            Assert.True(SecurityHelper.VerifyPassword("secret", added.PasswordSalt, added.PasswordHash));
+            Assert.True(SecurityHelper.VerifyPassword("Strong1!", added.PasswordSalt, added.PasswordHash));
 
-            var auth = await userService.AuthenticateUserAsync(" atest ", " secret ");
+            var auth = await userService.AuthenticateUserAsync(" atest ", " Strong1! ");
             Assert.Equal(AuthenticationResult.Success, auth.Result);
             Assert.NotNull(auth.User);
         }
@@ -247,7 +241,7 @@ public class UserAuthenticationTests
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
-            var user = new User { UserName = "lockasync", PasswordHash = "secret", IsAdmin = false };
+            var user = new User { UserName = "lockasync", PasswordHash = "Strong1!", IsAdmin = false };
             userService.AddUser(user);
 
             for (int i = 0; i < 3; i++)
@@ -265,7 +259,7 @@ public class UserAuthenticationTests
             Assert.Equal(DateTimeKind.Utc, stored.LockoutUntil!.Value.Kind);
             Assert.True(stored.IsLocked);
 
-            var afterLock = await userService.AuthenticateUserAsync(" lockasync ", " secret ");
+            var afterLock = await userService.AuthenticateUserAsync(" lockasync ", " Strong1! ");
             Assert.Equal(AuthenticationResult.LockedOut, afterLock.Result);
         }
         finally
@@ -298,7 +292,7 @@ public class UserAuthenticationTests
                 cmd.ExecuteNonQuery();
             }
 
-            var auth = await userService.AuthenticateUserAsync(" areset ", " secret ");
+            var auth = await userService.AuthenticateUserAsync(" areset ", " Strong1! ");
             Assert.Equal(AuthenticationResult.Success, auth.Result);
             Assert.NotNull(auth.User);
 

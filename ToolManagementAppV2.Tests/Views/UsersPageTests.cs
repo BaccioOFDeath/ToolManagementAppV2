@@ -61,7 +61,7 @@ namespace ToolManagementAppV2.Tests.Views
                         IUserService userService = new UserService(db, new ApplicationUserContext());
                         var fileSvc = new StubFileDialogService { FileToReturn = "img.png" };
                         var vm = new UserManagementViewModel(userService, fileSvc, new StubDialogService());
-                        userService.AddUser(new User { UserName = "user1", PasswordHash = "pw" });
+                        userService.AddUser(new User { UserName = "user1", PasswordHash = "Strong1!" });
                         vm.LoadUsers();
                         vm.SelectedUser = vm.Users.First();
                         vm.SelectedUser.Email = "user@example.com";
@@ -121,8 +121,8 @@ namespace ToolManagementAppV2.Tests.Views
                         var db = new DatabaseService(dbPath);
                         IUserService userService = new UserService(db, new ApplicationUserContext());
                         var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
-                        userService.AddUser(new User { UserName = "user1", PasswordHash = "pw" });
-                        userService.AddUser(new User { UserName = "user2", PasswordHash = "pw" });
+                        userService.AddUser(new User { UserName = "user1", PasswordHash = "Strong1!" });
+                        userService.AddUser(new User { UserName = "user2", PasswordHash = "Strong1!" });
                         vm.LoadUsers();
 
                         var page = new UsersPage(vm);
@@ -175,7 +175,7 @@ namespace ToolManagementAppV2.Tests.Views
                         var db = new DatabaseService(dbPath);
                         IUserService userService = new UserService(db, new ApplicationUserContext());
                         var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
-                        userService.AddUser(new User { UserName = "user1", PasswordHash = "pw" });
+                        userService.AddUser(new User { UserName = "user1", PasswordHash = "Strong1!" });
                         vm.LoadUsers();
 
                         var page = new UsersPage(vm);

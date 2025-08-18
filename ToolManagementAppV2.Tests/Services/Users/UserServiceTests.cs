@@ -110,8 +110,8 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
-            userService.AddUser(new User { UserName = "dup", PasswordHash = "pw" });
-            var ex = Assert.Throws<InvalidOperationException>(() => userService.AddUser(new User { UserName = "dup", PasswordHash = "pw" }));
+            userService.AddUser(new User { UserName = "dup", PasswordHash = "Strong1!" });
+            var ex = Assert.Throws<InvalidOperationException>(() => userService.AddUser(new User { UserName = "dup", PasswordHash = "Strong1!" }));
             Assert.Contains("username", ex.Message, StringComparison.OrdinalIgnoreCase);
         }
         finally
@@ -268,6 +268,22 @@ public class UserServiceTests
     }
 
     [Fact]
+    public async Task AddUserAsync_Throws_WhenPasswordEmpty()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            var userService = new UserService(dbService, new ApplicationUserContext());
+            await Assert.ThrowsAsync<ArgumentException>(() => userService.AddUserAsync(new User { UserName = "nopass" }));
+        }
+        finally
+        {
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
     public async Task UnlockUserAsync_ResetsFailedAttemptsAndLockout()
     {
         var dbPath = Path.GetTempFileName();
@@ -378,8 +394,7 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
-            var hash = SecurityHelper.HashPassword("Strong1!", out var salt);
-            userService.AddUser(new User { UserName = "list", PasswordHash = hash, PasswordSalt = salt });
+            userService.AddUser(new User { UserName = "list", PasswordHash = "Strong1!" });
             var users = userService.GetAllUsers();
             var user = users[0];
             Assert.Null(user.PasswordHash);
@@ -399,8 +414,7 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             var userService = new UserService(dbService, new ApplicationUserContext());
-            var hash = SecurityHelper.HashPassword("Strong1!", out var salt);
-            await userService.AddUserAsync(new User { UserName = "list", PasswordHash = hash, PasswordSalt = salt });
+            await userService.AddUserAsync(new User { UserName = "list", PasswordHash = "Strong1!" });
             var users = await userService.GetAllUsersAsync();
             var user = users[0];
             Assert.Null(user.PasswordHash);
@@ -413,21 +427,18 @@ public class UserServiceTests
     }
 
     [Fact]
-    public void AddUser_UsesPreHashedPassword_WhenProvided()
+    public void AddUser_HashesPassword_WhenProvided()
     {
         var dbPath = Path.GetTempFileName();
         try
         {
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
-            var hash = SecurityHelper.HashPassword("secret", out var salt);
-            var user = new User { UserName = "prehashed", PasswordHash = hash, PasswordSalt = salt, PasswordExpired = true };
+            var user = new User { UserName = "prehashed", PasswordHash = "Strong1!", PasswordExpired = true };
             userService.AddUser(user);
             var fetched = userService.GetUserByID(user.UserID)!;
-            Assert.Equal(hash, fetched.PasswordHash);
-            Assert.Equal(salt, fetched.PasswordSalt);
+            Assert.True(SecurityHelper.VerifyPassword("Strong1!", fetched.PasswordSalt, fetched.PasswordHash));
             Assert.True(fetched.PasswordExpired);
-            Assert.True(SecurityHelper.VerifyPassword("secret", fetched.PasswordSalt, fetched.PasswordHash));
         }
         finally
         {

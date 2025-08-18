@@ -36,11 +36,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var userContext = new ApplicationUserContext();
                 var auth = new AuthorizationService(userContext);
                 var userService = new UserService(dbService, userContext, auth);
-                await userService.AddUserAsync(new User { UserName = "admin", PasswordHash = "x", IsAdmin = true });
+                await userService.AddUserAsync(new User { UserName = "admin", PasswordHash = "Strong1!", IsAdmin = true });
                 var settingsService = new SettingsService(dbService);
                 await settingsService.SaveSettingAsync("ApplicationName", "TestApp");
 
-                var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext);
+                var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
+                {
+                    PromptForPasswordAsync = (u, ct) => Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("Strong1!", false))
+                };
                 await vm.InitializeAsync();
 
                 Assert.Equal("TestApp – Login", vm.WindowTitle);
@@ -102,7 +105,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var auth = new AuthorizationService(userContext);
                 var userService = new UserService(dbService, userContext, auth);
                 var settingsService = new SettingsService(dbService);
-                userService.AddUser(new User { UserName = "user", PasswordHash = "newpassword", IsAdmin = false });
+                userService.AddUser(new User { UserName = "user", PasswordHash = "Strong1!", IsAdmin = false });
 
                 var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext);
                 await vm.InitializeAsync();
@@ -135,12 +138,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var auth = new AuthorizationService(userContext);
                 var userService = new UserService(dbService, userContext, auth);
                 var settingsService = new SettingsService(dbService);
-                var user = new User { UserName = "user", PasswordHash = "newpassword", IsAdmin = false, PasswordExpired = true };
+                var user = new User { UserName = "user", PasswordHash = "Strong1!", IsAdmin = false, PasswordExpired = true };
                 userService.AddUser(user);
 
                 var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
                 {
-                    PromptForNewPassword = () => "changed"
+                    PromptForNewPassword = () => "Changed1!",
+                    PromptForPasswordAsync = (u, ct) => Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("Strong1!", false))
                 };
                 await vm.InitializeAsync();
                 bool success = false;
@@ -151,7 +155,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 Assert.True(success);
                 var updated = userService.GetUserByID(user.UserID)!;
                 Assert.False(updated.PasswordExpired);
-                Assert.True(SecurityHelper.VerifyPassword("changed", updated.PasswordSalt, updated.PasswordHash));
+                Assert.True(SecurityHelper.VerifyPassword("Changed1!", updated.PasswordSalt, updated.PasswordHash));
             }
             finally
             {
@@ -173,14 +177,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var auth = new AuthorizationService(userContext);
                 var userService = new UserService(dbService, userContext, auth);
                 var settingsService = new SettingsService(dbService);
-                var admin = new User { UserName = "admin", PasswordHash = "secret", IsAdmin = true, PasswordExpired = true };
+                var admin = new User { UserName = "admin", PasswordHash = "Strong1!", IsAdmin = true, PasswordExpired = true };
                 userService.AddUser(admin);
 
                 var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
                 {
                     PromptForPasswordAsync = (u, ct) =>
-                        Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("secret", false)),
-                    PromptForNewPassword = () => "changed"
+                        Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("Strong1!", false)),
+                    PromptForNewPassword = () => "Changed1!"
                 };
                 await vm.InitializeAsync();
                 bool success = false;
@@ -191,7 +195,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 Assert.True(success);
                 var updated = userService.GetUserByID(admin.UserID)!;
                 Assert.False(updated.PasswordExpired);
-                Assert.True(SecurityHelper.VerifyPassword("changed", updated.PasswordSalt, updated.PasswordHash));
+                Assert.True(SecurityHelper.VerifyPassword("Changed1!", updated.PasswordSalt, updated.PasswordHash));
             }
             finally
             {
@@ -212,12 +216,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(dbService, userContext);
                 var settingsService = new SettingsService(dbService);
-                userService.AddUser(new User { UserName = "admin", PasswordHash = "secret", IsAdmin = true });
+                userService.AddUser(new User { UserName = "admin", PasswordHash = "Strong1!", IsAdmin = true });
 
                 var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
                 {
                     PromptForPasswordAsync = (u, ct) =>
-                        Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("secret", false))
+                        Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("Strong1!", false))
                 };
                 await vm.InitializeAsync();
                 bool success = false;
@@ -247,14 +251,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(dbService, userContext);
                 var settingsService = new SettingsService(dbService);
-                userService.AddUser(new User { UserName = "admin", PasswordHash = "secret", IsAdmin = true });
+                userService.AddUser(new User { UserName = "admin", PasswordHash = "Strong1!", IsAdmin = true });
 
                 var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
                 {
                     PromptForPasswordAsync = async (u, ct) =>
                     {
                         await Task.Delay(TimeSpan.FromSeconds(5), ct);
-                        return new PasswordPromptResult("secret", false);
+                        return new PasswordPromptResult("Strong1!", false);
                     }
                 };
                 await vm.InitializeAsync();
@@ -327,7 +331,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             if (System.Windows.Application.Current == null)
                 new System.Windows.Application();
 
-            var hashed = SecurityHelper.HashPassword("newpassword", out var salt);
+            var hashed = SecurityHelper.HashPassword("Strong1!", out var salt);
             var user = new User { UserID = 1, UserName = "user", PasswordHash = hashed, PasswordSalt = salt, IsAdmin = false, PasswordExpired = true };
             var userService = new ThrowingUserService(user);
             var settingsService = new StubSettingsService();
@@ -337,7 +341,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
             var vm = new LoginViewModel(userService, settingsService, dialog, userContext, logger)
             {
-                PromptForNewPassword = () => "changed"
+                PromptForNewPassword = () => "Changed1!",
+                PromptForPasswordAsync = (u, ct) => Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("Strong1!", false))
             };
             await vm.LoadUsersCommand.ExecuteAsync(null);
 
@@ -364,13 +369,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var settingsService = new SettingsService(dbService);
                 SecurityHelper.SettingsService = settingsService;
 
-                var result = await SecurityHelper.HashPasswordAsync("admin");
                 var admin = new User
                 {
                     UserID = 1,
                     UserName = "admin",
-                    PasswordHash = result.hash,
-                    PasswordSalt = result.salt,
+                    PasswordHash = "Strong1!",
                     IsAdmin = true,
                     PasswordExpired = true
                 };
@@ -378,7 +381,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
                 {
-                    PromptForNewPassword = () => "changed"
+                    PromptForNewPassword = () => "Changed1!"
                 };
 
                 var method = typeof(LoginViewModel).GetMethod("PromptChangePasswordAsync", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -386,7 +389,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var ok = await task;
 
                 Assert.True(ok);
-                var authResult = await userService.AuthenticateUserAsync("admin", "changed");
+                var authResult = await userService.AuthenticateUserAsync("admin", "Changed1!");
                 Assert.Equal(AuthenticationResult.Success, authResult.Result);
             }
             finally
@@ -409,7 +412,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var auth = new AuthorizationService(userContext);
                 var userService = new UserService(dbService, userContext, auth);
                 var settingsService = new SettingsService(dbService);
-                await userService.AddUserAsync(new User { UserName = "admin", IsAdmin = true });
+                await userService.AddUserAsync(new User { UserName = "admin", PasswordHash = "Strong1!", IsAdmin = true });
+                using (var conn = dbService.CreateConnection())
+                {
+                    await SqliteHelper.ExecuteNonQueryAsync(conn,
+                        "UPDATE Users SET PasswordHash='', PasswordSalt='' WHERE UserName='admin'");
+                }
 
                 var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
                 {
@@ -433,7 +441,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             if (System.Windows.Application.Current == null)
                 new System.Windows.Application();
 
-            var hashed = SecurityHelper.HashPassword("secret", out var salt);
+            var hashed = SecurityHelper.HashPassword("Strong1!", out var salt);
             var dbUser = new User { UserID = 1, UserName = "admin", PasswordHash = hashed, PasswordSalt = salt, IsAdmin = true };
             var userService = new OmittingPasswordUserService(dbUser);
             var settingsService = new StubSettingsService();
@@ -441,7 +449,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
             var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
             {
-                PromptForPasswordAsync = (u, ct) => Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("secret", false))
+                PromptForPasswordAsync = (u, ct) => Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("Strong1!", false))
             };
             await vm.LoadUsersCommand.ExecuteAsync(null);
             bool success = false;
@@ -473,7 +481,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var dialog = new CapturingDialogService();
                 var vm = new LoginViewModel(userService, settingsService, dialog, userContext)
                 {
-                    PromptForPasswordAsync = (u, ct) => Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("secret", false))
+                    PromptForPasswordAsync = (u, ct) => Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("Strong1!", false))
                 };
                 await vm.InitializeAsync();
 

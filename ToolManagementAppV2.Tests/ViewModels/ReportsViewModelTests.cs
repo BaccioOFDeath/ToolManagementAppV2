@@ -39,7 +39,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
-                var user = new User { UserName = "user" };
+                var user = new User { UserName = "user", PasswordHash = "Strong1!" };
                 userService.AddUser(user);
 
                 var vm = new ReportsViewModel(reportService);
