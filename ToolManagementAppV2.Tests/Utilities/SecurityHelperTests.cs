@@ -25,6 +25,7 @@ namespace ToolManagementAppV2.Tests.Utilities
                 ISettingsService settings = new SettingsService(dbService);
                 settings.SavePasswordIterationsAsync(5).GetAwaiter().GetResult();
                 SecurityHelper.SettingsService = settings;
+                SecurityHelper.GetIterationsAsync().GetAwaiter().GetResult();
 
                 var saltBytes = Encoding.UTF8.GetBytes("1234567890ABCDEF");
                 var salt = Convert.ToBase64String(saltBytes);
@@ -117,6 +118,7 @@ namespace ToolManagementAppV2.Tests.Utilities
         {
             var settings = new CountingSettingsService(5);
             SecurityHelper.SettingsService = settings;
+            SecurityHelper.GetIterationsAsync().GetAwaiter().GetResult();
 
             var saltBytes = Encoding.UTF8.GetBytes("1234567890ABCDEF");
             var salt = Convert.ToBase64String(saltBytes);
@@ -135,6 +137,7 @@ namespace ToolManagementAppV2.Tests.Utilities
         {
             var settings = new AsyncOnlySettingsService(7);
             SecurityHelper.SettingsService = settings;
+            SecurityHelper.GetIterationsAsync().GetAwaiter().GetResult();
 
             var saltBytes = Encoding.UTF8.GetBytes("1234567890ABCDEF");
             var salt = Convert.ToBase64String(saltBytes);
