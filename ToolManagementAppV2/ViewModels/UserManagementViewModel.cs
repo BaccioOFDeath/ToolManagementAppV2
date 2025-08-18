@@ -45,6 +45,7 @@ namespace ToolManagementAppV2.ViewModels
                 {
                     ((AsyncRelayCommand)UpdateUserCommand).NotifyCanExecuteChanged();
                     ((RelayCommand)EditUserCommand).NotifyCanExecuteChanged();
+                    ((AsyncRelayCommand<UserModel>)UnlockUserCommand).NotifyCanExecuteChanged();
                 }
             }
         }
@@ -61,6 +62,7 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand EditUserFromRowCommand { get; }
         public IAsyncRelayCommand<UserModel> ResetPasswordFromRowCommand { get; }
         public IAsyncRelayCommand<UserModel> DeleteUserFromRowCommand { get; }
+        public IAsyncRelayCommand<UserModel> UnlockUserCommand { get; }
 
         public UserManagementViewModel(IUserService userService,
                                        IFileDialogService fileDialogService,
@@ -86,6 +88,7 @@ namespace ToolManagementAppV2.ViewModels
             EditUserFromRowCommand = new RelayCommand<UserModel>(EditUser);
             ResetPasswordFromRowCommand = new AsyncRelayCommand<UserModel>(ResetPasswordFor);
             DeleteUserFromRowCommand = new AsyncRelayCommand<UserModel>(DeleteUserAsync);
+            UnlockUserCommand = new AsyncRelayCommand<UserModel>(UnlockUserAsync, u => u?.IsLocked ?? false);
         }
 
         public async Task LoadUsersAsync()
@@ -360,6 +363,25 @@ namespace ToolManagementAppV2.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to delete user {UserID}", user.UserID);
+            }
+        }
+
+        async Task UnlockUserAsync(UserModel user)
+        {
+            if (user == null) return;
+            try
+            {
+                await _userService.UnlockUserAsync(user.UserID);
+                await LoadUsersAsync();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync("You are not authorized to unlock users.", "Unauthorized");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to unlock user {UserID}", user.UserID);
+                await _dialogService.ShowInfoAsync($"Failed to unlock user: {ex.Message}", "Error");
             }
         }
     }
