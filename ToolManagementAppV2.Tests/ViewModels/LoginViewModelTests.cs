@@ -434,6 +434,56 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public async Task SelectUserCommand_UserWithoutPassword_PromptsForResetAndDoesNotLogin()
+        {
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
+
+            var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
+            try
+            {
+                using var dbService = new DatabaseService(dbPath);
+                var userContext = new ApplicationUserContext();
+                var auth = new AuthorizationService(userContext);
+                var userService = new UserService(dbService, userContext, auth);
+                var settingsService = new SettingsService(dbService);
+                await userService.AddUserAsync(new User { UserName = "user", PasswordHash = "Strong1!", IsAdmin = false });
+                using (var conn = dbService.CreateConnection())
+                {
+                    await SqliteHelper.ExecuteNonQueryAsync(conn,
+                        "UPDATE Users SET PasswordHash='', PasswordSalt='' WHERE UserName='user'");
+                }
+
+                bool resetPrompted = false;
+                bool passwordPrompted = false;
+
+                var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
+                {
+                    PromptForNewPassword = () => { resetPrompted = true; return null; },
+                    PromptForPasswordAsync = (u, ct) =>
+                    {
+                        passwordPrompted = true;
+                        return Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("dummy", false));
+                    }
+                };
+                await vm.InitializeAsync();
+                bool success = false;
+                vm.LoginSucceeded += (_, __) => success = true;
+
+                await vm.SelectUserCommand.ExecuteAsync(vm.Users.First());
+
+                Assert.True(resetPrompted);
+                Assert.False(passwordPrompted);
+                Assert.False(success);
+                Assert.Null(userContext.CurrentUser);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public async Task SelectUserCommand_AdminWithoutPassword_IgnoresUnauthorized()
         {
             if (System.Windows.Application.Current == null)
