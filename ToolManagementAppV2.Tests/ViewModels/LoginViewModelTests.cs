@@ -359,6 +359,52 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public async Task PromptChangePassword_RefreshesUsersList()
+        {
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
+
+            var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
+            try
+            {
+                using var dbService = new DatabaseService(dbPath);
+                var userContext = new ApplicationUserContext();
+                var auth = new AuthorizationService(userContext);
+                var userService = new UserService(dbService, userContext, auth);
+                var settingsService = new SettingsService(dbService);
+                SecurityHelper.SettingsService = settingsService;
+
+                var admin = new User
+                {
+                    UserName = "admin",
+                    PasswordHash = "Strong1!",
+                    IsAdmin = true,
+                    PasswordExpired = true
+                };
+                await userService.AddUserAsync(admin);
+
+                var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
+                {
+                    PromptForNewPassword = () => "Changed1!"
+                };
+                await vm.LoadUsersCommand.ExecuteAsync(null);
+
+                var method = typeof(LoginViewModel).GetMethod("PromptChangePasswordAsync", BindingFlags.NonPublic | BindingFlags.Instance);
+                var task = (Task<bool>)method.Invoke(vm, new object[] { vm.Users[0] });
+                var ok = await task;
+
+                Assert.True(ok);
+                var updated = vm.Users[0];
+                Assert.True(SecurityHelper.VerifyPassword("Changed1!", updated.PasswordSalt, updated.PasswordHash));
+            }
+            finally
+            {
+                SecurityHelper.SettingsService = null;
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public async Task SelectUserCommand_AdminWithoutPassword_IgnoresUnauthorized()
         {
             if (System.Windows.Application.Current == null)
