@@ -198,8 +198,15 @@ namespace ToolManagementAppV2.Services.Users
         public async Task AddUserAsync(User user)
         {
             var existingUsers = await GetAllUsersAsync();
-            if (existingUsers.Count > 0)
+            if (existingUsers.Count == 0)
+            {
+                // Seed first user as an administrator regardless of input flag
+                user.IsAdmin = true;
+            }
+            else
+            {
                 _auth.EnsureAdmin();
+            }
             const string sql = @"
                 INSERT INTO Users
                   (UserName, PasswordHash, PasswordSalt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, FailedAttempts, LockoutUntil, PasswordExpired)

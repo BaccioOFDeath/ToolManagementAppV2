@@ -21,7 +21,7 @@ public class UserServiceTests
     }
 
     [Fact]
-    public async Task AddUserAsync_AllowsSeedingAdminWithoutAuthorization()
+    public async Task AddUserAsync_PromotesFirstUserToAdmin()
     {
         var dbPath = Path.GetTempFileName();
         try
@@ -30,9 +30,13 @@ public class UserServiceTests
             var ctx = new StubUserContext { CurrentUser = new User { UserName = "seed", IsAdmin = false } };
             var auth = new AuthorizationService(ctx);
             var userService = new UserService(dbService, ctx, auth);
-            var admin = new User { UserName = "admin", PasswordHash = "Strong1!", IsAdmin = true };
-            await userService.AddUserAsync(admin);
-            Assert.NotEqual(0, admin.UserID);
+            var first = new User { UserName = "admin", PasswordHash = "Strong1!", IsAdmin = false };
+            await userService.AddUserAsync(first);
+            Assert.NotEqual(0, first.UserID);
+            Assert.True(first.IsAdmin);
+            var stored = userService.GetUserByID(first.UserID);
+            Assert.NotNull(stored);
+            Assert.True(stored!.IsAdmin);
         }
         finally
         {
@@ -50,9 +54,11 @@ public class UserServiceTests
             var ctx = new StubUserContext { CurrentUser = new User { UserName = "seed", IsAdmin = false } };
             var auth = new AuthorizationService(ctx);
             var userService = new UserService(dbService, ctx, auth);
-            var admin = new User { UserName = "admin", PasswordHash = "Strong1!", IsAdmin = true };
+            var admin = new User { UserName = "admin", PasswordHash = "Strong1!", IsAdmin = false };
             await userService.AddUserAsync(admin);
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => userService.AddUserAsync(new User { UserName = "user", PasswordHash = "Strong1!" }));
+            Assert.True(admin.IsAdmin);
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(
+                () => userService.AddUserAsync(new User { UserName = "user", PasswordHash = "Strong1!" }));
         }
         finally
         {
