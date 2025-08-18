@@ -206,6 +206,7 @@ namespace ToolManagementAppV2.Services.Settings
 
         const string ScannerIpKey = "ScannerIpAddresses";
         const string PasswordIterationsKey = "PasswordIterations";
+        const string AutoLogoutMinutesKey = "AutoLogoutMinutes";
 
         public async Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default)
         {
@@ -271,6 +272,20 @@ namespace ToolManagementAppV2.Services.Settings
             if (iterations <= 0)
                 throw new ArgumentOutOfRangeException(nameof(iterations));
             await SaveSettingAsync(PasswordIterationsKey, iterations.ToString(), cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<int> GetAutoLogoutMinutesAsync(CancellationToken cancellationToken = default)
+        {
+            var value = await GetSettingAsync(AutoLogoutMinutesKey, cancellationToken).ConfigureAwait(false);
+            return int.TryParse(value, out var i) && i >= 0 ? i : 0;
+        }
+
+        public async Task SaveAutoLogoutMinutesAsync(int minutes, CancellationToken cancellationToken = default)
+        {
+            _auth.EnsureAdmin();
+            if (minutes < 0)
+                throw new ArgumentOutOfRangeException(nameof(minutes));
+            await SaveSettingAsync(AutoLogoutMinutesKey, minutes.ToString(), cancellationToken).ConfigureAwait(false);
         }
     }
 }

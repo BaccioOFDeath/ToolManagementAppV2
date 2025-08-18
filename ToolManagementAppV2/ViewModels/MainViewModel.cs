@@ -23,6 +23,7 @@ using ToolManagementAppV2.Utilities.IO;
 using ToolManagementAppV2.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using ToolManagementAppV2.Models.ImportExport;
+using ToolManagementAppV2.Utilities;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -39,6 +40,8 @@ namespace ToolManagementAppV2.ViewModels
         readonly IDialogService _dialogService;
         readonly ILogger<MainViewModel> _logger;
         readonly Func<Task<bool>> _showLoginWindow;
+        readonly IDispatcherTimer _autoLogoutTimer;
+        int _autoLogoutMinutes;
 
         EventHandler<User?>? _userContextChangedHandler;
         PropertyChangedEventHandler? _toolManagementPropertyChangedHandler;
@@ -85,6 +88,15 @@ namespace ToolManagementAppV2.ViewModels
 
         public ToolModel? SelectedTool => ToolManagement.SelectedTool;
 
+        public void ResetAutoLogoutTimer()
+        {
+            if (_autoLogoutMinutes > 0)
+            {
+                _autoLogoutTimer.Stop();
+                _autoLogoutTimer.Start();
+            }
+        }
+
         public void RefreshCurrentUser()
         {
             OnPropertyChanged(nameof(IsCurrentUserAdmin));
@@ -123,7 +135,8 @@ namespace ToolManagementAppV2.ViewModels
                              IDatabaseBackupService databaseService,
                              IDialogService dialogService,
                              ILogger<MainViewModel>? logger = null,
-                             Func<Task<bool>>? showLoginWindow = null)
+                             Func<Task<bool>>? showLoginWindow = null,
+                             IDispatcherTimer? autoLogoutTimer = null)
         {
             _toolService = toolService;
             _userService = userService;
@@ -163,6 +176,10 @@ namespace ToolManagementAppV2.ViewModels
             Reports = new ReportsViewModel(new ReportService(toolService, rentalService, activityLogService, customerService, userService));
             ActivityLogs = new ActivityLogsViewModel(activityLogService);
             Settings = new SettingsViewModel(_fileDialogService, _settingsService, _dialogService);
+            _autoLogoutTimer = autoLogoutTimer ?? new DispatcherTimerWrapper();
+            _autoLogoutTimer.Tick += OnAutoLogoutTimerTick;
+            Settings.PropertyChanged += Settings_PropertyChanged;
+            UpdateAutoLogoutTimer();
 
             OpenDashboardCommand = new RelayCommand(() =>
             {
@@ -320,6 +337,33 @@ namespace ToolManagementAppV2.ViewModels
             OpenDashboardCommand.Execute(null);
         }
 
+        void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(SettingsViewModel.AutoLogoutMinutes))
+                UpdateAutoLogoutTimer();
+        }
+
+        void UpdateAutoLogoutTimer()
+        {
+            _autoLogoutMinutes = Settings.AutoLogoutMinutes;
+            if (_autoLogoutMinutes > 0)
+            {
+                _autoLogoutTimer.Interval = TimeSpan.FromMinutes(_autoLogoutMinutes);
+                _autoLogoutTimer.Stop();
+                _autoLogoutTimer.Start();
+            }
+            else if (_autoLogoutTimer.IsEnabled)
+            {
+                _autoLogoutTimer.Stop();
+            }
+        }
+
+        async void OnAutoLogoutTimerTick(object? s, EventArgs e)
+        {
+            _autoLogoutTimer.Stop();
+            await SwitchUserCommand.ExecuteAsync(null);
+        }
+
         async Task OpenImportMappingWindowAsync(CancellationToken cancellationToken)
         {
             try
@@ -395,6 +439,9 @@ namespace ToolManagementAppV2.ViewModels
                 ToolManagement.PropertyChanged -= _toolManagementPropertyChangedHandler;
                 _toolManagementPropertyChangedHandler = null;
             }
+            Settings.PropertyChanged -= Settings_PropertyChanged;
+            _autoLogoutTimer.Tick -= OnAutoLogoutTimerTick;
+            _autoLogoutTimer.Stop();
             ToolManagement.Dispose();
         }
     }

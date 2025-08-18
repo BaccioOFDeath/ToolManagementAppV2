@@ -3,6 +3,7 @@ using System;
 using System.Windows;
 using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.ViewModels;
 
 namespace ToolManagementAppV2
 {
@@ -26,6 +27,13 @@ namespace ToolManagementAppV2
             this.DisposeDataContextOnUnload();
 
             Closed += (_, __) => _ownedDb?.Dispose();
+
+            if (viewModel is MainViewModel vm)
+            {
+                MouseMove += (_, __) => vm.ResetAutoLogoutTimer();
+                KeyDown += (_, __) => vm.ResetAutoLogoutTimer();
+                MouseDown += (_, __) => vm.ResetAutoLogoutTimer();
+            }
         }
 
         void IMainWindow.Activate() => base.Activate();

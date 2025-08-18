@@ -17,5 +17,12 @@ namespace ToolManagementAppV2.Views
             var proposed = textBox.Text.Insert(textBox.SelectionStart, e.Text);
             e.Handled = !int.TryParse(proposed, out var value) || value <= 0;
         }
+
+        void AutoLogoutMinutesBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            var textBox = (TextBox)sender;
+            var proposed = textBox.Text.Insert(textBox.SelectionStart, e.Text);
+            e.Handled = !int.TryParse(proposed, out var value) || value < 0;
+        }
     }
 }

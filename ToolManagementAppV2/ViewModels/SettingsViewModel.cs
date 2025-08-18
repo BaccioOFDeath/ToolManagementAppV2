@@ -33,6 +33,7 @@ namespace ToolManagementAppV2.ViewModels
             ThemeOptions = new ObservableCollection<string> { "Light", "Dark" };
             _theme = ThemeOptions[0];
             _passwordIterations = _settingsService.GetPasswordIterationsAsync().GetAwaiter().GetResult();
+            _autoLogoutMinutes = _settingsService.GetAutoLogoutMinutesAsync().GetAwaiter().GetResult();
             TestDbCommand = new RelayCommand(() =>
             {
                 var success = TestDbConnection(out var message);
@@ -126,6 +127,38 @@ namespace ToolManagementAppV2.ViewModels
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to save password iterations.");
+                }
+            }
+        }
+
+        private int _autoLogoutMinutes;
+        public int AutoLogoutMinutes
+        {
+            get => _autoLogoutMinutes;
+            set => SetAutoLogoutMinutesAsync(value).GetAwaiter().GetResult();
+        }
+
+        async Task SetAutoLogoutMinutesAsync(int value, CancellationToken token = default)
+        {
+            if (value < 0) return;
+            if (SetProperty(ref _autoLogoutMinutes, value))
+            {
+                try
+                {
+                    await _settingsService.SaveAutoLogoutMinutesAsync(value, token).ConfigureAwait(false);
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    _logger.LogWarning(ex, "Unauthorized to change auto logout minutes.");
+                    _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+                }
+                catch (OperationCanceledException ex)
+                {
+                    _logger.LogInformation(ex, "Saving auto logout minutes was canceled.");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to save auto logout minutes.");
                 }
             }
         }
