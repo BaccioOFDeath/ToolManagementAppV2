@@ -181,25 +181,15 @@ namespace ToolManagementAppV2.Services.Users
             using var conn = _dbService.CreateConnection();
             using var cmd = new SQLiteCommand(sql, conn);
 
-            string hashed = string.Empty;
-            string salt = string.Empty;
-            if (!string.IsNullOrWhiteSpace(user.PasswordHash))
-            {
-                if (!string.IsNullOrWhiteSpace(user.PasswordSalt) &&
-                    IsBase64String(user.PasswordHash) && IsBase64String(user.PasswordSalt))
-                {
-                    hashed = user.PasswordHash;
-                    salt = user.PasswordSalt;
-                }
-                else
-                {
-                    if (!PasswordValidator.IsValid(user.PasswordHash, out var error))
-                        throw new ArgumentException(error, nameof(user.PasswordHash));
-                    var result = await SecurityHelper.HashPasswordAsync(user.PasswordHash).ConfigureAwait(false);
-                    hashed = result.hash;
-                    salt = result.salt;
-                }
-            }
+            var password = (user.PasswordHash ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(password))
+                throw new ArgumentException("Password cannot be empty.", nameof(user.PasswordHash));
+            if (!PasswordValidator.IsValid(password, out var error))
+                throw new ArgumentException(error, nameof(user.PasswordHash));
+
+            var result = await SecurityHelper.HashPasswordAsync(password).ConfigureAwait(false);
+            string hashed = result.hash;
+            string salt = result.salt;
 
             if (user.CreatedAt == default)
                 user.CreatedAt = DateTime.UtcNow;
@@ -351,11 +341,5 @@ namespace ToolManagementAppV2.Services.Users
             return true;
         }
 
-        static bool IsBase64String(string input)
-        {
-            if (string.IsNullOrWhiteSpace(input)) return false;
-            Span<byte> buffer = new Span<byte>(new byte[input.Length]);
-            return Convert.TryFromBase64String(input, buffer, out _);
-        }
     }
 }

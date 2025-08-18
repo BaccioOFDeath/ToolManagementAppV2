@@ -75,14 +75,7 @@ public static class AsyncServiceExtensions
     public static User? GetCurrentUser(this IUserService svc)
         => svc.GetCurrentUserAsync().GetAwaiter().GetResult();
     public static void AddUser(this IUserService svc, User user)
-    {
-        if (!string.IsNullOrWhiteSpace(user.PasswordHash) && string.IsNullOrWhiteSpace(user.PasswordSalt))
-        {
-            user.PasswordHash = SecurityHelper.HashPassword(user.PasswordHash, out var salt);
-            user.PasswordSalt = salt;
-        }
-        svc.AddUserAsync(user).GetAwaiter().GetResult();
-    }
+        => svc.AddUserAsync(user).GetAwaiter().GetResult();
     public static void UpdateUser(this IUserService svc, User user)
         => svc.UpdateUserAsync(user).GetAwaiter().GetResult();
     public static bool ChangeUserPassword(this IUserService svc, int id, string newPassword)
