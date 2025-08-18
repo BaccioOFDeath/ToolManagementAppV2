@@ -238,6 +238,19 @@ namespace ToolManagementAppV2.Services.Users
 
             string hashed = user.PasswordHash;
             string salt = user.PasswordSalt;
+
+            if (string.IsNullOrWhiteSpace(user.PasswordHash) || string.IsNullOrWhiteSpace(user.PasswordSalt))
+            {
+                var existing = await GetUserByIDAsync(user.UserID);
+                if (existing != null)
+                {
+                    if (string.IsNullOrWhiteSpace(user.PasswordHash))
+                        hashed = existing.PasswordHash;
+                    if (string.IsNullOrWhiteSpace(user.PasswordSalt))
+                        salt = existing.PasswordSalt;
+                }
+            }
+
             if (!string.IsNullOrWhiteSpace(user.PasswordHash) && string.IsNullOrWhiteSpace(user.PasswordSalt))
             {
                 var result = await SecurityHelper.HashPasswordAsync(user.PasswordHash).ConfigureAwait(false);

@@ -259,25 +259,37 @@ namespace ToolManagementAppV2.ViewModels
             Users.ReplaceRange(_allUsers);
         }
 
-        void EditUser(UserModel? user)
+        async void EditUser(UserModel? user)
         {
             if (user == null) return;
 
+            UserModel source = user;
+            try
+            {
+                var loaded = await _userService.GetUserByIDAsync(user.UserID);
+                if (loaded != null)
+                    source = loaded;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve full user record");
+            }
+
             var clone = new UserModel
             {
-                UserID = user.UserID,
-                UserName = user.UserName,
-                PasswordHash = user.PasswordHash,
-                PasswordSalt = user.PasswordSalt,
-                UserPhotoPath = user.UserPhotoPath,
-                IsAdmin = user.IsAdmin,
-                Email = user.Email,
-                Phone = user.Phone,
-                Mobile = user.Mobile,
-                Address = user.Address,
-                Role = user.Role,
-                IsActive = user.IsActive,
-                CreatedAt = user.CreatedAt
+                UserID = source.UserID,
+                UserName = source.UserName,
+                PasswordHash = source.PasswordHash,
+                PasswordSalt = source.PasswordSalt,
+                UserPhotoPath = source.UserPhotoPath,
+                IsAdmin = source.IsAdmin,
+                Email = source.Email,
+                Phone = source.Phone,
+                Mobile = source.Mobile,
+                Address = source.Address,
+                Role = source.Role,
+                IsActive = source.IsActive,
+                CreatedAt = source.CreatedAt
             };
 
             UsersEditWindow? win = null;
