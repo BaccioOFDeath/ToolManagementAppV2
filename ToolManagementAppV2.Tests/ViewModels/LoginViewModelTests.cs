@@ -97,7 +97,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var auth = new AuthorizationService(userContext);
                 var userService = new UserService(dbService, userContext, auth);
                 var settingsService = new SettingsService(dbService);
-                userService.AddUser(new User { UserName = "user", Password = "newpassword", IsAdmin = false });
+                userService.AddUser(new User { UserName = "user", PasswordHash = "newpassword", IsAdmin = false });
 
                 var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext);
                 await vm.InitializeAsync();
@@ -130,7 +130,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var auth = new AuthorizationService(userContext);
                 var userService = new UserService(dbService, userContext, auth);
                 var settingsService = new SettingsService(dbService);
-                var user = new User { UserName = "user", Password = "newpassword", IsAdmin = false, PasswordExpired = true };
+                var user = new User { UserName = "user", PasswordHash = "newpassword", IsAdmin = false, PasswordExpired = true };
                 userService.AddUser(user);
 
                 var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
@@ -146,7 +146,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 Assert.True(success);
                 var updated = userService.GetUserByID(user.UserID)!;
                 Assert.False(updated.PasswordExpired);
-                Assert.True(SecurityHelper.VerifyPassword("changed", updated.Salt, updated.Password));
+                Assert.True(SecurityHelper.VerifyPassword("changed", updated.PasswordSalt, updated.PasswordHash));
             }
             finally
             {
@@ -168,7 +168,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var auth = new AuthorizationService(userContext);
                 var userService = new UserService(dbService, userContext, auth);
                 var settingsService = new SettingsService(dbService);
-                var admin = new User { UserName = "admin", Password = "secret", IsAdmin = true, PasswordExpired = true };
+                var admin = new User { UserName = "admin", PasswordHash = "secret", IsAdmin = true, PasswordExpired = true };
                 userService.AddUser(admin);
 
                 var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
@@ -186,7 +186,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 Assert.True(success);
                 var updated = userService.GetUserByID(admin.UserID)!;
                 Assert.False(updated.PasswordExpired);
-                Assert.True(SecurityHelper.VerifyPassword("changed", updated.Salt, updated.Password));
+                Assert.True(SecurityHelper.VerifyPassword("changed", updated.PasswordSalt, updated.PasswordHash));
             }
             finally
             {
@@ -207,7 +207,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(dbService, userContext);
                 var settingsService = new SettingsService(dbService);
-                userService.AddUser(new User { UserName = "admin", Password = "secret", IsAdmin = true });
+                userService.AddUser(new User { UserName = "admin", PasswordHash = "secret", IsAdmin = true });
 
                 var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
                 {
@@ -242,7 +242,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(dbService, userContext);
                 var settingsService = new SettingsService(dbService);
-                userService.AddUser(new User { UserName = "admin", Password = "secret", IsAdmin = true });
+                userService.AddUser(new User { UserName = "admin", PasswordHash = "secret", IsAdmin = true });
 
                 var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
                 {
@@ -312,7 +312,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 new System.Windows.Application();
 
             var hashed = SecurityHelper.HashPassword("newpassword", out var salt);
-            var user = new User { UserID = 1, UserName = "user", Password = hashed, Salt = salt, IsAdmin = false, PasswordExpired = true };
+            var user = new User { UserID = 1, UserName = "user", PasswordHash = hashed, PasswordSalt = salt, IsAdmin = false, PasswordExpired = true };
             var userService = new ThrowingUserService(user);
             var settingsService = new StubSettingsService();
             var dialog = new CapturingDialogService();
@@ -353,8 +353,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 {
                     UserID = 1,
                     UserName = "admin",
-                    Password = result.hash,
-                    Salt = result.salt,
+                    PasswordHash = result.hash,
+                    PasswordSalt = result.salt,
                     IsAdmin = true,
                     PasswordExpired = true
                 };
@@ -418,7 +418,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 new System.Windows.Application();
 
             var hashed = SecurityHelper.HashPassword("secret", out var salt);
-            var dbUser = new User { UserID = 1, UserName = "admin", Password = hashed, Salt = salt, IsAdmin = true };
+            var dbUser = new User { UserID = 1, UserName = "admin", PasswordHash = hashed, PasswordSalt = salt, IsAdmin = true };
             var userService = new OmittingPasswordUserService(dbUser);
             var settingsService = new StubSettingsService();
             var userContext = new ApplicationUserContext();
@@ -452,7 +452,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var userService = new UserService(dbService, userContext, auth);
                 var settingsService = new SettingsService(dbService);
                 var lockout = DateTime.UtcNow.AddMinutes(15);
-                await userService.AddUserAsync(new User { UserName = "locked", Password = "newpassword", LockoutUntil = lockout });
+                await userService.AddUserAsync(new User { UserName = "locked", PasswordHash = "newpassword", LockoutUntil = lockout });
 
                 var dialog = new CapturingDialogService();
                 var vm = new LoginViewModel(userService, settingsService, dialog, userContext)
@@ -574,7 +574,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
         public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password)
             => Task.FromResult(
-                userName == _dbUser.UserName && SecurityHelper.VerifyPassword(password, _dbUser.Salt, _dbUser.Password)
+                userName == _dbUser.UserName && SecurityHelper.VerifyPassword(password, _dbUser.PasswordSalt, _dbUser.PasswordHash)
                     ? (AuthenticationResult.Success, (User?)_dbUser)
                     : (AuthenticationResult.IncorrectPassword, (User?)null));
 

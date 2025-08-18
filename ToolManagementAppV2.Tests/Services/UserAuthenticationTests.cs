@@ -22,14 +22,14 @@ public class UserAuthenticationTests
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
-            var user = new User { UserName = "test", Password = "secret", IsAdmin = false };
+            var user = new User { UserName = "test", PasswordHash = "secret", IsAdmin = false };
             userService.AddUser(user);
             var added = userService.GetUserByID(user.UserID)!;
 
-            Assert.NotEqual("secret", added.Password);
-            Assert.False(SecurityHelper.IsSha256Hash(added.Password));
-            Assert.False(string.IsNullOrWhiteSpace(added.Salt));
-            Assert.True(SecurityHelper.VerifyPassword("secret", added.Salt, added.Password));
+            Assert.NotEqual("secret", added.PasswordHash);
+            Assert.False(SecurityHelper.IsSha256Hash(added.PasswordHash));
+            Assert.False(string.IsNullOrWhiteSpace(added.PasswordSalt));
+            Assert.True(SecurityHelper.VerifyPassword("secret", added.PasswordSalt, added.PasswordHash));
 
             var auth = userService.AuthenticateUser("test", "secret");
             Assert.Equal(AuthenticationResult.Success, auth.Result);
@@ -53,7 +53,7 @@ public class UserAuthenticationTests
 
             var legacy = SecurityHelper.ComputeSha256HashLegacy("secret");
             using (var conn = dbService.CreateConnection())
-            using (var cmd = new SQLiteCommand("INSERT INTO Users (UserName, Password, IsAdmin) VALUES (@u,@p,0);", conn))
+            using (var cmd = new SQLiteCommand("INSERT INTO Users (UserName, PasswordHash, IsAdmin) VALUES (@u,@p,0);", conn))
             {
                 cmd.Parameters.AddWithValue("@u", "legacy");
                 cmd.Parameters.AddWithValue("@p", legacy);
@@ -65,9 +65,9 @@ public class UserAuthenticationTests
             Assert.NotNull(auth.User);
 
             var updated = userService.GetUserByID(auth.User!.UserID)!;
-            Assert.False(SecurityHelper.IsSha256Hash(updated.Password));
-            Assert.False(string.IsNullOrWhiteSpace(updated.Salt));
-            Assert.True(SecurityHelper.VerifyPassword("secret", updated.Salt, updated.Password));
+            Assert.False(SecurityHelper.IsSha256Hash(updated.PasswordHash));
+            Assert.False(string.IsNullOrWhiteSpace(updated.PasswordSalt));
+            Assert.True(SecurityHelper.VerifyPassword("secret", updated.PasswordSalt, updated.PasswordHash));
         }
         finally
         {
@@ -85,11 +85,11 @@ public class UserAuthenticationTests
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
-            var user = new User { UserName = "emptysalt", Password = "secret", IsAdmin = false };
+            var user = new User { UserName = "emptysalt", PasswordHash = "secret", IsAdmin = false };
             userService.AddUser(user);
 
             using (var conn = dbService.CreateConnection())
-            using (var cmd = new SQLiteCommand("UPDATE Users SET Salt='' WHERE UserID=@ID", conn))
+            using (var cmd = new SQLiteCommand("UPDATE Users SET PasswordSalt='' WHERE UserID=@ID", conn))
             {
                 cmd.Parameters.AddWithValue("@ID", user.UserID);
                 cmd.ExecuteNonQuery();
@@ -115,7 +115,7 @@ public class UserAuthenticationTests
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
-            var user = new User { UserName = "lock", Password = "secret", IsAdmin = false };
+            var user = new User { UserName = "lock", PasswordHash = "secret", IsAdmin = false };
             userService.AddUser(user);
 
             for (int i = 0; i < 3; i++)
@@ -151,7 +151,7 @@ public class UserAuthenticationTests
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
-            var user = new User { UserName = "reset", Password = "secret", IsAdmin = false };
+            var user = new User { UserName = "reset", PasswordHash = "secret", IsAdmin = false };
             userService.AddUser(user);
 
             for (int i = 0; i < 3; i++)
@@ -190,7 +190,7 @@ public class UserAuthenticationTests
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
-            var user = new User { UserName = "flag", Password = "secret", IsAdmin = false };
+            var user = new User { UserName = "flag", PasswordHash = "secret", IsAdmin = false };
             userService.AddUser(user);
 
             userService.ChangeUserPassword(user.UserID, "admin");
@@ -217,14 +217,14 @@ public class UserAuthenticationTests
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
-            var user = new User { UserName = "atest", Password = "secret", IsAdmin = false };
+            var user = new User { UserName = "atest", PasswordHash = "secret", IsAdmin = false };
             userService.AddUser(user);
             var added = userService.GetUserByID(user.UserID)!;
 
-            Assert.NotEqual("secret", added.Password);
-            Assert.False(SecurityHelper.IsSha256Hash(added.Password));
-            Assert.False(string.IsNullOrWhiteSpace(added.Salt));
-            Assert.True(SecurityHelper.VerifyPassword("secret", added.Salt, added.Password));
+            Assert.NotEqual("secret", added.PasswordHash);
+            Assert.False(SecurityHelper.IsSha256Hash(added.PasswordHash));
+            Assert.False(string.IsNullOrWhiteSpace(added.PasswordSalt));
+            Assert.True(SecurityHelper.VerifyPassword("secret", added.PasswordSalt, added.PasswordHash));
 
             var auth = await userService.AuthenticateUserAsync(" atest ", " secret ");
             Assert.Equal(AuthenticationResult.Success, auth.Result);
@@ -246,7 +246,7 @@ public class UserAuthenticationTests
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
-            var user = new User { UserName = "lockasync", Password = "secret", IsAdmin = false };
+            var user = new User { UserName = "lockasync", PasswordHash = "secret", IsAdmin = false };
             userService.AddUser(user);
 
             for (int i = 0; i < 3; i++)
@@ -282,7 +282,7 @@ public class UserAuthenticationTests
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
-            var user = new User { UserName = "areset", Password = "secret", IsAdmin = false };
+            var user = new User { UserName = "areset", PasswordHash = "secret", IsAdmin = false };
             await userService.AddUserAsync(user);
 
             for (int i = 0; i < 3; i++)

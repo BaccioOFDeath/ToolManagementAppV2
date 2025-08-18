@@ -26,7 +26,7 @@ namespace ToolManagementAppV2.Tests
                 PathHelper.Configure(factory.CreateLogger<PathHelper>());
                 try
                 {
-                    service.AddUser(new User { UserName = "u", Password = "p", UserPhotoPath = "pack://application:,,,/Resources/NoImage.png" });
+                    service.AddUser(new User { UserName = "u", PasswordHash = "p", UserPhotoPath = "pack://application:,,,/Resources/NoImage.png" });
                     service.GetAllUsers();
                 }
                 finally
@@ -54,7 +54,7 @@ namespace ToolManagementAppV2.Tests
                 PathHelper.Configure(factory.CreateLogger<PathHelper>());
                 try
                 {
-                    service.AddUser(new User { UserName = "u", Password = "p", UserPhotoPath = "invalid|path.png" });
+                    service.AddUser(new User { UserName = "u", PasswordHash = "p", UserPhotoPath = "invalid|path.png" });
                     service.GetAllUsers();
                 }
                 finally

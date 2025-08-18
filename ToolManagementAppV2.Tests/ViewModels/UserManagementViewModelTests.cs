@@ -29,7 +29,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var db = new DatabaseService(dbPath);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
                 var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
-                userService.AddUser(new User { UserName = "user1", Password = "pw" });
+                userService.AddUser(new User { UserName = "user1", PasswordHash = "pw" });
                 await vm.LoadUsersAsync();
                 vm.SelectedUser = vm.Users.First();
                 vm.SelectedUser.Email = "test@example.com";
@@ -52,7 +52,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async Task UpdateUserCommand_ShowsErrorOnFailure()
         {
             var svc = new FailingUserService();
-            svc.AddUser(new User { UserID = 1, UserName = "user1", Password = "pw" });
+            svc.AddUser(new User { UserID = 1, UserName = "user1", PasswordHash = "pw" });
             var dialog = new StubDialogService();
             var vm = new UserManagementViewModel(svc, new StubFileDialogService(), dialog);
             await vm.LoadUsersAsync();
@@ -68,7 +68,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async Task EditUserAsync_PersistsChanges()
         {
             var svc = new InMemoryUserService();
-            svc.AddUser(new User { UserName = "user1", Password = "pw" });
+            svc.AddUser(new User { UserName = "user1", PasswordHash = "pw" });
             var dialog = new StubDialogService();
             var vm = new UserManagementViewModel(svc, new StubFileDialogService(), dialog);
             await vm.LoadUsersAsync();
@@ -79,8 +79,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 UserID = user.UserID,
                 UserName = user.UserName,
-                Password = user.Password,
-                Salt = user.Salt,
+                PasswordHash = user.PasswordHash,
+                PasswordSalt = user.PasswordSalt,
                 UserPhotoPath = user.UserPhotoPath,
                 IsAdmin = user.IsAdmin,
                 Email = "edited@example.com",
@@ -125,7 +125,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async Task EditUserAsync_ShowsErrorOnFailure()
         {
             var svc = new FailingUserService();
-            svc.AddUser(new User { UserID = 1, UserName = "user1", Password = "pw" });
+            svc.AddUser(new User { UserID = 1, UserName = "user1", PasswordHash = "pw" });
             var dialog = new StubDialogService();
             var vm = new UserManagementViewModel(svc, new StubFileDialogService(), dialog);
             await vm.LoadUsersAsync();
@@ -136,8 +136,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 UserID = user.UserID,
                 UserName = user.UserName,
-                Password = user.Password,
-                Salt = user.Salt,
+                PasswordHash = user.PasswordHash,
+                PasswordSalt = user.PasswordSalt,
                 UserPhotoPath = user.UserPhotoPath,
                 IsAdmin = user.IsAdmin,
                 Email = "edited@example.com",
@@ -185,7 +185,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IUserService userService = new UserService(db, new ApplicationUserContext());
                 var fileSvc = new StubFileDialogService { FileToReturn = "path/to/image.png" };
                 var vm = new UserManagementViewModel(userService, fileSvc, new StubDialogService());
-                userService.AddUser(new User { UserName = "user1", Password = "pw" });
+                userService.AddUser(new User { UserName = "user1", PasswordHash = "pw" });
                 await vm.LoadUsersAsync();
                 vm.SelectedUser = vm.Users.First();
                 await vm.UploadUserPhotoCommand.ExecuteAsync(null);
@@ -215,7 +215,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var fileSvc = new StubFileDialogService { FileToReturn = Path.Combine("..", "outside.png") };
                 var dialog = new StubDialogService();
                 var vm = new UserManagementViewModel(userService, fileSvc, dialog);
-                userService.AddUser(new User { UserName = "user1", Password = "pw" });
+                userService.AddUser(new User { UserName = "user1", PasswordHash = "pw" });
                 await vm.LoadUsersAsync();
                 vm.SelectedUser = vm.Users.First();
                 await vm.UploadUserPhotoCommand.ExecuteAsync(null);
@@ -244,7 +244,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IUserService userService = new UserService(db, new ApplicationUserContext());
                 var fileSvc = new StubFileDialogService { FileToReturn = "img.png" };
                 var vm = new UserManagementViewModel(userService, fileSvc, new StubDialogService());
-                userService.AddUser(new User { UserName = "user1", Password = "pw" });
+                userService.AddUser(new User { UserName = "user1", PasswordHash = "pw" });
                 await vm.LoadUsersAsync();
                 vm.SelectedUser = vm.Users.First();
 
@@ -273,7 +273,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async Task CommandsDisabledWhenNoUserSelected()
         {
             var svc = new InMemoryUserService();
-            await svc.AddUserAsync(new User { UserName = "user1", Password = "pw" });
+            await svc.AddUserAsync(new User { UserName = "user1", PasswordHash = "pw" });
             var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
             await vm.LoadUsersAsync();
             Assert.False(vm.UpdateUserCommand.CanExecute(null));
@@ -287,8 +287,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async Task LoadUsersAsync_LoadsUsers()
         {
             var svc = new InMemoryUserService();
-            await svc.AddUserAsync(new User { UserName = "user1", Password = "pw" });
-            await svc.AddUserAsync(new User { UserName = "user2", Password = "pw" });
+            await svc.AddUserAsync(new User { UserName = "user1", PasswordHash = "pw" });
+            await svc.AddUserAsync(new User { UserName = "user2", PasswordHash = "pw" });
             var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
             await vm.LoadUsersAsync();
             Assert.Equal(2, vm.Users.Count);
@@ -317,14 +317,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
             await vm.AddUserAsync();
             Assert.Single(vm.Users);
             Assert.Single(svc.Users);
-            Assert.Equal("pw", svc.Users[0].Password);
+            Assert.Equal("pw", svc.Users[0].PasswordHash);
         }
 
         [Fact]
         public async Task AddUserAsync_SkipsExistingNameFromService()
         {
             var svc = new InMemoryUserService();
-            await svc.AddUserAsync(new User { UserName = "user1", Password = "pw" });
+            await svc.AddUserAsync(new User { UserName = "user1", PasswordHash = "pw" });
             var vm = new PromptUserManagementViewModel(svc, "pw");
             await vm.AddUserAsync();
 
@@ -338,8 +338,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async Task AddUserAsync_FindsFirstAvailableNumber()
         {
             var svc = new InMemoryUserService();
-            await svc.AddUserAsync(new User { UserName = "user1", Password = "pw" });
-            await svc.AddUserAsync(new User { UserName = "user3", Password = "pw" });
+            await svc.AddUserAsync(new User { UserName = "user1", PasswordHash = "pw" });
+            await svc.AddUserAsync(new User { UserName = "user3", PasswordHash = "pw" });
             var vm = new PromptUserManagementViewModel(svc, "pw");
             await vm.AddUserAsync();
 
@@ -357,8 +357,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
             await vm.AddUserAsync();
             var user = svc.Users.Single();
             Assert.True(user.PasswordExpired);
-            Assert.False(string.IsNullOrEmpty(user.Password));
-            Assert.NotEqual("changeme", user.Password);
+            Assert.False(string.IsNullOrEmpty(user.PasswordHash));
+            Assert.NotEqual("changeme", user.PasswordHash);
         }
 
         [Fact]
@@ -368,7 +368,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             var vm = new PromptUserManagementViewModel(svc, "");
             await vm.AddUserAsync();
             var user = svc.Users.Single();
-            Assert.False(string.IsNullOrEmpty(user.Salt));
+            Assert.False(string.IsNullOrEmpty(user.PasswordSalt));
         }
 
         [Fact]
@@ -379,7 +379,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             await vm.AddUserAsync();
             var user = svc.Users.Single();
             Assert.False(user.PasswordExpired);
-            Assert.Equal("secret", user.Password);
+            Assert.Equal("secret", user.PasswordHash);
         }
 
         [Fact]
@@ -392,14 +392,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IUserService userService = new UserService(db, new ApplicationUserContext());
                 var dialog = new StubDialogService();
                 var vm = new UserManagementViewModel(userService, new StubFileDialogService(), dialog);
-                userService.AddUser(new User { UserName = "user1", Password = "pw" });
+                userService.AddUser(new User { UserName = "user1", PasswordHash = "pw" });
                 await vm.LoadUsersAsync();
                 var user = vm.Users.First();
                 var original = userService.GetUserByID(user.UserID)!;
-                var oldPwd = original.Password;
+                var oldPwd = original.PasswordHash;
                 await vm.ResetPasswordFromRowCommand.ExecuteAsync(user);
                 var updated = userService.GetUserByID(user.UserID)!;
-                Assert.NotEqual(oldPwd, updated.Password);
+                Assert.NotEqual(oldPwd, updated.PasswordHash);
                 Assert.True(updated.PasswordExpired);
                 Assert.Equal("Password Reset", dialog.LastInfoTitle);
                 Assert.Equal("Password has been reset. The user must change it at next login.", dialog.LastInfoMessage);
@@ -415,8 +415,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async Task SearchAndClearUsers_WorkAsExpected()
         {
             var svc = new InMemoryUserService();
-            await svc.AddUserAsync(new User { UserName = "alice", Password = "pw" });
-            await svc.AddUserAsync(new User { UserName = "bob", Password = "pw" });
+            await svc.AddUserAsync(new User { UserName = "alice", PasswordHash = "pw" });
+            await svc.AddUserAsync(new User { UserName = "bob", PasswordHash = "pw" });
             var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
             await vm.LoadUsersAsync();
 
@@ -433,8 +433,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async Task DeleteUserFromRowCommand_RemovesUser()
         {
             var svc = new InMemoryUserService();
-            await svc.AddUserAsync(new User { UserName = "user1", Password = "pw" });
-            await svc.AddUserAsync(new User { UserName = "user2", Password = "pw" });
+            await svc.AddUserAsync(new User { UserName = "user1", PasswordHash = "pw" });
+            await svc.AddUserAsync(new User { UserName = "user2", PasswordHash = "pw" });
             var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
             await vm.LoadUsersAsync();
             var toDelete = vm.Users.First();
@@ -447,7 +447,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async Task DeleteUserFromRowCommand_FailureDoesNotRemoveUser()
         {
             var svc = new FailingUserService();
-            svc.AddUser(new User { UserName = "user1", Password = "pw" });
+            svc.AddUser(new User { UserName = "user1", PasswordHash = "pw" });
             var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
             await vm.LoadUsersAsync();
             var toDelete = vm.Users.First();
@@ -459,7 +459,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async Task DeleteUserFromRowCommand_FailureShowsInfo()
         {
             var svc = new FailingUserService();
-            svc.AddUser(new User { UserName = "user1", Password = "pw" });
+            svc.AddUser(new User { UserName = "user1", PasswordHash = "pw" });
             var dialog = new StubDialogService();
             var vm = new UserManagementViewModel(svc, new StubFileDialogService(), dialog);
             await vm.LoadUsersAsync();
@@ -473,7 +473,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async Task UnlockUserCommand_UnlocksUserAndRefreshesList()
         {
             var svc = new InMemoryUserService();
-            await svc.AddUserAsync(new User { UserName = "user1", Password = "pw", LockoutUntil = DateTime.UtcNow.AddMinutes(5) });
+            await svc.AddUserAsync(new User { UserName = "user1", PasswordHash = "pw", LockoutUntil = DateTime.UtcNow.AddMinutes(5) });
             var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
             await vm.LoadUsersAsync();
             var user = vm.Users.First();
@@ -490,7 +490,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             await svc.AddUserAsync(new User
             {
                 UserName = "user1",
-                Password = "pw",
+                PasswordHash = "pw",
                 FailedAttempts = 5,
                 LockoutUntil = DateTime.UtcNow.AddMinutes(5)
             });

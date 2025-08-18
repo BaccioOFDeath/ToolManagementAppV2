@@ -55,7 +55,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var user = new User
                 {
                     UserName = "user",
-                    Password = "pass",
+                    PasswordHash = "pass",
                     IsAdmin = false
                 };
                 userService.AddUser(user);
@@ -119,7 +119,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var user = new User
                 {
                     UserName = "user",
-                    Password = "pass",
+                    PasswordHash = "pass",
                     IsAdmin = false
                 };
                 userService.AddUser(user);

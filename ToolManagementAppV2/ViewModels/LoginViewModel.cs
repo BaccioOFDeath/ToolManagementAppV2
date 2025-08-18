@@ -184,8 +184,8 @@ namespace ToolManagementAppV2.ViewModels
                 var admin = new User
                 {
                     UserName = "admin",
-                    Password = result.hash,
-                    Salt = result.salt,
+                    PasswordHash = result.hash,
+                    PasswordSalt = result.salt,
                     IsAdmin = true,
                     PasswordExpired = true
                 };
@@ -215,7 +215,7 @@ namespace ToolManagementAppV2.ViewModels
             if (dbUser == null) return;
             user = dbUser;
 
-            if (user.IsAdmin && string.IsNullOrWhiteSpace(user.Password))
+            if (user.IsAdmin && string.IsNullOrWhiteSpace(user.PasswordHash))
             {
                 try
                 {
@@ -229,15 +229,15 @@ namespace ToolManagementAppV2.ViewModels
                 var refreshed = await _userService.GetUserByIDAsync(user.UserID);
                 if (refreshed != null)
                 {
-                    user.Password = refreshed.Password;
-                    user.Salt = refreshed.Salt;
+                    user.PasswordHash = refreshed.PasswordHash;
+                    user.PasswordSalt = refreshed.PasswordSalt;
                     user.PasswordExpired = refreshed.PasswordExpired;
                 }
             }
 
             if (!user.IsAdmin &&
-                (string.IsNullOrWhiteSpace(user.Password) ||
-                 await SecurityHelper.VerifyPasswordAsync("newpassword", user.Salt, user.Password).ConfigureAwait(false)))
+                (string.IsNullOrWhiteSpace(user.PasswordHash) ||
+                 await SecurityHelper.VerifyPasswordAsync("newpassword", user.PasswordSalt, user.PasswordHash).ConfigureAwait(false)))
             {
                 _userContext.CurrentUser = user;
                 if (user.PasswordExpired && !await PromptChangePasswordAsync(user))
@@ -265,8 +265,8 @@ namespace ToolManagementAppV2.ViewModels
                     var refreshed = await _userService.GetUserByIDAsync(user.UserID);
                     if (refreshed != null)
                     {
-                        user.Password = refreshed.Password;
-                        user.Salt = refreshed.Salt;
+                        user.PasswordHash = refreshed.PasswordHash;
+                        user.PasswordSalt = refreshed.PasswordSalt;
                         user.PasswordExpired = refreshed.PasswordExpired;
                     }
                     await LoadUsersCommand.ExecuteAsync(null);
@@ -328,8 +328,8 @@ namespace ToolManagementAppV2.ViewModels
             var refreshed = await _userService.GetUserByIDAsync(user.UserID);
             if (refreshed != null)
             {
-                user.Password = refreshed.Password;
-                user.Salt = refreshed.Salt;
+                user.PasswordHash = refreshed.PasswordHash;
+                user.PasswordSalt = refreshed.PasswordSalt;
                 user.PasswordExpired = refreshed.PasswordExpired;
             }
             return true;
