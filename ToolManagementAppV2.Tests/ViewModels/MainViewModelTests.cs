@@ -86,6 +86,40 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public async Task OpenUsersCommand_ShowsError_WhenGetAllUsersFails()
+        {
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
+
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var userContext = new ApplicationUserContext();
+                IUserService userService = new GetAllUsersFailingUserService();
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var activityLogService = new ActivityLogService(db);
+                var settingsService = new SettingsService(db);
+                var dialog = new StubDialogService();
+
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                    new StubFileDialogService(), activityLogService, settingsService, db, dialog);
+
+                var ex = await Record.ExceptionAsync(() => vm.OpenUsersCommand.ExecuteAsync(null));
+
+                Assert.Null(ex);
+                Assert.True(dialog.InfoShown);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 
     class StubDialogService : IDialogService
