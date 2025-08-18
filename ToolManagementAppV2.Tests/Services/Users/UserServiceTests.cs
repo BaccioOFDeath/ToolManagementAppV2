@@ -286,6 +286,7 @@ public class UserServiceTests
             Assert.NotNull(locked);
             Assert.True(locked!.FailedAttempts >= 3);
             Assert.NotNull(locked.LockoutUntil);
+            Assert.Equal(DateTimeKind.Utc, locked.LockoutUntil!.Value.Kind);
 
             await userService.UnlockUserAsync(user.UserID);
 
@@ -320,6 +321,7 @@ public class UserServiceTests
             Assert.NotNull(locked);
             Assert.True(locked!.FailedAttempts >= 3);
             Assert.NotNull(locked.LockoutUntil);
+            Assert.Equal(DateTimeKind.Utc, locked.LockoutUntil!.Value.Kind);
 
             var changed = await userService.ChangeUserPasswordAsync(user.UserID, "Newpass1!");
             Assert.True(changed);

@@ -8,6 +8,7 @@ using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.Interfaces;
 using System.Linq;
+using System.Globalization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -53,9 +54,13 @@ namespace ToolManagementAppV2.Services.Users
                 Address = rdr["Address"]?.ToString(),
                 Role = rdr["Role"]?.ToString(),
                 IsActive = rdr["IsActive"] != DBNull.Value && Convert.ToInt32(rdr["IsActive"]) == 1,
-                CreatedAt = rdr["CreatedAt"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(rdr["CreatedAt"]),
+                CreatedAt = rdr["CreatedAt"] == DBNull.Value
+                    ? DateTime.MinValue
+                    : DateTime.Parse(rdr["CreatedAt"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
                 FailedAttempts = rdr["FailedAttempts"] == DBNull.Value ? 0 : Convert.ToInt32(rdr["FailedAttempts"]),
-                LockoutUntil = rdr["LockoutUntil"] == DBNull.Value ? null : Convert.ToDateTime(rdr["LockoutUntil"]),
+                LockoutUntil = rdr["LockoutUntil"] == DBNull.Value
+                    ? null
+                    : DateTime.Parse(rdr["LockoutUntil"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
                 PasswordExpired = rdr["PasswordExpired"] != DBNull.Value && Convert.ToInt32(rdr["PasswordExpired"]) == 1
             };
         }
@@ -143,7 +148,7 @@ namespace ToolManagementAppV2.Services.Users
             var update = new[]
             {
         new SQLiteParameter("@Attempts", u.FailedAttempts),
-        new SQLiteParameter("@Lockout", (object?)lockout ?? DBNull.Value),
+        new SQLiteParameter("@Lockout", (object?)lockout?.ToString("o") ?? DBNull.Value),
         new SQLiteParameter("@ID", u.UserID)
     };
             await SqliteHelper.ExecuteNonQueryAsync(conn, "UPDATE Users SET FailedAttempts=IFNULL(@Attempts,0), LockoutUntil=@Lockout WHERE UserID=@ID", update);
@@ -213,7 +218,7 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@IsActive", user.IsActive ? 1 : 0),
                 new SQLiteParameter("@CreatedAt", user.CreatedAt),
                 new SQLiteParameter("@FailedAttempts", user.FailedAttempts),
-                new SQLiteParameter("@Lockout",    (object?)user.LockoutUntil ?? DBNull.Value),
+                new SQLiteParameter("@Lockout",    (object?)user.LockoutUntil?.ToUniversalTime().ToString("o") ?? DBNull.Value),
                 new SQLiteParameter("@PasswordExpired", user.PasswordExpired ? 1 : 0)
             });
             try

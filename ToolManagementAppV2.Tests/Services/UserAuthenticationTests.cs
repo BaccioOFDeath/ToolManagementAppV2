@@ -130,6 +130,7 @@ public class UserAuthenticationTests
             var stored = userService.GetAllUsers().First();
             Assert.Equal(3, stored.FailedAttempts);
             Assert.NotNull(stored.LockoutUntil);
+            Assert.Equal(DateTimeKind.Utc, stored.LockoutUntil!.Value.Kind);
             Assert.True(stored.IsLocked);
 
             var afterLock = userService.AuthenticateUser("lock", "secret");
@@ -160,7 +161,7 @@ public class UserAuthenticationTests
             using (var conn = dbService.CreateConnection())
             using (var cmd = new SQLiteCommand("UPDATE Users SET LockoutUntil=@t WHERE UserID=@id", conn))
             {
-                cmd.Parameters.AddWithValue("@t", DateTime.UtcNow.AddMinutes(-1));
+                cmd.Parameters.AddWithValue("@t", DateTime.UtcNow.AddMinutes(-1).ToString("o"));
                 cmd.Parameters.AddWithValue("@id", user.UserID);
                 cmd.ExecuteNonQuery();
             }
@@ -261,6 +262,7 @@ public class UserAuthenticationTests
             var stored = userService.GetAllUsers().First(u => u.UserName == "lockasync");
             Assert.Equal(3, stored.FailedAttempts);
             Assert.NotNull(stored.LockoutUntil);
+            Assert.Equal(DateTimeKind.Utc, stored.LockoutUntil!.Value.Kind);
             Assert.True(stored.IsLocked);
 
             var afterLock = await userService.AuthenticateUserAsync(" lockasync ", " secret ");
@@ -291,7 +293,7 @@ public class UserAuthenticationTests
             using (var conn = dbService.CreateConnection())
             using (var cmd = new SQLiteCommand("UPDATE Users SET LockoutUntil=@t WHERE UserID=@id", conn))
             {
-                cmd.Parameters.AddWithValue("@t", DateTime.UtcNow.AddMinutes(-1));
+                cmd.Parameters.AddWithValue("@t", DateTime.UtcNow.AddMinutes(-1).ToString("o"));
                 cmd.Parameters.AddWithValue("@id", user.UserID);
                 cmd.ExecuteNonQuery();
             }
