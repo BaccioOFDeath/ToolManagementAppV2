@@ -30,6 +30,35 @@ namespace ToolManagementAppV2.Services.Users
         }
 
 
+        private static DateTime? ParseToUtcNullable(object value)
+        {
+            if (value == null || value == DBNull.Value) return null;
+            if (value is DateTime dt)
+            {
+                if (dt.Kind == DateTimeKind.Utc) return dt;
+                if (dt.Kind == DateTimeKind.Local) return dt.ToUniversalTime();
+                return DateTime.SpecifyKind(dt, DateTimeKind.Local).ToUniversalTime();
+            }
+            if (value is DateTimeOffset dto) return dto.UtcDateTime;
+            var s = value.ToString()?.Trim();
+            if (string.IsNullOrEmpty(s)) return null;
+
+            var cultures = new[] { CultureInfo.InvariantCulture, CultureInfo.GetCultureInfo("en-NZ"), CultureInfo.CurrentCulture };
+            var exactFormats = new[] { "o", "yyyy-MM-ddTHH:mm:ss.fffffffK" };
+
+            foreach (var c in cultures)
+            {
+                if (DateTimeOffset.TryParseExact(s, exactFormats, c, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var dtoExact))
+                    return dtoExact.UtcDateTime;
+            }
+            foreach (var c in cultures)
+            {
+                if (DateTimeOffset.TryParse(s, c, DateTimeStyles.AssumeLocal, out var dtoFree))
+                    return dtoFree.UtcDateTime;
+            }
+            return null;
+        }
+
         User MapUser(IDataRecord rdr)
         {
             bool HasColumn(string columnName)
@@ -40,30 +69,30 @@ namespace ToolManagementAppV2.Services.Users
                 return false;
             }
 
+            var createdAt = ParseToUtcNullable(HasColumn("CreatedAt") ? rdr["CreatedAt"] : DBNull.Value) ?? DateTime.MinValue;
+            var lockoutUntil = ParseToUtcNullable(HasColumn("LockoutUntil") ? rdr["LockoutUntil"] : DBNull.Value);
+
             return new User
             {
-                UserID = rdr["UserID"] != DBNull.Value ? Convert.ToInt32(rdr["UserID"]) : 0,
-                UserName = rdr["UserName"].ToString(),
+                UserID = HasColumn("UserID") && rdr["UserID"] != DBNull.Value ? Convert.ToInt32(rdr["UserID"]) : 0,
+                UserName = HasColumn("UserName") ? rdr["UserName"]?.ToString() : null,
                 PasswordHash = HasColumn("PasswordHash") && rdr["PasswordHash"] != DBNull.Value ? rdr["PasswordHash"].ToString() : null,
                 PasswordSalt = HasColumn("PasswordSalt") && rdr["PasswordSalt"] != DBNull.Value ? rdr["PasswordSalt"].ToString() : null,
-                UserPhotoPath = rdr["UserPhotoPath"]?.ToString(),
-                IsAdmin = rdr["IsAdmin"] != DBNull.Value && Convert.ToInt32(rdr["IsAdmin"]) == 1,
-                Email = rdr["Email"]?.ToString(),
-                Phone = rdr["Phone"]?.ToString(),
-                Mobile = rdr["Mobile"]?.ToString(),
-                Address = rdr["Address"]?.ToString(),
-                Role = rdr["Role"]?.ToString(),
-                IsActive = rdr["IsActive"] != DBNull.Value && Convert.ToInt32(rdr["IsActive"]) == 1,
-                CreatedAt = rdr["CreatedAt"] == DBNull.Value
-                    ? DateTime.MinValue
-                    : DateTime.Parse(rdr["CreatedAt"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
-                FailedAttempts = rdr["FailedAttempts"] == DBNull.Value ? 0 : Convert.ToInt32(rdr["FailedAttempts"]),
-                LockoutUntil = rdr["LockoutUntil"] == DBNull.Value
-                    ? null
-                    : DateTime.Parse(rdr["LockoutUntil"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
-                PasswordExpired = rdr["PasswordExpired"] != DBNull.Value && Convert.ToInt32(rdr["PasswordExpired"]) == 1
+                UserPhotoPath = HasColumn("UserPhotoPath") ? rdr["UserPhotoPath"]?.ToString() : null,
+                IsAdmin = HasColumn("IsAdmin") && rdr["IsAdmin"] != DBNull.Value && Convert.ToInt32(rdr["IsAdmin"]) == 1,
+                Email = HasColumn("Email") ? rdr["Email"]?.ToString() : null,
+                Phone = HasColumn("Phone") ? rdr["Phone"]?.ToString() : null,
+                Mobile = HasColumn("Mobile") ? rdr["Mobile"]?.ToString() : null,
+                Address = HasColumn("Address") ? rdr["Address"]?.ToString() : null,
+                Role = HasColumn("Role") ? rdr["Role"]?.ToString() : null,
+                IsActive = HasColumn("IsActive") && rdr["IsActive"] != DBNull.Value && Convert.ToInt32(rdr["IsActive"]) == 1,
+                CreatedAt = createdAt,
+                FailedAttempts = HasColumn("FailedAttempts") && rdr["FailedAttempts"] != DBNull.Value ? Convert.ToInt32(rdr["FailedAttempts"]) : 0,
+                LockoutUntil = lockoutUntil,
+                PasswordExpired = HasColumn("PasswordExpired") && rdr["PasswordExpired"] != DBNull.Value && Convert.ToInt32(rdr["PasswordExpired"]) == 1
             };
         }
+
 
         public async Task<List<User>> GetAllUsersAsync()
         {
