@@ -17,5 +17,9 @@ namespace ToolManagementAppV2.Interfaces
         // Password hashing configuration
         Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default);
         Task SavePasswordIterationsAsync(int iterations, CancellationToken cancellationToken = default);
+
+        // Auto logout configuration
+        Task<int> GetAutoLogoutMinutesAsync(CancellationToken cancellationToken = default);
+        Task SaveAutoLogoutMinutesAsync(int minutes, CancellationToken cancellationToken = default);
     }
 }

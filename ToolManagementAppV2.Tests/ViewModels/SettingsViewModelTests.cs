@@ -125,6 +125,17 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public void AutoLogoutMinutes_LoadsAndSaves()
+        {
+            var settings = new StubSettingsService { AutoLogoutMinutes = 5 };
+            var vm = new SettingsViewModel(new StubFileDialogService(), settings, new StubDialogService());
+            Assert.Equal(5, vm.AutoLogoutMinutes);
+
+            vm.AutoLogoutMinutes = 10;
+            Assert.Equal(10, settings.AutoLogoutMinutes);
+        }
+
+        [Fact]
         public void PasswordIterations_AboveLimit_PersistsClampedValue()
         {
             var path = System.IO.Path.GetTempFileName();
@@ -161,6 +172,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public string? GetSettingValue { get; set; } = string.Empty;
         public IEnumerable<string> ScannerIps { get; set; } = Array.Empty<string>();
         public int PasswordIterations { get; set; } = 100_000;
+        public int AutoLogoutMinutes { get; set; }
 
         public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default)
         {
@@ -188,6 +200,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Task SavePasswordIterationsAsync(int iterations, CancellationToken cancellationToken = default)
         {
             PasswordIterations = iterations;
+            return Task.CompletedTask;
+        }
+        public Task<int> GetAutoLogoutMinutesAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(AutoLogoutMinutes);
+        public Task SaveAutoLogoutMinutesAsync(int minutes, CancellationToken cancellationToken = default)
+        {
+            AutoLogoutMinutes = minutes;
             return Task.CompletedTask;
         }
     }

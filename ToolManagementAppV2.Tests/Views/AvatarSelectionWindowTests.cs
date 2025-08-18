@@ -100,6 +100,10 @@ namespace ToolManagementAppV2.Tests.Views
                 => Task.FromResult(0);
             public Task SavePasswordIterationsAsync(int iterations, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
+            public Task<int> GetAutoLogoutMinutesAsync(CancellationToken cancellationToken = default)
+                => Task.FromResult(0);
+            public Task SaveAutoLogoutMinutesAsync(int minutes, CancellationToken cancellationToken = default)
+                => Task.CompletedTask;
         }
 
         class FailingSettingsService : ISettingsService
@@ -122,6 +126,10 @@ namespace ToolManagementAppV2.Tests.Views
             public Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default)
                 => Task.FromResult(0);
             public Task SavePasswordIterationsAsync(int iterations, CancellationToken cancellationToken = default)
+                => Task.CompletedTask;
+            public Task<int> GetAutoLogoutMinutesAsync(CancellationToken cancellationToken = default)
+                => Task.FromResult(0);
+            public Task SaveAutoLogoutMinutesAsync(int minutes, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
         }
     }
