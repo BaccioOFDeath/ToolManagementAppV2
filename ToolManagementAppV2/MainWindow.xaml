@@ -19,7 +19,10 @@
                     <TextBlock Text="{Binding CurrentPageTitle}" FontSize="12" Foreground="{StaticResource ForegroundMutedBrush}" Margin="0,4,0,0"/>
                 </StackPanel>
 
-                <ScrollViewer Grid.Row="1" PreviewMouseWheel="LeftNavScrollViewer_PreviewMouseWheel">
+                <ScrollViewer Grid.Row="1"
+                              PreviewMouseWheel="LeftNavScrollViewer_PreviewMouseWheel"
+                              SnapsToDevicePixels="True"
+                              UseLayoutRounding="True">
                     <StackPanel Orientation="Vertical" Margin="12,0,12,8">
                         <TextBlock Text="Operations" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
                         <Button Style="{StaticResource NavButton}" Content="Dashboard" Command="{Binding OpenDashboardCommand}"/>
