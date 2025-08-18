@@ -254,6 +254,7 @@ namespace ToolManagementAppV2.ViewModels
             {
                 try
                 {
+                    _userContext.CurrentUser = null;
                     if (await _showLoginWindow())
                     {
                         OpenDashboardCommand.Execute(null);
