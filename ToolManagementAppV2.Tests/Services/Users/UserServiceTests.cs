@@ -144,25 +144,6 @@ public class UserServiceTests
         }
     }
 
-    [Fact]
-    public async Task AddUserAsync_SetsFailedAttemptsToZero()
-    {
-        var dbPath = Path.GetTempFileName();
-        try
-        {
-            var dbService = new DatabaseService(dbPath);
-            var userService = new UserService(dbService, new ApplicationUserContext());
-            var user = new User { UserName = "user1", PasswordHash = "Strong1!" };
-            await userService.AddUserAsync(user);
-            var stored = userService.GetUserByID(user.UserID);
-            Assert.NotNull(stored);
-            Assert.Equal(0, stored!.FailedAttempts);
-        }
-        finally
-        {
-            if (File.Exists(dbPath)) File.Delete(dbPath);
-        }
-    }
 
     [Fact]
     public void ChangeUserPassword_ReturnsFalse_ForInvalidUserID()
@@ -256,108 +237,6 @@ public class UserServiceTests
         }
     }
 
-    [Fact]
-    public async Task UnlockUserAsync_ResetsFailedAttemptsAndLockout()
-    {
-        var dbPath = Path.GetTempFileName();
-        try
-        {
-            var dbService = new DatabaseService(dbPath);
-            IUserService userService = new UserService(dbService, new ApplicationUserContext());
-            var user = new User { UserName = "locked", PasswordHash = "Strong1!" };
-            await userService.AddUserAsync(user);
-
-            await userService.AuthenticateUserAsync("locked", "bad");
-            await userService.AuthenticateUserAsync("locked", "bad");
-            await userService.AuthenticateUserAsync("locked", "bad");
-
-            var locked = userService.GetUserByID(user.UserID);
-            Assert.NotNull(locked);
-            Assert.True(locked!.FailedAttempts >= 3);
-            Assert.NotNull(locked.LockoutUntil);
-            Assert.Equal(DateTimeKind.Utc, locked.LockoutUntil!.Value.Kind);
-
-            await userService.UnlockUserAsync(user.UserID);
-
-            var unlocked = userService.GetUserByID(user.UserID);
-            Assert.NotNull(unlocked);
-            Assert.Equal(0, unlocked!.FailedAttempts);
-            Assert.Null(unlocked.LockoutUntil);
-            Assert.False(unlocked.IsLocked);
-        }
-        finally
-        {
-            if (File.Exists(dbPath)) File.Delete(dbPath);
-        }
-    }
-
-    [Fact]
-    public async Task ChangeUserPasswordAsync_ResetsFailedAttemptsAndLockout()
-    {
-        var dbPath = Path.GetTempFileName();
-        try
-        {
-            var dbService = new DatabaseService(dbPath);
-            IUserService userService = new UserService(dbService, new ApplicationUserContext());
-            var user = new User { UserName = "lock", PasswordHash = "Strong1!" };
-            await userService.AddUserAsync(user);
-
-            await userService.AuthenticateUserAsync("lock", "bad");
-            await userService.AuthenticateUserAsync("lock", "bad");
-            await userService.AuthenticateUserAsync("lock", "bad");
-
-            var locked = userService.GetUserByID(user.UserID);
-            Assert.NotNull(locked);
-            Assert.True(locked!.FailedAttempts >= 3);
-            Assert.NotNull(locked.LockoutUntil);
-            Assert.Equal(DateTimeKind.Utc, locked.LockoutUntil!.Value.Kind);
-
-            var changed = await userService.ChangeUserPasswordAsync(user.UserID, "Newpass1!");
-            Assert.True(changed);
-
-            var updated = userService.GetUserByID(user.UserID);
-            Assert.NotNull(updated);
-            Assert.Equal(0, updated!.FailedAttempts);
-            Assert.Null(updated.LockoutUntil);
-            Assert.False(updated.IsLocked);
-        }
-        finally
-        {
-            if (File.Exists(dbPath)) File.Delete(dbPath);
-        }
-    }
-
-    [Fact]
-    public async Task ChangeUserPasswordAsync_AllowsNullFailedAttempts()
-    {
-        var dbPath = Path.GetTempFileName();
-        try
-        {
-            var dbService = new DatabaseService(dbPath);
-            IUserService userService = new UserService(dbService, new ApplicationUserContext());
-            var user = new User { UserName = "nulltest", PasswordHash = "Strong1!" };
-            await userService.AddUserAsync(user);
-
-            using (var conn = dbService.CreateConnection())
-            {
-                await SqliteHelper.ExecuteNonQueryAsync(conn,
-                    "UPDATE Users SET FailedAttempts=NULL WHERE UserID=@ID",
-                    new[] { new SQLiteParameter("@ID", user.UserID) });
-            }
-
-            var changed = await userService.ChangeUserPasswordAsync(user.UserID, "Newpass1!");
-            Assert.True(changed);
-
-            var updated = userService.GetUserByID(user.UserID);
-            Assert.NotNull(updated);
-            Assert.Equal(0, updated!.FailedAttempts);
-            Assert.False(updated.IsLocked);
-        }
-        finally
-        {
-            if (File.Exists(dbPath)) File.Delete(dbPath);
-        }
-    }
 
     [Fact]
     public void GetAllUsers_DoesNotIncludeSensitiveFields()

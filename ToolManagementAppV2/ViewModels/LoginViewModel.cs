@@ -272,9 +272,6 @@ namespace ToolManagementAppV2.ViewModels
                 var authResult = await _userService.AuthenticateUserAsync(user.UserName, promptResult.Password);
                 switch (authResult.Result)
                 {
-                    case AuthenticationResult.LockedOut:
-                        await _dialogService.ShowInfoAsync($"Account locked until {authResult.User?.LockoutUntil}.", "Login Failed");
-                        return;
                     case AuthenticationResult.IncorrectPassword:
                         await _dialogService.ShowInfoAsync("Incorrect password. Please try again.", "Login Failed");
                         continue;

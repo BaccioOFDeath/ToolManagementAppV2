@@ -70,7 +70,6 @@ namespace ToolManagementAppV2.Services.Users
             }
 
             var createdAt = ParseToUtcNullable(HasColumn("CreatedAt") ? rdr["CreatedAt"] : DBNull.Value) ?? DateTime.MinValue;
-            var lockoutUntil = ParseToUtcNullable(HasColumn("LockoutUntil") ? rdr["LockoutUntil"] : DBNull.Value);
 
             return new User
             {
@@ -87,8 +86,6 @@ namespace ToolManagementAppV2.Services.Users
                 Role = HasColumn("Role") ? rdr["Role"]?.ToString() : null,
                 IsActive = HasColumn("IsActive") && rdr["IsActive"] != DBNull.Value && Convert.ToInt32(rdr["IsActive"]) == 1,
                 CreatedAt = createdAt,
-                FailedAttempts = HasColumn("FailedAttempts") && rdr["FailedAttempts"] != DBNull.Value ? Convert.ToInt32(rdr["FailedAttempts"]) : 0,
-                LockoutUntil = lockoutUntil,
                 PasswordExpired = HasColumn("PasswordExpired") && rdr["PasswordExpired"] != DBNull.Value && Convert.ToInt32(rdr["PasswordExpired"]) == 1
             };
         }
@@ -97,7 +94,7 @@ namespace ToolManagementAppV2.Services.Users
         public async Task<List<User>> GetAllUsersAsync()
         {
             using var conn = _dbService.CreateConnection();
-            const string sql = "SELECT UserID, UserName, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, FailedAttempts, LockoutUntil, PasswordExpired FROM Users";
+            const string sql = "SELECT UserID, UserName, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired FROM Users";
             return await SqliteHelper.ExecuteReaderAsync(conn, sql, null, MapUser);
         }
 
@@ -116,27 +113,12 @@ namespace ToolManagementAppV2.Services.Users
             userName = (userName ?? string.Empty).Trim();
             password = (password ?? string.Empty).Trim();
 
-            await SqliteHelper.ExecuteNonQueryAsync(
-                conn,
-                "UPDATE Users SET FailedAttempts=IFNULL(FailedAttempts,0) WHERE FailedAttempts IS NULL"
-            );
-
             var users = await SqliteHelper.ExecuteReaderAsync(conn,
                 "SELECT * FROM Users WHERE UserName=@UserName",
                 new[] { new SQLiteParameter("@UserName", userName) }, MapUser);
 
             var u = users.FirstOrDefault();
             if (u == null) return (AuthenticationResult.IncorrectPassword, null);
-
-            if (u.LockoutUntil.HasValue && u.LockoutUntil > DateTime.UtcNow)
-                return (AuthenticationResult.LockedOut, u);
-
-            if (u.LockoutUntil.HasValue && u.LockoutUntil <= DateTime.UtcNow)
-            {
-                await UnlockUserAsync(u.UserID);
-                u.FailedAttempts = 0;
-                u.LockoutUntil = null;
-            }
 
             bool success;
             if (string.IsNullOrWhiteSpace(u.PasswordSalt) && SecurityHelper.IsSha256Hash(u.PasswordHash))
@@ -162,29 +144,7 @@ namespace ToolManagementAppV2.Services.Users
                 success = await SecurityHelper.VerifyPasswordAsync(password, u.PasswordSalt, u.PasswordHash).ConfigureAwait(false);
             }
 
-            if (success)
-            {
-                await UnlockUserAsync(u.UserID);
-                u.FailedAttempts = 0;
-                u.LockoutUntil = null;
-                return (AuthenticationResult.Success, u);
-            }
-
-            u.FailedAttempts = Math.Max(0, u.FailedAttempts) + 1;
-            DateTime? lockout = null;
-            if (u.FailedAttempts >= 3) lockout = DateTime.UtcNow.AddMinutes(15);
-
-            var update = new[]
-            {
-        new SQLiteParameter("@Attempts", u.FailedAttempts),
-        new SQLiteParameter("@Lockout", (object?)lockout?.ToString("o") ?? DBNull.Value),
-        new SQLiteParameter("@ID", u.UserID)
-    };
-            await SqliteHelper.ExecuteNonQueryAsync(conn, "UPDATE Users SET FailedAttempts=IFNULL(@Attempts,0), LockoutUntil=@Lockout WHERE UserID=@ID", update);
-            u.LockoutUntil = lockout;
-            return (u.LockoutUntil.HasValue && u.LockoutUntil > DateTime.UtcNow)
-                ? (AuthenticationResult.LockedOut, u)
-                : (AuthenticationResult.IncorrectPassword, null);
+            return success ? (AuthenticationResult.Success, u) : (AuthenticationResult.IncorrectPassword, null);
         }
 
 
@@ -209,9 +169,9 @@ namespace ToolManagementAppV2.Services.Users
             }
             const string sql = @"
                 INSERT INTO Users
-                  (UserName, PasswordHash, PasswordSalt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, FailedAttempts, LockoutUntil, PasswordExpired)
+                  (UserName, PasswordHash, PasswordSalt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired)
                 VALUES
-                  (@UserName,@PasswordHash,@PasswordSalt,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role,@IsActive,@CreatedAt,@FailedAttempts,@Lockout,@PasswordExpired);
+                  (@UserName,@PasswordHash,@PasswordSalt,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role,@IsActive,@CreatedAt,@PasswordExpired);
                 SELECT last_insert_rowid();";
 
             using var conn = _dbService.CreateConnection();
@@ -243,8 +203,6 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@Role",     (object)user.Role ?? DBNull.Value),
                 new SQLiteParameter("@IsActive", user.IsActive ? 1 : 0),
                 new SQLiteParameter("@CreatedAt", user.CreatedAt),
-                new SQLiteParameter("@FailedAttempts", user.FailedAttempts),
-                new SQLiteParameter("@Lockout",    (object?)user.LockoutUntil?.ToUniversalTime().ToString("o") ?? DBNull.Value),
                 new SQLiteParameter("@PasswordExpired", user.PasswordExpired ? 1 : 0)
             });
             try
@@ -336,22 +294,7 @@ namespace ToolManagementAppV2.Services.Users
             int rows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
             if (rows == 0)
                 _logger.LogWarning("Password update affected 0 rows for UserID {UserID}", userID);
-            if (rows > 0)
-                await UnlockUserAsync(userID);
             return rows > 0;
-        }
-
-        public async Task UnlockUserAsync(int userId)
-        {
-            var p = new[]
-            {
-                new SQLiteParameter("@Attempts", 0),
-                new SQLiteParameter("@Lockout", DBNull.Value),
-                new SQLiteParameter("@ID", userId)
-            };
-            using var conn = _dbService.CreateConnection();
-            await SqliteHelper.ExecuteNonQueryAsync(conn,
-                "UPDATE Users SET FailedAttempts=IFNULL(@Attempts,0), LockoutUntil=@Lockout WHERE UserID=@ID", p);
         }
 
         async Task DeleteUserInternalAsync(int userID)

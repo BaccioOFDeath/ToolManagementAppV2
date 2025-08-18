@@ -63,9 +63,7 @@ namespace ToolManagementAppV2.Services.Core
             EnsureColumn("Users", "Role", "TEXT");
             EnsureColumn("Users", "IsActive", "INTEGER", "1");
             EnsureColumn("Users", "CreatedAt", "DATETIME");
-            // Security-related columns for login tracking
-            EnsureColumn("Users", "FailedAttempts", "INTEGER", "0");
-            EnsureColumn("Users", "LockoutUntil", "DATETIME");
+            // Security-related column for password expiry tracking
             EnsureColumn("Users", "PasswordExpired", "INTEGER", "0");
         }
 
@@ -135,8 +133,6 @@ namespace ToolManagementAppV2.Services.Core
                     Role TEXT,
                     IsActive INTEGER NOT NULL DEFAULT 1,
                     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    FailedAttempts INTEGER NOT NULL DEFAULT 0,
-                    LockoutUntil DATETIME,
                     PasswordExpired INTEGER NOT NULL DEFAULT 0
                 );
                 CREATE TABLE IF NOT EXISTS Customers (
