@@ -326,6 +326,7 @@ namespace ToolManagementAppV2.ViewModels
                 user.PasswordSalt = refreshed.PasswordSalt;
                 user.PasswordExpired = refreshed.PasswordExpired;
             }
+            await LoadUsersCommand.ExecuteAsync(null);
             return true;
         }
     }
