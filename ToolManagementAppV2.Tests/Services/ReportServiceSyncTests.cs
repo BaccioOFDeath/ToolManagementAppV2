@@ -139,6 +139,5 @@ public class ReportServiceAsyncTests
         public Task<bool> TryDeleteUserAsync(int userID) => throw new NotImplementedException();
         public bool ChangeUserPassword(int userID, string newPassword) => throw new NotImplementedException();
         public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => throw new NotImplementedException();
-        public Task UnlockUserAsync(int userId) => throw new NotImplementedException();
     }
 }

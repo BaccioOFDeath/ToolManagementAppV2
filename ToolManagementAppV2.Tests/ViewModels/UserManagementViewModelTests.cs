@@ -469,47 +469,6 @@ namespace ToolManagementAppV2.Tests.ViewModels
             Assert.Equal("Error", dialog.LastInfoTitle);
         }
 
-        [Fact]
-        public async Task UnlockUserCommand_UnlocksUserAndRefreshesList()
-        {
-            var svc = new InMemoryUserService();
-            await svc.AddUserAsync(new User { UserName = "user1", PasswordHash = "Strong1!", LockoutUntil = DateTime.UtcNow.AddMinutes(5) });
-            var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
-            await vm.LoadUsersAsync();
-            var user = vm.Users.First();
-            Assert.True(user.IsLocked);
-            await vm.UnlockUserCommand.ExecuteAsync(user);
-            Assert.False(vm.Users.First().IsLocked);
-            Assert.False(svc.Users.First().IsLocked);
-        }
-
-        [Fact]
-        public async Task UnlockUserCommand_ClearsLockAndUpdatesCollection()
-        {
-            var svc = new InMemoryUserService();
-            await svc.AddUserAsync(new User
-            {
-                UserName = "user1",
-                PasswordHash = "Strong1!",
-                FailedAttempts = 5,
-                LockoutUntil = DateTime.UtcNow.AddMinutes(5)
-            });
-            var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
-            await vm.LoadUsersAsync();
-            var model = vm.Users.First();
-            Assert.True(model.IsLocked);
-            Assert.Equal(5, model.FailedAttempts);
-
-            await vm.UnlockUserCommand.ExecuteAsync(model);
-
-            var refreshed = vm.Users.First();
-            Assert.False(refreshed.IsLocked);
-            Assert.Equal(0, refreshed.FailedAttempts);
-            var serviceUser = svc.Users.First();
-            Assert.False(serviceUser.IsLocked);
-            Assert.Equal(0, serviceUser.FailedAttempts);
-            Assert.Null(serviceUser.LockoutUntil);
-        }
 
         [Fact]
         public async Task AddUserAsync_CancelledPrompt_DoesNotAddUser()
@@ -639,16 +598,6 @@ class InMemoryUserService : IUserService
     }
     public bool ChangeUserPassword(int userID, string newPassword) => false;
     public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => Task.FromResult(false);
-    public Task UnlockUserAsync(int userId)
-    {
-        var user = Users.FirstOrDefault(u => u.UserID == userId);
-        if (user != null)
-        {
-            user.FailedAttempts = 0;
-            user.LockoutUntil = null;
-        }
-        return Task.CompletedTask;
-    }
 }
 
 class PromptUserManagementViewModel : UserManagementViewModel
@@ -685,7 +634,6 @@ class FailingUserService : IUserService
     public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
     public bool ChangeUserPassword(int userID, string newPassword) => false;
     public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => Task.FromResult(false);
-    public Task UnlockUserAsync(int userId) => Task.CompletedTask;
 }
 
 class GetAllUsersFailingUserService : IUserService
@@ -705,7 +653,6 @@ class GetAllUsersFailingUserService : IUserService
     public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
     public bool ChangeUserPassword(int userID, string newPassword) => false;
     public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => Task.FromResult(false);
-    public Task UnlockUserAsync(int userId) => Task.CompletedTask;
 }
 
 class CancelPromptUserManagementViewModel : UserManagementViewModel

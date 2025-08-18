@@ -467,40 +467,6 @@ namespace ToolManagementAppV2.Tests.ViewModels
             Assert.False(userService.ChangePasswordCalled);
         }
 
-        [Fact]
-        public async Task SelectUserCommand_ShowsLockoutMessage_WhenAccountLocked()
-        {
-            if (System.Windows.Application.Current == null)
-                new System.Windows.Application();
-
-            var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
-            try
-            {
-                using var dbService = new DatabaseService(dbPath);
-                var userContext = new ApplicationUserContext();
-                var auth = new AuthorizationService(userContext);
-                var userService = new UserService(dbService, userContext, auth);
-                var settingsService = new SettingsService(dbService);
-                var lockout = DateTime.UtcNow.AddMinutes(15);
-                await userService.AddUserAsync(new User { UserName = "locked", PasswordHash = "Strong1!", LockoutUntil = lockout });
-
-                var dialog = new CapturingDialogService();
-                var vm = new LoginViewModel(userService, settingsService, dialog, userContext)
-                {
-                    PromptForPasswordAsync = (u, ct) => Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("Strong1!", false))
-                };
-                await vm.InitializeAsync();
-
-                await vm.SelectUserCommand.ExecuteAsync(vm.Users.First());
-
-                Assert.True(dialog.InfoShown);
-                Assert.Contains(lockout.ToString(), dialog.LastMessage);
-            }
-            finally
-            {
-                if (File.Exists(dbPath)) File.Delete(dbPath);
-            }
-        }
     }
 
     class StubDialogService : IDialogService
@@ -549,7 +515,6 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
         public bool ChangeUserPassword(int userID, string newPassword) => throw new InvalidOperationException();
         public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => throw new InvalidOperationException();
-        public Task UnlockUserAsync(int userId) => Task.CompletedTask;
     }
 
     class OmittingPasswordUserService : IUserService
@@ -586,7 +551,6 @@ namespace ToolManagementAppV2.Tests.ViewModels
             ChangePasswordCalled = true;
             return Task.FromResult(true);
         }
-        public Task UnlockUserAsync(int userId) => Task.CompletedTask;
     }
 
     class CapturingDialogService : IDialogService

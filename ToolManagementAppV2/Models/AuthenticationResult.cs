@@ -3,7 +3,6 @@ namespace ToolManagementAppV2.Models
     public enum AuthenticationResult
     {
         Success,
-        IncorrectPassword,
-        LockedOut
+        IncorrectPassword
     }
 }
