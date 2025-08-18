@@ -254,7 +254,7 @@ namespace ToolManagementAppV2.Tests.Views
         }
 
         [Fact]
-        public void LeftNavScrollViewer_PreviewMouseWheel_ScrollsByReducedDelta()
+        public void LeftNavScrollViewer_PreviewMouseWheel_ScrollsSmoothly()
         {
             Exception? threadException = null;
 
@@ -280,7 +280,27 @@ namespace ToolManagementAppV2.Tests.Views
                         scrollViewer.RaiseEvent(args);
 
                         Assert.True(args.Handled);
-                        Assert.Equal(initialOffset - args.Delta / 4.0, scrollViewer.VerticalOffset);
+
+                        var offsets = new List<double> { initialOffset };
+
+                        for (int i = 0; i < 3; i++)
+                        {
+                            var frame = new DispatcherFrame();
+                            var timer = new DispatcherTimer(TimeSpan.FromMilliseconds(100), DispatcherPriority.Render, (s, _) =>
+                            {
+                                offsets.Add(scrollViewer.VerticalOffset);
+                                ((DispatcherTimer)s!).Stop();
+                                frame.Continue = false;
+                            }, scrollViewer.Dispatcher);
+                            timer.Start();
+                            Dispatcher.PushFrame(frame);
+                        }
+
+                        Assert.True(offsets.Last() < initialOffset);
+                        for (int i = 1; i < offsets.Count; i++)
+                        {
+                            Assert.True(offsets[i] <= offsets[i - 1]);
+                        }
                     }
                     finally
                     {
