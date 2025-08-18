@@ -1,13 +1,40 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using ToolManagementAppV2.Utilities.Helpers;
 
 namespace ToolManagementAppV2.ViewModels
 {
     public class ChangePasswordViewModel : ObservableObject
     {
-        public string NewPassword { get; set; } = string.Empty;
-        public string ConfirmPassword { get; set; } = string.Empty;
+        string _newPassword = string.Empty;
+        public string NewPassword
+        {
+            get => _newPassword;
+            set
+            {
+                if (SetProperty(ref _newPassword, value))
+                    ValidationMessage = string.Empty;
+            }
+        }
+
+        string _confirmPassword = string.Empty;
+        public string ConfirmPassword
+        {
+            get => _confirmPassword;
+            set
+            {
+                if (SetProperty(ref _confirmPassword, value))
+                    ValidationMessage = string.Empty;
+            }
+        }
+
+        string _validationMessage = string.Empty;
+        public string ValidationMessage
+        {
+            get => _validationMessage;
+            private set => SetProperty(ref _validationMessage, value);
+        }
 
         public IRelayCommand SaveCommand { get; }
         public IRelayCommand CancelCommand { get; }
@@ -16,8 +43,20 @@ namespace ToolManagementAppV2.ViewModels
         {
             SaveCommand = new RelayCommand(() =>
             {
-                if (!string.IsNullOrWhiteSpace(NewPassword) && NewPassword == ConfirmPassword)
-                    onSave();
+                if (!PasswordValidator.IsValid(NewPassword, out var error))
+                {
+                    ValidationMessage = error!;
+                    return;
+                }
+
+                if (NewPassword != ConfirmPassword)
+                {
+                    ValidationMessage = "Passwords do not match.";
+                    return;
+                }
+
+                ValidationMessage = string.Empty;
+                onSave();
             });
             CancelCommand = new RelayCommand(onCancel);
         }

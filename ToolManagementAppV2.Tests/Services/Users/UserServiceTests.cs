@@ -30,7 +30,7 @@ public class UserServiceTests
             var ctx = new StubUserContext { CurrentUser = new User { UserName = "seed", IsAdmin = false } };
             var auth = new AuthorizationService(ctx);
             var userService = new UserService(dbService, ctx, auth);
-            var admin = new User { UserName = "admin", PasswordHash = "pw", IsAdmin = true };
+            var admin = new User { UserName = "admin", PasswordHash = "Strong1!", IsAdmin = true };
             await userService.AddUserAsync(admin);
             Assert.NotEqual(0, admin.UserID);
         }
@@ -50,9 +50,9 @@ public class UserServiceTests
             var ctx = new StubUserContext { CurrentUser = new User { UserName = "seed", IsAdmin = false } };
             var auth = new AuthorizationService(ctx);
             var userService = new UserService(dbService, ctx, auth);
-            var admin = new User { UserName = "admin", PasswordHash = "pw", IsAdmin = true };
+            var admin = new User { UserName = "admin", PasswordHash = "Strong1!", IsAdmin = true };
             await userService.AddUserAsync(admin);
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => userService.AddUserAsync(new User { UserName = "user", PasswordHash = "pw" }));
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => userService.AddUserAsync(new User { UserName = "user", PasswordHash = "Strong1!" }));
         }
         finally
         {
@@ -67,7 +67,7 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
-            var admin = new User { UserName = "admin", PasswordHash = "pw", IsAdmin = true };
+            var admin = new User { UserName = "admin", PasswordHash = "Strong1!", IsAdmin = true };
             await userService.AddUserAsync(admin);
             var result = await userService.TryDeleteUserAsync(admin.UserID);
             Assert.False(result);
@@ -87,8 +87,8 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
-            var admin1 = new User { UserName = "admin1", PasswordHash = "pw", IsAdmin = true };
-            var admin2 = new User { UserName = "admin2", PasswordHash = "pw", IsAdmin = true };
+            var admin1 = new User { UserName = "admin1", PasswordHash = "Strong1!", IsAdmin = true };
+            var admin2 = new User { UserName = "admin2", PasswordHash = "Strong1!", IsAdmin = true };
             await userService.AddUserAsync(admin1);
             await userService.AddUserAsync(admin2);
             var result = await userService.TryDeleteUserAsync(admin1.UserID);
@@ -128,8 +128,8 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             var userService = new UserService(dbService, new ApplicationUserContext());
-            await userService.AddUserAsync(new User { UserName = "dup", PasswordHash = "pw" });
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => userService.AddUserAsync(new User { UserName = "dup", PasswordHash = "pw" }));
+            await userService.AddUserAsync(new User { UserName = "dup", PasswordHash = "Strong1!" });
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => userService.AddUserAsync(new User { UserName = "dup", PasswordHash = "Strong1!" }));
             Assert.Contains("username", ex.Message, StringComparison.OrdinalIgnoreCase);
         }
         finally
@@ -146,7 +146,7 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             var userService = new UserService(dbService, new ApplicationUserContext());
-            var user = new User { UserName = "user1", PasswordHash = "pw" };
+            var user = new User { UserName = "user1", PasswordHash = "Strong1!" };
             await userService.AddUserAsync(user);
             var stored = userService.GetUserByID(user.UserID);
             Assert.NotNull(stored);
@@ -166,7 +166,7 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
-            var result = userService.ChangeUserPassword(9999, "newpass");
+            var result = userService.ChangeUserPassword(9999, "Newpass1!");
             Assert.False(result);
         }
         finally
@@ -183,7 +183,7 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
-            var result = await userService.ChangeUserPasswordAsync(9999, "newpass");
+            var result = await userService.ChangeUserPasswordAsync(9999, "Newpass1!");
             Assert.False(result);
         }
         finally
@@ -200,11 +200,11 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
-            var user = new User { UserName = "trim", PasswordHash = "pw" };
+            var user = new User { UserName = "trim", PasswordHash = "Strong1!" };
             await userService.AddUserAsync(user);
-            var result = await userService.ChangeUserPasswordAsync(user.UserID, "  newpass  ");
+            var result = await userService.ChangeUserPasswordAsync(user.UserID, "  Newpass1!  ");
             Assert.True(result);
-            var auth = await userService.AuthenticateUserAsync("trim", "newpass");
+            var auth = await userService.AuthenticateUserAsync("trim", "Newpass1!");
             Assert.Equal(AuthenticationResult.Success, auth.Result);
         }
         finally
@@ -214,19 +214,52 @@ public class UserServiceTests
     }
 
     [Fact]
-    public async Task ChangeUserPasswordAsync_ReturnsFalse_WhenPasswordIsWhitespace()
+    public async Task ChangeUserPasswordAsync_Throws_WhenPasswordIsWhitespace()
     {
         var dbPath = Path.GetTempFileName();
         try
         {
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
-            var user = new User { UserName = "blank", PasswordHash = "pw" };
+            var user = new User { UserName = "blank", PasswordHash = "Strong1!" };
             await userService.AddUserAsync(user);
-            var result = await userService.ChangeUserPasswordAsync(user.UserID, "   ");
-            Assert.False(result);
-            var auth = await userService.AuthenticateUserAsync("blank", "pw");
+            await Assert.ThrowsAsync<ArgumentException>(() => userService.ChangeUserPasswordAsync(user.UserID, "   "));
+            var auth = await userService.AuthenticateUserAsync("blank", "Strong1!");
             Assert.Equal(AuthenticationResult.Success, auth.Result);
+        }
+        finally
+        {
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public async Task ChangeUserPasswordAsync_Throws_ForWeakPassword()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+            var user = new User { UserName = "weak", PasswordHash = "Strong1!" };
+            await userService.AddUserAsync(user);
+            await Assert.ThrowsAsync<ArgumentException>(() => userService.ChangeUserPasswordAsync(user.UserID, "weak"));
+        }
+        finally
+        {
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public async Task AddUserAsync_Throws_ForWeakPassword()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+            await Assert.ThrowsAsync<ArgumentException>(() => userService.AddUserAsync(new User { UserName = "weak", PasswordHash = "short" }));
         }
         finally
         {
@@ -242,7 +275,7 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
-            var user = new User { UserName = "locked", PasswordHash = "pw" };
+            var user = new User { UserName = "locked", PasswordHash = "Strong1!" };
             await userService.AddUserAsync(user);
 
             await userService.AuthenticateUserAsync("locked", "bad");
@@ -276,7 +309,7 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
-            var user = new User { UserName = "lock", PasswordHash = "pw" };
+            var user = new User { UserName = "lock", PasswordHash = "Strong1!" };
             await userService.AddUserAsync(user);
 
             await userService.AuthenticateUserAsync("lock", "bad");
@@ -288,7 +321,7 @@ public class UserServiceTests
             Assert.True(locked!.FailedAttempts >= 3);
             Assert.NotNull(locked.LockoutUntil);
 
-            var changed = await userService.ChangeUserPasswordAsync(user.UserID, "newpass");
+            var changed = await userService.ChangeUserPasswordAsync(user.UserID, "Newpass1!");
             Assert.True(changed);
 
             var updated = userService.GetUserByID(user.UserID);
@@ -311,7 +344,7 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
-            var user = new User { UserName = "nulltest", PasswordHash = "pw" };
+            var user = new User { UserName = "nulltest", PasswordHash = "Strong1!" };
             await userService.AddUserAsync(user);
 
             using (var conn = dbService.CreateConnection())
@@ -321,7 +354,7 @@ public class UserServiceTests
                     new[] { new SQLiteParameter("@ID", user.UserID) });
             }
 
-            var changed = await userService.ChangeUserPasswordAsync(user.UserID, "newpass");
+            var changed = await userService.ChangeUserPasswordAsync(user.UserID, "Newpass1!");
             Assert.True(changed);
 
             var updated = userService.GetUserByID(user.UserID);
@@ -343,7 +376,8 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
-            userService.AddUser(new User { UserName = "list", PasswordHash = "pw", PasswordSalt = "s" });
+            var hash = SecurityHelper.HashPassword("Strong1!", out var salt);
+            userService.AddUser(new User { UserName = "list", PasswordHash = hash, PasswordSalt = salt });
             var users = userService.GetAllUsers();
             var user = users[0];
             Assert.Null(user.PasswordHash);
@@ -363,7 +397,8 @@ public class UserServiceTests
         {
             var dbService = new DatabaseService(dbPath);
             var userService = new UserService(dbService, new ApplicationUserContext());
-            await userService.AddUserAsync(new User { UserName = "list", PasswordHash = "pw", PasswordSalt = "s" });
+            var hash = SecurityHelper.HashPassword("Strong1!", out var salt);
+            await userService.AddUserAsync(new User { UserName = "list", PasswordHash = hash, PasswordSalt = salt });
             var users = await userService.GetAllUsersAsync();
             var user = users[0];
             Assert.Null(user.PasswordHash);

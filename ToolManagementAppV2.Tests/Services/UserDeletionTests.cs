@@ -19,7 +19,7 @@ public class UserDeletionTests
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
-            var admin = new User { UserName = "admin", PasswordHash = "pw", IsAdmin = true };
+            var admin = new User { UserName = "admin", PasswordHash = "Strong1!", IsAdmin = true };
             await userService.AddUserAsync(admin);
 
             var added = (await userService.GetAllUsersAsync()).First();

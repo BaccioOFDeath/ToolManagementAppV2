@@ -14,7 +14,7 @@ using Xunit;
 public class UserAuthenticationTests
 {
     [Fact]
-    public void AuthenticateUser_HashesPassword()
+    public async Task AuthenticateUser_HashesPassword()
     {
         var dbPath = Path.GetTempFileName();
         try
@@ -22,16 +22,16 @@ public class UserAuthenticationTests
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
-            var user = new User { UserName = "test", PasswordHash = "secret", IsAdmin = false };
-            userService.AddUser(user);
+            var user = new User { UserName = "test", PasswordHash = "Strong1!", IsAdmin = false };
+            await userService.AddUserAsync(user);
             var added = userService.GetUserByID(user.UserID)!;
 
-            Assert.NotEqual("secret", added.PasswordHash);
+            Assert.NotEqual("Strong1!", added.PasswordHash);
             Assert.False(SecurityHelper.IsSha256Hash(added.PasswordHash));
             Assert.False(string.IsNullOrWhiteSpace(added.PasswordSalt));
-            Assert.True(SecurityHelper.VerifyPassword("secret", added.PasswordSalt, added.PasswordHash));
+            Assert.True(SecurityHelper.VerifyPassword("Strong1!", added.PasswordSalt, added.PasswordHash));
 
-            var auth = userService.AuthenticateUser("test", "secret");
+            var auth = userService.AuthenticateUser("test", "Strong1!");
             Assert.Equal(AuthenticationResult.Success, auth.Result);
             Assert.NotNull(auth.User);
         }
@@ -282,7 +282,7 @@ public class UserAuthenticationTests
             var dbService = new DatabaseService(dbPath);
             IUserService userService = new UserService(dbService, new ApplicationUserContext());
 
-            var user = new User { UserName = "areset", PasswordHash = "secret", IsAdmin = false };
+            var user = new User { UserName = "areset", PasswordHash = "Strong1!", IsAdmin = false };
             await userService.AddUserAsync(user);
 
             for (int i = 0; i < 3; i++)
