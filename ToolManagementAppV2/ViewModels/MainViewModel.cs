@@ -203,12 +203,7 @@ namespace ToolManagementAppV2.ViewModels
             OpenUsersCommand = new AsyncRelayCommand(async () =>
             {
                 await UserManagement.LoadUsersAsync();
-                var page = new UsersPage
-                {
-                    // UsersPage expects a UserManagementViewModel as its DataContext
-                    DataContext = UserManagement,
-                    Title = "Users"
-                };
+                var page = new UsersPage(UserManagement) { Title = "Users" };
                 CurrentPage = page;
             });
 

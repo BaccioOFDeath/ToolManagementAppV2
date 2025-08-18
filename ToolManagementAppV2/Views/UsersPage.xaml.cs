@@ -1,4 +1,3 @@
-using System;
 using System.Windows.Controls;
 using ToolManagementAppV2.ViewModels;
 
@@ -10,17 +9,17 @@ namespace ToolManagementAppV2.Views
     /// </summary>
     public partial class UsersPage : Page
     {
-        public UsersPage()
+        public UsersPage(UserManagementViewModel? viewModel)
         {
+            DataContext = viewModel;
             InitializeComponent();
         }
 
         /// <summary>
         /// Convenience accessor for the strongly typed view model.
-        /// Throws if the DataContext is not correctly set.
+        /// Returns null if the DataContext is not correctly set.
         /// </summary>
-        public UserManagementViewModel ViewModel =>
-            DataContext as UserManagementViewModel
-            ?? throw new InvalidOperationException("UsersPage requires a UserManagementViewModel DataContext.");
+        public UserManagementViewModel? ViewModel =>
+            DataContext as UserManagementViewModel;
     }
 }

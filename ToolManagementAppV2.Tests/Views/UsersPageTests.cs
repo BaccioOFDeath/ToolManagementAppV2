@@ -18,6 +18,34 @@ namespace ToolManagementAppV2.Tests.Views
     public class UsersPageTests
     {
         [Fact]
+        public void Constructor_AllowsNullDataContext()
+        {
+            Exception? threadException = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var page = new UsersPage(null);
+                    Assert.Null(page.ViewModel);
+                }
+                catch (Exception ex)
+                {
+                    threadException = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadException != null)
+            {
+                throw threadException;
+            }
+        }
+
+        [Fact]
         public void ButtonsExecuteCommandsAndUpdateCollections()
         {
             var dbPath = System.IO.Path.GetTempFileName();
@@ -38,7 +66,7 @@ namespace ToolManagementAppV2.Tests.Views
                         vm.SelectedUser = vm.Users.First();
                         vm.SelectedUser.Email = "user@example.com";
 
-                        var page = new UsersPage { DataContext = vm };
+                        var page = new UsersPage(vm);
                         var updateBtn = (Button)page.FindName("UpdateUserButton");
                         var uploadBtn = (Button)page.FindName("UploadPhotoButton");
 
@@ -97,7 +125,7 @@ namespace ToolManagementAppV2.Tests.Views
                         userService.AddUser(new User { UserName = "user2", Password = "pw" });
                         vm.LoadUsers();
 
-                        var page = new UsersPage { DataContext = vm };
+                        var page = new UsersPage(vm);
                         var grid = (Grid)page.Content;
                         var dataGrid = (DataGrid)((Border)grid.Children[1]).Child;
 
@@ -150,7 +178,7 @@ namespace ToolManagementAppV2.Tests.Views
                         userService.AddUser(new User { UserName = "user1", Password = "pw" });
                         vm.LoadUsers();
 
-                        var page = new UsersPage { DataContext = vm };
+                        var page = new UsersPage(vm);
                         var grid = (Grid)page.Content;
                         var dataGrid = (DataGrid)((Border)grid.Children[1]).Child;
 
