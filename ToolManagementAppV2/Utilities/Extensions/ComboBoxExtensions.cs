@@ -1,5 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
+using Application = System.Windows.Application;
+using ComboBox = System.Windows.Controls.ComboBox;
 
 namespace ToolManagementAppV2.Utilities.Extensions
 {
