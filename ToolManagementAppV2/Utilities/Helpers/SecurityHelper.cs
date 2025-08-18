@@ -12,7 +12,6 @@ namespace ToolManagementAppV2.Utilities.Helpers
         const int DefaultIterations = 100_000;
         static ISettingsService? _settingsService;
         static int _iterationCache;
-        static readonly object _iterLock = new();
         static readonly SemaphoreSlim _iterSemaphore = new(1, 1);
 
         public static ISettingsService? SettingsService
@@ -45,7 +44,7 @@ namespace ToolManagementAppV2.Utilities.Helpers
         public static string HashPassword(string password, string salt)
         {
             var saltBytes = Convert.FromBase64String(salt);
-            var iterations = GetIterations();
+            var iterations = GetCachedIterations();
             using var pbkdf2 = new Rfc2898DeriveBytes(password, saltBytes, iterations, HashAlgorithmName.SHA256);
             return Convert.ToBase64String(pbkdf2.GetBytes(32));
         }
@@ -74,7 +73,7 @@ namespace ToolManagementAppV2.Utilities.Helpers
             {
                 var saltBytes = Convert.FromBase64String(salt);
                 var hashBytes = Convert.FromBase64String(hash);
-                var iterations = GetIterations();
+                var iterations = GetCachedIterations();
                 using var pbkdf2 = new Rfc2898DeriveBytes(password, saltBytes, iterations, HashAlgorithmName.SHA256);
                 var computed = pbkdf2.GetBytes(32);
                 return CryptographicOperations.FixedTimeEquals(computed, hashBytes);
@@ -121,32 +120,13 @@ namespace ToolManagementAppV2.Utilities.Helpers
             return sb.ToString();
         }
 
-        static int GetIterations()
+        static int GetCachedIterations()
         {
             var cached = Volatile.Read(ref _iterationCache);
-            if (cached > 0) return cached;
-
-            lock (_iterLock)
-            {
-                cached = _iterationCache;
-                if (cached > 0) return cached;
-
-                int value = DefaultIterations;
-                var svc = _settingsService;
-                if (svc != null)
-                {
-                    value = svc.GetPasswordIterationsAsync().GetAwaiter().GetResult();
-                }
-
-                if (value <= 0)
-                    value = DefaultIterations;
-
-                Volatile.Write(ref _iterationCache, value);
-                return value;
-            }
+            return cached > 0 ? cached : DefaultIterations;
         }
 
-        static async Task<int> GetIterationsAsync()
+        internal static async Task<int> GetIterationsAsync()
         {
             var cached = Volatile.Read(ref _iterationCache);
             if (cached > 0) return cached;
