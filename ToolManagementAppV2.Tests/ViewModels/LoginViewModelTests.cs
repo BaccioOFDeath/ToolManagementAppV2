@@ -36,6 +36,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var userContext = new ApplicationUserContext();
                 var auth = new AuthorizationService(userContext);
                 var userService = new UserService(dbService, userContext, auth);
+                await userService.AddUserAsync(new User { UserName = "admin", PasswordHash = "x", IsAdmin = true });
                 var settingsService = new SettingsService(dbService);
                 await settingsService.SaveSettingAsync("ApplicationName", "TestApp");
 
@@ -53,7 +54,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task LoadUsersAsync_SeedsAdmin_LogsInformation()
+        public async Task LoadUsersAsync_UsesSetupWizard_WhenNoUsers()
         {
             if (System.Windows.Application.Current == null)
                 new System.Windows.Application();
@@ -72,10 +73,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 using var loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(provider));
                 var logger = loggerFactory.CreateLogger<LoginViewModel>();
 
-                var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext, logger);
+                var dialog = new CapturingDialogService();
+                var setup = new StubSetupWizard("Str0ngP@ss!", true);
+                var vm = new LoginViewModel(userService, settingsService, dialog, userContext, logger, null, setup);
                 await vm.LoadUsersCommand.ExecuteAsync(null);
 
+                Assert.True(setup.Invoked);
                 Assert.Contains(logs, l => l.Level == LogLevel.Information && l.Message.Contains("admin"));
+                Assert.Contains("Str0ngP@ss!", dialog.LastMessage);
             }
             finally
             {
@@ -282,27 +287,38 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task LoadUsersAsync_AwaitsAdminCreation()
+        public async Task LoadUsersAsync_AwaitsSetupWizard()
         {
             if (System.Windows.Application.Current == null)
                 new System.Windows.Application();
 
-            var tcs = new TaskCompletionSource<bool>();
-            var userService = new AwaitableUserService(tcs);
-            var settingsService = new StubSettingsService();
-            var userContext = new ApplicationUserContext();
-            var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext);
+            var tcs = new TaskCompletionSource<SetupWizardResult?>();
+            var setup = new AwaitableSetupWizard(tcs.Task);
+            var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
+            try
+            {
+                using var dbService = new DatabaseService(dbPath);
+                var userContext = new ApplicationUserContext();
+                var auth = new AuthorizationService(userContext);
+                var userService = new UserService(dbService, userContext, auth);
+                var settingsService = new SettingsService(dbService);
+                var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext, null, null, setup);
 
-            var loadTask = vm.LoadUsersCommand.ExecuteAsync(null);
+                var loadTask = vm.LoadUsersCommand.ExecuteAsync(null);
 
-            await Task.Delay(50);
-            Assert.False(loadTask.IsCompleted);
+                await Task.Delay(50);
+                Assert.False(loadTask.IsCompleted);
 
-            tcs.SetResult(true);
-            await loadTask;
+                tcs.SetResult(new SetupWizardResult("Str0ngP@ss!", false));
+                await loadTask;
 
-            Assert.Single(vm.Users);
-            Assert.Equal("admin", vm.Users[0].UserName);
+                Assert.Single(vm.Users);
+                Assert.Equal("admin", vm.Users[0].UserName);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
         }
 
         [Fact]
@@ -490,37 +506,6 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public void ShowScannerStatus() { }
     }
 
-    class AwaitableUserService : IUserService
-    {
-        readonly TaskCompletionSource<bool> _tcs;
-        readonly List<User> _users = new();
-
-        public AwaitableUserService(TaskCompletionSource<bool> tcs)
-        {
-            _tcs = tcs;
-        }
-
-        public List<User> GetAllUsers() => _users.ToList();
-        public Task<List<User>> GetAllUsersAsync() => Task.FromResult(_users.ToList());
-        public User? GetUserByID(int userID) => null;
-        public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult<User?>(null);
-        public User? AuthenticateUser(string userName, string password) => null;
-        public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => Task.FromResult<(AuthenticationResult, User?)>((AuthenticationResult.IncorrectPassword, null));
-        public User? GetCurrentUser() => null;
-        public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
-        public void AddUser(User user) => _users.Add(user);
-        public async Task AddUserAsync(User user)
-        {
-            await _tcs.Task;
-            _users.Add(user);
-        }
-        public void UpdateUser(User user) { }
-        public Task UpdateUserAsync(User user) => Task.CompletedTask;
-        public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
-        public bool ChangeUserPassword(int userID, string newPassword) => false;
-        public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => Task.FromResult(false);
-        public Task UnlockUserAsync(int userId) => Task.CompletedTask;
-    }
 
     class ThrowingUserService : IUserService
     {
@@ -588,6 +573,33 @@ namespace ToolManagementAppV2.Tests.ViewModels
             return Task.FromResult(true);
         }
         public Task UnlockUserAsync(int userId) => Task.CompletedTask;
+    }
+
+    class StubSetupWizard : ISetupWizard
+    {
+        readonly SetupWizardResult _result;
+        public bool Invoked { get; private set; }
+        public StubSetupWizard(string password, bool isRandom = false)
+        {
+            _result = new SetupWizardResult(password, isRandom);
+        }
+
+        public Task<SetupWizardResult?> RunAsync()
+        {
+            Invoked = true;
+            return Task.FromResult<SetupWizardResult?>(_result);
+        }
+    }
+
+    class AwaitableSetupWizard : ISetupWizard
+    {
+        readonly Task<SetupWizardResult?> _task;
+        public AwaitableSetupWizard(Task<SetupWizardResult?> task)
+        {
+            _task = task;
+        }
+
+        public Task<SetupWizardResult?> RunAsync() => _task;
     }
 
     class CapturingDialogService : IDialogService
