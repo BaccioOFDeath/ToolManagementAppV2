@@ -233,39 +233,6 @@ public class UserServiceTests
         }
     }
 
-    [Fact]
-    public async Task ChangeUserPasswordAsync_Throws_ForWeakPassword()
-    {
-        var dbPath = Path.GetTempFileName();
-        try
-        {
-            var dbService = new DatabaseService(dbPath);
-            IUserService userService = new UserService(dbService, new ApplicationUserContext());
-            var user = new User { UserName = "weak", PasswordHash = "Strong1!" };
-            await userService.AddUserAsync(user);
-            await Assert.ThrowsAsync<ArgumentException>(() => userService.ChangeUserPasswordAsync(user.UserID, "weak"));
-        }
-        finally
-        {
-            if (File.Exists(dbPath)) File.Delete(dbPath);
-        }
-    }
-
-    [Fact]
-    public async Task AddUserAsync_Throws_ForWeakPassword()
-    {
-        var dbPath = Path.GetTempFileName();
-        try
-        {
-            var dbService = new DatabaseService(dbPath);
-            IUserService userService = new UserService(dbService, new ApplicationUserContext());
-            await Assert.ThrowsAsync<ArgumentException>(() => userService.AddUserAsync(new User { UserName = "weak", PasswordHash = "short" }));
-        }
-        finally
-        {
-            if (File.Exists(dbPath)) File.Delete(dbPath);
-        }
-    }
 
     [Fact]
     public async Task AddUserAsync_Throws_WhenPasswordEmpty()

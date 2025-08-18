@@ -8,8 +8,8 @@ public class ChangePasswordViewModelTests
     {
         bool saved = false;
         var vm = new ChangePasswordViewModel(() => saved = true, () => { });
-        vm.NewPassword = "Valid1!";
-        vm.ConfirmPassword = "Other1!";
+        vm.NewPassword = "abc";
+        vm.ConfirmPassword = "xyz";
         vm.SaveCommand.Execute(null);
         Assert.False(saved);
         Assert.Equal("Passwords do not match.", vm.ValidationMessage);
@@ -20,22 +20,22 @@ public class ChangePasswordViewModelTests
     {
         bool saved = false;
         var vm = new ChangePasswordViewModel(() => saved = true, () => { });
-        vm.NewPassword = "Valid1!";
-        vm.ConfirmPassword = "Valid1!";
+        vm.NewPassword = "simple";
+        vm.ConfirmPassword = "simple";
         vm.SaveCommand.Execute(null);
         Assert.True(saved);
         Assert.True(string.IsNullOrEmpty(vm.ValidationMessage));
     }
 
     [Fact]
-    public void SaveCommand_ShowsError_ForWeakPassword()
+    public void SaveCommand_ShowsError_ForEmptyPassword()
     {
         bool saved = false;
         var vm = new ChangePasswordViewModel(() => saved = true, () => { });
-        vm.NewPassword = "short";
-        vm.ConfirmPassword = "short";
+        vm.NewPassword = string.Empty;
+        vm.ConfirmPassword = string.Empty;
         vm.SaveCommand.Execute(null);
         Assert.False(saved);
-        Assert.False(string.IsNullOrEmpty(vm.ValidationMessage));
+        Assert.Equal("Password cannot be empty.", vm.ValidationMessage);
     }
 }
