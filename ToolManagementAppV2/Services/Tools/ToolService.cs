@@ -12,6 +12,7 @@ using ToolManagementAppV2.Utilities.IO;
 using ToolManagementAppV2.Models.ImportExport;
 using ToolManagementAppV2.Interfaces;
 using System.Text;
+using System.Globalization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ToolManagementAppV2.Services.Users;
@@ -273,11 +274,15 @@ namespace ToolManagementAppV2.Services.Tools
             QuantityOnHand = r["AvailableQuantity"] is DBNull ? 0 : Convert.ToInt32(r["AvailableQuantity"]),
             RentedQuantity = r["RentedQuantity"] is DBNull ? 0 : Convert.ToInt32(r["RentedQuantity"]),
             Supplier = r["Supplier"].ToString(),
-            PurchasedDate = r["PurchasedDate"] is DBNull ? (DateTime?)null : Convert.ToDateTime(r["PurchasedDate"]),
+            PurchasedDate = r["PurchasedDate"] is DBNull
+                ? (DateTime?)null
+                : DateTime.Parse(r["PurchasedDate"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
             Notes = r["Notes"].ToString(),
             IsCheckedOut = (r["IsCheckedOut"] is DBNull ? 0 : Convert.ToInt32(r["IsCheckedOut"])) == 1,
             CheckedOutBy = r["CheckedOutBy"].ToString(),
-            CheckedOutTime = r["CheckedOutTime"] is DBNull ? (DateTime?)null : Convert.ToDateTime(r["CheckedOutTime"]),
+            CheckedOutTime = r["CheckedOutTime"] is DBNull
+                ? (DateTime?)null
+                : DateTime.Parse(r["CheckedOutTime"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
             ToolImagePath = r["ToolImagePath"]?.ToString(),
             Keywords = r["Keywords"]?.ToString(),
             IsPowerTool = (r["IsPowerTool"] is DBNull ? 0 : Convert.ToInt32(r["IsPowerTool"])) == 1

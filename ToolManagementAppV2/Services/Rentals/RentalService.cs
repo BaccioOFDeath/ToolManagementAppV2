@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
+using System.Globalization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ToolManagementAppV2.Services.Users;
@@ -69,9 +70,9 @@ namespace ToolManagementAppV2.Services.Rentals
             RentalID = Convert.ToInt32(r["RentalID"]),
             ToolID = Convert.ToInt32(r["ToolID"]),
             CustomerID = Convert.ToInt32(r["CustomerID"]),
-            RentalDate = Convert.ToDateTime(r["RentalDate"]),
-            DueDate = Convert.ToDateTime(r["DueDate"]),
-            ReturnDate = r["ReturnDate"] is DBNull ? null : Convert.ToDateTime(r["ReturnDate"]),
+            RentalDate = DateTime.Parse(r["RentalDate"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
+            DueDate = DateTime.Parse(r["DueDate"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
+            ReturnDate = r["ReturnDate"] is DBNull ? null : DateTime.Parse(r["ReturnDate"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
             Status = r["Status"].ToString(),
             ToolNumber = r["ToolNumber"].ToString(),
             CustomerName = r["Company"].ToString(),
@@ -152,7 +153,7 @@ namespace ToolManagementAppV2.Services.Rentals
                     throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
 
                 int toolID = Convert.ToInt32(reader["ToolID"]);
-                DateTime oldDueDate = Convert.ToDateTime(reader["DueDate"]);
+                DateTime oldDueDate = DateTime.Parse(reader["DueDate"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
 
                 var updateCmd = new SQLiteCommand(
                     "UPDATE Rentals SET DueDate=@NewDueDate WHERE RentalID=@RentalID AND Status='Rented'",

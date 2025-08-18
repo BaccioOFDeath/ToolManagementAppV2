@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
+using System.Globalization;
 
 namespace ToolManagementAppV2.Services.Users
 {
@@ -123,7 +124,7 @@ namespace ToolManagementAppV2.Services.Users
                 LogID = Convert.ToInt32(r["LogID"]),
                 UserName = r["UserName"].ToString(),
                 Action = r["Action"].ToString(),
-                Timestamp = Convert.ToDateTime(r["Timestamp"])
+                Timestamp = DateTime.Parse(r["Timestamp"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal)
             };
 
             log.UserID = r["UserID"] == DBNull.Value

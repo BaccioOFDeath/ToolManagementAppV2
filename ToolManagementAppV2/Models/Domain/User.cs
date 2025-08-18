@@ -48,9 +48,13 @@ namespace ToolManagementAppV2.Models.Domain
         public int FailedAttempts { get => _failedAttempts; set => SetProperty(ref _failedAttempts, value); }
 
         private DateTime? _lockoutUntil;
-        public DateTime? LockoutUntil { get => _lockoutUntil; set => SetProperty(ref _lockoutUntil, value); }
+        public DateTime? LockoutUntil
+        {
+            get => _lockoutUntil;
+            set => SetProperty(ref _lockoutUntil, value?.ToUniversalTime());
+        }
 
-        public bool IsLocked => LockoutUntil > DateTime.UtcNow;
+        public bool IsLocked => LockoutUntil?.ToUniversalTime() > DateTime.UtcNow;
 
         private bool _passwordExpired;
         public bool PasswordExpired { get => _passwordExpired; set => SetProperty(ref _passwordExpired, value); }
