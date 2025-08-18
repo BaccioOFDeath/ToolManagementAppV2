@@ -34,8 +34,8 @@
                 <TextBlock Text="Tools" Style="{StaticResource SectionHeader}" />
                 <WrapPanel>
                     <Button Style="{StaticResource CompactPrimaryButton}" Content="Import Tools CSV" Command="{Binding ImportToolsCommand}"/>
-                    <Button Style="{StaticResource CompactPrimaryButton}" Content="Import Tool Images" Command="{Binding OpenImageImportMappingWindowCommand}"
-                            Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
+                    <Button Style="{StaticResource CompactPrimaryButton}" Content="Import Tool Images" Command="{Binding DataContext.OpenImageImportMappingWindowCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            Visibility="{Binding DataContext.IsCurrentUserAdmin, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}"/>
                     <Button Style="{StaticResource CompactPrimaryButton}" Content="Export Tools CSV" Command="{Binding ExportToolsCommand}"/>
                     <Button Style="{StaticResource CompactPrimaryButton}" Content="Backup Database" Command="{Binding BackupDatabaseCommand}"/>
                     <Button Style="{StaticResource CompactPrimaryButton}" Content="Cancel Import" Command="{Binding ImportToolsCommand.CancelCommand}" IsEnabled="{Binding ImportToolsCommand.IsRunning}"/>
