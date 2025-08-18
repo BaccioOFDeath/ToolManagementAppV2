@@ -22,6 +22,7 @@ using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Utilities.Helpers;
 using ToolManagementAppV2.Views;
 using ToolManagementAppV2.Services.Devices;
+using ToolManagementAppV2.Interfaces;
 
 namespace ToolManagementAppV2
 {
@@ -97,6 +98,8 @@ namespace ToolManagementAppV2
                 services.AddTransient<AvatarSelectionWindow>();
                 services.AddTransient<ScannerStatusWindow>();
                 services.AddTransient<PasswordPromptWindow>();
+                services.AddTransient<ISetupWizard, SetupWizardWindow>();
+                services.AddTransient<SetupWizardWindow>();
                 services.AddTransient<PrintLabelWindow>();
                 services.AddSingleton<IMainWindow>(sp =>
                     new MainWindow(sp.GetRequiredService<IMainViewModel>()));
