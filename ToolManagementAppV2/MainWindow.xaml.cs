@@ -3,6 +3,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media.Animation;
 using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.ViewModels;
@@ -46,8 +47,31 @@ namespace ToolManagementAppV2
         {
             if (sender is ScrollViewer scrollViewer)
             {
-                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta / 4.0);
+                var start = scrollViewer.VerticalOffset;
+                var target = Math.Round(start - e.Delta / 4.0);
+
+                var animation = new DoubleAnimation(start, target, TimeSpan.FromMilliseconds(200))
+                {
+                    EasingFunction = new QuadraticEase()
+                };
+
+                scrollViewer.SetValue(ScrollAnimationOffsetProperty, start);
+                scrollViewer.BeginAnimation(ScrollAnimationOffsetProperty, animation);
                 e.Handled = true;
+            }
+        }
+
+        static readonly DependencyProperty ScrollAnimationOffsetProperty = DependencyProperty.RegisterAttached(
+            "ScrollAnimationOffset",
+            typeof(double),
+            typeof(MainWindow),
+            new PropertyMetadata(0.0, OnScrollAnimationOffsetChanged));
+
+        static void OnScrollAnimationOffsetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is ScrollViewer scrollViewer)
+            {
+                scrollViewer.ScrollToVerticalOffset((double)e.NewValue);
             }
         }
     }
