@@ -58,9 +58,7 @@
 
                         <TextBlock Text="Data" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
                         <Button Style="{StaticResource NavButton}" Content="Import / Export" Command="{Binding OpenImportExportCommand}" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
-                        <Button Style="{StaticResource NavButton}" Content="Map Tool Import" Command="{Binding OpenImportMappingWindowCommand}" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
-                        <Button Style="{StaticResource NavButton}" Content="Import Tool Images" Command="{Binding OpenImageImportMappingWindowCommand}" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
-
+                       
                         <Separator/>
 
                         <TextBlock Text="Administration" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
