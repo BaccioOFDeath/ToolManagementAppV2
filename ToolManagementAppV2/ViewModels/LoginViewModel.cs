@@ -230,9 +230,17 @@ namespace ToolManagementAppV2.ViewModels
                 }
             }
 
+            if (!user.IsAdmin && string.IsNullOrWhiteSpace(user.PasswordHash))
+            {
+                await _dialogService.ShowInfoAsync("This account has no password. Please reset the password to continue.", "Password Required");
+                if (await PromptChangePasswordAsync(user))
+                    await _dialogService.ShowInfoAsync("Password has been set. Please log in with your new password.", "Password Updated");
+                _userContext.CurrentUser = null;
+                return;
+            }
+
             if (!user.IsAdmin &&
-                (string.IsNullOrWhiteSpace(user.PasswordHash) ||
-                 await SecurityHelper.VerifyPasswordAsync("newpassword", user.PasswordSalt, user.PasswordHash).ConfigureAwait(false)))
+                await SecurityHelper.VerifyPasswordAsync("newpassword", user.PasswordSalt, user.PasswordHash).ConfigureAwait(false))
             {
                 _userContext.CurrentUser = user;
                 if (user.PasswordExpired && !await PromptChangePasswordAsync(user))
