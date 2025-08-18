@@ -253,6 +253,58 @@ namespace ToolManagementAppV2.Tests.Views
             }
         }
 
+        [Fact]
+        public void LeftNavScrollViewer_PreviewMouseWheel_ScrollsByReducedDelta()
+        {
+            Exception? threadException = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var (window, dbPath) = TestHelpers.CreateMainWindow();
+                    try
+                    {
+                        var scrollViewer = TestHelpers.FindVisualChildren<ScrollViewer>(window).First();
+
+                        scrollViewer.Measure(new Size(100, 100));
+                        scrollViewer.Arrange(new Rect(0, 0, 100, 100));
+                        scrollViewer.UpdateLayout();
+
+                        var args = new MouseWheelEventArgs(Mouse.PrimaryDevice, 0, -120)
+                        {
+                            RoutedEvent = UIElement.PreviewMouseWheelEvent
+                        };
+
+                        var initialOffset = scrollViewer.VerticalOffset;
+                        scrollViewer.RaiseEvent(args);
+
+                        Assert.True(args.Handled);
+                        Assert.Equal(initialOffset - args.Delta / 4.0, scrollViewer.VerticalOffset);
+                    }
+                    finally
+                    {
+                        window.Close();
+                        if (File.Exists(dbPath))
+                            File.Delete(dbPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    threadException = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadException != null)
+            {
+                throw threadException;
+            }
+        }
+
         static Button? FindButtonByContent(DependencyObject parent, string content)
         {
             if (parent is Button btn && btn.Content as string == content)

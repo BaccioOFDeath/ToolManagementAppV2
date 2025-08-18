@@ -1,6 +1,8 @@
 // MainWindow.xaml.cs
 using System;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.ViewModels;
@@ -39,5 +41,14 @@ namespace ToolManagementAppV2
         void IMainWindow.Activate() => base.Activate();
 
         void IMainWindow.Focus() => base.Focus();
+
+        void LeftNavScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (sender is ScrollViewer scrollViewer)
+            {
+                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta / 4.0);
+                e.Handled = true;
+            }
+        }
     }
 }
