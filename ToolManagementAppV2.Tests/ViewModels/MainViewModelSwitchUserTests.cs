@@ -138,6 +138,69 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public async Task SwitchUserCommand_DoesNotAlterPreviousUserPassword()
+        {
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
+
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var userContext = new ApplicationUserContext();
+                var userService = new UserService(db, userContext);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var activityLogService = new ActivityLogService(db);
+                var settingsService = new SettingsService(db);
+
+                var oldUser = new User { UserName = "old", PasswordHash = "OldPass1!" };
+                await userService.AddUserAsync(oldUser);
+                var oldHash = oldUser.PasswordHash;
+                var oldSalt = oldUser.PasswordSalt;
+
+                var newUser = new User { UserName = "new", PasswordHash = "NewPass1!", PasswordExpired = true };
+                await userService.AddUserAsync(newUser);
+
+                userContext.CurrentUser = oldUser;
+
+                Func<Task<bool>> stubLogin = async () =>
+                {
+                    var loginVm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
+                    {
+                        PromptForPasswordAsync = (u, ct) => Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("NewPass1!", false)),
+                        PromptForNewPassword = () => "Changed1!"
+                    };
+                    await loginVm.SelectUserCommand.ExecuteAsync(newUser);
+                    return true;
+                };
+
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                    new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService(), null, stubLogin);
+
+                await vm.SwitchUserCommand.ExecuteAsync(null);
+
+                var oldFromDb = await userService.GetUserByIDAsync(oldUser.UserID);
+                Assert.Equal(oldHash, oldFromDb.PasswordHash);
+                Assert.Equal(oldSalt, oldFromDb.PasswordSalt);
+
+                var authOld = await userService.AuthenticateUserAsync("old", "OldPass1!");
+                Assert.Equal(AuthenticationResult.Success, authOld.Result);
+                var authOldChanged = await userService.AuthenticateUserAsync("old", "Changed1!");
+                Assert.Equal(AuthenticationResult.IncorrectPassword, authOldChanged.Result);
+
+                var authNew = await userService.AuthenticateUserAsync("new", "Changed1!");
+                Assert.Equal(AuthenticationResult.Success, authNew.Result);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 
     class StubFileDialogService : IFileDialogService
