@@ -484,6 +484,34 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public async Task UnlockUserCommand_ClearsLockAndUpdatesCollection()
+        {
+            var svc = new InMemoryUserService();
+            await svc.AddUserAsync(new User
+            {
+                UserName = "user1",
+                Password = "pw",
+                FailedAttempts = 5,
+                LockoutUntil = DateTime.UtcNow.AddMinutes(5)
+            });
+            var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
+            await vm.LoadUsersAsync();
+            var model = vm.Users.First();
+            Assert.True(model.IsLocked);
+            Assert.Equal(5, model.FailedAttempts);
+
+            await vm.UnlockUserCommand.ExecuteAsync(model);
+
+            var refreshed = vm.Users.First();
+            Assert.False(refreshed.IsLocked);
+            Assert.Equal(0, refreshed.FailedAttempts);
+            var serviceUser = svc.Users.First();
+            Assert.False(serviceUser.IsLocked);
+            Assert.Equal(0, serviceUser.FailedAttempts);
+            Assert.Null(serviceUser.LockoutUntil);
+        }
+
+        [Fact]
         public async Task AddUserAsync_CancelledPrompt_DoesNotAddUser()
         {
             var svc = new InMemoryUserService();

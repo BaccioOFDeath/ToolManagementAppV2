@@ -235,6 +235,40 @@ public class UserServiceTests
     }
 
     [Fact]
+    public async Task UnlockUserAsync_ResetsFailedAttemptsAndLockout()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+            var user = new User { UserName = "locked", Password = "pw" };
+            await userService.AddUserAsync(user);
+
+            await userService.AuthenticateUserAsync("locked", "bad");
+            await userService.AuthenticateUserAsync("locked", "bad");
+            await userService.AuthenticateUserAsync("locked", "bad");
+
+            var locked = userService.GetUserByID(user.UserID);
+            Assert.NotNull(locked);
+            Assert.True(locked!.FailedAttempts >= 3);
+            Assert.NotNull(locked.LockoutUntil);
+
+            await userService.UnlockUserAsync(user.UserID);
+
+            var unlocked = userService.GetUserByID(user.UserID);
+            Assert.NotNull(unlocked);
+            Assert.Equal(0, unlocked!.FailedAttempts);
+            Assert.Null(unlocked.LockoutUntil);
+            Assert.False(unlocked.IsLocked);
+        }
+        finally
+        {
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
     public async Task ChangeUserPasswordAsync_ResetsFailedAttemptsAndLockout()
     {
         var dbPath = Path.GetTempFileName();
