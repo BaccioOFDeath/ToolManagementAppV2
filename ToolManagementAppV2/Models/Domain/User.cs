@@ -11,11 +11,11 @@ namespace ToolManagementAppV2.Models.Domain
         private string _userName;
         public string UserName { get => _userName; set => SetProperty(ref _userName, value); }
 
-        private string _password;
-        public string Password { get => _password; set => SetProperty(ref _password, value); }
+        private string _passwordHash;
+        public string PasswordHash { get => _passwordHash; set => SetProperty(ref _passwordHash, value); }
 
-        private string _salt;
-        public string Salt { get => _salt; set => SetProperty(ref _salt, value); }
+        private string _passwordSalt;
+        public string PasswordSalt { get => _passwordSalt; set => SetProperty(ref _passwordSalt, value); }
 
         private string _userPhotoPath;
         public string UserPhotoPath { get => _userPhotoPath; set => SetProperty(ref _userPhotoPath, value); }

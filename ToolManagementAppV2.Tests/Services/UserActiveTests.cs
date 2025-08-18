@@ -19,7 +19,7 @@ namespace ToolManagementAppV2.Tests.Services
             {
                 using var db = new DatabaseService(dbPath);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
-                var user = new User { UserName = "u", Password = "p" };
+                var user = new User { UserName = "u", PasswordHash = "p" };
                 userService.AddUser(user);
                 var added = userService.GetAllUsers().First();
                 Assert.True(added.IsActive);
@@ -39,7 +39,7 @@ namespace ToolManagementAppV2.Tests.Services
             {
                 using var db = new DatabaseService(dbPath);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
-                var user = new User { UserName = "u", Password = "p" };
+                var user = new User { UserName = "u", PasswordHash = "p" };
                 userService.AddUser(user);
                 var added = userService.GetAllUsers().First();
                 added.IsActive = false;

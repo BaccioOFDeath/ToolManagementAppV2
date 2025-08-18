@@ -43,8 +43,8 @@ namespace ToolManagementAppV2.Services.Users
             {
                 UserID = rdr["UserID"] != DBNull.Value ? Convert.ToInt32(rdr["UserID"]) : 0,
                 UserName = rdr["UserName"].ToString(),
-                Password = HasColumn("Password") && rdr["Password"] != DBNull.Value ? rdr["Password"].ToString() : null,
-                Salt = HasColumn("Salt") && rdr["Salt"] != DBNull.Value ? rdr["Salt"].ToString() : null,
+                PasswordHash = HasColumn("PasswordHash") && rdr["PasswordHash"] != DBNull.Value ? rdr["PasswordHash"].ToString() : null,
+                PasswordSalt = HasColumn("PasswordSalt") && rdr["PasswordSalt"] != DBNull.Value ? rdr["PasswordSalt"].ToString() : null,
                 UserPhotoPath = rdr["UserPhotoPath"]?.ToString(),
                 IsAdmin = rdr["IsAdmin"] != DBNull.Value && Convert.ToInt32(rdr["IsAdmin"]) == 1,
                 Email = rdr["Email"]?.ToString(),
@@ -105,10 +105,10 @@ namespace ToolManagementAppV2.Services.Users
             }
 
             bool success;
-            if (string.IsNullOrWhiteSpace(u.Salt) && SecurityHelper.IsSha256Hash(u.Password))
+            if (string.IsNullOrWhiteSpace(u.PasswordSalt) && SecurityHelper.IsSha256Hash(u.PasswordHash))
             {
                 var legacy = SecurityHelper.ComputeSha256HashLegacy(password);
-                success = u.Password == legacy;
+                success = u.PasswordHash == legacy;
                 if (success)
                 {
                     var upgradedResult = await SecurityHelper.HashPasswordAsync(password).ConfigureAwait(false);
@@ -118,14 +118,14 @@ namespace ToolManagementAppV2.Services.Users
                 new SQLiteParameter("@Salt", upgradedResult.salt),
                 new SQLiteParameter("@ID", u.UserID)
             };
-                    await SqliteHelper.ExecuteNonQueryAsync(conn, "UPDATE Users SET Password=@Pwd, Salt=@Salt WHERE UserID=@ID", p);
-                    u.Password = upgradedResult.hash;
-                    u.Salt = upgradedResult.salt;
+                    await SqliteHelper.ExecuteNonQueryAsync(conn, "UPDATE Users SET PasswordHash=@Pwd, PasswordSalt=@Salt WHERE UserID=@ID", p);
+                    u.PasswordHash = upgradedResult.hash;
+                    u.PasswordSalt = upgradedResult.salt;
                 }
             }
             else
             {
-                success = await SecurityHelper.VerifyPasswordAsync(password, u.Salt, u.Password).ConfigureAwait(false);
+                success = await SecurityHelper.VerifyPasswordAsync(password, u.PasswordSalt, u.PasswordHash).ConfigureAwait(false);
             }
 
             if (success)
@@ -168,9 +168,9 @@ namespace ToolManagementAppV2.Services.Users
                 _auth.EnsureAdmin();
             const string sql = @"
                 INSERT INTO Users
-                  (UserName, Password, Salt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, FailedAttempts, LockoutUntil, PasswordExpired)
+                  (UserName, PasswordHash, PasswordSalt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, FailedAttempts, LockoutUntil, PasswordExpired)
                 VALUES
-                  (@UserName,@Password,@Salt,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role,@IsActive,@CreatedAt,@FailedAttempts,@Lockout,@PasswordExpired);
+                  (@UserName,@PasswordHash,@PasswordSalt,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role,@IsActive,@CreatedAt,@FailedAttempts,@Lockout,@PasswordExpired);
                 SELECT last_insert_rowid();";
 
             using var conn = _dbService.CreateConnection();
@@ -178,17 +178,17 @@ namespace ToolManagementAppV2.Services.Users
 
             string hashed = string.Empty;
             string salt = string.Empty;
-            if (!string.IsNullOrWhiteSpace(user.Password))
+            if (!string.IsNullOrWhiteSpace(user.PasswordHash))
             {
-                if (!string.IsNullOrWhiteSpace(user.Salt) &&
-                    IsBase64String(user.Password) && IsBase64String(user.Salt))
+                if (!string.IsNullOrWhiteSpace(user.PasswordSalt) &&
+                    IsBase64String(user.PasswordHash) && IsBase64String(user.PasswordSalt))
                 {
-                    hashed = user.Password;
-                    salt = user.Salt;
+                    hashed = user.PasswordHash;
+                    salt = user.PasswordSalt;
                 }
                 else
                 {
-                    var result = await SecurityHelper.HashPasswordAsync(user.Password).ConfigureAwait(false);
+                    var result = await SecurityHelper.HashPasswordAsync(user.PasswordHash).ConfigureAwait(false);
                     hashed = result.hash;
                     salt = result.salt;
                 }
@@ -199,8 +199,8 @@ namespace ToolManagementAppV2.Services.Users
             cmd.Parameters.AddRange(new[]
             {
                 new SQLiteParameter("@UserName", user.UserName),
-                new SQLiteParameter("@Password", hashed),
-                new SQLiteParameter("@Salt",     salt),
+                new SQLiteParameter("@PasswordHash", hashed),
+                new SQLiteParameter("@PasswordSalt",     salt),
                 new SQLiteParameter("@Photo",    (object)user.UserPhotoPath ?? DBNull.Value),
                 new SQLiteParameter("@Admin",    user.IsAdmin ? 1 : 0),
                 new SQLiteParameter("@Email",    (object)user.Email ?? DBNull.Value),
@@ -223,8 +223,8 @@ namespace ToolManagementAppV2.Services.Users
             {
                 throw new InvalidOperationException("A user with the same username already exists.", ex);
             }
-            user.Password = hashed;
-            user.Salt = salt;
+            user.PasswordHash = hashed;
+            user.PasswordSalt = salt;
         }
 
         public async Task UpdateUserAsync(User user)
@@ -233,8 +233,8 @@ namespace ToolManagementAppV2.Services.Users
             const string sql = @"
                 UPDATE Users SET
                   UserName      = @UserName,
-                  Password      = @Password,
-                  Salt          = @Salt,
+                  PasswordHash  = @PasswordHash,
+                  PasswordSalt  = @PasswordSalt,
                   UserPhotoPath = @Photo,
                   IsAdmin       = @Admin,
                   Email         = @Email,
@@ -245,11 +245,11 @@ namespace ToolManagementAppV2.Services.Users
                   IsActive      = @IsActive
                 WHERE UserID = @UserID";
 
-            string hashed = user.Password;
-            string salt = user.Salt;
-            if (!string.IsNullOrWhiteSpace(user.Password) && string.IsNullOrWhiteSpace(user.Salt))
+            string hashed = user.PasswordHash;
+            string salt = user.PasswordSalt;
+            if (!string.IsNullOrWhiteSpace(user.PasswordHash) && string.IsNullOrWhiteSpace(user.PasswordSalt))
             {
-                var result = await SecurityHelper.HashPasswordAsync(user.Password).ConfigureAwait(false);
+                var result = await SecurityHelper.HashPasswordAsync(user.PasswordHash).ConfigureAwait(false);
                 hashed = result.hash;
                 salt = result.salt;
             }
@@ -258,8 +258,8 @@ namespace ToolManagementAppV2.Services.Users
             {
                 new SQLiteParameter("@UserID",   user.UserID),
                 new SQLiteParameter("@UserName", user.UserName),
-                new SQLiteParameter("@Password", hashed),
-                new SQLiteParameter("@Salt",     salt),
+                new SQLiteParameter("@PasswordHash", hashed),
+                new SQLiteParameter("@PasswordSalt",     salt),
                 new SQLiteParameter("@Photo",    (object)user.UserPhotoPath ?? DBNull.Value),
                 new SQLiteParameter("@Admin",    user.IsAdmin ? 1 : 0),
                 new SQLiteParameter("@Email",    (object)user.Email ?? DBNull.Value),
@@ -272,8 +272,8 @@ namespace ToolManagementAppV2.Services.Users
 
             using var conn = _dbService.CreateConnection();
             await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
-            user.Password = hashed;
-            user.Salt = salt;
+            user.PasswordHash = hashed;
+            user.PasswordSalt = salt;
         }
 
         public async Task<bool> ChangeUserPasswordAsync(int userID, string newPassword)
@@ -285,7 +285,7 @@ namespace ToolManagementAppV2.Services.Users
             if (newPassword.Length == 0)
                 return false;
 
-            var sql = "UPDATE Users SET Password=@Pwd, Salt=@Salt, PasswordExpired=@Expired WHERE UserID=@ID";
+            var sql = "UPDATE Users SET PasswordHash=@Pwd, PasswordSalt=@Salt, PasswordExpired=@Expired WHERE UserID=@ID";
             var result = await SecurityHelper.HashPasswordAsync(newPassword).ConfigureAwait(false);
             string hashed = result.hash;
             string salt = result.salt;

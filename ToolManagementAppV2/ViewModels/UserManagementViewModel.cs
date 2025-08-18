@@ -185,13 +185,13 @@ namespace ToolManagementAppV2.ViewModels
             {
                 const string defaultPwd = "changeme";
                 var hash = SecurityHelper.HashPassword(defaultPwd, out var salt);
-                newUser.Password = hash;
-                newUser.Salt = salt;
+                newUser.PasswordHash = hash;
+                newUser.PasswordSalt = salt;
                 newUser.PasswordExpired = true;
             }
             else
             {
-                newUser.Password = entered;
+                newUser.PasswordHash = entered;
             }
 
             try
@@ -270,8 +270,8 @@ namespace ToolManagementAppV2.ViewModels
             {
                 UserID = user.UserID,
                 UserName = user.UserName,
-                Password = user.Password,
-                Salt = user.Salt,
+                PasswordHash = user.PasswordHash,
+                PasswordSalt = user.PasswordSalt,
                 UserPhotoPath = user.UserPhotoPath,
                 IsAdmin = user.IsAdmin,
                 Email = user.Email,
@@ -326,8 +326,8 @@ namespace ToolManagementAppV2.ViewModels
                 {
                     refreshed.PasswordExpired = true;
                     await _userService.UpdateUserAsync(refreshed);
-                    user.Password = refreshed.Password;
-                    user.Salt = refreshed.Salt;
+                    user.PasswordHash = refreshed.PasswordHash;
+                    user.PasswordSalt = refreshed.PasswordSalt;
                     user.PasswordExpired = true;
                 }
                 _dialogService.ShowInfo("Password has been reset. The user must change it at next login.", "Password Reset");

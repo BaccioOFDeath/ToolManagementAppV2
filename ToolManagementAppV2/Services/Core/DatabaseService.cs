@@ -54,8 +54,8 @@ namespace ToolManagementAppV2.Services.Core
             {
                 EnsureIndex(conn, "Tools", "Keywords");
             }
-            EnsureColumn("Users", "Password", "TEXT");
-            EnsureColumn("Users", "Salt", "TEXT");
+            EnsureColumn("Users", "PasswordHash", "TEXT");
+            EnsureColumn("Users", "PasswordSalt", "TEXT");
             EnsureColumn("Users", "Email", "TEXT");
             EnsureColumn("Users", "Phone", "TEXT");
             EnsureColumn("Users", "Mobile", "TEXT");
@@ -125,8 +125,8 @@ namespace ToolManagementAppV2.Services.Core
                     UserID INTEGER PRIMARY KEY AUTOINCREMENT,
                     UserName TEXT NOT NULL,
                     UserPhotoPath TEXT,
-                    Password TEXT,
-                    Salt TEXT,
+                    PasswordHash TEXT,
+                    PasswordSalt TEXT,
                     IsAdmin INTEGER NOT NULL DEFAULT 0,
                     Email TEXT,
                     Phone TEXT,
