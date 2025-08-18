@@ -157,4 +157,26 @@ public class UserAuthenticationTests
         }
     }
 
+    [Fact]
+    public async Task AuthenticateUserAsync_ReturnsInactive_WhenUserInactive()
+    {
+        var dbPath = Path.GetTempFileName();
+        try
+        {
+            var dbService = new DatabaseService(dbPath);
+            IUserService userService = new UserService(dbService, new ApplicationUserContext());
+
+            await userService.AddUserAsync(new User { UserName = "inactive", PasswordHash = "Strong1!", IsAdmin = false, IsActive = false });
+
+            var auth = await userService.AuthenticateUserAsync("inactive", "Strong1!");
+            Assert.Equal(AuthenticationResult.Inactive, auth.Result);
+            Assert.Null(auth.User);
+        }
+        finally
+        {
+            if (File.Exists(dbPath))
+                File.Delete(dbPath);
+        }
+    }
+
 }

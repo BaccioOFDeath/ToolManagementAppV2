@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -188,7 +189,7 @@ namespace ToolManagementAppV2.ViewModels
                 users = await _userService.GetAllUsersAsync();
             }
 
-            Users.ReplaceRange(users);
+            Users.ReplaceRange(users.Where(u => u.IsActive));
         }
 
         /// <summary>
@@ -275,6 +276,9 @@ namespace ToolManagementAppV2.ViewModels
                     case AuthenticationResult.IncorrectPassword:
                         await _dialogService.ShowInfoAsync("Incorrect password. Please try again.", "Login Failed");
                         continue;
+                    case AuthenticationResult.Inactive:
+                        await _dialogService.ShowInfoAsync("User is inactive. Please contact an administrator.", "Login Failed");
+                        return;
                     case AuthenticationResult.Success:
                         credential = authResult.User;
                         break;

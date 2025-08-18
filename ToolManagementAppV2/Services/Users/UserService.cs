@@ -119,6 +119,7 @@ namespace ToolManagementAppV2.Services.Users
 
             var u = users.FirstOrDefault();
             if (u == null) return (AuthenticationResult.IncorrectPassword, null);
+            if (!u.IsActive) return (AuthenticationResult.Inactive, null);
 
             bool success;
             if (string.IsNullOrWhiteSpace(u.PasswordSalt) && SecurityHelper.IsSha256Hash(u.PasswordHash))

@@ -87,6 +87,35 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public async Task LoadUsersAsync_FiltersInactiveUsers()
+        {
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
+
+            var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
+            try
+            {
+                using var dbService = new DatabaseService(dbPath);
+                var userContext = new ApplicationUserContext();
+                var auth = new AuthorizationService(userContext);
+                var userService = new UserService(dbService, userContext, auth);
+                var settingsService = new SettingsService(dbService);
+                await userService.AddUserAsync(new User { UserName = "active", PasswordHash = "Strong1!", IsAdmin = false, IsActive = true });
+                await userService.AddUserAsync(new User { UserName = "inactive", PasswordHash = "Strong1!", IsAdmin = false, IsActive = false });
+
+                var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext);
+                await vm.LoadUsersCommand.ExecuteAsync(null);
+
+                Assert.Single(vm.Users);
+                Assert.Equal("active", vm.Users[0].UserName);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public async Task SelectUserCommand_SetsCurrentUser()
         {
             if (System.Windows.Application.Current == null)
