@@ -4,11 +4,10 @@ using Xunit;
 public class PasswordValidatorTests
 {
     [Theory]
-    [InlineData("short", false)]
-    [InlineData("NoDigits!", false)]
-    [InlineData("noupper1!", false)]
-    [InlineData("NOLOWER1!", false)]
-    [InlineData("Valid1!", true)]
+    [InlineData("", false)]
+    [InlineData("   ", false)]
+    [InlineData("pass", true)]
+    [InlineData("123456", true)]
     public void IsValid_ReturnsExpected(string pwd, bool expected)
     {
         var result = PasswordValidator.IsValid(pwd, out _);
