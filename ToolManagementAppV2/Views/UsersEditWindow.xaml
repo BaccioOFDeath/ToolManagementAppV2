@@ -20,7 +20,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="100"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -29,7 +29,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Border Grid.RowSpan="7" Width="96" Height="96" CornerRadius="8" Background="{StaticResource SurfaceAltBrush}" Margin="0,0,12,0">
+            <Border Grid.RowSpan="7" Width="96" Height="96" CornerRadius="8" VerticalAlignment="top" Background="{StaticResource SurfaceAltBrush}" Margin="0,0,12,0">
                 <Image Width="96" Height="96"
                        Source="{Binding EditingUser.UserPhotoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=user}"
                        Stretch="UniformToFill" ClipToBounds="True"/>
@@ -37,7 +37,7 @@
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,8">
                 <Button Style="{StaticResource PrimaryButton}" Content="Browse Avatar" Command="{Binding BrowseAvatarCommand}" Margin="0,0,8,0"/>
-                <Button Style="{StaticResource PrimaryButton}" Content="Remove Avatar" Command="{Binding RemoveAvatarCommand}"/>
+                <Button Style="{StaticResource PrimaryButton}" Width="130" Content="Remove Avatar" Command="{Binding RemoveAvatarCommand}"/>
             </StackPanel>
 
             <TextBlock Grid.Row="1" Grid.Column="0" Text="Username" VerticalAlignment="Center" Margin="0,0,8,8"/>
