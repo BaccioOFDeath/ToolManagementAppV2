@@ -38,7 +38,7 @@
                             Visibility="{Binding DataContext.IsCurrentUserAdmin, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}"/>
                     <Button Style="{StaticResource CompactPrimaryButton}" Content="Export Tools CSV" Command="{Binding ExportToolsCommand}"/>
                     <Button Style="{StaticResource CompactPrimaryButton}" Content="Backup Database" Command="{Binding BackupDatabaseCommand}"/>
-                    <Button Style="{StaticResource CompactPrimaryButton}" Content="Cancel Import" Command="{Binding ImportToolsCommand.CancelCommand}" IsEnabled="{Binding ImportToolsCommand.IsRunning}"/>
+                    <Button Style="{StaticResource CompactPrimaryButton}" Content="Cancel Import" Command="{Binding CancelImportToolsCommand}" IsEnabled="{Binding ImportToolsCommand.IsRunning}"/>
 
                 </WrapPanel>
             </StackPanel>
