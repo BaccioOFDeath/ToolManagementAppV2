@@ -37,23 +37,31 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
 
-                bool raised = false;
+                bool adminRaised = false;
+                bool photoRaised = false;
                 vm.PropertyChanged += (s, e) =>
                 {
                     if (e.PropertyName == nameof(MainViewModel.IsCurrentUserAdmin))
-                        raised = true;
+                        adminRaised = true;
+                    if (e.PropertyName == nameof(MainViewModel.CurrentUserPhotoPath))
+                        photoRaised = true;
                 };
 
-                userContext.CurrentUser = new User { UserName = "admin", IsAdmin = true };
+                userContext.CurrentUser = new User { UserName = "admin", IsAdmin = true, UserPhotoPath = "img1.png" };
 
-                Assert.True(raised);
+                Assert.True(adminRaised);
+                Assert.True(photoRaised);
                 Assert.True(vm.IsCurrentUserAdmin);
+                Assert.Equal("img1.png", vm.CurrentUserPhotoPath);
 
-                raised = false;
-                userContext.CurrentUser = new User { UserName = "user", IsAdmin = false };
+                adminRaised = false;
+                photoRaised = false;
+                userContext.CurrentUser = new User { UserName = "user", IsAdmin = false, UserPhotoPath = "img2.png" };
 
-                Assert.True(raised);
+                Assert.True(adminRaised);
+                Assert.True(photoRaised);
                 Assert.False(vm.IsCurrentUserAdmin);
+                Assert.Equal("img2.png", vm.CurrentUserPhotoPath);
             }
             finally
             {

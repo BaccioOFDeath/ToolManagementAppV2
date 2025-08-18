@@ -83,6 +83,8 @@ namespace ToolManagementAppV2.ViewModels
 
         public string CurrentUserRole => _userContext.Role;
 
+        public string? CurrentUserPhotoPath => _userContext.CurrentUser?.UserPhotoPath;
+
         public ToolModel? SelectedTool => ToolManagement.SelectedTool;
 
         public void RefreshCurrentUser()
@@ -90,6 +92,7 @@ namespace ToolManagementAppV2.ViewModels
             OnPropertyChanged(nameof(IsCurrentUserAdmin));
             OnPropertyChanged(nameof(CurrentUserName));
             OnPropertyChanged(nameof(CurrentUserRole));
+            OnPropertyChanged(nameof(CurrentUserPhotoPath));
         }
 
         public IRelayCommand OpenDashboardCommand { get; }

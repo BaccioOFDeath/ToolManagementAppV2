@@ -88,9 +88,13 @@
                 <DockPanel>
                     <TextBlock Text="{Binding CurrentPageTitle}" DockPanel.Dock="Left" FontSize="20" FontWeight="SemiBold"/>
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="32" Height="32" CornerRadius="16" ClipToBounds="True" Margin="0,0,8,0">
+                            <Image Source="{Binding CurrentUserPhotoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=user}" Stretch="UniformToFill"/>
+                        </Border>
+                        <TextBlock Text="{Binding CurrentUserName}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <controls:SearchBar x:Name="GlobalSearchBar"
                                             Text="{Binding GlobalSearchText}"
-                                            SearchCommand="{Binding GlobalSearchCommand}"/>
+                                            SearchCommand="{Binding GlobalSearchCommand}" Margin="8,0,0,0"/>
                         <Button Style="{StaticResource PrimaryButton}" Content="Switch User" Command="{Binding SwitchUserCommand}" Margin="8,0,0,0"/>
                     </StackPanel>
                 </DockPanel>
