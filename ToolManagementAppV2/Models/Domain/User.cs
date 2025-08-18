@@ -51,10 +51,14 @@ namespace ToolManagementAppV2.Models.Domain
         public DateTime? LockoutUntil
         {
             get => _lockoutUntil;
-            set => SetProperty(ref _lockoutUntil, value?.ToUniversalTime(), onChanged: () => OnPropertyChanged(nameof(IsLocked)));
+            set
+            {
+                if (SetProperty(ref _lockoutUntil, value?.ToUniversalTime()))
+                    OnPropertyChanged(nameof(IsLocked));
+            }
         }
 
-        public bool IsLocked => LockoutUntil?.ToUniversalTime() > DateTime.UtcNow;
+        public bool IsLocked => (_lockoutUntil?.ToUniversalTime() ?? DateTime.MinValue) > DateTime.UtcNow;
 
         private bool _passwordExpired;
         public bool PasswordExpired { get => _passwordExpired; set => SetProperty(ref _passwordExpired, value); }
