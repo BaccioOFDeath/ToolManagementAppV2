@@ -51,7 +51,7 @@ namespace ToolManagementAppV2.Models.Domain
         public DateTime? LockoutUntil
         {
             get => _lockoutUntil;
-            set => SetProperty(ref _lockoutUntil, value?.ToUniversalTime());
+            set => SetProperty(ref _lockoutUntil, value?.ToUniversalTime(), onChanged: () => OnPropertyChanged(nameof(IsLocked)));
         }
 
         public bool IsLocked => LockoutUntil?.ToUniversalTime() > DateTime.UtcNow;
