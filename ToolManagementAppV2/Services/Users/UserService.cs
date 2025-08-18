@@ -188,6 +188,8 @@ namespace ToolManagementAppV2.Services.Users
                 }
                 else
                 {
+                    if (!PasswordValidator.IsValid(user.PasswordHash, out var error))
+                        throw new ArgumentException(error, nameof(user.PasswordHash));
                     var result = await SecurityHelper.HashPasswordAsync(user.PasswordHash).ConfigureAwait(false);
                     hashed = result.hash;
                     salt = result.salt;
@@ -282,8 +284,8 @@ namespace ToolManagementAppV2.Services.Users
                 _auth.EnsureAdmin();
 
             newPassword = (newPassword ?? string.Empty).Trim();
-            if (newPassword.Length == 0)
-                return false;
+            if (!PasswordValidator.IsValid(newPassword, out var error))
+                throw new ArgumentException(error, nameof(newPassword));
 
             var sql = "UPDATE Users SET PasswordHash=@Pwd, PasswordSalt=@Salt, PasswordExpired=@Expired WHERE UserID=@ID";
             var result = await SecurityHelper.HashPasswordAsync(newPassword).ConfigureAwait(false);

@@ -273,7 +273,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async Task CommandsDisabledWhenNoUserSelected()
         {
             var svc = new InMemoryUserService();
-            await svc.AddUserAsync(new User { UserName = "user1", PasswordHash = "pw" });
+            await svc.AddUserAsync(new User { UserName = "user1", PasswordHash = "Strong1!" });
             var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
             await vm.LoadUsersAsync();
             Assert.False(vm.UpdateUserCommand.CanExecute(null));
@@ -287,8 +287,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async Task LoadUsersAsync_LoadsUsers()
         {
             var svc = new InMemoryUserService();
-            await svc.AddUserAsync(new User { UserName = "user1", PasswordHash = "pw" });
-            await svc.AddUserAsync(new User { UserName = "user2", PasswordHash = "pw" });
+            await svc.AddUserAsync(new User { UserName = "user1", PasswordHash = "Strong1!" });
+            await svc.AddUserAsync(new User { UserName = "user2", PasswordHash = "Strong1!" });
             var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
             await vm.LoadUsersAsync();
             Assert.Equal(2, vm.Users.Count);
@@ -324,7 +324,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async Task AddUserAsync_SkipsExistingNameFromService()
         {
             var svc = new InMemoryUserService();
-            await svc.AddUserAsync(new User { UserName = "user1", PasswordHash = "pw" });
+            await svc.AddUserAsync(new User { UserName = "user1", PasswordHash = "Strong1!" });
             var vm = new PromptUserManagementViewModel(svc, "pw");
             await vm.AddUserAsync();
 
@@ -338,8 +338,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async Task AddUserAsync_FindsFirstAvailableNumber()
         {
             var svc = new InMemoryUserService();
-            await svc.AddUserAsync(new User { UserName = "user1", PasswordHash = "pw" });
-            await svc.AddUserAsync(new User { UserName = "user3", PasswordHash = "pw" });
+            await svc.AddUserAsync(new User { UserName = "user1", PasswordHash = "Strong1!" });
+            await svc.AddUserAsync(new User { UserName = "user3", PasswordHash = "Strong1!" });
             var vm = new PromptUserManagementViewModel(svc, "pw");
             await vm.AddUserAsync();
 
@@ -415,8 +415,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async Task SearchAndClearUsers_WorkAsExpected()
         {
             var svc = new InMemoryUserService();
-            await svc.AddUserAsync(new User { UserName = "alice", PasswordHash = "pw" });
-            await svc.AddUserAsync(new User { UserName = "bob", PasswordHash = "pw" });
+            await svc.AddUserAsync(new User { UserName = "alice", PasswordHash = "Strong1!" });
+            await svc.AddUserAsync(new User { UserName = "bob", PasswordHash = "Strong1!" });
             var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
             await vm.LoadUsersAsync();
 
@@ -433,8 +433,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async Task DeleteUserFromRowCommand_RemovesUser()
         {
             var svc = new InMemoryUserService();
-            await svc.AddUserAsync(new User { UserName = "user1", PasswordHash = "pw" });
-            await svc.AddUserAsync(new User { UserName = "user2", PasswordHash = "pw" });
+            await svc.AddUserAsync(new User { UserName = "user1", PasswordHash = "Strong1!" });
+            await svc.AddUserAsync(new User { UserName = "user2", PasswordHash = "Strong1!" });
             var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
             await vm.LoadUsersAsync();
             var toDelete = vm.Users.First();
@@ -473,7 +473,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async Task UnlockUserCommand_UnlocksUserAndRefreshesList()
         {
             var svc = new InMemoryUserService();
-            await svc.AddUserAsync(new User { UserName = "user1", PasswordHash = "pw", LockoutUntil = DateTime.UtcNow.AddMinutes(5) });
+            await svc.AddUserAsync(new User { UserName = "user1", PasswordHash = "Strong1!", LockoutUntil = DateTime.UtcNow.AddMinutes(5) });
             var vm = new UserManagementViewModel(svc, new StubFileDialogService(), new StubDialogService());
             await vm.LoadUsersAsync();
             var user = vm.Users.First();
@@ -490,7 +490,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             await svc.AddUserAsync(new User
             {
                 UserName = "user1",
-                PasswordHash = "pw",
+                PasswordHash = "Strong1!",
                 FailedAttempts = 5,
                 LockoutUntil = DateTime.UtcNow.AddMinutes(5)
             });

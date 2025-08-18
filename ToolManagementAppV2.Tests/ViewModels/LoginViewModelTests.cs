@@ -452,7 +452,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var userService = new UserService(dbService, userContext, auth);
                 var settingsService = new SettingsService(dbService);
                 var lockout = DateTime.UtcNow.AddMinutes(15);
-                await userService.AddUserAsync(new User { UserName = "locked", PasswordHash = "newpassword", LockoutUntil = lockout });
+                await userService.AddUserAsync(new User { UserName = "locked", PasswordHash = "Strong1!", LockoutUntil = lockout });
 
                 var dialog = new CapturingDialogService();
                 var vm = new LoginViewModel(userService, settingsService, dialog, userContext)
