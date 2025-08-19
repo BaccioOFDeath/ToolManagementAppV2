@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Interfaces;
-using ToolManagementAppV2.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
@@ -68,17 +67,54 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void SaveCompanyLogoCommand_PersistsPath()
+        public void SaveCompanyLogoCommand_PersistsRelativePath()
         {
             var settings = new StubSettingsService();
-            var expected = PathHelper.GetAbsolutePath("logo.png");
-            var vm = new SettingsViewModel(new StubFileDialogService(), settings, new StubDialogService())
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            var file = Path.Combine(baseDir, "logo.png");
+            File.WriteAllText(file, "data");
+            try
             {
-                CompanyLogoPath = "logo.png"
-            };
-            vm.SaveCompanyLogoCommand.ExecuteAsync(null).GetAwaiter().GetResult();
-            Assert.Equal("CompanyLogoPath", settings.SavedKey);
-            Assert.Equal(expected, settings.SavedValue);
+                var vm = new SettingsViewModel(new StubFileDialogService(), settings, new StubDialogService())
+                {
+                    CompanyLogoPath = file
+                };
+                var expected = Path.GetRelativePath(baseDir, file);
+                vm.SaveCompanyLogoCommand.ExecuteAsync(null).GetAwaiter().GetResult();
+                Assert.Equal("CompanyLogoPath", settings.SavedKey);
+                Assert.Equal(expected, settings.SavedValue);
+                Assert.Equal(expected, vm.CompanyLogoPath);
+            }
+            finally
+            {
+                if (File.Exists(file)) File.Delete(file);
+            }
+        }
+
+        [Fact]
+        public void SaveCompanyLogoCommand_CopiesExternalFile()
+        {
+            var settings = new StubSettingsService();
+            var external = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".png");
+            File.WriteAllText(external, "data");
+            try
+            {
+                var vm = new SettingsViewModel(new StubFileDialogService(), settings, new StubDialogService())
+                {
+                    CompanyLogoPath = external
+                };
+                vm.SaveCompanyLogoCommand.ExecuteAsync(null).GetAwaiter().GetResult();
+                var expected = Path.Combine("Assets", "CompanyLogo", Path.GetFileName(external));
+                Assert.Equal(expected, settings.SavedValue);
+                Assert.Equal(expected, vm.CompanyLogoPath);
+                Assert.True(File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, expected)));
+            }
+            finally
+            {
+                if (File.Exists(external)) File.Delete(external);
+                var copied = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "CompanyLogo", Path.GetFileName(external));
+                if (File.Exists(copied)) File.Delete(copied);
+            }
         }
 
         [Fact]

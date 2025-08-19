@@ -2,11 +2,11 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Services.Core;
-using ToolManagementAppV2.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -195,29 +195,72 @@ namespace ToolManagementAppV2.ViewModels
 
         async Task SaveCompanyLogoAsync(CancellationToken token = default)
         {
-            var full = PathHelper.GetAbsolutePath(CompanyLogoPath);
-            if (string.IsNullOrEmpty(full))
+            if (string.IsNullOrWhiteSpace(CompanyLogoPath))
             {
                 _dialogService.ShowInfo("Selected logo path is invalid.", "Invalid Path");
                 return;
             }
 
+            string baseDir = Path.GetFullPath(AppDomain.CurrentDomain.BaseDirectory);
+            string fullInputPath;
+
             try
             {
-                await _settingsService.SaveSettingAsync("CompanyLogoPath", full, token).ConfigureAwait(false);
+                fullInputPath = Path.GetFullPath(CompanyLogoPath);
             }
-            catch (UnauthorizedAccessException ex)
+            catch
             {
-                _logger.LogWarning(ex, "Unauthorized to change settings.");
-                _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+                _dialogService.ShowInfo("Selected logo path is invalid.", "Invalid Path");
+                return;
             }
-            catch (OperationCanceledException ex)
+
+            if (!File.Exists(fullInputPath))
             {
-                _logger.LogInformation(ex, "Saving company logo was canceled.");
+                _dialogService.ShowInfo("Selected logo path is invalid.", "Invalid Path");
+                return;
+            }
+
+            string relativePath;
+            try
+            {
+                if (!fullInputPath.StartsWith(baseDir, StringComparison.OrdinalIgnoreCase))
+                {
+                    var assetsDir = Path.Combine(baseDir, "Assets", "CompanyLogo");
+                    Directory.CreateDirectory(assetsDir);
+                    var fileName = Path.GetFileName(fullInputPath);
+                    var destPath = Path.Combine(assetsDir, fileName);
+                    File.Copy(fullInputPath, destPath, true);
+                    relativePath = Path.GetRelativePath(baseDir, destPath);
+                }
+                else
+                {
+                    relativePath = Path.GetRelativePath(baseDir, fullInputPath);
+                }
+
+                CompanyLogoPath = relativePath;
+
+                try
+                {
+                    await _settingsService.SaveSettingAsync("CompanyLogoPath", relativePath, token).ConfigureAwait(false);
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    _logger.LogWarning(ex, "Unauthorized to change settings.");
+                    _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+                }
+                catch (OperationCanceledException ex)
+                {
+                    _logger.LogInformation(ex, "Saving company logo was canceled.");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to save company logo path.");
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to save company logo path.");
+                _logger.LogError(ex, "Failed to copy company logo.");
+                _dialogService.ShowInfo("Failed to save company logo.", "Error");
             }
         }
     }
