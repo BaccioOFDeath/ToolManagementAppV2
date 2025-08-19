@@ -40,7 +40,7 @@
                             <DataTemplate>
                                 <Image Width="36" Height="36"
                                        Source="{Binding UserPhotoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=user}"
-                                       Stretch="UniformToFill"/>
+                                       Stretch="Uniform"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>

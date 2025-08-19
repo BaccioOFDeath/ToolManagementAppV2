@@ -36,7 +36,6 @@
                     <WrapPanel>
                         <Button Style="{StaticResource PrimaryButton}" Content="New Tool" Command="{Binding NewToolCommand}" Margin="0,0,8,8"/>
                         <Button Style="{StaticResource PrimaryButton}" Content="Rent Tool" Command="{Binding OpenRentalsCommand}" Margin="0,0,8,8"/>
-                        <Button Style="{StaticResource PrimaryButton}" Content="Import CSV" Command="{Binding OpenImportExportCommand}"/>
                     </WrapPanel>
                 </StackPanel>
             </Border>
