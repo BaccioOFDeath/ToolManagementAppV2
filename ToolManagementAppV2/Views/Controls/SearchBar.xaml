@@ -11,7 +11,7 @@
             </TextBox.InputBindings>
         </TextBox>
         <Button Style="{StaticResource PrimaryButton}"
-                Content="Search"
+                Content="Search Tools"
                 Command="{Binding SearchCommand, ElementName=Root}"
                 Margin="8,0,0,0"/>
     </StackPanel>

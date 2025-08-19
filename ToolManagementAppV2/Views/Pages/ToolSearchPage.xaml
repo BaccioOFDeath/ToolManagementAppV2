@@ -21,7 +21,7 @@
                           ItemsSource="{Binding Categories}"
                           SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
                           Margin="8,0,0,0"/>
-                <Button Grid.Column="2" Style="{StaticResource PrimaryButton}" Content="Search" Command="{Binding SearchCommand}" Margin="8,0,0,0"/>
+                <Button Grid.Column="2" Style="{StaticResource PrimaryButton}" Content="Search Tools" Command="{Binding SearchCommand}" Margin="8,0,0,0"/>
             </Grid>
         </Border>
         <ListBox x:Name="ToolsList" Grid.Row="1"
