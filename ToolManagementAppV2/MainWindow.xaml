@@ -52,7 +52,7 @@
                         <Separator/>
 
                         <TextBlock Text="Diagnostics" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
-                        <Button Style="{StaticResource NavButton}" Content="Scanner Status" Command="{Binding OpenScannerStatusWindowCommand}"/>
+                        <Button Style="{StaticResource NavButton}" Content="Scanner Status" Command="{Binding OpenScannerStatusPageCommand}"/>
 
                         <Separator/>
 

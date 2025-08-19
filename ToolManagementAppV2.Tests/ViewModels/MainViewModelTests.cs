@@ -142,7 +142,6 @@ namespace ToolManagementAppV2.Tests.ViewModels
             if (ThrowOnShowPrintLabelDialog)
                 throw new InvalidOperationException("fail");
         }
-        public void ShowScannerStatus() { }
     }
 
     class StubFileDialogService : IFileDialogService

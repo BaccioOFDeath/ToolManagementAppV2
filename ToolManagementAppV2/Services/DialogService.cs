@@ -190,13 +190,5 @@ namespace ToolManagementAppV2.Services
             catch (Exception ex) { _logger.LogError(ex, "Failed to show PrintLabelWindow"); }
         }
 
-        public void ShowScannerStatus()
-        {
-            var win = _serviceProvider.GetRequiredService<ScannerStatusWindow>();
-            try { win.Owner = System.Windows.Application.Current?.MainWindow; }
-            catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for ScannerStatusWindow"); }
-            try { win.ShowDialog(); }
-            catch (Exception ex) { _logger.LogError(ex, "Failed to show ScannerStatusWindow"); }
-        }
     }
 }

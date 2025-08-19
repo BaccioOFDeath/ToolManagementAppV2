@@ -96,7 +96,6 @@ namespace ToolManagementAppV2
                 services.AddSingleton<ILoginViewModel, LoginViewModel>();
                 services.AddTransient<ToolEditWindow>();
                 services.AddTransient<AvatarSelectionWindow>();
-                services.AddTransient<ScannerStatusWindow>();
                 services.AddTransient<PasswordPromptWindow>();
                 services.AddTransient<ISetupWizard, SetupWizardWindow>();
                 services.AddTransient<SetupWizardWindow>();
