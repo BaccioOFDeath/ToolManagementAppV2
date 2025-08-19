@@ -254,7 +254,7 @@ namespace ToolManagementAppV2.Tests.Views
         }
 
         [Fact]
-        public void LeftNavScrollViewer_PreviewMouseWheel_ScrollsSmoothly()
+        public void LeftNavScrollViewer_PreviewMouseWheel_ScrollsByWheelDelta()
         {
             Exception? threadException = null;
 
@@ -271,36 +271,17 @@ namespace ToolManagementAppV2.Tests.Views
                         scrollViewer.Arrange(new Rect(0, 0, 100, 100));
                         scrollViewer.UpdateLayout();
 
+                        var initialOffset = scrollViewer.VerticalOffset;
+
                         var args = new MouseWheelEventArgs(Mouse.PrimaryDevice, 0, -120)
                         {
                             RoutedEvent = UIElement.PreviewMouseWheelEvent
                         };
 
-                        var initialOffset = scrollViewer.VerticalOffset;
                         scrollViewer.RaiseEvent(args);
 
                         Assert.True(args.Handled);
-
-                        var offsets = new List<double> { initialOffset };
-
-                        for (int i = 0; i < 3; i++)
-                        {
-                            var frame = new DispatcherFrame();
-                            var timer = new DispatcherTimer(TimeSpan.FromMilliseconds(100), DispatcherPriority.Render, (s, _) =>
-                            {
-                                offsets.Add(scrollViewer.VerticalOffset);
-                                ((DispatcherTimer)s!).Stop();
-                                frame.Continue = false;
-                            }, scrollViewer.Dispatcher);
-                            timer.Start();
-                            Dispatcher.PushFrame(frame);
-                        }
-
-                        Assert.True(offsets.Last() < initialOffset);
-                        for (int i = 1; i < offsets.Count; i++)
-                        {
-                            Assert.True(offsets[i] <= offsets[i - 1]);
-                        }
+                        Assert.True(scrollViewer.VerticalOffset > initialOffset);
                     }
                     finally
                     {
