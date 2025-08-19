@@ -272,21 +272,24 @@ namespace ToolManagementAppV2.ViewModels
 
             SwitchUserCommand = new AsyncRelayCommand(async () =>
             {
+                var previousUser = _userContext.CurrentUser;
+                _userContext.CurrentUser = null;
                 try
                 {
-                    _userContext.CurrentUser = null;
                     if (await _showLoginWindow())
                     {
                         OpenDashboardCommand.Execute(null);
                     }
                     else
                     {
+                        _userContext.CurrentUser = previousUser;
                         _logger.LogWarning("Switch user cancelled.");
                         _dialogService.ShowInfo("Switch user cancelled.", "Switch User");
                     }
                 }
                 catch (Exception ex)
                 {
+                    _userContext.CurrentUser = previousUser;
                     _logger.LogError(ex, "Switch user failed.");
                     _dialogService.ShowInfo("Failed to switch user.", "Switch User");
                 }
