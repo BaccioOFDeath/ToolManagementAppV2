@@ -1,0 +1,49 @@
+﻿<!-- Views/PrintLabelWindow.xaml -->
+<Window x:Class="ToolManagementAppV2.Views.Windows.PrintLabelWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:domain="clr-namespace:ToolManagementAppV2.Models.Domain"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        mc:Ignorable="d"
+        Title="Print Labels"
+        Width="720" Height="420"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BackgroundBrush}">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Label Template" VerticalAlignment="Center" Foreground="{StaticResource ForegroundMutedBrush}"/>
+                <ComboBox Grid.Column="1" ItemsSource="{Binding Templates}" SelectedItem="{Binding SelectedTemplate}" Margin="8,0,0,0"/>
+                <CheckBox Grid.Column="2" Content="Include QR" IsChecked="{Binding IncludeQr}" HorizontalAlignment="Left" Margin="8,4,0,0"/>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" Margin="0,8,0,8">
+            <DataGrid ItemsSource="{Binding Items}" AutoGenerateColumns="False" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Tool #" Binding="{Binding ToolNumber}" Width="120"/>
+                    <DataGridTextColumn Header="Name" Binding="{Binding NameDescription}" Width="*"/>
+                    <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="180"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Style="{StaticResource PrimaryButton}" Content="Preview" Command="{Binding PreviewCommand}"/>
+            <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintCommand}" Margin="8,0,0,0"/>
+            <Button Style="{StaticResource PrimaryButton}" Content="Close" Command="{Binding CloseCommand}" Margin="8,0,0,0"/>
+        </StackPanel>
+    </Grid>
+</Window>

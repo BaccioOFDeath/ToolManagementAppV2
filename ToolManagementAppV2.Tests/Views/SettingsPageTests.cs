@@ -2,7 +2,8 @@ using System;
 using System.IO;
 using System.Threading;
 using ToolManagementAppV2.ViewModels;
-using ToolManagementAppV2.Views;
+using ToolManagementAppV2.Views.Pages;
+using ToolManagementAppV2.Views.Windows;
 using ToolManagementAppV2.Tests.ViewModels;
 using Xunit;
 

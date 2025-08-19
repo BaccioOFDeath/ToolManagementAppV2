@@ -1,0 +1,42 @@
+<!-- Views/RentToolPopupWindow.xaml -->
+<Window x:Class="ToolManagementAppV2.Views.Windows.RentToolPopupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Rent Tool"
+        Width="800" Height="420"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BackgroundBrush}">
+    <DockPanel Margin="10">
+        <Border DockPanel.Dock="Top" Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1" Padding="10" CornerRadius="8">
+            <TextBlock Text="Rent Tool" FontWeight="SemiBold" FontSize="18"/>
+        </Border>
+
+        <Border Style="{StaticResource Card}" Margin="0,8,0,8">
+            <Grid Margin="4">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Customer" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Foreground="{StaticResource ForegroundMutedBrush}"/>
+                <ComboBox Grid.Row="0" Grid.Column="1"
+                          ItemsSource="{Binding Customers}"
+                          DisplayMemberPath="Company"
+                          SelectedItem="{Binding SelectedCustomer, Mode=TwoWay}" Margin="8,4"/>
+
+                <TextBlock Text="Due Date" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Foreground="{StaticResource ForegroundMutedBrush}"/>
+                <DatePicker Grid.Row="1" Grid.Column="1"
+                            SelectedDate="{Binding SelectedDueDate, Mode=TwoWay}" Margin="8,4"/>
+            </Grid>
+        </Border>
+
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Style="{StaticResource PrimaryButton}" Content="Cancel" Command="{Binding CancelCommand}"/>
+            <Button Style="{StaticResource PrimaryButton}" Content="Confirm" Command="{Binding CheckOutCommand}" Margin="8,0,0,0"/>
+        </StackPanel>
+    </DockPanel>
+</Window>

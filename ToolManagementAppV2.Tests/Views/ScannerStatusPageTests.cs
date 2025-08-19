@@ -1,7 +1,8 @@
 using System;
 using System.Threading;
 using System.Windows;
-using ToolManagementAppV2.Views;
+using ToolManagementAppV2.Views.Pages;
+using ToolManagementAppV2.Views.Windows;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.Views

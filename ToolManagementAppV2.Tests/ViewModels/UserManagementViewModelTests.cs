@@ -12,7 +12,8 @@ using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.ViewModels.Rental;
-using ToolManagementAppV2.Views;
+using ToolManagementAppV2.Views.Pages;
+using ToolManagementAppV2.Views.Windows;
 using ToolManagementAppV2.Utilities.Helpers;
 using Xunit;
 

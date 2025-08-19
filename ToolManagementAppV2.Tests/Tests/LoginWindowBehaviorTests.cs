@@ -7,6 +7,7 @@ using ToolManagementAppV2.Services;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2;
+using ToolManagementAppV2.Views.Windows;
 using Xunit;
 using Microsoft.Extensions.DependencyInjection;
 

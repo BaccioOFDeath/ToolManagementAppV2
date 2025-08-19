@@ -8,7 +8,8 @@ using ToolManagementAppV2.Services.Tools;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.ViewModels;
-using ToolManagementAppV2.Views;
+using ToolManagementAppV2.Views.Pages;
+using ToolManagementAppV2.Views.Windows;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.Views
