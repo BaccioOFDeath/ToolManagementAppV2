@@ -267,11 +267,11 @@
                 <DataTemplate>
                     <TextBlock Text="{Binding}"
                                TextDecorations="Underline"
-                               Foreground="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"/>
-                </TextBlock>
-            </DataTemplate>
-        </Setter.Value>
-    </Setter>
+                               Foreground="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}">
+                    </TextBlock>
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
     <Style TargetType="Border" x:Key="Card">
         <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
