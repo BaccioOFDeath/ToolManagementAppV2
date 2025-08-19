@@ -20,8 +20,7 @@
                            Stretch="Uniform"
                            Margin="0,0,8,0"/>
                     <TextBlock x:Name="PreviewTitle"
-                               FontWeight="SemiBold"
-                               FontSize="18"
+                               Style="{StaticResource HeadingTextBlock}"
                                VerticalAlignment="Center"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">

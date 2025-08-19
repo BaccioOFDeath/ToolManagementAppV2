@@ -9,7 +9,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <TextBlock Text="Overview" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+        <TextBlock Text="Overview" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
         <ItemsControl Grid.Row="1" ItemsSource="{Binding StatCards}" ItemTemplate="{StaticResource StatCardTemplate}" ItemsPanel="{StaticResource WrapPanelItems}"/>
         <Grid Grid.Row="2" Margin="0,16,0,0">
             <Grid.ColumnDefinitions>
@@ -18,7 +18,7 @@
             </Grid.ColumnDefinitions>
             <Border Style="{StaticResource Card}" Grid.Column="0">
                 <StackPanel>
-                    <TextBlock Text="Recent Activity" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <TextBlock Text="Recent Activity" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
                     <ListView ItemsSource="{Binding RecentActivity}"
                               VirtualizingPanel.IsVirtualizing="True"
                               VirtualizingPanel.VirtualizationMode="Recycling">
@@ -32,7 +32,7 @@
             </Border>
             <Border Style="{StaticResource Card}" Grid.Column="1">
                 <StackPanel>
-                    <TextBlock Text="Quick Actions" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <TextBlock Text="Quick Actions" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
                     <WrapPanel>
                         <Button Style="{StaticResource PrimaryButton}" Content="New Tool" Command="{Binding NewToolCommand}" Margin="0,0,8,8"/>
                         <Button Style="{StaticResource PrimaryButton}" Content="Rent Tool" Command="{Binding OpenRentalsCommand}" Margin="0,0,8,8"/>
