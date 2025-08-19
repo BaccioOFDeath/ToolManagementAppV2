@@ -22,7 +22,7 @@ namespace ToolManagementAppV2.Tests.Tests
             Assert.Equal(ScrollBarVisibility.Auto, ScrollViewer.GetHorizontalScrollBarVisibility(page.HandToolsList));
             Assert.Equal(ScrollBarVisibility.Disabled, ScrollViewer.GetVerticalScrollBarVisibility(page.HandToolsList));
             Assert.True(VirtualizingStackPanel.GetIsVirtualizing(page.HandToolsList));
-            Assert.IsType<Grid>(page.HandToolsList.ItemTemplate.LoadContent());
+            Assert.IsType<Border>(page.HandToolsList.ItemTemplate.LoadContent());
 
             var powerPanel = page.PowerToolsList.ItemsPanel.LoadContent();
             var powerStack = Assert.IsType<VirtualizingStackPanel>(powerPanel);
