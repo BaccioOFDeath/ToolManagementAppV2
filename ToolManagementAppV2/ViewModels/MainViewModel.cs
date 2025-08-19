@@ -24,6 +24,7 @@ using ToolManagementAppV2.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using ToolManagementAppV2.Models.ImportExport;
 using ToolManagementAppV2.Utilities;
+using Application = System.Windows.Application;
 
 namespace ToolManagementAppV2.ViewModels
 {
