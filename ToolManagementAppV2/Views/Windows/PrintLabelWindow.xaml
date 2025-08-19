@@ -31,7 +31,11 @@
         </Border>
 
         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" Margin="0,8,0,8">
-            <DataGrid ItemsSource="{Binding Items}" AutoGenerateColumns="False" IsReadOnly="True">
+            <DataGrid ItemsSource="{Binding Items}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      Style="{StaticResource VirtualizedDataGridStyle}"
+                      ColumnHeaderStyle="{StaticResource {x:Type DataGridColumnHeader}}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Tool #" Binding="{Binding ToolNumber}" Width="120"/>
                     <DataGridTextColumn Header="Name" Binding="{Binding NameDescription}" Width="*"/>
