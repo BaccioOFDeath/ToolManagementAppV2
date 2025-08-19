@@ -5,7 +5,7 @@
       Background="{StaticResource BackgroundBrush}">
     <DockPanel Margin="10">
         <Border DockPanel.Dock="Top" Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1" Padding="10" CornerRadius="8">
-            <TextBlock Text="Scanner Status" FontWeight="SemiBold" FontSize="18"/>
+            <TextBlock Text="Scanner Status" Style="{StaticResource HeadingTextBlock}"/>
         </Border>
         <Grid>
             <Grid.RowDefinitions>

@@ -10,7 +10,7 @@
     <DockPanel Margin="10">
         <Border DockPanel.Dock="Top" Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1" Padding="10" CornerRadius="8">
             <DockPanel>
-                <TextBlock Text="Rental History" FontWeight="SemiBold" FontSize="18" DockPanel.Dock="Left"/>
+                <TextBlock Text="Rental History" Style="{StaticResource HeadingTextBlock}" DockPanel.Dock="Left"/>
                 <controls:SearchBar DockPanel.Dock="Right"
                                    Text="{Binding SearchText}"
                                    SearchCommand="{Binding SearchCommand}"/>

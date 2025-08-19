@@ -8,7 +8,7 @@
         Background="{StaticResource BackgroundBrush}">
     <DockPanel Margin="10">
         <Border DockPanel.Dock="Top" Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1" Padding="10" CornerRadius="8">
-            <TextBlock Text="Rent Tool" FontWeight="SemiBold" FontSize="18"/>
+            <TextBlock Text="Rent Tool" Style="{StaticResource HeadingTextBlock}"/>
         </Border>
 
         <Border Style="{StaticResource Card}" Margin="0,8,0,8">

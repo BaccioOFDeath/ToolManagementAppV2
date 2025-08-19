@@ -17,7 +17,7 @@
                 <StackPanel Orientation="Vertical" Margin="16,16,16,8">
                     <StackPanel Orientation="Horizontal">
                         <Image Source="{Binding CompanyLogoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=logo}" Width="36" Height="36" Margin="0,0,8,0"/>
-                        <TextBlock Text="Tool Management" FontSize="18" FontWeight="SemiBold"/>
+                        <TextBlock Text="Tool Management" Style="{StaticResource HeadingTextBlock}"/>
                     </StackPanel>
                     <TextBlock Text="{Binding CurrentPageTitle}" FontSize="12" Foreground="{StaticResource ForegroundMutedBrush}" Margin="0,4,0,0"/>
                 </StackPanel>
