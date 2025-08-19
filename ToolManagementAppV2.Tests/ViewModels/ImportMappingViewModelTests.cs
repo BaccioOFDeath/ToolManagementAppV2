@@ -19,6 +19,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             foreach (var mapping in vm.Mappings)
             {
                 Assert.Equal(headers, mapping.AvailableColumns);
+                Assert.Null(mapping.SelectedColumn);
             }
         }
     }

@@ -12,8 +12,8 @@ namespace ToolManagementAppV2.ViewModels
         public string PropertyName { get; }
         public IReadOnlyList<string> AvailableColumns { get; }
 
-        private string _selectedColumn;
-        public string SelectedColumn
+        private string? _selectedColumn;
+        public string? SelectedColumn
         {
             get => _selectedColumn;
             set => SetProperty(ref _selectedColumn, value);
@@ -23,7 +23,7 @@ namespace ToolManagementAppV2.ViewModels
         {
             PropertyName = propertyName ?? throw new ArgumentNullException(nameof(propertyName));
             AvailableColumns = availableColumns ?? throw new ArgumentNullException(nameof(availableColumns));
-            _selectedColumn = AvailableColumns.FirstOrDefault();
+            _selectedColumn = null;
         }
     }
 
