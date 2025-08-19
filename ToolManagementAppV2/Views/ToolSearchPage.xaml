@@ -7,7 +7,6 @@
     <Grid Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Border Style="{StaticResource Card}">
@@ -25,36 +24,19 @@
                 <Button Grid.Column="2" Style="{StaticResource PrimaryButton}" Content="Search" Command="{Binding SearchCommand}" Margin="8,0,0,0"/>
             </Grid>
         </Border>
-        <TextBlock Grid.Row="1" Text="Hand Tools" Margin="4,8,0,4" FontWeight="SemiBold"/>
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
-            <StackPanel>
-                <ListBox x:Name="HandToolsList"
-                         ItemsSource="{Binding HandTools}"
-                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                         ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                         VirtualizingPanel.IsVirtualizing="True"
-                         VirtualizingPanel.VirtualizationMode="Recycling"
-                         Margin="0,0,0,12" ItemTemplate="{StaticResource ToolCardTemplate}" av:ItemsSource="{av:SampleData ItemCount=5}">
-                    <ListBox.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <VirtualizingStackPanel Orientation="Horizontal"/>
-                        </ItemsPanelTemplate>
-                    </ListBox.ItemsPanel>
-                </ListBox>
-                <TextBlock Text="Power Tools" Margin="4,0,0,4" FontWeight="SemiBold"/>
-                <ListBox x:Name="PowerToolsList"
-                         ItemsSource="{Binding PowerTools}"
-                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                         ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                         VirtualizingPanel.IsVirtualizing="True"
-                         VirtualizingPanel.VirtualizationMode="Recycling" ItemTemplate="{StaticResource ToolCardTemplate}" av:ItemsSource="{av:SampleData ItemCount=5}">
-                    <ListBox.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <VirtualizingStackPanel Orientation="Horizontal"/>
-                        </ItemsPanelTemplate>
-                    </ListBox.ItemsPanel>
-                </ListBox>
-            </StackPanel>
-        </ScrollViewer>
+        <ListBox x:Name="ToolsList" Grid.Row="1"
+                 ItemsSource="{Binding SearchResults}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                 VirtualizingPanel.IsVirtualizing="True"
+                 VirtualizingPanel.VirtualizationMode="Recycling"
+                 ItemTemplate="{StaticResource ToolCardTemplate}"
+                 av:ItemsSource="{av:SampleData ItemCount=5}">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+        </ListBox>
     </Grid>
 </Page>
