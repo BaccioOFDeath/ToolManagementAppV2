@@ -564,7 +564,6 @@ class StubDialogService : IDialogService
     public System.Func<ToolModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
     public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
     public void ShowPrintLabelDialog() { }
-    public void ShowScannerStatus() { }
 }
 
 class InMemoryUserService : IUserService

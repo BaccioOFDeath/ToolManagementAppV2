@@ -427,7 +427,6 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public System.Func<ToolModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
         public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
         public void ShowPrintLabelDialog() { }
-        public void ShowScannerStatus() { }
     }
 
     class ExceptionDialogService : IDialogService
@@ -445,7 +444,6 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Func<ToolModel, IEnumerable<string>>? ShowImageImportMapping() => null;
         public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) => throw new InvalidOperationException("boom");
         public void ShowPrintLabelDialog() { }
-        public void ShowScannerStatus() { }
     }
 
     class ExceptionRentalService : IRentalService

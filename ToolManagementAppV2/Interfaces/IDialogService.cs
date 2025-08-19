@@ -31,6 +31,5 @@ namespace ToolManagementAppV2.Interfaces
         Func<ToolModel, IEnumerable<string>>? ShowImageImportMapping();
         void ShowPrintPreview(FlowDocument document, string title, string description);
         void ShowPrintLabelDialog();
-        void ShowScannerStatus();
     }
 }

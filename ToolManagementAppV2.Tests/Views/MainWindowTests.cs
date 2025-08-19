@@ -382,7 +382,6 @@ namespace ToolManagementAppV2.Tests.Views
             public Func<ToolModel, IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
             public void ShowPrintLabelDialog() { }
-            public void ShowScannerStatus() { }
         }
 
         [Fact]
