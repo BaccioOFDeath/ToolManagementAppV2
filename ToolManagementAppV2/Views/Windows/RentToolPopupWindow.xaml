@@ -22,13 +22,13 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Text="Customer" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Foreground="{StaticResource ForegroundMutedBrush}"/>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Customer" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
                 <ComboBox Grid.Row="0" Grid.Column="1"
                           ItemsSource="{Binding Customers}"
                           DisplayMemberPath="Company"
                           SelectedItem="{Binding SelectedCustomer, Mode=TwoWay}" Margin="8,4"/>
 
-                <TextBlock Text="Due Date" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Foreground="{StaticResource ForegroundMutedBrush}"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Due Date" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
                 <DatePicker Grid.Row="1" Grid.Column="1"
                             SelectedDate="{Binding SelectedDueDate, Mode=TwoWay}" Margin="8,4"/>
             </Grid>

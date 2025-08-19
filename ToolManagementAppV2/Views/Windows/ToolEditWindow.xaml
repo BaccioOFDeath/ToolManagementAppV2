@@ -28,22 +28,22 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Tool Number" VerticalAlignment="Center" Margin="0,0,8,8"/>
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Tool Number" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Tool.ToolNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="Name" VerticalAlignment="Center" Margin="0,0,8,8"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Name" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Tool.NameDescription, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Brand" VerticalAlignment="Center" Margin="0,0,8,8"/>
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Brand" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Tool.Brand, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="Location" VerticalAlignment="Center" Margin="0,0,8,8"/>
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Location" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Tool.Location, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-            <TextBlock Grid.Row="4" Grid.Column="0" Text="Part #" VerticalAlignment="Center" Margin="0,0,8,8"/>
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="Part #" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Tool.PartNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-            <TextBlock Grid.Row="5" Grid.Column="0" Text="Supplier" VerticalAlignment="Center" Margin="0,0,8,8"/>
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="Supplier" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Tool.Supplier, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
             <CheckBox Grid.Row="6" Grid.ColumnSpan="2" Content="Power Tool" IsChecked="{Binding Tool.IsPowerTool}" Margin="0,0,0,8"/>
@@ -58,7 +58,7 @@
             </StackPanel>
 
             <StackPanel Grid.Row="8" Grid.ColumnSpan="2" Orientation="Vertical">
-                <TextBlock Text="Notes" Margin="0,0,0,4"/>
+                <TextBlock Text="Notes" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
                 <TextBox Text="{Binding Tool.Notes, UpdateSourceTrigger=PropertyChanged}" Height="90" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
             </StackPanel>
         </Grid>

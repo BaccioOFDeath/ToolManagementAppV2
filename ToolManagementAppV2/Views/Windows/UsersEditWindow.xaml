@@ -40,19 +40,19 @@
                 <Button Style="{StaticResource PrimaryButton}" Width="130" Content="Remove Avatar" Command="{Binding RemoveAvatarCommand}"/>
             </StackPanel>
 
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="Username" VerticalAlignment="Center" Margin="0,0,8,8"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Username" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding EditingUser.UserName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Email" VerticalAlignment="Center" Margin="0,0,8,8"/>
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Email" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding EditingUser.Email, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="Phone" VerticalAlignment="Center" Margin="0,0,8,8"/>
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Phone" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding EditingUser.Phone, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-            <TextBlock Grid.Row="4" Grid.Column="0" Text="Mobile" VerticalAlignment="Center" Margin="0,0,8,8"/>
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="Mobile" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding EditingUser.Mobile, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-            <TextBlock Grid.Row="5" Grid.Column="0" Text="Role" VerticalAlignment="Center" Margin="0,0,8,8"/>
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="Role" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <ComboBox Grid.Row="5" Grid.Column="1" SelectedValuePath="Tag" SelectedValue="{Binding EditingUser.IsAdmin, Mode=TwoWay}" Margin="0,0,0,8">
                 <ComboBoxItem Content="User" Tag="False"/>
                 <ComboBoxItem Content="Admin" Tag="True"/>
