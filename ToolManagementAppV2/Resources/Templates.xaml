@@ -35,6 +35,20 @@
         </Border>
     </DataTemplate>
 
+    <DataTemplate x:Key="ActivityLogItemTemplate">
+        <StackPanel>
+            <TextBlock Text="{Binding Action}" Style="{StaticResource ListItemTitleTextBlock}"/>
+            <TextBlock Style="{StaticResource CaptionTextBlock}">
+                <TextBlock.Text>
+                    <MultiBinding StringFormat="{}{0} - {1:yyyy-MM-dd HH:mm}">
+                        <Binding Path="UserName"/>
+                        <Binding Path="Timestamp"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+        </StackPanel>
+    </DataTemplate>
+
     <!-- Shared rental DataGrid columns -->
     <DataGridTextColumn x:Key="RentalIdColumn" Header="Rental #" Binding="{Binding RentalId}" Width="120" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalToolNumberColumn" Header="Tool #" Binding="{Binding ToolNumber}" Width="120" x:Shared="False"/>
