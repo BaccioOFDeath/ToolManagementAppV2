@@ -8,7 +8,7 @@
         <StackPanel Margin="8" Orientation="Vertical">
             <Border Style="{StaticResource Card}" Padding="12" Margin="0,0,0,8">
                 <StackPanel Orientation="Vertical">
-                    <TextBlock Text="Database" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <TextBlock Text="Database" Style="{StaticResource SectionHeader}"/>
                     <Grid Margin="0,8,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="200"/>
@@ -24,7 +24,7 @@
 
             <Border Style="{StaticResource Card}" Padding="12" Margin="0,0,0,8">
                 <StackPanel Orientation="Vertical">
-                    <TextBlock Text="General" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <TextBlock Text="General" Style="{StaticResource SectionHeader}"/>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="200"/>
@@ -47,7 +47,7 @@
 
             <Border Style="{StaticResource Card}" Padding="12">
                 <StackPanel Orientation="Vertical">
-                    <TextBlock Text="Branding" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <TextBlock Text="Branding" Style="{StaticResource SectionHeader}"/>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="200"/>
