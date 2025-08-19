@@ -26,8 +26,7 @@
                 <DataTemplate>
                     <Button Command="{Binding DataContext.SelectAvatarCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
                             CommandParameter="{Binding}"
-                            Background="Transparent"
-                            BorderThickness="0"
+                            Style="{StaticResource AvatarTileButton}"
                             Margin="5">
                         <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="5" Padding="10">
                             <Image Source="{Binding}" Width="100" Height="100"/>
