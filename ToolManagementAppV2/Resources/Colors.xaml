@@ -17,7 +17,7 @@
     <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource Col.Fg}"/>
     <SolidColorBrush x:Key="ForegroundMutedBrush" Color="{StaticResource Col.FgMuted}"/>
     <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Col.Success}"/>
-    <Color x:Key="Col.Accent">#E50914</Color>
+    <Color x:Key="Col.Accent">gray</Color>
     <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Col.Accent}"/>
     <Color x:Key="Col.CardBackground">#1F1F1F</Color>
     <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource Col.CardBackground}"/>
