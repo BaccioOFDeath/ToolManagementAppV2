@@ -12,7 +12,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Border Style="{StaticResource Card}">
-            <TextBlock Text="{Binding Message}" FontSize="16" TextWrapping="Wrap"/>
+            <TextBlock Text="{Binding Message}" Style="{StaticResource DialogMessageTextBlock}"/>
         </Border>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Style="{StaticResource PrimaryButton}" Content="OK" Command="{Binding OkCommand}"/>
