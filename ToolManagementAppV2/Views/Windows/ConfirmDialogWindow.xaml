@@ -13,7 +13,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Border Style="{StaticResource Card}">
-            <TextBlock Text="{Binding Message}" FontSize="16" TextWrapping="Wrap"/>
+            <TextBlock Text="{Binding Message}" Style="{StaticResource DialogMessageTextBlock}"/>
         </Border>
         <controls:DialogButtonBar Grid.Row="1"
                                   LeftButtonText="No"
