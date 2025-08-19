@@ -156,7 +156,7 @@ namespace ToolManagementAppV2.Services
             {
                 if (win.ShowDialog() == true)
                 {
-                    return win.VM.Mappings.ToDictionary(m => m.SelectedColumn, m => m.PropertyName);
+                    return win.VM.Mappings.ToDictionary(m => m.SelectedColumn!, m => m.PropertyName);
                 }
             }
             catch (Exception ex) { _logger.LogError(ex, "Failed to show ImportMappingWindow"); }
