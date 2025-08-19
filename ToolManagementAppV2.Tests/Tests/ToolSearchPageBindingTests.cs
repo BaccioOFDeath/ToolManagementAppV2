@@ -46,14 +46,17 @@ namespace ToolManagementAppV2.Tests.Tests
                     var ex = Record.Exception(() => page = new ToolSearchPage());
                     Assert.Null(ex);
 
+                    var itemsBinding = BindingOperations.GetBinding(page.ToolsList, ItemsControl.ItemsSourceProperty);
+                    Assert.Equal("Tools", itemsBinding?.Path.Path);
+
                     var template = page.ToolsList.ItemTemplate;
                     var outer = Assert.IsType<Border>(template.LoadContent());
                     var grid = Assert.IsType<Grid>(outer.Child);
                     var border = Assert.IsType<Border>(grid.Children[0]);
                     var image = Assert.IsType<Image>(border.Child);
-                    var binding = BindingOperations.GetBinding(image, Image.SourceProperty);
-                    Assert.NotNull(binding);
-                    Assert.IsType<NullToDefaultImageConverter>(binding!.Converter);
+                    var imageBinding = BindingOperations.GetBinding(image, Image.SourceProperty);
+                    Assert.NotNull(imageBinding);
+                    Assert.IsType<NullToDefaultImageConverter>(imageBinding!.Converter);
 
                     if (createdApp)
                         app.Shutdown();
