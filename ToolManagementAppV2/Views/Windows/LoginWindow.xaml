@@ -54,7 +54,7 @@
                                         <RowDefinition Height="80"/>
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
-                                    <Border Background="#0e1420"
+                                    <Border Background="{StaticResource SurfaceAltBrush}"
                                             CornerRadius="8"
                                             BorderBrush="{StaticResource BorderBrushAlt}"
                                             BorderThickness="1"

@@ -9,6 +9,7 @@
     <Color x:Key="Col.Fg">#E6F0F5</Color>
     <Color x:Key="Col.FgMuted">#93A4B3</Color>
     <Color x:Key="Col.Success">#2ECC71</Color>
+    <Color x:Key="Col.Error">#ff6b6b</Color>
     <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource Col.Background}"/>
     <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource Col.Surface}"/>
     <SolidColorBrush x:Key="SurfaceAltBrush" Color="{StaticResource Col.SurfaceAlt}"/>
@@ -17,6 +18,7 @@
     <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource Col.Fg}"/>
     <SolidColorBrush x:Key="ForegroundMutedBrush" Color="{StaticResource Col.FgMuted}"/>
     <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Col.Success}"/>
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource Col.Error}"/>
     <Color x:Key="Col.Accent">gray</Color>
     <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Col.Accent}"/>
     <Color x:Key="Col.CardBackground">#1F1F1F</Color>
