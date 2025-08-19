@@ -12,7 +12,7 @@ namespace ToolManagementAppV2.Tests.Tests
     public class ToolSearchPageLayoutTests
     {
         [Fact]
-        public void ToolsList_UsesHorizontalVirtualizingStackPanel()
+        public void SingleList_UsesHorizontalVirtualizingStackPanel()
         {
             var page = new ToolSearchPage();
 
@@ -26,7 +26,7 @@ namespace ToolManagementAppV2.Tests.Tests
         }
 
         [Fact]
-        public void ToolsList_VirtualizesLargeCollections()
+        public void SingleList_VirtualizesLargeCollections()
         {
             var page = new ToolSearchPage();
             page.ToolsList.ItemsSource = Enumerable.Range(0, 1000)

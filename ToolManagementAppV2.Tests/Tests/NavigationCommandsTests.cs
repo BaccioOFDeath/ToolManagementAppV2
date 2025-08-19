@@ -60,8 +60,8 @@ namespace ToolManagementAppV2.Tests.Tests
 
                 var page = Assert.IsType<ToolSearchPage>(vm.CurrentPage);
                 Assert.Same(vm.ToolManagement, page.DataContext);
-                Assert.Same(vm.ToolManagement.SearchResults, page.ToolsList.ItemsSource);
-                Assert.NotEmpty(vm.ToolManagement.SearchResults);
+                Assert.Same(vm.ToolManagement.Tools, page.ToolsList.ItemsSource);
+                Assert.NotEmpty(vm.ToolManagement.Tools);
             }
             finally
             {
