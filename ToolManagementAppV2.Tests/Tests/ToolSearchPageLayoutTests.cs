@@ -12,54 +12,36 @@ namespace ToolManagementAppV2.Tests.Tests
     public class ToolSearchPageLayoutTests
     {
         [Fact]
-        public void ToolLists_UseHorizontalVirtualizingStackPanel()
+        public void ToolsList_UsesHorizontalVirtualizingStackPanel()
         {
             var page = new ToolSearchPage();
 
-            var handPanel = page.HandToolsList.ItemsPanel.LoadContent();
-            var handStack = Assert.IsType<VirtualizingStackPanel>(handPanel);
-            Assert.Equal(Orientation.Horizontal, handStack.Orientation);
-            Assert.Equal(ScrollBarVisibility.Auto, ScrollViewer.GetHorizontalScrollBarVisibility(page.HandToolsList));
-            Assert.Equal(ScrollBarVisibility.Disabled, ScrollViewer.GetVerticalScrollBarVisibility(page.HandToolsList));
-            Assert.True(VirtualizingStackPanel.GetIsVirtualizing(page.HandToolsList));
-            Assert.IsType<Border>(page.HandToolsList.ItemTemplate.LoadContent());
-
-            var powerPanel = page.PowerToolsList.ItemsPanel.LoadContent();
-            var powerStack = Assert.IsType<VirtualizingStackPanel>(powerPanel);
-            Assert.Equal(Orientation.Horizontal, powerStack.Orientation);
-            Assert.Equal(ScrollBarVisibility.Auto, ScrollViewer.GetHorizontalScrollBarVisibility(page.PowerToolsList));
-            Assert.Equal(ScrollBarVisibility.Disabled, ScrollViewer.GetVerticalScrollBarVisibility(page.PowerToolsList));
-            Assert.True(VirtualizingStackPanel.GetIsVirtualizing(page.PowerToolsList));
+            var panel = page.ToolsList.ItemsPanel.LoadContent();
+            var stack = Assert.IsType<VirtualizingStackPanel>(panel);
+            Assert.Equal(Orientation.Horizontal, stack.Orientation);
+            Assert.Equal(ScrollBarVisibility.Auto, ScrollViewer.GetHorizontalScrollBarVisibility(page.ToolsList));
+            Assert.Equal(ScrollBarVisibility.Disabled, ScrollViewer.GetVerticalScrollBarVisibility(page.ToolsList));
+            Assert.True(VirtualizingStackPanel.GetIsVirtualizing(page.ToolsList));
+            Assert.IsType<Border>(page.ToolsList.ItemTemplate.LoadContent());
         }
 
         [Fact]
-        public void ToolLists_VirtualizeLargeCollections()
+        public void ToolsList_VirtualizesLargeCollections()
         {
             var page = new ToolSearchPage();
-            page.HandToolsList.ItemsSource = Enumerable.Range(0, 1000)
+            page.ToolsList.ItemsSource = Enumerable.Range(0, 1000)
                 .Select(i => new Tool { ToolID = i, NameDescription = $"Tool {i}" })
                 .ToList();
-            page.PowerToolsList.ItemsSource = Enumerable.Range(0, 1000)
-                .Select(i => new Tool { ToolID = i, NameDescription = $"Power {i}" })
-                .ToList();
 
-            page.HandToolsList.Measure(new Size(800, 300));
-            page.HandToolsList.Arrange(new Rect(0, 0, 800, 300));
-            page.HandToolsList.UpdateLayout();
+            page.ToolsList.Measure(new Size(800, 300));
+            page.ToolsList.Arrange(new Rect(0, 0, 800, 300));
+            page.ToolsList.UpdateLayout();
 
-            page.PowerToolsList.Measure(new Size(800, 300));
-            page.PowerToolsList.Arrange(new Rect(0, 0, 800, 300));
-            page.PowerToolsList.UpdateLayout();
+            Assert.NotNull(page.ToolsList.ItemContainerGenerator.ContainerFromIndex(0));
+            Assert.Null(page.ToolsList.ItemContainerGenerator.ContainerFromIndex(999));
 
-            Assert.NotNull(page.HandToolsList.ItemContainerGenerator.ContainerFromIndex(0));
-            Assert.Null(page.HandToolsList.ItemContainerGenerator.ContainerFromIndex(999));
-            Assert.NotNull(page.PowerToolsList.ItemContainerGenerator.ContainerFromIndex(0));
-            Assert.Null(page.PowerToolsList.ItemContainerGenerator.ContainerFromIndex(999));
-
-            var handFirst = (FrameworkElement)page.HandToolsList.ItemContainerGenerator.ContainerFromIndex(0);
-            var powerFirst = (FrameworkElement)page.PowerToolsList.ItemContainerGenerator.ContainerFromIndex(0);
-            Assert.True(handFirst.ActualWidth > 0 && handFirst.ActualHeight > 0);
-            Assert.True(powerFirst.ActualWidth > 0 && powerFirst.ActualHeight > 0);
+            var first = (FrameworkElement)page.ToolsList.ItemContainerGenerator.ContainerFromIndex(0);
+            Assert.True(first.ActualWidth > 0 && first.ActualHeight > 0);
         }
 
         [Fact]

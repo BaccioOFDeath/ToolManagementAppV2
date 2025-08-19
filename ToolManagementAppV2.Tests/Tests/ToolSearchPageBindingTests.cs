@@ -13,7 +13,7 @@ namespace ToolManagementAppV2.Tests.Tests
     public class ToolSearchPageBindingTests
     {
         [Fact]
-        public void HandToolsList_UsesNullToDefaultImageConverter()
+        public void ToolsList_UsesNullToDefaultImageConverter()
         {
             Exception? threadEx = null;
             var thread = new Thread(() =>
@@ -46,7 +46,7 @@ namespace ToolManagementAppV2.Tests.Tests
                     var ex = Record.Exception(() => page = new ToolSearchPage());
                     Assert.Null(ex);
 
-                    var template = page.HandToolsList.ItemTemplate;
+                    var template = page.ToolsList.ItemTemplate;
                     var outer = Assert.IsType<Border>(template.LoadContent());
                     var grid = Assert.IsType<Grid>(outer.Child);
                     var border = Assert.IsType<Border>(grid.Children[0]);
