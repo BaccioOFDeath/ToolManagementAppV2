@@ -8,8 +8,8 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <TextBlock Text="{Binding Title}" FontSize="13" Foreground="{StaticResource ForegroundMutedBrush}"/>
-                <TextBlock Grid.Row="1" Text="{Binding Value}" FontSize="26" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding Title}" Style="{StaticResource LabelTextBlock}"/>
+                <TextBlock Grid.Row="1" Text="{Binding Value}" Style="{StaticResource StatisticValueTextBlock}"/>
             </Grid>
         </Border>
     </DataTemplate>
@@ -28,8 +28,8 @@
                            Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=tool}"/>
                 </Border>
                 <StackPanel Grid.Row="1" Margin="0,6,0,0">
-                    <TextBlock Text="{Binding NameDescription}" FontWeight="SemiBold" FontSize="13"/>
-                    <TextBlock Text="{Binding ToolNumber}" Foreground="{StaticResource ForegroundMutedBrush}" FontSize="12"/>
+                    <TextBlock Text="{Binding NameDescription}" Style="{StaticResource ListItemTitleTextBlock}"/>
+                    <TextBlock Text="{Binding ToolNumber}" Style="{StaticResource CaptionTextBlock}"/>
                 </StackPanel>
             </Grid>
         </Border>

@@ -65,8 +65,7 @@
                                                Text="{Binding UserName}"
                                                HorizontalAlignment="Center"
                                                Margin="0,6,0,0"
-                                               Foreground="{StaticResource ForegroundMutedBrush}"
-                                               FontSize="12"/>
+                                               Style="{StaticResource CaptionTextBlock}"/>
                                 </Grid>
                             </Button>
                         </DataTemplate>
