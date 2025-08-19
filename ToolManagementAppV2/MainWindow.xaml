@@ -27,47 +27,47 @@
                               SnapsToDevicePixels="True"
                               UseLayoutRounding="True">
                     <StackPanel Orientation="Vertical" Margin="12,0,12,8">
-                        <TextBlock Text="Operations" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
+                        <TextBlock Text="Operations" Style="{StaticResource CaptionTextBlock}" Margin="6,8,6,2"/>
                         <Button Style="{StaticResource NavButton}" Content="Dashboard" Command="{Binding OpenDashboardCommand}"/>
                         <Button Style="{StaticResource NavButton}" Content="Search Tools" Command="{Binding OpenSearchToolsCommand}"/>
 
                         <Separator/>
 
-                        <TextBlock Text="Workshop" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
+                        <TextBlock Text="Workshop" Style="{StaticResource CaptionTextBlock}" Margin="6,8,6,2"/>
                         <Button Style="{StaticResource NavButton}" Content="Manage Tools" Command="{Binding OpenManageToolsCommand}" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
                         <Button Style="{StaticResource NavButton}" Content="Customers" Command="{Binding OpenCustomersCommand}"/>
                         <Button Style="{StaticResource NavButton}" Content="Users" Command="{Binding OpenUsersCommand}" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
 
                         <Separator/>
 
-                        <TextBlock Text="Rentals" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
+                        <TextBlock Text="Rentals" Style="{StaticResource CaptionTextBlock}" Margin="6,8,6,2"/>
                         <Button Style="{StaticResource NavButton}" Content="Manage Rentals" Command="{Binding OpenRentalsCommand}"/>
 
                         <Separator/>
 
-                        <TextBlock Text="Printing" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
+                        <TextBlock Text="Printing" Style="{StaticResource CaptionTextBlock}" Margin="6,8,6,2"/>
                         <Button Style="{StaticResource NavButton}" Content="Print Preview" Command="{Binding OpenPrintPreviewWindowCommand}"/>
                         <Button Style="{StaticResource NavButton}" Content="Print Labels" Command="{Binding OpenPrintLabelWindowCommand}"/>
 
                         <Separator/>
 
-                        <TextBlock Text="Diagnostics" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
+                        <TextBlock Text="Diagnostics" Style="{StaticResource CaptionTextBlock}" Margin="6,8,6,2"/>
                         <Button Style="{StaticResource NavButton}" Content="Scanner Status" Command="{Binding OpenScannerStatusPageCommand}"/>
 
                         <Separator/>
 
-                        <TextBlock Text="Insights" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
+                        <TextBlock Text="Insights" Style="{StaticResource CaptionTextBlock}" Margin="6,8,6,2"/>
                         <Button Style="{StaticResource NavButton}" Content="Reports" Command="{Binding OpenReportsCommand}"/>
                         <Button Style="{StaticResource NavButton}" Content="Activity Logs" Command="{Binding OpenActivityLogsCommand}"/>
 
                         <Separator/>
 
-                        <TextBlock Text="Data" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
+                        <TextBlock Text="Data" Style="{StaticResource CaptionTextBlock}" Margin="6,8,6,2"/>
                         <Button Style="{StaticResource NavButton}" Content="Import / Export" Command="{Binding OpenImportExportCommand}" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
                        
                         <Separator/>
 
-                        <TextBlock Text="Administration" Foreground="{StaticResource ForegroundMutedBrush}" Margin="6,8,6,2"/>
+                        <TextBlock Text="Administration" Style="{StaticResource CaptionTextBlock}" Margin="6,8,6,2"/>
                         <Button Style="{StaticResource NavButton}" Content="Settings" Command="{Binding OpenSettingsCommand}" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
 
                         <Separator/>
@@ -78,8 +78,8 @@
 
                 <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="12,8,12,16">
                     <Ellipse Width="10" Height="10" Fill="{StaticResource SuccessBrush}" VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding CurrentUserName}" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding CurrentUserRole}" Margin="6,0,0,0" Foreground="{StaticResource ForegroundMutedBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding CurrentUserName}" Style="{StaticResource CaptionTextBlock}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding CurrentUserRole}" Style="{StaticResource CaptionTextBlock}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
             </Grid>
         </Border>
