@@ -3,7 +3,9 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media.Animation;
 using ToolManagementAppV2.Utilities.Extensions;
+using ToolManagementAppV2.Utilities;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.ViewModels;
 
@@ -46,8 +48,14 @@ namespace ToolManagementAppV2
         {
             if (sender is ScrollViewer scrollViewer)
             {
-                var target = scrollViewer.VerticalOffset - e.Delta;
-                scrollViewer.ScrollToVerticalOffset(target);
+                var target = Math.Max(0, Math.Min(scrollViewer.ScrollableHeight, scrollViewer.VerticalOffset - e.Delta));
+
+                var animation = new DoubleAnimation(scrollViewer.VerticalOffset, target, TimeSpan.FromMilliseconds(200))
+                {
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                };
+
+                scrollViewer.BeginAnimation(ScrollViewerBehavior.VerticalOffsetProperty, animation);
                 e.Handled = true;
             }
         }
