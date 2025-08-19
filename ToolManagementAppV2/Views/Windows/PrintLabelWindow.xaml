@@ -24,7 +24,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="Label Template" VerticalAlignment="Center" Foreground="{StaticResource ForegroundMutedBrush}"/>
+                <TextBlock Text="Label Template" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
                 <ComboBox Grid.Column="1" ItemsSource="{Binding Templates}" SelectedItem="{Binding SelectedTemplate}" Margin="8,0,0,0"/>
                 <CheckBox Grid.Column="2" Content="Include QR" IsChecked="{Binding IncludeQr}" HorizontalAlignment="Left" Margin="8,4,0,0"/>
             </Grid>

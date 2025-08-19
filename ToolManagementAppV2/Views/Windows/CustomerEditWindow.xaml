@@ -25,22 +25,22 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Company" VerticalAlignment="Center" Margin="0,0,8,8"/>
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Company" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Customer.Company, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="Contact" VerticalAlignment="Center" Margin="0,0,8,8"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Contact" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Customer.Contact, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Email" VerticalAlignment="Center" Margin="0,0,8,8"/>
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Email" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Customer.Email, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="Phone" VerticalAlignment="Center" Margin="0,0,8,8"/>
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Phone" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Customer.Phone, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-            <TextBlock Grid.Row="4" Grid.Column="0" Text="Mobile" VerticalAlignment="Center" Margin="0,0,8,8"/>
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="Mobile" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Customer.Mobile, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-            <TextBlock Grid.Row="5" Grid.Column="0" Text="Address" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="Address" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,0"/>
             <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Customer.Address, UpdateSourceTrigger=PropertyChanged}"/>
         </Grid>
 
