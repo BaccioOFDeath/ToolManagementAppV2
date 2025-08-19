@@ -85,14 +85,17 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var logger = new StubLogger<MainViewModel>();
 
                 Func<Task<bool>> stubLogin = () => Task.FromResult(false);
-
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
                     new StubFileDialogService(), activityLogService, settingsService, db, dialog, logger, stubLogin);
+
+                var oldUser = new User { UserName = "old", IsAdmin = false };
+                userContext.CurrentUser = oldUser;
 
                 await vm.SwitchUserCommand.ExecuteAsync(null);
 
                 Assert.True(dialog.InfoShown);
                 Assert.Equal("Switch user cancelled.", logger.LastWarning);
+                Assert.Same(oldUser, userContext.CurrentUser);
             }
             finally
             {
