@@ -29,7 +29,7 @@
                     <Image Source="{Binding CompanyLogo}" Width="36" Height="36" Margin="0,0,10,0"/>
                     <TextBlock Text="{Binding WindowTitle}" Style="{StaticResource HeadingTextBlock}" VerticalAlignment="Center"/>
                 </StackPanel>
-                <TextBlock DockPanel.Dock="Right" Foreground="{StaticResource ForegroundMutedBrush}" VerticalAlignment="Center"
+                <TextBlock DockPanel.Dock="Right" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" 
                            Text="Select your account to continue"/>
             </DockPanel>
         </Border>
