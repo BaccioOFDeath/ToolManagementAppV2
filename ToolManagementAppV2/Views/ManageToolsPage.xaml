@@ -23,13 +23,6 @@
                             <VirtualizingStackPanel/>
                         </ItemsPanelTemplate>
                     </ListView.ItemsPanel>
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
-                            <Setter Property="Background" Value="Transparent"/>
-                            <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
-                        </Style>
-                    </ListView.ItemContainerStyle>
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="Number" DisplayMemberBinding="{Binding ToolNumber}" Width="140"/>
