@@ -17,20 +17,22 @@
         <WrapPanel Orientation="Horizontal" ItemWidth="260" ItemHeight="100"/>
     </ItemsPanelTemplate>
     <DataTemplate x:Key="ToolCardTemplate">
-        <Grid Width="220" Margin="6">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="140"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <Border Background="#0e1420" CornerRadius="8" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1">
-                <Image Stretch="UniformToFill"
-                       Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=tool}"/>
-            </Border>
-            <StackPanel Grid.Row="1" Margin="0,6,0,0">
-                <TextBlock Text="{Binding NameDescription}" FontWeight="SemiBold" FontSize="13"/>
-                <TextBlock Text="{Binding ToolNumber}" Foreground="{StaticResource ForegroundMutedBrush}" FontSize="12"/>
-            </StackPanel>
-        </Grid>
+        <Border Style="{StaticResource Card}" Width="220" Padding="0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="140"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Border Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1" CornerRadius="8">
+                    <Image Stretch="UniformToFill"
+                           Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=tool}"/>
+                </Border>
+                <StackPanel Grid.Row="1" Margin="0,6,0,0">
+                    <TextBlock Text="{Binding NameDescription}" FontWeight="SemiBold" FontSize="13"/>
+                    <TextBlock Text="{Binding ToolNumber}" Foreground="{StaticResource ForegroundMutedBrush}" FontSize="12"/>
+                </StackPanel>
+            </Grid>
+        </Border>
     </DataTemplate>
 
     <!-- Shared rental DataGrid columns -->

@@ -47,7 +47,8 @@ namespace ToolManagementAppV2.Tests.Tests
                     Assert.Null(ex);
 
                     var template = page.HandToolsList.ItemTemplate;
-                    var grid = Assert.IsType<Grid>(template.LoadContent());
+                    var outer = Assert.IsType<Border>(template.LoadContent());
+                    var grid = Assert.IsType<Grid>(outer.Child);
                     var border = Assert.IsType<Border>(grid.Children[0]);
                     var image = Assert.IsType<Image>(border.Child);
                     var binding = BindingOperations.GetBinding(image, Image.SourceProperty);
