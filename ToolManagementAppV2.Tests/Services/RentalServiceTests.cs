@@ -14,11 +14,21 @@ using ToolManagementAppV2.Interfaces;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using ToolManagementAppV2.Services.Users;
+using ToolManagementAppV2.Tests;
 
 namespace ToolManagementAppV2.Tests.Services
 {
     public class RentalServiceTests
     {
+        class StubUserContext : IUserContext
+        {
+            public User? CurrentUser { get; set; }
+            public event EventHandler<User?>? UserChanged;
+            public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
+            public string UserName => CurrentUser?.UserName ?? string.Empty;
+            public string Role => CurrentUser?.Role ?? string.Empty;
+        }
         [Fact]
         public void GetRentalHistoryForTool_ReturnsHistory()
         {
@@ -360,6 +370,37 @@ namespace ToolManagementAppV2.Tests.Services
                 var toolAfter = toolService.GetToolByID(tool.ToolID);
                 Assert.Equal(0, toolAfter.QuantityOnHand);
                 Assert.Equal(1, toolAfter.RentedQuantity);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task RentToolAsync_LogsActivity()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var ctx = new StubUserContext { CurrentUser = new User { UserID = 1, UserName = "tester", IsAdmin = true } };
+                var auth = new AllowAllAuthorizationService();
+                var logService = new ActivityLogService(db);
+                var toolService = new ToolService(db, auth, null, logService, ctx);
+                var customerService = new CustomerService(db, auth);
+                var rentalService = new RentalService(db, auth, toolService, null, logService, ctx);
+
+                await toolService.AddToolAsync(new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1, RentedQuantity = 0 });
+                await customerService.AddCustomerAsync(new Customer { Company = "Acme" });
+                var tool = (await toolService.GetAllToolsAsync()).First();
+                var cust = (await customerService.GetAllCustomersAsync()).First();
+
+                await rentalService.RentToolAsync(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+
+                var logs = await logService.GetRecentLogsAsync();
+                Assert.Contains(logs.Value, l => l.Action.Contains("Rented tool"));
             }
             finally
             {

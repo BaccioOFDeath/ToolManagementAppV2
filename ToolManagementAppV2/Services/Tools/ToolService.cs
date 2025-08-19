@@ -33,12 +33,16 @@ namespace ToolManagementAppV2.Services.Tools
     
         readonly ILogger<ToolService> _logger;
         readonly IAuthorizationService _auth;
+        readonly ActivityLogService? _activityLog;
+        readonly IUserContext? _context;
 
-        public ToolService(DatabaseService dbService, IAuthorizationService? authorizationService = null, ILogger<ToolService>? logger = null)
+        public ToolService(DatabaseService dbService, IAuthorizationService? authorizationService = null, ILogger<ToolService>? logger = null, ActivityLogService? activityLogService = null, IUserContext? userContext = null)
         {
             _dbService = dbService;
             _auth = authorizationService ?? new NoOpAuthorizationService();
             _logger = logger ?? NullLogger<ToolService>.Instance;
+            _activityLog = activityLogService;
+            _context = userContext;
         }
 
         static void ValidateQuantity(int quantity)
@@ -47,28 +51,49 @@ namespace ToolManagementAppV2.Services.Tools
                 throw new ArgumentOutOfRangeException(nameof(Tool.QuantityOnHand), $"QuantityOnHand must be between 0 and {MaxQuantityOnHand}.");
         }
 
-        public Task AddToolAsync(ToolModel tool, CancellationToken cancellationToken = default)
+        public async Task AddToolAsync(ToolModel tool, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
-            return AddToolInternalAsync(tool, cancellationToken);
+            await AddToolInternalAsync(tool, cancellationToken).ConfigureAwait(false);
+            if (_activityLog != null)
+            {
+                var user = _context?.CurrentUser;
+                await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Added tool {tool.ToolNumber}", cancellationToken).ConfigureAwait(false);
+            }
         }
 
-        public Task UpdateToolAsync(ToolModel tool, CancellationToken cancellationToken = default)
+        public async Task UpdateToolAsync(ToolModel tool, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
-            return UpdateToolInternalAsync(tool, cancellationToken);
+            await UpdateToolInternalAsync(tool, cancellationToken).ConfigureAwait(false);
+            if (_activityLog != null)
+            {
+                var user = _context?.CurrentUser;
+                await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Updated tool {tool.ToolNumber}", cancellationToken).ConfigureAwait(false);
+            }
         }
 
-        public Task DeleteToolAsync(int toolID, CancellationToken cancellationToken = default)
+        public async Task DeleteToolAsync(int toolID, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
-            return DeleteToolInternalAsync(toolID, cancellationToken);
+            await DeleteToolInternalAsync(toolID, cancellationToken).ConfigureAwait(false);
+            if (_activityLog != null)
+            {
+                var user = _context?.CurrentUser;
+                await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Deleted tool {toolID}", cancellationToken).ConfigureAwait(false);
+            }
         }
 
-        public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default)
+        public async Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
-            return ToggleToolCheckOutStatusInternalAsync(toolID, currentUser, cancellationToken);
+            var result = await ToggleToolCheckOutStatusInternalAsync(toolID, currentUser, cancellationToken).ConfigureAwait(false);
+            if (result && _activityLog != null)
+            {
+                int userId = _context?.CurrentUser?.UserID ?? 0;
+                await _activityLog.LogActionAsync(userId, currentUser, $"Toggled tool {toolID} check-out status", cancellationToken).ConfigureAwait(false);
+            }
+            return result;
         }
 
         public Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default)

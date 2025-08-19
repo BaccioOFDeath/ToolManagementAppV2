@@ -13,11 +13,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ToolManagementAppV2.Tests;
+using ToolManagementAppV2.Services.Users;
 
 namespace ToolManagementAppV2.Tests.Services
 {
     public class ToolServiceTests
     {
+        class StubUserContext : IUserContext
+        {
+            public User? CurrentUser { get; set; }
+            public event EventHandler<User?>? UserChanged;
+            public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
+            public string UserName => CurrentUser?.UserName ?? string.Empty;
+            public string Role => CurrentUser?.Role ?? string.Empty;
+        }
         [Fact]
         public void SearchTools_WithNull_ReturnsAllTools()
         {
@@ -103,7 +112,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var logs = new List<LogEntry>();
                 using var loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
                 var dbService = new DatabaseService(dbPath);
-                var service = new ToolService(dbService, loggerFactory.CreateLogger<ToolService>());
+                var service = new ToolService(dbService, logger: loggerFactory.CreateLogger<ToolService>());
 
                 service.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
 
@@ -349,7 +358,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var logs = new List<LogEntry>();
                 using var loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
                 var dbService = new DatabaseService(dbPath);
-                var service = new ToolService(dbService, loggerFactory.CreateLogger<ToolService>());
+                var service = new ToolService(dbService, logger: loggerFactory.CreateLogger<ToolService>());
 
                 service.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
                 var tool = service.GetAllTools().First();
@@ -454,7 +463,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var logs = new List<LogEntry>();
                 using var loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
                 var db = new DatabaseService(dbPath);
-                var svc = new ToolService(db, loggerFactory.CreateLogger<ToolService>());
+                var svc = new ToolService(db, logger: loggerFactory.CreateLogger<ToolService>());
                 svc.AddTool(new Tool { ToolNumber = "T1", NameDescription = "A" });
 
                 var result = svc.ImportToolImages(imgDir, t => new[] { t.ToolNumber });
@@ -650,7 +659,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var logs = new List<LogEntry>();
                 using var loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
                 var dbService = new DatabaseService(dbPath);
-                IToolService service = new ToolService(dbService, loggerFactory.CreateLogger<ToolService>());
+                IToolService service = new ToolService(dbService, logger: loggerFactory.CreateLogger<ToolService>());
 
                 service.AddTool(new Tool
                 {
@@ -946,6 +955,27 @@ namespace ToolManagementAppV2.Tests.Services
                 if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
                 var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
                 if (Directory.Exists(destDir)) Directory.Delete(destDir, true);
+            }
+        }
+
+        [Fact]
+        public async Task AddToolAsync_LogsActivity()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var ctx = new StubUserContext { CurrentUser = new User { UserID = 1, UserName = "tester", IsAdmin = true } };
+                var auth = new AllowAllAuthorizationService();
+                var logService = new ActivityLogService(dbService);
+                var svc = new ToolService(dbService, auth, null, logService, ctx);
+                await svc.AddToolAsync(new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1, RentedQuantity = 0 });
+                var logs = await logService.GetRecentLogsAsync();
+                Assert.Contains(logs.Value, l => l.Action.Contains("Added tool"));
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
             }
         }
 

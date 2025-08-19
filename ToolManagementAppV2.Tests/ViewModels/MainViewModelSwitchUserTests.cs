@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Windows;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
@@ -58,6 +59,60 @@ namespace ToolManagementAppV2.Tests.ViewModels
             }
             finally
             {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task SwitchUserCommand_ClosesNonMainWindows()
+        {
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
+            System.Windows.Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            var main = new Window();
+            System.Windows.Application.Current.MainWindow = main;
+            main.Show();
+            var w1 = new Window();
+            w1.Show();
+            var w2 = new Window();
+            w2.Show();
+
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ToolService(db);
+                var userContext = new ApplicationUserContext();
+                var userService = new UserService(db, userContext);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var activityLogService = new ActivityLogService(db);
+                var settingsService = new SettingsService(db);
+                var dialog = new StubDialogService();
+
+                Func<Task<bool>> stubLogin = () =>
+                {
+                    userContext.CurrentUser = new User { UserName = "new", IsAdmin = true };
+                    return Task.FromResult(true);
+                };
+
+                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                    new StubFileDialogService(), activityLogService, settingsService, db, dialog, null, stubLogin);
+
+                await vm.SwitchUserCommand.ExecuteAsync(null);
+
+                Assert.False(w1.IsVisible);
+                Assert.False(w2.IsVisible);
+                Assert.True(main.IsVisible);
+                Assert.Single(System.Windows.Application.Current.Windows.Cast<Window>());
+            }
+            finally
+            {
+                w1.Close();
+                w2.Close();
+                main.Close();
+                System.Windows.Application.Current.Shutdown();
                 if (File.Exists(dbPath))
                     File.Delete(dbPath);
             }
@@ -227,7 +282,6 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public System.Func<ToolModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
         public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
         public void ShowPrintLabelDialog() { }
-        public void ShowScannerStatus() { }
     }
 
     class StubLogger<T> : ILogger<T>

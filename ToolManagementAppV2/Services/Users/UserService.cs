@@ -20,13 +20,15 @@ namespace ToolManagementAppV2.Services.Users
         readonly IUserContext _context;
         readonly ILogger<UserService> _logger;
         readonly IAuthorizationService _auth;
+        readonly ActivityLogService? _activityLog;
 
-        public UserService(DatabaseService dbService, IUserContext context, IAuthorizationService? authorizationService = null, ILogger<UserService>? logger = null)
+        public UserService(DatabaseService dbService, IUserContext context, IAuthorizationService? authorizationService = null, ILogger<UserService>? logger = null, ActivityLogService? activityLogService = null)
         {
             _dbService = dbService;
             _context = context;
             _auth = authorizationService ?? new NoOpAuthorizationService();
             _logger = logger ?? NullLogger<UserService>.Instance;
+            _activityLog = activityLogService;
         }
 
 
@@ -145,7 +147,13 @@ namespace ToolManagementAppV2.Services.Users
                 success = await SecurityHelper.VerifyPasswordAsync(password, u.PasswordSalt, u.PasswordHash).ConfigureAwait(false);
             }
 
-            return success ? (AuthenticationResult.Success, u) : (AuthenticationResult.IncorrectPassword, null);
+            if (success)
+            {
+                if (_activityLog != null)
+                    await _activityLog.LogActionAsync(u.UserID, u.UserName ?? string.Empty, "User login").ConfigureAwait(false);
+                return (AuthenticationResult.Success, u);
+            }
+            return (AuthenticationResult.IncorrectPassword, null);
         }
 
 

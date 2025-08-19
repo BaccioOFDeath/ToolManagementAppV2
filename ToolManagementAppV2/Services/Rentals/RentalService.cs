@@ -20,13 +20,17 @@ namespace ToolManagementAppV2.Services.Rentals
         private readonly IToolService? _toolService;
         private readonly ILogger<RentalService> _logger;
         private readonly IAuthorizationService _auth;
+        private readonly ActivityLogService? _activityLog;
+        private readonly IUserContext? _context;
 
-        public RentalService(DatabaseService dbService, IAuthorizationService? authorizationService = null, IToolService? toolService = null, ILogger<RentalService>? logger = null)
+        public RentalService(DatabaseService dbService, IAuthorizationService? authorizationService = null, IToolService? toolService = null, ILogger<RentalService>? logger = null, ActivityLogService? activityLogService = null, IUserContext? userContext = null)
         {
             _dbService = dbService ?? throw new ArgumentNullException(nameof(dbService));
             _auth = authorizationService ?? new NoOpAuthorizationService();
             _toolService = toolService; // may be null if inventory sync not desired
             _logger = logger ?? NullLogger<RentalService>.Instance;
+            _activityLog = activityLogService;
+            _context = userContext;
         }
 
         async Task ExecuteWithTransactionAsync(Func<SQLiteConnection, SQLiteTransaction, Task> action, Func<Task>? postCommitAction = null)
@@ -112,6 +116,11 @@ namespace ToolManagementAppV2.Services.Rentals
                 if (_toolService != null)
                     await _toolService.UpdateToolQuantitiesAsync(toolID, 1, true, conn, tx);
             });
+            if (_activityLog != null)
+            {
+                var user = _context?.CurrentUser;
+                await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Rented tool {toolID} to customer {customerID}").ConfigureAwait(false);
+            }
         }
 
         public async Task ReturnToolAsync(int rentalID, DateTime returnDate)
@@ -137,6 +146,11 @@ namespace ToolManagementAppV2.Services.Rentals
                 if (_toolService != null)
                     await _toolService.UpdateToolQuantitiesAsync(toolID, 1, false, conn, tx);
             });
+            if (_activityLog != null)
+            {
+                var user = _context?.CurrentUser;
+                await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Returned rental {rentalID}").ConfigureAwait(false);
+            }
         }
 
         public async Task ExtendRentalAsync(int rentalID, DateTime newDueDate)
@@ -171,6 +185,11 @@ namespace ToolManagementAppV2.Services.Rentals
                         await _toolService.UpdateToolQuantitiesAsync(toolID, 1, false, conn, tx);
                 }
             });
+            if (_activityLog != null)
+            {
+                var user = _context?.CurrentUser;
+                await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Extended rental {rentalID}").ConfigureAwait(false);
+            }
         }
 
         public async Task DeleteRentalAsync(int rentalID)
@@ -181,6 +200,11 @@ namespace ToolManagementAppV2.Services.Rentals
             using var conn = _dbService.CreateConnection();
             if (await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p) == 0)
                 throw new InvalidOperationException("Rental not found.");
+            if (_activityLog != null)
+            {
+                var user = _context?.CurrentUser;
+                await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Deleted rental {rentalID}").ConfigureAwait(false);
+            }
         }
 
         public async Task<List<Rental>> GetActiveRentalsAsync()

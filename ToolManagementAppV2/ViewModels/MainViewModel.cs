@@ -38,6 +38,7 @@ namespace ToolManagementAppV2.ViewModels
         readonly ISettingsService _settingsService;
         readonly IFileDialogService _fileDialogService;
         readonly IDialogService _dialogService;
+        readonly IScannerService _scannerService;
         readonly ILogger<MainViewModel> _logger;
         readonly Func<Task<bool>> _showLoginWindow;
         readonly IDispatcherTimer _autoLogoutTimer;
@@ -114,6 +115,16 @@ namespace ToolManagementAppV2.ViewModels
             OnPropertyChanged(nameof(CurrentUserPhotoPath));
         }
 
+        void CloseNonMainWindows()
+        {
+            var main = Application.Current.MainWindow;
+            foreach (Window window in Application.Current.Windows.Cast<Window>().ToList())
+            {
+                if (window != main)
+                    window.Close();
+            }
+        }
+
         public IRelayCommand OpenDashboardCommand { get; }
         public IAsyncRelayCommand OpenSearchToolsCommand { get; }
         public IAsyncRelayCommand OpenManageToolsCommand { get; }
@@ -132,7 +143,7 @@ namespace ToolManagementAppV2.ViewModels
 
         public IRelayCommand OpenPrintPreviewWindowCommand { get; }
         public IRelayCommand OpenPrintLabelWindowCommand { get; }
-        public IRelayCommand OpenScannerStatusWindowCommand { get; }
+        public IRelayCommand OpenScannerStatusPageCommand { get; }
 
         public MainViewModel(IToolService toolService,
                              IUserService userService,
@@ -146,7 +157,8 @@ namespace ToolManagementAppV2.ViewModels
                              IDialogService dialogService,
                              ILogger<MainViewModel>? logger = null,
                              Func<Task<bool>>? showLoginWindow = null,
-                             IDispatcherTimer? autoLogoutTimer = null)
+                             IDispatcherTimer? autoLogoutTimer = null,
+                             IScannerService? scannerService = null)
         {
             _toolService = toolService;
             _userService = userService;
@@ -156,6 +168,7 @@ namespace ToolManagementAppV2.ViewModels
             _activityLogService = activityLogService;
             _settingsService = settingsService;
             _dialogService = dialogService;
+            _scannerService = scannerService ?? new DummyScannerService();
             _fileDialogService = fileDialogService;
             _logger = logger ?? NullLogger<MainViewModel>.Instance;
             _showLoginWindow = showLoginWindow ?? new Func<Task<bool>>(async () =>
@@ -284,6 +297,7 @@ namespace ToolManagementAppV2.ViewModels
             {
                 var previousUser = _userContext.CurrentUser;
                 _userContext.CurrentUser = null;
+                CloseNonMainWindows();
                 try
                 {
                     if (await _showLoginWindow())
@@ -345,9 +359,11 @@ namespace ToolManagementAppV2.ViewModels
                 }
             });
 
-            OpenScannerStatusWindowCommand = new RelayCommand(() =>
+            OpenScannerStatusPageCommand = new RelayCommand(() =>
             {
-                _dialogService.ShowScannerStatus();
+                var vm = new ScannerStatusViewModel(_scannerService, _dialogService);
+                var page = new ScannerStatusPage { DataContext = vm, Title = "Scanner Status" };
+                CurrentPage = page;
             });
 
             OpenDashboardCommand.Execute(null);
@@ -461,6 +477,12 @@ namespace ToolManagementAppV2.ViewModels
             _autoLogoutTimer.Tick -= OnAutoLogoutTimerTick;
             _autoLogoutTimer.Stop();
             ToolManagement.Dispose();
+        }
+
+        private sealed class DummyScannerService : IScannerService
+        {
+            public Task<IEnumerable<Models.ScannerDevice>> GetScannerDevicesAsync(CancellationToken cancellationToken)
+                => Task.FromResult<IEnumerable<Models.ScannerDevice>>(Array.Empty<Models.ScannerDevice>());
         }
     }
 }

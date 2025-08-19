@@ -64,6 +64,23 @@
         </Style.Triggers>
     </Style>
 
+    <Style TargetType="ListViewItem">
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#2D3C4E"/>
+                <Setter Property="Foreground" Value="White"/>
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="#1E90FF"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <Style TargetType="ComboBox">
         <Setter Property="Background" Value="#141C24"/>
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
@@ -172,9 +189,11 @@
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="Background" Value="#243142"/>
                             <Setter Property="BorderBrush" Value="#3A4B5E"/>
+                            <Setter Property="Foreground" Value="White"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter Property="Background" Value="#1E2936"/>
+                            <Setter Property="Foreground" Value="White"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Foreground" Value="#6C7A86"/>
@@ -218,6 +237,20 @@
         <Setter Property="CanUserReorderColumns" Value="True"/>
         <Setter Property="AutoGenerateColumns" Value="False"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
+    </Style>
+    <Style TargetType="DataGridRow">
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#2D3C4E"/>
+                <Setter Property="Foreground" Value="White"/>
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="#1E90FF"/>
+                <Setter Property="Foreground" Value="White"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
     <Style x:Key="VirtualizedDataGridStyle" TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
         <Setter Property="EnableRowVirtualization" Value="True"/>
@@ -266,6 +299,10 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="Background" Value="{StaticResource BtnBgHover}"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Foreground" Value="White"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.6"/>
