@@ -13,31 +13,28 @@
                 </Grid.RowDefinitions>
 
                 <TextBlock Text="Tools" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                <ListView Grid.Row="1"
+
+                <DataGrid Grid.Row="1"
                           ItemsSource="{Binding Tools}"
                           SelectedItem="{Binding SelectedTool}"
+                          IsReadOnly="True"
+                          AutoGenerateColumns="False"
                           Background="{StaticResource SurfaceBrush}"
-                          BorderBrush="{StaticResource BorderBrushAlt}">
-                    <ListView.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <VirtualizingStackPanel/>
-                        </ItemsPanelTemplate>
-                    </ListView.ItemsPanel>
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn Header="Number" DisplayMemberBinding="{Binding ToolNumber}" Width="140"/>
-                            <GridViewColumn Header="Name" DisplayMemberBinding="{Binding NameDescription}" Width="280"/>
-                            <GridViewColumn Header="Brand" DisplayMemberBinding="{Binding Brand}" Width="160"/>
-                            <GridViewColumn Header="Location" DisplayMemberBinding="{Binding Location}" Width="180"/>
-                        </GridView>
-                    </ListView.View>
-                    <ListView.ContextMenu>
+                          BorderBrush="{StaticResource BorderBrushAlt}"
+                          Style="{StaticResource VirtualizedDataGridStyle}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Number" Binding="{Binding ToolNumber}" Width="140"/>
+                        <DataGridTextColumn Header="Name" Binding="{Binding NameDescription}" Width="280"/>
+                        <DataGridTextColumn Header="Brand" Binding="{Binding Brand}" Width="160"/>
+                        <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="180"/>
+                    </DataGrid.Columns>
+                    <DataGrid.ContextMenu>
                         <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                             <MenuItem Header="Rent" Command="{Binding OpenRentalsCommand}"/>
                             <MenuItem Header="Delete" Command="{Binding DeleteToolCommand}"/>
                         </ContextMenu>
-                    </ListView.ContextMenu>
-                </ListView>
+                    </DataGrid.ContextMenu>
+                </DataGrid>
 
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
                     <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditToolCommand}"/>
