@@ -1,0 +1,74 @@
+using System;
+using System.Linq;
+using System.Threading;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using ToolManagementAppV2.Utilities.Converters;
+using ToolManagementAppV2.Views;
+using Xunit;
+
+namespace ToolManagementAppV2.Tests.Tests
+{
+    public class ToolSearchPageBindingTests
+    {
+        [Fact]
+        public void HandToolsList_UsesNullToDefaultImageConverter()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    bool createdApp = false;
+                    var app = Application.Current;
+                    if (app == null)
+                    {
+                        app = new Application();
+                        createdApp = true;
+                    }
+
+                    void EnsureDictionary(string file)
+                    {
+                        var uri = new Uri($"pack://application:,,,/Resources/{file}", UriKind.Absolute);
+                        if (!app.Resources.MergedDictionaries.Any(d => d.Source == uri))
+                        {
+                            app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = uri });
+                        }
+                    }
+
+                    EnsureDictionary("Colors.xaml");
+                    EnsureDictionary("Styles.xaml");
+                    EnsureDictionary("Converters.xaml");
+                    EnsureDictionary("Templates.xaml");
+
+                    ToolSearchPage page = null!;
+                    var ex = Record.Exception(() => page = new ToolSearchPage());
+                    Assert.Null(ex);
+
+                    var template = page.HandToolsList.ItemTemplate;
+                    var grid = Assert.IsType<Grid>(template.LoadContent());
+                    var border = Assert.IsType<Border>(grid.Children[0]);
+                    var image = Assert.IsType<Image>(border.Child);
+                    var binding = BindingOperations.GetBinding(image, Image.SourceProperty);
+                    Assert.NotNull(binding);
+                    Assert.IsType<NullToDefaultImageConverter>(binding!.Converter);
+
+                    if (createdApp)
+                        app.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null)
+            {
+                throw threadEx;
+            }
+        }
+    }
+}
