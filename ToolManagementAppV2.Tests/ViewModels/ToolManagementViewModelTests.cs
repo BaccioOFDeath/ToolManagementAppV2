@@ -76,7 +76,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task SearchCommand_SortsResultsIntoCategories()
+        public async Task SearchCommand_ReturnsAllTools_WhenNoSearchTerm()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -91,8 +91,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Cordless Drill", IsPowerTool = true });
                 vm.SearchTerm = string.Empty;
                 await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
-                Assert.Single(vm.HandTools);
-                Assert.Single(vm.PowerTools);
+                Assert.Equal(2, vm.SearchResults.Count);
+                Assert.Contains(vm.SearchResults, t => t.NameDescription == "Hammer");
+                Assert.Contains(vm.SearchResults, t => t.NameDescription == "Cordless Drill");
             }
             finally
             {

@@ -26,8 +26,6 @@ namespace ToolManagementAppV2.ViewModels
 
         public ObservableCollection<ToolModel> Tools { get; } = new();
         public ObservableCollection<ToolModel> SearchResults { get; } = new();
-        public ObservableCollection<ToolModel> HandTools { get; } = new();
-        public ObservableCollection<ToolModel> PowerTools { get; } = new();
 
         /// <summary>
         /// List of available tool categories derived from distinct brands
@@ -161,7 +159,6 @@ namespace ToolManagementAppV2.ViewModels
                 var all = await _toolService.GetAllToolsAsync();
                 Tools.ReplaceRange(all);
                 SearchResults.ReplaceRange(all);
-                CategorizeTools(all);
                 LoadCategories(Tools);
             }
             finally
@@ -200,7 +197,6 @@ namespace ToolManagementAppV2.ViewModels
             }
 
             SearchResults.ReplaceRange(source);
-            CategorizeTools(source);
             LoadCategories(source, suppressSearch: true);
         }
 
@@ -363,14 +359,6 @@ namespace ToolManagementAppV2.ViewModels
                 await _dialogService.ShowInfoAsync($"Failed to rent tool: {ex.Message}", "Error");
             }
         }
-
-        void CategorizeTools(IEnumerable<ToolModel> tools)
-        {
-            HandTools.ReplaceRange(tools.Where(t => !IsPowerTool(t)));
-            PowerTools.ReplaceRange(tools.Where(IsPowerTool));
-        }
-
-        static bool IsPowerTool(ToolModel tool) => tool?.IsPowerTool == true;
 
         void LoadCategories(IEnumerable<ToolModel> tools, bool suppressSearch = false)
         {
