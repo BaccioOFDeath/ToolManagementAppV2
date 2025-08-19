@@ -22,7 +22,8 @@
                     <ListView ItemsSource="{Binding RecentActivity}"
                               ItemTemplate="{StaticResource ActivityLogItemTemplate}"
                               VirtualizingPanel.IsVirtualizing="True"
-                              VirtualizingPanel.VirtualizationMode="Recycling">
+                              VirtualizingPanel.VirtualizationMode="Recycling"
+                              Style="{StaticResource CardListView}">
                         <ListView.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <VirtualizingStackPanel/>
