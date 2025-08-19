@@ -5,7 +5,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using ToolManagementAppV2.Services;
-using ToolManagementAppV2.Views;
+using ToolManagementAppV2.Views.Pages;
+using ToolManagementAppV2.Views.Windows;
 using Xunit;
 using Microsoft.Extensions.DependencyInjection;
 

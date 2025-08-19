@@ -10,7 +10,8 @@ using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.ViewModels;
-using ToolManagementAppV2.Views;
+using ToolManagementAppV2.Views.Pages;
+using ToolManagementAppV2.Views.Windows;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.Views

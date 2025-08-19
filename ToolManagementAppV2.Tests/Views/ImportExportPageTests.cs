@@ -7,7 +7,8 @@ using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Models.ImportExport;
 using ToolManagementAppV2.ViewModels;
-using ToolManagementAppV2.Views;
+using ToolManagementAppV2.Views.Pages;
+using ToolManagementAppV2.Views.Windows;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.Views

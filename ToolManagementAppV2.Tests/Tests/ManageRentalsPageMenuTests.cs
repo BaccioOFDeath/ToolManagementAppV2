@@ -5,7 +5,8 @@ using System.Collections.Generic;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.ViewModels;
-using ToolManagementAppV2.Views;
+using ToolManagementAppV2.Views.Pages;
+using ToolManagementAppV2.Views.Windows;
 using ToolManagementAppV2.Interfaces;
 using Xunit;
 
