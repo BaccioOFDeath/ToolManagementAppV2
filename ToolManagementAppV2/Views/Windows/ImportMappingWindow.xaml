@@ -18,7 +18,9 @@
                       HeadersVisibility="Column"
                       CanUserAddRows="False"
                       CanUserDeleteRows="False"
-                      IsReadOnly="False">
+                      IsReadOnly="False"
+                      Style="{StaticResource VirtualizedDataGridStyle}"
+                      ColumnHeaderStyle="{StaticResource {x:Type DataGridColumnHeader}}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Property" Binding="{Binding PropertyName}" IsReadOnly="True" Width="2*"/>
                     <DataGridTemplateColumn Header="CSV Column" Width="3*">
