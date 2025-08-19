@@ -55,6 +55,26 @@
         <Setter Property="FontSize" Value="16"/>
         <Setter Property="TextWrapping" Value="Wrap"/>
     </Style>
+    <Style x:Key="PageTitleTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="FontSize" Value="20"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    <Style x:Key="CaptionTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource ForegroundMutedBrush}"/>
+    </Style>
+    <Style x:Key="LabelTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Foreground" Value="{StaticResource ForegroundMutedBrush}"/>
+    </Style>
+    <Style x:Key="ListItemTitleTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    <Style x:Key="StatisticValueTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="FontSize" Value="26"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
     <Style TargetType="TextBox">
         <Setter Property="Background" Value="#141C24"/>
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>

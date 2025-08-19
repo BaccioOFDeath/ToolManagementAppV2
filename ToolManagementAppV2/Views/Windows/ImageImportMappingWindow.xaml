@@ -10,7 +10,7 @@
     <DockPanel Margin="10">
         <Border Style="{StaticResource Card}" DockPanel.Dock="Top">
             <StackPanel>
-                <TextBlock Text="Match images by:" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                <TextBlock Text="Match images by:" Style="{StaticResource SectionHeader}"/>
                 <WrapPanel>
                     <CheckBox Content="ToolNumber" IsChecked="{Binding UseToolNumber}" Margin="6,0"/>
                     <CheckBox Content="PartNumber" IsChecked="{Binding UsePartNumber}" Margin="6,0"/>
