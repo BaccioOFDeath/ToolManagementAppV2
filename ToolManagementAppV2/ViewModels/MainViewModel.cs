@@ -88,6 +88,13 @@ namespace ToolManagementAppV2.ViewModels
 
         public string? CurrentUserPhotoPath => _userContext.CurrentUser?.UserPhotoPath;
 
+        private string? _companyLogoPath;
+        public string? CompanyLogoPath
+        {
+            get => _companyLogoPath;
+            private set => SetProperty(ref _companyLogoPath, value);
+        }
+
         public ToolModel? SelectedTool => ToolManagement.SelectedTool;
 
         public void ResetAutoLogoutTimer()
@@ -179,6 +186,9 @@ namespace ToolManagementAppV2.ViewModels
             Reports = new ReportsViewModel(new ReportService(toolService, rentalService, activityLogService, customerService, userService));
             ActivityLogs = new ActivityLogsViewModel(activityLogService);
             Settings = new SettingsViewModel(_fileDialogService, _settingsService, _dialogService);
+            var logoPath = _settingsService.GetSettingAsync("CompanyLogoPath").GetAwaiter().GetResult();
+            if (!string.IsNullOrWhiteSpace(logoPath))
+                CompanyLogoPath = logoPath;
             _autoLogoutTimer = autoLogoutTimer ?? new DispatcherTimerWrapper();
             _autoLogoutTimer.Tick += OnAutoLogoutTimerTick;
             Settings.PropertyChanged += Settings_PropertyChanged;
@@ -347,6 +357,8 @@ namespace ToolManagementAppV2.ViewModels
         {
             if (e.PropertyName == nameof(SettingsViewModel.AutoLogoutMinutes))
                 UpdateAutoLogoutTimer();
+            else if (e.PropertyName == nameof(SettingsViewModel.CompanyLogoPath))
+                CompanyLogoPath = Settings.CompanyLogoPath;
         }
 
         void UpdateAutoLogoutTimer()

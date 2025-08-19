@@ -5,6 +5,7 @@ using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using System.Windows.Data;
 using ToolManagementAppV2.ViewModels;
 using Xunit;
 using System.IO;
@@ -103,6 +104,45 @@ namespace ToolManagementAppV2.Tests.Views
 
                         var vm = Assert.IsType<MainViewModel>(window.DataContext);
                         Assert.Same(vm.SwitchUserCommand, button!.Command);
+                    }
+                    finally
+                    {
+                        window.Close();
+                        if (File.Exists(dbPath))
+                            File.Delete(dbPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    threadException = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadException != null)
+            {
+                throw threadException;
+            }
+        }
+
+        [Fact]
+        public void HeaderImage_BoundToCompanyLogoPath()
+        {
+            Exception? threadException = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var (window, dbPath) = TestHelpers.CreateMainWindow();
+                    try
+                    {
+                        var image = TestHelpers.FindVisualChildren<Image>(window)
+                            .FirstOrDefault(i => BindingOperations.GetBinding(i, Image.SourceProperty)?.Path?.Path == "CompanyLogoPath");
+                        Assert.NotNull(image);
                     }
                     finally
                     {
