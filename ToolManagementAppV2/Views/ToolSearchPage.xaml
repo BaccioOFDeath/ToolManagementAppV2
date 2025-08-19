@@ -25,6 +25,7 @@
             </Grid>
         </Border>
         <ListBox x:Name="ToolsList" Grid.Row="1"
+                 Background="{StaticResource SurfaceBrush}"
                  ItemsSource="{Binding SearchResults}"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
