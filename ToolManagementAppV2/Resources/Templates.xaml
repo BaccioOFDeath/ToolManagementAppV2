@@ -24,7 +24,7 @@
             </Grid.RowDefinitions>
             <Border Background="#0e1420" CornerRadius="8" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1">
                 <Image Stretch="UniformToFill"
-                       Source="{Binding ToolImagePath, Converter={DynamicResource NullToDefaultImageConverter}, ConverterParameter=tool}"/>
+                       Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=tool}"/>
             </Border>
             <StackPanel Grid.Row="1" Margin="0,6,0,0">
                 <TextBlock Text="{Binding NameDescription}" FontWeight="SemiBold" FontSize="13"/>
