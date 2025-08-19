@@ -35,6 +35,9 @@
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
         <Setter Property="TextWrapping" Value="Wrap"/>
     </Style>
+    <Style x:Key="ErrorTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="Foreground" Value="{StaticResource ErrorBrush}"/>
+    </Style>
     <Style TargetType="TextBox">
         <Setter Property="Background" Value="#141C24"/>
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>

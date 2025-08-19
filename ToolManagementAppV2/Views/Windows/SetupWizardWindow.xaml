@@ -20,7 +20,7 @@
         <PasswordBox Grid.Row="1" x:Name="NewPasswordBox" PasswordChanged="NewPasswordBox_PasswordChanged" Width="140" HorizontalAlignment="Center"/>
         <TextBlock Grid.Row="2" Text="Confirm Password" Margin="0,10,0,0" HorizontalAlignment="Center" Foreground="{StaticResource ForegroundBrush}"/>
         <PasswordBox Grid.Row="3" x:Name="ConfirmPasswordBox" PasswordChanged="ConfirmPasswordBox_PasswordChanged" Width="140" HorizontalAlignment="Center"/>
-        <TextBlock Grid.Row="4" Text="{Binding ValidationMessage}" Margin="0,10,0,0" Foreground="Red" HorizontalAlignment="Center"/>
+        <TextBlock Grid.Row="4" Text="{Binding ValidationMessage}" Margin="0,10,0,0" Style="{StaticResource ErrorTextBlock}" HorizontalAlignment="Center"/>
         <Button Grid.Row="5" Content="Generate Random" Margin="0,10,0,0" Command="{Binding GenerateCommand}" HorizontalAlignment="Center"/>
         <controls:DialogButtonBar Grid.Row="6"
                                   LeftButtonText="Cancel"
