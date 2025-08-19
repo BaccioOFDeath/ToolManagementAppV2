@@ -115,6 +115,16 @@ namespace ToolManagementAppV2.ViewModels
             OnPropertyChanged(nameof(CurrentUserPhotoPath));
         }
 
+        void CloseNonMainWindows()
+        {
+            var main = Application.Current.MainWindow;
+            foreach (Window window in Application.Current.Windows.Cast<Window>().ToList())
+            {
+                if (window != main)
+                    window.Close();
+            }
+        }
+
         public IRelayCommand OpenDashboardCommand { get; }
         public IAsyncRelayCommand OpenSearchToolsCommand { get; }
         public IAsyncRelayCommand OpenManageToolsCommand { get; }
@@ -287,6 +297,7 @@ namespace ToolManagementAppV2.ViewModels
             {
                 var previousUser = _userContext.CurrentUser;
                 _userContext.CurrentUser = null;
+                CloseNonMainWindows();
                 try
                 {
                     if (await _showLoginWindow())
