@@ -9,6 +9,9 @@ The application can be rebranded via its **Settings** to suit different inventor
 
 These options enable using the app for tracking AV gear, sports equipment, or any other lendable items.
 
+## Configuration
+The application reads configuration from `appsettings.json`. By default, the SQLite database is stored in `inventory.db` within the application's base directory. This path can be changed by updating the `Database:Path` setting.
+
 ## Prerequisites
 - **.NET 8 SDK**
 

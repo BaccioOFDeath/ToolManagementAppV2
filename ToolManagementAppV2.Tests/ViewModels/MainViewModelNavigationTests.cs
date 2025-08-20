@@ -173,7 +173,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public void OpenSettingsCommand_NavigatesToSettingsPage()
         {
             var dbPath = Path.GetTempFileName();
-            var tempDb = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db");
+            var tempDb = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "inventory.db");
             try
             {
                 var db = new DatabaseService(dbPath);
@@ -207,7 +207,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public void OpenSettingsCommand_ReusesSettingsViewModelInstance()
         {
             var dbPath = Path.GetTempFileName();
-            var tempDb = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tool_inventory.db");
+            var tempDb = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "inventory.db");
             try
             {
                 var db = new DatabaseService(dbPath);
