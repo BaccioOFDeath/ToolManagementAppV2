@@ -130,6 +130,50 @@ namespace ToolManagementAppV2.Tests.Views
         }
 
         [Fact]
+        public void WorkshopHeading_BoundToItemLabelPlural()
+        {
+            Exception? threadException = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var originalSingular = LabelProvider.Instance.ItemLabelSingular;
+                    var originalPlural = LabelProvider.Instance.ItemLabelPlural;
+                    LabelProvider.Instance.UpdateLabels("Item", "Tools");
+                    var (window, dbPath) = TestHelpers.CreateMainWindow();
+                    try
+                    {
+                        var textBlock = TestHelpers.FindVisualChildren<TextBlock>(window)
+                            .FirstOrDefault(tb => BindingOperations.GetBinding(tb, TextBlock.TextProperty)?.Path?.Path == "ItemLabelPlural");
+                        Assert.NotNull(textBlock);
+                        Assert.Equal("Tools", textBlock!.Text);
+                    }
+                    finally
+                    {
+                        LabelProvider.Instance.UpdateLabels(originalSingular, originalPlural);
+                        window.Close();
+                        if (File.Exists(dbPath))
+                            File.Delete(dbPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    threadException = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadException != null)
+            {
+                throw threadException;
+            }
+        }
+
+        [Fact]
         public void Title_Updates_WhenApplicationNameChanges()
         {
             Exception? threadException = null;
