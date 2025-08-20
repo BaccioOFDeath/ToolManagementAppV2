@@ -41,7 +41,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task ImportExportViewModel_ImportToolsCommand_LogsSuccess()
+        public async Task ImportExportViewModel_ImportItemsCommand_LogsSuccess()
         {
             var toolService = new StubItemService();
             var customerService = new StubCustomerService();
@@ -51,7 +51,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             fileDlg.FileToReturn = tmp;
             var dialog = new StubDialogService();
             var vm = new ImportExportViewModel(toolService, customerService, fileDlg, new StubDatabaseBackupService(), dialog);
-            await vm.ImportToolsCommand.ExecuteAsync(null);
+            await vm.ImportItemsCommand.ExecuteAsync(null);
             Assert.True(toolService.ImportCalled);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Successfully imported tools", vm.ImportExportLogs[0]);
@@ -59,12 +59,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task ImportExportViewModel_ExportToolsCommand_LogsSuccess()
+        public async Task ImportExportViewModel_ExportItemsCommand_LogsSuccess()
         {
             var toolService = new StubItemService();
             var customerService = new StubCustomerService();
             var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
-            await vm.ExportToolsCommand.ExecuteAsync(null);
+            await vm.ExportItemsCommand.ExecuteAsync(null);
             Assert.True(toolService.ExportCalled);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Successfully exported tools", vm.ImportExportLogs[0]);
@@ -121,7 +121,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task ImportExportViewModel_ImportToolsCommand_LogsFailure()
+        public async Task ImportExportViewModel_ImportItemsCommand_LogsFailure()
         {
             var toolService = new FailItemService();
             var customerService = new StubCustomerService();
@@ -131,19 +131,19 @@ namespace ToolManagementAppV2.Tests.ViewModels
             fileDlg.FileToReturn = tmp;
             var dialog = new StubDialogService();
             var vm = new ImportExportViewModel(toolService, customerService, fileDlg, new StubDatabaseBackupService(), dialog);
-            await vm.ImportToolsCommand.ExecuteAsync(null);
+            await vm.ImportItemsCommand.ExecuteAsync(null);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Failed to import tools", vm.ImportExportLogs[0]);
             File.Delete(tmp);
         }
 
         [Fact]
-        public async Task ImportExportViewModel_ExportToolsCommand_LogsFailure()
+        public async Task ImportExportViewModel_ExportItemsCommand_LogsFailure()
         {
             var toolService = new FailItemService();
             var customerService = new StubCustomerService();
             var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
-            await vm.ExportToolsCommand.ExecuteAsync(null);
+            await vm.ExportItemsCommand.ExecuteAsync(null);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Failed to export tools", vm.ImportExportLogs[0]);
         }

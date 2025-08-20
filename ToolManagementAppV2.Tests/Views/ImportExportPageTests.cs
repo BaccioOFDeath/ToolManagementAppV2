@@ -38,7 +38,7 @@ namespace ToolManagementAppV2.Tests.Views
                         var panel = (WrapPanel)((Border)grid.Children[0]).Child;
                         var importBtn = (Button)panel.Children[0];
 
-                        Assert.Equal(vm.ImportToolsCommand, importBtn.Command);
+                        Assert.Equal(vm.ImportItemsCommand, importBtn.Command);
                         var asyncCmd = (CommunityToolkit.Mvvm.Input.IAsyncRelayCommand)importBtn.Command;
                         var task = asyncCmd.ExecuteAsync(null);
                         task.GetAwaiter().GetResult();

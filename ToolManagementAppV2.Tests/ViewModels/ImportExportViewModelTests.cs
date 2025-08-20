@@ -14,7 +14,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     public class ImportExportViewModelTests
     {
         [Fact]
-        public async System.Threading.Tasks.Task ImportToolsCommand_UsesMappingFromDialog()
+        public async System.Threading.Tasks.Task ImportItemsCommand_UsesMappingFromDialog()
         {
             var tmp = Path.GetTempFileName();
             File.WriteAllText(tmp, "ItemNumber\n");
@@ -23,7 +23,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             var dialog = new StubDialogService { MapToReturn = new Dictionary<string,string>{{"ItemNumber","ItemNumber"}} };
             var vm = new ImportExportViewModel(toolSvc, new StubCustomerService(), fileDlg, new StubDatabaseBackupService(), dialog);
 
-            await vm.ImportToolsCommand.ExecuteAsync(null);
+            await vm.ImportItemsCommand.ExecuteAsync(null);
 
             Assert.True(dialog.ShowImportMappingCalled);
             Assert.True(toolSvc.ImportCalled);
@@ -69,7 +69,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async System.Threading.Tasks.Task ImportToolsCommand_CancelledMapping_DoesNotCallService()
+        public async System.Threading.Tasks.Task ImportItemsCommand_CancelledMapping_DoesNotCallService()
         {
             var tmp = Path.GetTempFileName();
             File.WriteAllText(tmp, "ItemNumber\n");
@@ -78,7 +78,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             var dialog = new StubDialogService { MapToReturn = null };
             var vm = new ImportExportViewModel(toolSvc, new StubCustomerService(), fileDlg, new StubDatabaseBackupService(), dialog);
 
-            await vm.ImportToolsCommand.ExecuteAsync(null);
+            await vm.ImportItemsCommand.ExecuteAsync(null);
 
             Assert.True(dialog.ShowImportMappingCalled);
             Assert.False(toolSvc.ImportCalled);
@@ -86,7 +86,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async System.Threading.Tasks.Task ImportToolsCommand_CanBeCancelled()
+        public async System.Threading.Tasks.Task ImportItemsCommand_CanBeCancelled()
         {
             var tmp = Path.GetTempFileName();
             File.WriteAllText(tmp, "ItemNumber\n");
@@ -95,8 +95,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
             var dialog = new StubDialogService { MapToReturn = new Dictionary<string,string>{{"ItemNumber","ItemNumber"}} };
             var vm = new ImportExportViewModel(toolSvc, new StubCustomerService(), fileDlg, new StubDatabaseBackupService(), dialog);
 
-            var execute = vm.ImportToolsCommand.ExecuteAsync(null);
-            vm.ImportToolsCommand.Cancel();
+            var execute = vm.ImportItemsCommand.ExecuteAsync(null);
+            vm.ImportItemsCommand.Cancel();
             await execute;
 
             Assert.Single(vm.ImportExportLogs);
