@@ -51,7 +51,7 @@
 
             <StackPanel Grid.Row="7" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
                 <Image Width="100" Height="100" Stretch="Uniform"
-                       Source="{Binding ItemModel.ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=tool}"/>
+                       Source="{Binding ItemModel.ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
                 <StackPanel Orientation="Vertical" Margin="8,0,0,0">
                     <Button Content="Browse" Style="{StaticResource PrimaryButton}" Width="75" Command="{Binding BrowseImageCommand}"/>
                     <Button Content="Remove" Style="{StaticResource PrimaryButton}" Width="75" Margin="0,4,0,0" Command="{Binding RemoveImageCommand}"/>

@@ -95,7 +95,7 @@
     <None Remove="Resources\Avatars\9.png" />
     <None Remove="Resources\Avatars\Thumbs.db" />
     <None Remove="Resources\DefaultLogo.png" />
-    <None Remove="Resources\DefaultToolImage.png" />
+    <None Remove="Resources\DefaultItemImage.png" />
     <None Remove="Resources\DefaultUserPhoto.png" />
   </ItemGroup>
 
@@ -250,7 +250,7 @@
     <Resource Include="Resources\DefaultLogo.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\DefaultToolImage.png">
+    <Resource Include="Resources\DefaultItemImage.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\DefaultUserPhoto.png">

@@ -13,7 +13,7 @@ namespace ToolManagementAppV2.Utilities.Converters
     public class NullToDefaultImageConverter : IValueConverter
     {
         private static BitmapImage _defaultUser;
-        private static BitmapImage _defaultTool;
+        private static BitmapImage _defaultItem;
         private static BitmapImage _defaultLogo;
         private const int MaxCacheEntries = 100;
         private static readonly ConcurrentDictionary<string, BitmapImage> _imageCache =
@@ -73,14 +73,14 @@ namespace ToolManagementAppV2.Utilities.Converters
                 }
             }
 
-                // Figure out which default we need
-                string type = (parameter as string)?.ToLowerInvariant() ?? "user";
+            // Figure out which default we need
+            string type = (parameter as string)?.ToLowerInvariant() ?? "user";
             switch (type)
             {
-                case "tool":
-                    if (_defaultTool == null)
-                        _defaultTool = LoadFromResource("DefaultToolImage.png");
-                    return _defaultTool;
+                case "item":
+                    if (_defaultItem == null)
+                        _defaultItem = LoadFromResource("DefaultItemImage.png");
+                    return _defaultItem;
 
                 case "logo":
                     if (_defaultLogo == null)
