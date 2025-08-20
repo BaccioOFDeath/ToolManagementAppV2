@@ -30,7 +30,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -38,7 +38,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
 
                 Assert.NotNull(vm.ItemManagement);
                 Assert.NotNull(vm.UserManagement);
@@ -62,7 +62,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -70,7 +70,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 vm.OpenDashboardCommand.Execute(null);
 
                 var page = Assert.IsType<DashboardPage>(vm.CurrentPage);
@@ -90,7 +90,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -98,7 +98,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 vm.OpenImportExportCommand.Execute(null);
 
                 var page = Assert.IsType<ImportExportPage>(vm.CurrentPage);
@@ -120,14 +120,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var db = new DatabaseService(dbPath);
                 var activityLogService = new ActivityLogService(db);
                 await activityLogService.LogActionAsync(1, "user", "action");
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 await vm.OpenActivityLogsCommand.ExecuteAsync(null);
 
                 var page = Assert.IsType<ActivityLogsPage>(vm.CurrentPage);
@@ -149,14 +149,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 var activityLogService = new ActivityLogService(db);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 vm.OpenReportsCommand.Execute(null);
 
                 var page = Assert.IsType<ReportsPage>(vm.CurrentPage);
@@ -177,7 +177,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -185,7 +185,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 vm.OpenSettingsCommand.Execute(null);
 
                 var page = Assert.IsType<SettingsPage>(vm.CurrentPage);
@@ -211,7 +211,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -219,7 +219,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
 
                 vm.OpenSettingsCommand.Execute(null);
                 var firstPage = Assert.IsType<SettingsPage>(vm.CurrentPage);
@@ -250,7 +250,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -258,7 +258,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 await vm.OpenRentalsCommand.ExecuteAsync(null);
 
                 var page = Assert.IsType<ManageRentalsPage>(vm.CurrentPage);
@@ -278,7 +278,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -286,10 +286,10 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                toolService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
-                toolService.AddItem(new ItemModel { ItemNumber = "T2", NameDescription = "Saw" });
+                itemService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
+                itemService.AddItem(new ItemModel { ItemNumber = "T2", NameDescription = "Saw" });
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 vm.GlobalSearchText = "Ham";
 
                 await vm.GlobalSearchCommand.ExecuteAsync(CancellationToken.None);
@@ -314,7 +314,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -322,7 +322,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 await vm.OpenImportMappingWindowCommand.ExecuteAsync(null);
             }
             finally
@@ -339,7 +339,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -347,7 +347,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 Assert.NotNull(vm.OpenImageImportMappingWindowCommand);
             }
             finally
@@ -366,7 +366,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -384,7 +384,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     }
                 };
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, fileDialog, activityLogService, settingsService, db, dialog);
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService, fileDialog, activityLogService, settingsService, db, dialog);
                 await vm.OpenImportMappingWindowCommand.ExecuteAsync(null);
 
                 Assert.True(dialog.InfoShown);
@@ -414,15 +414,15 @@ class StubDialogService : IDialogService
 
     public void ShowInfo(string message, string title) => InfoShown = true;
     public bool ShowConfirmation(string message, string title) => false;
-    public ToolModel? ShowEditItemDialog(ToolModel tool) => null;
-    public void ShowItemDetails(ToolModel tool) { }
-    public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+    public ItemModel? ShowEditItemDialog(ItemModel item) => null;
+    public void ShowItemDetails(ItemModel item) { }
+    public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;
     public CustomerModel? ShowAddCustomerDialog() => null;
 
     public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties) => ImportMap;
     public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
-    public void ShowRentalHistory(ToolModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }
-    public System.Func<ToolModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
+    public void ShowRentalHistory(ItemModel item, System.Collections.Generic.IEnumerable<RentalModel> history) { }
+    public System.Func<ItemModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
     public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
     public void ShowPrintLabelDialog() { }
 }

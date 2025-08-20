@@ -24,16 +24,16 @@ namespace ToolManagementAppV2.Tests
             var dbPath = Path.GetTempFileName();
             var db = new DatabaseService(dbPath);
             var auth = new AllowAllAuthorizationService();
-            var toolService = new ItemService(db, auth);
+            var itemService = new ItemService(db, auth);
             var customerService = new CustomerService(db, auth);
             var userContext = new ApplicationUserContext();
             var userService = new UserService(db, userContext, auth);
-            var rentalService = new RentalService(db, auth, toolService);
+            var rentalService = new RentalService(db, auth, itemService);
             var activityLogService = new ActivityLogService(db);
             var fileDialogService = new StubFileDialogService();
             var settingsService = new SettingsService(db, auth);
             var dialogService = new StubDialogService();
-            var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+            var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService,
                 fileDialogService, activityLogService, settingsService, db, dialogService);
             var window = new MainWindow(vm, db);
             return (window, dbPath);
@@ -65,12 +65,12 @@ namespace ToolManagementAppV2.Tests
         {
             public void ShowInfo(string message, string title) { }
             public bool ShowConfirmation(string message, string title) => false;
-            public ItemModel? ShowEditItemDialog(ItemModel tool) => null;
-            public void ShowItemDetails(ItemModel tool) { }
-            public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
+            public ItemModel? ShowEditItemDialog(ItemModel item) => null;
+            public void ShowItemDetails(ItemModel item) { }
+            public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;
             public CustomerModel? ShowAddCustomerDialog() => null;
             public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
-            public void ShowRentalHistory(ItemModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }
+            public void ShowRentalHistory(ItemModel item, System.Collections.Generic.IEnumerable<RentalModel> history) { }
             public System.Collections.Generic.Dictionary<string, string>? ShowImportMapping(System.Collections.Generic.IEnumerable<string> headers, System.Collections.Generic.IEnumerable<string> properties) => null;
             public System.Func<ItemModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }

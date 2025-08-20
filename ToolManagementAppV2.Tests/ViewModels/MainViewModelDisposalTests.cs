@@ -26,7 +26,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
                 var customerService = new CustomerService(db);
@@ -36,7 +36,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var fileDialogService = new StubFileDialogService();
                 var dialogService = new StubDialogService();
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService,
                     fileDialogService, activityLogService, settingsService, db, dialogService);
 
                 var field = typeof(ObservableObject).GetField("PropertyChanged", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -64,7 +64,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var dbPath = Path.GetTempFileName();
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
                 var customerService = new CustomerService(db);
@@ -74,7 +74,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var fileDialogService = new StubFileDialogService();
                 var dialogService = new StubDialogService();
 
-                using var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                using var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService,
                     fileDialogService, activityLogService, settingsService, db, dialogService);
 
                 db.Dispose();
@@ -94,14 +94,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             public void ShowInfo(string message, string title) { }
             public bool ShowConfirmation(string message, string title) => false;
-            public ToolModel? ShowEditItemDialog(ToolModel tool) => null;
-            public void ShowItemDetails(ToolModel tool) { }
-            public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ToolModel tool, System.Collections.Generic.IEnumerable<CustomerModel> customers) => null;
+            public ItemModel? ShowEditItemDialog(ItemModel item) => null;
+            public void ShowItemDetails(ItemModel item) { }
+            public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, System.Collections.Generic.IEnumerable<CustomerModel> customers) => null;
             public CustomerModel? ShowAddCustomerDialog() => null;
             public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
-            public void ShowRentalHistory(ToolModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }
+            public void ShowRentalHistory(ItemModel item, System.Collections.Generic.IEnumerable<RentalModel> history) { }
             public System.Collections.Generic.Dictionary<string, string>? ShowImportMapping(System.Collections.Generic.IEnumerable<string> headers, System.Collections.Generic.IEnumerable<string> properties) => null;
-            public Func<ToolModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
+            public Func<ItemModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
             public void ShowPrintLabelDialog() { }
         }

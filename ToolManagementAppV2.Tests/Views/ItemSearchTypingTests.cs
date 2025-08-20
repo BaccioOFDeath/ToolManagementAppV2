@@ -53,9 +53,9 @@ namespace ToolManagementAppV2.Tests.Views
         {
             public void ShowInfo(string message, string title) { }
             public bool ShowConfirmation(string message, string title) => false;
-            public ItemModel? ShowEditItemDialog(ItemModel tool) => null;
-            public void ShowItemDetails(ItemModel tool) { }
-            public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel tool, System.Collections.Generic.IEnumerable<CustomerModel> customers) => null;
+            public ItemModel? ShowEditItemDialog(ItemModel item) => null;
+            public void ShowItemDetails(ItemModel item) { }
+            public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, System.Collections.Generic.IEnumerable<CustomerModel> customers) => null;
             public CustomerModel? ShowAddCustomerDialog() => null;
         }
     }

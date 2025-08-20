@@ -28,7 +28,7 @@ namespace ToolManagementAppV2.Tests.Services
             public string Role => CurrentUser?.Role ?? string.Empty;
         }
         [Fact]
-        public void SearchTools_WithNull_ReturnsAllTools()
+        public void SearchItems_WithNull_ReturnsAllItems()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -58,7 +58,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void SearchTools_PartialMatch_ReturnsMatches()
+        public void SearchItems_PartialMatch_ReturnsMatches()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -81,7 +81,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void SearchTools_MultipleTermsAcrossColumns_ReturnsMatches()
+        public void SearchItems_MultipleTermsAcrossColumns_ReturnsMatches()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -104,7 +104,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void SearchTools_ExceedsMaxTerms_TruncatesAndLogs()
+        public void SearchItems_ExceedsMaxTerms_TruncatesAndLogs()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -377,7 +377,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void ImportToolImages_UpdatesImagePathsAndReportsIssues()
+        public void ImportItemImages_UpdatesImagePathsAndReportsIssues()
         {
             var dbPath = Path.GetTempFileName();
             var imgDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
@@ -411,7 +411,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void ImportToolImages_CopiesFilesToDestination()
+        public void ImportItemImages_CopiesFilesToDestination()
         {
             var dbPath = Path.GetTempFileName();
             var imgDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
@@ -445,7 +445,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void ImportToolImages_DestinationCreationFails_LogsErrorAndAborts()
+        public void ImportItemImages_DestinationCreationFails_LogsErrorAndAborts()
         {
             var dbPath = Path.GetTempFileName();
             var imgDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
@@ -599,7 +599,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void SearchTools_AllowsNullNumericColumns()
+        public void SearchItems_AllowsNullNumericColumns()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -851,7 +851,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void ImportToolImages_CopyIOException_RecordsConflict()
+        public void ImportItemImages_CopyIOException_RecordsConflict()
         {
             var dbPath = Path.GetTempFileName();
             var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -885,7 +885,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void ImportToolImages_SingleImage_ImportsSuccessfully()
+        public void ImportItemImages_SingleImage_ImportsSuccessfully()
         {
             var dbPath = Path.GetTempFileName();
             var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());

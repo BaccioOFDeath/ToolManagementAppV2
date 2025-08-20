@@ -56,8 +56,8 @@ public class ReportServiceAsyncTests
         public Task<List<ItemModel>> GetAllItemsAsync(CancellationToken cancellationToken = default) =>
             Task.Delay(_delay, cancellationToken).ContinueWith(_ => _tools, cancellationToken);
 
-        public Task AddItemAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public Task UpdateItemAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task DeleteItemAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<ItemModel?> GetItemByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<List<ItemModel>> SearchItemsAsync(string? searchText, CancellationToken cancellationToken = default) => throw new NotImplementedException();

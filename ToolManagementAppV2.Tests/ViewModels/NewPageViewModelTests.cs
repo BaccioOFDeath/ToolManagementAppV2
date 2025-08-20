@@ -210,12 +210,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public bool ShowImportMappingCalled { get; private set; }
         public void ShowInfo(string message, string title) { }
         public bool ShowConfirmation(string message, string title) => false;
-        public ItemModel? ShowEditItemDialog(ItemModel tool) => null;
-        public void ShowItemDetails(ItemModel tool) { }
-        public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
+        public ItemModel? ShowEditItemDialog(ItemModel item) => null;
+        public void ShowItemDetails(ItemModel item) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;
         public CustomerModel? ShowAddCustomerDialog() => null;
         public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
-        public void ShowRentalHistory(ItemModel tool, IEnumerable<RentalModel> history) { }
+        public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history) { }
         public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties)
         {
             ShowImportMappingCalled = true;
@@ -241,8 +241,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
             return Task.CompletedTask;
         }
         public Task<List<ItemModel>> GetAllItemsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
-        public Task AddItemAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task UpdateItemAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task DeleteItemAsync(int toolID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<ItemModel?> GetItemByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<List<ItemModel>> SearchItemsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
@@ -259,8 +259,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => Task.FromException<List<int>>(new System.Exception("fail"));
         public Task ExportItemsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.FromException(new System.Exception("fail"));
         public Task<List<ItemModel>> GetAllItemsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
-        public Task AddItemAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task UpdateItemAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task DeleteItemAsync(int toolID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<ItemModel?> GetItemByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<List<ItemModel>> SearchItemsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());

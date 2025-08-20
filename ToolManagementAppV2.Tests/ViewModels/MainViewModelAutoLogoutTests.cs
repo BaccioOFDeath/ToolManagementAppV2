@@ -78,12 +78,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             public void ShowInfo(string message, string title) { }
             public bool ShowConfirmation(string message, string title) => false;
-            public ToolManagementAppV2.Models.Domain.ItemModel? ShowEditItemDialog(ToolManagementAppV2.Models.Domain.ItemModel tool) => null;
-            public void ShowItemDetails(ToolManagementAppV2.Models.Domain.ItemModel tool) { }
-            public (ToolManagementAppV2.Models.Domain.CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ToolManagementAppV2.Models.Domain.ItemModel tool, System.Collections.Generic.IEnumerable<ToolManagementAppV2.Models.Domain.CustomerModel> customers) => null;
+            public ToolManagementAppV2.Models.Domain.ItemModel? ShowEditItemDialog(ToolManagementAppV2.Models.Domain.ItemModel item) => null;
+            public void ShowItemDetails(ToolManagementAppV2.Models.Domain.ItemModel item) { }
+            public (ToolManagementAppV2.Models.Domain.CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ToolManagementAppV2.Models.Domain.ItemModel item, System.Collections.Generic.IEnumerable<ToolManagementAppV2.Models.Domain.CustomerModel> customers) => null;
             public ToolManagementAppV2.Models.Domain.CustomerModel? ShowAddCustomerDialog() => null;
             public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
-            public void ShowRentalHistory(ToolManagementAppV2.Models.Domain.ItemModel tool, System.Collections.Generic.IEnumerable<ToolManagementAppV2.Models.Domain.RentalModel> history) { }
+            public void ShowRentalHistory(ToolManagementAppV2.Models.Domain.ItemModel item, System.Collections.Generic.IEnumerable<ToolManagementAppV2.Models.Domain.RentalModel> history) { }
             public System.Collections.Generic.Dictionary<string, string>? ShowImportMapping(System.Collections.Generic.IEnumerable<string> headers, System.Collections.Generic.IEnumerable<string> properties) => null;
             public Func<ToolManagementAppV2.Models.Domain.ItemModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
