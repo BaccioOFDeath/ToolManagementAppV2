@@ -17,7 +17,7 @@
     <ItemsPanelTemplate x:Key="WrapPanelItems">
         <WrapPanel Orientation="Horizontal" ItemWidth="260" ItemHeight="100"/>
     </ItemsPanelTemplate>
-    <DataTemplate x:Key="ToolCardTemplate">
+    <DataTemplate x:Key="ItemCardTemplate">
         <Border Style="{StaticResource Card}" Width="220" Padding="0">
             <Grid>
                 <Grid.RowDefinitions>
@@ -53,7 +53,7 @@
     <!-- Shared rental DataGrid columns -->
     <DataGridTextColumn x:Key="RentalIdColumn" Header="Rental #" Binding="{Binding RentalId}" Width="120" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalItemNumberColumn" Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat={}{0} #}" Binding="{Binding ItemNumber}" Width="120" x:Shared="False"/>
-    <DataGridTextColumn x:Key="RentalToolNameColumn" Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}" Binding="{Binding ToolName}" Width="*" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalItemNameColumn" Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}" Binding="{Binding NameDescription}" Width="*" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalCustomerColumn" Header="Customer" Binding="{Binding CustomerName}" Width="220" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalOutColumn" Header="Out" Binding="{Binding DateOut, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="180" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalDueColumn" Header="Due" Binding="{Binding DueDate, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="180" x:Shared="False"/>
