@@ -193,7 +193,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public void ItemLabels_UpdateServiceAndProvider()
         {
             var settings = new StubSettingsService();
-            LabelProvider.Instance.UpdateLabels("ItemModel", "Tools");
+            LabelProvider.Instance.UpdateLabels("Item", "Items");
             var vm = new SettingsViewModel(new StubFileDialogService(), settings, new StubDialogService());
             vm.ItemLabelSingular = "Widget";
             vm.ItemLabelPlural = "Widgets";
@@ -201,7 +201,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             Assert.Equal("Widgets", settings.ItemLabelPlural);
             Assert.Equal("Widget", LabelProvider.Instance.ItemLabelSingular);
             Assert.Equal("Widgets", LabelProvider.Instance.ItemLabelPlural);
-            LabelProvider.Instance.UpdateLabels("ItemModel", "Tools");
+            LabelProvider.Instance.UpdateLabels("Item", "Items");
         }
 
         [Fact]
@@ -242,8 +242,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public IEnumerable<string> ScannerIps { get; set; } = Array.Empty<string>();
         public int PasswordIterations { get; set; } = 100_000;
         public int AutoLogoutMinutes { get; set; }
-        public string ItemLabelSingular { get; set; } = "ItemModel";
-        public string ItemLabelPlural { get; set; } = "Tools";
+        public string ItemLabelSingular { get; set; } = "Item";
+        public string ItemLabelPlural { get; set; } = "Items";
 
         public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default)
         {
