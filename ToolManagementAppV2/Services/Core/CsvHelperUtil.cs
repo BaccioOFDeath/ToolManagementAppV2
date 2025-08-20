@@ -32,7 +32,7 @@ namespace ToolManagementAppV2.Utilities.IO
         }
 
 
-        public static List<ItemModel> LoadToolsFromCsv(string filePath, IDictionary<string, string> map, out List<int> invalidRows)
+        public static List<ItemModel> LoadItemsFromCsv(string filePath, IDictionary<string, string> map, out List<int> invalidRows)
         {
             ValidateRequired(map, "ItemNumber");
             var list = new List<ItemModel>();
@@ -49,8 +49,8 @@ namespace ToolManagementAppV2.Utilities.IO
             {
                 row++;
                 var cols = parser.ReadFields();
-                var toolNumber = GetMapped(cols, headers, map, "ItemNumber");
-                if (string.IsNullOrWhiteSpace(toolNumber))
+                var itemNumber = GetMapped(cols, headers, map, "ItemNumber");
+                if (string.IsNullOrWhiteSpace(itemNumber))
                 {
                     invalidRows.Add(row);
                     continue;
@@ -58,7 +58,7 @@ namespace ToolManagementAppV2.Utilities.IO
 
                 list.Add(new ItemModel
                 {
-                    ItemNumber = toolNumber,
+                    ItemNumber = itemNumber,
                     NameDescription = GetMapped(cols, headers, map, "NameDescription"),
                     Location = GetMapped(cols, headers, map, "Location"),
                     Brand = GetMapped(cols, headers, map, "Brand"),
@@ -74,23 +74,23 @@ namespace ToolManagementAppV2.Utilities.IO
             return list;
         }
 
-        public static async Task<(List<ItemModel> Tools, List<int> InvalidRows)> LoadToolsFromCsvAsync(
+        public static async Task<(List<ItemModel> Items, List<int> InvalidRows)> LoadItemsFromCsvAsync(
             string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default)
         {
             return await Task.Run(() =>
             {
-                var tools = LoadToolsFromCsv(filePath, map, out var invalid);
-                return (tools, invalid);
+                var items = LoadItemsFromCsv(filePath, map, out var invalid);
+                return (items, invalid);
             }, cancellationToken).ConfigureAwait(false);
         }
 
-        public static void ExportItemsToCsv(string filePath, List<ItemModel> tools)
+        public static void ExportItemsToCsv(string filePath, List<ItemModel> items)
         {
             var lines = new List<string>
             {
                 "ItemNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowerTool"
             };
-            lines.AddRange(tools.Select(t =>
+            lines.AddRange(items.Select(t =>
                 string.Join(",",
                     Quote(t.ItemNumber),
                     Quote(t.NameDescription),
@@ -105,13 +105,13 @@ namespace ToolManagementAppV2.Utilities.IO
             File.WriteAllLines(filePath, lines);
         }
 
-        public static async Task ExportItemsToCsvAsync(string filePath, List<ItemModel> tools)
+        public static async Task ExportItemsToCsvAsync(string filePath, List<ItemModel> items)
         {
             var lines = new List<string>
             {
                 "ItemNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowerTool"
             };
-            lines.AddRange(tools.Select(t =>
+            lines.AddRange(items.Select(t =>
                 string.Join(",",
                     Quote(t.ItemNumber),
                     Quote(t.NameDescription),

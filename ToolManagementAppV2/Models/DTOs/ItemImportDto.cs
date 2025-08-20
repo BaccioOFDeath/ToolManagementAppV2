@@ -1,6 +1,6 @@
 ﻿namespace ToolManagementAppV2.Models.ImportExport
 {
-    public class ToolImportDto
+    public class ItemImportDto
     {
         public string ItemNumber { get; set; }
         public string NameDescription { get; set; }

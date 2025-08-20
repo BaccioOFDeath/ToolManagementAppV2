@@ -70,7 +70,7 @@ namespace ToolManagementAppV2.ViewModels
             try
             {
                 var headers = await CsvHelperUtil.ReadHeadersAsync(path);
-                var properties = typeof(ToolImportDto).GetProperties().Select(p => p.Name);
+                var properties = typeof(ItemImportDto).GetProperties().Select(p => p.Name);
                 var map = _dialogService.ShowImportMapping(headers, properties);
                 if (map == null)
                     return;

@@ -11,7 +11,7 @@ using System.Threading;
 public class CsvImportTests
 {
     [Fact]
-    public void LoadToolsFromCsv_SkipsRowsMissingItemNumber()
+    public void LoadItemsFromCsv_SkipsRowsMissingItemNumber()
     {
         var csv = string.Join('\n',
             "ItemNumber,NameDescription,AvailableQuantity",
@@ -27,14 +27,14 @@ public class CsvImportTests
             { "AvailableQuantity", "AvailableQuantity" }
         };
 
-        var tools = CsvHelperUtil.LoadToolsFromCsv(path, map, out var invalid);
+        var items = CsvHelperUtil.LoadItemsFromCsv(path, map, out var invalid);
 
-        Assert.Single(tools);
+        Assert.Single(items);
         Assert.Contains(2, invalid);
     }
 
     [Fact]
-    public void LoadToolsFromCsv_HandlesQuotedHeaders()
+    public void LoadItemsFromCsv_HandlesQuotedHeaders()
     {
         var csv = string.Join('\n',
             "\"ItemNumber\",\"NameDescription\",\"AvailableQuantity\"",
@@ -49,15 +49,15 @@ public class CsvImportTests
             { "AvailableQuantity", "AvailableQuantity" }
         };
 
-        var tools = CsvHelperUtil.LoadToolsFromCsv(path, map, out var invalid);
+        var items = CsvHelperUtil.LoadItemsFromCsv(path, map, out var invalid);
 
-        Assert.Single(tools);
+        Assert.Single(items);
         Assert.Empty(invalid);
-        Assert.Equal("T1", tools[0].ItemNumber);
+        Assert.Equal("T1", items[0].ItemNumber);
     }
 
     [Fact]
-    public void LoadToolsFromCsv_MissingRequiredMapping_Throws()
+    public void LoadItemsFromCsv_MissingRequiredMapping_Throws()
     {
         var csv = string.Join('\n',
             "ItemNumber,NameDescription",
@@ -70,11 +70,11 @@ public class CsvImportTests
             { "NameDescription", "NameDescription" }
         };
 
-        Assert.Throws<ArgumentException>(() => CsvHelperUtil.LoadToolsFromCsv(path, map, out _));
+        Assert.Throws<ArgumentException>(() => CsvHelperUtil.LoadItemsFromCsv(path, map, out _));
     }
 
     [Fact]
-    public async Task LoadToolsFromCsvAsync_RespectsCancellation()
+    public async Task LoadItemsFromCsvAsync_RespectsCancellation()
     {
         var csv = string.Join('\n',
             "ItemNumber,NameDescription",
@@ -91,7 +91,7 @@ public class CsvImportTests
         var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        await Assert.ThrowsAsync<OperationCanceledException>(() => CsvHelperUtil.LoadToolsFromCsvAsync(path, map, cts.Token));
+        await Assert.ThrowsAsync<OperationCanceledException>(() => CsvHelperUtil.LoadItemsFromCsvAsync(path, map, cts.Token));
 
         if (File.Exists(path)) File.Delete(path);
     }
