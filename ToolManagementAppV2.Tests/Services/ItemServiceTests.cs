@@ -138,7 +138,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var dbService = new DatabaseService(dbPath);
                 IItemService service = new ItemService(dbService);
 
-                var tool = new ItemModel
+                var item = new ItemModel
                 {
                     ItemNumber = "TID1",
                     NameDescription = "Test",
@@ -147,9 +147,9 @@ namespace ToolManagementAppV2.Tests.Services
                     PartNumber = "PN"
                 };
 
-                service.AddItem(tool);
+                service.AddItem(item);
 
-                Assert.True(tool.ItemID > 0);
+                Assert.True(item.ItemID > 0);
             }
             finally
             {
@@ -167,7 +167,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var dbService = new DatabaseService(dbPath);
                 IItemService service = new ItemService(dbService);
 
-                var tool = new ItemModel
+                var item = new ItemModel
                 {
                     ItemNumber = "ATID1",
                     NameDescription = "Test",
@@ -176,9 +176,9 @@ namespace ToolManagementAppV2.Tests.Services
                     PartNumber = "PN"
                 };
 
-                await service.AddItemAsync(tool);
+                await service.AddItemAsync(item);
 
-                Assert.True(tool.ItemID > 0);
+                Assert.True(item.ItemID > 0);
             }
             finally
             {
@@ -196,7 +196,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var dbService = new DatabaseService(dbPath);
                 IItemService service = new ItemService(dbService);
 
-                var tool = new ItemModel
+                var item = new ItemModel
                 {
                     ItemNumber = "TIMG",
                     NameDescription = "With Image",
@@ -206,7 +206,7 @@ namespace ToolManagementAppV2.Tests.Services
                     ImagePath = "Images/test.jpg"
                 };
 
-                service.AddItem(tool);
+                service.AddItem(item);
                 var stored = service.GetAllItems().Single();
 
                 Assert.Equal("Images/test.jpg", stored.ImagePath);
@@ -249,10 +249,10 @@ namespace ToolManagementAppV2.Tests.Services
                 var dbService = new DatabaseService(dbPath);
                 IItemService service = new ItemService(dbService);
 
-                var tool = new ItemModel { ItemNumber = "" };
-                service.AddItem(tool);
+                var item = new ItemModel { ItemNumber = "" };
+                service.AddItem(item);
 
-                Assert.Equal("T1", tool.ItemNumber);
+                Assert.Equal("T1", item.ItemNumber);
                 Assert.Single(service.GetAllItems());
             }
             finally
@@ -335,11 +335,11 @@ namespace ToolManagementAppV2.Tests.Services
             {
                 var dbService = new DatabaseService(dbPath);
                 var service = new ItemService(dbService);
-                var tool = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
-                await service.AddItemAsync(tool);
+                var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
+                await service.AddItemAsync(item);
 
-                tool.NameDescription = "Updated";
-                var ex = await Record.ExceptionAsync(() => service.UpdateItemAsync(tool));
+                item.NameDescription = "Updated";
+                var ex = await Record.ExceptionAsync(() => service.UpdateItemAsync(item));
                 Assert.Null(ex);
             }
             finally
@@ -361,10 +361,10 @@ namespace ToolManagementAppV2.Tests.Services
                 var service = new ItemService(dbService, logger: loggerFactory.CreateLogger<ItemService>());
 
                 service.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
-                var tool = service.GetAllItems().First();
-                tool.ItemNumber = null;
+                var item = service.GetAllItems().First();
+                item.ItemNumber = null;
 
-                var ex = Assert.Throws<InvalidOperationException>(() => service.UpdateItem(tool));
+                var ex = Assert.Throws<InvalidOperationException>(() => service.UpdateItem(item));
                 Assert.Contains("Failed to update tool", ex.Message);
                 Assert.IsType<SQLiteException>(ex.InnerException);
                 Assert.Contains(logs, l => l.Level == LogLevel.Error && l.Message.Contains("Failed to update tool"));
@@ -432,8 +432,8 @@ namespace ToolManagementAppV2.Tests.Services
                 var expected = Path.Combine(destDir, "T1.jpg");
                 Assert.True(File.Exists(expected));
 
-                var tool = svc.GetAllItems().First();
-                Assert.Equal($"Images/{Path.GetFileName(expected)}", tool.ImagePath);
+                var item = svc.GetAllItems().First();
+                Assert.Equal($"Images/{Path.GetFileName(expected)}", item.ImagePath);
             }
             finally
             {
@@ -586,11 +586,11 @@ namespace ToolManagementAppV2.Tests.Services
                 var tools = svc.GetAllItems();
 
                 Assert.Single(tools);
-                var tool = tools[0];
-                Assert.Equal(0, tool.QuantityOnHand);
-                Assert.Equal(0, tool.RentedQuantity);
-                Assert.False(tool.IsPowered);
-                Assert.False(tool.IsCheckedOut);
+                var item = tools[0];
+                Assert.Equal(0, item.QuantityOnHand);
+                Assert.Equal(0, item.RentedQuantity);
+                Assert.False(item.IsPowered);
+                Assert.False(item.IsCheckedOut);
             }
             finally
             {
@@ -639,10 +639,10 @@ namespace ToolManagementAppV2.Tests.Services
                 var tools = svc.SearchItems("T1");
 
                 Assert.Single(tools);
-                var tool = tools[0];
-                Assert.Equal("T1", tool.ItemNumber);
-                Assert.False(tool.IsPowered);
-                Assert.Equal(0, tool.QuantityOnHand);
+                var item = tools[0];
+                Assert.Equal("T1", item.ItemNumber);
+                Assert.False(item.IsPowered);
+                Assert.Equal(0, item.QuantityOnHand);
             }
             finally
             {
@@ -770,15 +770,15 @@ namespace ToolManagementAppV2.Tests.Services
                     RentedQuantity = 0
                 });
 
-                var tool = svc.GetAllItems().Single();
+                var item = svc.GetAllItems().Single();
 
                 var before = DateTime.UtcNow;
-                var result = svc.ToggleItemCheckOutStatus(tool.ItemID, "user");
+                var result = svc.ToggleItemCheckOutStatus(item.ItemID, "user");
                 var after = DateTime.UtcNow;
 
                 Assert.True(result);
 
-                var updated = svc.GetItemByID(tool.ItemID);
+                var updated = svc.GetItemByID(item.ItemID);
                 Assert.True(updated.IsCheckedOut);
                 Assert.NotNull(updated.CheckedOutTime);
                 Assert.InRange(updated.CheckedOutTime!.Value, before, after);
@@ -798,8 +798,8 @@ namespace ToolManagementAppV2.Tests.Services
                 var dbService = new DatabaseService(dbPath);
                 var svc = new ItemService(dbService);
                 await svc.AddItemAsync(new ItemModel { ItemNumber = "T1", QuantityOnHand = 1 });
-                var tool = (await svc.GetAllItemsAsync()).Single();
-                await svc.DeleteItemAsync(tool.ItemID);
+                var item = (await svc.GetAllItemsAsync()).Single();
+                await svc.DeleteItemAsync(item.ItemID);
                 var remaining = await svc.GetAllItemsAsync();
                 Assert.Empty(remaining);
             }
@@ -818,9 +818,9 @@ namespace ToolManagementAppV2.Tests.Services
                 var dbService = new DatabaseService(dbPath);
                 var svc = new ItemService(dbService);
                 await svc.AddItemAsync(new ItemModel { ItemNumber = "T2", QuantityOnHand = 1 });
-                var tool = (await svc.GetAllItemsAsync()).Single();
-                var success = await svc.ToggleItemCheckOutStatusAsync(tool.ItemID, "u");
-                var updated = await svc.GetItemByIDAsync(tool.ItemID);
+                var item = (await svc.GetAllItemsAsync()).Single();
+                var success = await svc.ToggleItemCheckOutStatusAsync(item.ItemID, "u");
+                var updated = await svc.GetItemByIDAsync(item.ItemID);
                 Assert.True(success);
                 Assert.True(updated.IsCheckedOut);
                 Assert.Equal(0, updated.QuantityOnHand);
@@ -910,8 +910,8 @@ namespace ToolManagementAppV2.Tests.Services
                 var destFile = Path.Combine(destDir, Path.GetFileName(imgPath));
                 Assert.True(File.Exists(destFile));
 
-                var tool = svc.GetAllItems().Single();
-                Assert.Equal($"Images/{Path.GetFileName(imgPath)}", tool.ImagePath);
+                var item = svc.GetAllItems().Single();
+                Assert.Equal($"Images/{Path.GetFileName(imgPath)}", item.ImagePath);
             }
             finally
             {
