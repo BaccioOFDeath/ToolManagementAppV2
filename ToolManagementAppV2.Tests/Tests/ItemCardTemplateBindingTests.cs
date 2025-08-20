@@ -8,10 +8,10 @@ using Xunit;
 
 namespace ToolManagementAppV2.Tests.Tests
 {
-    public class ToolCardTemplateBindingTests
+    public class ItemCardTemplateBindingTests
     {
         [Fact]
-        public void ToolCardTemplate_UsesNullToDefaultImageConverter()
+        public void ItemCardTemplate_UsesNullToDefaultImageConverter()
         {
             Exception? threadEx = null;
             var thread = new Thread(() =>
@@ -22,7 +22,7 @@ namespace ToolManagementAppV2.Tests.Tests
                     {
                         Source = new Uri("pack://application:,,,/Resources/Templates.xaml", UriKind.Absolute)
                     };
-                    var template = Assert.IsType<DataTemplate>(dict["ToolCardTemplate"]);
+                    var template = Assert.IsType<DataTemplate>(dict["ItemCardTemplate"]);
                     var grid = Assert.IsType<Grid>(template.LoadContent());
                     var border = Assert.IsType<Border>(grid.Children[0]);
                     var image = Assert.IsType<Image>(border.Child);

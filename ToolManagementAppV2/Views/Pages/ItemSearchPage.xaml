@@ -32,7 +32,7 @@
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  VirtualizingPanel.IsVirtualizing="True"
                  VirtualizingPanel.VirtualizationMode="Recycling"
-                 ItemTemplate="{StaticResource ToolCardTemplate}"
+                 ItemTemplate="{StaticResource ItemCardTemplate}"
                  av:ItemsSource="{av:SampleData ItemCount=5}">
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
