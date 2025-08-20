@@ -1,6 +1,13 @@
 # ToolManagementAppV2
 
-ToolManagementAppV2 is a WPF application following the MVVM pattern for managing tool rentals in an automotive workshop. It includes features for handling tools, customers, rentals, and users, with data stored in SQLite through the provided `DatabaseService`.
+ToolManagementAppV2 is a WPF application following the MVVM pattern for managing inventory item rentals in a variety of contexts. It includes features for handling inventory items, customers, rentals, and users, with data stored in SQLite through the provided `DatabaseService`.
+
+## Settings and Rebranding
+The application can be rebranded via its **Settings** to suit different inventory domains:
+- **Application Name**: Sets the title shown throughout the UI.
+- **Singular Item Label** and **Plural Item Label**: Customize terminology for inventory items.
+
+These options enable using the app for tracking AV gear, sports equipment, or any other lendable items.
 
 ## Prerequisites
 - **.NET 8 SDK**
