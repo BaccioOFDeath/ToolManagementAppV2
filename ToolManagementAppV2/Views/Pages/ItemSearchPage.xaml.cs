@@ -3,9 +3,9 @@ using System.Windows.Controls;
 
 namespace ToolManagementAppV2.Views.Pages
 {
-    public partial class ToolSearchPage : Page
+    public partial class ItemSearchPage : Page
     {
-        public ToolSearchPage()
+        public ItemSearchPage()
         {
             InitializeComponent();
         }

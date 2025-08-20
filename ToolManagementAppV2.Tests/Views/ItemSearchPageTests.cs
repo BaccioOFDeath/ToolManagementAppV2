@@ -9,7 +9,7 @@ using Xunit;
 
 namespace ToolManagementAppV2.Tests.Views
 {
-    public class ToolSearchPageTests
+    public class ItemSearchPageTests
     {
         [Fact]
         public void Constructor_LoadsWithoutException()
@@ -22,7 +22,7 @@ namespace ToolManagementAppV2.Tests.Views
                 {
                     if (System.Windows.Application.Current == null)
                         new System.Windows.Application();
-                    var page = new ToolSearchPage();
+                    var page = new ItemSearchPage();
                 }
                 catch (Exception ex)
                 {
@@ -51,7 +51,7 @@ namespace ToolManagementAppV2.Tests.Views
                     LabelProvider.Instance.UpdateLabels("Widget", "Widgets");
                     if (System.Windows.Application.Current == null)
                         new System.Windows.Application();
-                    var page = new ToolSearchPage();
+                    var page = new ItemSearchPage();
                     var button = TestHelpers.FindVisualChildren<System.Windows.Controls.Button>(page)
                         .First(b => (string)b.Content! == "Search Widgets");
                 }
@@ -61,7 +61,7 @@ namespace ToolManagementAppV2.Tests.Views
                 }
                 finally
                 {
-                    LabelProvider.Instance.UpdateLabels("ItemModel", "Tools");
+                    LabelProvider.Instance.UpdateLabels("Item", "Items");
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);

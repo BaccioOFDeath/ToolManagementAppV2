@@ -21,16 +21,16 @@ namespace ToolManagementAppV2.Tests.Tests
     public class NavigationCommandsTests
     {
         [Fact]
-        public async Task OpenSearchToolsCommand_NavigatesToToolSearchPage()
+        public async Task OpenSearchItemsCommand_NavigatesToItemSearchPage()
         {
             var (window, dbPath) = TestHelpers.CreateMainWindow();
             try
             {
                 var vm = Assert.IsType<MainViewModel>(window.DataContext);
 
-                await vm.OpenSearchToolsCommand.ExecuteAsync(null);
+                await vm.OpenSearchItemsCommand.ExecuteAsync(null);
 
-                Assert.IsType<ToolSearchPage>(vm.CurrentPage);
+                Assert.IsType<ItemSearchPage>(vm.CurrentPage);
             }
             finally
             {
@@ -41,7 +41,7 @@ namespace ToolManagementAppV2.Tests.Tests
         }
 
         [Fact]
-        public async Task OpenSearchToolsCommand_LoadsToolsAndSetsDataContext()
+        public async Task OpenSearchItemsCommand_LoadsItemsAndSetsDataContext()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -57,11 +57,11 @@ namespace ToolManagementAppV2.Tests.Tests
                 toolService.AddTool(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
 
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
-                await vm.OpenSearchToolsCommand.ExecuteAsync(null);
+                await vm.OpenSearchItemsCommand.ExecuteAsync(null);
 
-                var page = Assert.IsType<ToolSearchPage>(vm.CurrentPage);
+                var page = Assert.IsType<ItemSearchPage>(vm.CurrentPage);
                 Assert.Same(vm.ItemManagement, page.DataContext);
-                Assert.Same(vm.ItemManagement.Tools, page.ToolsList.ItemsSource);
+                Assert.Same(vm.ItemManagement.Tools, page.ItemsList.ItemsSource);
                 Assert.NotEmpty(vm.ItemManagement.Tools);
             }
             finally

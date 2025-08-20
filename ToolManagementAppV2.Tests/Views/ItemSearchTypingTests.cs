@@ -14,7 +14,7 @@ using Xunit;
 
 namespace ToolManagementAppV2.Tests.Views
 {
-    public class ToolSearchTypingTests
+    public class ItemSearchTypingTests
     {
         [Fact(Skip = "Manual test for verifying search debounce while typing")]
         public void SearchText_Debounce_Manual()
@@ -33,7 +33,7 @@ namespace ToolManagementAppV2.Tests.Views
                     toolService.AddTool(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
                     toolService.AddTool(new ItemModel { ItemNumber = "T2", NameDescription = "Hand Saw" });
                     vm.LoadToolsAsync().Wait();
-                    var page = new ToolSearchPage { DataContext = vm };
+                    var page = new ItemSearchPage { DataContext = vm };
                     var window = new System.Windows.Window { Content = page, Width = 800, Height = 600 };
                     window.ShowDialog();
                 }

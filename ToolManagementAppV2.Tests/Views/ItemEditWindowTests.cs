@@ -9,7 +9,7 @@ using Xunit;
 
 namespace ToolManagementAppV2.Tests.Views
 {
-    public class ToolEditWindowTests
+    public class ItemEditWindowTests
     {
         [Fact]
         public void Constructor_SetsDataContext_And_CallsCallbacks()
@@ -21,13 +21,13 @@ namespace ToolManagementAppV2.Tests.Views
                 try
                 {
                     var tool = new ItemModel();
-                    ToolEditWindow? window = null;
+                    ItemEditWindow? window = null;
                     bool closed = false;
 
                     Action onSave = () => window?.Close();
                     Action onCancel = () => window?.Close();
 
-                    window = new ToolEditWindow(tool, onSave, onCancel, new FileDialogService());
+                    window = new ItemEditWindow(tool, onSave, onCancel, new FileDialogService());
                     window.Closed += (_, __) => closed = true;
 
                     Assert.IsType<ToolEditViewModel>(window.DataContext);
@@ -64,13 +64,13 @@ namespace ToolManagementAppV2.Tests.Views
                 try
                 {
                     var tool = new ItemModel();
-                    ToolEditWindow? window = null;
+                    ItemEditWindow? window = null;
                     bool closed = false;
 
                     Action onSave = () => window?.Close();
                     Action onCancel = () => window?.Close();
 
-                    window = new ToolEditWindow(tool, onSave, onCancel, new FileDialogService());
+                    window = new ItemEditWindow(tool, onSave, onCancel, new FileDialogService());
                     window.Closed += (_, __) => closed = true;
 
                     var vm = (ToolEditViewModel)window.DataContext;
@@ -95,16 +95,16 @@ namespace ToolManagementAppV2.Tests.Views
         }
 
         [Fact(Skip = "Manual smoke test for visual inspection")]
-        public void ToolEditWindow_ManualSmokeTest()
+        public void ItemEditWindow_ManualSmokeTest()
         {
             var thread = new Thread(() =>
             {
                 var tool = new ItemModel();
-                ToolEditWindow? window = null;
+                ItemEditWindow? window = null;
                 Action onSave = () => window?.Close();
                 Action onCancel = () => window?.Close();
 
-                window = new ToolEditWindow(tool, onSave, onCancel, new FileDialogService());
+                window = new ItemEditWindow(tool, onSave, onCancel, new FileDialogService());
                 window.ShowDialog();
             });
 
