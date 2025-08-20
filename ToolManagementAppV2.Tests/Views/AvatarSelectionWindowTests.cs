@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Views.Pages;
 using ToolManagementAppV2.Views.Windows;
+using ToolManagementAppV2.Utilities.Helpers;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.Views
@@ -59,7 +60,7 @@ namespace ToolManagementAppV2.Tests.Views
 
                     window.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent));
 
-                    Assert.Equal("Tool Inventory Management – Select Avatar", window.Title);
+                    Assert.Equal($"{LabelProvider.Instance.ItemLabelSingular} Inventory Management – Select Avatar", window.Title);
                 }
                 catch (Exception ex)
                 {
@@ -112,6 +113,8 @@ namespace ToolManagementAppV2.Tests.Views
         class StubSettingsService : ISettingsService
         {
             public string? AppName { get; set; }
+            public string ItemLabelSingular { get; set; } = "Tool";
+            public string ItemLabelPlural { get; set; } = "Tools";
 
             public Task<string?> GetSettingAsync(string key, CancellationToken cancellationToken = default)
                 => Task.FromResult(AppName);
@@ -136,6 +139,20 @@ namespace ToolManagementAppV2.Tests.Views
                 => Task.FromResult(0);
             public Task SaveAutoLogoutMinutesAsync(int minutes, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
+            public Task<string> GetItemLabelSingularAsync(CancellationToken cancellationToken = default)
+                => Task.FromResult(ItemLabelSingular);
+            public Task SaveItemLabelSingularAsync(string label, CancellationToken cancellationToken = default)
+            {
+                ItemLabelSingular = label;
+                return Task.CompletedTask;
+            }
+            public Task<string> GetItemLabelPluralAsync(CancellationToken cancellationToken = default)
+                => Task.FromResult(ItemLabelPlural);
+            public Task SaveItemLabelPluralAsync(string label, CancellationToken cancellationToken = default)
+            {
+                ItemLabelPlural = label;
+                return Task.CompletedTask;
+            }
         }
 
         class FailingSettingsService : ISettingsService
@@ -162,6 +179,14 @@ namespace ToolManagementAppV2.Tests.Views
             public Task<int> GetAutoLogoutMinutesAsync(CancellationToken cancellationToken = default)
                 => Task.FromResult(0);
             public Task SaveAutoLogoutMinutesAsync(int minutes, CancellationToken cancellationToken = default)
+                => Task.CompletedTask;
+            public Task<string> GetItemLabelSingularAsync(CancellationToken cancellationToken = default)
+                => Task.FromResult("Tool");
+            public Task SaveItemLabelSingularAsync(string label, CancellationToken cancellationToken = default)
+                => Task.CompletedTask;
+            public Task<string> GetItemLabelPluralAsync(CancellationToken cancellationToken = default)
+                => Task.FromResult("Tools");
+            public Task SaveItemLabelPluralAsync(string label, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
         }
     }

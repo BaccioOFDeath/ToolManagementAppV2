@@ -2,6 +2,7 @@
 <Page x:Class="ToolManagementAppV2.Views.Pages.ImportExportPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:helpers="clr-namespace:ToolManagementAppV2.Utilities.Helpers"
       Background="{StaticResource BackgroundBrush}">
     <Grid Margin="8">
         <Grid.RowDefinitions>
@@ -17,12 +18,12 @@
 
             <!-- Tools -->
             <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                <TextBlock Text="Tools" Style="{StaticResource SectionHeader}" />
+                <TextBlock Text="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}" Style="{StaticResource SectionHeader}" />
                 <WrapPanel>
-                    <Button Style="{StaticResource CompactPrimaryButton}" Content="Import Tools CSV" Command="{Binding ImportToolsCommand}"/>
-                    <Button Style="{StaticResource CompactPrimaryButton}" Content="Import Tool Images" Command="{Binding DataContext.OpenImageImportMappingWindowCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    <Button Style="{StaticResource CompactPrimaryButton}" Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Import {0} CSV}" Command="{Binding ImportToolsCommand}"/>
+                    <Button Style="{StaticResource CompactPrimaryButton}" Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Import {0} Images}" Command="{Binding DataContext.OpenImageImportMappingWindowCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                             Visibility="{Binding DataContext.IsCurrentUserAdmin, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}"/>
-                    <Button Style="{StaticResource CompactPrimaryButton}" Content="Export Tools CSV" Command="{Binding ExportToolsCommand}"/>
+                    <Button Style="{StaticResource CompactPrimaryButton}" Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Export {0} CSV}" Command="{Binding ExportToolsCommand}"/>
                     <Button Style="{StaticResource CompactPrimaryButton}" Content="Backup Database" Command="{Binding BackupDatabaseCommand}"/>
                     <Button Style="{StaticResource CompactPrimaryButton}" Content="Cancel Import" Command="{Binding CancelImportToolsCommand}" IsEnabled="{Binding ImportToolsCommand.IsRunning}"/>
 

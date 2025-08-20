@@ -170,7 +170,7 @@ namespace ToolManagementAppV2.ViewModels
             var appName = await _settingsService.GetSettingAsync("ApplicationName", cancellationToken);
             return !string.IsNullOrWhiteSpace(appName)
                 ? $"{appName} – Login"
-                : "Tool Inventory Management – Login";
+                : $"{LabelProvider.Instance.ItemLabelSingular} Inventory Management – Login";
         }
 
         async Task LoadUsersAsync()

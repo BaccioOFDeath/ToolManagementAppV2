@@ -25,6 +25,7 @@ using ToolManagementAppV2.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using ToolManagementAppV2.Models.ImportExport;
 using ToolManagementAppV2.Utilities;
+using ToolManagementAppV2.Utilities.Helpers;
 using Application = System.Windows.Application;
 
 namespace ToolManagementAppV2.ViewModels
@@ -219,7 +220,8 @@ namespace ToolManagementAppV2.ViewModels
             OpenSearchToolsCommand = new AsyncRelayCommand(async () =>
             {
                 await ToolManagement.LoadToolsAsync();
-                var page = new ToolSearchPage { DataContext = ToolManagement, Title = "Search Tools" };
+                var plural = LabelProvider.Instance.ItemLabelPlural;
+                var page = new ToolSearchPage { DataContext = ToolManagement, Title = $"Search {plural}" };
                 // If your ToolManagement VM supports a query setter, apply GlobalSearchText there.
                 CurrentPage = page;
             });
@@ -227,7 +229,8 @@ namespace ToolManagementAppV2.ViewModels
             OpenManageToolsCommand = new AsyncRelayCommand(async () =>
             {
                 await ToolManagement.LoadToolsAsync();
-                var page = new ManageToolsPage { DataContext = ToolManagement, Title = "Manage Tools" };
+                var plural = LabelProvider.Instance.ItemLabelPlural;
+                var page = new ManageToolsPage { DataContext = ToolManagement, Title = $"Manage {plural}" };
                 CurrentPage = page;
             });
 
@@ -420,18 +423,20 @@ namespace ToolManagementAppV2.ViewModels
                     _logger.LogInformation("Import mapping selected. Headers: {Headers}. Map: {Map}",
                         string.Join(", ", headers),
                         mappingString);
-                    await _dialogService.ShowInfoAsync("Importing tools...", "Import Tools");
+                    var plural = LabelProvider.Instance.ItemLabelPlural;
+                    await _dialogService.ShowInfoAsync($"Importing {plural}...", $"Import {plural}");
                     var invalid = await _toolService.ImportToolsFromCsvAsync(path, map, cancellationToken);
                     var msg = invalid.Count == 0
-                        ? "Successfully imported tools."
+                        ? $"Successfully imported {plural}."
                         : $"Imported with {invalid.Count} invalid rows.";
-                    await _dialogService.ShowInfoAsync(msg, "Import Tools");
+                    await _dialogService.ShowInfoAsync(msg, $"Import {plural}");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to import tools from CSV");
-                await _dialogService.ShowInfoAsync($"Failed to import tools: {ex.Message}", "Import Tools");
+                var plural = LabelProvider.Instance.ItemLabelPlural;
+                _logger.LogError(ex, "Failed to import {ItemLabelPlural} from CSV", plural);
+                await _dialogService.ShowInfoAsync($"Failed to import {plural}: {ex.Message}", $"Import {plural}");
             }
         }
 

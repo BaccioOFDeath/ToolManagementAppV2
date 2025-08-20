@@ -21,5 +21,11 @@ namespace ToolManagementAppV2.Interfaces
         // Auto logout configuration
         Task<int> GetAutoLogoutMinutesAsync(CancellationToken cancellationToken = default);
         Task SaveAutoLogoutMinutesAsync(int minutes, CancellationToken cancellationToken = default);
+
+        // Item label configuration
+        Task<string> GetItemLabelSingularAsync(CancellationToken cancellationToken = default);
+        Task SaveItemLabelSingularAsync(string label, CancellationToken cancellationToken = default);
+        Task<string> GetItemLabelPluralAsync(CancellationToken cancellationToken = default);
+        Task SaveItemLabelPluralAsync(string label, CancellationToken cancellationToken = default);
     }
 }

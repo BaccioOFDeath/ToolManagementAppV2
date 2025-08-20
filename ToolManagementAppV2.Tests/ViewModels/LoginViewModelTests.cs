@@ -79,7 +79,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 };
                 await vm.InitializeAsync();
 
-                Assert.Equal("Tool Inventory Management – Login", vm.WindowTitle);
+                Assert.Equal($"{LabelProvider.Instance.ItemLabelSingular} Inventory Management – Login", vm.WindowTitle);
             }
             finally
             {

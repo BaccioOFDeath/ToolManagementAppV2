@@ -190,6 +190,21 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public void ItemLabels_UpdateServiceAndProvider()
+        {
+            var settings = new StubSettingsService();
+            LabelProvider.Instance.UpdateLabels("Tool", "Tools");
+            var vm = new SettingsViewModel(new StubFileDialogService(), settings, new StubDialogService());
+            vm.ItemLabelSingular = "Widget";
+            vm.ItemLabelPlural = "Widgets";
+            Assert.Equal("Widget", settings.ItemLabelSingular);
+            Assert.Equal("Widgets", settings.ItemLabelPlural);
+            Assert.Equal("Widget", LabelProvider.Instance.ItemLabelSingular);
+            Assert.Equal("Widgets", LabelProvider.Instance.ItemLabelPlural);
+            LabelProvider.Instance.UpdateLabels("Tool", "Tools");
+        }
+
+        [Fact]
         public void PasswordIterations_AboveLimit_PersistsClampedValue()
         {
             var path = System.IO.Path.GetTempFileName();
@@ -227,6 +242,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public IEnumerable<string> ScannerIps { get; set; } = Array.Empty<string>();
         public int PasswordIterations { get; set; } = 100_000;
         public int AutoLogoutMinutes { get; set; }
+        public string ItemLabelSingular { get; set; } = "Tool";
+        public string ItemLabelPlural { get; set; } = "Tools";
 
         public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default)
         {
@@ -261,6 +278,21 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Task SaveAutoLogoutMinutesAsync(int minutes, CancellationToken cancellationToken = default)
         {
             AutoLogoutMinutes = minutes;
+            return Task.CompletedTask;
+        }
+
+        public Task<string> GetItemLabelSingularAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(ItemLabelSingular);
+        public Task SaveItemLabelSingularAsync(string label, CancellationToken cancellationToken = default)
+        {
+            ItemLabelSingular = label;
+            return Task.CompletedTask;
+        }
+        public Task<string> GetItemLabelPluralAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(ItemLabelPlural);
+        public Task SaveItemLabelPluralAsync(string label, CancellationToken cancellationToken = default)
+        {
+            ItemLabelPlural = label;
             return Task.CompletedTask;
         }
     }

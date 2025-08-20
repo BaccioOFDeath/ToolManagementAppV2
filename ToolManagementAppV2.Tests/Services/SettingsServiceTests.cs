@@ -438,5 +438,27 @@ namespace ToolManagementAppV2.Tests.Services
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void ItemLabels_SaveAndRetrieve()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var service = new SettingsService(dbService);
+                Assert.Equal("Tool", service.GetItemLabelSingularAsync().GetAwaiter().GetResult());
+                Assert.Equal("Tools", service.GetItemLabelPluralAsync().GetAwaiter().GetResult());
+                service.SaveItemLabelSingularAsync("Widget").GetAwaiter().GetResult();
+                service.SaveItemLabelPluralAsync("Widgets").GetAwaiter().GetResult();
+                Assert.Equal("Widget", service.GetItemLabelSingularAsync().GetAwaiter().GetResult());
+                Assert.Equal("Widgets", service.GetItemLabelPluralAsync().GetAwaiter().GetResult());
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }

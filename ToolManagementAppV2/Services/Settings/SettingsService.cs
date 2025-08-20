@@ -207,6 +207,8 @@ namespace ToolManagementAppV2.Services.Settings
         const string ScannerIpKey = "ScannerIpAddresses";
         const string PasswordIterationsKey = "PasswordIterations";
         const string AutoLogoutMinutesKey = "AutoLogoutMinutes";
+        const string ItemLabelSingularKey = "ItemLabelSingular";
+        const string ItemLabelPluralKey = "ItemLabelPlural";
 
         public async Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default)
         {
@@ -286,6 +288,30 @@ namespace ToolManagementAppV2.Services.Settings
             if (minutes < 0)
                 throw new ArgumentOutOfRangeException(nameof(minutes));
             await SaveSettingAsync(AutoLogoutMinutesKey, minutes.ToString(), cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<string> GetItemLabelSingularAsync(CancellationToken cancellationToken = default)
+        {
+            var value = await GetSettingAsync(ItemLabelSingularKey, cancellationToken).ConfigureAwait(false);
+            return string.IsNullOrWhiteSpace(value) ? "Tool" : value;
+        }
+
+        public async Task SaveItemLabelSingularAsync(string label, CancellationToken cancellationToken = default)
+        {
+            _auth.EnsureAdmin();
+            await SaveSettingAsync(ItemLabelSingularKey, label, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<string> GetItemLabelPluralAsync(CancellationToken cancellationToken = default)
+        {
+            var value = await GetSettingAsync(ItemLabelPluralKey, cancellationToken).ConfigureAwait(false);
+            return string.IsNullOrWhiteSpace(value) ? "Tools" : value;
+        }
+
+        public async Task SaveItemLabelPluralAsync(string label, CancellationToken cancellationToken = default)
+        {
+            _auth.EnsureAdmin();
+            await SaveSettingAsync(ItemLabelPluralKey, label, cancellationToken).ConfigureAwait(false);
         }
     }
 }

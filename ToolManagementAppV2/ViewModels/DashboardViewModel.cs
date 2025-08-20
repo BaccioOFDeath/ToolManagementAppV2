@@ -10,6 +10,7 @@ using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Users;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ToolManagementAppV2.Utilities.Helpers;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -55,7 +56,7 @@ namespace ToolManagementAppV2.ViewModels
             NewToolCommand = new RelayCommand(() =>
             {
                 try { _openManageToolsCommand.Execute(null); }
-                catch (Exception ex) { _logger.LogError(ex, "Failed to open manage tools page"); }
+                catch (Exception ex) { _logger.LogError(ex, "Failed to open manage {ItemLabelPlural} page", LabelProvider.Instance.ItemLabelPlural.ToLower()); }
             });
 
             OpenRentalsCommand = new RelayCommand(() =>
@@ -80,7 +81,7 @@ namespace ToolManagementAppV2.ViewModels
             {
                 StatCards.Clear();
                 var tools = await _toolService.GetAllToolsAsync(cancellationToken);
-                StatCards.Add(new StatCard { Title = "Total Tools", Value = tools.Count.ToString() });
+                StatCards.Add(new StatCard { Title = $"Total {LabelProvider.Instance.ItemLabelPlural}", Value = tools.Count.ToString() });
                 var activeRentals = await _rentalService.GetActiveRentalsAsync();
                 var customers = await _customerService.GetAllCustomersAsync(cancellationToken);
                 var users = await _userService.GetAllUsersAsync();

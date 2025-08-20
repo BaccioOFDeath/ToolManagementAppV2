@@ -8,6 +8,7 @@ using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Utilities.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ToolManagementAppV2.Utilities.Helpers;
 
 
 namespace ToolManagementAppV2.Views.Windows
@@ -51,7 +52,7 @@ namespace ToolManagementAppV2.Views.Windows
                 var appName = await _settingsService.GetSettingAsync("ApplicationName");
                 Title = !string.IsNullOrWhiteSpace(appName)
                     ? $"{appName} – Select Avatar"
-                    : "Tool Inventory Management – Select Avatar";
+                    : $"{LabelProvider.Instance.ItemLabelSingular} Inventory Management – Select Avatar";
             }
             catch (Exception ex)
             {
