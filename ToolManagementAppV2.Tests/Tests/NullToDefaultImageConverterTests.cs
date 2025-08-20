@@ -23,6 +23,15 @@ namespace ToolManagementAppV2.Tests
         }
 
         [Fact]
+        public void Convert_NullWithItemParameter_ReturnsDefaultItem()
+        {
+            var converter = new NullToDefaultImageConverter();
+            var result = converter.Convert(null, typeof(BitmapImage), "item", CultureInfo.InvariantCulture);
+            var bmp = Assert.IsType<BitmapImage>(result);
+            Assert.Equal("pack://application:,,,/Resources/DefaultItemImage.png", bmp.UriSource.OriginalString);
+        }
+
+        [Fact]
         public void Convert_ValidPath_ReturnsBitmapImage()
         {
             var converter = new NullToDefaultImageConverter();

@@ -58,6 +58,7 @@ namespace ToolManagementAppV2.Tests.Tests
                     var imageBinding = BindingOperations.GetBinding(image, Image.SourceProperty);
                     Assert.NotNull(imageBinding);
                     Assert.IsType<NullToDefaultImageConverter>(imageBinding!.Converter);
+                    Assert.Equal("item", imageBinding.ConverterParameter);
 
                     if (createdApp)
                         app.Shutdown();

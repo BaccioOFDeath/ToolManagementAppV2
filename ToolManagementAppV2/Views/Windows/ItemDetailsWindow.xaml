@@ -28,7 +28,7 @@
             </Grid.ColumnDefinitions>
 
             <Image Grid.Row="0" Grid.ColumnSpan="2" Width="120" Height="120" Margin="0,0,0,8" HorizontalAlignment="Center"
-                   Source="{Binding ItemModel.ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=tool}"/>
+                   Source="{Binding ItemModel.ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
 
             <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat={}{0} Number}" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
             <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ItemModel.ItemNumber}" Margin="8,4"/>

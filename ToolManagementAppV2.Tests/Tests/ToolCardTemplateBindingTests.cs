@@ -29,7 +29,7 @@ namespace ToolManagementAppV2.Tests.Tests
                     var binding = BindingOperations.GetBinding(image, Image.SourceProperty);
                     Assert.NotNull(binding);
                     Assert.IsType<NullToDefaultImageConverter>(binding!.Converter);
-                    Assert.Equal("tool", binding.ConverterParameter);
+                    Assert.Equal("item", binding.ConverterParameter);
                 }
                 catch (Exception ex)
                 {
