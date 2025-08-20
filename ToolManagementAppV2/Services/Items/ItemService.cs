@@ -266,15 +266,15 @@ namespace ToolManagementAppV2.Services.Items
             await source.CopyToAsync(destination, cancellationToken);
         }
 
-        private async Task<bool> ItemExistsAsync(string toolNumber, int? exceptId = null, CancellationToken cancellationToken = default)
+        private async Task<bool> ItemExistsAsync(string itemNumber, int? exceptId = null, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(toolNumber))
+            if (string.IsNullOrWhiteSpace(itemNumber))
                 return false;
 
             var sql = "SELECT COUNT(*) FROM Items WHERE ItemNumber = @TN";
             var parameters = new List<SQLiteParameter>
             {
-                new("@TN", toolNumber)
+                new("@TN", itemNumber)
             };
 
             if (exceptId.HasValue)
@@ -317,7 +317,7 @@ namespace ToolManagementAppV2.Services.Items
         {
             if (string.IsNullOrWhiteSpace(item?.ItemNumber))
                 item.ItemNumber = await GenerateNextItemNumberAsync(cancellationToken);
-            if (await ItemExistsAsync(item.ItemNumber, null, cancellationToken))
+            if (await ItemExistsAsync(itemNumber: item.ItemNumber, exceptId: null, cancellationToken: cancellationToken))
                 throw new InvalidOperationException($"ItemModel {item.ItemNumber} already exists.");
             ValidateQuantity(item.QuantityOnHand);
             using var conn = _dbService.CreateConnection();
@@ -326,7 +326,7 @@ namespace ToolManagementAppV2.Services.Items
 
         private async Task UpdateItemInternalAsync(ItemModel item, CancellationToken cancellationToken)
         {
-            if (await ItemExistsAsync(item.ItemNumber, item.ItemID, cancellationToken))
+            if (await ItemExistsAsync(itemNumber: item.ItemNumber, exceptId: item.ItemID, cancellationToken: cancellationToken))
                 throw new InvalidOperationException($"ItemModel {item.ItemNumber} already exists.");
             using var conn = _dbService.CreateConnection();
             ValidateQuantity(item.QuantityOnHand);
