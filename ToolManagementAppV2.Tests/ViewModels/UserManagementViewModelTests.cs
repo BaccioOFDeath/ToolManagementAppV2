@@ -482,7 +482,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public void RentToolPopupWindow_RequestCloseHandler_DoesNotLeak()
+        public void RentItemPopupWindow_RequestCloseHandler_DoesNotLeak()
         {
             WeakReference? winRef = null;
             bool? aliveBeforeUnsubscribe = null;
@@ -492,8 +492,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 try
                 {
-                    var vm = new RentToolPopupViewModel(new ItemModel(), new List<CustomerModel>());
-                    var win = new RentToolPopupWindow { DataContext = vm };
+                    var vm = new RentItemPopupViewModel(new ItemModel(), new List<CustomerModel>());
+                    var win = new RentItemPopupWindow { DataContext = vm };
                     var captured = win;
                     EventHandler handler = (_, _) => captured.Close();
                     vm.RequestClose += handler;
@@ -555,9 +555,9 @@ class StubDialogService : IDialogService
         LastInfoTitle = title;
     }
     public bool ShowConfirmation(string message, string title) => false;
-    public ItemModel? ShowEditToolDialog(ItemModel tool) => null;
-    public void ShowToolDetails(ItemModel tool) { }
-    public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
+    public ItemModel? ShowEditItemDialog(ItemModel tool) => null;
+    public void ShowItemDetails(ItemModel tool) { }
+    public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
     public CustomerModel? ShowAddCustomerDialog() => null;
     public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
     public void ShowRentalHistory(ItemModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }

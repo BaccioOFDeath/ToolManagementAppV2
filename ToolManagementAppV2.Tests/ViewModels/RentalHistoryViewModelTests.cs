@@ -89,11 +89,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
             public bool ShowConfirmation(string message, string title) => true;
 
-            public ItemModel? ShowEditToolDialog(ItemModel tool) => null;
+            public ItemModel? ShowEditItemDialog(ItemModel tool) => null;
 
-            public void ShowToolDetails(ItemModel tool) { }
+            public void ShowItemDetails(ItemModel tool) { }
 
-            public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
+            public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
 
             public CustomerModel? ShowAddCustomerDialog() => null;
             public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }

@@ -3,7 +3,7 @@ using System.Windows;
 using System.Collections.Generic;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
-using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Items;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.ViewModels;
@@ -82,9 +82,9 @@ class StubDialogService : IDialogService
 {
     public void ShowInfo(string message, string title) { }
     public bool ShowConfirmation(string message, string title) => false;
-    public ItemModel? ShowEditToolDialog(ItemModel tool) => null;
-    public void ShowToolDetails(ItemModel tool) { }
-    public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
+    public ItemModel? ShowEditItemDialog(ItemModel tool) => null;
+    public void ShowItemDetails(ItemModel tool) { }
+    public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
     public CustomerModel? ShowAddCustomerDialog() => null;
     public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
     public void ShowRentalHistory(ItemModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }

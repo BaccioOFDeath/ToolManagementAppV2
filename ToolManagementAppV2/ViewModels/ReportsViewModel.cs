@@ -5,7 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Windows.Documents;
 using System.Threading.Tasks;
-using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Items;
 
 namespace ToolManagementAppV2.ViewModels
 {

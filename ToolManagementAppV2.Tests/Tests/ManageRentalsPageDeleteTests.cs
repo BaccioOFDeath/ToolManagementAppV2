@@ -4,7 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Windows.Controls;
 using ToolManagementAppV2.Services.Core;
-using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Items;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.ViewModels;
@@ -30,7 +30,7 @@ namespace ToolManagementAppV2.Tests.Tests
                 var rentalService = new RentalService(db);
 
                 var tool = new ItemModel { ItemNumber = "T1" };
-                toolService.AddTool(tool);
+                toolService.AddItem(tool);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
@@ -64,9 +64,9 @@ namespace ToolManagementAppV2.Tests.Tests
     {
         public void ShowInfo(string message, string title) { }
         public bool ShowConfirmation(string message, string title) => false;
-        public ItemModel? ShowEditToolDialog(ItemModel tool) => null;
-        public void ShowToolDetails(ItemModel tool) { }
-        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
+        public ItemModel? ShowEditItemDialog(ItemModel tool) => null;
+        public void ShowItemDetails(ItemModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
         public CustomerModel? ShowAddCustomerDialog() => null;
         public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
         public void ShowRentalHistory(ItemModel tool, IEnumerable<RentalModel> history) { }

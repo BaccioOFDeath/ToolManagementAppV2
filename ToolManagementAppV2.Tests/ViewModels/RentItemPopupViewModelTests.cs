@@ -6,14 +6,14 @@ using Xunit;
 
 namespace ToolManagementAppV2.Tests.ViewModels
 {
-    public class RentToolPopupViewModelTests
+    public class RentItemPopupViewModelTests
     {
         [Fact]
         public void CheckOutCommand_SetsResultsAndRaisesClose()
         {
-            var tool = new ItemModel();
+            var item = new ItemModel();
             var customer = new CustomerModel { CustomerID = 1, Company = "ACME" };
-            var vm = new RentToolPopupViewModel(tool, new[] { customer })
+            var vm = new RentItemPopupViewModel(item, new[] { customer })
             {
                 SelectedCustomer = customer,
                 SelectedDueDate = DateTime.Today.AddDays(3)

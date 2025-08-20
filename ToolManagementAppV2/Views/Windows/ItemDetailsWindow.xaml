@@ -1,5 +1,5 @@
-<!-- Views/ToolDetailsWindow.xaml -->
-<Window x:Class="ToolManagementAppV2.Views.Windows.ToolDetailsWindow"
+<!-- Views/ItemDetailsWindow.xaml -->
+<Window x:Class="ToolManagementAppV2.Views.Windows.ItemDetailsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:helpers="clr-namespace:ToolManagementAppV2.Utilities.Helpers"

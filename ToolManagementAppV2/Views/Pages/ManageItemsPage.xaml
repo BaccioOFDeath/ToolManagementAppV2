@@ -32,16 +32,16 @@
                     <DataGrid.ContextMenu>
                         <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                             <MenuItem Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Rent {0}}" Command="{Binding OpenRentalsCommand}"/>
-                            <MenuItem Header="Delete" Command="{Binding DeleteToolCommand}"/>
+                            <MenuItem Header="Delete" Command="{Binding DeleteItemCommand}"/>
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                 </DataGrid>
 
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-                    <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditToolCommand}"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditItemCommand}"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="View Details" Command="{Binding ViewDetailsCommand}" Margin="8,0,0,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Rental History" Command="{Binding OpenRentalHistoryCommand}" Margin="8,0,0,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="New" Command="{Binding NewToolCommand}" Margin="8,0,0,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="New" Command="{Binding NewItemCommand}" Margin="8,0,0,0"/>
                 </StackPanel>
             </Grid>
         </Border>

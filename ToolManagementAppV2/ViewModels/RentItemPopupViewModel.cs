@@ -6,7 +6,7 @@ using ToolManagementAppV2.Models.Domain;
 
 namespace ToolManagementAppV2.ViewModels.Rental
 {
-    public class RentToolPopupViewModel : ObservableObject
+    public class RentItemPopupViewModel : ObservableObject
     {
         public ObservableCollection<CustomerModel> Customers { get; }
         public CustomerModel? SelectedCustomer { get; set; }
@@ -19,7 +19,7 @@ namespace ToolManagementAppV2.ViewModels.Rental
         public IRelayCommand CheckOutCommand { get; }
         public IRelayCommand CancelCommand { get; }
 
-        public RentToolPopupViewModel(ItemModel tool, IEnumerable<CustomerModel> customers)
+        public RentItemPopupViewModel(ItemModel item, IEnumerable<CustomerModel> customers)
         {
             Customers = new ObservableCollection<CustomerModel>(customers);
             CheckOutCommand = new RelayCommand(Confirm);

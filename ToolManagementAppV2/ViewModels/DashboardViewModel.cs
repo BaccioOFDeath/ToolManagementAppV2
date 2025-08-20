@@ -16,7 +16,7 @@ namespace ToolManagementAppV2.ViewModels
 {
     public class DashboardViewModel : ObservableObject
     {
-        readonly IItemService _toolService;
+        readonly IItemService _itemService;
         readonly IRentalService _rentalService;
         readonly ICustomerService _customerService;
         readonly IUserService _userService;
@@ -29,11 +29,11 @@ namespace ToolManagementAppV2.ViewModels
         public ObservableCollection<StatCard> StatCards { get; } = new();
         public ObservableCollection<ActivityLog> RecentActivity { get; } = new();
 
-        public IRelayCommand NewToolCommand { get; }
+        public IRelayCommand NewItemCommand { get; }
         public IRelayCommand OpenRentalsCommand { get; }
         public IRelayCommand OpenImportExportCommand { get; }
 
-        public DashboardViewModel(IItemService toolService,
+        public DashboardViewModel(IItemService itemService,
                                   IRentalService rentalService,
                                   ICustomerService customerService,
                                   IUserService userService,
@@ -43,7 +43,7 @@ namespace ToolManagementAppV2.ViewModels
                                   IRelayCommand openImportExportCommand,
                                   ILogger<DashboardViewModel>? logger = null)
         {
-            _toolService = toolService ?? throw new ArgumentNullException(nameof(toolService));
+            _itemService = itemService ?? throw new ArgumentNullException(nameof(itemService));
             _rentalService = rentalService ?? throw new ArgumentNullException(nameof(rentalService));
             _customerService = customerService ?? throw new ArgumentNullException(nameof(customerService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
@@ -53,7 +53,7 @@ namespace ToolManagementAppV2.ViewModels
             _openImportExportCommand = openImportExportCommand ?? throw new ArgumentNullException(nameof(openImportExportCommand));
             _logger = logger ?? NullLogger<DashboardViewModel>.Instance;
 
-            NewToolCommand = new RelayCommand(() =>
+            NewItemCommand = new RelayCommand(() =>
             {
                 try { _openManageItemsCommand.Execute(null); }
                 catch (Exception ex) { _logger.LogError(ex, "Failed to open manage {ItemLabelPlural} page", LabelProvider.Instance.ItemLabelPlural.ToLower()); }
@@ -80,7 +80,7 @@ namespace ToolManagementAppV2.ViewModels
             try
             {
                 StatCards.Clear();
-                var tools = await _toolService.GetAllToolsAsync(cancellationToken);
+                var tools = await _itemService.GetAllItemsAsync(cancellationToken);
                 StatCards.Add(new StatCard { Title = $"Total {LabelProvider.Instance.ItemLabelPlural}", Value = tools.Count.ToString() });
                 var activeRentals = await _rentalService.GetActiveRentalsAsync();
                 var customers = await _customerService.GetAllCustomersAsync(cancellationToken);

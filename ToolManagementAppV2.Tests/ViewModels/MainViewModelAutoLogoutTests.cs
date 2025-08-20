@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Services.Core;
-using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Items;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
@@ -78,9 +78,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             public void ShowInfo(string message, string title) { }
             public bool ShowConfirmation(string message, string title) => false;
-            public ToolManagementAppV2.Models.Domain.ItemModel? ShowEditToolDialog(ToolManagementAppV2.Models.Domain.ItemModel tool) => null;
-            public void ShowToolDetails(ToolManagementAppV2.Models.Domain.ItemModel tool) { }
-            public (ToolManagementAppV2.Models.Domain.CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolManagementAppV2.Models.Domain.ItemModel tool, System.Collections.Generic.IEnumerable<ToolManagementAppV2.Models.Domain.CustomerModel> customers) => null;
+            public ToolManagementAppV2.Models.Domain.ItemModel? ShowEditItemDialog(ToolManagementAppV2.Models.Domain.ItemModel tool) => null;
+            public void ShowItemDetails(ToolManagementAppV2.Models.Domain.ItemModel tool) { }
+            public (ToolManagementAppV2.Models.Domain.CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ToolManagementAppV2.Models.Domain.ItemModel tool, System.Collections.Generic.IEnumerable<ToolManagementAppV2.Models.Domain.CustomerModel> customers) => null;
             public ToolManagementAppV2.Models.Domain.CustomerModel? ShowAddCustomerDialog() => null;
             public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
             public void ShowRentalHistory(ToolManagementAppV2.Models.Domain.ItemModel tool, System.Collections.Generic.IEnumerable<ToolManagementAppV2.Models.Domain.RentalModel> history) { }

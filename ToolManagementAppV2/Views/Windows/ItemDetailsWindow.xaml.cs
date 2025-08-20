@@ -1,16 +1,16 @@
-// Views/ToolDetailsWindow.xaml.cs
+// Views/ItemDetailsWindow.xaml.cs
 using System.Windows;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Utilities.Extensions;
 
 namespace ToolManagementAppV2.Views.Windows
 {
-    public partial class ToolDetailsWindow : Window
+    public partial class ItemDetailsWindow : Window
     {
-        public ToolDetailsWindow(ItemModel tool)
+        public ItemDetailsWindow(ItemModel item)
         {
             InitializeComponent();
-            DataContext = new ToolDetailsViewModel(tool, () => Close());
+            DataContext = new ItemDetailsViewModel(item, () => Close());
             this.DisposeDataContextOnUnload();
         }
     }

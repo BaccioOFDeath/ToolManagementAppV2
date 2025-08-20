@@ -9,7 +9,7 @@ using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Settings;
-using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Items;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.ViewModels;
 using Xunit;
@@ -58,9 +58,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
             public Dictionary<string,string>? MapToReturn { get; set; }
             public void ShowInfo(string message, string title) { }
             public bool ShowConfirmation(string message, string title) => false;
-            public ItemModel? ShowEditToolDialog(ItemModel tool) => null;
-            public void ShowToolDetails(ItemModel tool) { }
-            public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
+            public ItemModel? ShowEditItemDialog(ItemModel tool) => null;
+            public void ShowItemDetails(ItemModel tool) { }
+            public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
             public CustomerModel? ShowAddCustomerDialog() => null;
             public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
             public void ShowRentalHistory(ItemModel tool, IEnumerable<RentalModel> history) { }

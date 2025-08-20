@@ -14,7 +14,7 @@ using Forms = System.Windows.Forms;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services;
 using ToolManagementAppV2.Services.Rentals;
-using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Items;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Views.Pages;
 using ToolManagementAppV2.Views.Windows;
@@ -32,7 +32,7 @@ namespace ToolManagementAppV2.ViewModels
 {
     public class MainViewModel : ObservableObject, IMainViewModel, IDisposable
     {
-        readonly IItemService _toolService;
+        readonly IItemService _itemService;
         readonly IUserService _userService;
         readonly IUserContext _userContext;
         readonly ICustomerService _customerService;
@@ -163,7 +163,7 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand OpenPrintLabelWindowCommand { get; }
         public IRelayCommand OpenScannerStatusPageCommand { get; }
 
-        public MainViewModel(IItemService toolService,
+        public MainViewModel(IItemService itemService,
                              IUserService userService,
                              IUserContext userContext,
                              ICustomerService customerService,
@@ -178,7 +178,7 @@ namespace ToolManagementAppV2.ViewModels
                              IDispatcherTimer? autoLogoutTimer = null,
                              IScannerService? scannerService = null)
         {
-            _toolService = toolService;
+            _itemService = itemService;
             _userService = userService;
             _userContext = userContext;
             _customerService = customerService;
@@ -201,7 +201,7 @@ namespace ToolManagementAppV2.ViewModels
             _userContextChangedHandler = (_, _) => RefreshCurrentUser();
             _userContext.UserChanged += _userContextChangedHandler;
 
-            ItemManagement = new ItemManagementViewModel(toolService, customerService, rentalService, _dialogService);
+            ItemManagement = new ItemManagementViewModel(itemService, customerService, rentalService, _dialogService);
             _itemManagementPropertyChangedHandler = (s, e) =>
             {
                 if (e.PropertyName == nameof(ItemManagementViewModel.SelectedItem))
@@ -213,8 +213,8 @@ namespace ToolManagementAppV2.ViewModels
             UserManagement = new UserManagementViewModel(userService, fileDialogService, _dialogService);
             CustomerManagement = new CustomerManagementViewModel(customerService, _dialogService);
             ManageRentals = new ManageRentalsViewModel(rentalService, _dialogService);
-            ImportExport = new ImportExportViewModel(toolService, customerService, fileDialogService, databaseService, _dialogService);
-            Reports = new ReportsViewModel(new ReportService(toolService, rentalService, activityLogService, customerService, userService));
+            ImportExport = new ImportExportViewModel(itemService, customerService, fileDialogService, databaseService, _dialogService);
+            Reports = new ReportsViewModel(new ReportService(itemService, rentalService, activityLogService, customerService, userService));
             ActivityLogs = new ActivityLogsViewModel(activityLogService);
             Settings = new SettingsViewModel(_fileDialogService, _settingsService, _dialogService);
             var logoPath = _settingsService.GetSettingAsync("CompanyLogoPath").GetAwaiter().GetResult();
@@ -230,7 +230,7 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenDashboardCommand = new RelayCommand(() =>
             {
-                var vm = new DashboardViewModel(_toolService, _rentalService, _customerService, _userService, _activityLogService, OpenManageItemsCommand, OpenRentalsCommand, OpenImportExportCommand);
+                var vm = new DashboardViewModel(_itemService, _rentalService, _customerService, _userService, _activityLogService, OpenManageItemsCommand, OpenRentalsCommand, OpenImportExportCommand);
                 var page = new DashboardPage { DataContext = vm, Title = "Dashboard" };
                 CurrentPage = page;
             });
@@ -445,7 +445,7 @@ namespace ToolManagementAppV2.ViewModels
                         mappingString);
                     var plural = LabelProvider.Instance.ItemLabelPlural;
                     await _dialogService.ShowInfoAsync($"Importing {plural}...", $"Import {plural}");
-                    var invalid = await _toolService.ImportToolsFromCsvAsync(path, map, cancellationToken);
+                    var invalid = await _itemService.ImportItemsFromCsvAsync(path, map, cancellationToken);
                     var msg = invalid.Count == 0
                         ? $"Successfully imported {plural}."
                         : $"Imported with {invalid.Count} invalid rows.";
@@ -470,7 +470,7 @@ namespace ToolManagementAppV2.ViewModels
             {
                 var progress = new Progress<ImageImportProgress>(p =>
                     _logger.LogInformation("Imported {Processed}/{Total} images", p.Processed, p.Total));
-                var result = await _toolService.ImportToolImagesAsync(dlg.SelectedPath, selector, progress, cancellationToken);
+                var result = await _itemService.ImportItemImagesAsync(dlg.SelectedPath, selector, progress, cancellationToken);
                 _dialogService.ShowInfo(
                     $"Imported {result.ImportedCount} images. Unmatched: {result.UnmatchedFiles.Count}, Conflicts: {result.ConflictingFiles.Count}",
                     "Import Images");

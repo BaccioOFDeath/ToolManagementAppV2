@@ -11,24 +11,24 @@ using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Interfaces;
 
-namespace ToolManagementAppV2.Services.Tools
+namespace ToolManagementAppV2.Services.Items
 {
     public class ReportService
     {
-        readonly IItemService _toolService;
+        readonly IItemService _itemService;
         readonly IRentalService _rentalService;
         readonly ActivityLogService _activityLogService;
         readonly ICustomerService _customerService;
         readonly IUserService _userService;
 
         public ReportService(
-            IItemService toolService,
+            IItemService itemService,
             IRentalService rentalService,
             ActivityLogService activityLogService,
             ICustomerService customerService,
             IUserService userService)
         {
-            _toolService = toolService;
+            _itemService = itemService;
             _rentalService = rentalService;
             _activityLogService = activityLogService;
             _customerService = customerService;
@@ -37,8 +37,8 @@ namespace ToolManagementAppV2.Services.Tools
 
         public async Task<FlowDocument> GenerateInventoryReport()
         {
-            var tools = await _toolService.GetAllToolsAsync().ConfigureAwait(false);
-            var lines = tools.Select(t =>
+            var items = await _itemService.GetAllItemsAsync().ConfigureAwait(false);
+            var lines = items.Select(t =>
                 $"ItemModel ID: {t.ItemID} | ItemNumber: {t.ItemNumber} | Qty: {t.QuantityOnHand} | Location: {t.Location} | Supplier: {t.Supplier}");
             return BuildReport("ItemModel Inventory Report", lines);
         }
@@ -84,20 +84,20 @@ namespace ToolManagementAppV2.Services.Tools
 
         public async Task<FlowDocument> GenerateSummaryReport()
         {
-            var totalToolsTask = _toolService.GetAllToolsAsync();
+            var totalItemsTask = _itemService.GetAllItemsAsync();
             var totalRentalsTask = _rentalService.GetAllRentalsAsync();
             var totalActiveRentalsTask = _rentalService.GetActiveRentalsAsync();
             var totalCustomersTask = _customerService.GetAllCustomersAsync();
             var totalUsersTask = _userService.GetAllUsersAsync();
 
             await Task.WhenAll(
-                totalToolsTask,
+                totalItemsTask,
                 totalRentalsTask,
                 totalActiveRentalsTask,
                 totalCustomersTask,
                 totalUsersTask).ConfigureAwait(false);
 
-            var totalTools = await totalToolsTask.ConfigureAwait(false);
+            var totalItems = await totalItemsTask.ConfigureAwait(false);
             var totalRentals = await totalRentalsTask.ConfigureAwait(false);
             var totalActiveRentals = await totalActiveRentalsTask.ConfigureAwait(false);
             var totalCustomers = await totalCustomersTask.ConfigureAwait(false);
@@ -105,7 +105,7 @@ namespace ToolManagementAppV2.Services.Tools
 
             var lines = new[]
             {
-                $"Total Tools: {totalTools.Count}",
+                $"Total Items: {totalItems.Count}",
                 $"Total Rentals (History): {totalRentals.Count}",
                 $"Active Rentals: {totalActiveRentals.Count}",
                 $"Total Customers: {totalCustomers.Count}",

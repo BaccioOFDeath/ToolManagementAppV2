@@ -12,18 +12,18 @@ namespace ToolManagementAppV2.Tests;
 public static class AsyncServiceExtensions
 {
     // ItemService wrappers
-    public static void AddTool(this IItemService svc, ItemModel tool, CancellationToken token = default)
-        => svc.AddToolAsync(tool, token).GetAwaiter().GetResult();
-    public static void UpdateTool(this IItemService svc, ItemModel tool, CancellationToken token = default)
-        => svc.UpdateToolAsync(tool, token).GetAwaiter().GetResult();
-    public static void DeleteTool(this IItemService svc, int id, CancellationToken token = default)
-        => svc.DeleteToolAsync(id, token).GetAwaiter().GetResult();
-    public static ItemModel? GetToolByID(this IItemService svc, int id, CancellationToken token = default)
-        => svc.GetToolByIDAsync(id, token).GetAwaiter().GetResult();
-    public static List<ItemModel> GetAllTools(this IItemService svc, CancellationToken token = default)
-        => svc.GetAllToolsAsync(token).GetAwaiter().GetResult();
-    public static List<ItemModel> SearchTools(this IItemService svc, string? text, CancellationToken token = default)
-        => svc.SearchToolsAsync(text, token).GetAwaiter().GetResult();
+    public static void AddItem(this IItemService svc, ItemModel item, CancellationToken token = default)
+        => svc.AddItemAsync(item, token).GetAwaiter().GetResult();
+    public static void UpdateItem(this IItemService svc, ItemModel item, CancellationToken token = default)
+        => svc.UpdateItemAsync(item, token).GetAwaiter().GetResult();
+    public static void DeleteItem(this IItemService svc, int id, CancellationToken token = default)
+        => svc.DeleteItemAsync(id, token).GetAwaiter().GetResult();
+    public static ItemModel? GetItemByID(this IItemService svc, int id, CancellationToken token = default)
+        => svc.GetItemByIDAsync(id, token).GetAwaiter().GetResult();
+    public static List<ItemModel> GetAllItems(this IItemService svc, CancellationToken token = default)
+        => svc.GetAllItemsAsync(token).GetAwaiter().GetResult();
+    public static List<ItemModel> SearchItems(this IItemService svc, string? text, CancellationToken token = default)
+        => svc.SearchItemsAsync(text, token).GetAwaiter().GetResult();
     public static string GenerateNextItemNumber(this IItemService svc, CancellationToken token = default)
         => svc.GenerateNextItemNumberAsync(token).GetAwaiter().GetResult();
 

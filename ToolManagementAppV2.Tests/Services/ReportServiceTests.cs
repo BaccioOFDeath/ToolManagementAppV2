@@ -6,7 +6,7 @@ using System.Windows.Documents;
 using Xunit;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
-using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Items;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Services.Customers;
@@ -40,7 +40,7 @@ namespace ToolManagementAppV2.Tests.Services
                     QuantityOnHand = 1,
                     RentedQuantity = 0
                 };
-                toolService.AddTool(tool);
+                toolService.AddItem(tool);
 
                 var customer = new Customer
                 {
@@ -104,7 +104,7 @@ namespace ToolManagementAppV2.Tests.Services
                     QuantityOnHand = 1,
                     RentedQuantity = 0
                 };
-                toolService.AddTool(tool);
+                toolService.AddItem(tool);
 
                 var customer = new Customer
                 {
