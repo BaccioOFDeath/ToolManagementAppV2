@@ -77,7 +77,7 @@ namespace ToolManagementAppV2
                     var config = sp.GetRequiredService<IConfiguration>();
                     var logger = sp.GetRequiredService<ILogger<DatabaseService>>();
                     var dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                        config["Database:Path"] ?? "tool_inventory.db");
+                        config["Database:Path"] ?? "inventory.db");
                     return new DatabaseService(dbPath, logger);
                 });
                 services.AddSingleton<IDatabaseService>(sp => sp.GetRequiredService<DatabaseService>());
