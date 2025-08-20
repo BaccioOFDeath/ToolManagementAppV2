@@ -30,14 +30,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityService = new ActivityLogService(db);
                 var reportService = new ReportService(toolService, rentalService, activityService, customerService, userService);
 
-                var tool = new ItemModel { ToolNumber = "T1", QuantityOnHand = 1 };
+                var tool = new ItemModel { ItemNumber = "T1", QuantityOnHand = 1 };
                 toolService.AddTool(tool);
 
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var user = new User { UserName = "user", PasswordHash = "Strong1!" };
                 userService.AddUser(user);

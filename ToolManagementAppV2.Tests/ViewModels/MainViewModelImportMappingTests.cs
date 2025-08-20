@@ -23,7 +23,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             var dbPath = Path.GetTempFileName();
             var csvPath = Path.GetTempFileName();
-            File.WriteAllText(csvPath, "ToolNumber\n");
+            File.WriteAllText(csvPath, "ItemNumber\n");
             var logs = new List<LogEntry>();
             try
             {
@@ -37,14 +37,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
                 var fileDlg = new StubFileDialogService { FileToReturn = csvPath };
-                var dialog = new StubDialogService { MapToReturn = new Dictionary<string,string>{{"ToolNumber","ToolNumber"}} };
+                var dialog = new StubDialogService { MapToReturn = new Dictionary<string,string>{{"ItemNumber","ItemNumber"}} };
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
                     fileDlg, activityLogService, settingsService, db, dialog,
                     logger: factory.CreateLogger<MainViewModel>());
 
                 await vm.OpenImportMappingWindowCommand.ExecuteAsync(null);
 
-                Assert.Contains(logs, l => l.Message.Contains("Import mapping selected") && l.Message.Contains("ToolNumber -> ToolNumber"));
+                Assert.Contains(logs, l => l.Message.Contains("Import mapping selected") && l.Message.Contains("ItemNumber -> ItemNumber"));
             }
             finally
             {

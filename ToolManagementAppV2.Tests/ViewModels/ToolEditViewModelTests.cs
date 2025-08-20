@@ -8,22 +8,22 @@ namespace ToolManagementAppV2.Tests.ViewModels
     public class ToolEditViewModelTests
     {
         [Fact]
-        public void BrowseImageCommand_SetsToolImagePath()
+        public void BrowseImageCommand_SetsImagePath()
         {
             var tool = new ItemModel();
             var fileDialog = new StubFileDialogService { OpenPath = "img.png" };
             var vm = new ToolEditViewModel(tool, () => { }, () => { }, fileDialog);
             vm.BrowseImageCommand.Execute(null);
-            Assert.Equal("img.png", tool.ToolImagePath);
+            Assert.Equal("img.png", tool.ImagePath);
         }
 
         [Fact]
-        public void RemoveImageCommand_ClearsToolImagePath()
+        public void RemoveImageCommand_ClearsImagePath()
         {
-            var tool = new ItemModel { ToolImagePath = "img.png" };
+            var tool = new ItemModel { ImagePath = "img.png" };
             var vm = new ToolEditViewModel(tool, () => { }, () => { }, new StubFileDialogService());
             vm.RemoveImageCommand.Execute(null);
-            Assert.Equal(string.Empty, tool.ToolImagePath);
+            Assert.Equal(string.Empty, tool.ImagePath);
         }
 
         private class StubFileDialogService : IFileDialogService

@@ -30,7 +30,7 @@
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat={}{0} Number}" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
-            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ItemModel.ToolNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ItemModel.ItemNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
             <TextBlock Grid.Row="1" Grid.Column="0" Text="Name" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ItemModel.NameDescription, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
@@ -51,7 +51,7 @@
 
             <StackPanel Grid.Row="7" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
                 <Image Width="100" Height="100" Stretch="Uniform"
-                       Source="{Binding ItemModel.ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=tool}"/>
+                       Source="{Binding ItemModel.ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=tool}"/>
                 <StackPanel Orientation="Vertical" Margin="8,0,0,0">
                     <Button Content="Browse" Style="{StaticResource PrimaryButton}" Width="75" Command="{Binding BrowseImageCommand}"/>
                     <Button Content="Remove" Style="{StaticResource PrimaryButton}" Width="75" Margin="0,4,0,0" Command="{Binding RemoveImageCommand}"/>

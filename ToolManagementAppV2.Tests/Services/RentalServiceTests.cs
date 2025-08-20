@@ -40,7 +40,7 @@ namespace ToolManagementAppV2.Tests.Services
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db, toolService);
 
-                var tool = new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 5 };
+                var tool = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 5 };
                 toolService.AddTool(tool);
                 var addedTool = toolService.GetAllTools().First();
 
@@ -48,10 +48,10 @@ namespace ToolManagementAppV2.Tests.Services
                 customerService.AddCustomer(cust);
                 var addedCust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(addedTool.ToolID, addedCust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
-                rentalService.RentTool(addedTool.ToolID, addedCust.CustomerID, DateTime.Today.AddDays(2), DateTime.Today.AddDays(3));
+                rentalService.RentTool(addedTool.ItemID, addedCust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(addedTool.ItemID, addedCust.CustomerID, DateTime.Today.AddDays(2), DateTime.Today.AddDays(3));
 
-                var history = rentalService.GetRentalHistoryForTool(addedTool.ToolID);
+                var history = rentalService.GetRentalHistoryForTool(addedTool.ItemID);
                 Assert.Equal(2, history.Count);
                 Assert.True(history[0].RentalDate > history[1].RentalDate);
             }
@@ -73,7 +73,7 @@ namespace ToolManagementAppV2.Tests.Services
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db, toolService);
 
-                var tool = new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 0 };
+                var tool = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 0 };
                 toolService.AddTool(tool);
                 var addedTool = toolService.GetAllTools().First();
 
@@ -81,7 +81,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var cust = customerService.GetAllCustomers().First();
 
                 Assert.Throws<InvalidOperationException>(() =>
-                    rentalService.RentTool(addedTool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1)));
+                    rentalService.RentTool(addedTool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1)));
                 Assert.Empty(rentalService.GetAllRentals());
             }
             finally
@@ -102,7 +102,7 @@ namespace ToolManagementAppV2.Tests.Services
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db, toolService);
 
-                var tool = new ItemModel { ToolNumber = "T2", NameDescription = "Wrench", QuantityOnHand = 0 };
+                var tool = new ItemModel { ItemNumber = "T2", NameDescription = "Wrench", QuantityOnHand = 0 };
                 toolService.AddTool(tool);
                 var addedTool = toolService.GetAllTools().First();
 
@@ -110,7 +110,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var cust = customerService.GetAllCustomers().First();
 
                 Assert.Throws<InvalidOperationException>(() =>
-                    rentalService.RentTool(addedTool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1)));
+                    rentalService.RentTool(addedTool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1)));
                 Assert.Empty(rentalService.GetAllRentals());
             }
             finally
@@ -189,14 +189,14 @@ namespace ToolManagementAppV2.Tests.Services
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db, toolService);
 
-                var tool = new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 };
+                var tool = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 };
                 toolService.AddTool(tool);
                 var addedTool = toolService.GetAllTools().First();
 
                 customerService.AddCustomer(new Customer { Company = "Acme" });
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(addedTool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(addedTool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
                 var rental = rentalService.GetAllRentals().First();
 
                 rentalService.ReturnTool(rental.RentalID, DateTime.Today);
@@ -222,14 +222,14 @@ namespace ToolManagementAppV2.Tests.Services
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db, toolService);
 
-                var tool = new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 };
+                var tool = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 };
                 toolService.AddTool(tool);
                 var addedTool = toolService.GetAllTools().First();
 
                 customerService.AddCustomer(new Customer { Company = "Acme" });
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(addedTool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(addedTool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
                 var rental = rentalService.GetAllRentals().First();
 
                 rentalService.DeleteRental(rental.RentalID);
@@ -273,7 +273,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db, toolService);
 
-                var tool = new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1, Location = "A1", ToolImagePath = "path" };
+                var tool = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1, Location = "A1", ImagePath = "path" };
                 toolService.AddTool(tool);
                 var addedTool = toolService.GetAllTools().First();
 
@@ -281,12 +281,12 @@ namespace ToolManagementAppV2.Tests.Services
                 customerService.AddCustomer(customer);
                 var addedCust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(addedTool.ToolID, addedCust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(addedTool.ItemID, addedCust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var rentals = rentalService.GetActiveRentals();
                 var r = rentals.First();
-                Assert.Equal("A1", r.ToolLocation);
-                Assert.Equal("path", r.ToolImagePath);
+                Assert.Equal("A1", r.ItemLocation);
+                Assert.Equal("path", r.ImagePath);
                 Assert.Equal("Bob", r.CustomerContact);
                 Assert.Equal("b@c.com", r.CustomerEmail);
                 Assert.Equal("111", r.CustomerPhone);
@@ -311,22 +311,22 @@ namespace ToolManagementAppV2.Tests.Services
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db, toolService);
 
-                toolService.AddTool(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
+                toolService.AddTool(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
                 var tool = toolService.GetAllTools().First();
 
                 customerService.AddCustomer(new Customer { Company = "Acme" });
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
-                var rented = toolService.GetToolByID(tool.ToolID);
+                var rented = toolService.GetToolByID(tool.ItemID);
                 Assert.Equal(0, rented.QuantityOnHand);
                 Assert.Equal(1, rented.RentedQuantity);
 
                 var rental = rentalService.GetAllRentals().First();
                 rentalService.ReturnTool(rental.RentalID, DateTime.Today);
 
-                var returned = toolService.GetToolByID(tool.ToolID);
+                var returned = toolService.GetToolByID(tool.ItemID);
                 Assert.Equal(1, returned.QuantityOnHand);
                 Assert.Equal(0, returned.RentedQuantity);
             }
@@ -348,13 +348,13 @@ namespace ToolManagementAppV2.Tests.Services
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db, toolService);
 
-                toolService.AddTool(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
+                toolService.AddTool(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
                 var tool = toolService.GetAllTools().First();
 
                 customerService.AddCustomer(new Customer { Company = "Acme" });
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today.AddDays(-2), DateTime.Today.AddDays(-1));
+                rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today.AddDays(-2), DateTime.Today.AddDays(-1));
                 var rental = rentalService.GetAllRentals().First();
                 var originalDue = rental.DueDate;
 
@@ -367,7 +367,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var after = rentalService2.GetAllRentals().First();
                 Assert.Equal(originalDue, after.DueDate);
 
-                var toolAfter = toolService.GetToolByID(tool.ToolID);
+                var toolAfter = toolService.GetToolByID(tool.ItemID);
                 Assert.Equal(0, toolAfter.QuantityOnHand);
                 Assert.Equal(1, toolAfter.RentedQuantity);
             }
@@ -392,12 +392,12 @@ namespace ToolManagementAppV2.Tests.Services
                 var customerService = new CustomerService(db, auth);
                 var rentalService = new RentalService(db, auth, toolService, null, logService, ctx);
 
-                await toolService.AddToolAsync(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1, RentedQuantity = 0 });
+                await toolService.AddToolAsync(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1, RentedQuantity = 0 });
                 await customerService.AddCustomerAsync(new Customer { Company = "Acme" });
                 var tool = (await toolService.GetAllToolsAsync()).First();
                 var cust = (await customerService.GetAllCustomersAsync()).First();
 
-                await rentalService.RentToolAsync(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                await rentalService.RentToolAsync(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var logs = await logService.GetRecentLogsAsync();
                 Assert.Contains(logs.Value, l => l.Action.Contains("Rented tool"));
@@ -425,7 +425,7 @@ namespace ToolManagementAppV2.Tests.Services
             public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
             public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default)
                 => throw new InvalidOperationException("fail");
-            public Task<string> GenerateNextToolNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
+            public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
         }
     }
 }

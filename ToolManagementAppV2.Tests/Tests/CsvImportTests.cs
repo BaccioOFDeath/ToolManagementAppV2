@@ -11,10 +11,10 @@ using System.Threading;
 public class CsvImportTests
 {
     [Fact]
-    public void LoadToolsFromCsv_SkipsRowsMissingToolNumber()
+    public void LoadToolsFromCsv_SkipsRowsMissingItemNumber()
     {
         var csv = string.Join('\n',
-            "ToolNumber,NameDescription,AvailableQuantity",
+            "ItemNumber,NameDescription,AvailableQuantity",
             ",Hammer,5",
             "T1,Screwdriver,2");
         var path = Path.GetTempFileName();
@@ -22,7 +22,7 @@ public class CsvImportTests
 
         var map = new Dictionary<string, string>
         {
-            { "ToolNumber", "ToolNumber" },
+            { "ItemNumber", "ItemNumber" },
             { "NameDescription", "NameDescription" },
             { "AvailableQuantity", "AvailableQuantity" }
         };
@@ -37,14 +37,14 @@ public class CsvImportTests
     public void LoadToolsFromCsv_HandlesQuotedHeaders()
     {
         var csv = string.Join('\n',
-            "\"ToolNumber\",\"NameDescription\",\"AvailableQuantity\"",
+            "\"ItemNumber\",\"NameDescription\",\"AvailableQuantity\"",
             "T1,Hammer,5");
         var path = Path.GetTempFileName();
         File.WriteAllText(path, csv);
 
         var map = new Dictionary<string, string>
         {
-            { "ToolNumber", "ToolNumber" },
+            { "ItemNumber", "ItemNumber" },
             { "NameDescription", "NameDescription" },
             { "AvailableQuantity", "AvailableQuantity" }
         };
@@ -53,14 +53,14 @@ public class CsvImportTests
 
         Assert.Single(tools);
         Assert.Empty(invalid);
-        Assert.Equal("T1", tools[0].ToolNumber);
+        Assert.Equal("T1", tools[0].ItemNumber);
     }
 
     [Fact]
     public void LoadToolsFromCsv_MissingRequiredMapping_Throws()
     {
         var csv = string.Join('\n',
-            "ToolNumber,NameDescription",
+            "ItemNumber,NameDescription",
             "T1,Hammer");
         var path = Path.GetTempFileName();
         File.WriteAllText(path, csv);
@@ -77,14 +77,14 @@ public class CsvImportTests
     public async Task LoadToolsFromCsvAsync_RespectsCancellation()
     {
         var csv = string.Join('\n',
-            "ToolNumber,NameDescription",
+            "ItemNumber,NameDescription",
             "T1,Hammer");
         var path = Path.GetTempFileName();
         File.WriteAllText(path, csv);
 
         var map = new Dictionary<string, string>
         {
-            {"ToolNumber", "ToolNumber"},
+            {"ItemNumber", "ItemNumber"},
             {"NameDescription", "NameDescription"}
         };
 
@@ -104,7 +104,7 @@ public class CsvImportTests
         try
         {
             var csv = string.Join('\n',
-                "ToolNumber,NameDescription",
+                "ItemNumber,NameDescription",
                 ",Hammer",
                 "T1,Screwdriver");
             File.WriteAllText(csvPath, csv);
@@ -112,7 +112,7 @@ public class CsvImportTests
             var service = new ItemService(db);
             var map = new Dictionary<string, string>
             {
-                {"ToolNumber", "ToolNumber"},
+                {"ItemNumber", "ItemNumber"},
                 {"NameDescription", "NameDescription"}
             };
 
@@ -140,10 +140,10 @@ public class CsvImportTests
             var service = new ItemService(db);
 
             for (int i = 0; i < 100; i++)
-                service.AddTool(new ItemModel { ToolNumber = $"E{i}", NameDescription = $"Existing {i}" });
+                service.AddTool(new ItemModel { ItemNumber = $"E{i}", NameDescription = $"Existing {i}" });
 
             var sb = new System.Text.StringBuilder();
-            sb.AppendLine("ToolNumber,NameDescription");
+            sb.AppendLine("ItemNumber,NameDescription");
             for (int i = 0; i < 100; i++)
                 sb.AppendLine($"E{i},Dup {i}");
             for (int i = 0; i < 900; i++)
@@ -152,7 +152,7 @@ public class CsvImportTests
 
             var map = new Dictionary<string, string>
             {
-                {"ToolNumber", "ToolNumber"},
+                {"ItemNumber", "ItemNumber"},
                 {"NameDescription", "NameDescription"}
             };
 
@@ -180,13 +180,13 @@ public class CsvImportTests
         {
             using var db = new DatabaseService(dbPath);
             var service = new ItemService(db);
-            service.AddTool(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 5, IsPowerTool = true });
+            service.AddTool(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 5, IsPowerTool = true });
 
             await service.ExportToolsToCsvAsync(csvPath);
 
             var lines = await File.ReadAllLinesAsync(csvPath);
             Assert.True(lines.Length > 1);
-            Assert.Equal("ToolNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowerTool", lines[0]);
+            Assert.Equal("ItemNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowerTool", lines[0]);
             Assert.Contains("T1", lines[1]);
         }
         finally

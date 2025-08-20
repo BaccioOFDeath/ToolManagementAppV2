@@ -41,7 +41,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public void Items_Accepts_ItemModel()
         {
             var vm = new PrintLabelViewModel(new StubDialogService(), () => { });
-            vm.Items.Add(new ItemModel { ToolNumber = "T1" });
+            vm.Items.Add(new ItemModel { ItemNumber = "T1" });
             Assert.Single(vm.Items);
         }
     }

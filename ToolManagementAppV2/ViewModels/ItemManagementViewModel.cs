@@ -205,8 +205,8 @@ namespace ToolManagementAppV2.ViewModels
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(NewTool.ToolNumber))
-                    NewTool.ToolNumber = await _itemService.GenerateNextToolNumberAsync(cancellationToken);
+                if (string.IsNullOrWhiteSpace(NewTool.ItemNumber))
+                    NewTool.ItemNumber = await _itemService.GenerateNextItemNumberAsync(cancellationToken);
                 await _itemService.AddToolAsync(NewTool, cancellationToken);
                 await LoadToolsAsync();
                 await FilterToolsAsync(cancellationToken);
@@ -238,8 +238,8 @@ namespace ToolManagementAppV2.ViewModels
 
             var clone = new ItemModel
             {
-                ToolID = SelectedItem.ToolID,
-                ToolNumber = SelectedItem.ToolNumber,
+                ItemID = SelectedItem.ItemID,
+                ItemNumber = SelectedItem.ItemNumber,
                 PartNumber = SelectedItem.PartNumber,
                 NameDescription = SelectedItem.NameDescription,
                 Brand = SelectedItem.Brand,
@@ -254,7 +254,7 @@ namespace ToolManagementAppV2.ViewModels
                 IsCheckedOut = SelectedItem.IsCheckedOut,
                 CheckedOutBy = SelectedItem.CheckedOutBy,
                 CheckedOutTime = SelectedItem.CheckedOutTime,
-                ToolImagePath = SelectedItem.ToolImagePath
+                ImagePath = SelectedItem.ImagePath
             };
 
             var updated = await _dialogService.ShowEditToolDialogAsync(clone);
@@ -265,7 +265,7 @@ namespace ToolManagementAppV2.ViewModels
                 await _itemService.UpdateToolAsync(updated, cancellationToken);
                 await LoadToolsAsync();
                 await FilterToolsAsync(cancellationToken);
-                SelectedItem = Tools.FirstOrDefault(t => t.ToolID == updated.ToolID);
+                SelectedItem = Tools.FirstOrDefault(t => t.ItemID == updated.ItemID);
             }
             catch (OperationCanceledException)
             {
@@ -288,12 +288,12 @@ namespace ToolManagementAppV2.ViewModels
             if (SelectedItem == null) return;
             try
             {
-                var history = await _rentalService.GetRentalHistoryForToolAsync(SelectedItem.ToolID);
+                var history = await _rentalService.GetRentalHistoryForToolAsync(SelectedItem.ItemID);
                 _dialogService.ShowRentalHistory(SelectedItem, history);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to open rental history for {ItemLabelSingular} {ToolID}", LabelProvider.Instance.ItemLabelSingular, SelectedItem.ToolID);
+                _logger.LogError(ex, "Failed to open rental history for {ItemLabelSingular} {ItemID}", LabelProvider.Instance.ItemLabelSingular, SelectedItem.ItemID);
             }
         }
 
@@ -308,7 +308,7 @@ namespace ToolManagementAppV2.ViewModels
 
             try
             {
-                await _itemService.DeleteToolAsync(SelectedItem.ToolID, cancellationToken);
+                await _itemService.DeleteToolAsync(SelectedItem.ItemID, cancellationToken);
                 await LoadToolsAsync();
                 await FilterToolsAsync(cancellationToken);
                 SelectedItem = null;
@@ -323,7 +323,7 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to delete {ItemLabelSingular} {ToolID}", LabelProvider.Instance.ItemLabelSingular, SelectedItem.ToolID);
+                _logger.LogError(ex, "Failed to delete {ItemLabelSingular} {ItemID}", LabelProvider.Instance.ItemLabelSingular, SelectedItem.ItemID);
                 await _dialogService.ShowInfoAsync($"Failed to delete {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message}", "Error");
             }
         }
@@ -339,7 +339,7 @@ namespace ToolManagementAppV2.ViewModels
                 if (result != null)
                 {
                     var (customer, dueDate) = result.Value;
-                    await _rentalService.RentToolAsync(SelectedItem.ToolID,
+                    await _rentalService.RentToolAsync(SelectedItem.ItemID,
                         customer.CustomerID,
                         DateTime.Today,
                         dueDate);
@@ -356,7 +356,7 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to rent {ItemLabelSingular} {ToolID}", LabelProvider.Instance.ItemLabelSingular, SelectedItem?.ToolID);
+                _logger.LogError(ex, "Failed to rent {ItemLabelSingular} {ItemID}", LabelProvider.Instance.ItemLabelSingular, SelectedItem?.ItemID);
                 await _dialogService.ShowInfoAsync($"Failed to rent {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message}", "Error");
             }
         }

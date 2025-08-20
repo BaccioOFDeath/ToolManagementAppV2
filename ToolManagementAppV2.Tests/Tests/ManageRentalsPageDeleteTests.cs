@@ -29,13 +29,13 @@ namespace ToolManagementAppV2.Tests.Tests
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool = new ItemModel { ToolNumber = "T1" };
+                var tool = new ItemModel { ItemNumber = "T1" };
                 toolService.AddTool(tool);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 await vm.LoadRentalsAsync();

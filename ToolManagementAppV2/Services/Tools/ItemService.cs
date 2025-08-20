@@ -25,8 +25,8 @@ namespace ToolManagementAppV2.Services.Tools
         const string AllToolsSql = "SELECT * FROM Tools";
         const string UpsertToolCsv = @"
             INSERT INTO Tools
-              (ToolNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, ToolImagePath, IsCheckedOut, IsPowerTool)
-            VALUES (@ToolNumber,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Keywords,@Avail,@Rent,@Img,0,@Power);
+              (ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, ImagePath, IsCheckedOut, IsPowerTool)
+            VALUES (@ItemNumber,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Keywords,@Avail,@Rent,@Img,0,@Power);
             SELECT last_insert_rowid();";
         const int MaxQuantityOnHand = 10000;
         const int MaxSearchTerms = 10;
@@ -58,7 +58,7 @@ namespace ToolManagementAppV2.Services.Tools
             if (_activityLog != null)
             {
                 var user = _context?.CurrentUser;
-                await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Added tool {tool.ToolNumber}", cancellationToken).ConfigureAwait(false);
+                await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Added tool {tool.ItemNumber}", cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -69,7 +69,7 @@ namespace ToolManagementAppV2.Services.Tools
             if (_activityLog != null)
             {
                 var user = _context?.CurrentUser;
-                await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Updated tool {tool.ToolNumber}", cancellationToken).ConfigureAwait(false);
+                await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Updated tool {tool.ItemNumber}", cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -107,7 +107,7 @@ namespace ToolManagementAppV2.Services.Tools
         public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
-            const string sql = "UPDATE Tools SET ToolImagePath=@Img WHERE ToolID=@ID";
+            const string sql = "UPDATE Tools SET ImagePath=@Img WHERE ItemID=@ID";
             var p = new[]
             {
                 new SQLiteParameter("@Img", imagePath),
@@ -132,9 +132,9 @@ namespace ToolManagementAppV2.Services.Tools
             return ImportToolImagesInternalAsync(folderPath, keySelector, progress, cancellationToken);
         }
 
-        public async Task<string> GenerateNextToolNumberAsync(CancellationToken cancellationToken = default)
+        public async Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default)
         {
-            const string sql = "SELECT IFNULL(MAX(CAST(SUBSTR(ToolNumber, 2) AS INTEGER)), 0) FROM Tools WHERE ToolNumber LIKE 'T%'";
+            const string sql = "SELECT IFNULL(MAX(CAST(SUBSTR(ItemNumber, 2) AS INTEGER)), 0) FROM Tools WHERE ItemNumber LIKE 'T%'";
             using var conn = _dbService.CreateConnection();
             var result = await SqliteHelper.ExecuteScalarAsync(conn, sql, null, cancellationToken);
             var max = result == null || result == DBNull.Value ? 0 : Convert.ToInt32(result);
@@ -146,7 +146,7 @@ namespace ToolManagementAppV2.Services.Tools
             ValidateQuantity(tool.QuantityOnHand);
             var p = new[]
             {
-                new SQLiteParameter("@ToolNumber", tool.ToolNumber),
+                new SQLiteParameter("@ItemNumber", tool.ItemNumber),
                 new SQLiteParameter("@Desc", (object)tool.NameDescription ?? DBNull.Value),
                 new SQLiteParameter("@Loc", tool.Location),
                 new SQLiteParameter("@Brand", tool.Brand),
@@ -157,14 +157,14 @@ namespace ToolManagementAppV2.Services.Tools
                 new SQLiteParameter("@Keywords", (object)tool.Keywords ?? DBNull.Value),
                 new SQLiteParameter("@Avail", tool.QuantityOnHand),
                 new SQLiteParameter("@Rent", tool.RentedQuantity),
-                new SQLiteParameter("@Img", (object)tool.ToolImagePath ?? DBNull.Value),
+                new SQLiteParameter("@Img", (object)tool.ImagePath ?? DBNull.Value),
                 new SQLiteParameter("@Power", tool.IsPowerTool ? 1 : 0)
             };
             using var cmd = new SQLiteCommand(UpsertToolCsv, conn, tran);
             cmd.Parameters.AddRange(p);
             var result = await cmd.ExecuteScalarAsync(cancellationToken);
             if (result != null)
-                tool.ToolID = Convert.ToInt32(result);
+                tool.ItemID = Convert.ToInt32(result);
         }
     
         private async Task<ImageImportResult> ImportToolImagesInternalAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress, CancellationToken cancellationToken)
@@ -230,7 +230,7 @@ namespace ToolManagementAppV2.Services.Tools
                     continue;
                 }
                 var tool = list[0];
-                if (!string.IsNullOrEmpty(tool.ToolImagePath))
+                if (!string.IsNullOrEmpty(tool.ImagePath))
                 {
                     result.ConflictingFiles.Add(file);
                     continue;
@@ -250,7 +250,7 @@ namespace ToolManagementAppV2.Services.Tools
                     }
                 }
                 var relative = $"Images/{Path.GetFileName(dest)}";
-                await UpdateToolImageAsync(tool.ToolID, relative, cancellationToken);
+                await UpdateToolImageAsync(tool.ItemID, relative, cancellationToken);
                 result.ImportedCount++;
                 processed++;
                 progress?.Report(new ImageImportProgress { Processed = processed, Total = total });
@@ -271,7 +271,7 @@ namespace ToolManagementAppV2.Services.Tools
             if (string.IsNullOrWhiteSpace(toolNumber))
                 return false;
 
-            var sql = "SELECT COUNT(*) FROM Tools WHERE ToolNumber = @TN";
+            var sql = "SELECT COUNT(*) FROM Tools WHERE ItemNumber = @TN";
             var parameters = new List<SQLiteParameter>
             {
                 new("@TN", toolNumber)
@@ -279,7 +279,7 @@ namespace ToolManagementAppV2.Services.Tools
 
             if (exceptId.HasValue)
             {
-                sql += " AND ToolID <> @ID";
+                sql += " AND ItemID <> @ID";
                 parameters.Add(new SQLiteParameter("@ID", exceptId.Value));
             }
 
@@ -290,8 +290,8 @@ namespace ToolManagementAppV2.Services.Tools
     
         ItemModel MapTool(IDataRecord r) => new()
         {
-            ToolID = r["ToolID"] is DBNull ? 0 : Convert.ToInt32(r["ToolID"]),
-            ToolNumber = r["ToolNumber"].ToString(),
+            ItemID = r["ItemID"] is DBNull ? 0 : Convert.ToInt32(r["ItemID"]),
+            ItemNumber = r["ItemNumber"].ToString(),
             PartNumber = r["PartNumber"].ToString(),
             NameDescription = r["NameDescription"].ToString(),
             Brand = r["Brand"].ToString(),
@@ -308,17 +308,17 @@ namespace ToolManagementAppV2.Services.Tools
             CheckedOutTime = r["CheckedOutTime"] is DBNull
                 ? (DateTime?)null
                 : DateTime.Parse(r["CheckedOutTime"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
-            ToolImagePath = r["ToolImagePath"]?.ToString(),
+            ImagePath = r["ImagePath"]?.ToString(),
             Keywords = r["Keywords"]?.ToString(),
             IsPowerTool = (r["IsPowerTool"] is DBNull ? 0 : Convert.ToInt32(r["IsPowerTool"])) == 1
         };
 
         private async Task AddToolInternalAsync(ItemModel tool, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(tool?.ToolNumber))
-                tool.ToolNumber = await GenerateNextToolNumberAsync(cancellationToken);
-            if (await ToolExistsAsync(tool.ToolNumber, null, cancellationToken))
-                throw new InvalidOperationException($"ItemModel {tool.ToolNumber} already exists.");
+            if (string.IsNullOrWhiteSpace(tool?.ItemNumber))
+                tool.ItemNumber = await GenerateNextItemNumberAsync(cancellationToken);
+            if (await ToolExistsAsync(tool.ItemNumber, null, cancellationToken))
+                throw new InvalidOperationException($"ItemModel {tool.ItemNumber} already exists.");
             ValidateQuantity(tool.QuantityOnHand);
             using var conn = _dbService.CreateConnection();
             await InsertToolAsync(conn, null, tool, cancellationToken);
@@ -326,13 +326,13 @@ namespace ToolManagementAppV2.Services.Tools
 
         private async Task UpdateToolInternalAsync(ItemModel tool, CancellationToken cancellationToken)
         {
-            if (await ToolExistsAsync(tool.ToolNumber, tool.ToolID, cancellationToken))
-                throw new InvalidOperationException($"ItemModel {tool.ToolNumber} already exists.");
+            if (await ToolExistsAsync(tool.ItemNumber, tool.ItemID, cancellationToken))
+                throw new InvalidOperationException($"ItemModel {tool.ItemNumber} already exists.");
             using var conn = _dbService.CreateConnection();
             ValidateQuantity(tool.QuantityOnHand);
             const string sql = @"
                 UPDATE Tools SET
-                  ToolNumber = @ToolNumber,
+                  ItemNumber = @ItemNumber,
                   NameDescription = @Desc,
                   Location = @Loc,
                   Brand = @Brand,
@@ -347,12 +347,12 @@ namespace ToolManagementAppV2.Services.Tools
                   IsCheckedOut = @Out,
                   CheckedOutBy = @By,
                   CheckedOutTime = @Time,
-                  ToolImagePath = @Img
-                WHERE ToolID = @ID";
+                  ImagePath = @Img
+                WHERE ItemID = @ID";
             var p = new[]
             {
-                new SQLiteParameter("@ID", tool.ToolID),
-                new SQLiteParameter("@ToolNumber", tool.ToolNumber),
+                new SQLiteParameter("@ID", tool.ItemID),
+                new SQLiteParameter("@ItemNumber", tool.ItemNumber),
                 new SQLiteParameter("@Desc", (object)tool.NameDescription ?? DBNull.Value),
                 new SQLiteParameter("@Loc", tool.Location),
                 new SQLiteParameter("@Brand", tool.Brand),
@@ -367,7 +367,7 @@ namespace ToolManagementAppV2.Services.Tools
                 new SQLiteParameter("@Out", tool.IsCheckedOut ? 1 : 0),
                 new SQLiteParameter("@By", (object)tool.CheckedOutBy ?? DBNull.Value),
                 new SQLiteParameter("@Time", (object)tool.CheckedOutTime ?? DBNull.Value),
-                new SQLiteParameter("@Img", (object)tool.ToolImagePath ?? DBNull.Value)
+                new SQLiteParameter("@Img", (object)tool.ImagePath ?? DBNull.Value)
             };
             try
             {
@@ -375,8 +375,8 @@ namespace ToolManagementAppV2.Services.Tools
             }
             catch (SQLiteException ex)
             {
-                _logger.LogError(ex, "Failed to update tool {ToolID}", tool.ToolID);
-                throw new InvalidOperationException($"Failed to update tool {tool.ToolID}.", ex);
+                _logger.LogError(ex, "Failed to update tool {ItemID}", tool.ItemID);
+                throw new InvalidOperationException($"Failed to update tool {tool.ItemID}.", ex);
             }
         }
 
@@ -385,12 +385,12 @@ namespace ToolManagementAppV2.Services.Tools
             using var conn = _dbService.CreateConnection();
             try
             {
-                await SqliteHelper.ExecuteNonQueryAsync(conn, "DELETE FROM Tools WHERE ToolID=@ID",
+                await SqliteHelper.ExecuteNonQueryAsync(conn, "DELETE FROM Tools WHERE ItemID=@ID",
                     new[] { new SQLiteParameter("@ID", toolID) }, cancellationToken);
             }
             catch (SQLiteException ex)
             {
-                _logger.LogError(ex, "Failed to delete tool {ToolID}", toolID);
+                _logger.LogError(ex, "Failed to delete tool {ItemID}", toolID);
                 throw new InvalidOperationException($"Failed to delete tool {toolID}.", ex);
             }
         }
@@ -398,8 +398,8 @@ namespace ToolManagementAppV2.Services.Tools
         public async Task<ItemModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default)
         {
             using var conn = _dbService.CreateConnection();
-            var list = await SqliteHelper.ExecuteReaderAsync(conn, "SELECT * FROM Tools WHERE ToolID=@ToolID",
-                new[] { new SQLiteParameter("@ToolID", toolID) }, MapTool, cancellationToken);
+            var list = await SqliteHelper.ExecuteReaderAsync(conn, "SELECT * FROM Tools WHERE ItemID=@ItemID",
+                new[] { new SQLiteParameter("@ItemID", toolID) }, MapTool, cancellationToken);
             return list.FirstOrDefault();
         }
 
@@ -430,7 +430,7 @@ namespace ToolManagementAppV2.Services.Tools
             }
             var searchable = new[]
             {
-                "ToolNumber",
+                "ItemNumber",
                 "NameDescription",
                 "Brand",
                 "PartNumber",
@@ -447,7 +447,7 @@ namespace ToolManagementAppV2.Services.Tools
                 if (i > 0) sb.Append(" AND ");
                 var paramName = $"@p{i}";
                 var likeClause = string.Join(" OR ", searchable.Select(col => $"{col} LIKE {paramName} COLLATE NOCASE"));
-                sb.Append($"(CAST(ToolID AS TEXT) LIKE {paramName} COLLATE NOCASE OR {likeClause})");
+                sb.Append($"(CAST(ItemID AS TEXT) LIKE {paramName} COLLATE NOCASE OR {likeClause})");
                 parameters.Add(new SQLiteParameter(paramName, $"%{terms[i]}%"));
             }
 
@@ -459,7 +459,7 @@ namespace ToolManagementAppV2.Services.Tools
         {
             using var conn = _dbService.CreateConnection();
             var record = (await SqliteHelper.ExecuteReaderAsync(conn,
-                "SELECT IsCheckedOut, AvailableQuantity FROM Tools WHERE ToolID=@ID",
+                "SELECT IsCheckedOut, AvailableQuantity FROM Tools WHERE ItemID=@ID",
                 new[] { new SQLiteParameter("@ID", toolID) },
                 r => new { Out = Convert.ToInt32(r["IsCheckedOut"]) == 1, Qty = Convert.ToInt32(r["AvailableQuantity"]) }, cancellationToken)).FirstOrDefault();
 
@@ -480,7 +480,7 @@ namespace ToolManagementAppV2.Services.Tools
                   CheckedOutBy = @By,
                   CheckedOutTime = @Time,
                   AvailableQuantity = AvailableQuantity + @Q
-                WHERE ToolID = @ID", new[]
+                WHERE ItemID = @ID", new[]
             {
                 new SQLiteParameter("@Out", newStatus),
                 new SQLiteParameter("@By", by),
@@ -501,7 +501,7 @@ namespace ToolManagementAppV2.Services.Tools
             using var conn = _dbService.CreateConnection();
             var existingNumbers = new HashSet<string>(
                 await SqliteHelper.ExecuteReaderAsync(conn,
-                    "SELECT ToolNumber FROM Tools", null,
+                    "SELECT ItemNumber FROM Tools", null,
                     r => r.GetString(0), cancellationToken));
 
             using var tran = conn.BeginTransaction();
@@ -510,11 +510,11 @@ namespace ToolManagementAppV2.Services.Tools
                 foreach (var tool in tools)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    if (string.IsNullOrWhiteSpace(tool.ToolNumber) ||
-                        existingNumbers.Contains(tool.ToolNumber))
+                    if (string.IsNullOrWhiteSpace(tool.ItemNumber) ||
+                        existingNumbers.Contains(tool.ItemNumber))
                         continue;
                     await InsertToolAsync(conn, tran, tool, cancellationToken);
-                    existingNumbers.Add(tool.ToolNumber);
+                    existingNumbers.Add(tool.ItemNumber);
                 }
                 tran.Commit();
                 return invalidRows;
@@ -537,8 +537,8 @@ namespace ToolManagementAppV2.Services.Tools
         {
             if (qtyChange <= 0) throw new ArgumentException("Quantity change must be positive.", nameof(qtyChange));
             var sql = isRental
-                ? @"UPDATE Tools SET AvailableQuantity = AvailableQuantity - @Q, RentedQuantity = RentedQuantity + @Q WHERE ToolID = @ID AND AvailableQuantity >= @Q"
-                : @"UPDATE Tools SET AvailableQuantity = AvailableQuantity + @Q, RentedQuantity = RentedQuantity - @Q WHERE ToolID = @ID AND RentedQuantity >= @Q";
+                ? @"UPDATE Tools SET AvailableQuantity = AvailableQuantity - @Q, RentedQuantity = RentedQuantity + @Q WHERE ItemID = @ID AND AvailableQuantity >= @Q"
+                : @"UPDATE Tools SET AvailableQuantity = AvailableQuantity + @Q, RentedQuantity = RentedQuantity - @Q WHERE ItemID = @ID AND RentedQuantity >= @Q";
             var p = new[]
             {
                 new SQLiteParameter("@ID", toolID),
@@ -552,7 +552,7 @@ namespace ToolManagementAppV2.Services.Tools
                     : await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken);
                 if (rows == 0)
                 {
-                    _logger.LogWarning("Quantity update affected 0 rows for ToolID {ToolID}", toolID);
+                    _logger.LogWarning("Quantity update affected 0 rows for ItemID {ItemID}", toolID);
                     throw new InvalidOperationException("Quantity update failed.");
                 }
             }
@@ -562,7 +562,7 @@ namespace ToolManagementAppV2.Services.Tools
                 int rows = await SqliteHelper.ExecuteNonQueryAsync(c, sql, p, cancellationToken);
                 if (rows == 0)
                 {
-                    _logger.LogWarning("Quantity update affected 0 rows for ToolID {ToolID}", toolID);
+                    _logger.LogWarning("Quantity update affected 0 rows for ItemID {ItemID}", toolID);
                     throw new InvalidOperationException("Quantity update failed.");
                 }
             }

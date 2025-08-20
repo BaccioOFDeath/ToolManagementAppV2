@@ -314,7 +314,7 @@ namespace ToolManagementAppV2.Tests.Views
                         var button = FindButtonByContent(window, "Rental History");
                         Assert.NotNull(button);
 
-                        var tool = new ToolModel { ToolID = 1 };
+                        var tool = new ToolModel { ItemID = 1 };
                         vm.ItemManagement.SelectedItem = tool;
 
                         Assert.Same(tool, button!.CommandParameter);

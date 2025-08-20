@@ -8,8 +8,8 @@ namespace ToolManagementAppV2.ViewModels
 {
     public class ImageImportMappingViewModel : ObservableObject
     {
-        bool _useToolNumber = true;
-        public bool UseToolNumber { get => _useToolNumber; set => SetProperty(ref _useToolNumber, value); }
+        bool _useItemNumber = true;
+        public bool UseItemNumber { get => _useItemNumber; set => SetProperty(ref _useItemNumber, value); }
 
         bool _usePartNumber;
         public bool UsePartNumber { get => _usePartNumber; set => SetProperty(ref _usePartNumber, value); }
@@ -31,8 +31,8 @@ namespace ToolManagementAppV2.ViewModels
             return t =>
             {
                 var keys = new List<string>();
-                if (UseToolNumber && !string.IsNullOrWhiteSpace(t.ToolNumber))
-                    keys.Add(t.ToolNumber.Trim().ToUpperInvariant());
+                if (UseItemNumber && !string.IsNullOrWhiteSpace(t.ItemNumber))
+                    keys.Add(t.ItemNumber.Trim().ToUpperInvariant());
                 if (UsePartNumber && !string.IsNullOrWhiteSpace(t.PartNumber))
                     keys.Add(t.PartNumber.Trim().ToUpperInvariant());
                 if (UseNameDescription && !string.IsNullOrWhiteSpace(t.NameDescription))

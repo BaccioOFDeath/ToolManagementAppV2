@@ -2,7 +2,7 @@
 {
     public class ToolImportDto
     {
-        public string ToolNumber { get; set; }
+        public string ItemNumber { get; set; }
         public string NameDescription { get; set; }
         public string Location { get; set; }
         public string Brand { get; set; }

@@ -25,7 +25,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db, toolService);
 
-                toolService.AddTool(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
+                toolService.AddTool(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
                 var tool = toolService.GetAllTools().First();
 
                 customerService.AddCustomer(new Customer { Company = "Acme" });
@@ -37,7 +37,7 @@ namespace ToolManagementAppV2.Tests.Services
                     barrier.SignalAndWait();
                     try
                     {
-                        rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                        rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
                     }
                     catch { }
                 });
@@ -46,14 +46,14 @@ namespace ToolManagementAppV2.Tests.Services
                     barrier.SignalAndWait();
                     try
                     {
-                        rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                        rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
                     }
                     catch { }
                 });
 
                 Task.WaitAll(t1, t2);
 
-                var updated = toolService.GetToolByID(tool.ToolID);
+                var updated = toolService.GetToolByID(tool.ItemID);
                 Assert.Equal(0, updated.QuantityOnHand);
                 Assert.Equal(1, updated.RentedQuantity);
                 Assert.Single(rentalService.GetAllRentals());

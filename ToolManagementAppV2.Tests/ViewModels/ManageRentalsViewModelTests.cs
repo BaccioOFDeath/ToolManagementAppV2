@@ -27,16 +27,16 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool1 = new ItemModel { ToolNumber = "T1" };
-                var tool2 = new ItemModel { ToolNumber = "T2" };
+                var tool1 = new ItemModel { ItemNumber = "T1" };
+                var tool2 = new ItemModel { ItemNumber = "T2" };
                 toolService.AddTool(tool1);
                 toolService.AddTool(tool2);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(tool1.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
-                rentalService.RentTool(tool2.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool1.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool2.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
                 var all = rentalService.GetAllRentals();
                 rentalService.ReturnTool(all[1].RentalID, DateTime.Today);
 
@@ -72,16 +72,16 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool1 = new ItemModel { ToolNumber = "Alpha" };
-                var tool2 = new ItemModel { ToolNumber = "Beta" };
+                var tool1 = new ItemModel { ItemNumber = "Alpha" };
+                var tool2 = new ItemModel { ItemNumber = "Beta" };
                 toolService.AddTool(tool1);
                 toolService.AddTool(tool2);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(tool1.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
-                rentalService.RentTool(tool2.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool1.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool2.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 await vm.LoadRentalsAsync();
@@ -90,7 +90,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 vm.ApplyFilterCommand.Execute(null);
 
                 Assert.Single(vm.Rentals);
-                Assert.Contains("Alpha", vm.Rentals[0].ToolNumber);
+                Assert.Contains("Alpha", vm.Rentals[0].ItemNumber);
             }
             finally
             {
@@ -110,14 +110,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool = new ItemModel { ToolNumber = "T1" };
+                var tool = new ItemModel { ItemNumber = "T1" };
                 toolService.AddTool(tool);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
-                rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var dialog = new StubDialogService();
                 var vm = new ManageRentalsViewModel(rentalService, dialog);
@@ -167,13 +167,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool = new ItemModel { ToolNumber = "T1" };
+                var tool = new ItemModel { ItemNumber = "T1" };
                 toolService.AddTool(tool);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 await vm.LoadRentalsAsync();
@@ -203,13 +203,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool = new ItemModel { ToolNumber = "T1" };
+                var tool = new ItemModel { ItemNumber = "T1" };
                 toolService.AddTool(tool);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 await vm.LoadRentalsAsync();
@@ -237,13 +237,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool = new ItemModel { ToolNumber = "T1" };
+                var tool = new ItemModel { ItemNumber = "T1" };
                 toolService.AddTool(tool);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(tool.ToolID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 await vm.LoadRentalsAsync();
@@ -269,8 +269,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 new Rental
                 {
                     RentalID = 1,
-                    ToolID = 1,
-                    ToolNumber = "T1",
+                    ItemID = 1,
+                    ItemNumber = "T1",
                     CustomerID = 1,
                     CustomerName = "C1",
                     RentalDate = DateTime.Today,
@@ -297,8 +297,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 new Rental
                 {
                     RentalID = 1,
-                    ToolID = 1,
-                    ToolNumber = "T1",
+                    ItemID = 1,
+                    ItemNumber = "T1",
                     CustomerID = 1,
                     CustomerName = "C1",
                     RentalDate = DateTime.Today,
@@ -325,8 +325,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 new Rental
                 {
                     RentalID = 1,
-                    ToolID = 1,
-                    ToolNumber = "T1",
+                    ItemID = 1,
+                    ItemNumber = "T1",
                     CustomerID = 1,
                     CustomerName = "C1",
                     RentalDate = DateTime.Today,
@@ -353,8 +353,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 new Rental
                 {
                     RentalID = 1,
-                    ToolID = 1,
-                    ToolNumber = "T1",
+                    ItemID = 1,
+                    ItemNumber = "T1",
                     CustomerID = 1,
                     CustomerName = "C1",
                     RentalDate = DateTime.Today,
@@ -381,8 +381,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 new Rental
                 {
                     RentalID = 1,
-                    ToolID = 1,
-                    ToolNumber = "T1",
+                    ItemID = 1,
+                    ItemNumber = "T1",
                     CustomerID = 1,
                     CustomerName = "C1",
                     RentalDate = DateTime.Today,

@@ -17,10 +17,10 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async System.Threading.Tasks.Task ImportToolsCommand_UsesMappingFromDialog()
         {
             var tmp = Path.GetTempFileName();
-            File.WriteAllText(tmp, "ToolNumber\n");
+            File.WriteAllText(tmp, "ItemNumber\n");
             var fileDlg = new StubFileDialogService { FileToReturn = tmp };
             var toolSvc = new CapturingItemService();
-            var dialog = new StubDialogService { MapToReturn = new Dictionary<string,string>{{"ToolNumber","ToolNumber"}} };
+            var dialog = new StubDialogService { MapToReturn = new Dictionary<string,string>{{"ItemNumber","ItemNumber"}} };
             var vm = new ImportExportViewModel(toolSvc, new StubCustomerService(), fileDlg, new StubDatabaseBackupService(), dialog);
 
             await vm.ImportToolsCommand.ExecuteAsync(null);
@@ -28,7 +28,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             Assert.True(dialog.ShowImportMappingCalled);
             Assert.True(toolSvc.ImportCalled);
             Assert.Equal(AppContext.BaseDirectory, fileDlg.InitialDirectoryUsed);
-            Assert.Equal("ToolNumber", toolSvc.MapUsed!["ToolNumber"]);
+            Assert.Equal("ItemNumber", toolSvc.MapUsed!["ItemNumber"]);
             File.Delete(tmp);
         }
 
@@ -72,7 +72,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async System.Threading.Tasks.Task ImportToolsCommand_CancelledMapping_DoesNotCallService()
         {
             var tmp = Path.GetTempFileName();
-            File.WriteAllText(tmp, "ToolNumber\n");
+            File.WriteAllText(tmp, "ItemNumber\n");
             var fileDlg = new StubFileDialogService { FileToReturn = tmp };
             var toolSvc = new CapturingItemService();
             var dialog = new StubDialogService { MapToReturn = null };
@@ -89,10 +89,10 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public async System.Threading.Tasks.Task ImportToolsCommand_CanBeCancelled()
         {
             var tmp = Path.GetTempFileName();
-            File.WriteAllText(tmp, "ToolNumber\n");
+            File.WriteAllText(tmp, "ItemNumber\n");
             var fileDlg = new StubFileDialogService { FileToReturn = tmp };
             var toolSvc = new CancelableItemService();
-            var dialog = new StubDialogService { MapToReturn = new Dictionary<string,string>{{"ToolNumber","ToolNumber"}} };
+            var dialog = new StubDialogService { MapToReturn = new Dictionary<string,string>{{"ItemNumber","ItemNumber"}} };
             var vm = new ImportExportViewModel(toolSvc, new StubCustomerService(), fileDlg, new StubDatabaseBackupService(), dialog);
 
             var execute = vm.ImportToolsCommand.ExecuteAsync(null);
@@ -188,7 +188,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
         public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, System.Data.SQLite.SQLiteConnection? conn = null, System.Data.SQLite.SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public Task<string> GenerateNextToolNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
+        public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
     }
 
     class CapturingCustomerService : ICustomerService
@@ -244,7 +244,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
         public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, System.Data.SQLite.SQLiteConnection? conn = null, System.Data.SQLite.SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public Task<string> GenerateNextToolNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
+        public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
     }
 
     class CancelableItemService : IItemService
@@ -266,7 +266,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
         public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, System.Data.SQLite.SQLiteConnection? conn = null, System.Data.SQLite.SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public Task<string> GenerateNextToolNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
+        public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
     }
 
     class StubCustomerService : ICustomerService

@@ -47,7 +47,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             var customerService = new StubCustomerService();
             var fileDlg = new StubFileDialogService();
             var tmp = Path.GetTempFileName();
-            File.WriteAllText(tmp, "ToolNumber\n");
+            File.WriteAllText(tmp, "ItemNumber\n");
             fileDlg.FileToReturn = tmp;
             var dialog = new StubDialogService();
             var vm = new ImportExportViewModel(toolService, customerService, fileDlg, new StubDatabaseBackupService(), dialog);
@@ -127,7 +127,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             var customerService = new StubCustomerService();
             var fileDlg = new StubFileDialogService();
             var tmp = Path.GetTempFileName();
-            File.WriteAllText(tmp, "ToolNumber\n");
+            File.WriteAllText(tmp, "ItemNumber\n");
             fileDlg.FileToReturn = tmp;
             var dialog = new StubDialogService();
             var vm = new ImportExportViewModel(toolService, customerService, fileDlg, new StubDatabaseBackupService(), dialog);
@@ -251,7 +251,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, System.Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
         public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task<string> GenerateNextToolNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
+        public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
     }
 
     class FailItemService : IItemService
@@ -269,7 +269,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, System.Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
         public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task<string> GenerateNextToolNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
+        public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
     }
 
     class StubRentalService : IRentalService

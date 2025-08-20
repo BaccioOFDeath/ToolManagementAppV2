@@ -11,11 +11,11 @@ namespace ToolManagementAppV2.Tests
         {
             var headers = new[] { "toolnumber", "location" };
             var row = new[] { "123", "Loc" };
-            var map = new Dictionary<string, string> { ["ToolNumber"] = "ToolNumber", ["Location"] = "LOCATION" };
+            var map = new Dictionary<string, string> { ["ItemNumber"] = "ItemNumber", ["Location"] = "LOCATION" };
 
             var number = typeof(CsvHelperUtil)
                 .GetMethod("GetMapped", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
-                .Invoke(null, new object[] { row, headers, map, "ToolNumber" });
+                .Invoke(null, new object[] { row, headers, map, "ItemNumber" });
 
             var location = typeof(CsvHelperUtil)
                 .GetMethod("GetMapped", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
@@ -30,11 +30,11 @@ namespace ToolManagementAppV2.Tests
         {
             var headers = new[] { "TOOLNUMBER", "LOCATION" };
             var row = new[] { "321", "Loc" };
-            var map = new Dictionary<string, string> { ["ToolNumber"] = "toolnumber", ["Location"] = "location" };
+            var map = new Dictionary<string, string> { ["ItemNumber"] = "toolnumber", ["Location"] = "location" };
 
             var number = typeof(CsvHelperUtil)
                 .GetMethod("GetMapped", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
-                .Invoke(null, new object[] { row, headers, map, "ToolNumber" });
+                .Invoke(null, new object[] { row, headers, map, "ItemNumber" });
 
             var location = typeof(CsvHelperUtil)
                 .GetMethod("GetMapped", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!

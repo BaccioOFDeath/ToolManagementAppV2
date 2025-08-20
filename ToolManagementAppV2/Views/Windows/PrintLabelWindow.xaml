@@ -38,7 +38,7 @@
                       Style="{StaticResource VirtualizedDataGridStyle}"
                       ColumnHeaderStyle="{StaticResource {x:Type DataGridColumnHeader}}">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat={}{0} #}" Binding="{Binding ToolNumber}" Width="120"/>
+                    <DataGridTextColumn Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat={}{0} #}" Binding="{Binding ItemNumber}" Width="120"/>
                     <DataGridTextColumn Header="Name" Binding="{Binding NameDescription}" Width="*"/>
                     <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="180"/>
                 </DataGrid.Columns>
