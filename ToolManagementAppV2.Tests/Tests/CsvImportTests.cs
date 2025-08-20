@@ -180,13 +180,13 @@ public class CsvImportTests
         {
             using var db = new DatabaseService(dbPath);
             var service = new ItemService(db);
-            service.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 5, IsPowerTool = true });
+            service.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 5, IsPowered = true });
 
             await service.ExportItemsToCsvAsync(csvPath);
 
             var lines = await File.ReadAllLinesAsync(csvPath);
             Assert.True(lines.Length > 1);
-            Assert.Equal("ItemNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowerTool", lines[0]);
+            Assert.Equal("ItemNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowered", lines[0]);
             Assert.Contains("T1", lines[1]);
         }
         finally

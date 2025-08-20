@@ -250,7 +250,7 @@ namespace ToolManagementAppV2.ViewModels
                 PurchasedDate = SelectedItem.PurchasedDate,
                 Notes = SelectedItem.Notes,
                 Keywords = SelectedItem.Keywords,
-                IsPowerTool = SelectedItem.IsPowerTool,
+                IsPowered = SelectedItem.IsPowered,
                 IsCheckedOut = SelectedItem.IsCheckedOut,
                 CheckedOutBy = SelectedItem.CheckedOutBy,
                 CheckedOutTime = SelectedItem.CheckedOutTime,

@@ -568,14 +568,14 @@ namespace ToolManagementAppV2.Tests.Services
                             Notes TEXT,
                             AvailableQuantity INTEGER,
                             RentedQuantity INTEGER,
-                            IsPowerTool INTEGER,
+                            IsPowered INTEGER,
                             IsCheckedOut INTEGER,
                             CheckedOutBy TEXT,
                             CheckedOutTime DATETIME,
                             ImagePath TEXT,
                             Keywords TEXT
                         );
-                        INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsPowerTool, IsCheckedOut)
+                        INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsPowered, IsCheckedOut)
                         VALUES ('T1', 'Test', NULL, NULL, NULL, NULL);
                     ";
                     cmd.ExecuteNonQuery();
@@ -589,7 +589,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var tool = tools[0];
                 Assert.Equal(0, tool.QuantityOnHand);
                 Assert.Equal(0, tool.RentedQuantity);
-                Assert.False(tool.IsPowerTool);
+                Assert.False(tool.IsPowered);
                 Assert.False(tool.IsCheckedOut);
             }
             finally
@@ -621,14 +621,14 @@ namespace ToolManagementAppV2.Tests.Services
                             Notes TEXT,
                             AvailableQuantity INTEGER,
                             RentedQuantity INTEGER,
-                            IsPowerTool INTEGER,
+                            IsPowered INTEGER,
                             IsCheckedOut INTEGER,
                             CheckedOutBy TEXT,
                             CheckedOutTime DATETIME,
                             ImagePath TEXT,
                             Keywords TEXT
                         );
-                        INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsPowerTool, IsCheckedOut)
+                        INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsPowered, IsCheckedOut)
                         VALUES ('T1', 'Test', NULL, NULL, NULL, NULL);
                     ";
                     cmd.ExecuteNonQuery();
@@ -641,7 +641,7 @@ namespace ToolManagementAppV2.Tests.Services
                 Assert.Single(tools);
                 var tool = tools[0];
                 Assert.Equal("T1", tool.ItemNumber);
-                Assert.False(tool.IsPowerTool);
+                Assert.False(tool.IsPowered);
                 Assert.Equal(0, tool.QuantityOnHand);
             }
             finally
