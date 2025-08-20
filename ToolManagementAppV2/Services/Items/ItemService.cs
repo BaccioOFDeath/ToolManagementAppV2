@@ -174,9 +174,9 @@ namespace ToolManagementAppV2.Services.Items
                 return result;
 
             cancellationToken.ThrowIfCancellationRequested();
-            var tools = await GetAllItemsAsync(cancellationToken);
+            var items = await GetAllItemsAsync(cancellationToken);
             var groups = new Dictionary<string, List<ItemModel>>(StringComparer.OrdinalIgnoreCase);
-            foreach (var item in tools)
+            foreach (var item in items)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var keys = keySelector(item);
@@ -497,7 +497,7 @@ namespace ToolManagementAppV2.Services.Items
 
         private async Task<List<int>> ImportItemsFromCsvInternalAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken)
         {
-            var (tools, invalidRows) = await CsvHelperUtil.LoadToolsFromCsvAsync(filePath, map, cancellationToken);
+            var (items, invalidRows) = await CsvHelperUtil.LoadItemsFromCsvAsync(filePath, map, cancellationToken);
             using var conn = _dbService.CreateConnection();
             var existingNumbers = new HashSet<string>(
                 await SqliteHelper.ExecuteReaderAsync(conn,
@@ -507,7 +507,7 @@ namespace ToolManagementAppV2.Services.Items
             using var tran = conn.BeginTransaction();
             try
             {
-                foreach (var item in tools)
+                foreach (var item in items)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     if (string.IsNullOrWhiteSpace(item.ItemNumber) ||
@@ -521,7 +521,7 @@ namespace ToolManagementAppV2.Services.Items
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to import tools from CSV");
+                _logger.LogError(ex, "Failed to import items from CSV");
                 tran.Rollback();
                 throw;
             }
@@ -529,8 +529,8 @@ namespace ToolManagementAppV2.Services.Items
 
         private async Task ExportItemsToCsvInternalAsync(string filePath, CancellationToken cancellationToken)
         {
-            var tools = await GetAllItemsAsync(cancellationToken);
-            await CsvHelperUtil.ExportItemsToCsvAsync(filePath, tools);
+            var items = await GetAllItemsAsync(cancellationToken);
+            await CsvHelperUtil.ExportItemsToCsvAsync(filePath, items);
         }
 
         public async Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default)

@@ -9,7 +9,7 @@ namespace ToolManagementAppV2.Tests
         [Fact]
         public void GetMapped_IgnoresHeaderCase()
         {
-            var headers = new[] { "toolnumber", "location" };
+            var headers = new[] { "itemnumber", "location" };
             var row = new[] { "123", "Loc" };
             var map = new Dictionary<string, string> { ["ItemNumber"] = "ItemNumber", ["Location"] = "LOCATION" };
 
@@ -28,9 +28,9 @@ namespace ToolManagementAppV2.Tests
         [Fact]
         public void GetMapped_IgnoresHeaderCase_Reversed()
         {
-            var headers = new[] { "TOOLNUMBER", "LOCATION" };
+            var headers = new[] { "ITEMNUMBER", "LOCATION" };
             var row = new[] { "321", "Loc" };
-            var map = new Dictionary<string, string> { ["ItemNumber"] = "toolnumber", ["Location"] = "location" };
+            var map = new Dictionary<string, string> { ["ItemNumber"] = "itemnumber", ["Location"] = "location" };
 
             var number = typeof(CsvHelperUtil)
                 .GetMethod("GetMapped", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
