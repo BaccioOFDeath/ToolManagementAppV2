@@ -18,7 +18,6 @@
     <Compile Remove="Views\Rental\**" />
     <Compile Remove="Views\Reports\**" />
     <Compile Remove="Views\Settings\**" />
-    <Compile Remove="Views\Tool\**" />
     <Compile Remove="Views\User\**" />
     <EmbeddedResource Remove="Assets\**" />
     <EmbeddedResource Remove="ItemImages\**" />
@@ -28,7 +27,6 @@
     <EmbeddedResource Remove="Views\Rental\**" />
     <EmbeddedResource Remove="Views\Reports\**" />
     <EmbeddedResource Remove="Views\Settings\**" />
-    <EmbeddedResource Remove="Views\Tool\**" />
     <EmbeddedResource Remove="Views\User\**" />
     <None Remove="Assets\**" />
     <None Remove="ItemImages\**" />
@@ -38,7 +36,6 @@
     <None Remove="Views\Rental\**" />
     <None Remove="Views\Reports\**" />
     <None Remove="Views\Settings\**" />
-    <None Remove="Views\Tool\**" />
     <None Remove="Views\User\**" />
     <Page Remove="Assets\**" />
     <Page Remove="ItemImages\**" />
@@ -48,7 +45,6 @@
     <Page Remove="Views\Rental\**" />
     <Page Remove="Views\Reports\**" />
     <Page Remove="Views\Settings\**" />
-    <Page Remove="Views\Tool\**" />
     <Page Remove="Views\User\**" />
   </ItemGroup>
 
