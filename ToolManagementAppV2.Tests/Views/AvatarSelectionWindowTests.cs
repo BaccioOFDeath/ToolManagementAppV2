@@ -45,6 +45,37 @@ namespace ToolManagementAppV2.Tests.Views
         }
 
         [Fact]
+        public void Loaded_UsesDefaultTitle_WhenSettingMissing()
+        {
+            Exception? threadException = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var settings = new StubSettingsService { AppName = string.Empty };
+                    var logger = new TestLogger<AvatarSelectionWindow>();
+                    var window = new AvatarSelectionWindow(settings, logger) { Title = "Original" };
+
+                    window.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent));
+
+                    Assert.Equal("Tool Inventory Management – Select Avatar", window.Title);
+                }
+                catch (Exception ex)
+                {
+                    threadException = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadException != null)
+                throw threadException;
+        }
+
+        [Fact]
         public void Loaded_LogsError_WhenSettingFails()
         {
             Exception? threadException = null;

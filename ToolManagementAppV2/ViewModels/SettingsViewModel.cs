@@ -30,6 +30,10 @@ namespace ToolManagementAppV2.ViewModels
             if (!string.IsNullOrWhiteSpace(logoPath))
                 CompanyLogoPath = logoPath;
 
+            var appName = _settingsService.GetSettingAsync("ApplicationName").GetAwaiter().GetResult();
+            if (!string.IsNullOrWhiteSpace(appName))
+                _applicationName = appName;
+
             ThemeOptions = new ObservableCollection<string> { "Light", "Dark" };
             _theme = ThemeOptions[0];
             _passwordIterations = _settingsService.GetPasswordIterationsAsync().GetAwaiter().GetResult();
@@ -54,7 +58,25 @@ namespace ToolManagementAppV2.ViewModels
         public string ApplicationName
         {
             get => _applicationName;
-            set => SetProperty(ref _applicationName, value);
+            set
+            {
+                if (SetProperty(ref _applicationName, value))
+                {
+                    try
+                    {
+                        _settingsService.SaveSettingAsync("ApplicationName", value).GetAwaiter().GetResult();
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        _logger.LogWarning(ex, "Unauthorized to change settings.");
+                        _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to save application name.");
+                    }
+                }
+            }
         }
 
         private string _companyLogoPath;

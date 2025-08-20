@@ -29,6 +29,24 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public void Constructor_PopulatesApplicationName_WhenSettingExists()
+        {
+            var settings = new StubSettingsService { GetSettingValue = "MyApp" };
+            var vm = new SettingsViewModel(new StubFileDialogService(), settings, new StubDialogService());
+            Assert.Equal("MyApp", vm.ApplicationName);
+        }
+
+        [Fact]
+        public void ApplicationName_Setter_SavesValue()
+        {
+            var settings = new StubSettingsService();
+            var vm = new SettingsViewModel(new StubFileDialogService(), settings, new StubDialogService());
+            vm.ApplicationName = "NewName";
+            Assert.Equal("ApplicationName", settings.SavedKey);
+            Assert.Equal("NewName", settings.SavedValue);
+        }
+
+        [Fact]
         public void TestDbConnection_CreatesDatabaseFile()
         {
             var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
