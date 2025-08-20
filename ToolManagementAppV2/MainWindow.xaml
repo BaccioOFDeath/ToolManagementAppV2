@@ -34,7 +34,7 @@
 
                         <Separator/>
 
-                        <TextBlock Text="Workshop" Style="{StaticResource CaptionTextBlock}" Margin="6,8,6,2"/>
+                        <TextBlock Text="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}" Style="{StaticResource CaptionTextBlock}" Margin="6,8,6,2"/>
                         <Button Style="{StaticResource NavButton}" Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Manage {0}}" Command="{Binding OpenManageItemsCommand}" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
                         <Button Style="{StaticResource NavButton}" Content="Customers" Command="{Binding OpenCustomersCommand}"/>
                         <Button Style="{StaticResource NavButton}" Content="Users" Command="{Binding OpenUsersCommand}" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
