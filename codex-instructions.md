@@ -1,7 +1,8 @@
 # Codex Instructions for ToolManagementAppV2
 
-You are coding inside a C# WPF MVVM Visual Studio solution called **ToolManagementAppV2**.  
-The application is used in an automotive workshop to manage tool inventory, customers, rentals, and users.
+You are coding inside a C# WPF MVVM Visual Studio solution called **ToolManagementAppV2**.
+The application is a generic inventory and check-in/check-out system for tracking items, customers, rentals, and users.
+Item labels can be customized through application settings.
 
 ## Global Coding Rules
 
@@ -21,8 +22,8 @@ The application is used in an automotive workshop to manage tool inventory, cust
 ## Existing Domain Models
 
 - **Customer** — full CRUD already implemented.
-- **Tool** — full CRUD already implemented.
-- **Rental** — fields: `RentalID`, `ToolID`, `CustomerID`, `RentalDate`, `DueDate`, `ReturnedDate`, `Notes`.
+- **Item** — fields: `ItemID`, `Name`, `Description`, `Location`, etc.; item label is customizable via settings.
+- **Rental** — fields: `RentalID`, `ItemID`, `CustomerID`, `RentalDate`, `DueDate`, `ReturnedDate`, `Notes`.
 - **User** — fields: `UserID`, `UserName`, `PasswordHash`, `IsAdmin`, `PhotoPath`.
 - **SettingItem** — key/value pairs for application settings.
 - **ActivityLog** — tracks user actions for audit purposes.
