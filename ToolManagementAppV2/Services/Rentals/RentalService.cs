@@ -64,7 +64,7 @@ namespace ToolManagementAppV2.Services.Rentals
                                     c.Mobile,
                                     c.Address
                                  FROM Rentals r
-                                 JOIN Tools t ON r.ItemID = t.ItemID
+                                 JOIN Items t ON r.ItemID = t.ItemID
                                  JOIN Customers c ON r.CustomerID = c.CustomerID";
 
         // Synchronous rental operations removed; use async equivalents instead.
@@ -95,7 +95,7 @@ namespace ToolManagementAppV2.Services.Rentals
             await ExecuteWithTransactionAsync(async (conn, tx) =>
             {
                 var availCmd = new SQLiteCommand(
-                    "SELECT AvailableQuantity FROM Tools WHERE ItemID=@ItemID",
+                    "SELECT AvailableQuantity FROM Items WHERE ItemID=@ItemID",
                     conn, tx);
                 availCmd.Parameters.AddWithValue("@ItemID", toolID);
                 int avail = Convert.ToInt32(await availCmd.ExecuteScalarAsync() ?? 0);
