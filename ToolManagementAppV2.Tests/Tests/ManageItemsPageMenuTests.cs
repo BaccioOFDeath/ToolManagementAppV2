@@ -34,8 +34,8 @@ namespace ToolManagementAppV2.Tests.Tests
                 var grid = (Grid)page.Content;
                 var border = (Border)grid.Children[0];
                 var innerGrid = (Grid)border.Child;
-                var listView = (ListView)innerGrid.Children[1];
-                var menu = listView.ContextMenu;
+                var dataGrid = (DataGrid)innerGrid.Children[1];
+                var menu = dataGrid.ContextMenu;
                 var items = menu.Items.OfType<MenuItem>().ToArray();
 
                 Assert.Equal(vm.OpenRentalsCommand, items[0].Command);
@@ -67,10 +67,39 @@ namespace ToolManagementAppV2.Tests.Tests
                 var innerGrid = (Grid)border.Child;
                 var stack = (StackPanel)innerGrid.Children[2];
 
-                Assert.Equal(3, stack.Children.Count);
+                Assert.Equal(4, stack.Children.Count);
                 Assert.Equal(vm.EditItemCommand, ((Button)stack.Children[0]).Command);
                 Assert.Equal(vm.ViewDetailsCommand, ((Button)stack.Children[1]).Command);
-                Assert.Equal(vm.NewItemCommand, ((Button)stack.Children[2]).Command);
+                Assert.Equal(vm.OpenRentalHistoryCommand, ((Button)stack.Children[2]).Command);
+                Assert.Equal(vm.NewItemCommand, ((Button)stack.Children[3]).Command);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void DataGrid_BindsToSearchResults()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var toolService = new ItemService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db, toolService);
+                var dialog = new StubDialogService();
+                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                var page = new ManageItemsPage { DataContext = vm };
+
+                var grid = (Grid)page.Content;
+                var border = (Border)grid.Children[0];
+                var innerGrid = (Grid)border.Child;
+                var dataGrid = (DataGrid)innerGrid.Children[1];
+
+                Assert.Equal(vm.SearchResults, dataGrid.ItemsSource);
             }
             finally
             {
