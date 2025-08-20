@@ -59,15 +59,15 @@ namespace ToolManagementAppV2.Services
 
         public ItemModel? ShowEditToolDialog(ItemModel tool)
         {
-            ToolEditWindow? win = null;
-            win = ActivatorUtilities.CreateInstance<ToolEditWindow>(_serviceProvider,
+            ItemEditWindow? win = null;
+            win = ActivatorUtilities.CreateInstance<ItemEditWindow>(_serviceProvider,
                 tool,
                 (Action)(() => win!.DialogResult = true),
                 (Action)(() => win!.DialogResult = false));
             try { win.Owner = System.Windows.Application.Current?.MainWindow; }
-            catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for ToolEditWindow"); }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for ItemEditWindow"); }
             try { return win.ShowDialog() == true ? tool : null; }
-            catch (Exception ex) { _logger.LogError(ex, "Failed to show ToolEditWindow"); return null; }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to show ItemEditWindow"); return null; }
         }
 
         public Task<ItemModel?> ShowEditToolDialogAsync(ItemModel tool)

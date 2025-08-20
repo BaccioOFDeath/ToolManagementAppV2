@@ -144,7 +144,7 @@ namespace ToolManagementAppV2.ViewModels
         }
 
         public IRelayCommand OpenDashboardCommand { get; }
-        public IAsyncRelayCommand OpenSearchToolsCommand { get; }
+        public IAsyncRelayCommand OpenSearchItemsCommand { get; }
         public IAsyncRelayCommand OpenManageItemsCommand { get; }
         public IAsyncRelayCommand OpenRentalsCommand { get; }
         public IAsyncRelayCommand OpenCustomersCommand { get; }
@@ -235,11 +235,11 @@ namespace ToolManagementAppV2.ViewModels
                 CurrentPage = page;
             });
 
-            OpenSearchToolsCommand = new AsyncRelayCommand(async () =>
+            OpenSearchItemsCommand = new AsyncRelayCommand(async () =>
             {
                 await ItemManagement.LoadToolsAsync();
                 var plural = LabelProvider.Instance.ItemLabelPlural;
-                var page = new ToolSearchPage { DataContext = ItemManagement, Title = $"Search {plural}" };
+                var page = new ItemSearchPage { DataContext = ItemManagement, Title = $"Search {plural}" };
                 // If your ItemManagement VM supports a query setter, apply GlobalSearchText there.
                 CurrentPage = page;
             });
@@ -480,7 +480,7 @@ namespace ToolManagementAppV2.ViewModels
         async Task GlobalSearchAsync(CancellationToken cancellationToken)
         {
             ItemManagement.SearchText = GlobalSearchText;
-            await OpenSearchToolsCommand.ExecuteAsync(null);
+            await OpenSearchItemsCommand.ExecuteAsync(null);
             if (ItemManagement.SearchCommand != null)
                 await ItemManagement.SearchCommand.ExecuteAsync(cancellationToken);
             GlobalSearchText = string.Empty;

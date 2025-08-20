@@ -10,38 +10,38 @@ using Xunit;
 
 namespace ToolManagementAppV2.Tests.Tests
 {
-    public class ToolSearchPageLayoutTests
+    public class ItemSearchPageLayoutTests
     {
         [Fact]
         public void SingleList_UsesHorizontalVirtualizingStackPanel()
         {
-            var page = new ToolSearchPage();
+            var page = new ItemSearchPage();
 
-            var panel = page.ToolsList.ItemsPanel.LoadContent();
+            var panel = page.ItemsList.ItemsPanel.LoadContent();
             var stack = Assert.IsType<VirtualizingStackPanel>(panel);
             Assert.Equal(Orientation.Horizontal, stack.Orientation);
-            Assert.Equal(ScrollBarVisibility.Auto, ScrollViewer.GetHorizontalScrollBarVisibility(page.ToolsList));
-            Assert.Equal(ScrollBarVisibility.Disabled, ScrollViewer.GetVerticalScrollBarVisibility(page.ToolsList));
-            Assert.True(VirtualizingStackPanel.GetIsVirtualizing(page.ToolsList));
-            Assert.IsType<Border>(page.ToolsList.ItemTemplate.LoadContent());
+            Assert.Equal(ScrollBarVisibility.Auto, ScrollViewer.GetHorizontalScrollBarVisibility(page.ItemsList));
+            Assert.Equal(ScrollBarVisibility.Disabled, ScrollViewer.GetVerticalScrollBarVisibility(page.ItemsList));
+            Assert.True(VirtualizingStackPanel.GetIsVirtualizing(page.ItemsList));
+            Assert.IsType<Border>(page.ItemsList.ItemTemplate.LoadContent());
         }
 
         [Fact]
         public void SingleList_VirtualizesLargeCollections()
         {
-            var page = new ToolSearchPage();
-            page.ToolsList.ItemsSource = Enumerable.Range(0, 1000)
+            var page = new ItemSearchPage();
+            page.ItemsList.ItemsSource = Enumerable.Range(0, 1000)
                 .Select(i => new ItemModel { ItemID = i, NameDescription = $"ItemModel {i}" })
                 .ToList();
 
-            page.ToolsList.Measure(new Size(800, 300));
-            page.ToolsList.Arrange(new Rect(0, 0, 800, 300));
-            page.ToolsList.UpdateLayout();
+            page.ItemsList.Measure(new Size(800, 300));
+            page.ItemsList.Arrange(new Rect(0, 0, 800, 300));
+            page.ItemsList.UpdateLayout();
 
-            Assert.NotNull(page.ToolsList.ItemContainerGenerator.ContainerFromIndex(0));
-            Assert.Null(page.ToolsList.ItemContainerGenerator.ContainerFromIndex(999));
+            Assert.NotNull(page.ItemsList.ItemContainerGenerator.ContainerFromIndex(0));
+            Assert.Null(page.ItemsList.ItemContainerGenerator.ContainerFromIndex(999));
 
-            var first = (FrameworkElement)page.ToolsList.ItemContainerGenerator.ContainerFromIndex(0);
+            var first = (FrameworkElement)page.ItemsList.ItemContainerGenerator.ContainerFromIndex(0);
             Assert.True(first.ActualWidth > 0 && first.ActualHeight > 0);
         }
 
@@ -50,7 +50,7 @@ namespace ToolManagementAppV2.Tests.Tests
         {
             var executed = false;
             var vm = new TestVm(() => executed = true);
-            var page = new ToolSearchPage { DataContext = vm };
+            var page = new ItemSearchPage { DataContext = vm };
 
             var root = (Grid)page.Content;
             var border = (Border)root.Children[0];

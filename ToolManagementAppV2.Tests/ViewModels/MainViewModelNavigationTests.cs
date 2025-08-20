@@ -294,7 +294,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 await vm.GlobalSearchCommand.ExecuteAsync(CancellationToken.None);
 
-                var page = Assert.IsType<ToolSearchPage>(vm.CurrentPage);
+                var page = Assert.IsType<ItemSearchPage>(vm.CurrentPage);
                 Assert.Equal("Ham", vm.ItemManagement.SearchText);
                 Assert.Empty(vm.GlobalSearchText);
                 Assert.Single(vm.ItemManagement.SearchResults);

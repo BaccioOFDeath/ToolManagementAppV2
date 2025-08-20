@@ -11,10 +11,10 @@ using Xunit;
 
 namespace ToolManagementAppV2.Tests.Tests
 {
-    public class ToolSearchPageBindingTests
+    public class ItemSearchPageBindingTests
     {
         [Fact]
-        public void ToolsList_UsesNullToDefaultImageConverter()
+        public void ItemsList_UsesNullToDefaultImageConverter()
         {
             Exception? threadEx = null;
             var thread = new Thread(() =>
@@ -43,14 +43,14 @@ namespace ToolManagementAppV2.Tests.Tests
                     EnsureDictionary("Converters.xaml");
                     EnsureDictionary("Templates.xaml");
 
-                    ToolSearchPage page = null!;
-                    var ex = Record.Exception(() => page = new ToolSearchPage());
+                    ItemSearchPage page = null!;
+                    var ex = Record.Exception(() => page = new ItemSearchPage());
                     Assert.Null(ex);
 
-                    var itemsBinding = BindingOperations.GetBinding(page.ToolsList, ItemsControl.ItemsSourceProperty);
+                    var itemsBinding = BindingOperations.GetBinding(page.ItemsList, ItemsControl.ItemsSourceProperty);
                     Assert.Equal("Tools", itemsBinding?.Path.Path);
 
-                    var template = page.ToolsList.ItemTemplate;
+                    var template = page.ItemsList.ItemTemplate;
                     var outer = Assert.IsType<Border>(template.LoadContent());
                     var grid = Assert.IsType<Grid>(outer.Child);
                     var border = Assert.IsType<Border>(grid.Children[0]);
