@@ -192,7 +192,7 @@ namespace ToolManagementAppV2.Services.Items
                 }
             }
 
-            var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+            var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ItemImages");
             if (!Directory.Exists(destDir))
             {
                 try
@@ -249,7 +249,7 @@ namespace ToolManagementAppV2.Services.Items
                         continue;
                     }
                 }
-                var relative = $"Images/{Path.GetFileName(dest)}";
+                var relative = $"ItemImages/{Path.GetFileName(dest)}";
                 await UpdateItemImageAsync(item.ItemID, relative, cancellationToken);
                 result.ImportedCount++;
                 processed++;

@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <Compile Remove="Assets\**" />
-    <Compile Remove="Images\**" />
+    <Compile Remove="ItemImages\**" />
     <Compile Remove="Views\Common\**" />
     <Compile Remove="Views\Customer\**" />
     <Compile Remove="Views\ImportExport\**" />
@@ -21,7 +21,7 @@
     <Compile Remove="Views\Tool\**" />
     <Compile Remove="Views\User\**" />
     <EmbeddedResource Remove="Assets\**" />
-    <EmbeddedResource Remove="Images\**" />
+    <EmbeddedResource Remove="ItemImages\**" />
     <EmbeddedResource Remove="Views\Common\**" />
     <EmbeddedResource Remove="Views\Customer\**" />
     <EmbeddedResource Remove="Views\ImportExport\**" />
@@ -31,7 +31,7 @@
     <EmbeddedResource Remove="Views\Tool\**" />
     <EmbeddedResource Remove="Views\User\**" />
     <None Remove="Assets\**" />
-    <None Remove="Images\**" />
+    <None Remove="ItemImages\**" />
     <None Remove="Views\Common\**" />
     <None Remove="Views\Customer\**" />
     <None Remove="Views\ImportExport\**" />
@@ -41,7 +41,7 @@
     <None Remove="Views\Tool\**" />
     <None Remove="Views\User\**" />
     <Page Remove="Assets\**" />
-    <Page Remove="Images\**" />
+    <Page Remove="ItemImages\**" />
     <Page Remove="Views\Common\**" />
     <Page Remove="Views\Customer\**" />
     <Page Remove="Views\ImportExport\**" />
