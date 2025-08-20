@@ -4,7 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:ToolManagementAppV2.Controls"
         xmlns:helpers="clr-namespace:ToolManagementAppV2.Utilities.Helpers"
-        Title="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat={0} Management}" Width="1280" Height="800" WindowStartupLocation="CenterScreen"
+        Title="{Binding WindowTitle}" Width="1280" Height="800" WindowStartupLocation="CenterScreen"
         Background="{StaticResource BackgroundBrush}">
     <DockPanel LastChildFill="True">
         <Border DockPanel.Dock="Left" Width="260" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrushBase}" BorderThickness="0,0,1,0">
@@ -18,7 +18,7 @@
                 <StackPanel Orientation="Vertical" Margin="16,16,16,8">
                     <StackPanel Orientation="Horizontal">
                         <Image Source="{Binding CompanyLogoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=logo}" Width="36" Height="36" Margin="0,0,8,0"/>
-                        <TextBlock Text="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat={0} Management}" Style="{StaticResource HeadingTextBlock}"/>
+                        <TextBlock Text="{Binding WindowTitle}" Style="{StaticResource HeadingTextBlock}"/>
                     </StackPanel>
                         <TextBlock Text="{Binding CurrentPageTitle}" Style="{StaticResource CaptionTextBlock}" Margin="0,4,0,0"/>
                 </StackPanel>

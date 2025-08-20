@@ -92,6 +92,21 @@ namespace ToolManagementAppV2.ViewModels
 
         public string? CurrentUserPhotoPath => _userContext.CurrentUser?.UserPhotoPath;
 
+        private string _applicationName = string.Empty;
+        public string ApplicationName
+        {
+            get => _applicationName;
+            private set
+            {
+                if (SetProperty(ref _applicationName, value))
+                    OnPropertyChanged(nameof(WindowTitle));
+            }
+        }
+
+        public string WindowTitle => string.IsNullOrWhiteSpace(ApplicationName)
+            ? $"{LabelProvider.Instance.ItemLabelPlural} Management"
+            : ApplicationName;
+
         private string? _companyLogoPath;
         public string? CompanyLogoPath
         {
@@ -205,6 +220,9 @@ namespace ToolManagementAppV2.ViewModels
             var logoPath = _settingsService.GetSettingAsync("CompanyLogoPath").GetAwaiter().GetResult();
             if (!string.IsNullOrWhiteSpace(logoPath))
                 CompanyLogoPath = logoPath;
+            var appName = _settingsService.GetSettingAsync("ApplicationName").GetAwaiter().GetResult();
+            if (!string.IsNullOrWhiteSpace(appName))
+                ApplicationName = appName;
             _autoLogoutTimer = autoLogoutTimer ?? new DispatcherTimerWrapper();
             _autoLogoutTimer.Tick += OnAutoLogoutTimerTick;
             Settings.PropertyChanged += Settings_PropertyChanged;
@@ -380,6 +398,8 @@ namespace ToolManagementAppV2.ViewModels
                 UpdateAutoLogoutTimer();
             else if (e.PropertyName == nameof(SettingsViewModel.CompanyLogoPath))
                 CompanyLogoPath = Settings.CompanyLogoPath;
+            else if (e.PropertyName == nameof(SettingsViewModel.ApplicationName))
+                ApplicationName = Settings.ApplicationName;
         }
 
         void UpdateAutoLogoutTimer()

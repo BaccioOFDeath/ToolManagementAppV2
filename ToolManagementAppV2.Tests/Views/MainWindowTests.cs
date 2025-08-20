@@ -23,6 +23,7 @@ using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Settings;
 using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Controls;
+using ToolManagementAppV2.Utilities.Helpers;
 
 namespace ToolManagementAppV2.Tests.Views
 {
@@ -107,6 +108,55 @@ namespace ToolManagementAppV2.Tests.Views
                     }
                     finally
                     {
+                        window.Close();
+                        if (File.Exists(dbPath))
+                            File.Delete(dbPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    threadException = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadException != null)
+            {
+                throw threadException;
+            }
+        }
+
+        [Fact]
+        public void Title_Updates_WhenApplicationNameChanges()
+        {
+            Exception? threadException = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var originalSingular = LabelProvider.Instance.ItemLabelSingular;
+                    var originalPlural = LabelProvider.Instance.ItemLabelPlural;
+                    LabelProvider.Instance.UpdateLabels("Tool", "Tools");
+                    var (window, dbPath) = TestHelpers.CreateMainWindow();
+                    try
+                    {
+                        var vm = Assert.IsType<MainViewModel>(window.DataContext);
+
+                        Assert.Equal("Tools Management", window.Title);
+
+                        vm.Settings.ApplicationName = "My App";
+                        Assert.Equal("My App", window.Title);
+
+                        vm.Settings.ApplicationName = string.Empty;
+                        Assert.Equal("Tools Management", window.Title);
+                    }
+                    finally
+                    {
+                        LabelProvider.Instance.UpdateLabels(originalSingular, originalPlural);
                         window.Close();
                         if (File.Exists(dbPath))
                             File.Delete(dbPath);
