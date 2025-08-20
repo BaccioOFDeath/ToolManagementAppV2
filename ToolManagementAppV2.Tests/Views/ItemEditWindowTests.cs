@@ -20,19 +20,19 @@ namespace ToolManagementAppV2.Tests.Views
             {
                 try
                 {
-                    var tool = new ItemModel();
+                    var item = new ItemModel();
                     ItemEditWindow? window = null;
                     bool closed = false;
 
                     Action onSave = () => window?.Close();
                     Action onCancel = () => window?.Close();
 
-                    window = new ItemEditWindow(tool, onSave, onCancel, new FileDialogService());
+                    window = new ItemEditWindow(item, onSave, onCancel, new FileDialogService());
                     window.Closed += (_, __) => closed = true;
 
-                    Assert.IsType<ToolEditViewModel>(window.DataContext);
-                    var vm = (ToolEditViewModel)window.DataContext;
-                    Assert.Equal(tool, vm.ItemModel);
+                    Assert.IsType<ItemEditViewModel>(window.DataContext);
+                    var vm = (ItemEditViewModel)window.DataContext;
+                    Assert.Equal(item, vm.ItemModel);
 
                     vm.SaveCommand.Execute(null);
 
@@ -63,17 +63,17 @@ namespace ToolManagementAppV2.Tests.Views
             {
                 try
                 {
-                    var tool = new ItemModel();
+                    var item = new ItemModel();
                     ItemEditWindow? window = null;
                     bool closed = false;
 
                     Action onSave = () => window?.Close();
                     Action onCancel = () => window?.Close();
 
-                    window = new ItemEditWindow(tool, onSave, onCancel, new FileDialogService());
+                    window = new ItemEditWindow(item, onSave, onCancel, new FileDialogService());
                     window.Closed += (_, __) => closed = true;
 
-                    var vm = (ToolEditViewModel)window.DataContext;
+                    var vm = (ItemEditViewModel)window.DataContext;
                     vm.CancelCommand.Execute(null);
 
                     Assert.True(closed);
@@ -99,12 +99,12 @@ namespace ToolManagementAppV2.Tests.Views
         {
             var thread = new Thread(() =>
             {
-                var tool = new ItemModel();
+                var item = new ItemModel();
                 ItemEditWindow? window = null;
                 Action onSave = () => window?.Close();
                 Action onCancel = () => window?.Close();
 
-                window = new ItemEditWindow(tool, onSave, onCancel, new FileDialogService());
+                window = new ItemEditWindow(item, onSave, onCancel, new FileDialogService());
                 window.ShowDialog();
             });
 

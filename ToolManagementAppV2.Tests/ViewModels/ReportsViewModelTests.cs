@@ -37,7 +37,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var user = new User { UserName = "user", PasswordHash = "Strong1!" };
                 userService.AddUser(user);

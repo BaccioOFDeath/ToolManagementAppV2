@@ -274,13 +274,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
     class StubRentalService : IRentalService
     {
-        public void RentTool(int toolID, int customerID, System.DateTime rentalDate, System.DateTime dueDate) => throw new System.NotImplementedException();
-        public void ReturnTool(int rentalID, System.DateTime returnDate) => throw new System.NotImplementedException();
+        public void RentItem(int toolID, int customerID, System.DateTime rentalDate, System.DateTime dueDate) => throw new System.NotImplementedException();
+        public void ReturnItem(int rentalID, System.DateTime returnDate) => throw new System.NotImplementedException();
         public void ExtendRental(int rentalID, System.DateTime newDueDate) => throw new System.NotImplementedException();
         public List<Rental> GetActiveRentals() => new();
         public List<Rental> GetOverdueRentals() => new();
         public List<Rental> GetAllRentals() => new();
-        public List<Rental> GetRentalHistoryForTool(int toolID) => new();
+        public List<Rental> GetRentalHistoryForItem(int toolID) => new();
         public List<Rental> GetRentalHistoryForCustomer(int customerID) => new();
     }
 

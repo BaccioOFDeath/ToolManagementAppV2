@@ -89,7 +89,7 @@ namespace ToolManagementAppV2.Services.Rentals
             ItemLocation = r["ItemLocation"].ToString()
         };
 
-        public async Task RentToolAsync(int toolID, int customerID, DateTime rentalDate, DateTime dueDate)
+        public async Task RentItemAsync(int itemID, int customerID, DateTime rentalDate, DateTime dueDate)
         {
             _auth.EnsureAdmin();
             await ExecuteWithTransactionAsync(async (conn, tx) =>
@@ -97,7 +97,7 @@ namespace ToolManagementAppV2.Services.Rentals
                 var availCmd = new SQLiteCommand(
                     "SELECT AvailableQuantity FROM Items WHERE ItemID=@ItemID",
                     conn, tx);
-                availCmd.Parameters.AddWithValue("@ItemID", toolID);
+                availCmd.Parameters.AddWithValue("@ItemID", itemID);
                 int avail = Convert.ToInt32(await availCmd.ExecuteScalarAsync() ?? 0);
                 if (avail < 1)
                     throw new InvalidOperationException("Insufficient quantity.");
@@ -107,23 +107,23 @@ namespace ToolManagementAppV2.Services.Rentals
                     "VALUES (@ItemID, @CustomerID, @RentalDate, @DueDate, 'Rented')",
                     new[]
                     {
-                        new SQLiteParameter("@ItemID", toolID),
+                        new SQLiteParameter("@ItemID", itemID),
                         new SQLiteParameter("@CustomerID", customerID),
                         new SQLiteParameter("@RentalDate", rentalDate),
                         new SQLiteParameter("@DueDate", dueDate)
                     });
 
                 if (_itemService != null)
-                    await _itemService.UpdateItemQuantitiesAsync(toolID, 1, true, conn, tx);
+                    await _itemService.UpdateItemQuantitiesAsync(itemID, 1, true, conn, tx);
             });
             if (_activityLog != null)
             {
                 var user = _context?.CurrentUser;
-                await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Rented tool {toolID} to customer {customerID}").ConfigureAwait(false);
+                await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Rented item {itemID} to customer {customerID}").ConfigureAwait(false);
             }
         }
 
-        public async Task ReturnToolAsync(int rentalID, DateTime returnDate)
+        public async Task ReturnItemAsync(int rentalID, DateTime returnDate)
         {
             _auth.EnsureAdmin();
             await ExecuteWithTransactionAsync(async (conn, tx) =>
@@ -133,7 +133,7 @@ namespace ToolManagementAppV2.Services.Rentals
                 selCmd.Parameters.AddWithValue("@RentalID", rentalID);
                 var result = await selCmd.ExecuteScalarAsync();
                 if (result == null) throw new InvalidOperationException("Rental not found or already returned.");
-                var toolID = Convert.ToInt32(result);
+                var itemID = Convert.ToInt32(result);
 
                 await SqliteHelper.ExecuteNonQueryAsync(conn, tx,
                     "UPDATE Rentals SET ReturnDate=@ReturnDate,Status='Returned' WHERE RentalID=@RentalID",
@@ -144,7 +144,7 @@ namespace ToolManagementAppV2.Services.Rentals
                     });
 
                 if (_itemService != null)
-                    await _itemService.UpdateItemQuantitiesAsync(toolID, 1, false, conn, tx);
+                    await _itemService.UpdateItemQuantitiesAsync(itemID, 1, false, conn, tx);
             });
             if (_activityLog != null)
             {
@@ -228,10 +228,10 @@ namespace ToolManagementAppV2.Services.Rentals
             return await SqliteHelper.ExecuteReaderAsync(conn, BaseSelect, null, MapRental);
         }
 
-        public async Task<List<Rental>> GetRentalHistoryForToolAsync(int toolID)
+        public async Task<List<Rental>> GetRentalHistoryForItemAsync(int itemID)
         {
             const string sql = BaseSelect + @" WHERE r.ItemID = @ItemID ORDER BY r.RentalDate DESC";
-            var p = new[] { new SQLiteParameter("@ItemID", toolID) };
+            var p = new[] { new SQLiteParameter("@ItemID", itemID) };
             using var conn = _dbService.CreateConnection();
             return await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapRental);
         }

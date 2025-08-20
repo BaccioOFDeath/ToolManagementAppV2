@@ -30,7 +30,7 @@ namespace ToolManagementAppV2.Tests.Services
             public string Role => CurrentUser?.Role ?? string.Empty;
         }
         [Fact]
-        public void GetRentalHistoryForTool_ReturnsHistory()
+        public void GetRentalHistoryForItem_ReturnsHistory()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -48,10 +48,10 @@ namespace ToolManagementAppV2.Tests.Services
                 customerService.AddCustomer(cust);
                 var addedCust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(addedTool.ItemID, addedCust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
-                rentalService.RentTool(addedTool.ItemID, addedCust.CustomerID, DateTime.Today.AddDays(2), DateTime.Today.AddDays(3));
+                rentalService.RentItem(addedTool.ItemID, addedCust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(addedTool.ItemID, addedCust.CustomerID, DateTime.Today.AddDays(2), DateTime.Today.AddDays(3));
 
-                var history = rentalService.GetRentalHistoryForTool(addedTool.ItemID);
+                var history = rentalService.GetRentalHistoryForItem(addedTool.ItemID);
                 Assert.Equal(2, history.Count);
                 Assert.True(history[0].RentalDate > history[1].RentalDate);
             }
@@ -63,7 +63,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void RentTool_NoAvailability_Throws()
+        public void RentItem_NoAvailability_Throws()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -81,7 +81,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var cust = customerService.GetAllCustomers().First();
 
                 Assert.Throws<InvalidOperationException>(() =>
-                    rentalService.RentTool(addedTool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1)));
+                    rentalService.RentItem(addedTool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1)));
                 Assert.Empty(rentalService.GetAllRentals());
             }
             finally
@@ -92,7 +92,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void RentTool_NoAvailability_Throws_WithHelper()
+        public void RentItem_NoAvailability_Throws_WithHelper()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -110,7 +110,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var cust = customerService.GetAllCustomers().First();
 
                 Assert.Throws<InvalidOperationException>(() =>
-                    rentalService.RentTool(addedTool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1)));
+                    rentalService.RentItem(addedTool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1)));
                 Assert.Empty(rentalService.GetAllRentals());
             }
             finally
@@ -121,7 +121,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void ReturnTool_InvalidRentalID_Throws()
+        public void ReturnItem_InvalidRentalID_Throws()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -130,7 +130,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var toolService = new ItemService(db);
                 IRentalService rentalService = new RentalService(db, toolService);
 
-                Assert.Throws<InvalidOperationException>(() => rentalService.ReturnTool(1, DateTime.Today));
+                Assert.Throws<InvalidOperationException>(() => rentalService.ReturnItem(1, DateTime.Today));
             }
             finally
             {
@@ -140,7 +140,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void ReturnTool_InvalidRentalID_Throws_WithHelper()
+        public void ReturnItem_InvalidRentalID_Throws_WithHelper()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -149,7 +149,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var toolService = new ItemService(db);
                 IRentalService rentalService = new RentalService(db, toolService);
 
-                Assert.Throws<InvalidOperationException>(() => rentalService.ReturnTool(1, DateTime.Today));
+                Assert.Throws<InvalidOperationException>(() => rentalService.ReturnItem(1, DateTime.Today));
             }
             finally
             {
@@ -196,10 +196,10 @@ namespace ToolManagementAppV2.Tests.Services
                 customerService.AddCustomer(new Customer { Company = "Acme" });
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(addedTool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(addedTool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
                 var rental = rentalService.GetAllRentals().First();
 
-                rentalService.ReturnTool(rental.RentalID, DateTime.Today);
+                rentalService.ReturnItem(rental.RentalID, DateTime.Today);
 
                 Assert.Throws<InvalidOperationException>(() =>
                     rentalService.ExtendRental(rental.RentalID, DateTime.Today.AddDays(2)));
@@ -229,7 +229,7 @@ namespace ToolManagementAppV2.Tests.Services
                 customerService.AddCustomer(new Customer { Company = "Acme" });
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(addedTool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(addedTool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
                 var rental = rentalService.GetAllRentals().First();
 
                 rentalService.DeleteRental(rental.RentalID);
@@ -281,7 +281,7 @@ namespace ToolManagementAppV2.Tests.Services
                 customerService.AddCustomer(customer);
                 var addedCust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(addedTool.ItemID, addedCust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(addedTool.ItemID, addedCust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var rentals = rentalService.GetActiveRentals();
                 var r = rentals.First();
@@ -301,7 +301,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void RentAndReturnTool_UpdatesQuantities()
+        public void RentAndReturnItem_UpdatesQuantities()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -317,14 +317,14 @@ namespace ToolManagementAppV2.Tests.Services
                 customerService.AddCustomer(new Customer { Company = "Acme" });
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var rented = toolService.GetItemByID(tool.ItemID);
                 Assert.Equal(0, rented.QuantityOnHand);
                 Assert.Equal(1, rented.RentedQuantity);
 
                 var rental = rentalService.GetAllRentals().First();
-                rentalService.ReturnTool(rental.RentalID, DateTime.Today);
+                rentalService.ReturnItem(rental.RentalID, DateTime.Today);
 
                 var returned = toolService.GetItemByID(tool.ItemID);
                 Assert.Equal(1, returned.QuantityOnHand);
@@ -354,7 +354,7 @@ namespace ToolManagementAppV2.Tests.Services
                 customerService.AddCustomer(new Customer { Company = "Acme" });
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today.AddDays(-2), DateTime.Today.AddDays(-1));
+                rentalService.RentItem(tool.ItemID, cust.CustomerID, DateTime.Today.AddDays(-2), DateTime.Today.AddDays(-1));
                 var rental = rentalService.GetAllRentals().First();
                 var originalDue = rental.DueDate;
 
@@ -379,7 +379,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public async Task RentToolAsync_LogsActivity()
+        public async Task RentItemAsync_LogsActivity()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -388,19 +388,19 @@ namespace ToolManagementAppV2.Tests.Services
                 var ctx = new StubUserContext { CurrentUser = new User { UserID = 1, UserName = "tester", IsAdmin = true } };
                 var auth = new AllowAllAuthorizationService();
                 var logService = new ActivityLogService(db);
-                var toolService = new ItemService(db, auth, null, logService, ctx);
+                var itemService = new ItemService(db, auth, null, logService, ctx);
                 var customerService = new CustomerService(db, auth);
                 var rentalService = new RentalService(db, auth, toolService, null, logService, ctx);
 
-                await toolService.AddItemAsync(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1, RentedQuantity = 0 });
+                await itemService.AddItemAsync(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1, RentedQuantity = 0 });
                 await customerService.AddCustomerAsync(new Customer { Company = "Acme" });
-                var tool = (await toolService.GetAllItemsAsync()).First();
+                var item = (await itemService.GetAllItemsAsync()).First();
                 var cust = (await customerService.GetAllCustomersAsync()).First();
 
-                await rentalService.RentToolAsync(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                await rentalService.RentItemAsync(item.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var logs = await logService.GetRecentLogsAsync();
-                Assert.Contains(logs.Value, l => l.Action.Contains("Rented tool"));
+                Assert.Contains(logs.Value, l => l.Action.Contains("Rented item"));
             }
             finally
             {

@@ -174,7 +174,7 @@ namespace ToolManagementAppV2.ViewModels
                 return;
             try
             {
-                await _rentalService.ReturnToolAsync(SelectedRental.RentalID, DateTime.Today);
+                await _rentalService.ReturnItemAsync(SelectedRental.RentalID, DateTime.Today);
                 await LoadRentalsAsync();
             }
             catch (UnauthorizedAccessException)
@@ -217,11 +217,11 @@ namespace ToolManagementAppV2.ViewModels
             List<RentalModel> history;
             try
             {
-                history = await _rentalService.GetRentalHistoryForToolAsync(SelectedRental.ItemID);
+                history = await _rentalService.GetRentalHistoryForItemAsync(SelectedRental.ItemID);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to open rental history for tool {ItemID}", SelectedRental.ItemID);
+                _logger.LogError(ex, "Failed to open rental history for item {ItemID}", SelectedRental.ItemID);
                 await _dialogService.ShowInfoAsync($"Failed to load rental history: {ex.Message}", "Error");
                 return;
             }

@@ -32,7 +32,7 @@ namespace ToolManagementAppV2.Tests.Views
                     var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
                     toolService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
                     toolService.AddItem(new ItemModel { ItemNumber = "T2", NameDescription = "Hand Saw" });
-                    vm.LoadToolsAsync().Wait();
+                    vm.LoadItemsAsync().Wait();
                     var page = new ItemSearchPage { DataContext = vm };
                     var window = new System.Windows.Window { Content = page, Width = 800, Height = 600 };
                     window.ShowDialog();

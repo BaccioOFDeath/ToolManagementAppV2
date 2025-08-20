@@ -237,7 +237,7 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenSearchItemsCommand = new AsyncRelayCommand(async () =>
             {
-                await ItemManagement.LoadToolsAsync();
+                await ItemManagement.LoadItemsAsync();
                 var plural = LabelProvider.Instance.ItemLabelPlural;
                 var page = new ItemSearchPage { DataContext = ItemManagement, Title = $"Search {plural}" };
                 // If your ItemManagement VM supports a query setter, apply GlobalSearchText there.
@@ -246,7 +246,7 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenManageItemsCommand = new AsyncRelayCommand(async () =>
             {
-                await ItemManagement.LoadToolsAsync();
+                await ItemManagement.LoadItemsAsync();
                 var plural = LabelProvider.Instance.ItemLabelPlural;
                 var page = new ManageItemsPage { DataContext = ItemManagement, Title = $"Manage {plural}" };
                 CurrentPage = page;
