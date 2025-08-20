@@ -58,6 +58,36 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
+        public async Task InitializeAsync_UsesDefaultTitle_WhenSettingMissing()
+        {
+            if (System.Windows.Application.Current == null)
+                new System.Windows.Application();
+
+            var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
+            try
+            {
+                using var dbService = new DatabaseService(dbPath);
+                var userContext = new ApplicationUserContext();
+                var auth = new AuthorizationService(userContext);
+                var userService = new UserService(dbService, userContext, auth);
+                await userService.AddUserAsync(new User { UserName = "admin", PasswordHash = "Strong1!", IsAdmin = true });
+                var settingsService = new SettingsService(dbService);
+
+                var vm = new LoginViewModel(userService, settingsService, new StubDialogService(), userContext)
+                {
+                    PromptForPasswordAsync = (u, ct) => Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("Strong1!", false))
+                };
+                await vm.InitializeAsync();
+
+                Assert.Equal("Tool Inventory Management – Login", vm.WindowTitle);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public async Task LoadUsersAsync_CreatesAdminUser_WhenNoUsers()
         {
             if (System.Windows.Application.Current == null)

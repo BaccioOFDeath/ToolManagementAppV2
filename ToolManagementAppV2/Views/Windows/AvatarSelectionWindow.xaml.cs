@@ -49,8 +49,9 @@ namespace ToolManagementAppV2.Views.Windows
                 }
 
                 var appName = await _settingsService.GetSettingAsync("ApplicationName");
-                if (!string.IsNullOrWhiteSpace(appName))
-                    Title = $"{appName} – Select Avatar";
+                Title = !string.IsNullOrWhiteSpace(appName)
+                    ? $"{appName} – Select Avatar"
+                    : "Tool Inventory Management – Select Avatar";
             }
             catch (Exception ex)
             {
