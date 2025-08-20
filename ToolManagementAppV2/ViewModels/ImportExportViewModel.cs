@@ -25,9 +25,9 @@ namespace ToolManagementAppV2.ViewModels
         private readonly IDialogService _dialogService;
         private readonly ILogger<ImportExportViewModel> _logger;
 
-        public IAsyncRelayCommand ImportToolsCommand { get; }
-        public IRelayCommand CancelImportToolsCommand { get; }
-        public IAsyncRelayCommand ExportToolsCommand { get; }
+        public IAsyncRelayCommand ImportItemsCommand { get; }
+        public IRelayCommand CancelImportItemsCommand { get; }
+        public IAsyncRelayCommand ExportItemsCommand { get; }
         public IAsyncRelayCommand ImportCustomersCommand { get; }
         public IAsyncRelayCommand ExportCustomersCommand { get; }
 
@@ -55,9 +55,9 @@ namespace ToolManagementAppV2.ViewModels
             _databaseService = databaseService;
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<ImportExportViewModel>.Instance;
-            ImportToolsCommand = new AsyncRelayCommand(ct => ImportToolsAsync(ct));
-            CancelImportToolsCommand = new RelayCommand(() => ImportToolsCommand.Cancel());
-            ExportToolsCommand = new AsyncRelayCommand(ct => ExportToolsAsync(ct));
+            ImportItemsCommand = new AsyncRelayCommand(ct => ImportToolsAsync(ct));
+            CancelImportItemsCommand = new RelayCommand(() => ImportItemsCommand.Cancel());
+            ExportItemsCommand = new AsyncRelayCommand(ct => ExportToolsAsync(ct));
             ImportCustomersCommand = new AsyncRelayCommand(ct => ImportCustomersAsync(ct));
             ExportCustomersCommand = new AsyncRelayCommand(ct => ExportCustomersAsync(ct));
             BackupDatabaseCommand = new AsyncRelayCommand(ct => BackupDatabaseAsync(ct));
