@@ -5,25 +5,25 @@ using Xunit;
 
 namespace ToolManagementAppV2.Tests.ViewModels
 {
-    public class ToolEditViewModelTests
+    public class ItemEditViewModelTests
     {
         [Fact]
         public void BrowseImageCommand_SetsImagePath()
         {
-            var tool = new ItemModel();
+            var item = new ItemModel();
             var fileDialog = new StubFileDialogService { OpenPath = "img.png" };
-            var vm = new ToolEditViewModel(tool, () => { }, () => { }, fileDialog);
+            var vm = new ItemEditViewModel(item, () => { }, () => { }, fileDialog);
             vm.BrowseImageCommand.Execute(null);
-            Assert.Equal("img.png", tool.ImagePath);
+            Assert.Equal("img.png", item.ImagePath);
         }
 
         [Fact]
         public void RemoveImageCommand_ClearsImagePath()
         {
-            var tool = new ItemModel { ImagePath = "img.png" };
-            var vm = new ToolEditViewModel(tool, () => { }, () => { }, new StubFileDialogService());
+            var item = new ItemModel { ImagePath = "img.png" };
+            var vm = new ItemEditViewModel(item, () => { }, () => { }, new StubFileDialogService());
             vm.RemoveImageCommand.Execute(null);
-            Assert.Equal(string.Empty, tool.ImagePath);
+            Assert.Equal(string.Empty, item.ImagePath);
         }
 
         private class StubFileDialogService : IFileDialogService

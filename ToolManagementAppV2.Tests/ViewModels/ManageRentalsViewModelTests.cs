@@ -35,10 +35,10 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(tool1.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
-                rentalService.RentTool(tool2.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(tool1.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(tool2.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
                 var all = rentalService.GetAllRentals();
-                rentalService.ReturnTool(all[1].RentalID, DateTime.Today);
+                rentalService.ReturnItem(all[1].RentalID, DateTime.Today);
 
                 var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 await vm.LoadRentalsAsync();
@@ -80,8 +80,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(tool1.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
-                rentalService.RentTool(tool2.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(tool1.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(tool2.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 await vm.LoadRentalsAsync();
@@ -116,8 +116,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
-                rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var dialog = new StubDialogService();
                 var vm = new ManageRentalsViewModel(rentalService, dialog);
@@ -173,7 +173,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 await vm.LoadRentalsAsync();
@@ -209,7 +209,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 await vm.LoadRentalsAsync();
@@ -243,7 +243,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 await vm.LoadRentalsAsync();
@@ -439,7 +439,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
         public CustomerModel? ShowAddCustomerDialog() => null;
         public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
-        public void ShowRentalHistory(ItemModel tool, IEnumerable<RentalModel> history) { }
+        public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history) { }
         public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties) => null;
         public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
         public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) => throw new InvalidOperationException("boom");
@@ -451,13 +451,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
         readonly List<Rental> _rentals;
         public ExceptionRentalService(List<Rental> rentals) => _rentals = rentals;
         public Task<List<Rental>> GetAllRentalsAsync() => Task.FromResult(_rentals);
-        public Task ReturnToolAsync(int rentalID, DateTime returnDate) => throw new InvalidOperationException("boom");
+        public Task ReturnItemAsync(int rentalID, DateTime returnDate) => throw new InvalidOperationException("boom");
         public Task ExtendRentalAsync(int rentalID, DateTime newDueDate) => throw new InvalidOperationException("boom");
         public Task DeleteRentalAsync(int rentalID) => throw new InvalidOperationException("boom");
-        public Task<List<Rental>> GetRentalHistoryForToolAsync(int toolID) => throw new InvalidOperationException("boom");
-        public void RentTool(int toolID, int customerID, DateTime rentalDate, DateTime dueDate) => throw new NotImplementedException();
-        public Task RentToolAsync(int toolID, int customerID, DateTime rentalDate, DateTime dueDate) => throw new NotImplementedException();
-        public void ReturnTool(int rentalID, DateTime returnDate) => throw new NotImplementedException();
+        public Task<List<Rental>> GetRentalHistoryForItemAsync(int itemID) => throw new InvalidOperationException("boom");
+        public void RentItem(int itemID, int customerID, DateTime rentalDate, DateTime dueDate) => throw new NotImplementedException();
+        public Task RentItemAsync(int itemID, int customerID, DateTime rentalDate, DateTime dueDate) => throw new NotImplementedException();
+        public void ReturnItem(int rentalID, DateTime returnDate) => throw new NotImplementedException();
         public void ExtendRental(int rentalID, DateTime newDueDate) => throw new NotImplementedException();
         public void DeleteRental(int rentalID) => throw new NotImplementedException();
         public List<Rental> GetActiveRentals() => throw new NotImplementedException();
@@ -465,7 +465,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public List<Rental> GetOverdueRentals() => throw new NotImplementedException();
         public Task<List<Rental>> GetOverdueRentalsAsync() => throw new NotImplementedException();
         public List<Rental> GetAllRentals() => throw new NotImplementedException();
-        public List<Rental> GetRentalHistoryForTool(int toolID) => throw new NotImplementedException();
+        public List<Rental> GetRentalHistoryForItem(int itemID) => throw new NotImplementedException();
         public List<Rental> GetRentalHistoryForCustomer(int customerID) => throw new NotImplementedException();
         public Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID) => throw new NotImplementedException();
     }

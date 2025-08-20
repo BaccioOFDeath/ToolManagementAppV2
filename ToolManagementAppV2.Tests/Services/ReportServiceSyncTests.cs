@@ -80,18 +80,18 @@ public class ReportServiceAsyncTests
         public Task<List<Rental>> GetAllRentalsAsync() => Task.Delay(_delay).ContinueWith(_ => _all);
         public List<Rental> GetActiveRentals() => _active;
         public Task<List<Rental>> GetActiveRentalsAsync() => Task.Delay(_delay).ContinueWith(_ => _active);
-        public void RentTool(int toolID, int customerID, DateTime rentalDate, DateTime dueDate) => throw new NotImplementedException();
-        public Task RentToolAsync(int toolID, int customerID, DateTime rentalDate, DateTime dueDate) => throw new NotImplementedException();
-        public void ReturnTool(int rentalID, DateTime returnDate) => throw new NotImplementedException();
-        public Task ReturnToolAsync(int rentalID, DateTime returnDate) => throw new NotImplementedException();
+        public void RentItem(int itemID, int customerID, DateTime rentalDate, DateTime dueDate) => throw new NotImplementedException();
+        public Task RentItemAsync(int itemID, int customerID, DateTime rentalDate, DateTime dueDate) => throw new NotImplementedException();
+        public void ReturnItem(int rentalID, DateTime returnDate) => throw new NotImplementedException();
+        public Task ReturnItemAsync(int rentalID, DateTime returnDate) => throw new NotImplementedException();
         public void ExtendRental(int rentalID, DateTime newDueDate) => throw new NotImplementedException();
         public Task ExtendRentalAsync(int rentalID, DateTime newDueDate) => throw new NotImplementedException();
         public void DeleteRental(int rentalID) => throw new NotImplementedException();
         public Task DeleteRentalAsync(int rentalID) => throw new NotImplementedException();
         public List<Rental> GetOverdueRentals() => throw new NotImplementedException();
         public Task<List<Rental>> GetOverdueRentalsAsync() => throw new NotImplementedException();
-        public List<Rental> GetRentalHistoryForTool(int toolID) => throw new NotImplementedException();
-        public Task<List<Rental>> GetRentalHistoryForToolAsync(int toolID) => throw new NotImplementedException();
+        public List<Rental> GetRentalHistoryForItem(int itemID) => throw new NotImplementedException();
+        public Task<List<Rental>> GetRentalHistoryForItemAsync(int itemID) => throw new NotImplementedException();
         public List<Rental> GetRentalHistoryForCustomer(int customerID) => throw new NotImplementedException();
         public Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID) => throw new NotImplementedException();
     }

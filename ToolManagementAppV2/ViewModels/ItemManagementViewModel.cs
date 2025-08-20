@@ -25,20 +25,20 @@ namespace ToolManagementAppV2.ViewModels
         private readonly IDialogService _dialogService;
         private readonly ILogger<ItemManagementViewModel> _logger;
 
-        public ObservableCollection<ItemModel> Tools { get; } = new();
+        public ObservableCollection<ItemModel> Items { get; } = new();
         public ObservableCollection<ItemModel> SearchResults { get; } = new();
 
         /// <summary>
-        /// List of available tool categories derived from distinct brands
-        /// in the current tool set; rebuilt whenever tools are loaded or filtered.
+        /// List of available item categories derived from distinct brands
+        /// in the current item set; rebuilt whenever items are loaded or filtered.
         /// </summary>
         public ObservableCollection<string> Categories { get; } = new();
 
-        private ItemModel _newTool = new();
-        public ItemModel NewTool
+        private ItemModel _newItem = new();
+        public ItemModel NewItem
         {
-            get => _newTool;
-            set => SetProperty(ref _newTool, value);
+            get => _newItem;
+            set => SetProperty(ref _newItem, value);
         }
 
         private string _searchTerm = string.Empty;
@@ -96,7 +96,7 @@ namespace ToolManagementAppV2.ViewModels
         readonly IDispatcherTimer _searchDebounceTimer;
         CancellationTokenSource _searchCts = new();
 
-        bool _suppressToolsChanged;
+        bool _suppressItemsChanged;
         bool _disposed;
 
         // Writable for TwoWay binding from XAML. Mirrors SearchTerm and triggers search.
@@ -128,7 +128,7 @@ namespace ToolManagementAppV2.ViewModels
             _rentalService = rentalService;
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<ItemManagementViewModel>.Instance;
-            SearchCommand = new AsyncRelayCommand<CancellationToken>(FilterToolsAsync);
+            SearchCommand = new AsyncRelayCommand<CancellationToken>(FilterItemsAsync);
             _searchDebounceTimer = searchDebounceTimer ?? new DispatcherTimerWrapper { Interval = TimeSpan.FromMilliseconds(300) };
             _searchDebounceTimer.Tick += OnSearchDebounceTimerTick;
             NewItemCommand = new AsyncRelayCommand(ct => AddItemAsync(ct));
@@ -140,8 +140,8 @@ namespace ToolManagementAppV2.ViewModels
             // Ensure no duplicate event subscriptions when the view model is
             // constructed multiple times or the collection persists across
             // instances.
-            Tools.CollectionChanged -= Tools_CollectionChanged;
-            Tools.CollectionChanged += Tools_CollectionChanged;
+            Items.CollectionChanged -= Items_CollectionChanged;
+            Items.CollectionChanged += Items_CollectionChanged;
         }
 
         void OnSearchDebounceTimerTick(object? s, EventArgs e)
@@ -152,28 +152,28 @@ namespace ToolManagementAppV2.ViewModels
             SearchCommand.Execute(_searchCts.Token);
         }
 
-        public async Task LoadToolsAsync()
+        public async Task LoadItemsAsync()
         {
-            _suppressToolsChanged = true;
+            _suppressItemsChanged = true;
             try
             {
                 var all = await _itemService.GetAllItemsAsync();
-                Tools.ReplaceRange(all);
+                Items.ReplaceRange(all);
                 SearchResults.ReplaceRange(all);
-                LoadCategories(Tools);
+                LoadCategories(Items);
             }
             finally
             {
-                _suppressToolsChanged = false;
+                _suppressItemsChanged = false;
             }
         }
 
         /// <summary>
-        /// Applies text and category filters to the tool list.
+        /// Applies text and category filters to the item list.
         /// Invoked by <see cref="SearchCommand"/> whenever the search text or
         /// <see cref="SelectedCategory"/> changes and recomputes <see cref="Categories"/>.
         /// </summary>
-        async Task FilterToolsAsync(CancellationToken cancellationToken)
+        async Task FilterItemsAsync(CancellationToken cancellationToken)
         {
             var term = string.IsNullOrWhiteSpace(SearchTerm) ? string.Empty : SearchTerm.Trim();
             IEnumerable<ItemModel> source;
@@ -184,12 +184,12 @@ namespace ToolManagementAppV2.ViewModels
             }
             else
             {
-                if (Tools.Count == 0)
+                if (Items.Count == 0)
                 {
                     var all = await _itemService.GetAllItemsAsync();
-                    Tools.ReplaceRange(all);
+                    Items.ReplaceRange(all);
                 }
-                source = Tools;
+                source = Items;
             }
 
             if (!string.IsNullOrEmpty(SelectedCategory) && SelectedCategory != "All")
@@ -205,12 +205,12 @@ namespace ToolManagementAppV2.ViewModels
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(NewTool.ItemNumber))
-                    NewTool.ItemNumber = await _itemService.GenerateNextItemNumberAsync(cancellationToken);
-                await _itemService.AddItemAsync(NewTool, cancellationToken);
-                await LoadToolsAsync();
-                await FilterToolsAsync(cancellationToken);
-                NewTool = new ItemModel();
+                if (string.IsNullOrWhiteSpace(NewItem.ItemNumber))
+                    NewItem.ItemNumber = await _itemService.GenerateNextItemNumberAsync(cancellationToken);
+                await _itemService.AddItemAsync(NewItem, cancellationToken);
+                await LoadItemsAsync();
+                await FilterItemsAsync(cancellationToken);
+                NewItem = new ItemModel();
             }
             catch (OperationCanceledException)
             {
@@ -263,9 +263,9 @@ namespace ToolManagementAppV2.ViewModels
             try
             {
                 await _itemService.UpdateItemAsync(updated, cancellationToken);
-                await LoadToolsAsync();
-                await FilterToolsAsync(cancellationToken);
-                SelectedItem = Tools.FirstOrDefault(t => t.ItemID == updated.ItemID);
+                await LoadItemsAsync();
+                await FilterItemsAsync(cancellationToken);
+                SelectedItem = Items.FirstOrDefault(t => t.ItemID == updated.ItemID);
             }
             catch (OperationCanceledException)
             {
@@ -288,7 +288,7 @@ namespace ToolManagementAppV2.ViewModels
             if (SelectedItem == null) return;
             try
             {
-                var history = await _rentalService.GetRentalHistoryForToolAsync(SelectedItem.ItemID);
+                var history = await _rentalService.GetRentalHistoryForItemAsync(SelectedItem.ItemID);
                 _dialogService.ShowRentalHistory(SelectedItem, history);
             }
             catch (Exception ex)
@@ -309,8 +309,8 @@ namespace ToolManagementAppV2.ViewModels
             try
             {
                 await _itemService.DeleteItemAsync(SelectedItem.ItemID, cancellationToken);
-                await LoadToolsAsync();
-                await FilterToolsAsync(cancellationToken);
+                await LoadItemsAsync();
+                await FilterItemsAsync(cancellationToken);
                 SelectedItem = null;
             }
             catch (OperationCanceledException)
@@ -339,11 +339,11 @@ namespace ToolManagementAppV2.ViewModels
                 if (result != null)
                 {
                     var (customer, dueDate) = result.Value;
-                    await _rentalService.RentToolAsync(SelectedItem.ItemID,
+                    await _rentalService.RentItemAsync(SelectedItem.ItemID,
                         customer.CustomerID,
                         DateTime.Today,
                         dueDate);
-                    await LoadToolsAsync();
+                    await LoadItemsAsync();
                 }
             }
             catch (OperationCanceledException)
@@ -361,9 +361,9 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        void LoadCategories(IEnumerable<ItemModel> tools, bool suppressSearch = false)
+        void LoadCategories(IEnumerable<ItemModel> items, bool suppressSearch = false)
         {
-            var categories = tools.Select(t => t.Brand)
+            var categories = items.Select(t => t.Brand)
                                    .Where(b => !string.IsNullOrWhiteSpace(b))
                                    .Distinct()
                                    .OrderBy(b => b)
@@ -385,12 +385,12 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        void Tools_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        void Items_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
-            if (_suppressToolsChanged)
+            if (_suppressItemsChanged)
                 return;
 
-            LoadCategories(Tools);
+            LoadCategories(Items);
         }
 
         /// <inheritdoc />
@@ -413,7 +413,7 @@ namespace ToolManagementAppV2.ViewModels
             }
             cts?.Dispose();
 
-            Tools.CollectionChanged -= Tools_CollectionChanged;
+            Items.CollectionChanged -= Items_CollectionChanged;
         }
     }
 }

@@ -15,7 +15,7 @@ namespace ToolManagementAppV2.Tests.Services
     public class RentalServiceConcurrentTests
     {
         [Fact]
-        public void RentTool_ConcurrentRequests_MaintainsQuantities()
+        public void RentItem_ConcurrentRequests_MaintainsQuantities()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -37,7 +37,7 @@ namespace ToolManagementAppV2.Tests.Services
                     barrier.SignalAndWait();
                     try
                     {
-                        rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                        rentalService.RentItem(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
                     }
                     catch { }
                 });
@@ -46,7 +46,7 @@ namespace ToolManagementAppV2.Tests.Services
                     barrier.SignalAndWait();
                     try
                     {
-                        rentalService.RentTool(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                        rentalService.RentItem(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
                     }
                     catch { }
                 });

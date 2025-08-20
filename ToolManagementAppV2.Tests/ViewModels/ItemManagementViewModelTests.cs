@@ -24,7 +24,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
     public class ItemManagementViewModelTests
     {
         [Fact]
-        public async Task SearchCommand_FiltersToolsBySearchTerm()
+        public async Task SearchCommand_FiltersItemsBySearchTerm()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -76,7 +76,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task SearchCommand_ReturnsAllTools_WhenNoSearchTerm()
+        public async Task SearchCommand_ReturnsAllItems_WhenNoSearchTerm()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -103,7 +103,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task Categories_Update_WhenToolsCollectionChanges()
+        public async Task Categories_Update_WhenItemsCollectionChanges()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -115,11 +115,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var dialog = new StubDialogService();
                 var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
                 toolService.AddItem(new ItemModel { ItemNumber = "T1", Brand = "BrandA" });
-                await vm.LoadToolsAsync();
+                await vm.LoadItemsAsync();
 
                 Assert.Contains("BrandA", vm.Categories);
 
-                vm.Tools.Add(new ItemModel { ItemNumber = "T2", Brand = "BrandB" });
+                vm.Items.Add(new ItemModel { ItemNumber = "T2", Brand = "BrandB" });
 
                 Assert.Contains("BrandB", vm.Categories);
             }
@@ -131,7 +131,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task LoadToolsAsync_DoesNotDuplicateCollectionChangedHandlers()
+        public async Task LoadItemsAsync_DoesNotDuplicateCollectionChangedHandlers()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -141,11 +141,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
 
                 toolService.AddItem(new ItemModel { ItemNumber = "T1" });
-                await vm.LoadToolsAsync();
-                await vm.LoadToolsAsync();
+                await vm.LoadItemsAsync();
+                await vm.LoadItemsAsync();
 
                 var field = typeof(ObservableCollection<ItemModel>).GetField("CollectionChanged", BindingFlags.Instance | BindingFlags.NonPublic);
-                var handlers = field?.GetValue(vm.Tools) as MulticastDelegate;
+                var handlers = field?.GetValue(vm.Items) as MulticastDelegate;
                 var count = handlers?.GetInvocationList().Length ?? 0;
                 Assert.Equal(1, count);
             }
@@ -157,7 +157,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task LoadToolsAsync_CanBeCalledMultipleTimes()
+        public async Task LoadItemsAsync_CanBeCalledMultipleTimes()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -167,12 +167,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
 
                 toolService.AddItem(new ItemModel { ItemNumber = "T1", Brand = "BrandA" });
-                await vm.LoadToolsAsync();
+                await vm.LoadItemsAsync();
 
                 toolService.AddItem(new ItemModel { ItemNumber = "T2", Brand = "BrandB" });
-                await vm.LoadToolsAsync();
+                await vm.LoadItemsAsync();
 
-                Assert.Equal(2, vm.Tools.Count);
+                Assert.Equal(2, vm.Items.Count);
                 Assert.Contains("BrandA", vm.Categories);
                 Assert.Contains("BrandB", vm.Categories);
             }
@@ -195,11 +195,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
                 var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
-                vm.NewTool.ItemNumber = string.Empty;
+                vm.NewItem.ItemNumber = string.Empty;
                 await vm.NewItemCommand.ExecuteAsync(null);
                 Assert.True(dialog.InfoShown);
                 Assert.Empty(toolService.GetAllItems());
-                Assert.Equal(string.Empty, vm.NewTool.ItemNumber);
+                Assert.Equal(string.Empty, vm.NewItem.ItemNumber);
             }
             finally
             {
@@ -243,13 +243,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
                 var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
-                vm.NewTool.ItemNumber = "TN1";
-                vm.NewTool.NameDescription = "Hammer";
-                vm.NewTool.QuantityOnHand = quantity;
+                vm.NewItem.ItemNumber = "TN1";
+                vm.NewItem.NameDescription = "Hammer";
+                vm.NewItem.QuantityOnHand = quantity;
                 await vm.NewItemCommand.ExecuteAsync(null);
                 Assert.True(dialog.InfoShown);
                 Assert.Empty(toolService.GetAllItems());
-                Assert.Equal(quantity, vm.NewTool.QuantityOnHand);
+                Assert.Equal(quantity, vm.NewItem.QuantityOnHand);
             }
             finally
             {
@@ -259,7 +259,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task NewItemCommand_PersistsNewToolValues()
+        public async Task NewItemCommand_PersistsNewItemValues()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -270,15 +270,15 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
                 var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
-                vm.NewTool.ItemNumber = "TN1";
-                vm.NewTool.NameDescription = "Hammer";
-                vm.NewTool.PartNumber = "PN1";
-                vm.NewTool.Brand = "BrandA";
-                vm.NewTool.Location = "Shelf";
-                vm.NewTool.QuantityOnHand = 5;
-                vm.NewTool.Supplier = "ABC";
-                vm.NewTool.Notes = "Note";
-                vm.NewTool.IsPowerTool = true;
+                vm.NewItem.ItemNumber = "TN1";
+                vm.NewItem.NameDescription = "Hammer";
+                vm.NewItem.PartNumber = "PN1";
+                vm.NewItem.Brand = "BrandA";
+                vm.NewItem.Location = "Shelf";
+                vm.NewItem.QuantityOnHand = 5;
+                vm.NewItem.Supplier = "ABC";
+                vm.NewItem.Notes = "Note";
+                vm.NewItem.IsPowerTool = true;
                 await vm.NewItemCommand.ExecuteAsync(null);
                 var tools = toolService.GetAllItems();
                 Assert.Single(tools);
@@ -314,8 +314,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
                 var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", ImagePath = "img1.png" };
                 toolService.AddItem(item);
-                await vm.LoadToolsAsync();
-                vm.SelectedItem = vm.Tools.First();
+                await vm.LoadItemsAsync();
+                vm.SelectedItem = vm.Items.First();
                 dialog.EditItemHandler = t =>
                 {
                     t.NameDescription = "Updated Hammer";
@@ -324,9 +324,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 await vm.EditItemCommand.ExecuteAsync(null);
                 var updated = toolService.GetAllItems().First();
                 Assert.Equal("Updated Hammer", updated.NameDescription);
-                Assert.Equal("Updated Hammer", vm.Tools.First().NameDescription);
+                Assert.Equal("Updated Hammer", vm.Items.First().NameDescription);
                 Assert.Equal("img1.png", updated.ImagePath);
-                Assert.Equal("img1.png", vm.Tools.First().ImagePath);
+                Assert.Equal("img1.png", vm.Items.First().ImagePath);
             }
             finally
             {
@@ -349,8 +349,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
                 var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
                 toolService.AddItem(item);
-                await vm.LoadToolsAsync();
-                vm.SelectedItem = vm.Tools.First();
+                await vm.LoadItemsAsync();
+                vm.SelectedItem = vm.Items.First();
                 dialog.EditItemHandler = _ => null;
                 await vm.EditItemCommand.ExecuteAsync(null);
                 var unchanged = toolService.GetAllItems().First();
@@ -377,11 +377,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
                 var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
                 toolService.AddItem(item);
-                await vm.LoadToolsAsync();
-                vm.SelectedItem = vm.Tools.First();
+                await vm.LoadItemsAsync();
+                vm.SelectedItem = vm.Items.First();
                 await vm.DeleteItemCommand.ExecuteAsync(null);
                 Assert.Empty(toolService.GetAllItems());
-                Assert.Empty(vm.Tools);
+                Assert.Empty(vm.Items);
             }
             finally
             {
@@ -404,11 +404,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
                 var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
                 toolService.AddItem(item);
-                await vm.LoadToolsAsync();
-                vm.SelectedItem = vm.Tools.First();
+                await vm.LoadItemsAsync();
+                vm.SelectedItem = vm.Items.First();
                 await vm.DeleteItemCommand.ExecuteAsync(null);
                 Assert.Single(toolService.GetAllItems());
-                Assert.Single(vm.Tools);
+                Assert.Single(vm.Items);
             }
             finally
             {
@@ -425,14 +425,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
             var logger = new CapturingLogger<ItemManagementViewModel>();
             var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), dialog, logger);
             var item = new ItemModel { ItemID = 1, ItemNumber = "T1", NameDescription = "Hammer" };
-            vm.Tools.Add(item);
+            vm.Items.Add(item);
             vm.SelectedItem = item;
 
             await vm.DeleteItemCommand.ExecuteAsync(null);
 
             Assert.True(dialog.InfoShown);
             Assert.Equal("Failed to delete item 1", logger.LastError);
-            Assert.Single(vm.Tools);
+            Assert.Single(vm.Items);
             Assert.Equal(item, vm.SelectedItem);
         }
 
@@ -452,8 +452,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 Assert.False(vm.OpenRentalsCommand.CanExecute(null));
 
                 toolService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
-                await vm.LoadToolsAsync();
-                vm.SelectedItem = vm.Tools.First();
+                await vm.LoadItemsAsync();
+                vm.SelectedItem = vm.Items.First();
 
                 Assert.True(vm.OpenRentalsCommand.CanExecute(null));
             }
@@ -478,8 +478,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
                 var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
                 toolService.AddItem(item);
-                await vm.LoadToolsAsync();
-                vm.SelectedItem = vm.Tools.First();
+                await vm.LoadItemsAsync();
+                vm.SelectedItem = vm.Items.First();
                 bool called = false;
                 ItemModel? passed = null;
                 dialog.ViewDetailsHandler = t => { called = true; passed = t; };
@@ -510,8 +510,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 Assert.False(vm.ViewDetailsCommand.CanExecute(null));
 
                 toolService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
-                await vm.LoadToolsAsync();
-                vm.SelectedItem = vm.Tools.First();
+                await vm.LoadItemsAsync();
+                vm.SelectedItem = vm.Items.First();
 
                 Assert.True(vm.ViewDetailsCommand.CanExecute(null));
             }
@@ -523,7 +523,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task FilterToolsAsync_UsesSearchService_WhenTermProvided()
+        public async Task FilterItemsAsync_UsesSearchService_WhenTermProvided()
         {
             var tools = new List<ItemModel>
             {
@@ -539,7 +539,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task FilterToolsAsync_ReusesCache_WhenNoSearchTerm()
+        public async Task FilterItemsAsync_ReusesCache_WhenNoSearchTerm()
         {
             var tools = new List<ItemModel>
             {

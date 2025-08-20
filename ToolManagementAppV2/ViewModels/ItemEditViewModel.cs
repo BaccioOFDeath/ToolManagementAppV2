@@ -1,4 +1,4 @@
-// ViewModels/ToolEditViewModel.cs
+// ViewModels/ItemEditViewModel.cs
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -6,10 +6,10 @@ using ToolManagementAppV2.Interfaces;
 
 namespace ToolManagementAppV2.ViewModels
 {
-    public class ToolEditViewModel : ObservableObject
+    public class ItemEditViewModel : ObservableObject
     {
         /// <summary>
-        /// Service used to display file dialogs for selecting tool images.
+        /// Service used to display file dialogs for selecting item images.
         /// </summary>
         private readonly IFileDialogService _fileDialog;
 
@@ -29,15 +29,15 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand RemoveImageCommand { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ToolEditViewModel"/> class.
+        /// Initializes a new instance of the <see cref="ItemEditViewModel"/> class.
         /// </summary>
-        /// <param name="tool">The tool being edited.</param>
-        /// <param name="onSave">Action invoked to persist the tool changes.</param>
+        /// <param name="item">The item being edited.</param>
+        /// <param name="onSave">Action invoked to persist the item changes.</param>
         /// <param name="onCancel">Action invoked when editing is canceled.</param>
         /// <param name="fileDialog">Service used for browsing image files.</param>
-        public ToolEditViewModel(ItemModel tool, Action onSave, Action onCancel, IFileDialogService fileDialog)
+        public ItemEditViewModel(ItemModel item, Action onSave, Action onCancel, IFileDialogService fileDialog)
         {
-            ItemModel = tool;
+            ItemModel = item;
             _fileDialog = fileDialog;
 
             SaveCommand = new RelayCommand(onSave);

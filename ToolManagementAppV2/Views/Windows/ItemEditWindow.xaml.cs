@@ -12,11 +12,11 @@ namespace ToolManagementAppV2.Views.Windows
     {
         private readonly IFileDialogService _fileDialogService;
 
-        public ItemEditWindow(ItemModel tool, Action onSave, Action onCancel, IFileDialogService fileDialogService)
+        public ItemEditWindow(ItemModel item, Action onSave, Action onCancel, IFileDialogService fileDialogService)
         {
             InitializeComponent();
             _fileDialogService = fileDialogService;
-            DataContext = new ToolEditViewModel(tool, onSave, onCancel, _fileDialogService);
+            DataContext = new ItemEditViewModel(item, onSave, onCancel, _fileDialogService);
             this.DisposeDataContextOnUnload();
         }
     }

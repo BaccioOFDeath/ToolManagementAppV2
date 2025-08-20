@@ -46,10 +46,10 @@ public static class AsyncServiceExtensions
         => svc.ExportCustomersToCsvAsync(path, token).GetAwaiter().GetResult();
 
     // RentalService wrappers
-    public static void RentTool(this IRentalService svc, int toolID, int customerID, DateTime rentalDate, DateTime dueDate)
-        => svc.RentToolAsync(toolID, customerID, rentalDate, dueDate).GetAwaiter().GetResult();
-    public static void ReturnTool(this IRentalService svc, int rentalID, DateTime returnDate)
-        => svc.ReturnToolAsync(rentalID, returnDate).GetAwaiter().GetResult();
+    public static void RentItem(this IRentalService svc, int itemID, int customerID, DateTime rentalDate, DateTime dueDate)
+        => svc.RentItemAsync(itemID, customerID, rentalDate, dueDate).GetAwaiter().GetResult();
+    public static void ReturnItem(this IRentalService svc, int rentalID, DateTime returnDate)
+        => svc.ReturnItemAsync(rentalID, returnDate).GetAwaiter().GetResult();
     public static void ExtendRental(this IRentalService svc, int rentalID, DateTime newDueDate)
         => svc.ExtendRentalAsync(rentalID, newDueDate).GetAwaiter().GetResult();
     public static void DeleteRental(this IRentalService svc, int rentalID)
@@ -60,8 +60,8 @@ public static class AsyncServiceExtensions
         => svc.GetOverdueRentalsAsync().GetAwaiter().GetResult();
     public static List<Rental> GetAllRentals(this IRentalService svc)
         => svc.GetAllRentalsAsync().GetAwaiter().GetResult();
-    public static List<Rental> GetRentalHistoryForTool(this IRentalService svc, int toolID)
-        => svc.GetRentalHistoryForToolAsync(toolID).GetAwaiter().GetResult();
+    public static List<Rental> GetRentalHistoryForItem(this IRentalService svc, int itemID)
+        => svc.GetRentalHistoryForItemAsync(itemID).GetAwaiter().GetResult();
     public static List<Rental> GetRentalHistoryForCustomer(this IRentalService svc, int customerID)
         => svc.GetRentalHistoryForCustomerAsync(customerID).GetAwaiter().GetResult();
 
