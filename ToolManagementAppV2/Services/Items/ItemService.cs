@@ -22,9 +22,9 @@ namespace ToolManagementAppV2.Services.Items
     public class ItemService : IItemService
     {
         readonly DatabaseService _dbService;
-        const string AllItemsSql = "SELECT * FROM Tools";
+        const string AllItemsSql = "SELECT * FROM Items";
         const string UpsertItemCsv = @"
-            INSERT INTO Tools
+            INSERT INTO Items
               (ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, ImagePath, IsCheckedOut, IsPowerTool)
             VALUES (@ItemNumber,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Keywords,@Avail,@Rent,@Img,0,@Power);
             SELECT last_insert_rowid();";
@@ -100,14 +100,14 @@ namespace ToolManagementAppV2.Services.Items
         {
             using var conn = _dbService.CreateConnection();
             return SqliteHelper.ExecuteReaderAsync(conn,
-                "SELECT * FROM Tools WHERE CheckedOutBy=@User AND IsCheckedOut=1",
+                "SELECT * FROM Items WHERE CheckedOutBy=@User AND IsCheckedOut=1",
                 new[] { new SQLiteParameter("@User", userName) }, MapItem, cancellationToken);
         }
 
         public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
-            const string sql = "UPDATE Tools SET ImagePath=@Img WHERE ItemID=@ID";
+            const string sql = "UPDATE Items SET ImagePath=@Img WHERE ItemID=@ID";
             var p = new[]
             {
                 new SQLiteParameter("@Img", imagePath),
@@ -134,7 +134,7 @@ namespace ToolManagementAppV2.Services.Items
 
         public async Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default)
         {
-            const string sql = "SELECT IFNULL(MAX(CAST(SUBSTR(ItemNumber, 2) AS INTEGER)), 0) FROM Tools WHERE ItemNumber LIKE 'T%'";
+            const string sql = "SELECT IFNULL(MAX(CAST(SUBSTR(ItemNumber, 2) AS INTEGER)), 0) FROM Items WHERE ItemNumber LIKE 'T%'";
             using var conn = _dbService.CreateConnection();
             var result = await SqliteHelper.ExecuteScalarAsync(conn, sql, null, cancellationToken);
             var max = result == null || result == DBNull.Value ? 0 : Convert.ToInt32(result);
@@ -271,7 +271,7 @@ namespace ToolManagementAppV2.Services.Items
             if (string.IsNullOrWhiteSpace(toolNumber))
                 return false;
 
-            var sql = "SELECT COUNT(*) FROM Tools WHERE ItemNumber = @TN";
+            var sql = "SELECT COUNT(*) FROM Items WHERE ItemNumber = @TN";
             var parameters = new List<SQLiteParameter>
             {
                 new("@TN", toolNumber)
@@ -331,7 +331,7 @@ namespace ToolManagementAppV2.Services.Items
             using var conn = _dbService.CreateConnection();
             ValidateQuantity(item.QuantityOnHand);
             const string sql = @"
-                UPDATE Tools SET
+                UPDATE Items SET
                   ItemNumber = @ItemNumber,
                   NameDescription = @Desc,
                   Location = @Loc,
@@ -385,7 +385,7 @@ namespace ToolManagementAppV2.Services.Items
             using var conn = _dbService.CreateConnection();
             try
             {
-                await SqliteHelper.ExecuteNonQueryAsync(conn, "DELETE FROM Tools WHERE ItemID=@ID",
+                await SqliteHelper.ExecuteNonQueryAsync(conn, "DELETE FROM Items WHERE ItemID=@ID",
                     new[] { new SQLiteParameter("@ID", itemID) }, cancellationToken);
             }
             catch (SQLiteException ex)
@@ -398,7 +398,7 @@ namespace ToolManagementAppV2.Services.Items
         public async Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default)
         {
             using var conn = _dbService.CreateConnection();
-            var list = await SqliteHelper.ExecuteReaderAsync(conn, "SELECT * FROM Tools WHERE ItemID=@ItemID",
+            var list = await SqliteHelper.ExecuteReaderAsync(conn, "SELECT * FROM Items WHERE ItemID=@ItemID",
                 new[] { new SQLiteParameter("@ItemID", itemID) }, MapItem, cancellationToken);
             return list.FirstOrDefault();
         }
@@ -440,7 +440,7 @@ namespace ToolManagementAppV2.Services.Items
                 "Keywords"
             };
 
-            var sb = new StringBuilder("SELECT * FROM Tools WHERE ");
+            var sb = new StringBuilder("SELECT * FROM Items WHERE ");
             var parameters = new List<SQLiteParameter>();
             for (int i = 0; i < terms.Length; i++)
             {
@@ -459,7 +459,7 @@ namespace ToolManagementAppV2.Services.Items
         {
             using var conn = _dbService.CreateConnection();
             var record = (await SqliteHelper.ExecuteReaderAsync(conn,
-                "SELECT IsCheckedOut, AvailableQuantity FROM Tools WHERE ItemID=@ID",
+                "SELECT IsCheckedOut, AvailableQuantity FROM Items WHERE ItemID=@ID",
                 new[] { new SQLiteParameter("@ID", itemID) },
                 r => new { Out = Convert.ToInt32(r["IsCheckedOut"]) == 1, Qty = Convert.ToInt32(r["AvailableQuantity"]) }, cancellationToken)).FirstOrDefault();
 
@@ -475,7 +475,7 @@ namespace ToolManagementAppV2.Services.Items
             var qtyChange = record.Out ? 1 : -1;
 
             var rows = await SqliteHelper.ExecuteNonQueryAsync(conn, @"
-                UPDATE Tools SET
+                UPDATE Items SET
                   IsCheckedOut = @Out,
                   CheckedOutBy = @By,
                   CheckedOutTime = @Time,
@@ -501,7 +501,7 @@ namespace ToolManagementAppV2.Services.Items
             using var conn = _dbService.CreateConnection();
             var existingNumbers = new HashSet<string>(
                 await SqliteHelper.ExecuteReaderAsync(conn,
-                    "SELECT ItemNumber FROM Tools", null,
+                    "SELECT ItemNumber FROM Items", null,
                     r => r.GetString(0), cancellationToken));
 
             using var tran = conn.BeginTransaction();
@@ -537,8 +537,8 @@ namespace ToolManagementAppV2.Services.Items
         {
             if (qtyChange <= 0) throw new ArgumentException("Quantity change must be positive.", nameof(qtyChange));
             var sql = isRental
-                ? @"UPDATE Tools SET AvailableQuantity = AvailableQuantity - @Q, RentedQuantity = RentedQuantity + @Q WHERE ItemID = @ID AND AvailableQuantity >= @Q"
-                : @"UPDATE Tools SET AvailableQuantity = AvailableQuantity + @Q, RentedQuantity = RentedQuantity - @Q WHERE ItemID = @ID AND RentedQuantity >= @Q";
+                ? @"UPDATE Items SET AvailableQuantity = AvailableQuantity - @Q, RentedQuantity = RentedQuantity + @Q WHERE ItemID = @ID AND AvailableQuantity >= @Q"
+                : @"UPDATE Items SET AvailableQuantity = AvailableQuantity + @Q, RentedQuantity = RentedQuantity - @Q WHERE ItemID = @ID AND RentedQuantity >= @Q";
             var p = new[]
             {
                 new SQLiteParameter("@ID", itemID),

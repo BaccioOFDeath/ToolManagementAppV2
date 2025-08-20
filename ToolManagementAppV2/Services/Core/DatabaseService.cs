@@ -41,18 +41,18 @@ namespace ToolManagementAppV2.Services.Core
             _logger = logger ?? NullLogger<DatabaseService>.Instance;
             ConfigureDatabase();
             InitializeDatabase();
-            EnsureColumn("Tools", "ItemNumber", "TEXT");
-            EnsureColumn("Tools", "NameDescription", "TEXT");
-            EnsureColumn("Tools", "ImagePath", "TEXT");
-            EnsureColumn("Tools", "CheckedOutBy", "TEXT");
-            EnsureColumn("Tools", "CheckedOutTime", "DATETIME");
-            EnsureColumn("Tools", "Keywords", "TEXT");
-            EnsureColumn("Tools", "IsPowerTool", "INTEGER", "0");
-            EnsureColumn("Tools", "IsCheckedOut", "INTEGER", "0");
+            EnsureColumn("Items", "ItemNumber", "TEXT");
+            EnsureColumn("Items", "NameDescription", "TEXT");
+            EnsureColumn("Items", "ImagePath", "TEXT");
+            EnsureColumn("Items", "CheckedOutBy", "TEXT");
+            EnsureColumn("Items", "CheckedOutTime", "DATETIME");
+            EnsureColumn("Items", "Keywords", "TEXT");
+            EnsureColumn("Items", "IsPowerTool", "INTEGER", "0");
+            EnsureColumn("Items", "IsCheckedOut", "INTEGER", "0");
             // Ensure indexes that depend on newly added columns
             using (var conn = CreateConnection())
             {
-                EnsureIndex(conn, "Tools", "Keywords");
+                EnsureIndex(conn, "Items", "Keywords");
             }
             EnsureColumn("Users", "PasswordHash", "TEXT");
             EnsureColumn("Users", "PasswordSalt", "TEXT");
@@ -101,8 +101,25 @@ namespace ToolManagementAppV2.Services.Core
         void InitializeDatabase()
         {
             using var conn = CreateConnection();
+
+            // Migration: rename legacy Tools table to Items
+            using (var check = new SQLiteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='Tools';", conn))
+            {
+                var toolsExists = check.ExecuteScalar();
+                if (toolsExists != null)
+                {
+                    using var itemsCheck = new SQLiteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='Items';", conn);
+                    var itemsExists = itemsCheck.ExecuteScalar();
+                    if (itemsExists == null)
+                    {
+                        using var rename = new SQLiteCommand("ALTER TABLE Tools RENAME TO Items;", conn);
+                        rename.ExecuteNonQuery();
+                    }
+                }
+            }
+
             var sql = @"
-                CREATE TABLE IF NOT EXISTS Tools (
+                CREATE TABLE IF NOT EXISTS Items (
                     ItemID INTEGER PRIMARY KEY AUTOINCREMENT,
                     ItemNumber TEXT NOT NULL,
                     NameDescription TEXT,
@@ -152,7 +169,7 @@ namespace ToolManagementAppV2.Services.Core
                     DueDate DATETIME NOT NULL,
                     ReturnDate DATETIME,
                     Status TEXT NOT NULL DEFAULT 'Rented',
-                    FOREIGN KEY (ItemID) REFERENCES Tools(ItemID),
+                    FOREIGN KEY (ItemID) REFERENCES Items(ItemID),
                     FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
                 );
                 CREATE TABLE IF NOT EXISTS ActivityLogs (
@@ -170,13 +187,13 @@ namespace ToolManagementAppV2.Services.Core
             using var cmd = new SQLiteCommand(sql, conn);
             cmd.ExecuteNonQuery();
 
-            EnsureIndex(conn, "Tools", "ItemNumber", true);
-            EnsureIndex(conn, "Tools", "NameDescription");
-            EnsureIndex(conn, "Tools", "Brand");
-            EnsureIndex(conn, "Tools", "PartNumber");
-            EnsureIndex(conn, "Tools", "Supplier");
-            EnsureIndex(conn, "Tools", "Location");
-            EnsureIndex(conn, "Tools", "Notes");
+            EnsureIndex(conn, "Items", "ItemNumber", true);
+            EnsureIndex(conn, "Items", "NameDescription");
+            EnsureIndex(conn, "Items", "Brand");
+            EnsureIndex(conn, "Items", "PartNumber");
+            EnsureIndex(conn, "Items", "Supplier");
+            EnsureIndex(conn, "Items", "Location");
+            EnsureIndex(conn, "Items", "Notes");
             // Ensure each user has a unique username
             EnsureIndex(conn, "Users", "UserName", true);
             EnsureIndex(conn, "Customers", "Contact");

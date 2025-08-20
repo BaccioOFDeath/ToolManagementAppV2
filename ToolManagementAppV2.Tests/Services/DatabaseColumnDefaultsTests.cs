@@ -17,18 +17,18 @@ namespace ToolManagementAppV2.Tests.Services
                 using (var conn = new SQLiteConnection($"Data Source={dbPath};Version=3;"))
                 {
                     conn.Open();
-                    using var cmd = new SQLiteCommand(@"CREATE TABLE Tools (
+                    using var cmd = new SQLiteCommand(@"CREATE TABLE Items (
                             ItemID INTEGER PRIMARY KEY AUTOINCREMENT,
                             ItemNumber TEXT NOT NULL
                         );
-                        INSERT INTO Tools (ItemNumber) VALUES ('T1');", conn);
+                        INSERT INTO Items (ItemNumber) VALUES ('T1');", conn);
                     cmd.ExecuteNonQuery();
                 }
 
                 var service = new DatabaseService(dbPath);
 
                 using var conn2 = service.CreateConnection();
-                using (var cmdCheck = new SQLiteCommand("SELECT IsPowerTool, IsCheckedOut FROM Tools", conn2))
+                using (var cmdCheck = new SQLiteCommand("SELECT IsPowerTool, IsCheckedOut FROM Items", conn2))
                 using (var reader = cmdCheck.ExecuteReader())
                 {
                     Assert.True(reader.Read());
@@ -36,7 +36,7 @@ namespace ToolManagementAppV2.Tests.Services
                     Assert.Equal(0, reader.GetInt32(1));
                 }
 
-                using var cmdNulls = new SQLiteCommand("SELECT COUNT(*) FROM Tools WHERE IsPowerTool IS NULL OR IsCheckedOut IS NULL", conn2);
+                using var cmdNulls = new SQLiteCommand("SELECT COUNT(*) FROM Items WHERE IsPowerTool IS NULL OR IsCheckedOut IS NULL", conn2);
                 var nullCount = Convert.ToInt32(cmdNulls.ExecuteScalar());
                 Assert.Equal(0, nullCount);
             }

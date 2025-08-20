@@ -509,7 +509,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var first = svc.GetAllItems();
                 using (var conn = db.CreateConnection())
                 {
-                    SqliteHelper.ExecuteNonQuery(conn, "INSERT INTO Tools (ItemNumber) VALUES ('T2')", null);
+                    SqliteHelper.ExecuteNonQuery(conn, "INSERT INTO Items (ItemNumber) VALUES ('T2')", null);
                 }
                 var second = svc.GetAllItems();
                 Assert.Single(second);
@@ -556,7 +556,7 @@ namespace ToolManagementAppV2.Tests.Services
                     conn.Open();
                     using var cmd = conn.CreateCommand();
                     cmd.CommandText = @"
-                        CREATE TABLE Tools (
+                        CREATE TABLE Items (
                             ItemID INTEGER PRIMARY KEY AUTOINCREMENT,
                             ItemNumber TEXT,
                             NameDescription TEXT,
@@ -575,7 +575,7 @@ namespace ToolManagementAppV2.Tests.Services
                             ImagePath TEXT,
                             Keywords TEXT
                         );
-                        INSERT INTO Tools (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsPowerTool, IsCheckedOut)
+                        INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsPowerTool, IsCheckedOut)
                         VALUES ('T1', 'Test', NULL, NULL, NULL, NULL);
                     ";
                     cmd.ExecuteNonQuery();
@@ -609,7 +609,7 @@ namespace ToolManagementAppV2.Tests.Services
                     conn.Open();
                     using var cmd = conn.CreateCommand();
                     cmd.CommandText = @"
-                        CREATE TABLE Tools (
+                        CREATE TABLE Items (
                             ItemID INTEGER PRIMARY KEY AUTOINCREMENT,
                             ItemNumber TEXT,
                             NameDescription TEXT,
@@ -628,7 +628,7 @@ namespace ToolManagementAppV2.Tests.Services
                             ImagePath TEXT,
                             Keywords TEXT
                         );
-                        INSERT INTO Tools (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsPowerTool, IsCheckedOut)
+                        INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsPowerTool, IsCheckedOut)
                         VALUES ('T1', 'Test', NULL, NULL, NULL, NULL);
                     ";
                     cmd.ExecuteNonQuery();
@@ -687,7 +687,7 @@ namespace ToolManagementAppV2.Tests.Services
             {
                 var dbService = new DatabaseService(dbPath);
                 using (var conn = dbService.CreateConnection())
-                using (var cmd = new SQLiteCommand("DROP TABLE Tools;", conn))
+                using (var cmd = new SQLiteCommand("DROP TABLE Items;", conn))
                 {
                     cmd.ExecuteNonQuery();
                 }
@@ -710,7 +710,7 @@ namespace ToolManagementAppV2.Tests.Services
             {
                 var dbService = new DatabaseService(dbPath);
                 using (var conn = dbService.CreateConnection())
-                using (var cmd = new SQLiteCommand("DROP TABLE Tools;", conn))
+                using (var cmd = new SQLiteCommand("DROP TABLE Items;", conn))
                 {
                     cmd.ExecuteNonQuery();
                 }

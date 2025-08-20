@@ -13,11 +13,11 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                Assert.True(SqliteHelper.IndexExists(db.ConnectionString, "idx_Tools_ItemNumber"));
+                Assert.True(SqliteHelper.IndexExists(db.ConnectionString, "idx_Items_ItemNumber"));
                 Assert.True(SqliteHelper.IndexExists(db.ConnectionString, "idx_Users_UserName"));
                 Assert.True(SqliteHelper.IndexExists(db.ConnectionString, "idx_Customers_Contact"));
                 Assert.True(SqliteHelper.IndexExists(db.ConnectionString, "idx_Rentals_ItemID_CustomerID"));
-                Assert.True(SqliteHelper.IndexExists(db.ConnectionString, "idx_Tools_Keywords"));
+                Assert.True(SqliteHelper.IndexExists(db.ConnectionString, "idx_Items_Keywords"));
             }
             finally
             {

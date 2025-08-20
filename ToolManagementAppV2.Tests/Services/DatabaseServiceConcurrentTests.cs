@@ -49,19 +49,19 @@ namespace ToolManagementAppV2.Tests.Services
                 var idxMethod = typeof(DatabaseService).GetMethod("EnsureIndex", BindingFlags.NonPublic | BindingFlags.Instance);
 
                 var db = new DatabaseService(dbPath);
-                colMethod.Invoke(db, new object[] { "Tools", "ConcurrentIdxCol", "TEXT" });
+                colMethod.Invoke(db, new object[] { "Items", "ConcurrentIdxCol", "TEXT" });
 
                 var t1 = Task.Run(() =>
                 {
                     var d = new DatabaseService(dbPath);
                     using var conn = d.CreateConnection();
-                    idxMethod.Invoke(d, new object[] { conn, "Tools", "ConcurrentIdxCol", false });
+                    idxMethod.Invoke(d, new object[] { conn, "Items", "ConcurrentIdxCol", false });
                 });
                 var t2 = Task.Run(() =>
                 {
                     var d = new DatabaseService(dbPath);
                     using var conn = d.CreateConnection();
-                    idxMethod.Invoke(d, new object[] { conn, "Tools", "ConcurrentIdxCol", false });
+                    idxMethod.Invoke(d, new object[] { conn, "Items", "ConcurrentIdxCol", false });
                 });
 
                 var ex = Record.Exception(() => Task.WaitAll(t1, t2));
@@ -69,7 +69,7 @@ namespace ToolManagementAppV2.Tests.Services
 
                 using var checkDb = new DatabaseService(dbPath);
                 using var checkConn = checkDb.CreateConnection();
-                Assert.True(SqliteHelper.IndexExists(checkConn, "idx_Tools_ConcurrentIdxCol"));
+                Assert.True(SqliteHelper.IndexExists(checkConn, "idx_Items_ConcurrentIdxCol"));
             }
             finally
             {
