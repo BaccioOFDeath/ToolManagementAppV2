@@ -12,6 +12,7 @@ using ToolManagementAppV2.Models.ImportExport;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ToolManagementAppV2.Utilities.IO;
+using ToolManagementAppV2.Utilities.Helpers;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -73,21 +74,25 @@ namespace ToolManagementAppV2.ViewModels
                 var map = _dialogService.ShowImportMapping(headers, properties);
                 if (map == null)
                     return;
-                await _dialogService.ShowInfoAsync("Importing tools...", "Import Tools");
+                var plural = LabelProvider.Instance.ItemLabelPlural;
+                await _dialogService.ShowInfoAsync($"Importing {plural}...", $"Import {plural}");
                 await _toolService.ImportToolsFromCsvAsync(path, map, cancellationToken);
-                ImportExportLogs.Add($"Successfully imported tools from {path}.");
-                await _dialogService.ShowInfoAsync($"Successfully imported tools from {path}.", "Import Tools");
+                ImportExportLogs.Add($"Successfully imported {plural} from {path}.");
+                await _dialogService.ShowInfoAsync($"Successfully imported {plural} from {path}.", $"Import {plural}");
             }
             catch (OperationCanceledException)
             {
-                ImportExportLogs.Add("Tool import was cancelled.");
-                await _dialogService.ShowInfoAsync("Tool import was cancelled.", "Import Tools");
+                var singular = LabelProvider.Instance.ItemLabelSingular;
+                var plural = LabelProvider.Instance.ItemLabelPlural;
+                ImportExportLogs.Add($"{singular} import was cancelled.");
+                await _dialogService.ShowInfoAsync($"{singular} import was cancelled.", $"Import {plural}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to import tools from {Path}", path);
-                ImportExportLogs.Add($"Failed to import tools from {path}: {ex.Message}");
-                await _dialogService.ShowInfoAsync($"Failed to import tools from {path}: {ex.Message}", "Import Tools");
+                var plural = LabelProvider.Instance.ItemLabelPlural;
+                _logger.LogError(ex, "Failed to import {ItemLabelPlural} from {Path}", plural, path);
+                ImportExportLogs.Add($"Failed to import {plural} from {path}: {ex.Message}");
+                await _dialogService.ShowInfoAsync($"Failed to import {plural} from {path}: {ex.Message}", $"Import {plural}");
             }
         }
 
@@ -97,17 +102,20 @@ namespace ToolManagementAppV2.ViewModels
             if (string.IsNullOrEmpty(path)) return;
             try
             {
+                var plural = LabelProvider.Instance.ItemLabelPlural;
                 await _toolService.ExportToolsToCsvAsync(path, cancellationToken);
-                ImportExportLogs.Add($"Successfully exported tools to {path}.");
+                ImportExportLogs.Add($"Successfully exported {plural} to {path}.");
             }
             catch (OperationCanceledException)
             {
-                ImportExportLogs.Add("Tool export was cancelled.");
+                var singular = LabelProvider.Instance.ItemLabelSingular;
+                ImportExportLogs.Add($"{singular} export was cancelled.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to export tools to {Path}", path);
-                ImportExportLogs.Add($"Failed to export tools to {path}: {ex.Message}");
+                var plural = LabelProvider.Instance.ItemLabelPlural;
+                _logger.LogError(ex, "Failed to export {ItemLabelPlural} to {Path}", plural, path);
+                ImportExportLogs.Add($"Failed to export {plural} to {path}: {ex.Message}");
             }
         }
 

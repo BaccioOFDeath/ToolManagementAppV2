@@ -122,8 +122,10 @@ namespace ToolManagementAppV2
 
             var loggerFactory = Host.Services.GetRequiredService<ILoggerFactory>();
             PathHelper.Configure(loggerFactory.CreateLogger("PathHelper"));
-            SecurityHelper.SettingsService = Host.Services.GetRequiredService<ISettingsService>();
+            var settingsService = Host.Services.GetRequiredService<ISettingsService>();
+            SecurityHelper.SettingsService = settingsService;
             await SecurityHelper.GetIterationsAsync().ConfigureAwait(false);
+            await LabelProvider.Instance.InitializeAsync(settingsService).ConfigureAwait(false);
 
             var main = (Window)Host.Services.GetRequiredService<IMainWindow>();
             Current.MainWindow = main;

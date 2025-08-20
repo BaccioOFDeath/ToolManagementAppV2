@@ -1,7 +1,8 @@
 <Window x:Class="ToolManagementAppV2.Views.Windows.AvatarSelectionWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Tool Inventory Management – Select Avatar"
+        xmlns:helpers="clr-namespace:ToolManagementAppV2.Utilities.Helpers"
+        Title="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat={0} Inventory Management – Select Avatar}"
         Height="650" Width="1600"
         Background="{DynamicResource BackgroundBrush}"
         WindowStartupLocation="CenterScreen">

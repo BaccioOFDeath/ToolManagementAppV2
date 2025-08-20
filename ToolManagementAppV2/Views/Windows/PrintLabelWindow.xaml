@@ -5,6 +5,7 @@
         xmlns:domain="clr-namespace:ToolManagementAppV2.Models.Domain"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:helpers="clr-namespace:ToolManagementAppV2.Utilities.Helpers"
         mc:Ignorable="d"
         Title="Print Labels"
         Width="720" Height="420"
@@ -37,7 +38,7 @@
                       Style="{StaticResource VirtualizedDataGridStyle}"
                       ColumnHeaderStyle="{StaticResource {x:Type DataGridColumnHeader}}">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Tool #" Binding="{Binding ToolNumber}" Width="120"/>
+                    <DataGridTextColumn Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat={}{0} #}" Binding="{Binding ToolNumber}" Width="120"/>
                     <DataGridTextColumn Header="Name" Binding="{Binding NameDescription}" Width="*"/>
                     <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="180"/>
                 </DataGrid.Columns>

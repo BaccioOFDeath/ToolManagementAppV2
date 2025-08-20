@@ -34,6 +34,8 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <TextBlock Text="Theme" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
                         <ComboBox Grid.Column="1" SelectedItem="{Binding Theme}" ItemsSource="{Binding ThemeOptions}" Margin="8,0,0,0"/>
@@ -41,6 +43,10 @@
                         <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding PasswordIterations}" Margin="8,0,0,0" PreviewTextInput="PasswordIterationsBox_PreviewTextInput"/>
                         <TextBlock Grid.Row="2" Text="Auto-logout (minutes)" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
                         <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding AutoLogoutMinutes}" Margin="8,0,0,0" PreviewTextInput="AutoLogoutMinutesBox_PreviewTextInput"/>
+                        <TextBlock Grid.Row="3" Text="Singular Item Label" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding ItemLabelSingular}" Margin="8,0,0,0"/>
+                        <TextBlock Grid.Row="4" Text="Plural Item Label" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding ItemLabelPlural}" Margin="8,0,0,0"/>
                     </Grid>
                 </StackPanel>
             </Border>

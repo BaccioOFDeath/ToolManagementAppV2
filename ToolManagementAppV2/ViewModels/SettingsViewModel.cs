@@ -9,6 +9,7 @@ using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Services.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ToolManagementAppV2.Utilities.Helpers;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -38,6 +39,8 @@ namespace ToolManagementAppV2.ViewModels
             _theme = ThemeOptions[0];
             _passwordIterations = _settingsService.GetPasswordIterationsAsync().GetAwaiter().GetResult();
             _autoLogoutMinutes = _settingsService.GetAutoLogoutMinutesAsync().GetAwaiter().GetResult();
+            _itemLabelSingular = LabelProvider.Instance.ItemLabelSingular;
+            _itemLabelPlural = LabelProvider.Instance.ItemLabelPlural;
             TestDbCommand = new RelayCommand(() =>
             {
                 var success = TestDbConnection(out var message);
@@ -84,6 +87,58 @@ namespace ToolManagementAppV2.ViewModels
         {
             get => _companyLogoPath;
             set => SetProperty(ref _companyLogoPath, value);
+        }
+
+        private string _itemLabelSingular;
+        public string ItemLabelSingular
+        {
+            get => _itemLabelSingular;
+            set
+            {
+                if (SetProperty(ref _itemLabelSingular, value))
+                {
+                    try
+                    {
+                        _settingsService.SaveItemLabelSingularAsync(value).GetAwaiter().GetResult();
+                        LabelProvider.Instance.UpdateLabels(value, ItemLabelPlural);
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        _logger.LogWarning(ex, "Unauthorized to change settings.");
+                        _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to save item label singular.");
+                    }
+                }
+            }
+        }
+
+        private string _itemLabelPlural;
+        public string ItemLabelPlural
+        {
+            get => _itemLabelPlural;
+            set
+            {
+                if (SetProperty(ref _itemLabelPlural, value))
+                {
+                    try
+                    {
+                        _settingsService.SaveItemLabelPluralAsync(value).GetAwaiter().GetResult();
+                        LabelProvider.Instance.UpdateLabels(ItemLabelSingular, value);
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        _logger.LogWarning(ex, "Unauthorized to change settings.");
+                        _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to save item label plural.");
+                    }
+                }
+            }
         }
 
         private int _defaultRentalDuration;

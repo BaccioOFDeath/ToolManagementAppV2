@@ -1,6 +1,7 @@
 <!-- Resources/Templates.xaml -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:helpers="clr-namespace:ToolManagementAppV2.Utilities.Helpers">
     <DataTemplate x:Key="StatCardTemplate">
         <Border Style="{StaticResource Card}">
             <Grid>
@@ -51,8 +52,8 @@
 
     <!-- Shared rental DataGrid columns -->
     <DataGridTextColumn x:Key="RentalIdColumn" Header="Rental #" Binding="{Binding RentalId}" Width="120" x:Shared="False"/>
-    <DataGridTextColumn x:Key="RentalToolNumberColumn" Header="Tool #" Binding="{Binding ToolNumber}" Width="120" x:Shared="False"/>
-    <DataGridTextColumn x:Key="RentalToolNameColumn" Header="Tool" Binding="{Binding ToolName}" Width="*" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalToolNumberColumn" Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat={}{0} #}" Binding="{Binding ToolNumber}" Width="120" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalToolNameColumn" Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}" Binding="{Binding ToolName}" Width="*" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalCustomerColumn" Header="Customer" Binding="{Binding CustomerName}" Width="220" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalOutColumn" Header="Out" Binding="{Binding DateOut, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="180" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalDueColumn" Header="Due" Binding="{Binding DueDate, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="180" x:Shared="False"/>

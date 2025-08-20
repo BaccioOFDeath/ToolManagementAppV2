@@ -11,6 +11,7 @@ using ToolManagementAppV2.Interfaces;
 using ToolManagementAppV2.Utilities;
 using ToolManagementAppV2.Utilities.Extensions;
 using ToolManagementAppV2.Services;
+using ToolManagementAppV2.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -217,16 +218,16 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (UnauthorizedAccessException)
             {
-                await _dialogService.ShowInfoAsync("You are not authorized to add tools.", "Unauthorized");
+                await _dialogService.ShowInfoAsync($"You are not authorized to add {LabelProvider.Instance.ItemLabelPlural.ToLower()}.", "Unauthorized");
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogError(ex, "Failed to add tool due to invalid operation");
+                _logger.LogError(ex, "Failed to add {ItemLabelSingular} due to invalid operation", LabelProvider.Instance.ItemLabelSingular);
                 await _dialogService.ShowInfoAsync(ex.Message, "Error");
             }
             catch (ArgumentException ex)
             {
-                _logger.LogError(ex, "Failed to add tool due to invalid argument");
+                _logger.LogError(ex, "Failed to add {ItemLabelSingular} due to invalid argument", LabelProvider.Instance.ItemLabelSingular);
                 await _dialogService.ShowInfoAsync(ex.Message, "Error");
             }
         }
@@ -272,7 +273,7 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (UnauthorizedAccessException)
             {
-                await _dialogService.ShowInfoAsync("You are not authorized to update tools.", "Unauthorized");
+                await _dialogService.ShowInfoAsync($"You are not authorized to update {LabelProvider.Instance.ItemLabelPlural.ToLower()}.", "Unauthorized");
             }
         }
 
@@ -292,7 +293,7 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to open rental history for tool {ToolID}", SelectedTool.ToolID);
+                _logger.LogError(ex, "Failed to open rental history for {ItemLabelSingular} {ToolID}", LabelProvider.Instance.ItemLabelSingular, SelectedTool.ToolID);
             }
         }
 
@@ -300,7 +301,7 @@ namespace ToolManagementAppV2.ViewModels
         {
             if (SelectedTool == null) return;
             var confirm = await _dialogService.ShowConfirmationAsync(
-                $"Delete tool '{SelectedTool.NameDescription}'?",
+                $"Delete {LabelProvider.Instance.ItemLabelSingular.ToLower()} '{SelectedTool.NameDescription}'?",
                 "Confirm Delete");
             if (!confirm)
                 return;
@@ -318,12 +319,12 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (UnauthorizedAccessException)
             {
-                await _dialogService.ShowInfoAsync("You are not authorized to delete tools.", "Unauthorized");
+                await _dialogService.ShowInfoAsync($"You are not authorized to delete {LabelProvider.Instance.ItemLabelPlural.ToLower()}.", "Unauthorized");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to delete tool {ToolID}", SelectedTool.ToolID);
-                await _dialogService.ShowInfoAsync($"Failed to delete tool: {ex.Message}", "Error");
+                _logger.LogError(ex, "Failed to delete {ItemLabelSingular} {ToolID}", LabelProvider.Instance.ItemLabelSingular, SelectedTool.ToolID);
+                await _dialogService.ShowInfoAsync($"Failed to delete {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message}", "Error");
             }
         }
 
@@ -351,12 +352,12 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (UnauthorizedAccessException)
             {
-                await _dialogService.ShowInfoAsync("You are not authorized to rent tools.", "Unauthorized");
+                await _dialogService.ShowInfoAsync($"You are not authorized to rent {LabelProvider.Instance.ItemLabelPlural.ToLower()}.", "Unauthorized");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to rent tool {ToolID}", SelectedTool?.ToolID);
-                await _dialogService.ShowInfoAsync($"Failed to rent tool: {ex.Message}", "Error");
+                _logger.LogError(ex, "Failed to rent {ItemLabelSingular} {ToolID}", LabelProvider.Instance.ItemLabelSingular, SelectedTool?.ToolID);
+                await _dialogService.ShowInfoAsync($"Failed to rent {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message}", "Error");
             }
         }
 

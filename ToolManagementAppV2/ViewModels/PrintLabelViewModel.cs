@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ToolManagementAppV2.Interfaces;
+using ToolManagementAppV2.Utilities.Helpers;
 
 namespace ToolManagementAppV2.ViewModels
 {
@@ -44,7 +45,7 @@ namespace ToolManagementAppV2.ViewModels
             {
                 var dlg = new System.Windows.Controls.PrintDialog();
                 if (dlg.ShowDialog() == true)
-                    dlg.PrintDocument(((IDocumentPaginatorSource)doc).DocumentPaginator, "Tool Labels");
+                    dlg.PrintDocument(((IDocumentPaginatorSource)doc).DocumentPaginator, $"{LabelProvider.Instance.ItemLabelSingular} Labels");
             });
             Templates = new ObservableCollection<string> { "Standard", "Compact" };
             _selectedTemplate = Templates.First();
@@ -57,7 +58,7 @@ namespace ToolManagementAppV2.ViewModels
         private void Preview()
         {
             var doc = BuildDocument();
-            _dialogService.ShowPrintPreview(doc, "Tool Labels", string.Empty);
+            _dialogService.ShowPrintPreview(doc, $"{LabelProvider.Instance.ItemLabelSingular} Labels", string.Empty);
         }
 
         private void Print()
