@@ -84,14 +84,14 @@ namespace ToolManagementAppV2.Tests.Views
                 return Task.CompletedTask;
             }
             public bool ShowConfirmation(string message, string title) => false;
-            public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
-            public void ShowToolDetails(ToolModel tool) { }
-            public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+            public ItemModel? ShowEditToolDialog(ItemModel tool) => null;
+            public void ShowToolDetails(ItemModel tool) { }
+            public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
             public CustomerModel? ShowAddCustomerDialog() => null;
             public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
-            public void ShowRentalHistory(ToolModel tool, IEnumerable<RentalModel> history) { }
+            public void ShowRentalHistory(ItemModel tool, IEnumerable<RentalModel> history) { }
             public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties) => null;
-            public Func<ToolModel, IEnumerable<string>>? ShowImageImportMapping() => null;
+            public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
             public void ShowPrintLabelDialog() { }
         }

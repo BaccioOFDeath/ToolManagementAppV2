@@ -17,13 +17,13 @@ namespace ToolManagementAppV2.Services.Rentals
     public class RentalService : IRentalService
     {
         private readonly DatabaseService _dbService;
-        private readonly IToolService? _toolService;
+        private readonly IItemService? _toolService;
         private readonly ILogger<RentalService> _logger;
         private readonly IAuthorizationService _auth;
         private readonly ActivityLogService? _activityLog;
         private readonly IUserContext? _context;
 
-        public RentalService(DatabaseService dbService, IAuthorizationService? authorizationService = null, IToolService? toolService = null, ILogger<RentalService>? logger = null, ActivityLogService? activityLogService = null, IUserContext? userContext = null)
+        public RentalService(DatabaseService dbService, IAuthorizationService? authorizationService = null, IItemService? toolService = null, ILogger<RentalService>? logger = null, ActivityLogService? activityLogService = null, IUserContext? userContext = null)
         {
             _dbService = dbService ?? throw new ArgumentNullException(nameof(dbService));
             _auth = authorizationService ?? new NoOpAuthorizationService();

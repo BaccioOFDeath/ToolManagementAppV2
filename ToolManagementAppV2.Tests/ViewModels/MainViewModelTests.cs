@@ -30,7 +30,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
                 var customerService = new CustomerService(db);
@@ -64,7 +64,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
                 var customerService = new CustomerService(db);
@@ -97,7 +97,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new GetAllUsersFailingUserService();
                 var customerService = new CustomerService(db);
@@ -128,14 +128,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public bool ThrowOnShowPrintLabelDialog { get; set; }
         public void ShowInfo(string message, string title) => InfoShown = true;
         public bool ShowConfirmation(string message, string title) => false;
-        public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
-        public void ShowToolDetails(ToolModel tool) { }
-        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, System.Collections.Generic.IEnumerable<CustomerModel> customers) => null;
+        public ItemModel? ShowEditToolDialog(ItemModel tool) => null;
+        public void ShowToolDetails(ItemModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, System.Collections.Generic.IEnumerable<CustomerModel> customers) => null;
         public CustomerModel? ShowAddCustomerDialog() => null;
         public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
-        public void ShowRentalHistory(ToolModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }
+        public void ShowRentalHistory(ItemModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }
         public System.Collections.Generic.Dictionary<string, string>? ShowImportMapping(System.Collections.Generic.IEnumerable<string> headers, System.Collections.Generic.IEnumerable<string> properties) => null;
-        public System.Func<ToolModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
+        public System.Func<ItemModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
         public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
         public void ShowPrintLabelDialog()
         {

@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ToolManagementAppV2.Models.Domain
 {
-    public class Tool : ObservableObject
+    public class ItemModel : ObservableObject
     {
         private int _toolID;
         public int ToolID

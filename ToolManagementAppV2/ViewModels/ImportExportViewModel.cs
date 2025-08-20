@@ -18,7 +18,7 @@ namespace ToolManagementAppV2.ViewModels
 {
     public class ImportExportViewModel : ObservableObject
     {
-        private readonly IToolService _toolService;
+        private readonly IItemService _toolService;
         private readonly ICustomerService _customerService;
         private readonly IFileDialogService _fileDialogService;
         private readonly IDatabaseBackupService _databaseService;
@@ -42,7 +42,7 @@ namespace ToolManagementAppV2.ViewModels
 
         public ObservableCollection<string> ImportExportLogs { get; } = new();
 
-        public ImportExportViewModel(IToolService toolService,
+        public ImportExportViewModel(IItemService toolService,
                                      ICustomerService customerService,
                                      IFileDialogService fileDialogService,
                                      IDatabaseBackupService databaseService,

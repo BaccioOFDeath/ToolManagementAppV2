@@ -19,7 +19,7 @@ using ToolManagementAppV2.Services.Users;
 
 namespace ToolManagementAppV2.Services.Tools
 {
-    public class ToolService : IToolService
+    public class ItemService : IItemService
     {
         readonly DatabaseService _dbService;
         const string AllToolsSql = "SELECT * FROM Tools";
@@ -31,16 +31,16 @@ namespace ToolManagementAppV2.Services.Tools
         const int MaxQuantityOnHand = 10000;
         const int MaxSearchTerms = 10;
     
-        readonly ILogger<ToolService> _logger;
+        readonly ILogger<ItemService> _logger;
         readonly IAuthorizationService _auth;
         readonly ActivityLogService? _activityLog;
         readonly IUserContext? _context;
 
-        public ToolService(DatabaseService dbService, IAuthorizationService? authorizationService = null, ILogger<ToolService>? logger = null, ActivityLogService? activityLogService = null, IUserContext? userContext = null)
+        public ItemService(DatabaseService dbService, IAuthorizationService? authorizationService = null, ILogger<ItemService>? logger = null, ActivityLogService? activityLogService = null, IUserContext? userContext = null)
         {
             _dbService = dbService;
             _auth = authorizationService ?? new NoOpAuthorizationService();
-            _logger = logger ?? NullLogger<ToolService>.Instance;
+            _logger = logger ?? NullLogger<ItemService>.Instance;
             _activityLog = activityLogService;
             _context = userContext;
         }
@@ -48,10 +48,10 @@ namespace ToolManagementAppV2.Services.Tools
         static void ValidateQuantity(int quantity)
         {
             if (quantity < 0 || quantity > MaxQuantityOnHand)
-                throw new ArgumentOutOfRangeException(nameof(Tool.QuantityOnHand), $"QuantityOnHand must be between 0 and {MaxQuantityOnHand}.");
+                throw new ArgumentOutOfRangeException(nameof(ItemModel.QuantityOnHand), $"QuantityOnHand must be between 0 and {MaxQuantityOnHand}.");
         }
 
-        public async Task AddToolAsync(ToolModel tool, CancellationToken cancellationToken = default)
+        public async Task AddToolAsync(ItemModel tool, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
             await AddToolInternalAsync(tool, cancellationToken).ConfigureAwait(false);
@@ -62,7 +62,7 @@ namespace ToolManagementAppV2.Services.Tools
             }
         }
 
-        public async Task UpdateToolAsync(ToolModel tool, CancellationToken cancellationToken = default)
+        public async Task UpdateToolAsync(ItemModel tool, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
             await UpdateToolInternalAsync(tool, cancellationToken).ConfigureAwait(false);
@@ -96,7 +96,7 @@ namespace ToolManagementAppV2.Services.Tools
             return result;
         }
 
-        public Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default)
+        public Task<List<ItemModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default)
         {
             using var conn = _dbService.CreateConnection();
             return SqliteHelper.ExecuteReaderAsync(conn,
@@ -126,7 +126,7 @@ namespace ToolManagementAppV2.Services.Tools
         public Task ExportToolsToCsvAsync(string filePath, CancellationToken cancellationToken = default)
             => ExportToolsToCsvInternalAsync(filePath, cancellationToken);
 
-        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default)
+        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
             return ImportToolImagesInternalAsync(folderPath, keySelector, progress, cancellationToken);
@@ -141,7 +141,7 @@ namespace ToolManagementAppV2.Services.Tools
             return $"T{max + 1}";
         }
 
-        async Task InsertToolAsync(SQLiteConnection conn, SQLiteTransaction? tran, ToolModel tool, CancellationToken cancellationToken)
+        async Task InsertToolAsync(SQLiteConnection conn, SQLiteTransaction? tran, ItemModel tool, CancellationToken cancellationToken)
         {
             ValidateQuantity(tool.QuantityOnHand);
             var p = new[]
@@ -167,7 +167,7 @@ namespace ToolManagementAppV2.Services.Tools
                 tool.ToolID = Convert.ToInt32(result);
         }
     
-        private async Task<ImageImportResult> ImportToolImagesInternalAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress, CancellationToken cancellationToken)
+        private async Task<ImageImportResult> ImportToolImagesInternalAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress, CancellationToken cancellationToken)
         {
             var result = new ImageImportResult();
             if (string.IsNullOrWhiteSpace(folderPath) || keySelector == null)
@@ -175,7 +175,7 @@ namespace ToolManagementAppV2.Services.Tools
 
             cancellationToken.ThrowIfCancellationRequested();
             var tools = await GetAllToolsAsync(cancellationToken);
-            var groups = new Dictionary<string, List<ToolModel>>(StringComparer.OrdinalIgnoreCase);
+            var groups = new Dictionary<string, List<ItemModel>>(StringComparer.OrdinalIgnoreCase);
             foreach (var tool in tools)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -187,7 +187,7 @@ namespace ToolManagementAppV2.Services.Tools
                     if (string.IsNullOrEmpty(k))
                         continue;
                     if (!groups.TryGetValue(k, out var list))
-                        groups[k] = list = new List<ToolModel>();
+                        groups[k] = list = new List<ItemModel>();
                     list.Add(tool);
                 }
             }
@@ -288,7 +288,7 @@ namespace ToolManagementAppV2.Services.Tools
             return count > 0;
         }
     
-        ToolModel MapTool(IDataRecord r) => new()
+        ItemModel MapTool(IDataRecord r) => new()
         {
             ToolID = r["ToolID"] is DBNull ? 0 : Convert.ToInt32(r["ToolID"]),
             ToolNumber = r["ToolNumber"].ToString(),
@@ -313,21 +313,21 @@ namespace ToolManagementAppV2.Services.Tools
             IsPowerTool = (r["IsPowerTool"] is DBNull ? 0 : Convert.ToInt32(r["IsPowerTool"])) == 1
         };
 
-        private async Task AddToolInternalAsync(ToolModel tool, CancellationToken cancellationToken)
+        private async Task AddToolInternalAsync(ItemModel tool, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(tool?.ToolNumber))
                 tool.ToolNumber = await GenerateNextToolNumberAsync(cancellationToken);
             if (await ToolExistsAsync(tool.ToolNumber, null, cancellationToken))
-                throw new InvalidOperationException($"Tool {tool.ToolNumber} already exists.");
+                throw new InvalidOperationException($"ItemModel {tool.ToolNumber} already exists.");
             ValidateQuantity(tool.QuantityOnHand);
             using var conn = _dbService.CreateConnection();
             await InsertToolAsync(conn, null, tool, cancellationToken);
         }
 
-        private async Task UpdateToolInternalAsync(ToolModel tool, CancellationToken cancellationToken)
+        private async Task UpdateToolInternalAsync(ItemModel tool, CancellationToken cancellationToken)
         {
             if (await ToolExistsAsync(tool.ToolNumber, tool.ToolID, cancellationToken))
-                throw new InvalidOperationException($"Tool {tool.ToolNumber} already exists.");
+                throw new InvalidOperationException($"ItemModel {tool.ToolNumber} already exists.");
             using var conn = _dbService.CreateConnection();
             ValidateQuantity(tool.QuantityOnHand);
             const string sql = @"
@@ -395,7 +395,7 @@ namespace ToolManagementAppV2.Services.Tools
             }
         }
 
-        public async Task<ToolModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default)
+        public async Task<ItemModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default)
         {
             using var conn = _dbService.CreateConnection();
             var list = await SqliteHelper.ExecuteReaderAsync(conn, "SELECT * FROM Tools WHERE ToolID=@ToolID",
@@ -403,13 +403,13 @@ namespace ToolManagementAppV2.Services.Tools
             return list.FirstOrDefault();
         }
 
-        public async Task<List<ToolModel>> GetAllToolsAsync(CancellationToken cancellationToken = default)
+        public async Task<List<ItemModel>> GetAllToolsAsync(CancellationToken cancellationToken = default)
         {
             using var conn = _dbService.CreateConnection();
             return await SqliteHelper.ExecuteReaderAsync(conn, AllToolsSql, null, MapTool, cancellationToken);
         }
 
-        public async Task<List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default)
+        public async Task<List<ItemModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (string.IsNullOrWhiteSpace(searchText))
@@ -464,7 +464,7 @@ namespace ToolManagementAppV2.Services.Tools
                 r => new { Out = Convert.ToInt32(r["IsCheckedOut"]) == 1, Qty = Convert.ToInt32(r["AvailableQuantity"]) }, cancellationToken)).FirstOrDefault();
 
             if (record == null)
-                throw new InvalidOperationException($"Tool {toolID} not found.");
+                throw new InvalidOperationException($"ItemModel {toolID} not found.");
 
             if (!record.Out && record.Qty <= 0)
                 return false;

@@ -26,7 +26,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
                 var customerService = new CustomerService(db);
@@ -40,12 +40,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     fileDialogService, activityLogService, settingsService, db, dialogService);
 
                 var field = typeof(ObservableObject).GetField("PropertyChanged", BindingFlags.Instance | BindingFlags.NonPublic);
-                var handlersBefore = ((MulticastDelegate?)field?.GetValue(vm.ToolManagement))?.GetInvocationList() ?? Array.Empty<Delegate>();
+                var handlersBefore = ((MulticastDelegate?)field?.GetValue(vm.ItemManagement))?.GetInvocationList() ?? Array.Empty<Delegate>();
                 Assert.Contains(handlersBefore, h => ReferenceEquals(h.Target, vm));
 
                 vm.Dispose();
 
-                var handlersAfter = ((MulticastDelegate?)field?.GetValue(vm.ToolManagement))?.GetInvocationList() ?? Array.Empty<Delegate>();
+                var handlersAfter = ((MulticastDelegate?)field?.GetValue(vm.ItemManagement))?.GetInvocationList() ?? Array.Empty<Delegate>();
                 Assert.DoesNotContain(handlersAfter, h => ReferenceEquals(h.Target, vm));
             }
             finally
@@ -64,7 +64,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var dbPath = Path.GetTempFileName();
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
                 var customerService = new CustomerService(db);

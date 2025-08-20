@@ -26,7 +26,7 @@ namespace ToolManagementAppV2.Tests.Tests
                     var dock = Assert.IsType<DockPanel>(window.Content);
                     var stack = Assert.IsType<StackPanel>(dock.Children[0]);
 
-                    var restricted = new[] { "Tool Management", "Users", "Settings", "Import/Export" };
+                    var restricted = new[] { "ItemModel Management", "Users", "Settings", "Import/Export" };
                     bool anyVisible = stack.Children
                         .OfType<Button>()
                         .Where(b => restricted.Contains(b.Content?.ToString()))

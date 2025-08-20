@@ -28,7 +28,7 @@ namespace ToolManagementAppV2.Tests.Views
                 {
                     try
                     {
-                        var toolSvc = new StubToolService();
+                        var toolSvc = new StubItemService();
                         var customerSvc = new StubCustomerService();
                         var fileDlg = new StubFileDialogService { FileToReturn = tmp };
                         var dialog = new StubDialogService();
@@ -80,23 +80,23 @@ namespace ToolManagementAppV2.Tests.Views
         public bool ShowImportMappingCalled { get; private set; }
         public void ShowInfo(string message, string title) { }
         public bool ShowConfirmation(string message, string title) => false;
-        public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
-        public void ShowToolDetails(ToolModel tool) { }
-        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, System.Collections.Generic.IEnumerable<CustomerModel> customers) => null;
+        public ItemModel? ShowEditToolDialog(ItemModel tool) => null;
+        public void ShowToolDetails(ItemModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, System.Collections.Generic.IEnumerable<CustomerModel> customers) => null;
         public CustomerModel? ShowAddCustomerDialog() => null;
         public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
-        public void ShowRentalHistory(ToolModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }
+        public void ShowRentalHistory(ItemModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }
         public System.Collections.Generic.Dictionary<string, string>? ShowImportMapping(System.Collections.Generic.IEnumerable<string> headers, System.Collections.Generic.IEnumerable<string> properties)
         {
             ShowImportMappingCalled = true;
             return MapToReturn;
         }
-        public Func<ToolModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
+        public Func<ItemModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
         public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
         public void ShowPrintLabelDialog() { }
     }
 
-    class StubToolService : IToolService
+    class StubItemService : IItemService
     {
         public bool ImportCalled { get; private set; }
         public Task<System.Collections.Generic.List<int>> ImportToolsFromCsvAsync(string filePath, System.Collections.Generic.IDictionary<string, string> map, CancellationToken cancellationToken)
@@ -105,16 +105,16 @@ namespace ToolManagementAppV2.Tests.Views
             return Task.FromResult(new System.Collections.Generic.List<int>());
         }
         public Task ExportToolsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task<System.Collections.Generic.List<ToolModel>> GetAllToolsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new System.Collections.Generic.List<ToolModel>());
-        public Task AddToolAsync(ToolModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public Task UpdateToolAsync(ToolModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<System.Collections.Generic.List<ItemModel>> GetAllToolsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new System.Collections.Generic.List<ItemModel>());
+        public Task AddToolAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task UpdateToolAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task DeleteToolAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public Task<ToolModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public Task<System.Collections.Generic.List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new System.Collections.Generic.List<ToolModel>());
+        public Task<ItemModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<System.Collections.Generic.List<ItemModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new System.Collections.Generic.List<ItemModel>());
         public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public Task<System.Collections.Generic.List<ToolModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new System.Collections.Generic.List<ToolModel>());
+        public Task<System.Collections.Generic.List<ItemModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new System.Collections.Generic.List<ItemModel>());
         public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, System.Collections.Generic.IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
+        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ItemModel, System.Collections.Generic.IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
         public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, System.Data.SQLite.SQLiteConnection? conn = null, System.Data.SQLite.SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<string> GenerateNextToolNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
     }

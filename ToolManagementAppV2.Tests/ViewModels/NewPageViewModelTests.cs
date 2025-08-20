@@ -43,7 +43,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task ImportExportViewModel_ImportToolsCommand_LogsSuccess()
         {
-            var toolService = new StubToolService();
+            var toolService = new StubItemService();
             var customerService = new StubCustomerService();
             var fileDlg = new StubFileDialogService();
             var tmp = Path.GetTempFileName();
@@ -61,7 +61,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task ImportExportViewModel_ExportToolsCommand_LogsSuccess()
         {
-            var toolService = new StubToolService();
+            var toolService = new StubItemService();
             var customerService = new StubCustomerService();
             var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
             await vm.ExportToolsCommand.ExecuteAsync(null);
@@ -73,7 +73,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task ImportExportViewModel_ImportCustomersCommand_LogsSuccess()
         {
-            var toolService = new StubToolService();
+            var toolService = new StubItemService();
             var customerService = new StubCustomerService();
             var fileDlg = new StubFileDialogService();
             var tmp = Path.GetTempFileName();
@@ -91,7 +91,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task ImportExportViewModel_ExportCustomersCommand_LogsSuccess()
         {
-            var toolService = new StubToolService();
+            var toolService = new StubItemService();
             var customerService = new StubCustomerService();
             var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
             await vm.ExportCustomersCommand.ExecuteAsync(null);
@@ -103,7 +103,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task ImportExportViewModel_BackupDatabaseCommand_LogsSuccess()
         {
-            var vm = new ImportExportViewModel(new StubToolService(), new StubCustomerService(), new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
+            var vm = new ImportExportViewModel(new StubItemService(), new StubCustomerService(), new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
             await vm.BackupDatabaseCommand.ExecuteAsync(null);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Successfully backed up database", vm.ImportExportLogs[0]);
@@ -112,7 +112,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task ImportExportViewModel_BackupDatabaseCommand_CancelledOperation_LogsCancellation()
         {
-            var vm = new ImportExportViewModel(new StubToolService(), new StubCustomerService(), new StubFileDialogService(), new CancellableDatabaseBackupService(), new StubDialogService());
+            var vm = new ImportExportViewModel(new StubItemService(), new StubCustomerService(), new StubFileDialogService(), new CancellableDatabaseBackupService(), new StubDialogService());
             var task = vm.BackupDatabaseCommand.ExecuteAsync(null);
             vm.BackupDatabaseCommand.Cancel();
             await task;
@@ -123,7 +123,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task ImportExportViewModel_ImportToolsCommand_LogsFailure()
         {
-            var toolService = new FailToolService();
+            var toolService = new FailItemService();
             var customerService = new StubCustomerService();
             var fileDlg = new StubFileDialogService();
             var tmp = Path.GetTempFileName();
@@ -140,7 +140,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task ImportExportViewModel_ExportToolsCommand_LogsFailure()
         {
-            var toolService = new FailToolService();
+            var toolService = new FailItemService();
             var customerService = new StubCustomerService();
             var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
             await vm.ExportToolsCommand.ExecuteAsync(null);
@@ -151,7 +151,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task ImportExportViewModel_ImportCustomersCommand_LogsFailure()
         {
-            var toolService = new StubToolService();
+            var toolService = new StubItemService();
             var customerService = new FailCustomerService();
             var fileDlg = new StubFileDialogService();
             var tmp = Path.GetTempFileName();
@@ -168,7 +168,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task ImportExportViewModel_ExportCustomersCommand_LogsFailure()
         {
-            var toolService = new StubToolService();
+            var toolService = new StubItemService();
             var customerService = new FailCustomerService();
             var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
             await vm.ExportCustomersCommand.ExecuteAsync(null);
@@ -183,7 +183,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var reportService = new ReportService(new StubToolService(), new StubRentalService(), new ActivityLogService(db), new StubCustomerService(), new StubUserService());
+                var reportService = new ReportService(new StubItemService(), new StubRentalService(), new ActivityLogService(db), new StubCustomerService(), new StubUserService());
                 var vm = new ReportsViewModel(reportService);
                 vm.SelectedReport = vm.ReportTypes.First();
                 vm.RunReportCommand.Execute(null);
@@ -210,23 +210,23 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public bool ShowImportMappingCalled { get; private set; }
         public void ShowInfo(string message, string title) { }
         public bool ShowConfirmation(string message, string title) => false;
-        public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
-        public void ShowToolDetails(ToolModel tool) { }
-        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+        public ItemModel? ShowEditToolDialog(ItemModel tool) => null;
+        public void ShowToolDetails(ItemModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
         public CustomerModel? ShowAddCustomerDialog() => null;
         public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
-        public void ShowRentalHistory(ToolModel tool, IEnumerable<RentalModel> history) { }
+        public void ShowRentalHistory(ItemModel tool, IEnumerable<RentalModel> history) { }
         public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties)
         {
             ShowImportMappingCalled = true;
             return MapToReturn;
         }
-        public Func<ToolModel, IEnumerable<string>>? ShowImageImportMapping() => null;
+        public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
         public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
         public void ShowPrintLabelDialog() { }
     }
 
-    class StubToolService : IToolService
+    class StubItemService : IItemService
     {
         public bool ImportCalled { get; private set; }
         public bool ExportCalled { get; private set; }
@@ -240,34 +240,34 @@ namespace ToolManagementAppV2.Tests.ViewModels
             ExportCalled = true;
             return Task.CompletedTask;
         }
-        public Task<List<ToolModel>> GetAllToolsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
-        public Task AddToolAsync(ToolModel tool, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task UpdateToolAsync(ToolModel tool, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task<List<ItemModel>> GetAllToolsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
+        public Task AddToolAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task UpdateToolAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task DeleteToolAsync(int toolID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task<ToolModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task<List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
+        public Task<ItemModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task<List<ItemModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
         public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
+        public Task<List<ItemModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
         public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, System.Func<ToolModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
+        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, System.Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
         public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<string> GenerateNextToolNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
     }
 
-    class FailToolService : IToolService
+    class FailItemService : IItemService
     {
         public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => Task.FromException<List<int>>(new System.Exception("fail"));
         public Task ExportToolsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.FromException(new System.Exception("fail"));
-        public Task<List<ToolModel>> GetAllToolsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
-        public Task AddToolAsync(ToolModel tool, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task UpdateToolAsync(ToolModel tool, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task<List<ItemModel>> GetAllToolsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
+        public Task AddToolAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task UpdateToolAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task DeleteToolAsync(int toolID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task<ToolModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task<List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
+        public Task<ItemModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task<List<ItemModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
         public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
+        public Task<List<ItemModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
         public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, System.Func<ToolModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
+        public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, System.Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
         public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<string> GenerateNextToolNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
     }

@@ -15,14 +15,14 @@ namespace ToolManagementAppV2.Services.Tools
 {
     public class ReportService
     {
-        readonly IToolService _toolService;
+        readonly IItemService _toolService;
         readonly IRentalService _rentalService;
         readonly ActivityLogService _activityLogService;
         readonly ICustomerService _customerService;
         readonly IUserService _userService;
 
         public ReportService(
-            IToolService toolService,
+            IItemService toolService,
             IRentalService rentalService,
             ActivityLogService activityLogService,
             ICustomerService customerService,
@@ -39,8 +39,8 @@ namespace ToolManagementAppV2.Services.Tools
         {
             var tools = await _toolService.GetAllToolsAsync().ConfigureAwait(false);
             var lines = tools.Select(t =>
-                $"Tool ID: {t.ToolID} | ToolNumber: {t.ToolNumber} | Qty: {t.QuantityOnHand} | Location: {t.Location} | Supplier: {t.Supplier}");
-            return BuildReport("Tool Inventory Report", lines);
+                $"ItemModel ID: {t.ToolID} | ToolNumber: {t.ToolNumber} | Qty: {t.QuantityOnHand} | Location: {t.Location} | Supplier: {t.Supplier}");
+            return BuildReport("ItemModel Inventory Report", lines);
         }
 
         public async Task<FlowDocument> GenerateRentalReport(bool activeOnly = true)
@@ -52,7 +52,7 @@ namespace ToolManagementAppV2.Services.Tools
             var title = activeOnly ? "Active Rental Report" : "Full Rental History Report";
 
             var lines = rentals.Select(r =>
-                $"Rental ID: {r.RentalID} | Tool ID: {r.ToolID} | Customer ID: {r.CustomerID} | Rental Date: {r.RentalDate:yyyy-MM-dd} | Due Date: {r.DueDate:yyyy-MM-dd} | Return Date: {(r.ReturnDate.HasValue ? r.ReturnDate.Value.ToString("yyyy-MM-dd") : "N/A")} | Status: {r.Status}");
+                $"Rental ID: {r.RentalID} | ItemModel ID: {r.ToolID} | Customer ID: {r.CustomerID} | Rental Date: {r.RentalDate:yyyy-MM-dd} | Due Date: {r.DueDate:yyyy-MM-dd} | Return Date: {(r.ReturnDate.HasValue ? r.ReturnDate.Value.ToString("yyyy-MM-dd") : "N/A")} | Status: {r.Status}");
 
             return BuildReport(title, lines);
         }

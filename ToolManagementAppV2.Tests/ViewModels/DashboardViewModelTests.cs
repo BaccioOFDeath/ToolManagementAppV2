@@ -23,7 +23,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
@@ -67,7 +67,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [InlineData("customerService")]
         [InlineData("userService")]
         [InlineData("activityLogService")]
-        [InlineData("openManageToolsCommand")]
+        [InlineData("openManageItemsCommand")]
         [InlineData("openRentalsCommand")]
         [InlineData("openImportExportCommand")]
         public void Constructor_ThrowsArgumentNull(string nullParam)
@@ -76,7 +76,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
@@ -91,7 +91,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                     nullParam == "customerService" ? null : customerService,
                     nullParam == "userService" ? null : userService,
                     nullParam == "activityLogService" ? null : activityLogService,
-                    nullParam == "openManageToolsCommand" ? null : manageCmd,
+                    nullParam == "openManageItemsCommand" ? null : manageCmd,
                     nullParam == "openRentalsCommand" ? null : rentalsCmd,
                     nullParam == "openImportExportCommand" ? null : importCmd));
 
@@ -111,7 +111,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);

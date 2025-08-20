@@ -193,7 +193,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public void ItemLabels_UpdateServiceAndProvider()
         {
             var settings = new StubSettingsService();
-            LabelProvider.Instance.UpdateLabels("Tool", "Tools");
+            LabelProvider.Instance.UpdateLabels("ItemModel", "Tools");
             var vm = new SettingsViewModel(new StubFileDialogService(), settings, new StubDialogService());
             vm.ItemLabelSingular = "Widget";
             vm.ItemLabelPlural = "Widgets";
@@ -201,7 +201,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             Assert.Equal("Widgets", settings.ItemLabelPlural);
             Assert.Equal("Widget", LabelProvider.Instance.ItemLabelSingular);
             Assert.Equal("Widgets", LabelProvider.Instance.ItemLabelPlural);
-            LabelProvider.Instance.UpdateLabels("Tool", "Tools");
+            LabelProvider.Instance.UpdateLabels("ItemModel", "Tools");
         }
 
         [Fact]
@@ -242,7 +242,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public IEnumerable<string> ScannerIps { get; set; } = Array.Empty<string>();
         public int PasswordIterations { get; set; } = 100_000;
         public int AutoLogoutMinutes { get; set; }
-        public string ItemLabelSingular { get; set; } = "Tool";
+        public string ItemLabelSingular { get; set; } = "ItemModel";
         public string ItemLabelPlural { get; set; } = "Tools";
 
         public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default)
@@ -308,14 +308,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
         
         public bool ShowConfirmation(string message, string title) => true;
-        public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
-        public void ShowToolDetails(ToolModel tool) { }
-        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+        public ItemModel? ShowEditToolDialog(ItemModel tool) => null;
+        public void ShowToolDetails(ItemModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
         public CustomerModel? ShowAddCustomerDialog() => null;
         public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
-        public void ShowRentalHistory(ToolModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }
+        public void ShowRentalHistory(ItemModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }
         public System.Collections.Generic.Dictionary<string, string>? ShowImportMapping(System.Collections.Generic.IEnumerable<string> headers, System.Collections.Generic.IEnumerable<string> properties) => null;
-        public System.Func<ToolModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
+        public System.Func<ItemModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
         public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
         public void ShowPrintLabelDialog() { }
     }
@@ -324,14 +324,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
     {
         public void ShowInfo(string message, string title) => throw new InvalidOperationException("dialog failure");
         public bool ShowConfirmation(string message, string title) => false;
-        public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
-        public void ShowToolDetails(ToolModel tool) { }
-        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+        public ItemModel? ShowEditToolDialog(ItemModel tool) => null;
+        public void ShowToolDetails(ItemModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
         public CustomerModel? ShowAddCustomerDialog() => null;
         public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
-        public void ShowRentalHistory(ToolModel tool, IEnumerable<RentalModel> history) { }
+        public void ShowRentalHistory(ItemModel tool, IEnumerable<RentalModel> history) { }
         public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties) => null;
-        public Func<ToolModel, IEnumerable<string>>? ShowImageImportMapping() => null;
+        public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
         public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
         public void ShowPrintLabelDialog() { }
     }

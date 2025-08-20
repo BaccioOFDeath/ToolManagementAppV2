@@ -36,11 +36,11 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db, toolService);
 
-                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 5 };
+                var tool = new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 5 };
                 toolService.AddTool(tool);
                 var addedTool = toolService.GetAllTools().First();
 
@@ -69,11 +69,11 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db, toolService);
 
-                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 0 };
+                var tool = new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 0 };
                 toolService.AddTool(tool);
                 var addedTool = toolService.GetAllTools().First();
 
@@ -98,11 +98,11 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db, toolService);
 
-                var tool = new Tool { ToolNumber = "T2", NameDescription = "Wrench", QuantityOnHand = 0 };
+                var tool = new ItemModel { ToolNumber = "T2", NameDescription = "Wrench", QuantityOnHand = 0 };
                 toolService.AddTool(tool);
                 var addedTool = toolService.GetAllTools().First();
 
@@ -127,7 +127,7 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 IRentalService rentalService = new RentalService(db, toolService);
 
                 Assert.Throws<InvalidOperationException>(() => rentalService.ReturnTool(1, DateTime.Today));
@@ -146,7 +146,7 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 IRentalService rentalService = new RentalService(db, toolService);
 
                 Assert.Throws<InvalidOperationException>(() => rentalService.ReturnTool(1, DateTime.Today));
@@ -165,7 +165,7 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var rentalService = new RentalService(db, toolService);
 
                 Assert.Throws<InvalidOperationException>(() =>
@@ -185,11 +185,11 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db, toolService);
 
-                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 };
+                var tool = new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 };
                 toolService.AddTool(tool);
                 var addedTool = toolService.GetAllTools().First();
 
@@ -218,11 +218,11 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db, toolService);
 
-                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 };
+                var tool = new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 };
                 toolService.AddTool(tool);
                 var addedTool = toolService.GetAllTools().First();
 
@@ -250,7 +250,7 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var rentalService = new RentalService(db, toolService);
 
                 Assert.Throws<InvalidOperationException>(() => rentalService.DeleteRental(1));
@@ -269,11 +269,11 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db, toolService);
 
-                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1, Location = "A1", ToolImagePath = "path" };
+                var tool = new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1, Location = "A1", ToolImagePath = "path" };
                 toolService.AddTool(tool);
                 var addedTool = toolService.GetAllTools().First();
 
@@ -307,11 +307,11 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db, toolService);
 
-                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
+                toolService.AddTool(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
                 var tool = toolService.GetAllTools().First();
 
                 customerService.AddCustomer(new Customer { Company = "Acme" });
@@ -344,11 +344,11 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db, toolService);
 
-                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
+                toolService.AddTool(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
                 var tool = toolService.GetAllTools().First();
 
                 customerService.AddCustomer(new Customer { Company = "Acme" });
@@ -358,8 +358,8 @@ namespace ToolManagementAppV2.Tests.Services
                 var rental = rentalService.GetAllRentals().First();
                 var originalDue = rental.DueDate;
 
-                var failingToolService = new FailingToolService();
-                var rentalService2 = new RentalService(db, failingToolService);
+                var failingItemService = new FailingItemService();
+                var rentalService2 = new RentalService(db, failingItemService);
 
                 Assert.Throws<InvalidOperationException>(() =>
                     rentalService2.ExtendRental(rental.RentalID, DateTime.Today.AddDays(1)));
@@ -388,11 +388,11 @@ namespace ToolManagementAppV2.Tests.Services
                 var ctx = new StubUserContext { CurrentUser = new User { UserID = 1, UserName = "tester", IsAdmin = true } };
                 var auth = new AllowAllAuthorizationService();
                 var logService = new ActivityLogService(db);
-                var toolService = new ToolService(db, auth, null, logService, ctx);
+                var toolService = new ItemService(db, auth, null, logService, ctx);
                 var customerService = new CustomerService(db, auth);
                 var rentalService = new RentalService(db, auth, toolService, null, logService, ctx);
 
-                await toolService.AddToolAsync(new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1, RentedQuantity = 0 });
+                await toolService.AddToolAsync(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1, RentedQuantity = 0 });
                 await customerService.AddCustomerAsync(new Customer { Company = "Acme" });
                 var tool = (await toolService.GetAllToolsAsync()).First();
                 var cust = (await customerService.GetAllCustomersAsync()).First();
@@ -409,20 +409,20 @@ namespace ToolManagementAppV2.Tests.Services
             }
         }
 
-        class FailingToolService : IToolService
+        class FailingItemService : IItemService
         {
             public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => throw new NotImplementedException();
             public Task ExportToolsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task<List<ToolModel>> GetAllToolsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
-            public Task AddToolAsync(ToolModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task UpdateToolAsync(ToolModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<List<ItemModel>> GetAllToolsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
+            public Task AddToolAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task UpdateToolAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task DeleteToolAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<ToolModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
+            public Task<ItemModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<List<ItemModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
             public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
+            public Task<List<ItemModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
             public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
+            public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
             public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default)
                 => throw new InvalidOperationException("fail");
             public Task<string> GenerateNextToolNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");

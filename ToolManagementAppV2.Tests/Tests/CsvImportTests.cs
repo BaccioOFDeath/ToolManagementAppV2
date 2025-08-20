@@ -109,7 +109,7 @@ public class CsvImportTests
                 "T1,Screwdriver");
             File.WriteAllText(csvPath, csv);
             var db = new DatabaseService(dbPath);
-            var service = new ToolService(db);
+            var service = new ItemService(db);
             var map = new Dictionary<string, string>
             {
                 {"ToolNumber", "ToolNumber"},
@@ -137,10 +137,10 @@ public class CsvImportTests
         try
         {
             var db = new DatabaseService(dbPath);
-            var service = new ToolService(db);
+            var service = new ItemService(db);
 
             for (int i = 0; i < 100; i++)
-                service.AddTool(new ToolModel { ToolNumber = $"E{i}", NameDescription = $"Existing {i}" });
+                service.AddTool(new ItemModel { ToolNumber = $"E{i}", NameDescription = $"Existing {i}" });
 
             var sb = new System.Text.StringBuilder();
             sb.AppendLine("ToolNumber,NameDescription");
@@ -179,8 +179,8 @@ public class CsvImportTests
         try
         {
             using var db = new DatabaseService(dbPath);
-            var service = new ToolService(db);
-            service.AddTool(new ToolModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 5, IsPowerTool = true });
+            var service = new ItemService(db);
+            service.AddTool(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 5, IsPowerTool = true });
 
             await service.ExportToolsToCsvAsync(csvPath);
 

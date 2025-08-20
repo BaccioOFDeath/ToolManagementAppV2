@@ -13,18 +13,18 @@ namespace ToolManagementAppV2.ViewModels
         /// </summary>
         private readonly IFileDialogService _fileDialog;
 
-        public ToolModel Tool { get; }
+        public ItemModel ItemModel { get; }
 
         public IRelayCommand SaveCommand { get; }
         public IRelayCommand CancelCommand { get; }
 
         /// <summary>
-        /// Opens a file dialog to select an image and updates <see cref="Tool.ToolImagePath"/>.
+        /// Opens a file dialog to select an image and updates <see cref="ItemModel.ToolImagePath"/>.
         /// </summary>
         public IRelayCommand BrowseImageCommand { get; }
 
         /// <summary>
-        /// Clears the current <see cref="Tool.ToolImagePath"/> and removes the preview.
+        /// Clears the current <see cref="ItemModel.ToolImagePath"/> and removes the preview.
         /// </summary>
         public IRelayCommand RemoveImageCommand { get; }
 
@@ -35,9 +35,9 @@ namespace ToolManagementAppV2.ViewModels
         /// <param name="onSave">Action invoked to persist the tool changes.</param>
         /// <param name="onCancel">Action invoked when editing is canceled.</param>
         /// <param name="fileDialog">Service used for browsing image files.</param>
-        public ToolEditViewModel(ToolModel tool, Action onSave, Action onCancel, IFileDialogService fileDialog)
+        public ToolEditViewModel(ItemModel tool, Action onSave, Action onCancel, IFileDialogService fileDialog)
         {
-            Tool = tool;
+            ItemModel = tool;
             _fileDialog = fileDialog;
 
             SaveCommand = new RelayCommand(onSave);
@@ -52,13 +52,13 @@ namespace ToolManagementAppV2.ViewModels
             var path = _fileDialog.OpenFile("Image Files|*.png;*.jpg;*.jpeg;*.bmp|All Files|*.*");
             if (!string.IsNullOrEmpty(path))
             {
-                Tool.ToolImagePath = path;
+                ItemModel.ToolImagePath = path;
             }
         }
 
         void RemoveImage()
         {
-            Tool.ToolImagePath = string.Empty;
+            ItemModel.ToolImagePath = string.Empty;
         }
     }
 }

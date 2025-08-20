@@ -447,7 +447,7 @@ namespace ToolManagementAppV2.Tests.Services
             {
                 var dbService = new DatabaseService(dbPath);
                 var service = new SettingsService(dbService);
-                Assert.Equal("Tool", service.GetItemLabelSingularAsync().GetAwaiter().GetResult());
+                Assert.Equal("ItemModel", service.GetItemLabelSingularAsync().GetAwaiter().GetResult());
                 Assert.Equal("Tools", service.GetItemLabelPluralAsync().GetAwaiter().GetResult());
                 service.SaveItemLabelSingularAsync("Widget").GetAwaiter().GetResult();
                 service.SaveItemLabelPluralAsync("Widgets").GetAwaiter().GetResult();

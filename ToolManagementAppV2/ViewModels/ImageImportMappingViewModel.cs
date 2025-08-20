@@ -26,7 +26,7 @@ namespace ToolManagementAppV2.ViewModels
             CancelCommand = new RelayCommand(onCancel);
         }
 
-        public Func<ToolModel, IEnumerable<string>> BuildSelector()
+        public Func<ItemModel, IEnumerable<string>> BuildSelector()
         {
             return t =>
             {

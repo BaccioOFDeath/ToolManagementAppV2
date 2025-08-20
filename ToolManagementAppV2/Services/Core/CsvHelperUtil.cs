@@ -32,10 +32,10 @@ namespace ToolManagementAppV2.Utilities.IO
         }
 
 
-        public static List<ToolModel> LoadToolsFromCsv(string filePath, IDictionary<string, string> map, out List<int> invalidRows)
+        public static List<ItemModel> LoadToolsFromCsv(string filePath, IDictionary<string, string> map, out List<int> invalidRows)
         {
             ValidateRequired(map, "ToolNumber");
-            var list = new List<ToolModel>();
+            var list = new List<ItemModel>();
             invalidRows = new List<int>();
             using var parser = new TextFieldParser(filePath);
             parser.SetDelimiters(",");
@@ -56,7 +56,7 @@ namespace ToolManagementAppV2.Utilities.IO
                     continue;
                 }
 
-                list.Add(new ToolModel
+                list.Add(new ItemModel
                 {
                     ToolNumber = toolNumber,
                     NameDescription = GetMapped(cols, headers, map, "NameDescription"),
@@ -74,7 +74,7 @@ namespace ToolManagementAppV2.Utilities.IO
             return list;
         }
 
-        public static async Task<(List<ToolModel> Tools, List<int> InvalidRows)> LoadToolsFromCsvAsync(
+        public static async Task<(List<ItemModel> Tools, List<int> InvalidRows)> LoadToolsFromCsvAsync(
             string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default)
         {
             return await Task.Run(() =>
@@ -84,7 +84,7 @@ namespace ToolManagementAppV2.Utilities.IO
             }, cancellationToken).ConfigureAwait(false);
         }
 
-        public static void ExportToolsToCsv(string filePath, List<ToolModel> tools)
+        public static void ExportToolsToCsv(string filePath, List<ItemModel> tools)
         {
             var lines = new List<string>
             {
@@ -105,7 +105,7 @@ namespace ToolManagementAppV2.Utilities.IO
             File.WriteAllLines(filePath, lines);
         }
 
-        public static async Task ExportToolsToCsvAsync(string filePath, List<ToolModel> tools)
+        public static async Task ExportToolsToCsvAsync(string filePath, List<ItemModel> tools)
         {
             var lines = new List<string>
             {

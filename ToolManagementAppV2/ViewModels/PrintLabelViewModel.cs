@@ -31,7 +31,7 @@ namespace ToolManagementAppV2.ViewModels
             set => SetProperty(ref _includeQr, value);
         }
 
-        public ObservableCollection<ToolModel> Items { get; }
+        public ObservableCollection<ItemModel> Items { get; }
 
         public IRelayCommand PreviewCommand { get; }
         public IRelayCommand PrintCommand { get; }
@@ -49,7 +49,7 @@ namespace ToolManagementAppV2.ViewModels
             });
             Templates = new ObservableCollection<string> { "Standard", "Compact" };
             _selectedTemplate = Templates.First();
-            Items = new ObservableCollection<ToolModel>();
+            Items = new ObservableCollection<ItemModel>();
             PreviewCommand = new RelayCommand(Preview);
             PrintCommand = new RelayCommand(Print);
             CloseCommand = new RelayCommand(() => _closeAction?.Invoke());

@@ -32,7 +32,7 @@ namespace ToolManagementAppV2.ViewModels
 {
     public class MainViewModel : ObservableObject, IMainViewModel, IDisposable
     {
-        readonly IToolService _toolService;
+        readonly IItemService _toolService;
         readonly IUserService _userService;
         readonly IUserContext _userContext;
         readonly ICustomerService _customerService;
@@ -48,9 +48,9 @@ namespace ToolManagementAppV2.ViewModels
         int _autoLogoutMinutes;
 
         EventHandler<User?>? _userContextChangedHandler;
-        PropertyChangedEventHandler? _toolManagementPropertyChangedHandler;
+        PropertyChangedEventHandler? _itemManagementPropertyChangedHandler;
 
-        public ToolManagementViewModel ToolManagement { get; }
+        public ItemManagementViewModel ItemManagement { get; }
         public UserManagementViewModel UserManagement { get; }
         public CustomerManagementViewModel CustomerManagement { get; }
         public ManageRentalsViewModel ManageRentals { get; }
@@ -114,7 +114,7 @@ namespace ToolManagementAppV2.ViewModels
             private set => SetProperty(ref _companyLogoPath, value);
         }
 
-        public ToolModel? SelectedTool => ToolManagement.SelectedTool;
+        public ItemModel? SelectedItem => ItemManagement.SelectedItem;
 
         public void ResetAutoLogoutTimer()
         {
@@ -145,7 +145,7 @@ namespace ToolManagementAppV2.ViewModels
 
         public IRelayCommand OpenDashboardCommand { get; }
         public IAsyncRelayCommand OpenSearchToolsCommand { get; }
-        public IAsyncRelayCommand OpenManageToolsCommand { get; }
+        public IAsyncRelayCommand OpenManageItemsCommand { get; }
         public IAsyncRelayCommand OpenRentalsCommand { get; }
         public IAsyncRelayCommand OpenCustomersCommand { get; }
         public IAsyncRelayCommand OpenUsersCommand { get; }
@@ -163,7 +163,7 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand OpenPrintLabelWindowCommand { get; }
         public IRelayCommand OpenScannerStatusPageCommand { get; }
 
-        public MainViewModel(IToolService toolService,
+        public MainViewModel(IItemService toolService,
                              IUserService userService,
                              IUserContext userContext,
                              ICustomerService customerService,
@@ -201,15 +201,15 @@ namespace ToolManagementAppV2.ViewModels
             _userContextChangedHandler = (_, _) => RefreshCurrentUser();
             _userContext.UserChanged += _userContextChangedHandler;
 
-            ToolManagement = new ToolManagementViewModel(toolService, customerService, rentalService, _dialogService);
-            _toolManagementPropertyChangedHandler = (s, e) =>
+            ItemManagement = new ItemManagementViewModel(toolService, customerService, rentalService, _dialogService);
+            _itemManagementPropertyChangedHandler = (s, e) =>
             {
-                if (e.PropertyName == nameof(ToolManagementViewModel.SelectedTool))
+                if (e.PropertyName == nameof(ItemManagementViewModel.SelectedItem))
                 {
-                    OnPropertyChanged(nameof(SelectedTool));
+                    OnPropertyChanged(nameof(SelectedItem));
                 }
             };
-            ToolManagement.PropertyChanged += _toolManagementPropertyChangedHandler;
+            ItemManagement.PropertyChanged += _itemManagementPropertyChangedHandler;
             UserManagement = new UserManagementViewModel(userService, fileDialogService, _dialogService);
             CustomerManagement = new CustomerManagementViewModel(customerService, _dialogService);
             ManageRentals = new ManageRentalsViewModel(rentalService, _dialogService);
@@ -230,25 +230,25 @@ namespace ToolManagementAppV2.ViewModels
 
             OpenDashboardCommand = new RelayCommand(() =>
             {
-                var vm = new DashboardViewModel(_toolService, _rentalService, _customerService, _userService, _activityLogService, OpenManageToolsCommand, OpenRentalsCommand, OpenImportExportCommand);
+                var vm = new DashboardViewModel(_toolService, _rentalService, _customerService, _userService, _activityLogService, OpenManageItemsCommand, OpenRentalsCommand, OpenImportExportCommand);
                 var page = new DashboardPage { DataContext = vm, Title = "Dashboard" };
                 CurrentPage = page;
             });
 
             OpenSearchToolsCommand = new AsyncRelayCommand(async () =>
             {
-                await ToolManagement.LoadToolsAsync();
+                await ItemManagement.LoadToolsAsync();
                 var plural = LabelProvider.Instance.ItemLabelPlural;
-                var page = new ToolSearchPage { DataContext = ToolManagement, Title = $"Search {plural}" };
-                // If your ToolManagement VM supports a query setter, apply GlobalSearchText there.
+                var page = new ToolSearchPage { DataContext = ItemManagement, Title = $"Search {plural}" };
+                // If your ItemManagement VM supports a query setter, apply GlobalSearchText there.
                 CurrentPage = page;
             });
 
-            OpenManageToolsCommand = new AsyncRelayCommand(async () =>
+            OpenManageItemsCommand = new AsyncRelayCommand(async () =>
             {
-                await ToolManagement.LoadToolsAsync();
+                await ItemManagement.LoadToolsAsync();
                 var plural = LabelProvider.Instance.ItemLabelPlural;
-                var page = new ManageToolsPage { DataContext = ToolManagement, Title = $"Manage {plural}" };
+                var page = new ManageItemsPage { DataContext = ItemManagement, Title = $"Manage {plural}" };
                 CurrentPage = page;
             });
 
@@ -432,7 +432,7 @@ namespace ToolManagementAppV2.ViewModels
                     return;
 
                 var headers = (await CsvHelperUtil.ReadHeadersAsync(path)).ToList();
-                var properties = typeof(ToolModel)
+                var properties = typeof(ItemModel)
                                     .GetProperties()
                                     .Select(p => p.Name)
                                     .ToList();
@@ -479,10 +479,10 @@ namespace ToolManagementAppV2.ViewModels
 
         async Task GlobalSearchAsync(CancellationToken cancellationToken)
         {
-            ToolManagement.SearchText = GlobalSearchText;
+            ItemManagement.SearchText = GlobalSearchText;
             await OpenSearchToolsCommand.ExecuteAsync(null);
-            if (ToolManagement.SearchCommand != null)
-                await ToolManagement.SearchCommand.ExecuteAsync(cancellationToken);
+            if (ItemManagement.SearchCommand != null)
+                await ItemManagement.SearchCommand.ExecuteAsync(cancellationToken);
             GlobalSearchText = string.Empty;
         }
 
@@ -495,15 +495,15 @@ namespace ToolManagementAppV2.ViewModels
                 _userContextChangedHandler = null;
             }
 
-            if (_toolManagementPropertyChangedHandler != null)
+            if (_itemManagementPropertyChangedHandler != null)
             {
-                ToolManagement.PropertyChanged -= _toolManagementPropertyChangedHandler;
-                _toolManagementPropertyChangedHandler = null;
+                ItemManagement.PropertyChanged -= _itemManagementPropertyChangedHandler;
+                _itemManagementPropertyChangedHandler = null;
             }
             Settings.PropertyChanged -= Settings_PropertyChanged;
             _autoLogoutTimer.Tick -= OnAutoLogoutTimerTick;
             _autoLogoutTimer.Stop();
-            ToolManagement.Dispose();
+            ItemManagement.Dispose();
         }
 
         private sealed class DummyScannerService : IScannerService

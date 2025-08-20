@@ -16,12 +16,12 @@ namespace ToolManagementAppV2.ViewModels
 {
     public class DashboardViewModel : ObservableObject
     {
-        readonly IToolService _toolService;
+        readonly IItemService _toolService;
         readonly IRentalService _rentalService;
         readonly ICustomerService _customerService;
         readonly IUserService _userService;
         readonly ActivityLogService _activityLogService;
-        readonly IRelayCommand _openManageToolsCommand;
+        readonly IRelayCommand _openManageItemsCommand;
         readonly IRelayCommand _openRentalsCommand;
         readonly IRelayCommand _openImportExportCommand;
         readonly ILogger<DashboardViewModel> _logger;
@@ -33,12 +33,12 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand OpenRentalsCommand { get; }
         public IRelayCommand OpenImportExportCommand { get; }
 
-        public DashboardViewModel(IToolService toolService,
+        public DashboardViewModel(IItemService toolService,
                                   IRentalService rentalService,
                                   ICustomerService customerService,
                                   IUserService userService,
                                   ActivityLogService activityLogService,
-                                  IRelayCommand openManageToolsCommand,
+                                  IRelayCommand openManageItemsCommand,
                                   IRelayCommand openRentalsCommand,
                                   IRelayCommand openImportExportCommand,
                                   ILogger<DashboardViewModel>? logger = null)
@@ -48,14 +48,14 @@ namespace ToolManagementAppV2.ViewModels
             _customerService = customerService ?? throw new ArgumentNullException(nameof(customerService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _activityLogService = activityLogService ?? throw new ArgumentNullException(nameof(activityLogService));
-            _openManageToolsCommand = openManageToolsCommand ?? throw new ArgumentNullException(nameof(openManageToolsCommand));
+            _openManageItemsCommand = openManageItemsCommand ?? throw new ArgumentNullException(nameof(openManageItemsCommand));
             _openRentalsCommand = openRentalsCommand ?? throw new ArgumentNullException(nameof(openRentalsCommand));
             _openImportExportCommand = openImportExportCommand ?? throw new ArgumentNullException(nameof(openImportExportCommand));
             _logger = logger ?? NullLogger<DashboardViewModel>.Instance;
 
             NewToolCommand = new RelayCommand(() =>
             {
-                try { _openManageToolsCommand.Execute(null); }
+                try { _openManageItemsCommand.Execute(null); }
                 catch (Exception ex) { _logger.LogError(ex, "Failed to open manage {ItemLabelPlural} page", LabelProvider.Instance.ItemLabelPlural.ToLower()); }
             });
 

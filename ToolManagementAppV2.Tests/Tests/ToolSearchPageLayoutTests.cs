@@ -31,7 +31,7 @@ namespace ToolManagementAppV2.Tests.Tests
         {
             var page = new ToolSearchPage();
             page.ToolsList.ItemsSource = Enumerable.Range(0, 1000)
-                .Select(i => new Tool { ToolID = i, NameDescription = $"Tool {i}" })
+                .Select(i => new ItemModel { ToolID = i, NameDescription = $"ItemModel {i}" })
                 .ToList();
 
             page.ToolsList.Measure(new Size(800, 300));

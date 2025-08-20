@@ -25,7 +25,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
                 var customerService = new CustomerService(db);
@@ -78,14 +78,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             public void ShowInfo(string message, string title) { }
             public bool ShowConfirmation(string message, string title) => false;
-            public ToolManagementAppV2.Models.Domain.ToolModel? ShowEditToolDialog(ToolManagementAppV2.Models.Domain.ToolModel tool) => null;
-            public void ShowToolDetails(ToolManagementAppV2.Models.Domain.ToolModel tool) { }
-            public (ToolManagementAppV2.Models.Domain.CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolManagementAppV2.Models.Domain.ToolModel tool, System.Collections.Generic.IEnumerable<ToolManagementAppV2.Models.Domain.CustomerModel> customers) => null;
+            public ToolManagementAppV2.Models.Domain.ItemModel? ShowEditToolDialog(ToolManagementAppV2.Models.Domain.ItemModel tool) => null;
+            public void ShowToolDetails(ToolManagementAppV2.Models.Domain.ItemModel tool) { }
+            public (ToolManagementAppV2.Models.Domain.CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolManagementAppV2.Models.Domain.ItemModel tool, System.Collections.Generic.IEnumerable<ToolManagementAppV2.Models.Domain.CustomerModel> customers) => null;
             public ToolManagementAppV2.Models.Domain.CustomerModel? ShowAddCustomerDialog() => null;
             public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
-            public void ShowRentalHistory(ToolManagementAppV2.Models.Domain.ToolModel tool, System.Collections.Generic.IEnumerable<ToolManagementAppV2.Models.Domain.RentalModel> history) { }
+            public void ShowRentalHistory(ToolManagementAppV2.Models.Domain.ItemModel tool, System.Collections.Generic.IEnumerable<ToolManagementAppV2.Models.Domain.RentalModel> history) { }
             public System.Collections.Generic.Dictionary<string, string>? ShowImportMapping(System.Collections.Generic.IEnumerable<string> headers, System.Collections.Generic.IEnumerable<string> properties) => null;
-            public Func<ToolManagementAppV2.Models.Domain.ToolModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
+            public Func<ToolManagementAppV2.Models.Domain.ItemModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
             public void ShowPrintLabelDialog() { }
         }

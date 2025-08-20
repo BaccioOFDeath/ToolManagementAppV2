@@ -61,7 +61,7 @@ namespace ToolManagementAppV2.Tests.Views
                 }
                 finally
                 {
-                    LabelProvider.Instance.UpdateLabels("Tool", "Tools");
+                    LabelProvider.Instance.UpdateLabels("ItemModel", "Tools");
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);

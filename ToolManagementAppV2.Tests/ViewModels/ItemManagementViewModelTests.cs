@@ -21,7 +21,7 @@ using System.Reflection;
 
 namespace ToolManagementAppV2.Tests.ViewModels
 {
-    public class ToolManagementViewModelTests
+    public class ItemManagementViewModelTests
     {
         [Fact]
         public async Task SearchCommand_FiltersToolsBySearchTerm()
@@ -30,13 +30,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
-                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
-                toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Saw" });
+                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                toolService.AddTool(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer" });
+                toolService.AddTool(new ItemModel { ToolNumber = "T2", NameDescription = "Saw" });
                 vm.SearchTerm = "Ham";
                 await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
                 Assert.Single(vm.SearchResults);
@@ -56,13 +56,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
-                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" });
-                toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Hammer", Brand = "BrandB" });
+                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                toolService.AddTool(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" });
+                toolService.AddTool(new ItemModel { ToolNumber = "T2", NameDescription = "Hammer", Brand = "BrandB" });
                 vm.SearchTerm = "Hammer BrandA";
                 await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
                 Assert.Single(vm.SearchResults);
@@ -82,13 +82,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
-                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
-                toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Cordless Drill", IsPowerTool = true });
+                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                toolService.AddTool(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer" });
+                toolService.AddTool(new ItemModel { ToolNumber = "T2", NameDescription = "Cordless Drill", IsPowerTool = true });
                 vm.SearchTerm = string.Empty;
                 await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
                 Assert.Equal(2, vm.SearchResults.Count);
@@ -109,17 +109,17 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
-                toolService.AddTool(new Tool { ToolNumber = "T1", Brand = "BrandA" });
+                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                toolService.AddTool(new ItemModel { ToolNumber = "T1", Brand = "BrandA" });
                 await vm.LoadToolsAsync();
 
                 Assert.Contains("BrandA", vm.Categories);
 
-                vm.Tools.Add(new Tool { ToolNumber = "T2", Brand = "BrandB" });
+                vm.Tools.Add(new ItemModel { ToolNumber = "T2", Brand = "BrandB" });
 
                 Assert.Contains("BrandB", vm.Categories);
             }
@@ -137,14 +137,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
-                var vm = new ToolManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
+                IItemService toolService = new ItemService(db);
+                var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
 
-                toolService.AddTool(new Tool { ToolNumber = "T1" });
+                toolService.AddTool(new ItemModel { ToolNumber = "T1" });
                 await vm.LoadToolsAsync();
                 await vm.LoadToolsAsync();
 
-                var field = typeof(ObservableCollection<ToolModel>).GetField("CollectionChanged", BindingFlags.Instance | BindingFlags.NonPublic);
+                var field = typeof(ObservableCollection<ItemModel>).GetField("CollectionChanged", BindingFlags.Instance | BindingFlags.NonPublic);
                 var handlers = field?.GetValue(vm.Tools) as MulticastDelegate;
                 var count = handlers?.GetInvocationList().Length ?? 0;
                 Assert.Equal(1, count);
@@ -163,13 +163,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
-                var vm = new ToolManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
+                IItemService toolService = new ItemService(db);
+                var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
 
-                toolService.AddTool(new Tool { ToolNumber = "T1", Brand = "BrandA" });
+                toolService.AddTool(new ItemModel { ToolNumber = "T1", Brand = "BrandA" });
                 await vm.LoadToolsAsync();
 
-                toolService.AddTool(new Tool { ToolNumber = "T2", Brand = "BrandB" });
+                toolService.AddTool(new ItemModel { ToolNumber = "T2", Brand = "BrandB" });
                 await vm.LoadToolsAsync();
 
                 Assert.Equal(2, vm.Tools.Count);
@@ -190,11 +190,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
+                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
                 vm.NewTool.ToolNumber = string.Empty;
                 await vm.NewToolCommand.ExecuteAsync(null);
                 Assert.True(dialog.InfoShown);
@@ -212,19 +212,19 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             public bool InfoShown;
             public bool ConfirmationResult;
-            public Func<ToolModel, ToolModel?>? EditToolHandler;
-            public Action<ToolModel>? ViewDetailsHandler;
+            public Func<ItemModel, ItemModel?>? EditToolHandler;
+            public Action<ItemModel>? ViewDetailsHandler;
 
             public void ShowInfo(string message, string title) => InfoShown = true;
             public bool ShowConfirmation(string message, string title) => ConfirmationResult;
-            public ToolModel? ShowEditToolDialog(ToolModel tool) => EditToolHandler?.Invoke(tool);
-            public void ShowToolDetails(ToolModel tool) => ViewDetailsHandler?.Invoke(tool);
-            public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+            public ItemModel? ShowEditToolDialog(ItemModel tool) => EditToolHandler?.Invoke(tool);
+            public void ShowToolDetails(ItemModel tool) => ViewDetailsHandler?.Invoke(tool);
+            public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
             public CustomerModel? ShowAddCustomerDialog() => null;
             public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
-            public void ShowRentalHistory(ToolModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }
+            public void ShowRentalHistory(ItemModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }
             public System.Collections.Generic.Dictionary<string, string>? ShowImportMapping(System.Collections.Generic.IEnumerable<string> headers, System.Collections.Generic.IEnumerable<string> properties) => null;
-            public System.Func<ToolModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
+            public System.Func<ItemModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
             public void ShowPrintLabelDialog() { }
         }
@@ -238,11 +238,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
+                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
                 vm.NewTool.ToolNumber = "TN1";
                 vm.NewTool.NameDescription = "Hammer";
                 vm.NewTool.QuantityOnHand = quantity;
@@ -265,11 +265,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
+                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
                 vm.NewTool.ToolNumber = "TN1";
                 vm.NewTool.NameDescription = "Hammer";
                 vm.NewTool.PartNumber = "PN1";
@@ -307,15 +307,15 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
-                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer", ToolImagePath = "img1.png" };
+                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                var tool = new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", ToolImagePath = "img1.png" };
                 toolService.AddTool(tool);
                 await vm.LoadToolsAsync();
-                vm.SelectedTool = vm.Tools.First();
+                vm.SelectedItem = vm.Tools.First();
                 dialog.EditToolHandler = t =>
                 {
                     t.NameDescription = "Updated Hammer";
@@ -342,15 +342,15 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
-                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer" };
+                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                var tool = new ItemModel { ToolNumber = "T1", NameDescription = "Hammer" };
                 toolService.AddTool(tool);
                 await vm.LoadToolsAsync();
-                vm.SelectedTool = vm.Tools.First();
+                vm.SelectedItem = vm.Tools.First();
                 dialog.EditToolHandler = _ => null;
                 await vm.EditToolCommand.ExecuteAsync(null);
                 var unchanged = toolService.GetAllTools().First();
@@ -370,15 +370,15 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService { ConfirmationResult = true };
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
-                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer" };
+                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                var tool = new ItemModel { ToolNumber = "T1", NameDescription = "Hammer" };
                 toolService.AddTool(tool);
                 await vm.LoadToolsAsync();
-                vm.SelectedTool = vm.Tools.First();
+                vm.SelectedItem = vm.Tools.First();
                 await vm.DeleteToolCommand.ExecuteAsync(null);
                 Assert.Empty(toolService.GetAllTools());
                 Assert.Empty(vm.Tools);
@@ -397,15 +397,15 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService { ConfirmationResult = false };
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
-                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer" };
+                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                var tool = new ItemModel { ToolNumber = "T1", NameDescription = "Hammer" };
                 toolService.AddTool(tool);
                 await vm.LoadToolsAsync();
-                vm.SelectedTool = vm.Tools.First();
+                vm.SelectedItem = vm.Tools.First();
                 await vm.DeleteToolCommand.ExecuteAsync(null);
                 Assert.Single(toolService.GetAllTools());
                 Assert.Single(vm.Tools);
@@ -420,40 +420,40 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task DeleteToolCommand_OnError_ShowsDialogAndLogs()
         {
-            var toolService = new FailingToolService();
+            var toolService = new FailingItemService();
             var dialog = new StubDialogService { ConfirmationResult = true };
-            var logger = new CapturingLogger<ToolManagementViewModel>();
-            var vm = new ToolManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), dialog, logger);
-            var tool = new Tool { ToolID = 1, ToolNumber = "T1", NameDescription = "Hammer" };
+            var logger = new CapturingLogger<ItemManagementViewModel>();
+            var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), dialog, logger);
+            var tool = new ItemModel { ToolID = 1, ToolNumber = "T1", NameDescription = "Hammer" };
             vm.Tools.Add(tool);
-            vm.SelectedTool = tool;
+            vm.SelectedItem = tool;
 
             await vm.DeleteToolCommand.ExecuteAsync(null);
 
             Assert.True(dialog.InfoShown);
             Assert.Equal("Failed to delete tool 1", logger.LastError);
             Assert.Single(vm.Tools);
-            Assert.Equal(tool, vm.SelectedTool);
+            Assert.Equal(tool, vm.SelectedItem);
         }
 
         [Fact]
-        public async Task OpenRentalsCommand_CanExecuteDependsOnSelectedTool()
+        public async Task OpenRentalsCommand_CanExecuteDependsOnSelectedItem()
         {
             var dbPath = Path.GetTempFileName();
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
+                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
 
                 Assert.False(vm.OpenRentalsCommand.CanExecute(null));
 
-                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
+                toolService.AddTool(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer" });
                 await vm.LoadToolsAsync();
-                vm.SelectedTool = vm.Tools.First();
+                vm.SelectedItem = vm.Tools.First();
 
                 Assert.True(vm.OpenRentalsCommand.CanExecute(null));
             }
@@ -471,21 +471,21 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
-                var tool = new Tool { ToolNumber = "T1", NameDescription = "Hammer" };
+                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                var tool = new ItemModel { ToolNumber = "T1", NameDescription = "Hammer" };
                 toolService.AddTool(tool);
                 await vm.LoadToolsAsync();
-                vm.SelectedTool = vm.Tools.First();
+                vm.SelectedItem = vm.Tools.First();
                 bool called = false;
-                Tool? passed = null;
+                ItemModel? passed = null;
                 dialog.ViewDetailsHandler = t => { called = true; passed = t; };
                 vm.ViewDetailsCommand.Execute(null);
                 Assert.True(called);
-                Assert.Equal(vm.SelectedTool, passed);
+                Assert.Equal(vm.SelectedItem, passed);
             }
             finally
             {
@@ -495,23 +495,23 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task ViewDetailsCommand_CanExecuteDependsOnSelectedTool()
+        public async Task ViewDetailsCommand_CanExecuteDependsOnSelectedItem()
         {
             var dbPath = Path.GetTempFileName();
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ToolManagementViewModel(toolService, customerService, rentalService, dialog);
+                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
 
                 Assert.False(vm.ViewDetailsCommand.CanExecute(null));
 
-                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
+                toolService.AddTool(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer" });
                 await vm.LoadToolsAsync();
-                vm.SelectedTool = vm.Tools.First();
+                vm.SelectedItem = vm.Tools.First();
 
                 Assert.True(vm.ViewDetailsCommand.CanExecute(null));
             }
@@ -525,13 +525,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task FilterToolsAsync_UsesSearchService_WhenTermProvided()
         {
-            var tools = new List<ToolModel>
+            var tools = new List<ItemModel>
             {
-                new Tool { ToolNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" },
-                new Tool { ToolNumber = "T2", NameDescription = "Saw", Brand = "BrandB" }
+                new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" },
+                new ItemModel { ToolNumber = "T2", NameDescription = "Saw", Brand = "BrandB" }
             };
-            var toolService = new CountingToolService(tools);
-            var vm = new ToolManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
+            var toolService = new CountingItemService(tools);
+            var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
             vm.SearchTerm = "Ham";
             await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
             Assert.Equal(1, toolService.SearchToolsAsyncCalls);
@@ -541,12 +541,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task FilterToolsAsync_ReusesCache_WhenNoSearchTerm()
         {
-            var tools = new List<ToolModel>
+            var tools = new List<ItemModel>
             {
-                new Tool { ToolNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" }
+                new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" }
             };
-            var toolService = new CountingToolService(tools);
-            var vm = new ToolManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
+            var toolService = new CountingItemService(tools);
+            var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
 
             await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
             Assert.Equal(1, toolService.GetAllToolsAsyncCalls);
@@ -559,13 +559,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public void SearchText_DebouncesRapidChanges()
         {
-            var tools = new List<ToolModel>
+            var tools = new List<ItemModel>
             {
-                new Tool { ToolNumber = "T1", NameDescription = "Hammer" }
+                new ItemModel { ToolNumber = "T1", NameDescription = "Hammer" }
             };
-            var toolService = new CountingToolService(tools);
+            var toolService = new CountingItemService(tools);
             var timer = new TestDispatcherTimer();
-            var vm = new ToolManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService(), null, timer);
+            var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService(), null, timer);
 
             vm.SearchText = "H";
             vm.SearchText = "Ha";
@@ -581,13 +581,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public void Dispose_StopsSearchDebounceTimer()
         {
-            var tools = new List<ToolModel>
+            var tools = new List<ItemModel>
             {
-                new Tool { ToolNumber = "T1", NameDescription = "Hammer" }
+                new ItemModel { ToolNumber = "T1", NameDescription = "Hammer" }
             };
-            var toolService = new CountingToolService(tools);
+            var toolService = new CountingItemService(tools);
             var timer = new TestDispatcherTimer();
-            var vm = new ToolManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService(), null, timer);
+            var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService(), null, timer);
 
             vm.SearchText = "Ha";
             Assert.True(timer.IsEnabled);
@@ -601,36 +601,36 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public async Task SearchCommand_CanBeCancelled()
         {
-            var tools = new List<ToolModel>
+            var tools = new List<ItemModel>
             {
-                new Tool { ToolNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" }
+                new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" }
             };
-            var toolService = new CountingToolService(tools);
-            var vm = new ToolManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
+            var toolService = new CountingItemService(tools);
+            var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
             vm.SearchTerm = "Ham";
             var cts = new CancellationTokenSource();
             cts.Cancel();
             await Assert.ThrowsAsync<OperationCanceledException>(() => vm.SearchCommand.ExecuteAsync(cts.Token));
         }
 
-        class CountingToolService : IToolService
+        class CountingItemService : IItemService
         {
             public int GetAllToolsAsyncCalls { get; private set; }
             public int SearchToolsAsyncCalls { get; private set; }
-            readonly List<ToolModel> _tools;
-            public CountingToolService(IEnumerable<ToolModel> tools) => _tools = tools.ToList();
+            readonly List<ItemModel> _tools;
+            public CountingItemService(IEnumerable<ItemModel> tools) => _tools = tools.ToList();
 
-            public Task<List<ToolModel>> GetAllToolsAsync(CancellationToken cancellationToken = default)
+            public Task<List<ItemModel>> GetAllToolsAsync(CancellationToken cancellationToken = default)
             {
                 GetAllToolsAsyncCalls++;
                 return Task.FromResult(_tools.ToList());
             }
 
-            public Task<List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default)
+            public Task<List<ItemModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default)
             {
                 SearchToolsAsyncCalls++;
                 if (cancellationToken.IsCancellationRequested)
-                    return Task.FromCanceled<List<ToolModel>>(cancellationToken);
+                    return Task.FromCanceled<List<ItemModel>>(cancellationToken);
                 if (string.IsNullOrWhiteSpace(searchText))
                     return Task.FromResult(_tools.ToList());
                 var term = searchText.Trim();
@@ -643,34 +643,34 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 return Task.FromResult(results);
             }
 
-            public Task AddToolAsync(ToolModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task UpdateToolAsync(ToolModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task AddToolAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task UpdateToolAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task DeleteToolAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<ToolModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<ItemModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<List<ItemModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => throw new NotImplementedException();
             public Task ExportToolsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<string> GenerateNextToolNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
         }
 
-        class FailingToolService : IToolService
+        class FailingItemService : IItemService
         {
-            public Task AddToolAsync(ToolModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task UpdateToolAsync(ToolModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task AddToolAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task UpdateToolAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task DeleteToolAsync(int toolID, CancellationToken cancellationToken = default) => throw new Exception("failure");
-            public Task<ToolModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<List<ToolModel>> GetAllToolsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
-            public Task<List<ToolModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
+            public Task<ItemModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<List<ItemModel>> GetAllToolsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
+            public Task<List<ItemModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
             public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<List<ToolModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ToolModel>());
+            public Task<List<ItemModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
             public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => Task.FromResult(new List<int>());
             public Task ExportToolsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ToolModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
+            public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
             public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<string> GenerateNextToolNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
         }

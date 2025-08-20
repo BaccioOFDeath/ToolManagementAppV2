@@ -21,11 +21,11 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db, toolService);
 
-                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
+                toolService.AddTool(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
                 var tool = toolService.GetAllTools().First();
 
                 customerService.AddCustomer(new Customer { Company = "Acme" });
