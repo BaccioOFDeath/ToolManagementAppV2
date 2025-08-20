@@ -203,13 +203,13 @@ namespace ToolManagementAppV2.Tests.Services
                     Location = "Loc",
                     Brand = "Brand",
                     PartNumber = "PN",
-                    ImagePath = "Images/test.jpg"
+                    ImagePath = "ItemImages/test.jpg"
                 };
 
                 service.AddItem(item);
                 var stored = service.GetAllItems().Single();
 
-                Assert.Equal("Images/test.jpg", stored.ImagePath);
+                Assert.Equal("ItemImages/test.jpg", stored.ImagePath);
             }
             finally
             {
@@ -423,7 +423,7 @@ namespace ToolManagementAppV2.Tests.Services
                 svc.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "A" });
                 File.WriteAllText(Path.Combine(imgDir, "T1.jpg"), string.Empty);
 
-                var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+                var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ItemImages");
                 if (Directory.Exists(destDir)) Directory.Delete(destDir, true);
 
                 var result = svc.ImportItemImages(imgDir, t => new[] { t.ItemNumber });
@@ -433,11 +433,11 @@ namespace ToolManagementAppV2.Tests.Services
                 Assert.True(File.Exists(expected));
 
                 var item = svc.GetAllItems().First();
-                Assert.Equal($"Images/{Path.GetFileName(expected)}", item.ImagePath);
+                Assert.Equal($"ItemImages/{Path.GetFileName(expected)}", item.ImagePath);
             }
             finally
             {
-                var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+                var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ItemImages");
                 if (Directory.Exists(destDir)) Directory.Delete(destDir, true);
                 if (Directory.Exists(imgDir)) Directory.Delete(imgDir, true);
                 if (File.Exists(dbPath)) File.Delete(dbPath);
@@ -450,7 +450,7 @@ namespace ToolManagementAppV2.Tests.Services
             var dbPath = Path.GetTempFileName();
             var imgDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(imgDir);
-            var destPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+            var destPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ItemImages");
             var destFile = false;
             try
             {
@@ -879,7 +879,7 @@ namespace ToolManagementAppV2.Tests.Services
                 if (File.Exists(dbPath)) File.Delete(dbPath);
                 if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
 
-                var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+                var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ItemImages");
                 if (Directory.Exists(destDir)) Directory.Delete(destDir, true);
             }
         }
@@ -906,18 +906,18 @@ namespace ToolManagementAppV2.Tests.Services
                 Assert.Empty(result.ConflictingFiles);
                 Assert.Empty(result.UnmatchedFiles);
 
-                var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+                var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ItemImages");
                 var destFile = Path.Combine(destDir, Path.GetFileName(imgPath));
                 Assert.True(File.Exists(destFile));
 
                 var item = svc.GetAllItems().Single();
-                Assert.Equal($"Images/{Path.GetFileName(imgPath)}", item.ImagePath);
+                Assert.Equal($"ItemImages/{Path.GetFileName(imgPath)}", item.ImagePath);
             }
             finally
             {
                 if (File.Exists(dbPath)) File.Delete(dbPath);
                 if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
-                var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+                var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ItemImages");
                 if (Directory.Exists(destDir)) Directory.Delete(destDir, true);
             }
         }
@@ -953,7 +953,7 @@ namespace ToolManagementAppV2.Tests.Services
             {
                 if (File.Exists(dbPath)) File.Delete(dbPath);
                 if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
-                var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+                var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ItemImages");
                 if (Directory.Exists(destDir)) Directory.Delete(destDir, true);
             }
         }
