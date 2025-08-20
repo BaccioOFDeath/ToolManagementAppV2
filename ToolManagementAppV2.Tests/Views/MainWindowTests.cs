@@ -277,11 +277,11 @@ namespace ToolManagementAppV2.Tests.Views
                     try
                     {
                         var db = new DatabaseService(dbPath);
-                        var toolService = new ItemService(db);
+                        var itemService = new ItemService(db);
                         var userContext = new ApplicationUserContext();
                         var userService = new UserService(db, userContext);
                         var customerService = new CustomerService(db);
-                        var rentalService = new RentalService(db, toolService);
+                        var rentalService = new RentalService(db, itemService);
                         var activityLogService = new ActivityLogService(db);
                         var settingsService = new SettingsService(db);
                         var dialog = new StubDialogService();
@@ -294,7 +294,7 @@ namespace ToolManagementAppV2.Tests.Views
                             return Task.FromResult(true);
                         };
 
-                        var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                        var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService,
                             fileDialog, activityLogService, settingsService, db, dialog, null, stubLogin);
 
                         userContext.CurrentUser = new User { UserName = "old", IsAdmin = false };
@@ -358,10 +358,10 @@ namespace ToolManagementAppV2.Tests.Views
                         var button = FindButtonByContent(window, "Rental History");
                         Assert.NotNull(button);
 
-                        var tool = new ToolModel { ItemID = 1 };
-                        vm.ItemManagement.SelectedItem = tool;
+                        var item = new ItemModel { ItemID = 1 };
+                        vm.ItemManagement.SelectedItem = item;
 
-                        Assert.Same(tool, button!.CommandParameter);
+                        Assert.Same(item, button!.CommandParameter);
                         Assert.Same(vm.OpenRentalHistoryWindowCommand, button.Command);
                     }
                     finally
@@ -466,14 +466,14 @@ namespace ToolManagementAppV2.Tests.Views
         {
             public void ShowInfo(string message, string title) { }
             public bool ShowConfirmation(string message, string title) => false;
-            public ToolModel? ShowEditItemDialog(ToolModel tool) => null;
-            public void ShowItemDetails(ToolModel tool) { }
-            public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+            public ItemModel? ShowEditItemDialog(ItemModel item) => null;
+            public void ShowItemDetails(ItemModel item) { }
+            public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;
             public CustomerModel? ShowAddCustomerDialog() => null;
             public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
-            public void ShowRentalHistory(ToolModel tool, IEnumerable<RentalModel> history) { }
+            public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history) { }
             public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties) => null;
-            public Func<ToolModel, IEnumerable<string>>? ShowImageImportMapping() => null;
+            public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
             public void ShowPrintLabelDialog() { }
         }

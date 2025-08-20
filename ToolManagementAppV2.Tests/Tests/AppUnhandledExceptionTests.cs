@@ -105,12 +105,12 @@ namespace ToolManagementAppV2.Tests.Tests
             public int InfoCount { get; private set; }
             public void ShowInfo(string message, string title) => InfoCount++;
             public bool ShowConfirmation(string message, string title) => false;
-            public ItemModel? ShowEditItemDialog(ItemModel tool) => null;
-            public void ShowItemDetails(ItemModel tool) { }
-            public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
+            public ItemModel? ShowEditItemDialog(ItemModel item) => null;
+            public void ShowItemDetails(ItemModel item) { }
+            public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;
             public CustomerModel? ShowAddCustomerDialog() => null;
             public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
-            public void ShowRentalHistory(ItemModel tool, IEnumerable<RentalModel> history) { }
+            public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history) { }
             public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties) => null;
             public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(FlowDocument document, string title, string description) { }
