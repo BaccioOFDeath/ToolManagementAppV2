@@ -11,20 +11,20 @@ namespace ToolManagementAppV2.Tests;
 
 public static class AsyncServiceExtensions
 {
-    // ToolService wrappers
-    public static void AddTool(this IToolService svc, Tool tool, CancellationToken token = default)
+    // ItemService wrappers
+    public static void AddTool(this IItemService svc, ItemModel tool, CancellationToken token = default)
         => svc.AddToolAsync(tool, token).GetAwaiter().GetResult();
-    public static void UpdateTool(this IToolService svc, Tool tool, CancellationToken token = default)
+    public static void UpdateTool(this IItemService svc, ItemModel tool, CancellationToken token = default)
         => svc.UpdateToolAsync(tool, token).GetAwaiter().GetResult();
-    public static void DeleteTool(this IToolService svc, int id, CancellationToken token = default)
+    public static void DeleteTool(this IItemService svc, int id, CancellationToken token = default)
         => svc.DeleteToolAsync(id, token).GetAwaiter().GetResult();
-    public static Tool? GetToolByID(this IToolService svc, int id, CancellationToken token = default)
+    public static ItemModel? GetToolByID(this IItemService svc, int id, CancellationToken token = default)
         => svc.GetToolByIDAsync(id, token).GetAwaiter().GetResult();
-    public static List<Tool> GetAllTools(this IToolService svc, CancellationToken token = default)
+    public static List<ItemModel> GetAllTools(this IItemService svc, CancellationToken token = default)
         => svc.GetAllToolsAsync(token).GetAwaiter().GetResult();
-    public static List<Tool> SearchTools(this IToolService svc, string? text, CancellationToken token = default)
+    public static List<ItemModel> SearchTools(this IItemService svc, string? text, CancellationToken token = default)
         => svc.SearchToolsAsync(text, token).GetAwaiter().GetResult();
-    public static string GenerateNextToolNumber(this IToolService svc, CancellationToken token = default)
+    public static string GenerateNextToolNumber(this IItemService svc, CancellationToken token = default)
         => svc.GenerateNextToolNumberAsync(token).GetAwaiter().GetResult();
 
     // CustomerService wrappers

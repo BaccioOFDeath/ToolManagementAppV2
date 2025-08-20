@@ -23,12 +23,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool1 = new Tool { ToolNumber = "T1" };
-                var tool2 = new Tool { ToolNumber = "T2" };
+                var tool1 = new ItemModel { ToolNumber = "T1" };
+                var tool2 = new ItemModel { ToolNumber = "T2" };
                 toolService.AddTool(tool1);
                 toolService.AddTool(tool2);
                 var customer = new Customer { Company = "C1" };
@@ -68,12 +68,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool1 = new Tool { ToolNumber = "Alpha" };
-                var tool2 = new Tool { ToolNumber = "Beta" };
+                var tool1 = new ItemModel { ToolNumber = "Alpha" };
+                var tool2 = new ItemModel { ToolNumber = "Beta" };
                 toolService.AddTool(tool1);
                 toolService.AddTool(tool2);
                 var customer = new Customer { Company = "C1" };
@@ -106,11 +106,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool = new Tool { ToolNumber = "T1" };
+                var tool = new ItemModel { ToolNumber = "T1" };
                 toolService.AddTool(tool);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
@@ -163,11 +163,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool = new Tool { ToolNumber = "T1" };
+                var tool = new ItemModel { ToolNumber = "T1" };
                 toolService.AddTool(tool);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
@@ -199,11 +199,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool = new Tool { ToolNumber = "T1" };
+                var tool = new ItemModel { ToolNumber = "T1" };
                 toolService.AddTool(tool);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
@@ -233,11 +233,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool = new Tool { ToolNumber = "T1" };
+                var tool = new ItemModel { ToolNumber = "T1" };
                 toolService.AddTool(tool);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
@@ -417,14 +417,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
             return Task.CompletedTask;
         }
         public bool ShowConfirmation(string message, string title) => false;
-        public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
-        public void ShowToolDetails(ToolModel tool) { }
-        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+        public ItemModel? ShowEditToolDialog(ItemModel tool) => null;
+        public void ShowToolDetails(ItemModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
         public CustomerModel? ShowAddCustomerDialog() => null;
         public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
-        public void ShowRentalHistory(ToolModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }
+        public void ShowRentalHistory(ItemModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }
         public System.Collections.Generic.Dictionary<string, string>? ShowImportMapping(System.Collections.Generic.IEnumerable<string> headers, System.Collections.Generic.IEnumerable<string> properties) => null;
-        public System.Func<ToolModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
+        public System.Func<ItemModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
         public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
         public void ShowPrintLabelDialog() { }
     }
@@ -434,14 +434,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public string? LastInfoMessage { get; private set; }
         public void ShowInfo(string message, string title) => LastInfoMessage = message;
         public bool ShowConfirmation(string message, string title) => false;
-        public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
-        public void ShowToolDetails(ToolModel tool) { }
-        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+        public ItemModel? ShowEditToolDialog(ItemModel tool) => null;
+        public void ShowToolDetails(ItemModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
         public CustomerModel? ShowAddCustomerDialog() => null;
         public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
-        public void ShowRentalHistory(ToolModel tool, IEnumerable<RentalModel> history) { }
+        public void ShowRentalHistory(ItemModel tool, IEnumerable<RentalModel> history) { }
         public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties) => null;
-        public Func<ToolModel, IEnumerable<string>>? ShowImageImportMapping() => null;
+        public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
         public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) => throw new InvalidOperationException("boom");
         public void ShowPrintLabelDialog() { }
     }

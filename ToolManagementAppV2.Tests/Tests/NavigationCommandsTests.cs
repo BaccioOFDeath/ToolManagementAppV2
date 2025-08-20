@@ -47,22 +47,22 @@ namespace ToolManagementAppV2.Tests.Tests
             try
             {
                 using var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
-                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
+                toolService.AddTool(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer" });
 
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 await vm.OpenSearchToolsCommand.ExecuteAsync(null);
 
                 var page = Assert.IsType<ToolSearchPage>(vm.CurrentPage);
-                Assert.Same(vm.ToolManagement, page.DataContext);
-                Assert.Same(vm.ToolManagement.Tools, page.ToolsList.ItemsSource);
-                Assert.NotEmpty(vm.ToolManagement.Tools);
+                Assert.Same(vm.ItemManagement, page.DataContext);
+                Assert.Same(vm.ItemManagement.Tools, page.ToolsList.ItemsSource);
+                Assert.NotEmpty(vm.ItemManagement.Tools);
             }
             finally
             {

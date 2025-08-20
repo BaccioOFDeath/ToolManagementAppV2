@@ -23,14 +23,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var userService = new UserService(db, new ApplicationUserContext());
                 var rentalService = new RentalService(db, toolService);
                 var activityService = new ActivityLogService(db);
                 var reportService = new ReportService(toolService, rentalService, activityService, customerService, userService);
 
-                var tool = new Tool { ToolNumber = "T1", QuantityOnHand = 1 };
+                var tool = new ItemModel { ToolNumber = "T1", QuantityOnHand = 1 };
                 toolService.AddTool(tool);
 
                 var customer = new Customer { Company = "C1" };
@@ -61,7 +61,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 Assert.True(vm.RunReportCommand.CanExecute(null));
 
                 await vm.RunReportCommand.ExecuteAsync(null);
-                Assert.Contains("Tool ID:",
+                Assert.Contains("ItemModel ID:",
                     vm.ReportResults.Rows.Cast<DataRow>().Select(r => r[0]?.ToString()));
             }
             finally

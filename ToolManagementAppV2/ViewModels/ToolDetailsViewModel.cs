@@ -7,13 +7,13 @@ namespace ToolManagementAppV2.ViewModels
 {
     public class ToolDetailsViewModel : ObservableObject
     {
-        public ToolModel Tool { get; }
+        public ItemModel ItemModel { get; }
 
         public IRelayCommand CloseCommand { get; }
 
-        public ToolDetailsViewModel(ToolModel tool, Action onClose)
+        public ToolDetailsViewModel(ItemModel tool, Action onClose)
         {
-            Tool = tool;
+            ItemModel = tool;
             CloseCommand = new RelayCommand(onClose);
         }
     }

@@ -17,8 +17,8 @@ namespace ToolManagementAppV2.Tests.Services
             var db = Path.GetTempFileName();
             try
             {
-                var service = new ToolService(new DatabaseService(db));
-                service.AddTool(new Tool { ToolNumber = "T1", QuantityOnHand = 0 });
+                var service = new ItemService(new DatabaseService(db));
+                service.AddTool(new ItemModel { ToolNumber = "T1", QuantityOnHand = 0 });
                 var tool = service.GetAllTools().First();
                 var result = service.ToggleToolCheckOutStatus(tool.ToolID, "u");
                 var updated = service.GetToolByID(tool.ToolID);
@@ -38,8 +38,8 @@ namespace ToolManagementAppV2.Tests.Services
             var db = Path.GetTempFileName();
             try
             {
-                IToolService svc = new ToolService(new DatabaseService(db));
-                svc.AddTool(new Tool { ToolNumber = "T2", QuantityOnHand = 1 });
+                IItemService svc = new ItemService(new DatabaseService(db));
+                svc.AddTool(new ItemModel { ToolNumber = "T2", QuantityOnHand = 1 });
                 var tool = svc.GetAllTools().First();
                 var first = svc.ToggleToolCheckOutStatus(tool.ToolID, "u");
                 var outTool = svc.GetToolByID(tool.ToolID);
@@ -64,7 +64,7 @@ namespace ToolManagementAppV2.Tests.Services
             var db = Path.GetTempFileName();
             try
             {
-                var service = new ToolService(new DatabaseService(db));
+                var service = new ItemService(new DatabaseService(db));
                 Assert.Throws<InvalidOperationException>(() => service.ToggleToolCheckOutStatus(42, "u"));
             }
             finally

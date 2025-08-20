@@ -226,7 +226,7 @@ namespace ToolManagementAppV2.ViewModels
                 return;
             }
 
-            var tool = new ToolModel
+            var tool = new ItemModel
             {
                 ToolID = SelectedRental.ToolID,
                 ToolNumber = SelectedRental.ToolNumber,
@@ -274,7 +274,7 @@ namespace ToolManagementAppV2.ViewModels
                 }
 
                 AddRow("Rental #:", SelectedRental.RentalID.ToString());
-                AddRow("Tool #:", SelectedRental.ToolNumber);
+                AddRow("ItemModel #:", SelectedRental.ToolNumber);
                 AddRow("Customer:", SelectedRental.CustomerName);
                 AddRow("Rental Date:", SelectedRental.RentalDate.ToString("yyyy-MM-dd HH:mm"));
                 AddRow("Due Date:", SelectedRental.DueDate.ToString("yyyy-MM-dd HH:mm"));

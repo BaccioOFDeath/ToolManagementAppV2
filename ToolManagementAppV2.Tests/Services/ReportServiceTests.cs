@@ -22,7 +22,7 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
@@ -30,7 +30,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var activityLogService = new ActivityLogService(db);
                 var reportService = new ReportService(toolService, rentalService, activityLogService, customerService, userService);
 
-                var tool = new Tool
+                var tool = new ItemModel
                 {
                     ToolNumber = "T1",
                     NameDescription = "Hammer",
@@ -86,7 +86,7 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
@@ -94,7 +94,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var activityLogService = new ActivityLogService(db);
                 var reportService = new ReportService(toolService, rentalService, activityLogService, customerService, userService);
 
-                var tool = new Tool
+                var tool = new ItemModel
                 {
                     ToolNumber = "T1",
                     NameDescription = "Hammer",

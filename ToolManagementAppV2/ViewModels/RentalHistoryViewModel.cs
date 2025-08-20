@@ -43,7 +43,7 @@ namespace ToolManagementAppV2.ViewModels.Rental
         public IRelayCommand ExportCsvCommand { get; }
         public IRelayCommand CloseCommand { get; }
 
-        public RentalHistoryViewModel(ToolModel? tool, IEnumerable<RentalModel>? history, IDialogService dialogService, ILogger<RentalHistoryViewModel>? logger = null)
+        public RentalHistoryViewModel(ItemModel? tool, IEnumerable<RentalModel>? history, IDialogService dialogService, ILogger<RentalHistoryViewModel>? logger = null)
         {
             ToolDisplayName = tool != null
                 ? $"{tool.ToolNumber} - {tool.NameDescription}"

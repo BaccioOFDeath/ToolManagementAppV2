@@ -57,7 +57,7 @@ namespace ToolManagementAppV2.Services
             return Task.FromResult(false);
         }
 
-        public ToolModel? ShowEditToolDialog(ToolModel tool)
+        public ItemModel? ShowEditToolDialog(ItemModel tool)
         {
             ToolEditWindow? win = null;
             win = ActivatorUtilities.CreateInstance<ToolEditWindow>(_serviceProvider,
@@ -70,17 +70,17 @@ namespace ToolManagementAppV2.Services
             catch (Exception ex) { _logger.LogError(ex, "Failed to show ToolEditWindow"); return null; }
         }
 
-        public Task<ToolModel?> ShowEditToolDialogAsync(ToolModel tool)
+        public Task<ItemModel?> ShowEditToolDialogAsync(ItemModel tool)
         {
             var dispatcher = System.Windows.Application.Current?.Dispatcher;
             if (dispatcher != null)
                 return dispatcher.InvokeAsync(() => ShowEditToolDialog(tool)).Task;
 
             _logger.LogWarning("No dispatcher available for ShowEditToolDialogAsync; returning null.");
-            return Task.FromResult<ToolModel?>(null);
+            return Task.FromResult<ItemModel?>(null);
         }
 
-        public void ShowToolDetails(ToolModel tool)
+        public void ShowToolDetails(ItemModel tool)
         {
             ToolDetailsWindow win = null!;
             win = new ToolDetailsWindow(tool);
@@ -90,7 +90,7 @@ namespace ToolManagementAppV2.Services
             catch (Exception ex) { _logger.LogError(ex, "Failed to show ToolDetailsWindow"); }
         }
 
-        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers)
+        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, IEnumerable<CustomerModel> customers)
         {
             var vm = new RentToolPopupViewModel(tool, customers);
             var win = new RentToolPopupWindow { DataContext = vm };
@@ -138,7 +138,7 @@ namespace ToolManagementAppV2.Services
             catch (Exception ex) { _logger.LogError(ex, "Failed to show RentalsFilterWindow"); }
         }
 
-        public void ShowRentalHistory(ToolModel tool, IEnumerable<RentalModel> history)
+        public void ShowRentalHistory(ItemModel tool, IEnumerable<RentalModel> history)
         {
             var vm = new RentalHistoryViewModel(tool, history, this);
             var win = new RentalHistoryWindow(vm) { Title = $"Rental History - {tool.ToolNumber}" };
@@ -164,7 +164,7 @@ namespace ToolManagementAppV2.Services
             return null;
         }
 
-        public Func<ToolModel, IEnumerable<string>>? ShowImageImportMapping()
+        public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping()
         {
             var win = new ImageImportMappingWindow();
             try { win.Owner = System.Windows.Application.Current?.MainWindow; }

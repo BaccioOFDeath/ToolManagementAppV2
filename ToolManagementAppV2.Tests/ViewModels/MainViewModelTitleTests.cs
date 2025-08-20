@@ -25,11 +25,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
             var dbPath = Path.GetTempFileName();
             var originalSingular = LabelProvider.Instance.ItemLabelSingular;
             var originalPlural = LabelProvider.Instance.ItemLabelPlural;
-            LabelProvider.Instance.UpdateLabels("Tool", "Tools");
+            LabelProvider.Instance.UpdateLabels("ItemModel", "Tools");
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);

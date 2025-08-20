@@ -11,7 +11,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public void CheckOutCommand_SetsResultsAndRaisesClose()
         {
-            var tool = new ToolModel();
+            var tool = new ItemModel();
             var customer = new CustomerModel { CustomerID = 1, Company = "ACME" };
             var vm = new RentToolPopupViewModel(tool, new[] { customer })
             {

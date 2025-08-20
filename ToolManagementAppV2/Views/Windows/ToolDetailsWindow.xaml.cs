@@ -7,7 +7,7 @@ namespace ToolManagementAppV2.Views.Windows
 {
     public partial class ToolDetailsWindow : Window
     {
-        public ToolDetailsWindow(ToolModel tool)
+        public ToolDetailsWindow(ItemModel tool)
         {
             InitializeComponent();
             DataContext = new ToolDetailsViewModel(tool, () => Close());

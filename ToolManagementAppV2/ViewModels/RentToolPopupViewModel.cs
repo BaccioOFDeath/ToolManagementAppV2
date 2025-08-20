@@ -19,7 +19,7 @@ namespace ToolManagementAppV2.ViewModels.Rental
         public IRelayCommand CheckOutCommand { get; }
         public IRelayCommand CancelCommand { get; }
 
-        public RentToolPopupViewModel(ToolModel tool, IEnumerable<CustomerModel> customers)
+        public RentToolPopupViewModel(ItemModel tool, IEnumerable<CustomerModel> customers)
         {
             Customers = new ObservableCollection<CustomerModel>(customers);
             CheckOutCommand = new RelayCommand(Confirm);

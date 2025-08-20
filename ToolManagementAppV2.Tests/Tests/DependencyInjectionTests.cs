@@ -20,7 +20,7 @@ namespace ToolManagementAppV2.Tests.Tests
             var provider = app.Host.Services;
 
             Assert.NotNull(provider.GetService<IDatabaseService>());
-            Assert.NotNull(provider.GetService<IToolService>());
+            Assert.NotNull(provider.GetService<IItemService>());
             Assert.NotNull(provider.GetService<ICustomerService>());
             Assert.NotNull(provider.GetService<IUserService>());
             Assert.NotNull(provider.GetService<IRentalService>());

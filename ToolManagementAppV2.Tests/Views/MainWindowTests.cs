@@ -140,19 +140,19 @@ namespace ToolManagementAppV2.Tests.Views
                 {
                     var originalSingular = LabelProvider.Instance.ItemLabelSingular;
                     var originalPlural = LabelProvider.Instance.ItemLabelPlural;
-                    LabelProvider.Instance.UpdateLabels("Tool", "Tools");
+                    LabelProvider.Instance.UpdateLabels("Item", "Items");
                     var (window, dbPath) = TestHelpers.CreateMainWindow();
                     try
                     {
                         var vm = Assert.IsType<MainViewModel>(window.DataContext);
 
-                        Assert.Equal("Tools Management", window.Title);
+                        Assert.Equal("Items Management", window.Title);
 
                         vm.Settings.ApplicationName = "My App";
                         Assert.Equal("My App", window.Title);
 
                         vm.Settings.ApplicationName = string.Empty;
-                        Assert.Equal("Tools Management", window.Title);
+                        Assert.Equal("Items Management", window.Title);
                     }
                     finally
                     {
@@ -233,7 +233,7 @@ namespace ToolManagementAppV2.Tests.Views
                     try
                     {
                         var db = new DatabaseService(dbPath);
-                        var toolService = new ToolService(db);
+                        var toolService = new ItemService(db);
                         var userContext = new ApplicationUserContext();
                         var userService = new UserService(db, userContext);
                         var customerService = new CustomerService(db);
@@ -315,7 +315,7 @@ namespace ToolManagementAppV2.Tests.Views
                         Assert.NotNull(button);
 
                         var tool = new ToolModel { ToolID = 1 };
-                        vm.ToolManagement.SelectedTool = tool;
+                        vm.ItemManagement.SelectedItem = tool;
 
                         Assert.Same(tool, button!.CommandParameter);
                         Assert.Same(vm.OpenRentalHistoryWindowCommand, button.Command);

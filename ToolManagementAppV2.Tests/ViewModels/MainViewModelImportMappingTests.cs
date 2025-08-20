@@ -29,7 +29,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 using var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
                 var db = new DatabaseService(dbPath);
-                var toolService = new ToolService(db);
+                var toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
                 var customerService = new CustomerService(db);
@@ -58,14 +58,14 @@ namespace ToolManagementAppV2.Tests.ViewModels
             public Dictionary<string,string>? MapToReturn { get; set; }
             public void ShowInfo(string message, string title) { }
             public bool ShowConfirmation(string message, string title) => false;
-            public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
-            public void ShowToolDetails(ToolModel tool) { }
-            public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+            public ItemModel? ShowEditToolDialog(ItemModel tool) => null;
+            public void ShowToolDetails(ItemModel tool) { }
+            public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
             public CustomerModel? ShowAddCustomerDialog() => null;
             public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
-            public void ShowRentalHistory(ToolModel tool, IEnumerable<RentalModel> history) { }
+            public void ShowRentalHistory(ItemModel tool, IEnumerable<RentalModel> history) { }
             public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties) => MapToReturn;
-            public Func<ToolModel, IEnumerable<string>>? ShowImageImportMapping() => null;
+            public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
             public void ShowPrintLabelDialog() { }
         }

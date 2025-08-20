@@ -10,14 +10,14 @@ namespace ToolManagementAppV2.Utilities.Helpers
 
         LabelProvider() { }
 
-        private string _itemLabelSingular = "Tool";
+        private string _itemLabelSingular = "Item";
         public string ItemLabelSingular
         {
             get => _itemLabelSingular;
             private set => SetProperty(ref _itemLabelSingular, value);
         }
 
-        private string _itemLabelPlural = "Tools";
+        private string _itemLabelPlural = "Items";
         public string ItemLabelPlural
         {
             get => _itemLabelPlural;

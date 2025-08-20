@@ -293,7 +293,7 @@ namespace ToolManagementAppV2.Services.Settings
         public async Task<string> GetItemLabelSingularAsync(CancellationToken cancellationToken = default)
         {
             var value = await GetSettingAsync(ItemLabelSingularKey, cancellationToken).ConfigureAwait(false);
-            return string.IsNullOrWhiteSpace(value) ? "Tool" : value;
+            return string.IsNullOrWhiteSpace(value) ? "ItemModel" : value;
         }
 
         public async Task SaveItemLabelSingularAsync(string label, CancellationToken cancellationToken = default)

@@ -30,7 +30,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -40,7 +40,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
 
-                Assert.NotNull(vm.ToolManagement);
+                Assert.NotNull(vm.ItemManagement);
                 Assert.NotNull(vm.UserManagement);
                 Assert.NotNull(vm.CustomerManagement);
                 Assert.NotNull(vm.ManageRentals);
@@ -62,7 +62,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -90,7 +90,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -120,7 +120,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var db = new DatabaseService(dbPath);
                 var activityLogService = new ActivityLogService(db);
                 await activityLogService.LogActionAsync(1, "user", "action");
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -149,7 +149,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             {
                 var db = new DatabaseService(dbPath);
                 var activityLogService = new ActivityLogService(db);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -177,7 +177,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -211,7 +211,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -250,7 +250,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -278,7 +278,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -286,8 +286,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                toolService.AddTool(new Tool { ToolNumber = "T1", NameDescription = "Hammer" });
-                toolService.AddTool(new Tool { ToolNumber = "T2", NameDescription = "Saw" });
+                toolService.AddTool(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer" });
+                toolService.AddTool(new ItemModel { ToolNumber = "T2", NameDescription = "Saw" });
 
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 vm.GlobalSearchText = "Ham";
@@ -295,10 +295,10 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 await vm.GlobalSearchCommand.ExecuteAsync(CancellationToken.None);
 
                 var page = Assert.IsType<ToolSearchPage>(vm.CurrentPage);
-                Assert.Equal("Ham", vm.ToolManagement.SearchText);
+                Assert.Equal("Ham", vm.ItemManagement.SearchText);
                 Assert.Empty(vm.GlobalSearchText);
-                Assert.Single(vm.ToolManagement.SearchResults);
-                Assert.Equal("Hammer", vm.ToolManagement.SearchResults.First().NameDescription);
+                Assert.Single(vm.ItemManagement.SearchResults);
+                Assert.Equal("Hammer", vm.ItemManagement.SearchResults.First().NameDescription);
             }
             finally
             {
@@ -314,7 +314,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -339,7 +339,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -366,7 +366,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IToolService toolService = new ToolService(db);
+                IItemService toolService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);

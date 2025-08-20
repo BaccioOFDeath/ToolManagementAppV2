@@ -17,16 +17,16 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ToolManagementAppV2.ViewModels
 {
-    public class ToolManagementViewModel : ObservableObject, IDisposable
+    public class ItemManagementViewModel : ObservableObject, IDisposable
     {
-        private readonly IToolService _toolService;
+        private readonly IItemService _itemService;
         private readonly ICustomerService _customerService;
         private readonly IRentalService _rentalService;
         private readonly IDialogService _dialogService;
-        private readonly ILogger<ToolManagementViewModel> _logger;
+        private readonly ILogger<ItemManagementViewModel> _logger;
 
-        public ObservableCollection<ToolModel> Tools { get; } = new();
-        public ObservableCollection<ToolModel> SearchResults { get; } = new();
+        public ObservableCollection<ItemModel> Tools { get; } = new();
+        public ObservableCollection<ItemModel> SearchResults { get; } = new();
 
         /// <summary>
         /// List of available tool categories derived from distinct brands
@@ -34,8 +34,8 @@ namespace ToolManagementAppV2.ViewModels
         /// </summary>
         public ObservableCollection<string> Categories { get; } = new();
 
-        private ToolModel _newTool = new();
-        public ToolModel NewTool
+        private ItemModel _newTool = new();
+        public ItemModel NewTool
         {
             get => _newTool;
             set => SetProperty(ref _newTool, value);
@@ -48,13 +48,13 @@ namespace ToolManagementAppV2.ViewModels
             set => SetProperty(ref _searchTerm, value);
         }
 
-        private ToolModel _selectedTool;
-        public ToolModel SelectedTool
+        private ItemModel _selectedItem;
+        public ItemModel SelectedItem
         {
-            get => _selectedTool;
+            get => _selectedItem;
             set
             {
-                if (SetProperty(ref _selectedTool, value))
+                if (SetProperty(ref _selectedItem, value))
                 {
                     ((AsyncRelayCommand)OpenRentalsCommand).NotifyCanExecuteChanged();
                     ((AsyncRelayCommand)EditToolCommand).NotifyCanExecuteChanged();
@@ -116,27 +116,27 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        public ToolManagementViewModel(IToolService toolService,
+        public ItemManagementViewModel(IItemService itemService,
                                        ICustomerService customerService,
                                        IRentalService rentalService,
                                        IDialogService dialogService,
-                                       ILogger<ToolManagementViewModel>? logger = null,
+                                       ILogger<ItemManagementViewModel>? logger = null,
                                        IDispatcherTimer? searchDebounceTimer = null)
         {
-            _toolService = toolService;
+            _itemService = itemService;
             _customerService = customerService;
             _rentalService = rentalService;
             _dialogService = dialogService;
-            _logger = logger ?? NullLogger<ToolManagementViewModel>.Instance;
+            _logger = logger ?? NullLogger<ItemManagementViewModel>.Instance;
             SearchCommand = new AsyncRelayCommand<CancellationToken>(FilterToolsAsync);
             _searchDebounceTimer = searchDebounceTimer ?? new DispatcherTimerWrapper { Interval = TimeSpan.FromMilliseconds(300) };
             _searchDebounceTimer.Tick += OnSearchDebounceTimerTick;
             NewToolCommand = new AsyncRelayCommand(ct => AddToolAsync(ct));
-            EditToolCommand = new AsyncRelayCommand(ct => EditToolAsync(ct), () => SelectedTool != null);
+            EditToolCommand = new AsyncRelayCommand(ct => EditToolAsync(ct), () => SelectedItem != null);
             DeleteToolCommand = new AsyncRelayCommand(ct => DeleteToolAsync(ct));
-            OpenRentalsCommand = new AsyncRelayCommand(ct => OpenRentalsAsync(ct), () => SelectedTool != null);
-            ViewDetailsCommand = new RelayCommand(ViewDetails, () => SelectedTool != null);
-            OpenRentalHistoryCommand = new AsyncRelayCommand(OpenRentalHistoryAsync, () => SelectedTool != null);
+            OpenRentalsCommand = new AsyncRelayCommand(ct => OpenRentalsAsync(ct), () => SelectedItem != null);
+            ViewDetailsCommand = new RelayCommand(ViewDetails, () => SelectedItem != null);
+            OpenRentalHistoryCommand = new AsyncRelayCommand(OpenRentalHistoryAsync, () => SelectedItem != null);
             // Ensure no duplicate event subscriptions when the view model is
             // constructed multiple times or the collection persists across
             // instances.
@@ -157,7 +157,7 @@ namespace ToolManagementAppV2.ViewModels
             _suppressToolsChanged = true;
             try
             {
-                var all = await _toolService.GetAllToolsAsync();
+                var all = await _itemService.GetAllToolsAsync();
                 Tools.ReplaceRange(all);
                 SearchResults.ReplaceRange(all);
                 LoadCategories(Tools);
@@ -176,17 +176,17 @@ namespace ToolManagementAppV2.ViewModels
         async Task FilterToolsAsync(CancellationToken cancellationToken)
         {
             var term = string.IsNullOrWhiteSpace(SearchTerm) ? string.Empty : SearchTerm.Trim();
-            IEnumerable<ToolModel> source;
+            IEnumerable<ItemModel> source;
 
             if (!string.IsNullOrEmpty(term))
             {
-                source = await _toolService.SearchToolsAsync(term, cancellationToken);
+                source = await _itemService.SearchToolsAsync(term, cancellationToken);
             }
             else
             {
                 if (Tools.Count == 0)
                 {
-                    var all = await _toolService.GetAllToolsAsync();
+                    var all = await _itemService.GetAllToolsAsync();
                     Tools.ReplaceRange(all);
                 }
                 source = Tools;
@@ -206,11 +206,11 @@ namespace ToolManagementAppV2.ViewModels
             try
             {
                 if (string.IsNullOrWhiteSpace(NewTool.ToolNumber))
-                    NewTool.ToolNumber = await _toolService.GenerateNextToolNumberAsync(cancellationToken);
-                await _toolService.AddToolAsync(NewTool, cancellationToken);
+                    NewTool.ToolNumber = await _itemService.GenerateNextToolNumberAsync(cancellationToken);
+                await _itemService.AddToolAsync(NewTool, cancellationToken);
                 await LoadToolsAsync();
                 await FilterToolsAsync(cancellationToken);
-                NewTool = new ToolModel();
+                NewTool = new ItemModel();
             }
             catch (OperationCanceledException)
             {
@@ -234,27 +234,27 @@ namespace ToolManagementAppV2.ViewModels
 
         async Task EditToolAsync(CancellationToken cancellationToken)
         {
-            if (SelectedTool == null) return;
+            if (SelectedItem == null) return;
 
-            var clone = new ToolModel
+            var clone = new ItemModel
             {
-                ToolID = SelectedTool.ToolID,
-                ToolNumber = SelectedTool.ToolNumber,
-                PartNumber = SelectedTool.PartNumber,
-                NameDescription = SelectedTool.NameDescription,
-                Brand = SelectedTool.Brand,
-                Location = SelectedTool.Location,
-                QuantityOnHand = SelectedTool.QuantityOnHand,
-                RentedQuantity = SelectedTool.RentedQuantity,
-                Supplier = SelectedTool.Supplier,
-                PurchasedDate = SelectedTool.PurchasedDate,
-                Notes = SelectedTool.Notes,
-                Keywords = SelectedTool.Keywords,
-                IsPowerTool = SelectedTool.IsPowerTool,
-                IsCheckedOut = SelectedTool.IsCheckedOut,
-                CheckedOutBy = SelectedTool.CheckedOutBy,
-                CheckedOutTime = SelectedTool.CheckedOutTime,
-                ToolImagePath = SelectedTool.ToolImagePath
+                ToolID = SelectedItem.ToolID,
+                ToolNumber = SelectedItem.ToolNumber,
+                PartNumber = SelectedItem.PartNumber,
+                NameDescription = SelectedItem.NameDescription,
+                Brand = SelectedItem.Brand,
+                Location = SelectedItem.Location,
+                QuantityOnHand = SelectedItem.QuantityOnHand,
+                RentedQuantity = SelectedItem.RentedQuantity,
+                Supplier = SelectedItem.Supplier,
+                PurchasedDate = SelectedItem.PurchasedDate,
+                Notes = SelectedItem.Notes,
+                Keywords = SelectedItem.Keywords,
+                IsPowerTool = SelectedItem.IsPowerTool,
+                IsCheckedOut = SelectedItem.IsCheckedOut,
+                CheckedOutBy = SelectedItem.CheckedOutBy,
+                CheckedOutTime = SelectedItem.CheckedOutTime,
+                ToolImagePath = SelectedItem.ToolImagePath
             };
 
             var updated = await _dialogService.ShowEditToolDialogAsync(clone);
@@ -262,10 +262,10 @@ namespace ToolManagementAppV2.ViewModels
 
             try
             {
-                await _toolService.UpdateToolAsync(updated, cancellationToken);
+                await _itemService.UpdateToolAsync(updated, cancellationToken);
                 await LoadToolsAsync();
                 await FilterToolsAsync(cancellationToken);
-                SelectedTool = Tools.FirstOrDefault(t => t.ToolID == updated.ToolID);
+                SelectedItem = Tools.FirstOrDefault(t => t.ToolID == updated.ToolID);
             }
             catch (OperationCanceledException)
             {
@@ -279,39 +279,39 @@ namespace ToolManagementAppV2.ViewModels
 
         void ViewDetails()
         {
-            if (SelectedTool == null) return;
-            _dialogService.ShowToolDetails(SelectedTool);
+            if (SelectedItem == null) return;
+            _dialogService.ShowToolDetails(SelectedItem);
         }
 
         async Task OpenRentalHistoryAsync()
         {
-            if (SelectedTool == null) return;
+            if (SelectedItem == null) return;
             try
             {
-                var history = await _rentalService.GetRentalHistoryForToolAsync(SelectedTool.ToolID);
-                _dialogService.ShowRentalHistory(SelectedTool, history);
+                var history = await _rentalService.GetRentalHistoryForToolAsync(SelectedItem.ToolID);
+                _dialogService.ShowRentalHistory(SelectedItem, history);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to open rental history for {ItemLabelSingular} {ToolID}", LabelProvider.Instance.ItemLabelSingular, SelectedTool.ToolID);
+                _logger.LogError(ex, "Failed to open rental history for {ItemLabelSingular} {ToolID}", LabelProvider.Instance.ItemLabelSingular, SelectedItem.ToolID);
             }
         }
 
         async Task DeleteToolAsync(CancellationToken cancellationToken)
         {
-            if (SelectedTool == null) return;
+            if (SelectedItem == null) return;
             var confirm = await _dialogService.ShowConfirmationAsync(
-                $"Delete {LabelProvider.Instance.ItemLabelSingular.ToLower()} '{SelectedTool.NameDescription}'?",
+                $"Delete {LabelProvider.Instance.ItemLabelSingular.ToLower()} '{SelectedItem.NameDescription}'?",
                 "Confirm Delete");
             if (!confirm)
                 return;
 
             try
             {
-                await _toolService.DeleteToolAsync(SelectedTool.ToolID, cancellationToken);
+                await _itemService.DeleteToolAsync(SelectedItem.ToolID, cancellationToken);
                 await LoadToolsAsync();
                 await FilterToolsAsync(cancellationToken);
-                SelectedTool = null;
+                SelectedItem = null;
             }
             catch (OperationCanceledException)
             {
@@ -323,23 +323,23 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to delete {ItemLabelSingular} {ToolID}", LabelProvider.Instance.ItemLabelSingular, SelectedTool.ToolID);
+                _logger.LogError(ex, "Failed to delete {ItemLabelSingular} {ToolID}", LabelProvider.Instance.ItemLabelSingular, SelectedItem.ToolID);
                 await _dialogService.ShowInfoAsync($"Failed to delete {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message}", "Error");
             }
         }
 
         async Task OpenRentalsAsync(CancellationToken cancellationToken)
         {
-            if (SelectedTool == null) return;
+            if (SelectedItem == null) return;
 
             try
             {
                 var customers = await _customerService.GetAllCustomersAsync(cancellationToken);
-                var result = _dialogService.ShowRentToolDialog(SelectedTool, customers);
+                var result = _dialogService.ShowRentToolDialog(SelectedItem, customers);
                 if (result != null)
                 {
                     var (customer, dueDate) = result.Value;
-                    await _rentalService.RentToolAsync(SelectedTool.ToolID,
+                    await _rentalService.RentToolAsync(SelectedItem.ToolID,
                         customer.CustomerID,
                         DateTime.Today,
                         dueDate);
@@ -356,12 +356,12 @@ namespace ToolManagementAppV2.ViewModels
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to rent {ItemLabelSingular} {ToolID}", LabelProvider.Instance.ItemLabelSingular, SelectedTool?.ToolID);
+                _logger.LogError(ex, "Failed to rent {ItemLabelSingular} {ToolID}", LabelProvider.Instance.ItemLabelSingular, SelectedItem?.ToolID);
                 await _dialogService.ShowInfoAsync($"Failed to rent {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message}", "Error");
             }
         }
 
-        void LoadCategories(IEnumerable<ToolModel> tools, bool suppressSearch = false)
+        void LoadCategories(IEnumerable<ItemModel> tools, bool suppressSearch = false)
         {
             var categories = tools.Select(t => t.Brand)
                                    .Where(b => !string.IsNullOrWhiteSpace(b))

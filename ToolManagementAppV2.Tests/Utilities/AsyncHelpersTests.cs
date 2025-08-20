@@ -26,15 +26,15 @@ namespace ToolManagementAppV2.Tests.Utilities
             }
             public bool ShowConfirmation(string message, string title) => true;
             public Task<bool> ShowConfirmationAsync(string message, string title) => Task.FromResult(true);
-            public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
-            public Task<ToolModel?> ShowEditToolDialogAsync(ToolModel tool) => Task.FromResult<ToolModel?>(null);
-            public void ShowToolDetails(ToolModel tool) { }
-            public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, System.Collections.Generic.IEnumerable<CustomerModel> customers) => null;
+            public ItemModel? ShowEditToolDialog(ItemModel tool) => null;
+            public Task<ItemModel?> ShowEditToolDialogAsync(ItemModel tool) => Task.FromResult<ItemModel?>(null);
+            public void ShowToolDetails(ItemModel tool) { }
+            public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, System.Collections.Generic.IEnumerable<CustomerModel> customers) => null;
             public CustomerModel? ShowAddCustomerDialog() => null;
             public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
-            public void ShowRentalHistory(ToolModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }
+            public void ShowRentalHistory(ItemModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }
             public System.Collections.Generic.Dictionary<string, string>? ShowImportMapping(System.Collections.Generic.IEnumerable<string> headers, System.Collections.Generic.IEnumerable<string> properties) => null;
-            public Func<ToolModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
+            public Func<ItemModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
             public void ShowPrintLabelDialog() { }
         }

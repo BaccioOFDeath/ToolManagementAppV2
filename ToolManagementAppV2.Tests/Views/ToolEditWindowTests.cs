@@ -20,7 +20,7 @@ namespace ToolManagementAppV2.Tests.Views
             {
                 try
                 {
-                    var tool = new Tool();
+                    var tool = new ItemModel();
                     ToolEditWindow? window = null;
                     bool closed = false;
 
@@ -32,7 +32,7 @@ namespace ToolManagementAppV2.Tests.Views
 
                     Assert.IsType<ToolEditViewModel>(window.DataContext);
                     var vm = (ToolEditViewModel)window.DataContext;
-                    Assert.Equal(tool, vm.Tool);
+                    Assert.Equal(tool, vm.ItemModel);
 
                     vm.SaveCommand.Execute(null);
 
@@ -63,7 +63,7 @@ namespace ToolManagementAppV2.Tests.Views
             {
                 try
                 {
-                    var tool = new Tool();
+                    var tool = new ItemModel();
                     ToolEditWindow? window = null;
                     bool closed = false;
 
@@ -99,7 +99,7 @@ namespace ToolManagementAppV2.Tests.Views
         {
             var thread = new Thread(() =>
             {
-                var tool = new Tool();
+                var tool = new ItemModel();
                 ToolEditWindow? window = null;
                 Action onSave = () => window?.Close();
                 Action onCancel = () => window?.Close();

@@ -84,7 +84,7 @@ namespace ToolManagementAppV2
                 services.AddSingleton<IDatabaseBackupService>(sp => sp.GetRequiredService<DatabaseService>());
                 services.AddSingleton<IUserContext, ApplicationUserContext>();
                 services.AddSingleton<IAuthorizationService, AuthorizationService>();
-                services.AddSingleton<IToolService, ToolService>();
+                services.AddSingleton<IItemService, ItemService>();
                 services.AddSingleton<ICustomerService, CustomerService>();
                 services.AddSingleton<IUserService, UserService>();
                 services.AddSingleton<IRentalService, RentalService>();

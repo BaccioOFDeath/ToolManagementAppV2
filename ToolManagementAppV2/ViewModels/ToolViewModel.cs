@@ -4,14 +4,14 @@ namespace ToolManagementAppV2.ViewModels
 {
     internal class ToolViewModel : ObservableObject
     {
-        private ToolModel _tool;
-        public ToolModel Tool
+        private ItemModel _tool;
+        public ItemModel ItemModel
         {
             get => _tool;
             set => SetProperty(ref _tool, value);
         }
 
-        public ToolViewModel(ToolModel tool)
+        public ToolViewModel(ItemModel tool)
         {
             _tool = tool;
         }

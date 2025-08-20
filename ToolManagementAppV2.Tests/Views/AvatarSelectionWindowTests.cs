@@ -113,7 +113,7 @@ namespace ToolManagementAppV2.Tests.Views
         class StubSettingsService : ISettingsService
         {
             public string? AppName { get; set; }
-            public string ItemLabelSingular { get; set; } = "Tool";
+            public string ItemLabelSingular { get; set; } = "ItemModel";
             public string ItemLabelPlural { get; set; } = "Tools";
 
             public Task<string?> GetSettingAsync(string key, CancellationToken cancellationToken = default)
@@ -181,7 +181,7 @@ namespace ToolManagementAppV2.Tests.Views
             public Task SaveAutoLogoutMinutesAsync(int minutes, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
             public Task<string> GetItemLabelSingularAsync(CancellationToken cancellationToken = default)
-                => Task.FromResult("Tool");
+                => Task.FromResult("ItemModel");
             public Task SaveItemLabelSingularAsync(string label, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
             public Task<string> GetItemLabelPluralAsync(CancellationToken cancellationToken = default)
