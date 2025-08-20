@@ -34,7 +34,7 @@ namespace ToolManagementAppV2.Utilities.IO
 
         public static List<ItemModel> LoadToolsFromCsv(string filePath, IDictionary<string, string> map, out List<int> invalidRows)
         {
-            ValidateRequired(map, "ToolNumber");
+            ValidateRequired(map, "ItemNumber");
             var list = new List<ItemModel>();
             invalidRows = new List<int>();
             using var parser = new TextFieldParser(filePath);
@@ -49,7 +49,7 @@ namespace ToolManagementAppV2.Utilities.IO
             {
                 row++;
                 var cols = parser.ReadFields();
-                var toolNumber = GetMapped(cols, headers, map, "ToolNumber");
+                var toolNumber = GetMapped(cols, headers, map, "ItemNumber");
                 if (string.IsNullOrWhiteSpace(toolNumber))
                 {
                     invalidRows.Add(row);
@@ -58,7 +58,7 @@ namespace ToolManagementAppV2.Utilities.IO
 
                 list.Add(new ItemModel
                 {
-                    ToolNumber = toolNumber,
+                    ItemNumber = toolNumber,
                     NameDescription = GetMapped(cols, headers, map, "NameDescription"),
                     Location = GetMapped(cols, headers, map, "Location"),
                     Brand = GetMapped(cols, headers, map, "Brand"),
@@ -88,11 +88,11 @@ namespace ToolManagementAppV2.Utilities.IO
         {
             var lines = new List<string>
             {
-                "ToolNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowerTool"
+                "ItemNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowerTool"
             };
             lines.AddRange(tools.Select(t =>
                 string.Join(",",
-                    Quote(t.ToolNumber),
+                    Quote(t.ItemNumber),
                     Quote(t.NameDescription),
                     Quote(t.Location),
                     Quote(t.Brand),
@@ -109,11 +109,11 @@ namespace ToolManagementAppV2.Utilities.IO
         {
             var lines = new List<string>
             {
-                "ToolNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowerTool"
+                "ItemNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowerTool"
             };
             lines.AddRange(tools.Select(t =>
                 string.Join(",",
-                    Quote(t.ToolNumber),
+                    Quote(t.ItemNumber),
                     Quote(t.NameDescription),
                     Quote(t.Location),
                     Quote(t.Brand),

@@ -26,11 +26,11 @@
                 </Grid.RowDefinitions>
                 <Border Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1" CornerRadius="8">
                     <Image Stretch="UniformToFill"
-                           Source="{Binding ToolImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=tool}"/>
+                           Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=tool}"/>
                 </Border>
                 <StackPanel Grid.Row="1" Margin="0,6,0,0">
                     <TextBlock Text="{Binding NameDescription}" Style="{StaticResource ListItemTitleTextBlock}"/>
-                    <TextBlock Text="{Binding ToolNumber}" Style="{StaticResource CaptionTextBlock}"/>
+                    <TextBlock Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -52,7 +52,7 @@
 
     <!-- Shared rental DataGrid columns -->
     <DataGridTextColumn x:Key="RentalIdColumn" Header="Rental #" Binding="{Binding RentalId}" Width="120" x:Shared="False"/>
-    <DataGridTextColumn x:Key="RentalToolNumberColumn" Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat={}{0} #}" Binding="{Binding ToolNumber}" Width="120" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalItemNumberColumn" Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat={}{0} #}" Binding="{Binding ItemNumber}" Width="120" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalToolNameColumn" Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}" Binding="{Binding ToolName}" Width="*" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalCustomerColumn" Header="Customer" Binding="{Binding CustomerName}" Width="220" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalOutColumn" Header="Out" Binding="{Binding DateOut, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="180" x:Shared="False"/>

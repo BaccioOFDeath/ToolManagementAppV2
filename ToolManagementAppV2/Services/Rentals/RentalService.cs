@@ -53,10 +53,10 @@ namespace ToolManagementAppV2.Services.Rentals
         }
 
         const string BaseSelect = @"SELECT r.*,
-                                    t.ToolNumber,
+                                    t.ItemNumber,
                                     t.NameDescription,
-                                    t.Location AS ToolLocation,
-                                    t.ToolImagePath,
+                                    t.Location AS ItemLocation,
+                                    t.ImagePath,
                                     c.Company,
                                     c.Contact,
                                     c.Email,
@@ -64,7 +64,7 @@ namespace ToolManagementAppV2.Services.Rentals
                                     c.Mobile,
                                     c.Address
                                  FROM Rentals r
-                                 JOIN Tools t ON r.ToolID = t.ToolID
+                                 JOIN Tools t ON r.ItemID = t.ItemID
                                  JOIN Customers c ON r.CustomerID = c.CustomerID";
 
         // Synchronous rental operations removed; use async equivalents instead.
@@ -72,21 +72,21 @@ namespace ToolManagementAppV2.Services.Rentals
         Rental MapRental(IDataRecord r) => new()
         {
             RentalID = Convert.ToInt32(r["RentalID"]),
-            ToolID = Convert.ToInt32(r["ToolID"]),
+            ItemID = Convert.ToInt32(r["ItemID"]),
             CustomerID = Convert.ToInt32(r["CustomerID"]),
             RentalDate = DateTime.Parse(r["RentalDate"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
             DueDate = DateTime.Parse(r["DueDate"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
             ReturnDate = r["ReturnDate"] is DBNull ? null : DateTime.Parse(r["ReturnDate"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
             Status = r["Status"].ToString(),
-            ToolNumber = r["ToolNumber"].ToString(),
+            ItemNumber = r["ItemNumber"].ToString(),
             CustomerName = r["Company"].ToString(),
             CustomerContact = r["Contact"].ToString(),
             CustomerEmail = r["Email"].ToString(),
             CustomerPhone = r["Phone"].ToString(),
             CustomerMobile = r["Mobile"].ToString(),
             CustomerAddress = r["Address"].ToString(),
-            ToolImagePath = r["ToolImagePath"].ToString(),
-            ToolLocation = r["ToolLocation"].ToString()
+            ImagePath = r["ImagePath"].ToString(),
+            ItemLocation = r["ItemLocation"].ToString()
         };
 
         public async Task RentToolAsync(int toolID, int customerID, DateTime rentalDate, DateTime dueDate)
@@ -95,19 +95,19 @@ namespace ToolManagementAppV2.Services.Rentals
             await ExecuteWithTransactionAsync(async (conn, tx) =>
             {
                 var availCmd = new SQLiteCommand(
-                    "SELECT AvailableQuantity FROM Tools WHERE ToolID=@ToolID",
+                    "SELECT AvailableQuantity FROM Tools WHERE ItemID=@ItemID",
                     conn, tx);
-                availCmd.Parameters.AddWithValue("@ToolID", toolID);
+                availCmd.Parameters.AddWithValue("@ItemID", toolID);
                 int avail = Convert.ToInt32(await availCmd.ExecuteScalarAsync() ?? 0);
                 if (avail < 1)
                     throw new InvalidOperationException("Insufficient quantity.");
 
                 await SqliteHelper.ExecuteNonQueryAsync(conn, tx,
-                    "INSERT INTO Rentals (ToolID, CustomerID, RentalDate, DueDate, Status) " +
-                    "VALUES (@ToolID, @CustomerID, @RentalDate, @DueDate, 'Rented')",
+                    "INSERT INTO Rentals (ItemID, CustomerID, RentalDate, DueDate, Status) " +
+                    "VALUES (@ItemID, @CustomerID, @RentalDate, @DueDate, 'Rented')",
                     new[]
                     {
-                        new SQLiteParameter("@ToolID", toolID),
+                        new SQLiteParameter("@ItemID", toolID),
                         new SQLiteParameter("@CustomerID", customerID),
                         new SQLiteParameter("@RentalDate", rentalDate),
                         new SQLiteParameter("@DueDate", dueDate)
@@ -129,7 +129,7 @@ namespace ToolManagementAppV2.Services.Rentals
             await ExecuteWithTransactionAsync(async (conn, tx) =>
             {
                 var selCmd = new SQLiteCommand(
-                    "SELECT ToolID FROM Rentals WHERE RentalID=@RentalID AND Status='Rented'", conn, tx);
+                    "SELECT ItemID FROM Rentals WHERE RentalID=@RentalID AND Status='Rented'", conn, tx);
                 selCmd.Parameters.AddWithValue("@RentalID", rentalID);
                 var result = await selCmd.ExecuteScalarAsync();
                 if (result == null) throw new InvalidOperationException("Rental not found or already returned.");
@@ -159,14 +159,14 @@ namespace ToolManagementAppV2.Services.Rentals
             await ExecuteWithTransactionAsync(async (conn, tx) =>
             {
                 var selectCmd = new SQLiteCommand(
-                    "SELECT ToolID, DueDate FROM Rentals WHERE RentalID=@RentalID AND Status='Rented'",
+                    "SELECT ItemID, DueDate FROM Rentals WHERE RentalID=@RentalID AND Status='Rented'",
                     conn, tx);
                 selectCmd.Parameters.AddWithValue("@RentalID", rentalID);
                 using var reader = await selectCmd.ExecuteReaderAsync();
                 if (!await reader.ReadAsync())
                     throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
 
-                int toolID = Convert.ToInt32(reader["ToolID"]);
+                int toolID = Convert.ToInt32(reader["ItemID"]);
                 DateTime oldDueDate = DateTime.Parse(reader["DueDate"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
 
                 var updateCmd = new SQLiteCommand(
@@ -230,8 +230,8 @@ namespace ToolManagementAppV2.Services.Rentals
 
         public async Task<List<Rental>> GetRentalHistoryForToolAsync(int toolID)
         {
-            const string sql = BaseSelect + @" WHERE r.ToolID = @ToolID ORDER BY r.RentalDate DESC";
-            var p = new[] { new SQLiteParameter("@ToolID", toolID) };
+            const string sql = BaseSelect + @" WHERE r.ItemID = @ItemID ORDER BY r.RentalDate DESC";
+            var p = new[] { new SQLiteParameter("@ItemID", toolID) };
             using var conn = _dbService.CreateConnection();
             return await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapRental);
         }

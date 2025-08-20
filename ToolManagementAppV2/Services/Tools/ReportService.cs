@@ -39,7 +39,7 @@ namespace ToolManagementAppV2.Services.Tools
         {
             var tools = await _toolService.GetAllToolsAsync().ConfigureAwait(false);
             var lines = tools.Select(t =>
-                $"ItemModel ID: {t.ToolID} | ToolNumber: {t.ToolNumber} | Qty: {t.QuantityOnHand} | Location: {t.Location} | Supplier: {t.Supplier}");
+                $"ItemModel ID: {t.ItemID} | ItemNumber: {t.ItemNumber} | Qty: {t.QuantityOnHand} | Location: {t.Location} | Supplier: {t.Supplier}");
             return BuildReport("ItemModel Inventory Report", lines);
         }
 
@@ -52,7 +52,7 @@ namespace ToolManagementAppV2.Services.Tools
             var title = activeOnly ? "Active Rental Report" : "Full Rental History Report";
 
             var lines = rentals.Select(r =>
-                $"Rental ID: {r.RentalID} | ItemModel ID: {r.ToolID} | Customer ID: {r.CustomerID} | Rental Date: {r.RentalDate:yyyy-MM-dd} | Due Date: {r.DueDate:yyyy-MM-dd} | Return Date: {(r.ReturnDate.HasValue ? r.ReturnDate.Value.ToString("yyyy-MM-dd") : "N/A")} | Status: {r.Status}");
+                $"Rental ID: {r.RentalID} | ItemModel ID: {r.ItemID} | Customer ID: {r.CustomerID} | Rental Date: {r.RentalDate:yyyy-MM-dd} | Due Date: {r.DueDate:yyyy-MM-dd} | Return Date: {(r.ReturnDate.HasValue ? r.ReturnDate.Value.ToString("yyyy-MM-dd") : "N/A")} | Status: {r.Status}");
 
             return BuildReport(title, lines);
         }

@@ -19,7 +19,7 @@ namespace ToolManagementAppV2.Tests.Views
         public void ButtonsExecuteCommandsAndUpdateLogs()
         {
             var tmp = Path.GetTempFileName();
-            File.WriteAllText(tmp, "ToolNumber\n");
+            File.WriteAllText(tmp, "ItemNumber\n");
             Exception? threadException = null;
 
             try
@@ -116,7 +116,7 @@ namespace ToolManagementAppV2.Tests.Views
         public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ItemModel, System.Collections.Generic.IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
         public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, System.Data.SQLite.SQLiteConnection? conn = null, System.Data.SQLite.SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public Task<string> GenerateNextToolNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
+        public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
     }
 
     class StubCustomerService : ICustomerService

@@ -19,12 +19,12 @@ namespace ToolManagementAppV2.ViewModels
         public IRelayCommand CancelCommand { get; }
 
         /// <summary>
-        /// Opens a file dialog to select an image and updates <see cref="ItemModel.ToolImagePath"/>.
+        /// Opens a file dialog to select an image and updates <see cref="ItemModel.ImagePath"/>.
         /// </summary>
         public IRelayCommand BrowseImageCommand { get; }
 
         /// <summary>
-        /// Clears the current <see cref="ItemModel.ToolImagePath"/> and removes the preview.
+        /// Clears the current <see cref="ItemModel.ImagePath"/> and removes the preview.
         /// </summary>
         public IRelayCommand RemoveImageCommand { get; }
 
@@ -52,13 +52,13 @@ namespace ToolManagementAppV2.ViewModels
             var path = _fileDialog.OpenFile("Image Files|*.png;*.jpg;*.jpeg;*.bmp|All Files|*.*");
             if (!string.IsNullOrEmpty(path))
             {
-                ItemModel.ToolImagePath = path;
+                ItemModel.ImagePath = path;
             }
         }
 
         void RemoveImage()
         {
-            ItemModel.ToolImagePath = string.Empty;
+            ItemModel.ImagePath = string.Empty;
         }
     }
 }

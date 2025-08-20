@@ -30,8 +30,8 @@ namespace ToolManagementAppV2.Tests.Views
                     var rentalService = new RentalService(db);
                     var dialog = new StubDialogService();
                     var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
-                    toolService.AddTool(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer" });
-                    toolService.AddTool(new ItemModel { ToolNumber = "T2", NameDescription = "Hand Saw" });
+                    toolService.AddTool(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
+                    toolService.AddTool(new ItemModel { ItemNumber = "T2", NameDescription = "Hand Saw" });
                     vm.LoadToolsAsync().Wait();
                     var page = new ToolSearchPage { DataContext = vm };
                     var window = new System.Windows.Window { Content = page, Width = 800, Height = 600 };

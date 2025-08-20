@@ -41,9 +41,9 @@ namespace ToolManagementAppV2.Services.Core
             _logger = logger ?? NullLogger<DatabaseService>.Instance;
             ConfigureDatabase();
             InitializeDatabase();
-            EnsureColumn("Tools", "ToolNumber", "TEXT");
+            EnsureColumn("Tools", "ItemNumber", "TEXT");
             EnsureColumn("Tools", "NameDescription", "TEXT");
-            EnsureColumn("Tools", "ToolImagePath", "TEXT");
+            EnsureColumn("Tools", "ImagePath", "TEXT");
             EnsureColumn("Tools", "CheckedOutBy", "TEXT");
             EnsureColumn("Tools", "CheckedOutTime", "DATETIME");
             EnsureColumn("Tools", "Keywords", "TEXT");
@@ -103,8 +103,8 @@ namespace ToolManagementAppV2.Services.Core
             using var conn = CreateConnection();
             var sql = @"
                 CREATE TABLE IF NOT EXISTS Tools (
-                    ToolID INTEGER PRIMARY KEY AUTOINCREMENT,
-                    ToolNumber TEXT NOT NULL,
+                    ItemID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ItemNumber TEXT NOT NULL,
                     NameDescription TEXT,
                     Location TEXT,
                     Brand TEXT,
@@ -146,13 +146,13 @@ namespace ToolManagementAppV2.Services.Core
                 );
                 CREATE TABLE IF NOT EXISTS Rentals (
                     RentalID INTEGER PRIMARY KEY AUTOINCREMENT,
-                    ToolID INTEGER NOT NULL,
+                    ItemID INTEGER NOT NULL,
                     CustomerID INTEGER NOT NULL,
                     RentalDate DATETIME NOT NULL,
                     DueDate DATETIME NOT NULL,
                     ReturnDate DATETIME,
                     Status TEXT NOT NULL DEFAULT 'Rented',
-                    FOREIGN KEY (ToolID) REFERENCES Tools(ToolID),
+                    FOREIGN KEY (ItemID) REFERENCES Tools(ItemID),
                     FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
                 );
                 CREATE TABLE IF NOT EXISTS ActivityLogs (
@@ -170,7 +170,7 @@ namespace ToolManagementAppV2.Services.Core
             using var cmd = new SQLiteCommand(sql, conn);
             cmd.ExecuteNonQuery();
 
-            EnsureIndex(conn, "Tools", "ToolNumber", true);
+            EnsureIndex(conn, "Tools", "ItemNumber", true);
             EnsureIndex(conn, "Tools", "NameDescription");
             EnsureIndex(conn, "Tools", "Brand");
             EnsureIndex(conn, "Tools", "PartNumber");
@@ -180,7 +180,7 @@ namespace ToolManagementAppV2.Services.Core
             // Ensure each user has a unique username
             EnsureIndex(conn, "Users", "UserName", true);
             EnsureIndex(conn, "Customers", "Contact");
-            EnsureIndex(conn, "Rentals", new[] { "ToolID", "CustomerID" });
+            EnsureIndex(conn, "Rentals", new[] { "ItemID", "CustomerID" });
         }
 
         void EnsureColumn(string table, string column, string type, string? defaultValue = null)

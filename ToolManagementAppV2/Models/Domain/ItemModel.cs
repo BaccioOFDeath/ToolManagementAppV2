@@ -4,18 +4,18 @@ namespace ToolManagementAppV2.Models.Domain
 {
     public class ItemModel : ObservableObject
     {
-        private int _toolID;
-        public int ToolID
+        private int _itemID;
+        public int ItemID
         {
-            get => _toolID;
-            set => SetProperty(ref _toolID, value);
+            get => _itemID;
+            set => SetProperty(ref _itemID, value);
         }
 
-        private string _toolNumber = string.Empty;
-        public string ToolNumber
+        private string _itemNumber = string.Empty;
+        public string ItemNumber
         {
-            get => _toolNumber;
-            set => SetProperty(ref _toolNumber, value);
+            get => _itemNumber;
+            set => SetProperty(ref _itemNumber, value);
         }
 
         private string _partNumber = string.Empty;
@@ -128,11 +128,11 @@ namespace ToolManagementAppV2.Models.Domain
             set => SetProperty(ref _checkedOutTime, value);
         }
 
-        private string _toolImagePath = string.Empty;
-        public string ToolImagePath
+        private string _imagePath = string.Empty;
+        public string ImagePath
         {
-            get => _toolImagePath;
-            set => SetProperty(ref _toolImagePath, value);
+            get => _imagePath;
+            set => SetProperty(ref _imagePath, value);
         }
 
         public int OnHand => QuantityOnHand;

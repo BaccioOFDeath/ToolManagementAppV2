@@ -286,8 +286,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                toolService.AddTool(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer" });
-                toolService.AddTool(new ItemModel { ToolNumber = "T2", NameDescription = "Saw" });
+                toolService.AddTool(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
+                toolService.AddTool(new ItemModel { ItemNumber = "T2", NameDescription = "Saw" });
 
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 vm.GlobalSearchText = "Ham";
@@ -362,7 +362,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             var dbPath = Path.GetTempFileName();
             var csvPath = Path.GetTempFileName();
-            File.WriteAllText(csvPath, "ToolNumber,NameDescription\nT1,Hammer\n");
+            File.WriteAllText(csvPath, "ItemNumber,NameDescription\nT1,Hammer\n");
             try
             {
                 var db = new DatabaseService(dbPath);
@@ -379,7 +379,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 {
                     ImportMap = new Dictionary<string, string>
                     {
-                        { "ToolNumber", "ToolNumber" },
+                        { "ItemNumber", "ItemNumber" },
                         { "NameDescription", "NameDescription" }
                     }
                 };

@@ -54,7 +54,7 @@ namespace ToolManagementAppV2.Tests.Tests
                 IRentalService rentalService = new RentalService(db);
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
-                toolService.AddTool(new ItemModel { ToolNumber = "T1", NameDescription = "Hammer" });
+                toolService.AddTool(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
 
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 await vm.OpenSearchToolsCommand.ExecuteAsync(null);

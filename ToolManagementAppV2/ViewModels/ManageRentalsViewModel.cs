@@ -131,7 +131,7 @@ namespace ToolManagementAppV2.ViewModels
             {
                 var term = SearchText.Trim();
                 filtered = filtered.Where(r =>
-                    (r.ToolNumber?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (r.ItemNumber?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (r.CustomerName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false));
             }
 
@@ -217,20 +217,20 @@ namespace ToolManagementAppV2.ViewModels
             List<RentalModel> history;
             try
             {
-                history = await _rentalService.GetRentalHistoryForToolAsync(SelectedRental.ToolID);
+                history = await _rentalService.GetRentalHistoryForToolAsync(SelectedRental.ItemID);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to open rental history for tool {ToolID}", SelectedRental.ToolID);
+                _logger.LogError(ex, "Failed to open rental history for tool {ItemID}", SelectedRental.ItemID);
                 await _dialogService.ShowInfoAsync($"Failed to load rental history: {ex.Message}", "Error");
                 return;
             }
 
             var tool = new ItemModel
             {
-                ToolID = SelectedRental.ToolID,
-                ToolNumber = SelectedRental.ToolNumber,
-                NameDescription = SelectedRental.ToolNumber
+                ItemID = SelectedRental.ItemID,
+                ItemNumber = SelectedRental.ItemNumber,
+                NameDescription = SelectedRental.ItemNumber
             };
 
             _dialogService.ShowRentalHistory(tool, history);
@@ -274,7 +274,7 @@ namespace ToolManagementAppV2.ViewModels
                 }
 
                 AddRow("Rental #:", SelectedRental.RentalID.ToString());
-                AddRow("ItemModel #:", SelectedRental.ToolNumber);
+                AddRow("ItemModel #:", SelectedRental.ItemNumber);
                 AddRow("Customer:", SelectedRental.CustomerName);
                 AddRow("Rental Date:", SelectedRental.RentalDate.ToString("yyyy-MM-dd HH:mm"));
                 AddRow("Due Date:", SelectedRental.DueDate.ToString("yyyy-MM-dd HH:mm"));

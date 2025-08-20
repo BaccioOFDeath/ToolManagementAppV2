@@ -22,7 +22,7 @@
                       Style="{StaticResource VirtualizedDataGridStyle}">
                 <DataGrid.Columns>
                     <StaticResource ResourceKey="RentalIdColumn"/>
-                    <StaticResource ResourceKey="RentalToolNumberColumn"/>
+                    <StaticResource ResourceKey="RentalItemNumberColumn"/>
                     <StaticResource ResourceKey="RentalToolNameColumn"/>
                     <StaticResource ResourceKey="RentalCustomerColumn"/>
                     <StaticResource ResourceKey="RentalOutColumn"/>

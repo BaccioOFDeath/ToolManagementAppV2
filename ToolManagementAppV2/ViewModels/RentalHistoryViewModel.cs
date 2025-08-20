@@ -46,7 +46,7 @@ namespace ToolManagementAppV2.ViewModels.Rental
         public RentalHistoryViewModel(ItemModel? tool, IEnumerable<RentalModel>? history, IDialogService dialogService, ILogger<RentalHistoryViewModel>? logger = null)
         {
             ToolDisplayName = tool != null
-                ? $"{tool.ToolNumber} - {tool.NameDescription}"
+                ? $"{tool.ItemNumber} - {tool.NameDescription}"
                 : "Rental History";
 
             _allHistory = (history ?? Enumerable.Empty<RentalModel>()).ToList();
@@ -67,7 +67,7 @@ namespace ToolManagementAppV2.ViewModels.Rental
             {
                 results = _allHistory.Where(r =>
                     r.RentalID.ToString().Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                    (r.ToolNumber?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (r.ItemNumber?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (r.CustomerName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (r.Status?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false));
             }
@@ -100,12 +100,12 @@ namespace ToolManagementAppV2.ViewModels.Rental
             path ??= Path.Combine(Environment.CurrentDirectory, "rental_history.csv");
 
             var sb = new StringBuilder();
-            sb.AppendLine("RentalID,ToolNumber,CustomerName,RentalDate,DueDate,ReturnDate,Status");
+            sb.AppendLine("RentalID,ItemNumber,CustomerName,RentalDate,DueDate,ReturnDate,Status");
             foreach (var r in History)
             {
                 sb.AppendLine(string.Join(',',
                     r.RentalID,
-                    Escape(r.ToolNumber),
+                    Escape(r.ItemNumber),
                     Escape(r.CustomerName),
                     r.RentalDate.ToString("o"),
                     r.DueDate.ToString("o"),

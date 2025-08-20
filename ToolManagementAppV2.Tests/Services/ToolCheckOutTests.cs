@@ -18,10 +18,10 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var service = new ItemService(new DatabaseService(db));
-                service.AddTool(new ItemModel { ToolNumber = "T1", QuantityOnHand = 0 });
+                service.AddTool(new ItemModel { ItemNumber = "T1", QuantityOnHand = 0 });
                 var tool = service.GetAllTools().First();
-                var result = service.ToggleToolCheckOutStatus(tool.ToolID, "u");
-                var updated = service.GetToolByID(tool.ToolID);
+                var result = service.ToggleToolCheckOutStatus(tool.ItemID, "u");
+                var updated = service.GetToolByID(tool.ItemID);
                 Assert.False(result);
                 Assert.False(updated.IsCheckedOut);
                 Assert.Equal(0, updated.QuantityOnHand);
@@ -39,15 +39,15 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 IItemService svc = new ItemService(new DatabaseService(db));
-                svc.AddTool(new ItemModel { ToolNumber = "T2", QuantityOnHand = 1 });
+                svc.AddTool(new ItemModel { ItemNumber = "T2", QuantityOnHand = 1 });
                 var tool = svc.GetAllTools().First();
-                var first = svc.ToggleToolCheckOutStatus(tool.ToolID, "u");
-                var outTool = svc.GetToolByID(tool.ToolID);
+                var first = svc.ToggleToolCheckOutStatus(tool.ItemID, "u");
+                var outTool = svc.GetToolByID(tool.ItemID);
                 Assert.True(first);
                 Assert.True(outTool.IsCheckedOut);
                 Assert.Equal(0, outTool.QuantityOnHand);
-                var second = svc.ToggleToolCheckOutStatus(tool.ToolID, "u");
-                var back = svc.GetToolByID(tool.ToolID);
+                var second = svc.ToggleToolCheckOutStatus(tool.ItemID, "u");
+                var back = svc.GetToolByID(tool.ItemID);
                 Assert.True(second);
                 Assert.False(back.IsCheckedOut);
                 Assert.Equal(1, back.QuantityOnHand);

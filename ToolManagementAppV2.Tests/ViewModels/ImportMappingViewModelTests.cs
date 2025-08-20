@@ -9,8 +9,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Fact]
         public void Constructor_PopulatesMappingsWithProvidedLists()
         {
-            var headers = new[] { "ToolNumber", "NameDescription", "SerialNumber" };
-            var properties = new[] { "ToolNumber", "NameDescription" };
+            var headers = new[] { "ItemNumber", "NameDescription", "SerialNumber" };
+            var properties = new[] { "ItemNumber", "NameDescription" };
 
             var vm = new ImportMappingViewModel(headers, properties, () => { }, () => { });
 

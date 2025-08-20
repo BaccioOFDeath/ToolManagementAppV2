@@ -24,8 +24,8 @@ public static class AsyncServiceExtensions
         => svc.GetAllToolsAsync(token).GetAwaiter().GetResult();
     public static List<ItemModel> SearchTools(this IItemService svc, string? text, CancellationToken token = default)
         => svc.SearchToolsAsync(text, token).GetAwaiter().GetResult();
-    public static string GenerateNextToolNumber(this IItemService svc, CancellationToken token = default)
-        => svc.GenerateNextToolNumberAsync(token).GetAwaiter().GetResult();
+    public static string GenerateNextItemNumber(this IItemService svc, CancellationToken token = default)
+        => svc.GenerateNextItemNumberAsync(token).GetAwaiter().GetResult();
 
     // CustomerService wrappers
     public static void AddCustomer(this ICustomerService svc, Customer customer, CancellationToken token = default)

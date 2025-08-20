@@ -16,6 +16,6 @@ namespace ToolManagementAppV2.ViewModels
             _tool = tool;
         }
 
-        public string DisplayName => $"{_tool.ToolNumber} - {_tool.NameDescription}";
+        public string DisplayName => $"{_tool.ItemNumber} - {_tool.NameDescription}";
     }
 }

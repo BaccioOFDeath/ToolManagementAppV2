@@ -15,8 +15,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             var history = new List<Rental>
             {
-                new Rental { RentalID = 1, ToolNumber = "T1", CustomerName = "Alice", Status = "Rented", RentalDate=DateTime.Today, DueDate=DateTime.Today },
-                new Rental { RentalID = 2, ToolNumber = "T2", CustomerName = "Bob", Status = "Returned", RentalDate=DateTime.Today, DueDate=DateTime.Today }
+                new Rental { RentalID = 1, ItemNumber = "T1", CustomerName = "Alice", Status = "Rented", RentalDate=DateTime.Today, DueDate=DateTime.Today },
+                new Rental { RentalID = 2, ItemNumber = "T2", CustomerName = "Bob", Status = "Returned", RentalDate=DateTime.Today, DueDate=DateTime.Today }
             };
             var vm = new RentalHistoryViewModel(null, history, new StubDialogService());
 
@@ -32,7 +32,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             var history = new List<Rental>
             {
-                new Rental { RentalID = 1, ToolNumber = "T1", CustomerName = "Alice", Status = "Rented", RentalDate=DateTime.Today, DueDate=DateTime.Today }
+                new Rental { RentalID = 1, ItemNumber = "T1", CustomerName = "Alice", Status = "Rented", RentalDate=DateTime.Today, DueDate=DateTime.Today }
             };
             var vm = new RentalHistoryViewModel(null, history, new StubDialogService());
 
@@ -59,7 +59,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             var history = new List<Rental>
             {
-                new Rental { RentalID = 1, ToolNumber = "T1", CustomerName = "Alice", Status = "Rented", RentalDate=DateTime.Today, DueDate=DateTime.Today }
+                new Rental { RentalID = 1, ItemNumber = "T1", CustomerName = "Alice", Status = "Rented", RentalDate=DateTime.Today, DueDate=DateTime.Today }
             };
             var dialog = new StubDialogService();
             var vm = new RentalHistoryViewModel(null, history, dialog);

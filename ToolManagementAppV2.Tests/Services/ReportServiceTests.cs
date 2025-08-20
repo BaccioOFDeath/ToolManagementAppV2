@@ -32,7 +32,7 @@ namespace ToolManagementAppV2.Tests.Services
 
                 var tool = new ItemModel
                 {
-                    ToolNumber = "T1",
+                    ItemNumber = "T1",
                     NameDescription = "Hammer",
                     Location = "Loc",
                     Brand = "Brand",
@@ -60,7 +60,7 @@ namespace ToolManagementAppV2.Tests.Services
                 };
                 userService.AddUser(user);
 
-                rentalService.RentTool(tool.ToolID, customer.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool.ItemID, customer.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var task = Task.Run(() => reportService.GenerateSummaryReport().Result);
                 Assert.True(task.Wait(TimeSpan.FromSeconds(5)), "GenerateSummaryReport deadlocked.");
@@ -96,7 +96,7 @@ namespace ToolManagementAppV2.Tests.Services
 
                 var tool = new ItemModel
                 {
-                    ToolNumber = "T1",
+                    ItemNumber = "T1",
                     NameDescription = "Hammer",
                     Location = "Loc",
                     Brand = "Brand",
@@ -124,7 +124,7 @@ namespace ToolManagementAppV2.Tests.Services
                 };
                 userService.AddUser(user);
 
-                rentalService.RentTool(tool.ToolID, customer.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentTool(tool.ItemID, customer.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var doc = await reportService.GenerateSummaryReport();
                 var text = new TextRange(doc.ContentStart, doc.ContentEnd).Text;

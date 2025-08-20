@@ -18,10 +18,10 @@ namespace ToolManagementAppV2.Tests.Services
                 {
                     conn.Open();
                     using var cmd = new SQLiteCommand(@"CREATE TABLE Tools (
-                            ToolID INTEGER PRIMARY KEY AUTOINCREMENT,
-                            ToolNumber TEXT NOT NULL
+                            ItemID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            ItemNumber TEXT NOT NULL
                         );
-                        INSERT INTO Tools (ToolNumber) VALUES ('T1');", conn);
+                        INSERT INTO Tools (ItemNumber) VALUES ('T1');", conn);
                     cmd.ExecuteNonQuery();
                 }
 
