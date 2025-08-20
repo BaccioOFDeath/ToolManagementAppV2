@@ -25,8 +25,8 @@ namespace ToolManagementAppV2.Services.Items
         const string AllItemsSql = "SELECT * FROM Items";
         const string UpsertItemCsv = @"
             INSERT INTO Items
-              (ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, ImagePath, IsCheckedOut, IsPowerTool)
-            VALUES (@ItemNumber,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Keywords,@Avail,@Rent,@Img,0,@Power);
+              (ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, ImagePath, IsCheckedOut, IsPowered)
+            VALUES (@ItemNumber,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Keywords,@Avail,@Rent,@Img,0,@Powered);
             SELECT last_insert_rowid();";
         const int MaxQuantityOnHand = 10000;
         const int MaxSearchTerms = 10;
@@ -158,7 +158,7 @@ namespace ToolManagementAppV2.Services.Items
                 new SQLiteParameter("@Avail", item.QuantityOnHand),
                 new SQLiteParameter("@Rent", item.RentedQuantity),
                 new SQLiteParameter("@Img", (object)item.ImagePath ?? DBNull.Value),
-                new SQLiteParameter("@Power", item.IsPowerTool ? 1 : 0)
+                new SQLiteParameter("@Powered", item.IsPowered ? 1 : 0)
             };
             using var cmd = new SQLiteCommand(UpsertItemCsv, conn, tran);
             cmd.Parameters.AddRange(p);
@@ -310,7 +310,7 @@ namespace ToolManagementAppV2.Services.Items
                 : DateTime.Parse(r["CheckedOutTime"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
             ImagePath = r["ImagePath"]?.ToString(),
             Keywords = r["Keywords"]?.ToString(),
-            IsPowerTool = (r["IsPowerTool"] is DBNull ? 0 : Convert.ToInt32(r["IsPowerTool"])) == 1
+            IsPowered = (r["IsPowered"] is DBNull ? 0 : Convert.ToInt32(r["IsPowered"])) == 1
         };
 
         private async Task AddItemInternalAsync(ItemModel item, CancellationToken cancellationToken)
@@ -343,7 +343,7 @@ namespace ToolManagementAppV2.Services.Items
                   Keywords = @Keywords,
                   AvailableQuantity = @Avail,
                   RentedQuantity = @Rent,
-                  IsPowerTool = @Power,
+                  IsPowered = @Powered,
                   IsCheckedOut = @Out,
                   CheckedOutBy = @By,
                   CheckedOutTime = @Time,
@@ -363,7 +363,7 @@ namespace ToolManagementAppV2.Services.Items
                 new SQLiteParameter("@Keywords", (object)item.Keywords ?? DBNull.Value),
                 new SQLiteParameter("@Avail", item.QuantityOnHand),
                 new SQLiteParameter("@Rent", item.RentedQuantity),
-                new SQLiteParameter("@Power", item.IsPowerTool ? 1 : 0),
+                new SQLiteParameter("@Powered", item.IsPowered ? 1 : 0),
                 new SQLiteParameter("@Out", item.IsCheckedOut ? 1 : 0),
                 new SQLiteParameter("@By", (object)item.CheckedOutBy ?? DBNull.Value),
                 new SQLiteParameter("@Time", (object)item.CheckedOutTime ?? DBNull.Value),

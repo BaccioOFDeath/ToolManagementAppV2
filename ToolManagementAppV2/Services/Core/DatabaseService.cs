@@ -41,13 +41,17 @@ namespace ToolManagementAppV2.Services.Core
             _logger = logger ?? NullLogger<DatabaseService>.Instance;
             ConfigureDatabase();
             InitializeDatabase();
+            using (var conn = CreateConnection())
+            {
+                RenameColumnIfExists(conn, "Items", "IsPowerTool", "IsPowered");
+            }
             EnsureColumn("Items", "ItemNumber", "TEXT");
             EnsureColumn("Items", "NameDescription", "TEXT");
             EnsureColumn("Items", "ImagePath", "TEXT");
             EnsureColumn("Items", "CheckedOutBy", "TEXT");
             EnsureColumn("Items", "CheckedOutTime", "DATETIME");
             EnsureColumn("Items", "Keywords", "TEXT");
-            EnsureColumn("Items", "IsPowerTool", "INTEGER", "0");
+            EnsureColumn("Items", "IsPowered", "INTEGER", "0");
             EnsureColumn("Items", "IsCheckedOut", "INTEGER", "0");
             // Ensure indexes that depend on newly added columns
             using (var conn = CreateConnection())
@@ -131,7 +135,7 @@ namespace ToolManagementAppV2.Services.Core
                     Notes TEXT,
                     AvailableQuantity INTEGER NOT NULL DEFAULT 0,
                     RentedQuantity INTEGER NOT NULL DEFAULT 0,
-                    IsPowerTool INTEGER NOT NULL DEFAULT 0,
+                    IsPowered INTEGER NOT NULL DEFAULT 0,
                     IsCheckedOut INTEGER NOT NULL DEFAULT 0,
                     CheckedOutBy TEXT,
                     CheckedOutTime DATETIME
@@ -254,6 +258,25 @@ namespace ToolManagementAppV2.Services.Core
                     _logger.LogError(ex, "Failed to ensure index on {Table}.{Columns}", table, string.Join(",", columns));
                     throw;
                 }
+            }
+        }
+
+        void RenameColumnIfExists(SQLiteConnection conn, string table, string oldName, string newName)
+        {
+            using var info = new SQLiteCommand($"PRAGMA table_info({table})", conn);
+            using var rdr = info.ExecuteReader();
+            var oldExists = false;
+            var newExists = false;
+            while (rdr.Read())
+            {
+                var name = rdr["name"].ToString();
+                if (string.Equals(name, oldName, StringComparison.OrdinalIgnoreCase)) oldExists = true;
+                if (string.Equals(name, newName, StringComparison.OrdinalIgnoreCase)) newExists = true;
+            }
+            if (oldExists && !newExists)
+            {
+                using var rename = new SQLiteCommand($"ALTER TABLE {table} RENAME COLUMN {oldName} TO {newName}", conn);
+                rename.ExecuteNonQuery();
             }
         }
 

@@ -67,7 +67,7 @@ namespace ToolManagementAppV2.Utilities.IO
                     PurchasedDate = TryParseDate(GetMapped(cols, headers, map, "PurchasedDate")),
                     Notes = GetMapped(cols, headers, map, "Notes"),
                     QuantityOnHand = TryParseInt(GetMapped(cols, headers, map, "AvailableQuantity")),
-                    IsPowerTool = TryParseBool(GetMapped(cols, headers, map, "IsPowerTool"))
+                    IsPowered = TryParseBool(GetMapped(cols, headers, map, "IsPowered"))
                 });
             }
 
@@ -88,7 +88,7 @@ namespace ToolManagementAppV2.Utilities.IO
         {
             var lines = new List<string>
             {
-                "ItemNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowerTool"
+                "ItemNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowered"
             };
             lines.AddRange(items.Select(t =>
                 string.Join(",",
@@ -101,7 +101,7 @@ namespace ToolManagementAppV2.Utilities.IO
                     Quote(t.PurchasedDate?.ToString("yyyy-MM-dd")),
                     Quote(t.Notes),
                     Quote(t.QuantityOnHand.ToString()),
-                    Quote(t.IsPowerTool ? "1" : "0"))));
+                    Quote(t.IsPowered ? "1" : "0"))));
             File.WriteAllLines(filePath, lines);
         }
 
@@ -109,7 +109,7 @@ namespace ToolManagementAppV2.Utilities.IO
         {
             var lines = new List<string>
             {
-                "ItemNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowerTool"
+                "ItemNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowered"
             };
             lines.AddRange(items.Select(t =>
                 string.Join(",",
@@ -122,7 +122,7 @@ namespace ToolManagementAppV2.Utilities.IO
                     Quote(t.PurchasedDate?.ToString("yyyy-MM-dd")),
                     Quote(t.Notes),
                     Quote(t.QuantityOnHand.ToString()),
-                    Quote(t.IsPowerTool ? "1" : "0"))));
+                    Quote(t.IsPowered ? "1" : "0"))));
             await File.WriteAllLinesAsync(filePath, lines).ConfigureAwait(false);
         }
 
