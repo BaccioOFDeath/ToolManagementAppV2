@@ -3,9 +3,9 @@ using ToolManagementAppV2.Utilities.Extensions;
 
 namespace ToolManagementAppV2.Views.Windows
 {
-    public partial class RentToolPopupWindow : Window
+    public partial class RentItemPopupWindow : Window
     {
-        public RentToolPopupWindow()
+        public RentItemPopupWindow()
         {
             InitializeComponent();
             this.DisposeDataContextOnUnload();

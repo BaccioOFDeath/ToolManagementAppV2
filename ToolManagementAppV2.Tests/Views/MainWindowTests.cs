@@ -16,7 +16,7 @@ using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
 using System.Windows;
 using ToolManagementAppV2.Models.Domain;
-using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Items;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
@@ -422,9 +422,9 @@ namespace ToolManagementAppV2.Tests.Views
         {
             public void ShowInfo(string message, string title) { }
             public bool ShowConfirmation(string message, string title) => false;
-            public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
-            public void ShowToolDetails(ToolModel tool) { }
-            public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+            public ToolModel? ShowEditItemDialog(ToolModel tool) => null;
+            public void ShowItemDetails(ToolModel tool) { }
+            public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
             public CustomerModel? ShowAddCustomerDialog() => null;
             public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
             public void ShowRentalHistory(ToolModel tool, IEnumerable<RentalModel> history) { }

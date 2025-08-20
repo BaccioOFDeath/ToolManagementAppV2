@@ -57,43 +57,43 @@ namespace ToolManagementAppV2.Services
             return Task.FromResult(false);
         }
 
-        public ItemModel? ShowEditToolDialog(ItemModel tool)
+        public ItemModel? ShowEditItemDialog(ItemModel item)
         {
             ItemEditWindow? win = null;
             win = ActivatorUtilities.CreateInstance<ItemEditWindow>(_serviceProvider,
-                tool,
+                item,
                 (Action)(() => win!.DialogResult = true),
                 (Action)(() => win!.DialogResult = false));
             try { win.Owner = System.Windows.Application.Current?.MainWindow; }
             catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for ItemEditWindow"); }
-            try { return win.ShowDialog() == true ? tool : null; }
+            try { return win.ShowDialog() == true ? item : null; }
             catch (Exception ex) { _logger.LogError(ex, "Failed to show ItemEditWindow"); return null; }
         }
 
-        public Task<ItemModel?> ShowEditToolDialogAsync(ItemModel tool)
+        public Task<ItemModel?> ShowEditItemDialogAsync(ItemModel item)
         {
             var dispatcher = System.Windows.Application.Current?.Dispatcher;
             if (dispatcher != null)
-                return dispatcher.InvokeAsync(() => ShowEditToolDialog(tool)).Task;
+                return dispatcher.InvokeAsync(() => ShowEditItemDialog(item)).Task;
 
-            _logger.LogWarning("No dispatcher available for ShowEditToolDialogAsync; returning null.");
+            _logger.LogWarning("No dispatcher available for ShowEditItemDialogAsync; returning null.");
             return Task.FromResult<ItemModel?>(null);
         }
 
-        public void ShowToolDetails(ItemModel tool)
+        public void ShowItemDetails(ItemModel item)
         {
-            ToolDetailsWindow win = null!;
-            win = new ToolDetailsWindow(tool);
+            ItemDetailsWindow win = null!;
+            win = new ItemDetailsWindow(item);
             try { win.Owner = System.Windows.Application.Current?.MainWindow; }
-            catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for ToolDetailsWindow"); }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for ItemDetailsWindow"); }
             try { win.ShowDialog(); }
-            catch (Exception ex) { _logger.LogError(ex, "Failed to show ToolDetailsWindow"); }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to show ItemDetailsWindow"); }
         }
 
-        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, IEnumerable<CustomerModel> customers)
+        public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers)
         {
-            var vm = new RentToolPopupViewModel(tool, customers);
-            var win = new RentToolPopupWindow { DataContext = vm };
+            var vm = new RentItemPopupViewModel(item, customers);
+            var win = new RentItemPopupWindow { DataContext = vm };
 
             EventHandler handler = null!;
             handler = (_, _) => win.Close();
@@ -138,10 +138,10 @@ namespace ToolManagementAppV2.Services
             catch (Exception ex) { _logger.LogError(ex, "Failed to show RentalsFilterWindow"); }
         }
 
-        public void ShowRentalHistory(ItemModel tool, IEnumerable<RentalModel> history)
+        public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history)
         {
-            var vm = new RentalHistoryViewModel(tool, history, this);
-            var win = new RentalHistoryWindow(vm) { Title = $"Rental History - {tool.ItemNumber}" };
+            var vm = new RentalHistoryViewModel(item, history, this);
+            var win = new RentalHistoryWindow(vm) { Title = $"Rental History - {item.ItemNumber}" };
             try { win.Owner = System.Windows.Application.Current?.MainWindow; }
             catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for RentalHistoryWindow"); }
             try { win.ShowDialog(); }

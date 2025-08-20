@@ -7,7 +7,7 @@ using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
-using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Items;
 using Xunit;
 
 namespace ToolManagementAppV2.Tests.Services
@@ -25,8 +25,8 @@ namespace ToolManagementAppV2.Tests.Services
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db, toolService);
 
-                toolService.AddTool(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
-                var tool = toolService.GetAllTools().First();
+                toolService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
+                var tool = toolService.GetAllItems().First();
 
                 customerService.AddCustomer(new Customer { Company = "Acme" });
                 var cust = customerService.GetAllCustomers().First();
@@ -53,7 +53,7 @@ namespace ToolManagementAppV2.Tests.Services
 
                 Task.WaitAll(t1, t2);
 
-                var updated = toolService.GetToolByID(tool.ItemID);
+                var updated = toolService.GetItemByID(tool.ItemID);
                 Assert.Equal(0, updated.QuantityOnHand);
                 Assert.Equal(1, updated.RentedQuantity);
                 Assert.Single(rentalService.GetAllRentals());

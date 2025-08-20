@@ -6,7 +6,7 @@ using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
-using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Items;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.ViewModels;
 using Xunit;
@@ -31,7 +31,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var reportService = new ReportService(toolService, rentalService, activityService, customerService, userService);
 
                 var tool = new ItemModel { ItemNumber = "T1", QuantityOnHand = 1 };
-                toolService.AddTool(tool);
+                toolService.AddItem(tool);
 
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);

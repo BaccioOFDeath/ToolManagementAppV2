@@ -3,7 +3,7 @@ using System.IO;
 using System;
 using ToolManagementAppV2.Utilities.IO;
 using ToolManagementAppV2.Services.Core;
-using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Items;
 using ToolManagementAppV2.Models.Domain;
 using Xunit;
 using System.Threading;
@@ -97,7 +97,7 @@ public class CsvImportTests
     }
 
     [Fact]
-    public async System.Threading.Tasks.Task ImportToolsFromCsvAsync_SkipsInvalidRows()
+    public async System.Threading.Tasks.Task ImportItemsFromCsvAsync_SkipsInvalidRows()
     {
         var dbPath = Path.GetTempFileName();
         var csvPath = Path.GetTempFileName();
@@ -116,11 +116,11 @@ public class CsvImportTests
                 {"NameDescription", "NameDescription"}
             };
 
-            var invalid = await service.ImportToolsFromCsvAsync(csvPath, map, CancellationToken.None);
+            var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
 
             Assert.Single(invalid);
             Assert.Contains(2, invalid);
-            Assert.Single(service.GetAllTools());
+            Assert.Single(service.GetAllItems());
         }
         finally
         {
@@ -130,7 +130,7 @@ public class CsvImportTests
     }
 
     [Fact]
-    public async System.Threading.Tasks.Task ImportToolsFromCsvAsync_PerformanceWithDuplicates()
+    public async System.Threading.Tasks.Task ImportItemsFromCsvAsync_PerformanceWithDuplicates()
     {
         var dbPath = Path.GetTempFileName();
         var csvPath = Path.GetTempFileName();
@@ -140,7 +140,7 @@ public class CsvImportTests
             var service = new ItemService(db);
 
             for (int i = 0; i < 100; i++)
-                service.AddTool(new ItemModel { ItemNumber = $"E{i}", NameDescription = $"Existing {i}" });
+                service.AddItem(new ItemModel { ItemNumber = $"E{i}", NameDescription = $"Existing {i}" });
 
             var sb = new System.Text.StringBuilder();
             sb.AppendLine("ItemNumber,NameDescription");
@@ -157,12 +157,12 @@ public class CsvImportTests
             };
 
             var sw = System.Diagnostics.Stopwatch.StartNew();
-            var invalid = await service.ImportToolsFromCsvAsync(csvPath, map, CancellationToken.None);
+            var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
             sw.Stop();
 
             Assert.True(sw.ElapsedMilliseconds < 5000, $"Import took {sw.ElapsedMilliseconds}ms");
             Assert.Empty(invalid);
-            Assert.Equal(1000, service.GetAllTools().Count);
+            Assert.Equal(1000, service.GetAllItems().Count);
         }
         finally
         {
@@ -172,7 +172,7 @@ public class CsvImportTests
     }
 
     [Fact]
-    public async System.Threading.Tasks.Task ExportToolsToCsvAsync_WritesExpectedFile()
+    public async System.Threading.Tasks.Task ExportItemsToCsvAsync_WritesExpectedFile()
     {
         var dbPath = Path.GetTempFileName();
         var csvPath = Path.GetTempFileName();
@@ -180,9 +180,9 @@ public class CsvImportTests
         {
             using var db = new DatabaseService(dbPath);
             var service = new ItemService(db);
-            service.AddTool(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 5, IsPowerTool = true });
+            service.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 5, IsPowerTool = true });
 
-            await service.ExportToolsToCsvAsync(csvPath);
+            await service.ExportItemsToCsvAsync(csvPath);
 
             var lines = await File.ReadAllLinesAsync(csvPath);
             Assert.True(lines.Length > 1);

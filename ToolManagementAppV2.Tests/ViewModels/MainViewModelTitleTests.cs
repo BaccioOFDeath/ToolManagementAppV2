@@ -6,7 +6,7 @@ using ToolManagementAppV2.Services.Core;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Settings;
-using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Items;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.ViewModels;
 using ToolManagementAppV2.Utilities.Helpers;

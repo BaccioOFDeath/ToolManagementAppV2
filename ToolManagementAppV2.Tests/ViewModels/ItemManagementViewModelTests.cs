@@ -8,7 +8,7 @@ using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Models;
 using ToolManagementAppV2.Models.ImportExport;
 using ToolManagementAppV2.Services.Core;
-using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Items;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Interfaces;
@@ -35,8 +35,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
                 var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
-                toolService.AddTool(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
-                toolService.AddTool(new ItemModel { ItemNumber = "T2", NameDescription = "Saw" });
+                toolService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
+                toolService.AddItem(new ItemModel { ItemNumber = "T2", NameDescription = "Saw" });
                 vm.SearchTerm = "Ham";
                 await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
                 Assert.Single(vm.SearchResults);
@@ -61,8 +61,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
                 var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
-                toolService.AddTool(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" });
-                toolService.AddTool(new ItemModel { ItemNumber = "T2", NameDescription = "Hammer", Brand = "BrandB" });
+                toolService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" });
+                toolService.AddItem(new ItemModel { ItemNumber = "T2", NameDescription = "Hammer", Brand = "BrandB" });
                 vm.SearchTerm = "Hammer BrandA";
                 await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
                 Assert.Single(vm.SearchResults);
@@ -87,8 +87,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
                 var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
-                toolService.AddTool(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
-                toolService.AddTool(new ItemModel { ItemNumber = "T2", NameDescription = "Cordless Drill", IsPowerTool = true });
+                toolService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
+                toolService.AddItem(new ItemModel { ItemNumber = "T2", NameDescription = "Cordless Drill", IsPowerTool = true });
                 vm.SearchTerm = string.Empty;
                 await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
                 Assert.Equal(2, vm.SearchResults.Count);
@@ -114,7 +114,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
                 var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
-                toolService.AddTool(new ItemModel { ItemNumber = "T1", Brand = "BrandA" });
+                toolService.AddItem(new ItemModel { ItemNumber = "T1", Brand = "BrandA" });
                 await vm.LoadToolsAsync();
 
                 Assert.Contains("BrandA", vm.Categories);
@@ -140,7 +140,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IItemService toolService = new ItemService(db);
                 var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
 
-                toolService.AddTool(new ItemModel { ItemNumber = "T1" });
+                toolService.AddItem(new ItemModel { ItemNumber = "T1" });
                 await vm.LoadToolsAsync();
                 await vm.LoadToolsAsync();
 
@@ -166,10 +166,10 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 IItemService toolService = new ItemService(db);
                 var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
 
-                toolService.AddTool(new ItemModel { ItemNumber = "T1", Brand = "BrandA" });
+                toolService.AddItem(new ItemModel { ItemNumber = "T1", Brand = "BrandA" });
                 await vm.LoadToolsAsync();
 
-                toolService.AddTool(new ItemModel { ItemNumber = "T2", Brand = "BrandB" });
+                toolService.AddItem(new ItemModel { ItemNumber = "T2", Brand = "BrandB" });
                 await vm.LoadToolsAsync();
 
                 Assert.Equal(2, vm.Tools.Count);
@@ -184,7 +184,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task AddTool_ShowsDialog_OnError()
+        public async Task AddItem_ShowsDialog_OnError()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -196,9 +196,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var dialog = new StubDialogService();
                 var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
                 vm.NewTool.ItemNumber = string.Empty;
-                await vm.NewToolCommand.ExecuteAsync(null);
+                await vm.NewItemCommand.ExecuteAsync(null);
                 Assert.True(dialog.InfoShown);
-                Assert.Empty(toolService.GetAllTools());
+                Assert.Empty(toolService.GetAllItems());
                 Assert.Equal(string.Empty, vm.NewTool.ItemNumber);
             }
             finally
@@ -212,17 +212,17 @@ namespace ToolManagementAppV2.Tests.ViewModels
         {
             public bool InfoShown;
             public bool ConfirmationResult;
-            public Func<ItemModel, ItemModel?>? EditToolHandler;
+            public Func<ItemModel, ItemModel?>? EditItemHandler;
             public Action<ItemModel>? ViewDetailsHandler;
 
             public void ShowInfo(string message, string title) => InfoShown = true;
             public bool ShowConfirmation(string message, string title) => ConfirmationResult;
-            public ItemModel? ShowEditToolDialog(ItemModel tool) => EditToolHandler?.Invoke(tool);
-            public void ShowToolDetails(ItemModel tool) => ViewDetailsHandler?.Invoke(tool);
-            public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
+            public ItemModel? ShowEditItemDialog(ItemModel item) => EditItemHandler?.Invoke(item);
+            public void ShowItemDetails(ItemModel item) => ViewDetailsHandler?.Invoke(item);
+            public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;
             public CustomerModel? ShowAddCustomerDialog() => null;
             public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
-            public void ShowRentalHistory(ItemModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }
+            public void ShowRentalHistory(ItemModel item, System.Collections.Generic.IEnumerable<RentalModel> history) { }
             public System.Collections.Generic.Dictionary<string, string>? ShowImportMapping(System.Collections.Generic.IEnumerable<string> headers, System.Collections.Generic.IEnumerable<string> properties) => null;
             public System.Func<ItemModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
@@ -232,7 +232,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         [Theory]
         [InlineData(-1)]
         [InlineData(10001)]
-        public async Task AddToolCommand_ShowsDialog_OnInvalidQuantity(int quantity)
+        public async Task AddItemCommand_ShowsDialog_OnInvalidQuantity(int quantity)
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -246,9 +246,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 vm.NewTool.ItemNumber = "TN1";
                 vm.NewTool.NameDescription = "Hammer";
                 vm.NewTool.QuantityOnHand = quantity;
-                await vm.NewToolCommand.ExecuteAsync(null);
+                await vm.NewItemCommand.ExecuteAsync(null);
                 Assert.True(dialog.InfoShown);
-                Assert.Empty(toolService.GetAllTools());
+                Assert.Empty(toolService.GetAllItems());
                 Assert.Equal(quantity, vm.NewTool.QuantityOnHand);
             }
             finally
@@ -259,7 +259,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task NewToolCommand_PersistsNewToolValues()
+        public async Task NewItemCommand_PersistsNewToolValues()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -279,19 +279,19 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 vm.NewTool.Supplier = "ABC";
                 vm.NewTool.Notes = "Note";
                 vm.NewTool.IsPowerTool = true;
-                await vm.NewToolCommand.ExecuteAsync(null);
-                var tools = toolService.GetAllTools();
+                await vm.NewItemCommand.ExecuteAsync(null);
+                var tools = toolService.GetAllItems();
                 Assert.Single(tools);
-                var tool = tools.First();
-                Assert.Equal("TN1", tool.ItemNumber);
-                Assert.Equal("Hammer", tool.NameDescription);
-                Assert.Equal("PN1", tool.PartNumber);
-                Assert.Equal("BrandA", tool.Brand);
-                Assert.Equal("Shelf", tool.Location);
-                Assert.Equal(5, tool.QuantityOnHand);
-                Assert.Equal("ABC", tool.Supplier);
-                Assert.Equal("Note", tool.Notes);
-                Assert.True(tool.IsPowerTool);
+                var item = tools.First();
+                Assert.Equal("TN1", item.ItemNumber);
+                Assert.Equal("Hammer", item.NameDescription);
+                Assert.Equal("PN1", item.PartNumber);
+                Assert.Equal("BrandA", item.Brand);
+                Assert.Equal("Shelf", item.Location);
+                Assert.Equal(5, item.QuantityOnHand);
+                Assert.Equal("ABC", item.Supplier);
+                Assert.Equal("Note", item.Notes);
+                Assert.True(item.IsPowerTool);
             }
             finally
             {
@@ -301,7 +301,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task EditToolCommand_UpdatesExistingTool_WhenDialogReturnsTool()
+        public async Task EditItemCommand_UpdatesExistingTool_WhenDialogReturnsTool()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -312,17 +312,17 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
                 var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
-                var tool = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", ImagePath = "img1.png" };
-                toolService.AddTool(tool);
+                var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", ImagePath = "img1.png" };
+                toolService.AddItem(item);
                 await vm.LoadToolsAsync();
                 vm.SelectedItem = vm.Tools.First();
-                dialog.EditToolHandler = t =>
+                dialog.EditItemHandler = t =>
                 {
                     t.NameDescription = "Updated Hammer";
                     return t;
                 };
-                await vm.EditToolCommand.ExecuteAsync(null);
-                var updated = toolService.GetAllTools().First();
+                await vm.EditItemCommand.ExecuteAsync(null);
+                var updated = toolService.GetAllItems().First();
                 Assert.Equal("Updated Hammer", updated.NameDescription);
                 Assert.Equal("Updated Hammer", vm.Tools.First().NameDescription);
                 Assert.Equal("img1.png", updated.ImagePath);
@@ -336,7 +336,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task EditToolCommand_DoesNothing_WhenDialogReturnsNull()
+        public async Task EditItemCommand_DoesNothing_WhenDialogReturnsNull()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -347,13 +347,13 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
                 var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
-                var tool = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
-                toolService.AddTool(tool);
+                var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
+                toolService.AddItem(item);
                 await vm.LoadToolsAsync();
                 vm.SelectedItem = vm.Tools.First();
-                dialog.EditToolHandler = _ => null;
-                await vm.EditToolCommand.ExecuteAsync(null);
-                var unchanged = toolService.GetAllTools().First();
+                dialog.EditItemHandler = _ => null;
+                await vm.EditItemCommand.ExecuteAsync(null);
+                var unchanged = toolService.GetAllItems().First();
                 Assert.Equal("Hammer", unchanged.NameDescription);
             }
             finally
@@ -364,7 +364,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task DeleteToolCommand_RemovesTool()
+        public async Task DeleteItemCommand_RemovesTool()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -375,12 +375,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService { ConfirmationResult = true };
                 var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
-                var tool = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
-                toolService.AddTool(tool);
+                var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
+                toolService.AddItem(item);
                 await vm.LoadToolsAsync();
                 vm.SelectedItem = vm.Tools.First();
-                await vm.DeleteToolCommand.ExecuteAsync(null);
-                Assert.Empty(toolService.GetAllTools());
+                await vm.DeleteItemCommand.ExecuteAsync(null);
+                Assert.Empty(toolService.GetAllItems());
                 Assert.Empty(vm.Tools);
             }
             finally
@@ -391,7 +391,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task DeleteToolCommand_Cancelled_DoesNotRemoveTool()
+        public async Task DeleteItemCommand_Cancelled_DoesNotRemoveTool()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -402,12 +402,12 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService { ConfirmationResult = false };
                 var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
-                var tool = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
-                toolService.AddTool(tool);
+                var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
+                toolService.AddItem(item);
                 await vm.LoadToolsAsync();
                 vm.SelectedItem = vm.Tools.First();
-                await vm.DeleteToolCommand.ExecuteAsync(null);
-                Assert.Single(toolService.GetAllTools());
+                await vm.DeleteItemCommand.ExecuteAsync(null);
+                Assert.Single(toolService.GetAllItems());
                 Assert.Single(vm.Tools);
             }
             finally
@@ -418,22 +418,22 @@ namespace ToolManagementAppV2.Tests.ViewModels
         }
 
         [Fact]
-        public async Task DeleteToolCommand_OnError_ShowsDialogAndLogs()
+        public async Task DeleteItemCommand_OnError_ShowsDialogAndLogs()
         {
             var toolService = new FailingItemService();
             var dialog = new StubDialogService { ConfirmationResult = true };
             var logger = new CapturingLogger<ItemManagementViewModel>();
             var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), dialog, logger);
-            var tool = new ItemModel { ItemID = 1, ItemNumber = "T1", NameDescription = "Hammer" };
-            vm.Tools.Add(tool);
-            vm.SelectedItem = tool;
+            var item = new ItemModel { ItemID = 1, ItemNumber = "T1", NameDescription = "Hammer" };
+            vm.Tools.Add(item);
+            vm.SelectedItem = item;
 
-            await vm.DeleteToolCommand.ExecuteAsync(null);
+            await vm.DeleteItemCommand.ExecuteAsync(null);
 
             Assert.True(dialog.InfoShown);
-            Assert.Equal("Failed to delete tool 1", logger.LastError);
+            Assert.Equal("Failed to delete item 1", logger.LastError);
             Assert.Single(vm.Tools);
-            Assert.Equal(tool, vm.SelectedItem);
+            Assert.Equal(item, vm.SelectedItem);
         }
 
         [Fact]
@@ -451,7 +451,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 Assert.False(vm.OpenRentalsCommand.CanExecute(null));
 
-                toolService.AddTool(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
+                toolService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
                 await vm.LoadToolsAsync();
                 vm.SelectedItem = vm.Tools.First();
 
@@ -476,8 +476,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
                 var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
-                var tool = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
-                toolService.AddTool(tool);
+                var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
+                toolService.AddItem(item);
                 await vm.LoadToolsAsync();
                 vm.SelectedItem = vm.Tools.First();
                 bool called = false;
@@ -509,7 +509,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 Assert.False(vm.ViewDetailsCommand.CanExecute(null));
 
-                toolService.AddTool(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
+                toolService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
                 await vm.LoadToolsAsync();
                 vm.SelectedItem = vm.Tools.First();
 
@@ -534,8 +534,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
             var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
             vm.SearchTerm = "Ham";
             await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
-            Assert.Equal(1, toolService.SearchToolsAsyncCalls);
-            Assert.Equal(0, toolService.GetAllToolsAsyncCalls);
+            Assert.Equal(1, toolService.SearchItemsAsyncCalls);
+            Assert.Equal(0, toolService.GetAllItemsAsyncCalls);
         }
 
         [Fact]
@@ -549,11 +549,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
             var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
 
             await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
-            Assert.Equal(1, toolService.GetAllToolsAsyncCalls);
-            Assert.Equal(0, toolService.SearchToolsAsyncCalls);
+            Assert.Equal(1, toolService.GetAllItemsAsyncCalls);
+            Assert.Equal(0, toolService.SearchItemsAsyncCalls);
 
             await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
-            Assert.Equal(1, toolService.GetAllToolsAsyncCalls);
+            Assert.Equal(1, toolService.GetAllItemsAsyncCalls);
         }
 
         [Fact]
@@ -571,11 +571,11 @@ namespace ToolManagementAppV2.Tests.ViewModels
             vm.SearchText = "Ha";
             vm.SearchText = "Ham";
 
-            Assert.Equal(0, toolService.SearchToolsAsyncCalls);
+            Assert.Equal(0, toolService.SearchItemsAsyncCalls);
 
             timer.RaiseTick();
 
-            Assert.Equal(1, toolService.SearchToolsAsyncCalls);
+            Assert.Equal(1, toolService.SearchItemsAsyncCalls);
         }
 
         [Fact]
@@ -615,20 +615,20 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
         class CountingItemService : IItemService
         {
-            public int GetAllToolsAsyncCalls { get; private set; }
-            public int SearchToolsAsyncCalls { get; private set; }
+            public int GetAllItemsAsyncCalls { get; private set; }
+            public int SearchItemsAsyncCalls { get; private set; }
             readonly List<ItemModel> _tools;
             public CountingItemService(IEnumerable<ItemModel> tools) => _tools = tools.ToList();
 
-            public Task<List<ItemModel>> GetAllToolsAsync(CancellationToken cancellationToken = default)
+            public Task<List<ItemModel>> GetAllItemsAsync(CancellationToken cancellationToken = default)
             {
-                GetAllToolsAsyncCalls++;
+                GetAllItemsAsyncCalls++;
                 return Task.FromResult(_tools.ToList());
             }
 
-            public Task<List<ItemModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default)
+            public Task<List<ItemModel>> SearchItemsAsync(string? searchText, CancellationToken cancellationToken = default)
             {
-                SearchToolsAsyncCalls++;
+                SearchItemsAsyncCalls++;
                 if (cancellationToken.IsCancellationRequested)
                     return Task.FromCanceled<List<ItemModel>>(cancellationToken);
                 if (string.IsNullOrWhiteSpace(searchText))
@@ -643,35 +643,35 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 return Task.FromResult(results);
             }
 
-            public Task AddToolAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task UpdateToolAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task DeleteToolAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<ItemModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<List<ItemModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => throw new NotImplementedException();
-            public Task ExportToolsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task DeleteItemAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<ItemModel?> GetItemByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<bool> ToggleItemCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task UpdateItemImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => throw new NotImplementedException();
+            public Task ExportItemsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task UpdateItemQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
         }
 
         class FailingItemService : IItemService
         {
-            public Task AddToolAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task UpdateToolAsync(ItemModel tool, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task DeleteToolAsync(int toolID, CancellationToken cancellationToken = default) => throw new Exception("failure");
-            public Task<ItemModel?> GetToolByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<List<ItemModel>> GetAllToolsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
-            public Task<List<ItemModel>> SearchToolsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
-            public Task<bool> ToggleToolCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<List<ItemModel>> GetToolsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
-            public Task UpdateToolImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<List<int>> ImportToolsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => Task.FromResult(new List<int>());
-            public Task ExportToolsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task<ImageImportResult> ImportToolImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
-            public Task UpdateToolQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task DeleteItemAsync(int toolID, CancellationToken cancellationToken = default) => throw new Exception("failure");
+            public Task<ItemModel?> GetItemByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<List<ItemModel>> GetAllItemsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
+            public Task<List<ItemModel>> SearchItemsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
+            public Task<bool> ToggleItemCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
+            public Task UpdateItemImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => Task.FromResult(new List<int>());
+            public Task ExportItemsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
+            public Task UpdateItemQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
         }
 

@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Services.Core;
-using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Items;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.ViewModels;
@@ -29,8 +29,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 var tool1 = new ItemModel { ItemNumber = "T1" };
                 var tool2 = new ItemModel { ItemNumber = "T2" };
-                toolService.AddTool(tool1);
-                toolService.AddTool(tool2);
+                toolService.AddItem(tool1);
+                toolService.AddItem(tool2);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
@@ -74,8 +74,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 var tool1 = new ItemModel { ItemNumber = "Alpha" };
                 var tool2 = new ItemModel { ItemNumber = "Beta" };
-                toolService.AddTool(tool1);
-                toolService.AddTool(tool2);
+                toolService.AddItem(tool1);
+                toolService.AddItem(tool2);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
@@ -111,7 +111,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var rentalService = new RentalService(db);
 
                 var tool = new ItemModel { ItemNumber = "T1" };
-                toolService.AddTool(tool);
+                toolService.AddItem(tool);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
@@ -168,7 +168,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var rentalService = new RentalService(db);
 
                 var tool = new ItemModel { ItemNumber = "T1" };
-                toolService.AddTool(tool);
+                toolService.AddItem(tool);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
@@ -204,7 +204,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var rentalService = new RentalService(db);
 
                 var tool = new ItemModel { ItemNumber = "T1" };
-                toolService.AddTool(tool);
+                toolService.AddItem(tool);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
@@ -238,7 +238,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var rentalService = new RentalService(db);
 
                 var tool = new ItemModel { ItemNumber = "T1" };
-                toolService.AddTool(tool);
+                toolService.AddItem(tool);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
@@ -417,9 +417,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
             return Task.CompletedTask;
         }
         public bool ShowConfirmation(string message, string title) => false;
-        public ItemModel? ShowEditToolDialog(ItemModel tool) => null;
-        public void ShowToolDetails(ItemModel tool) { }
-        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
+        public ItemModel? ShowEditItemDialog(ItemModel tool) => null;
+        public void ShowItemDetails(ItemModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
         public CustomerModel? ShowAddCustomerDialog() => null;
         public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
         public void ShowRentalHistory(ItemModel tool, System.Collections.Generic.IEnumerable<RentalModel> history) { }
@@ -434,9 +434,9 @@ namespace ToolManagementAppV2.Tests.ViewModels
         public string? LastInfoMessage { get; private set; }
         public void ShowInfo(string message, string title) => LastInfoMessage = message;
         public bool ShowConfirmation(string message, string title) => false;
-        public ItemModel? ShowEditToolDialog(ItemModel tool) => null;
-        public void ShowToolDetails(ItemModel tool) { }
-        public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
+        public ItemModel? ShowEditItemDialog(ItemModel tool) => null;
+        public void ShowItemDetails(ItemModel tool) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel tool, IEnumerable<CustomerModel> customers) => null;
         public CustomerModel? ShowAddCustomerDialog() => null;
         public void ShowRentalsFilter(ToolManagementAppV2.ViewModels.ManageRentalsViewModel viewModel) { }
         public void ShowRentalHistory(ItemModel tool, IEnumerable<RentalModel> history) { }

@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
-using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Items;
 using ToolManagementAppV2.Interfaces;
 using Xunit;
 
@@ -18,10 +18,10 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var service = new ItemService(new DatabaseService(db));
-                service.AddTool(new ItemModel { ItemNumber = "T1", QuantityOnHand = 0 });
-                var tool = service.GetAllTools().First();
-                var result = service.ToggleToolCheckOutStatus(tool.ItemID, "u");
-                var updated = service.GetToolByID(tool.ItemID);
+                service.AddItem(new ItemModel { ItemNumber = "T1", QuantityOnHand = 0 });
+                var tool = service.GetAllItems().First();
+                var result = service.ToggleItemCheckOutStatus(tool.ItemID, "u");
+                var updated = service.GetItemByID(tool.ItemID);
                 Assert.False(result);
                 Assert.False(updated.IsCheckedOut);
                 Assert.Equal(0, updated.QuantityOnHand);
@@ -39,15 +39,15 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 IItemService svc = new ItemService(new DatabaseService(db));
-                svc.AddTool(new ItemModel { ItemNumber = "T2", QuantityOnHand = 1 });
-                var tool = svc.GetAllTools().First();
-                var first = svc.ToggleToolCheckOutStatus(tool.ItemID, "u");
-                var outTool = svc.GetToolByID(tool.ItemID);
+                svc.AddItem(new ItemModel { ItemNumber = "T2", QuantityOnHand = 1 });
+                var tool = svc.GetAllItems().First();
+                var first = svc.ToggleItemCheckOutStatus(tool.ItemID, "u");
+                var outTool = svc.GetItemByID(tool.ItemID);
                 Assert.True(first);
                 Assert.True(outTool.IsCheckedOut);
                 Assert.Equal(0, outTool.QuantityOnHand);
-                var second = svc.ToggleToolCheckOutStatus(tool.ItemID, "u");
-                var back = svc.GetToolByID(tool.ItemID);
+                var second = svc.ToggleItemCheckOutStatus(tool.ItemID, "u");
+                var back = svc.GetItemByID(tool.ItemID);
                 Assert.True(second);
                 Assert.False(back.IsCheckedOut);
                 Assert.Equal(1, back.QuantityOnHand);
@@ -65,7 +65,7 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var service = new ItemService(new DatabaseService(db));
-                Assert.Throws<InvalidOperationException>(() => service.ToggleToolCheckOutStatus(42, "u"));
+                Assert.Throws<InvalidOperationException>(() => service.ToggleItemCheckOutStatus(42, "u"));
             }
             finally
             {

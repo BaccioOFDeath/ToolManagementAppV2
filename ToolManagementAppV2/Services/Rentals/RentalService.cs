@@ -17,17 +17,17 @@ namespace ToolManagementAppV2.Services.Rentals
     public class RentalService : IRentalService
     {
         private readonly DatabaseService _dbService;
-        private readonly IItemService? _toolService;
+        private readonly IItemService? _itemService;
         private readonly ILogger<RentalService> _logger;
         private readonly IAuthorizationService _auth;
         private readonly ActivityLogService? _activityLog;
         private readonly IUserContext? _context;
 
-        public RentalService(DatabaseService dbService, IAuthorizationService? authorizationService = null, IItemService? toolService = null, ILogger<RentalService>? logger = null, ActivityLogService? activityLogService = null, IUserContext? userContext = null)
+        public RentalService(DatabaseService dbService, IAuthorizationService? authorizationService = null, IItemService? itemService = null, ILogger<RentalService>? logger = null, ActivityLogService? activityLogService = null, IUserContext? userContext = null)
         {
             _dbService = dbService ?? throw new ArgumentNullException(nameof(dbService));
             _auth = authorizationService ?? new NoOpAuthorizationService();
-            _toolService = toolService; // may be null if inventory sync not desired
+            _itemService = itemService; // may be null if inventory sync not desired
             _logger = logger ?? NullLogger<RentalService>.Instance;
             _activityLog = activityLogService;
             _context = userContext;
@@ -113,8 +113,8 @@ namespace ToolManagementAppV2.Services.Rentals
                         new SQLiteParameter("@DueDate", dueDate)
                     });
 
-                if (_toolService != null)
-                    await _toolService.UpdateToolQuantitiesAsync(toolID, 1, true, conn, tx);
+                if (_itemService != null)
+                    await _itemService.UpdateItemQuantitiesAsync(toolID, 1, true, conn, tx);
             });
             if (_activityLog != null)
             {
@@ -143,8 +143,8 @@ namespace ToolManagementAppV2.Services.Rentals
                         new SQLiteParameter("@RentalID", rentalID)
                     });
 
-                if (_toolService != null)
-                    await _toolService.UpdateToolQuantitiesAsync(toolID, 1, false, conn, tx);
+                if (_itemService != null)
+                    await _itemService.UpdateItemQuantitiesAsync(toolID, 1, false, conn, tx);
             });
             if (_activityLog != null)
             {
@@ -177,12 +177,12 @@ namespace ToolManagementAppV2.Services.Rentals
                 if (await updateCmd.ExecuteNonQueryAsync() == 0)
                     throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
 
-                if (_toolService != null)
+                if (_itemService != null)
                 {
                     if (oldDueDate <= DateTime.Today && newDueDate > DateTime.Today)
-                        await _toolService.UpdateToolQuantitiesAsync(toolID, 1, true, conn, tx);
+                        await _itemService.UpdateItemQuantitiesAsync(toolID, 1, true, conn, tx);
                     else if (oldDueDate > DateTime.Today && newDueDate <= DateTime.Today)
-                        await _toolService.UpdateToolQuantitiesAsync(toolID, 1, false, conn, tx);
+                        await _itemService.UpdateItemQuantitiesAsync(toolID, 1, false, conn, tx);
                 }
             });
             if (_activityLog != null)

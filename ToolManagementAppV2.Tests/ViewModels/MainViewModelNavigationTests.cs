@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ToolManagementAppV2.Models.Domain;
 using ToolManagementAppV2.Services.Core;
-using ToolManagementAppV2.Services.Tools;
+using ToolManagementAppV2.Services.Items;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Services.Customers;
 using ToolManagementAppV2.ViewModels;
@@ -286,8 +286,8 @@ namespace ToolManagementAppV2.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                toolService.AddTool(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
-                toolService.AddTool(new ItemModel { ItemNumber = "T2", NameDescription = "Saw" });
+                toolService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
+                toolService.AddItem(new ItemModel { ItemNumber = "T2", NameDescription = "Saw" });
 
                 var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService, new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
                 vm.GlobalSearchText = "Ham";
@@ -414,9 +414,9 @@ class StubDialogService : IDialogService
 
     public void ShowInfo(string message, string title) => InfoShown = true;
     public bool ShowConfirmation(string message, string title) => false;
-    public ToolModel? ShowEditToolDialog(ToolModel tool) => null;
-    public void ShowToolDetails(ToolModel tool) { }
-    public (CustomerModel customer, DateTime dueDate)? ShowRentToolDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
+    public ToolModel? ShowEditItemDialog(ToolModel tool) => null;
+    public void ShowItemDetails(ToolModel tool) { }
+    public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ToolModel tool, IEnumerable<CustomerModel> customers) => null;
     public CustomerModel? ShowAddCustomerDialog() => null;
 
     public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties) => ImportMap;

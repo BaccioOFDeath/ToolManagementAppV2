@@ -18,7 +18,7 @@ namespace ToolManagementAppV2.ViewModels
 {
     public class ImportExportViewModel : ObservableObject
     {
-        private readonly IItemService _toolService;
+        private readonly IItemService _itemService;
         private readonly ICustomerService _customerService;
         private readonly IFileDialogService _fileDialogService;
         private readonly IDatabaseBackupService _databaseService;
@@ -42,14 +42,14 @@ namespace ToolManagementAppV2.ViewModels
 
         public ObservableCollection<string> ImportExportLogs { get; } = new();
 
-        public ImportExportViewModel(IItemService toolService,
+        public ImportExportViewModel(IItemService itemService,
                                      ICustomerService customerService,
                                      IFileDialogService fileDialogService,
                                      IDatabaseBackupService databaseService,
                                      IDialogService dialogService,
                                      ILogger<ImportExportViewModel>? logger = null)
         {
-            _toolService = toolService;
+            _itemService = itemService;
             _customerService = customerService;
             _fileDialogService = fileDialogService;
             _databaseService = databaseService;
@@ -76,7 +76,7 @@ namespace ToolManagementAppV2.ViewModels
                     return;
                 var plural = LabelProvider.Instance.ItemLabelPlural;
                 await _dialogService.ShowInfoAsync($"Importing {plural}...", $"Import {plural}");
-                await _toolService.ImportToolsFromCsvAsync(path, map, cancellationToken);
+                await _itemService.ImportItemsFromCsvAsync(path, map, cancellationToken);
                 ImportExportLogs.Add($"Successfully imported {plural} from {path}.");
                 await _dialogService.ShowInfoAsync($"Successfully imported {plural} from {path}.", $"Import {plural}");
             }
@@ -103,7 +103,7 @@ namespace ToolManagementAppV2.ViewModels
             try
             {
                 var plural = LabelProvider.Instance.ItemLabelPlural;
-                await _toolService.ExportToolsToCsvAsync(path, cancellationToken);
+                await _itemService.ExportItemsToCsvAsync(path, cancellationToken);
                 ImportExportLogs.Add($"Successfully exported {plural} to {path}.");
             }
             catch (OperationCanceledException)

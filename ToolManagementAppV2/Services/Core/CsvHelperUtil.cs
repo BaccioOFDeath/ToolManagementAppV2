@@ -84,7 +84,7 @@ namespace ToolManagementAppV2.Utilities.IO
             }, cancellationToken).ConfigureAwait(false);
         }
 
-        public static void ExportToolsToCsv(string filePath, List<ItemModel> tools)
+        public static void ExportItemsToCsv(string filePath, List<ItemModel> tools)
         {
             var lines = new List<string>
             {
@@ -105,7 +105,7 @@ namespace ToolManagementAppV2.Utilities.IO
             File.WriteAllLines(filePath, lines);
         }
 
-        public static async Task ExportToolsToCsvAsync(string filePath, List<ItemModel> tools)
+        public static async Task ExportItemsToCsvAsync(string filePath, List<ItemModel> tools)
         {
             var lines = new List<string>
             {
