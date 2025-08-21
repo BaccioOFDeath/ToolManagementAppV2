@@ -31,6 +31,13 @@ dotnet test
 ```
 Running tests is required before every commit per the repository guidelines.
 
+## Banned Words Check
+To ensure the banned term `t o o l` only appears in `Items.csv`, run the following script:
+```bash
+./scripts/check-banned-words.sh
+```
+The script exits with a non-zero status if any matches are found outside `Items.csv`.
+
 ## Development Notes
 This project adheres to the rules in `AGENTS.md`, including:
 - Following the MVVM pattern using the existing `DatabaseService` with SQLite.

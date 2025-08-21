@@ -1,0 +1,15 @@
+name: Banned Words Check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  banned-words:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y ripgrep
+      - name: Run banned words check
+        run: ./scripts/check-banned-words.sh
