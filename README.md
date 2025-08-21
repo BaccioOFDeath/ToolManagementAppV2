@@ -1,6 +1,6 @@
-# ToolManagementAppV2
+# InventoryManagementApp
 
-ToolManagementAppV2 is a WPF application following the MVVM pattern for managing inventory item rentals in a variety of contexts. It includes features for handling inventory items, customers, rentals, and users, with data stored in SQLite through the provided `DatabaseService`.
+InventoryManagementApp is a WPF application following the MVVM pattern for managing inventory item rentals in a variety of contexts. It includes features for handling inventory items, customers, rentals, and users, with data stored in SQLite through the provided `DatabaseService`.
 
 ## Settings and Rebranding
 The application can be rebranded via its **Settings** to suit different inventory domains:
