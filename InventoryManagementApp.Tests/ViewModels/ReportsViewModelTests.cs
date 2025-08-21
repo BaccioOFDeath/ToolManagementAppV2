@@ -24,21 +24,21 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var userService = new UserService(db, new ApplicationUserContext());
-                var rentalService = new RentalService(db, toolService);
+                var rentalService = new RentalService(db, itemService);
                 var activityService = new ActivityLogService(db);
-                var reportService = new ReportService(toolService, rentalService, activityService, customerService, userService);
+                var reportService = new ReportService(itemService, rentalService, activityService, customerService, userService);
 
-                var tool = new ItemModel { ItemNumber = "T1", QuantityOnHand = 1 };
-                toolService.AddItem(tool);
+                var item = new ItemModel { ItemNumber = "T1", QuantityOnHand = 1 };
+                itemService.AddItem(item);
 
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentItem(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(item.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var user = new User { UserName = "user", PasswordHash = "Strong1!" };
                 userService.AddUser(user);

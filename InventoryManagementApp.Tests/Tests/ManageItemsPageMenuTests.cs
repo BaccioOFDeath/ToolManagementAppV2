@@ -24,11 +24,11 @@ namespace InventoryManagementApp.Tests.Tests
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
-                var rentalService = new RentalService(db, toolService);
+                var rentalService = new RentalService(db, itemService);
                 var dialog = new StubDialogService();
-                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                var vm = new ItemManagementViewModel(itemService, customerService, rentalService, dialog);
                 var page = new ManageItemsPage { DataContext = vm };
 
                 var grid = (Grid)page.Content;
@@ -55,11 +55,11 @@ namespace InventoryManagementApp.Tests.Tests
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
-                var rentalService = new RentalService(db, toolService);
+                var rentalService = new RentalService(db, itemService);
                 var dialog = new StubDialogService();
-                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                var vm = new ItemManagementViewModel(itemService, customerService, rentalService, dialog);
                 var page = new ManageItemsPage { DataContext = vm };
 
                 var grid = (Grid)page.Content;
@@ -87,11 +87,11 @@ namespace InventoryManagementApp.Tests.Tests
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
-                var rentalService = new RentalService(db, toolService);
+                var rentalService = new RentalService(db, itemService);
                 var dialog = new StubDialogService();
-                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                var vm = new ItemManagementViewModel(itemService, customerService, rentalService, dialog);
                 var page = new ManageItemsPage { DataContext = vm };
 
                 var grid = (Grid)page.Content;

@@ -23,22 +23,22 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
                 var activityLogService = new ActivityLogService(db);
                 await activityLogService.LogActionAsync(1, "user", "action");
 
-                bool newTool = false, rentals = false, import = false;
+                bool newItem = false, rentals = false, import = false;
 
                 var vm = new DashboardViewModel(
-                    toolService,
+                    itemService,
                     rentalService,
                     customerService,
                     userService,
                     activityLogService,
-                    new RelayCommand(() => newTool = true),
+                    new RelayCommand(() => newItem = true),
                     new RelayCommand(() => rentals = true),
                     new RelayCommand(() => import = true));
 
@@ -50,7 +50,7 @@ namespace InventoryManagementApp.Tests.ViewModels
                 vm.OpenRentalsCommand.Execute(null);
                 vm.OpenImportExportCommand.Execute(null);
 
-                Assert.True(newTool);
+                Assert.True(newItem);
                 Assert.True(rentals);
                 Assert.True(import);
             }
@@ -62,7 +62,7 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Theory]
-        [InlineData("toolService")]
+        [InlineData("itemService")]
         [InlineData("rentalService")]
         [InlineData("customerService")]
         [InlineData("userService")]
@@ -76,7 +76,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
@@ -86,7 +86,7 @@ namespace InventoryManagementApp.Tests.ViewModels
                 IRelayCommand importCmd = new RelayCommand(() => { });
 
                 var ex = Assert.Throws<ArgumentNullException>(() => new DashboardViewModel(
-                    nullParam == "toolService" ? null : toolService,
+                    nullParam == "itemService" ? null : itemService,
                     nullParam == "rentalService" ? null : rentalService,
                     nullParam == "customerService" ? null : customerService,
                     nullParam == "userService" ? null : userService,
@@ -111,12 +111,12 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 IUserService userService = new UserService(db, new ApplicationUserContext());
                 ICustomerService customerService = new CustomerService(db);
                 IRentalService rentalService = new RentalService(db);
                 var activityLogService = new ActivityLogService(db);
-                var vm = new DashboardViewModel(toolService, rentalService, customerService, userService, activityLogService,
+                var vm = new DashboardViewModel(itemService, rentalService, customerService, userService, activityLogService,
                     new RelayCommand(() => { }), new RelayCommand(() => { }), new RelayCommand(() => { }));
                 vm.StatCards.Clear();
                 var cts = new CancellationTokenSource();

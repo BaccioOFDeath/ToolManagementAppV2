@@ -114,7 +114,7 @@ namespace InventoryManagementApp.Tests.Views
         {
             public string? AppName { get; set; }
             public string ItemLabelSingular { get; set; } = "ItemModel";
-            public string ItemLabelPlural { get; set; } = "Tools";
+            public string ItemLabelPlural { get; set; } = "Items";
 
             public Task<string?> GetSettingAsync(string key, CancellationToken cancellationToken = default)
                 => Task.FromResult(AppName);
@@ -185,7 +185,7 @@ namespace InventoryManagementApp.Tests.Views
             public Task SaveItemLabelSingularAsync(string label, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
             public Task<string> GetItemLabelPluralAsync(CancellationToken cancellationToken = default)
-                => Task.FromResult("Tools");
+                => Task.FromResult("Items");
             public Task SaveItemLabelPluralAsync(string label, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
         }

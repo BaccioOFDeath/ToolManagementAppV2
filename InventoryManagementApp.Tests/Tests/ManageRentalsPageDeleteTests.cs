@@ -25,17 +25,17 @@ namespace InventoryManagementApp.Tests.Tests
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool = new ItemModel { ItemNumber = "T1" };
-                toolService.AddItem(tool);
+                var item = new ItemModel { ItemNumber = "T1" };
+                itemService.AddItem(item);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentItem(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(item.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 await vm.LoadRentalsAsync();

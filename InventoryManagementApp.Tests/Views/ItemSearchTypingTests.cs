@@ -25,13 +25,13 @@ namespace InventoryManagementApp.Tests.Views
                 try
                 {
                     var db = new DatabaseService(dbPath);
-                    IItemService toolService = new ItemService(db);
+                    IItemService itemService = new ItemService(db);
                     var customerService = new CustomerService(db);
                     var rentalService = new RentalService(db);
                     var dialog = new StubDialogService();
-                    var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
-                    toolService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
-                    toolService.AddItem(new ItemModel { ItemNumber = "T2", NameDescription = "Hand Saw" });
+                    var vm = new ItemManagementViewModel(itemService, customerService, rentalService, dialog);
+                    itemService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
+                    itemService.AddItem(new ItemModel { ItemNumber = "T2", NameDescription = "Hand Saw" });
                     vm.LoadItemsAsync().Wait();
                     var page = new ItemSearchPage { DataContext = vm };
                     var window = new System.Windows.Window { Content = page, Width = 800, Height = 600 };

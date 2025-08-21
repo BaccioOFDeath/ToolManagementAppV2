@@ -29,7 +29,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             {
                 using var factory = LoggerFactory.Create(builder => builder.AddProvider(new ListLoggerProvider(logs)));
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
                 var customerService = new CustomerService(db);
@@ -38,7 +38,7 @@ namespace InventoryManagementApp.Tests.ViewModels
                 var settingsService = new SettingsService(db);
                 var fileDlg = new StubFileDialogService { FileToReturn = csvPath };
                 var dialog = new StubDialogService { MapToReturn = new Dictionary<string,string>{{"ItemNumber","ItemNumber"}} };
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService,
                     fileDlg, activityLogService, settingsService, db, dialog,
                     logger: factory.CreateLogger<MainViewModel>());
 

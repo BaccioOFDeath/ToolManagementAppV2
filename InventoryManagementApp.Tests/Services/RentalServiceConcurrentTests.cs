@@ -21,12 +21,12 @@ namespace InventoryManagementApp.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
-                var rentalService = new RentalService(db, toolService);
+                var rentalService = new RentalService(db, itemService);
 
-                toolService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
-                var tool = toolService.GetAllItems().First();
+                itemService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
+                var item = itemService.GetAllItems().First();
 
                 customerService.AddCustomer(new Customer { Company = "Acme" });
                 var cust = customerService.GetAllCustomers().First();
@@ -37,7 +37,7 @@ namespace InventoryManagementApp.Tests.Services
                     barrier.SignalAndWait();
                     try
                     {
-                        rentalService.RentItem(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                        rentalService.RentItem(item.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
                     }
                     catch { }
                 });
@@ -46,14 +46,14 @@ namespace InventoryManagementApp.Tests.Services
                     barrier.SignalAndWait();
                     try
                     {
-                        rentalService.RentItem(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                        rentalService.RentItem(item.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
                     }
                     catch { }
                 });
 
                 Task.WaitAll(t1, t2);
 
-                var updated = toolService.GetItemByID(tool.ItemID);
+                var updated = itemService.GetItemByID(item.ItemID);
                 Assert.Equal(0, updated.QuantityOnHand);
                 Assert.Equal(1, updated.RentedQuantity);
                 Assert.Single(rentalService.GetAllRentals());

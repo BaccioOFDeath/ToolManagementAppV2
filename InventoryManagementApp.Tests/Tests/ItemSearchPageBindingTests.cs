@@ -48,7 +48,7 @@ namespace InventoryManagementApp.Tests.Tests
                     Assert.Null(ex);
 
                     var itemsBinding = BindingOperations.GetBinding(page.ItemsList, ItemsControl.ItemsSourceProperty);
-                    Assert.Equal("Tools", itemsBinding?.Path.Path);
+                    Assert.Equal("Items", itemsBinding?.Path.Path);
 
                     var template = page.ItemsList.ItemTemplate;
                     var outer = Assert.IsType<Border>(template.LoadContent());

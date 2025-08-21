@@ -140,14 +140,14 @@ namespace InventoryManagementApp.Tests.Views
                 {
                     var originalSingular = LabelProvider.Instance.ItemLabelSingular;
                     var originalPlural = LabelProvider.Instance.ItemLabelPlural;
-                    LabelProvider.Instance.UpdateLabels("Item", "Tools");
+                    LabelProvider.Instance.UpdateLabels("Item", "Items");
                     var (window, dbPath) = TestHelpers.CreateMainWindow();
                     try
                     {
                         var textBlock = TestHelpers.FindVisualChildren<TextBlock>(window)
                             .FirstOrDefault(tb => BindingOperations.GetBinding(tb, TextBlock.TextProperty)?.Path?.Path == "ItemLabelPlural");
                         Assert.NotNull(textBlock);
-                        Assert.Equal("Tools", textBlock!.Text);
+                        Assert.Equal("Items", textBlock!.Text);
                     }
                     finally
                     {
@@ -343,7 +343,7 @@ namespace InventoryManagementApp.Tests.Views
         }
 
         [Fact]
-        public void RentalHistoryButton_BoundToSelectedTool()
+        public void RentalHistoryButton_BoundToSelectedItem()
         {
             Exception? threadException = null;
 
