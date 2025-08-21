@@ -1,0 +1,21 @@
+<!-- Views/InfoDialogWindow.xaml -->
+<Window x:Class="InventoryManagementApp.Views.Windows.InfoDialogWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Information"
+        Width="480" Height="220"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BackgroundBrush}">
+    <Grid Margin="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Border Style="{StaticResource Card}">
+            <TextBlock Text="{Binding Message}" Style="{StaticResource DialogMessageTextBlock}"/>
+        </Border>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Style="{StaticResource PrimaryButton}" Content="OK" Command="{Binding OkCommand}"/>
+        </StackPanel>
+    </Grid>
+</Window>

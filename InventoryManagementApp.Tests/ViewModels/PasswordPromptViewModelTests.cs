@@ -1,0 +1,98 @@
+using System;
+using System.Collections.Generic;
+using InventoryManagementApp.ViewModels;
+using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Models.Domain;
+using Xunit;
+
+namespace InventoryManagementApp.Tests.ViewModels
+{
+    public class PasswordPromptViewModelTests
+    {
+        [Fact]
+        public void OkCommand_Succeeds_WhenPasswordValid()
+        {
+            bool success = false;
+            string? error = null;
+            var vm = new PasswordPromptViewModel(new StubDialogService(), () => success = true, () => { }, m => error = m)
+            {
+                ValidatePassword = p => p == "secret"
+            };
+            vm.EnteredPassword = "secret";
+
+            vm.OkCommand.Execute(null);
+
+            Assert.True(success);
+            Assert.Null(error);
+        }
+
+        [Fact]
+        public void OkCommand_ShowsError_WhenPasswordInvalid()
+        {
+            bool success = false;
+            string? error = null;
+            var vm = new PasswordPromptViewModel(new StubDialogService(), () => success = true, () => { }, m => error = m)
+            {
+                ValidatePassword = p => p == "secret"
+            };
+            vm.EnteredPassword = "wrong";
+
+            vm.OkCommand.Execute(null);
+
+            Assert.False(success);
+            Assert.Equal("Incorrect password. Please try again.", error);
+        }
+
+        [Fact]
+        public void ResetPasswordCommand_ShowsInfo_ForNonAdmin()
+        {
+            var dialog = new StubDialogService();
+            bool success = false;
+            var vm = new PasswordPromptViewModel(dialog, () => success = true, () => { }, _ => { })
+            {
+                SelectedUser = new User { IsAdmin = false }
+            };
+
+            vm.ResetPasswordCommand.ExecuteAsync(null).GetAwaiter().GetResult();
+
+            Assert.True(dialog.InfoShown);
+            Assert.False(success);
+            Assert.False(vm.IsPasswordResetRequested);
+        }
+
+        [Fact]
+        public void ResetPasswordCommand_SetsFlag_WhenConfirmed()
+        {
+            var dialog = new StubDialogService { ConfirmationResult = true };
+            bool success = false;
+            var vm = new PasswordPromptViewModel(dialog, () => success = true, () => { }, _ => { })
+            {
+                SelectedUser = new User { IsAdmin = true }
+            };
+
+            vm.ResetPasswordCommand.ExecuteAsync(null).GetAwaiter().GetResult();
+
+            Assert.True(success);
+            Assert.True(vm.IsPasswordResetRequested);
+        }
+    }
+
+    class StubDialogService : IDialogService
+    {
+        public bool InfoShown { get; private set; }
+        public bool ConfirmationResult { get; set; }
+
+        public void ShowInfo(string message, string title) => InfoShown = true;
+        public bool ShowConfirmation(string message, string title) => ConfirmationResult;
+        public ItemModel? ShowEditItemDialog(ItemModel item) => null;
+        public void ShowItemDetails(ItemModel item) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;
+        public CustomerModel? ShowAddCustomerDialog() => null;
+        public void ShowRentalsFilter(InventoryManagementApp.ViewModels.ManageRentalsViewModel viewModel) { }
+        public void ShowRentalHistory(ItemModel item, System.Collections.Generic.IEnumerable<RentalModel> history) { }
+        public System.Collections.Generic.Dictionary<string, string>? ShowImportMapping(System.Collections.Generic.IEnumerable<string> headers, System.Collections.Generic.IEnumerable<string> properties) => null;
+        public System.Func<ItemModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
+        public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
+        public void ShowPrintLabelDialog() { }
+    }
+}
