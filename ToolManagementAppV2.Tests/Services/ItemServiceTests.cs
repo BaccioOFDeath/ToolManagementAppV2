@@ -365,9 +365,9 @@ namespace ToolManagementAppV2.Tests.Services
                 item.ItemNumber = null;
 
                 var ex = Assert.Throws<InvalidOperationException>(() => service.UpdateItem(item));
-                Assert.Contains("Failed to update tool", ex.Message);
+                Assert.Contains("Failed to update item", ex.Message);
                 Assert.IsType<SQLiteException>(ex.InnerException);
-                Assert.Contains(logs, l => l.Level == LogLevel.Error && l.Message.Contains("Failed to update tool"));
+                Assert.Contains(logs, l => l.Level == LogLevel.Error && l.Message.Contains("Failed to update item"));
             }
             finally
             {
@@ -480,7 +480,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public async Task GetAllItemsAsync_ReturnsTools()
+        public async Task GetAllItemsAsync_ReturnsItems()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -488,8 +488,8 @@ namespace ToolManagementAppV2.Tests.Services
                 var dbService = new DatabaseService(dbPath);
                 IItemService service = new ItemService(dbService);
                 service.AddItem(new ItemModel { ItemNumber = "T1" });
-                var tools = await service.GetAllItemsAsync();
-                Assert.Single(tools);
+                var items = await service.GetAllItemsAsync();
+                Assert.Single(items);
             }
             finally
             {
@@ -498,7 +498,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void GetAllTools_CachesResultsBetweenCalls()
+        public void GetAllItems_CachesResultsBetweenCalls()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -521,7 +521,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void ImportToolsFromCsv_PartialFailure_RollsBack()
+        public void ImportItemsFromCsv_PartialFailure_RollsBack()
         {
             var dbPath = Path.GetTempFileName();
             var csvPath = Path.GetTempFileName();
@@ -546,7 +546,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void GetAllTools_AllowsNullNumericColumns()
+        public void GetAllItems_AllowsNullNumericColumns()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -583,10 +583,10 @@ namespace ToolManagementAppV2.Tests.Services
 
                 var dbService = new DatabaseService(dbPath);
                 var svc = new ItemService(dbService);
-                var tools = svc.GetAllItems();
+                var items = svc.GetAllItems();
 
-                Assert.Single(tools);
-                var item = tools[0];
+                Assert.Single(items);
+                var item = items[0];
                 Assert.Equal(0, item.QuantityOnHand);
                 Assert.Equal(0, item.RentedQuantity);
                 Assert.False(item.IsPowered);
@@ -636,10 +636,10 @@ namespace ToolManagementAppV2.Tests.Services
 
                 var dbService = new DatabaseService(dbPath);
                 var svc = new ItemService(dbService);
-                var tools = svc.SearchItems("T1");
+                var items = svc.SearchItems("T1");
 
-                Assert.Single(tools);
-                var item = tools[0];
+                Assert.Single(items);
+                var item = items[0];
                 Assert.Equal("T1", item.ItemNumber);
                 Assert.False(item.IsPowered);
                 Assert.Equal(0, item.QuantityOnHand);
@@ -669,8 +669,8 @@ namespace ToolManagementAppV2.Tests.Services
                     RentedQuantity = 0
                 });
 
-                var addedTool = service.GetAllItems().First();
-                Assert.Throws<InvalidOperationException>(() => service.UpdateItemQuantities(addedTool.ItemID, 1, true));
+                var addedItem = service.GetAllItems().First();
+                Assert.Throws<InvalidOperationException>(() => service.UpdateItemQuantities(addedItem.ItemID, 1, true));
                 Assert.Contains(logs, l => l.Level == LogLevel.Warning && l.Message.Contains("Quantity update affected 0 rows"));
             }
             finally
@@ -680,7 +680,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void DeleteTool_WhenSqlFails_Throws()
+        public void DeleteItem_WhenSqlFails_Throws()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -694,7 +694,7 @@ namespace ToolManagementAppV2.Tests.Services
 
                 var svc = new ItemService(dbService);
                 var ex = Assert.Throws<InvalidOperationException>(() => svc.DeleteItem(1));
-                Assert.Contains("Failed to delete tool 1", ex.Message);
+                Assert.Contains("Failed to delete item 1", ex.Message);
             }
             finally
             {
@@ -717,7 +717,7 @@ namespace ToolManagementAppV2.Tests.Services
 
                 var svc = new ItemService(dbService);
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => svc.DeleteItemAsync(1));
-                Assert.Contains("Failed to delete tool 1", ex.Message);
+                Assert.Contains("Failed to delete item 1", ex.Message);
             }
             finally
             {
@@ -755,7 +755,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public void ToggleToolCheckOutStatus_SetsUtcTime()
+        public void ToggleItemCheckOutStatus_SetsUtcTime()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -790,7 +790,7 @@ namespace ToolManagementAppV2.Tests.Services
         }
 
         [Fact]
-        public async Task DeleteItemAsync_RemovesTool()
+        public async Task DeleteItemAsync_RemovesItem()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -971,7 +971,7 @@ namespace ToolManagementAppV2.Tests.Services
                 var svc = new ItemService(dbService, auth, null, logService, ctx);
                 await svc.AddItemAsync(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1, RentedQuantity = 0 });
                 var logs = await logService.GetRecentLogsAsync();
-                Assert.Contains(logs.Value, l => l.Action.Contains("Added tool"));
+                Assert.Contains(logs.Value, l => l.Action.Contains("Added item"));
             }
             finally
             {
