@@ -16,7 +16,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <!-- Tools -->
+            <!-- Items -->
             <StackPanel Grid.Column="0" Margin="0,0,8,0">
                 <TextBlock Text="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}" Style="{StaticResource SectionHeader}" />
                 <WrapPanel>

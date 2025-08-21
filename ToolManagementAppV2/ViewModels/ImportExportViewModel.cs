@@ -55,15 +55,15 @@ namespace ToolManagementAppV2.ViewModels
             _databaseService = databaseService;
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<ImportExportViewModel>.Instance;
-            ImportItemsCommand = new AsyncRelayCommand(ct => ImportToolsAsync(ct));
+            ImportItemsCommand = new AsyncRelayCommand(ct => ImportItemsAsync(ct));
             CancelImportItemsCommand = new RelayCommand(() => ImportItemsCommand.Cancel());
-            ExportItemsCommand = new AsyncRelayCommand(ct => ExportToolsAsync(ct));
+            ExportItemsCommand = new AsyncRelayCommand(ct => ExportItemsAsync(ct));
             ImportCustomersCommand = new AsyncRelayCommand(ct => ImportCustomersAsync(ct));
             ExportCustomersCommand = new AsyncRelayCommand(ct => ExportCustomersAsync(ct));
             BackupDatabaseCommand = new AsyncRelayCommand(ct => BackupDatabaseAsync(ct));
         }
 
-        async Task ImportToolsAsync(CancellationToken cancellationToken)
+        async Task ImportItemsAsync(CancellationToken cancellationToken)
         {
             var path = _fileDialogService.OpenFile("CSV Files|*.csv", AppContext.BaseDirectory);
             if (string.IsNullOrEmpty(path)) return;
@@ -96,7 +96,7 @@ namespace ToolManagementAppV2.ViewModels
             }
         }
 
-        async Task ExportToolsAsync(CancellationToken cancellationToken)
+        async Task ExportItemsAsync(CancellationToken cancellationToken)
         {
             var path = _fileDialogService.SaveFile("CSV Files|*.csv");
             if (string.IsNullOrEmpty(path)) return;
