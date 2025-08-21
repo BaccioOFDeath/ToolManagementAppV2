@@ -25,8 +25,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Border Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1" CornerRadius="8">
-                    <Image Stretch="UniformToFill"
-                           Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
+                    <Image Stretch="UniformToFill" Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
                 </Border>
                 <StackPanel Grid.Row="1" Margin="0,6,0,0">
                     <TextBlock Text="{Binding NameDescription}" Style="{StaticResource ListItemTitleTextBlock}"/>
