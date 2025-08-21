@@ -80,8 +80,8 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 StatCards.Clear();
-                var tools = await _itemService.GetAllItemsAsync(cancellationToken);
-                StatCards.Add(new StatCard { Title = $"Total {LabelProvider.Instance.ItemLabelPlural}", Value = tools.Count.ToString() });
+                var items = await _itemService.GetAllItemsAsync(cancellationToken);
+                StatCards.Add(new StatCard { Title = $"Total {LabelProvider.Instance.ItemLabelPlural}", Value = items.Count.ToString() });
                 var activeRentals = await _rentalService.GetActiveRentalsAsync();
                 var customers = await _customerService.GetAllCustomersAsync(cancellationToken);
                 var users = await _userService.GetAllUsersAsync();
