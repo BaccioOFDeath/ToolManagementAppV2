@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Interfaces;
@@ -10,6 +11,23 @@ namespace InventoryManagementApp.Tests.ViewModels
 {
     public class RentalHistoryViewModelTests
     {
+        [Fact]
+        public void Constructor_SetsItemDisplayName_WhenToolProvided()
+        {
+            var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
+            var vm = new RentalHistoryViewModel(item, Enumerable.Empty<Rental>(), new StubDialogService());
+
+            Assert.Equal("T1 - Hammer", vm.ItemDisplayName);
+        }
+
+        [Fact]
+        public void Constructor_DefaultsItemDisplayName_WhenToolNull()
+        {
+            var vm = new RentalHistoryViewModel(null, Enumerable.Empty<Rental>(), new StubDialogService());
+
+            Assert.Equal("Rental History", vm.ItemDisplayName);
+        }
+
         [Fact]
         public void SearchCommand_FiltersHistory()
         {
