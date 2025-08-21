@@ -166,7 +166,7 @@ namespace InventoryManagementApp.Services.Rentals
                 if (!await reader.ReadAsync())
                     throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
 
-                int toolID = Convert.ToInt32(reader["ItemID"]);
+                int itemID = Convert.ToInt32(reader["ItemID"]);
                 DateTime oldDueDate = DateTime.Parse(reader["DueDate"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
 
                 var updateCmd = new SQLiteCommand(
@@ -180,9 +180,9 @@ namespace InventoryManagementApp.Services.Rentals
                 if (_itemService != null)
                 {
                     if (oldDueDate <= DateTime.Today && newDueDate > DateTime.Today)
-                        await _itemService.UpdateItemQuantitiesAsync(toolID, 1, true, conn, tx);
+                        await _itemService.UpdateItemQuantitiesAsync(itemID, 1, true, conn, tx);
                     else if (oldDueDate > DateTime.Today && newDueDate <= DateTime.Today)
-                        await _itemService.UpdateItemQuantitiesAsync(toolID, 1, false, conn, tx);
+                        await _itemService.UpdateItemQuantitiesAsync(itemID, 1, false, conn, tx);
                 }
             });
             if (_activityLog != null)

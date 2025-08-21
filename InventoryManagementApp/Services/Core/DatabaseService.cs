@@ -109,8 +109,8 @@ namespace InventoryManagementApp.Services.Core
             // Migration: rename legacy Tools table to Items
             using (var check = new SQLiteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='Tools';", conn))
             {
-                var toolsExists = check.ExecuteScalar();
-                if (toolsExists != null)
+                var toolsTableExists = check.ExecuteScalar();
+                if (toolsTableExists != null)
                 {
                     using var itemsCheck = new SQLiteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='Items';", conn);
                     var itemsExists = itemsCheck.ExecuteScalar();
