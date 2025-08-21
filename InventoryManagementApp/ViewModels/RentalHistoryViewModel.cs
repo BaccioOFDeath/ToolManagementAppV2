@@ -43,10 +43,10 @@ namespace InventoryManagementApp.ViewModels.Rental
         public IRelayCommand ExportCsvCommand { get; }
         public IRelayCommand CloseCommand { get; }
 
-        public RentalHistoryViewModel(ItemModel? tool, IEnumerable<RentalModel>? history, IDialogService dialogService, ILogger<RentalHistoryViewModel>? logger = null)
+        public RentalHistoryViewModel(ItemModel? item, IEnumerable<RentalModel>? history, IDialogService dialogService, ILogger<RentalHistoryViewModel>? logger = null)
         {
-            ItemDisplayName = tool != null
-                ? $"{tool.ItemNumber} - {tool.NameDescription}"
+            ItemDisplayName = item != null
+                ? $"{item.ItemNumber} - {item.NameDescription}"
                 : "Rental History";
 
             _allHistory = (history ?? Enumerable.Empty<RentalModel>()).ToList();

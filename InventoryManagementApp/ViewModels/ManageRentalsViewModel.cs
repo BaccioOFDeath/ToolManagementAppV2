@@ -226,14 +226,14 @@ namespace InventoryManagementApp.ViewModels
                 return;
             }
 
-            var tool = new ItemModel
+            var item = new ItemModel
             {
                 ItemID = SelectedRental.ItemID,
                 ItemNumber = SelectedRental.ItemNumber,
                 NameDescription = SelectedRental.ItemNumber
             };
 
-            _dialogService.ShowRentalHistory(tool, history);
+            _dialogService.ShowRentalHistory(item, history);
         }
 
         void PrintRental()
