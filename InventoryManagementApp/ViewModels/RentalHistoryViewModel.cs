@@ -23,7 +23,7 @@ namespace InventoryManagementApp.ViewModels.Rental
         private readonly IDialogService _dialogService;
 
         public ObservableCollection<RentalModel> History { get; }
-        public string ToolDisplayName { get; }
+        public string ItemDisplayName { get; }
 
         private string _searchText = string.Empty;
         public string SearchText
@@ -45,7 +45,7 @@ namespace InventoryManagementApp.ViewModels.Rental
 
         public RentalHistoryViewModel(ItemModel? tool, IEnumerable<RentalModel>? history, IDialogService dialogService, ILogger<RentalHistoryViewModel>? logger = null)
         {
-            ToolDisplayName = tool != null
+            ItemDisplayName = tool != null
                 ? $"{tool.ItemNumber} - {tool.NameDescription}"
                 : "Rental History";
 
