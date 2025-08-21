@@ -130,7 +130,7 @@ namespace InventoryManagementApp.Tests.Views
         }
 
         [Fact]
-        public void WorkshopHeading_BoundToItemLabelPlural()
+        public void SidebarHeading_BoundToItemLabelPlural()
         {
             Exception? threadException = null;
 
