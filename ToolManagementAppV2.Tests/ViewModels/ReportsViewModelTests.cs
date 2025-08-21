@@ -9,6 +9,7 @@ using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Items;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.ViewModels;
+using ToolManagementAppV2.Utilities.Helpers;
 using Xunit;
 using System.Threading.Tasks;
 
@@ -51,7 +52,7 @@ namespace ToolManagementAppV2.Tests.ViewModels
 
                 await vm.RunReportCommand.ExecuteAsync(null);
                 Assert.NotNull(vm.ReportResults);
-                Assert.Contains("Total Tools: 1",
+                Assert.Contains($"Total {LabelProvider.Instance.ItemLabelPlural}: 1",
                     vm.ReportResults.Rows.Cast<DataRow>().Select(r => r[0]?.ToString()));
 
                 vm.SelectedReport = null;

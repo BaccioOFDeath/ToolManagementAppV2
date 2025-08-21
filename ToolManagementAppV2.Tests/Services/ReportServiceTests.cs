@@ -10,6 +10,7 @@ using ToolManagementAppV2.Services.Items;
 using ToolManagementAppV2.Services.Rentals;
 using ToolManagementAppV2.Services.Users;
 using ToolManagementAppV2.Services.Customers;
+using ToolManagementAppV2.Utilities.Helpers;
 
 namespace ToolManagementAppV2.Tests.Services
 {
@@ -22,15 +23,15 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
-                var rentalService = new RentalService(db, toolService);
+                var rentalService = new RentalService(db, itemService);
                 var activityLogService = new ActivityLogService(db);
-                var reportService = new ReportService(toolService, rentalService, activityLogService, customerService, userService);
+                var reportService = new ReportService(itemService, rentalService, activityLogService, customerService, userService);
 
-                var tool = new ItemModel
+                var item = new ItemModel
                 {
                     ItemNumber = "T1",
                     NameDescription = "Hammer",
@@ -40,7 +41,7 @@ namespace ToolManagementAppV2.Tests.Services
                     QuantityOnHand = 1,
                     RentedQuantity = 0
                 };
-                toolService.AddItem(tool);
+                itemService.AddItem(item);
 
                 var customer = new Customer
                 {
@@ -60,13 +61,13 @@ namespace ToolManagementAppV2.Tests.Services
                 };
                 userService.AddUser(user);
 
-                rentalService.RentItem(tool.ItemID, customer.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(item.ItemID, customer.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var task = Task.Run(() => reportService.GenerateSummaryReport().Result);
                 Assert.True(task.Wait(TimeSpan.FromSeconds(5)), "GenerateSummaryReport deadlocked.");
                 var doc = task.Result;
                 var text = new TextRange(doc.ContentStart, doc.ContentEnd).Text;
-                Assert.Contains("Total Tools: 1", text);
+                Assert.Contains($"Total {LabelProvider.Instance.ItemLabelPlural}: 1", text);
                 Assert.Contains("Total Rentals (History): 1", text);
                 Assert.Contains("Active Rentals: 1", text);
                 Assert.Contains("Total Customers: 1", text);
@@ -86,15 +87,15 @@ namespace ToolManagementAppV2.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
-                var rentalService = new RentalService(db, toolService);
+                var rentalService = new RentalService(db, itemService);
                 var activityLogService = new ActivityLogService(db);
-                var reportService = new ReportService(toolService, rentalService, activityLogService, customerService, userService);
+                var reportService = new ReportService(itemService, rentalService, activityLogService, customerService, userService);
 
-                var tool = new ItemModel
+                var item = new ItemModel
                 {
                     ItemNumber = "T1",
                     NameDescription = "Hammer",
@@ -104,7 +105,7 @@ namespace ToolManagementAppV2.Tests.Services
                     QuantityOnHand = 1,
                     RentedQuantity = 0
                 };
-                toolService.AddItem(tool);
+                itemService.AddItem(item);
 
                 var customer = new Customer
                 {
@@ -124,11 +125,11 @@ namespace ToolManagementAppV2.Tests.Services
                 };
                 userService.AddUser(user);
 
-                rentalService.RentItem(tool.ItemID, customer.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(item.ItemID, customer.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var doc = await reportService.GenerateSummaryReport();
                 var text = new TextRange(doc.ContentStart, doc.ContentEnd).Text;
-                Assert.Contains("Total Tools: 1", text);
+                Assert.Contains($"Total {LabelProvider.Instance.ItemLabelPlural}: 1", text);
                 Assert.Contains("Total Rentals (History): 1", text);
                 Assert.Contains("Active Rentals: 1", text);
                 Assert.Contains("Total Customers: 1", text);
