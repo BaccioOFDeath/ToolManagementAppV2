@@ -43,7 +43,7 @@ namespace InventoryManagementApp.Services.Core
             InitializeDatabase();
             using (var conn = CreateConnection())
             {
-                RenameColumnIfExists(conn, "Items", "IsPowerTool", "IsPowered");
+                RenameColumnIfExists(conn, "Items", "IsPowered", "IsPowered");
             }
             EnsureColumn("Items", "ItemNumber", "TEXT");
             EnsureColumn("Items", "NameDescription", "TEXT");
