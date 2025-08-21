@@ -30,7 +30,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
                 var customerService = new CustomerService(db);
@@ -39,7 +39,7 @@ namespace InventoryManagementApp.Tests.ViewModels
                 var settingsService = new SettingsService(db);
                 var dialog = new StubDialogService();
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService,
                     new StubFileDialogService(), activityLogService, settingsService, db, dialog);
 
                 vm.ExitCommand.Execute(null);
@@ -64,7 +64,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
                 var customerService = new CustomerService(db);
@@ -73,7 +73,7 @@ namespace InventoryManagementApp.Tests.ViewModels
                 var settingsService = new SettingsService(db);
                 var dialog = new StubDialogService { ThrowOnShowPrintLabelDialog = true };
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService,
                     new StubFileDialogService(), activityLogService, settingsService, db, dialog);
 
                 vm.OpenPrintLabelWindowCommand.Execute(null);
@@ -97,7 +97,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new GetAllUsersFailingUserService();
                 var customerService = new CustomerService(db);
@@ -106,7 +106,7 @@ namespace InventoryManagementApp.Tests.ViewModels
                 var settingsService = new SettingsService(db);
                 var dialog = new StubDialogService();
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService,
                     new StubFileDialogService(), activityLogService, settingsService, db, dialog);
 
                 var ex = await Record.ExceptionAsync(() => vm.OpenUsersCommand.ExecuteAsync(null));

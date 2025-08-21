@@ -23,20 +23,20 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool1 = new ItemModel { ItemNumber = "T1" };
-                var tool2 = new ItemModel { ItemNumber = "T2" };
-                toolService.AddItem(tool1);
-                toolService.AddItem(tool2);
+                var item1 = new ItemModel { ItemNumber = "T1" };
+                var item2 = new ItemModel { ItemNumber = "T2" };
+                itemService.AddItem(item1);
+                itemService.AddItem(item2);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentItem(tool1.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
-                rentalService.RentItem(tool2.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(item1.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(item2.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
                 var all = rentalService.GetAllRentals();
                 rentalService.ReturnItem(all[1].RentalID, DateTime.Today);
 
@@ -68,20 +68,20 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool1 = new ItemModel { ItemNumber = "Alpha" };
-                var tool2 = new ItemModel { ItemNumber = "Beta" };
-                toolService.AddItem(tool1);
-                toolService.AddItem(tool2);
+                var item1 = new ItemModel { ItemNumber = "Alpha" };
+                var item2 = new ItemModel { ItemNumber = "Beta" };
+                itemService.AddItem(item1);
+                itemService.AddItem(item2);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentItem(tool1.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
-                rentalService.RentItem(tool2.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(item1.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(item2.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 await vm.LoadRentalsAsync();
@@ -106,18 +106,18 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool = new ItemModel { ItemNumber = "T1" };
-                toolService.AddItem(tool);
+                var item = new ItemModel { ItemNumber = "T1" };
+                itemService.AddItem(item);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentItem(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
-                rentalService.RentItem(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(item.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(item.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var dialog = new StubDialogService();
                 var vm = new ManageRentalsViewModel(rentalService, dialog);
@@ -163,17 +163,17 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool = new ItemModel { ItemNumber = "T1" };
-                toolService.AddItem(tool);
+                var item = new ItemModel { ItemNumber = "T1" };
+                itemService.AddItem(item);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentItem(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(item.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 await vm.LoadRentalsAsync();
@@ -199,17 +199,17 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool = new ItemModel { ItemNumber = "T1" };
-                toolService.AddItem(tool);
+                var item = new ItemModel { ItemNumber = "T1" };
+                itemService.AddItem(item);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentItem(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(item.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 await vm.LoadRentalsAsync();
@@ -233,17 +233,17 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
 
-                var tool = new ItemModel { ItemNumber = "T1" };
-                toolService.AddItem(tool);
+                var item = new ItemModel { ItemNumber = "T1" };
+                itemService.AddItem(item);
                 var customer = new Customer { Company = "C1" };
                 customerService.AddCustomer(customer);
                 var cust = customerService.GetAllCustomers().First();
 
-                rentalService.RentItem(tool.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+                rentalService.RentItem(item.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
 
                 var vm = new ManageRentalsViewModel(rentalService, new StubDialogService());
                 await vm.LoadRentalsAsync();

@@ -19,13 +19,13 @@ namespace InventoryManagementApp.Tests.Services
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolSvc = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 ICustomerService custSvc = new CustomerService(db);
-                IRentalService rentalSvc = new RentalService(db, toolSvc);
+                IRentalService rentalSvc = new RentalService(db, itemService);
                 IUserService userSvc = new UserService(db, new ApplicationUserContext());
                 ISettingsService settingsSvc = new SettingsService(db);
 
-                Assert.NotNull(toolSvc);
+                Assert.NotNull(itemService);
                 Assert.NotNull(custSvc);
                 Assert.NotNull(rentalSvc);
                 Assert.NotNull(userSvc);

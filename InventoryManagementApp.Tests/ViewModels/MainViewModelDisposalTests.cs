@@ -20,7 +20,7 @@ namespace InventoryManagementApp.Tests.ViewModels
     public class MainViewModelDisposalTests
     {
         [Fact]
-        public void Dispose_RemovesToolManagementPropertyChangedHandler()
+        public void Dispose_RemovesItemManagementPropertyChangedHandler()
         {
             var dbPath = Path.GetTempFileName();
             try

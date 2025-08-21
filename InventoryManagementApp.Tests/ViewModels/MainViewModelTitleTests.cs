@@ -25,11 +25,11 @@ namespace InventoryManagementApp.Tests.ViewModels
             var dbPath = Path.GetTempFileName();
             var originalSingular = LabelProvider.Instance.ItemLabelSingular;
             var originalPlural = LabelProvider.Instance.ItemLabelPlural;
-            LabelProvider.Instance.UpdateLabels("ItemModel", "Tools");
+            LabelProvider.Instance.UpdateLabels("ItemModel", "Items");
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 IUserService userService = new UserService(db, userContext);
                 ICustomerService customerService = new CustomerService(db);
@@ -37,16 +37,16 @@ namespace InventoryManagementApp.Tests.ViewModels
                 var activityLogService = new ActivityLogService(db);
                 var settingsService = new SettingsService(db);
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService,
                     new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService());
 
-                Assert.Equal("Tools Management", vm.WindowTitle);
+                Assert.Equal("Items Management", vm.WindowTitle);
 
                 vm.Settings.ApplicationName = "My App";
                 Assert.Equal("My App", vm.WindowTitle);
 
                 vm.Settings.ApplicationName = string.Empty;
-                Assert.Equal("Tools Management", vm.WindowTitle);
+                Assert.Equal("Items Management", vm.WindowTitle);
             }
             finally
             {

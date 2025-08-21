@@ -30,13 +30,13 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
-                toolService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
-                toolService.AddItem(new ItemModel { ItemNumber = "T2", NameDescription = "Saw" });
+                var vm = new ItemManagementViewModel(itemService, customerService, rentalService, dialog);
+                itemService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
+                itemService.AddItem(new ItemModel { ItemNumber = "T2", NameDescription = "Saw" });
                 vm.SearchTerm = "Ham";
                 await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
                 Assert.Single(vm.SearchResults);
@@ -56,13 +56,13 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
-                toolService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" });
-                toolService.AddItem(new ItemModel { ItemNumber = "T2", NameDescription = "Hammer", Brand = "BrandB" });
+                var vm = new ItemManagementViewModel(itemService, customerService, rentalService, dialog);
+                itemService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" });
+                itemService.AddItem(new ItemModel { ItemNumber = "T2", NameDescription = "Hammer", Brand = "BrandB" });
                 vm.SearchTerm = "Hammer BrandA";
                 await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
                 Assert.Single(vm.SearchResults);
@@ -82,13 +82,13 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
-                toolService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
-                toolService.AddItem(new ItemModel { ItemNumber = "T2", NameDescription = "Cordless Drill", IsPowered = true });
+                var vm = new ItemManagementViewModel(itemService, customerService, rentalService, dialog);
+                itemService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
+                itemService.AddItem(new ItemModel { ItemNumber = "T2", NameDescription = "Cordless Drill", IsPowered = true });
                 vm.SearchTerm = string.Empty;
                 await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
                 Assert.Equal(2, vm.SearchResults.Count);
@@ -109,12 +109,12 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
-                toolService.AddItem(new ItemModel { ItemNumber = "T1", Brand = "BrandA" });
+                var vm = new ItemManagementViewModel(itemService, customerService, rentalService, dialog);
+                itemService.AddItem(new ItemModel { ItemNumber = "T1", Brand = "BrandA" });
                 await vm.LoadItemsAsync();
 
                 Assert.Contains("BrandA", vm.Categories);
@@ -137,10 +137,10 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
-                var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
+                IItemService itemService = new ItemService(db);
+                var vm = new ItemManagementViewModel(itemService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
 
-                toolService.AddItem(new ItemModel { ItemNumber = "T1" });
+                itemService.AddItem(new ItemModel { ItemNumber = "T1" });
                 await vm.LoadItemsAsync();
                 await vm.LoadItemsAsync();
 
@@ -163,13 +163,13 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
-                var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
+                IItemService itemService = new ItemService(db);
+                var vm = new ItemManagementViewModel(itemService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
 
-                toolService.AddItem(new ItemModel { ItemNumber = "T1", Brand = "BrandA" });
+                itemService.AddItem(new ItemModel { ItemNumber = "T1", Brand = "BrandA" });
                 await vm.LoadItemsAsync();
 
-                toolService.AddItem(new ItemModel { ItemNumber = "T2", Brand = "BrandB" });
+                itemService.AddItem(new ItemModel { ItemNumber = "T2", Brand = "BrandB" });
                 await vm.LoadItemsAsync();
 
                 Assert.Equal(2, vm.Items.Count);
@@ -190,15 +190,15 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                var vm = new ItemManagementViewModel(itemService, customerService, rentalService, dialog);
                 vm.NewItem.ItemNumber = string.Empty;
                 await vm.NewItemCommand.ExecuteAsync(null);
                 Assert.True(dialog.InfoShown);
-                Assert.Empty(toolService.GetAllItems());
+                Assert.Empty(itemService.GetAllItems());
                 Assert.Equal(string.Empty, vm.NewItem.ItemNumber);
             }
             finally
@@ -238,17 +238,17 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                var vm = new ItemManagementViewModel(itemService, customerService, rentalService, dialog);
                 vm.NewItem.ItemNumber = "TN1";
                 vm.NewItem.NameDescription = "Hammer";
                 vm.NewItem.QuantityOnHand = quantity;
                 await vm.NewItemCommand.ExecuteAsync(null);
                 Assert.True(dialog.InfoShown);
-                Assert.Empty(toolService.GetAllItems());
+                Assert.Empty(itemService.GetAllItems());
                 Assert.Equal(quantity, vm.NewItem.QuantityOnHand);
             }
             finally
@@ -265,11 +265,11 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                var vm = new ItemManagementViewModel(itemService, customerService, rentalService, dialog);
                 vm.NewItem.ItemNumber = "TN1";
                 vm.NewItem.NameDescription = "Hammer";
                 vm.NewItem.PartNumber = "PN1";
@@ -280,9 +280,9 @@ namespace InventoryManagementApp.Tests.ViewModels
                 vm.NewItem.Notes = "Note";
                 vm.NewItem.IsPowered = true;
                 await vm.NewItemCommand.ExecuteAsync(null);
-                var tools = toolService.GetAllItems();
-                Assert.Single(tools);
-                var item = tools.First();
+                var items = itemService.GetAllItems();
+                Assert.Single(items);
+                var item = items.First();
                 Assert.Equal("TN1", item.ItemNumber);
                 Assert.Equal("Hammer", item.NameDescription);
                 Assert.Equal("PN1", item.PartNumber);
@@ -301,19 +301,19 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
-        public async Task EditItemCommand_UpdatesExistingTool_WhenDialogReturnsTool()
+        public async Task EditItemCommand_UpdatesExistingItem_WhenDialogReturnsItem()
         {
             var dbPath = Path.GetTempFileName();
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                var vm = new ItemManagementViewModel(itemService, customerService, rentalService, dialog);
                 var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", ImagePath = "img1.png" };
-                toolService.AddItem(item);
+                itemService.AddItem(item);
                 await vm.LoadItemsAsync();
                 vm.SelectedItem = vm.Items.First();
                 dialog.EditItemHandler = t =>
@@ -322,7 +322,7 @@ namespace InventoryManagementApp.Tests.ViewModels
                     return t;
                 };
                 await vm.EditItemCommand.ExecuteAsync(null);
-                var updated = toolService.GetAllItems().First();
+                var updated = itemService.GetAllItems().First();
                 Assert.Equal("Updated Hammer", updated.NameDescription);
                 Assert.Equal("Updated Hammer", vm.Items.First().NameDescription);
                 Assert.Equal("img1.png", updated.ImagePath);
@@ -342,18 +342,18 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                var vm = new ItemManagementViewModel(itemService, customerService, rentalService, dialog);
                 var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
-                toolService.AddItem(item);
+                itemService.AddItem(item);
                 await vm.LoadItemsAsync();
                 vm.SelectedItem = vm.Items.First();
                 dialog.EditItemHandler = _ => null;
                 await vm.EditItemCommand.ExecuteAsync(null);
-                var unchanged = toolService.GetAllItems().First();
+                var unchanged = itemService.GetAllItems().First();
                 Assert.Equal("Hammer", unchanged.NameDescription);
             }
             finally
@@ -364,23 +364,23 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
-        public async Task DeleteItemCommand_RemovesTool()
+        public async Task DeleteItemCommand_RemovesItem()
         {
             var dbPath = Path.GetTempFileName();
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService { ConfirmationResult = true };
-                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                var vm = new ItemManagementViewModel(itemService, customerService, rentalService, dialog);
                 var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
-                toolService.AddItem(item);
+                itemService.AddItem(item);
                 await vm.LoadItemsAsync();
                 vm.SelectedItem = vm.Items.First();
                 await vm.DeleteItemCommand.ExecuteAsync(null);
-                Assert.Empty(toolService.GetAllItems());
+                Assert.Empty(itemService.GetAllItems());
                 Assert.Empty(vm.Items);
             }
             finally
@@ -391,23 +391,23 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
-        public async Task DeleteItemCommand_Cancelled_DoesNotRemoveTool()
+        public async Task DeleteItemCommand_Cancelled_DoesNotRemoveItem()
         {
             var dbPath = Path.GetTempFileName();
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService { ConfirmationResult = false };
-                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                var vm = new ItemManagementViewModel(itemService, customerService, rentalService, dialog);
                 var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
-                toolService.AddItem(item);
+                itemService.AddItem(item);
                 await vm.LoadItemsAsync();
                 vm.SelectedItem = vm.Items.First();
                 await vm.DeleteItemCommand.ExecuteAsync(null);
-                Assert.Single(toolService.GetAllItems());
+                Assert.Single(itemService.GetAllItems());
                 Assert.Single(vm.Items);
             }
             finally
@@ -420,10 +420,10 @@ namespace InventoryManagementApp.Tests.ViewModels
         [Fact]
         public async Task DeleteItemCommand_OnError_ShowsDialogAndLogs()
         {
-            var toolService = new FailingItemService();
+            var itemService = new FailingItemService();
             var dialog = new StubDialogService { ConfirmationResult = true };
             var logger = new CapturingLogger<ItemManagementViewModel>();
-            var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), dialog, logger);
+            var vm = new ItemManagementViewModel(itemService, new StubCustomerService(), new StubRentalService(), dialog, logger);
             var item = new ItemModel { ItemID = 1, ItemNumber = "T1", NameDescription = "Hammer" };
             vm.Items.Add(item);
             vm.SelectedItem = item;
@@ -443,15 +443,15 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                var vm = new ItemManagementViewModel(itemService, customerService, rentalService, dialog);
 
                 Assert.False(vm.OpenRentalsCommand.CanExecute(null));
 
-                toolService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
+                itemService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
                 await vm.LoadItemsAsync();
                 vm.SelectedItem = vm.Items.First();
 
@@ -471,13 +471,13 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                var vm = new ItemManagementViewModel(itemService, customerService, rentalService, dialog);
                 var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
-                toolService.AddItem(item);
+                itemService.AddItem(item);
                 await vm.LoadItemsAsync();
                 vm.SelectedItem = vm.Items.First();
                 bool called = false;
@@ -501,15 +501,15 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                IItemService toolService = new ItemService(db);
+                IItemService itemService = new ItemService(db);
                 var customerService = new CustomerService(db);
                 var rentalService = new RentalService(db);
                 var dialog = new StubDialogService();
-                var vm = new ItemManagementViewModel(toolService, customerService, rentalService, dialog);
+                var vm = new ItemManagementViewModel(itemService, customerService, rentalService, dialog);
 
                 Assert.False(vm.ViewDetailsCommand.CanExecute(null));
 
-                toolService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
+                itemService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
                 await vm.LoadItemsAsync();
                 vm.SelectedItem = vm.Items.First();
 
@@ -525,69 +525,69 @@ namespace InventoryManagementApp.Tests.ViewModels
         [Fact]
         public async Task FilterItemsAsync_UsesSearchService_WhenTermProvided()
         {
-            var tools = new List<ItemModel>
+            var items = new List<ItemModel>
             {
                 new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" },
                 new ItemModel { ItemNumber = "T2", NameDescription = "Saw", Brand = "BrandB" }
             };
-            var toolService = new CountingItemService(tools);
-            var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
+            var itemService = new CountingItemService(items);
+            var vm = new ItemManagementViewModel(itemService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
             vm.SearchTerm = "Ham";
             await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
-            Assert.Equal(1, toolService.SearchItemsAsyncCalls);
-            Assert.Equal(0, toolService.GetAllItemsAsyncCalls);
+            Assert.Equal(1, itemService.SearchItemsAsyncCalls);
+            Assert.Equal(0, itemService.GetAllItemsAsyncCalls);
         }
 
         [Fact]
         public async Task FilterItemsAsync_ReusesCache_WhenNoSearchTerm()
         {
-            var tools = new List<ItemModel>
+            var items = new List<ItemModel>
             {
                 new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" }
             };
-            var toolService = new CountingItemService(tools);
-            var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
+            var itemService = new CountingItemService(items);
+            var vm = new ItemManagementViewModel(itemService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
 
             await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
-            Assert.Equal(1, toolService.GetAllItemsAsyncCalls);
-            Assert.Equal(0, toolService.SearchItemsAsyncCalls);
+            Assert.Equal(1, itemService.GetAllItemsAsyncCalls);
+            Assert.Equal(0, itemService.SearchItemsAsyncCalls);
 
             await vm.SearchCommand.ExecuteAsync(CancellationToken.None);
-            Assert.Equal(1, toolService.GetAllItemsAsyncCalls);
+            Assert.Equal(1, itemService.GetAllItemsAsyncCalls);
         }
 
         [Fact]
         public void SearchText_DebouncesRapidChanges()
         {
-            var tools = new List<ItemModel>
+            var items = new List<ItemModel>
             {
                 new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" }
             };
-            var toolService = new CountingItemService(tools);
+            var itemService = new CountingItemService(items);
             var timer = new TestDispatcherTimer();
-            var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService(), null, timer);
+            var vm = new ItemManagementViewModel(itemService, new StubCustomerService(), new StubRentalService(), new StubDialogService(), null, timer);
 
             vm.SearchText = "H";
             vm.SearchText = "Ha";
             vm.SearchText = "Ham";
 
-            Assert.Equal(0, toolService.SearchItemsAsyncCalls);
+            Assert.Equal(0, itemService.SearchItemsAsyncCalls);
 
             timer.RaiseTick();
 
-            Assert.Equal(1, toolService.SearchItemsAsyncCalls);
+            Assert.Equal(1, itemService.SearchItemsAsyncCalls);
         }
 
         [Fact]
         public void Dispose_StopsSearchDebounceTimer()
         {
-            var tools = new List<ItemModel>
+            var items = new List<ItemModel>
             {
                 new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" }
             };
-            var toolService = new CountingItemService(tools);
+            var itemService = new CountingItemService(items);
             var timer = new TestDispatcherTimer();
-            var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService(), null, timer);
+            var vm = new ItemManagementViewModel(itemService, new StubCustomerService(), new StubRentalService(), new StubDialogService(), null, timer);
 
             vm.SearchText = "Ha";
             Assert.True(timer.IsEnabled);
@@ -601,12 +601,12 @@ namespace InventoryManagementApp.Tests.ViewModels
         [Fact]
         public async Task SearchCommand_CanBeCancelled()
         {
-            var tools = new List<ItemModel>
+            var items = new List<ItemModel>
             {
                 new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", Brand = "BrandA" }
             };
-            var toolService = new CountingItemService(tools);
-            var vm = new ItemManagementViewModel(toolService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
+            var itemService = new CountingItemService(items);
+            var vm = new ItemManagementViewModel(itemService, new StubCustomerService(), new StubRentalService(), new StubDialogService());
             vm.SearchTerm = "Ham";
             var cts = new CancellationTokenSource();
             cts.Cancel();
@@ -617,13 +617,13 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             public int GetAllItemsAsyncCalls { get; private set; }
             public int SearchItemsAsyncCalls { get; private set; }
-            readonly List<ItemModel> _tools;
-            public CountingItemService(IEnumerable<ItemModel> tools) => _tools = tools.ToList();
+            readonly List<ItemModel> _items;
+            public CountingItemService(IEnumerable<ItemModel> items) => _items = items.ToList();
 
             public Task<List<ItemModel>> GetAllItemsAsync(CancellationToken cancellationToken = default)
             {
                 GetAllItemsAsyncCalls++;
-                return Task.FromResult(_tools.ToList());
+                return Task.FromResult(_items.ToList());
             }
 
             public Task<List<ItemModel>> SearchItemsAsync(string? searchText, CancellationToken cancellationToken = default)
@@ -632,9 +632,9 @@ namespace InventoryManagementApp.Tests.ViewModels
                 if (cancellationToken.IsCancellationRequested)
                     return Task.FromCanceled<List<ItemModel>>(cancellationToken);
                 if (string.IsNullOrWhiteSpace(searchText))
-                    return Task.FromResult(_tools.ToList());
+                    return Task.FromResult(_items.ToList());
                 var term = searchText.Trim();
-                var results = _tools.Where(t =>
+                var results = _items.Where(t =>
                     (t.ItemNumber?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (t.NameDescription?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (t.Brand?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
@@ -645,15 +645,15 @@ namespace InventoryManagementApp.Tests.ViewModels
 
             public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task DeleteItemAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<ItemModel?> GetItemByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<bool> ToggleItemCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task DeleteItemAsync(int itemID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<bool> ToggleItemCheckOutStatusAsync(int itemID, string currentUser, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task UpdateItemImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => throw new NotImplementedException();
             public Task ExportItemsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task UpdateItemQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
         }
 
@@ -661,17 +661,17 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task DeleteItemAsync(int toolID, CancellationToken cancellationToken = default) => throw new Exception("failure");
-            public Task<ItemModel?> GetItemByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task DeleteItemAsync(int itemID, CancellationToken cancellationToken = default) => throw new Exception("failure");
+            public Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<List<ItemModel>> GetAllItemsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
             public Task<List<ItemModel>> SearchItemsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
-            public Task<bool> ToggleItemCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<bool> ToggleItemCheckOutStatusAsync(int itemID, string currentUser, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
-            public Task UpdateItemImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => Task.FromResult(new List<int>());
             public Task ExportItemsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
-            public Task UpdateItemQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
         }
 

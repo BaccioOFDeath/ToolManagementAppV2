@@ -25,7 +25,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
                 var customerService = new CustomerService(db);
@@ -38,7 +38,7 @@ namespace InventoryManagementApp.Tests.ViewModels
                 var loginCalled = false;
                 Func<Task<bool>> login = () => { loginCalled = true; return Task.FromResult(true); };
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService,
                     new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService(), null, login, timer);
 
                 Assert.True(timer.IsEnabled);

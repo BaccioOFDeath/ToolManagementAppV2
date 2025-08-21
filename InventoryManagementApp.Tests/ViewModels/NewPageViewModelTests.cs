@@ -14,6 +14,7 @@ using InventoryManagementApp.Services.Rentals;
 using InventoryManagementApp.Services.Items;
 using InventoryManagementApp.Services.Customers;
 using InventoryManagementApp.ViewModels;
+using InventoryManagementApp.Utilities.Helpers;
 using Xunit;
 using System.Threading.Tasks;
 
@@ -43,44 +44,44 @@ namespace InventoryManagementApp.Tests.ViewModels
         [Fact]
         public async Task ImportExportViewModel_ImportItemsCommand_LogsSuccess()
         {
-            var toolService = new StubItemService();
+            var itemService = new StubItemService();
             var customerService = new StubCustomerService();
             var fileDlg = new StubFileDialogService();
             var tmp = Path.GetTempFileName();
             File.WriteAllText(tmp, "ItemNumber\n");
             fileDlg.FileToReturn = tmp;
             var dialog = new StubDialogService();
-            var vm = new ImportExportViewModel(toolService, customerService, fileDlg, new StubDatabaseBackupService(), dialog);
+            var vm = new ImportExportViewModel(itemService, customerService, fileDlg, new StubDatabaseBackupService(), dialog);
             await vm.ImportItemsCommand.ExecuteAsync(null);
-            Assert.True(toolService.ImportCalled);
+            Assert.True(itemService.ImportCalled);
             Assert.Single(vm.ImportExportLogs);
-            Assert.StartsWith("Successfully imported tools", vm.ImportExportLogs[0]);
+            Assert.StartsWith($"Successfully imported {LabelProvider.Instance.ItemLabelPlural}", vm.ImportExportLogs[0]);
             File.Delete(tmp);
         }
 
         [Fact]
         public async Task ImportExportViewModel_ExportItemsCommand_LogsSuccess()
         {
-            var toolService = new StubItemService();
+            var itemService = new StubItemService();
             var customerService = new StubCustomerService();
-            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
+            var vm = new ImportExportViewModel(itemService, customerService, new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
             await vm.ExportItemsCommand.ExecuteAsync(null);
-            Assert.True(toolService.ExportCalled);
+            Assert.True(itemService.ExportCalled);
             Assert.Single(vm.ImportExportLogs);
-            Assert.StartsWith("Successfully exported tools", vm.ImportExportLogs[0]);
+            Assert.StartsWith($"Successfully exported {LabelProvider.Instance.ItemLabelPlural}", vm.ImportExportLogs[0]);
         }
 
         [Fact]
         public async Task ImportExportViewModel_ImportCustomersCommand_LogsSuccess()
         {
-            var toolService = new StubItemService();
+            var itemService = new StubItemService();
             var customerService = new StubCustomerService();
             var fileDlg = new StubFileDialogService();
             var tmp = Path.GetTempFileName();
             File.WriteAllText(tmp, "Company\n");
             fileDlg.FileToReturn = tmp;
             var dialog = new StubDialogService();
-            var vm = new ImportExportViewModel(toolService, customerService, fileDlg, new StubDatabaseBackupService(), dialog);
+            var vm = new ImportExportViewModel(itemService, customerService, fileDlg, new StubDatabaseBackupService(), dialog);
             await vm.ImportCustomersCommand.ExecuteAsync(null);
             Assert.True(customerService.ImportCalled);
             Assert.Single(vm.ImportExportLogs);
@@ -91,9 +92,9 @@ namespace InventoryManagementApp.Tests.ViewModels
         [Fact]
         public async Task ImportExportViewModel_ExportCustomersCommand_LogsSuccess()
         {
-            var toolService = new StubItemService();
+            var itemService = new StubItemService();
             var customerService = new StubCustomerService();
-            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
+            var vm = new ImportExportViewModel(itemService, customerService, new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
             await vm.ExportCustomersCommand.ExecuteAsync(null);
             Assert.True(customerService.ExportCalled);
             Assert.Single(vm.ImportExportLogs);
@@ -123,42 +124,42 @@ namespace InventoryManagementApp.Tests.ViewModels
         [Fact]
         public async Task ImportExportViewModel_ImportItemsCommand_LogsFailure()
         {
-            var toolService = new FailItemService();
+            var itemService = new FailItemService();
             var customerService = new StubCustomerService();
             var fileDlg = new StubFileDialogService();
             var tmp = Path.GetTempFileName();
             File.WriteAllText(tmp, "ItemNumber\n");
             fileDlg.FileToReturn = tmp;
             var dialog = new StubDialogService();
-            var vm = new ImportExportViewModel(toolService, customerService, fileDlg, new StubDatabaseBackupService(), dialog);
+            var vm = new ImportExportViewModel(itemService, customerService, fileDlg, new StubDatabaseBackupService(), dialog);
             await vm.ImportItemsCommand.ExecuteAsync(null);
             Assert.Single(vm.ImportExportLogs);
-            Assert.StartsWith("Failed to import tools", vm.ImportExportLogs[0]);
+            Assert.StartsWith($"Failed to import {LabelProvider.Instance.ItemLabelPlural}", vm.ImportExportLogs[0]);
             File.Delete(tmp);
         }
 
         [Fact]
         public async Task ImportExportViewModel_ExportItemsCommand_LogsFailure()
         {
-            var toolService = new FailItemService();
+            var itemService = new FailItemService();
             var customerService = new StubCustomerService();
-            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
+            var vm = new ImportExportViewModel(itemService, customerService, new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
             await vm.ExportItemsCommand.ExecuteAsync(null);
             Assert.Single(vm.ImportExportLogs);
-            Assert.StartsWith("Failed to export tools", vm.ImportExportLogs[0]);
+            Assert.StartsWith($"Failed to export {LabelProvider.Instance.ItemLabelPlural}", vm.ImportExportLogs[0]);
         }
 
         [Fact]
         public async Task ImportExportViewModel_ImportCustomersCommand_LogsFailure()
         {
-            var toolService = new StubItemService();
+            var itemService = new StubItemService();
             var customerService = new FailCustomerService();
             var fileDlg = new StubFileDialogService();
             var tmp = Path.GetTempFileName();
             File.WriteAllText(tmp, "Company\n");
             fileDlg.FileToReturn = tmp;
             var dialog = new StubDialogService();
-            var vm = new ImportExportViewModel(toolService, customerService, fileDlg, new StubDatabaseBackupService(), dialog);
+            var vm = new ImportExportViewModel(itemService, customerService, fileDlg, new StubDatabaseBackupService(), dialog);
             await vm.ImportCustomersCommand.ExecuteAsync(null);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Failed to import customers", vm.ImportExportLogs[0]);
@@ -168,9 +169,9 @@ namespace InventoryManagementApp.Tests.ViewModels
         [Fact]
         public async Task ImportExportViewModel_ExportCustomersCommand_LogsFailure()
         {
-            var toolService = new StubItemService();
+            var itemService = new StubItemService();
             var customerService = new FailCustomerService();
-            var vm = new ImportExportViewModel(toolService, customerService, new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
+            var vm = new ImportExportViewModel(itemService, customerService, new StubFileDialogService(), new StubDatabaseBackupService(), new StubDialogService());
             await vm.ExportCustomersCommand.ExecuteAsync(null);
             Assert.Single(vm.ImportExportLogs);
             Assert.StartsWith("Failed to export customers", vm.ImportExportLogs[0]);
@@ -243,14 +244,14 @@ namespace InventoryManagementApp.Tests.ViewModels
         public Task<List<ItemModel>> GetAllItemsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
         public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task DeleteItemAsync(int toolID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task<ItemModel?> GetItemByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task DeleteItemAsync(int itemID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<List<ItemModel>> SearchItemsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
-        public Task<bool> ToggleItemCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task<bool> ToggleItemCheckOutStatusAsync(int itemID, string currentUser, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
-        public Task UpdateItemImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, System.Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
-        public Task UpdateItemQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
     }
 
@@ -261,26 +262,26 @@ namespace InventoryManagementApp.Tests.ViewModels
         public Task<List<ItemModel>> GetAllItemsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
         public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task DeleteItemAsync(int toolID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
-        public Task<ItemModel?> GetItemByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task DeleteItemAsync(int itemID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<List<ItemModel>> SearchItemsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
-        public Task<bool> ToggleItemCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task<bool> ToggleItemCheckOutStatusAsync(int itemID, string currentUser, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
-        public Task UpdateItemImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, System.Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
-        public Task UpdateItemQuantitiesAsync(int toolID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+        public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
         public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
     }
 
     class StubRentalService : IRentalService
     {
-        public void RentItem(int toolID, int customerID, System.DateTime rentalDate, System.DateTime dueDate) => throw new System.NotImplementedException();
+        public void RentItem(int itemID, int customerID, System.DateTime rentalDate, System.DateTime dueDate) => throw new System.NotImplementedException();
         public void ReturnItem(int rentalID, System.DateTime returnDate) => throw new System.NotImplementedException();
         public void ExtendRental(int rentalID, System.DateTime newDueDate) => throw new System.NotImplementedException();
         public List<Rental> GetActiveRentals() => new();
         public List<Rental> GetOverdueRentals() => new();
         public List<Rental> GetAllRentals() => new();
-        public List<Rental> GetRentalHistoryForItem(int toolID) => new();
+        public List<Rental> GetRentalHistoryForItem(int itemID) => new();
         public List<Rental> GetRentalHistoryForCustomer(int customerID) => new();
     }
 

@@ -12,7 +12,7 @@ namespace InventoryManagementApp.Tests.ViewModels
     public class RentalHistoryViewModelTests
     {
         [Fact]
-        public void Constructor_SetsItemDisplayName_WhenToolProvided()
+        public void Constructor_SetsItemDisplayName_WhenItemProvided()
         {
             var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
             var vm = new RentalHistoryViewModel(item, Enumerable.Empty<Rental>(), new StubDialogService());
@@ -21,7 +21,7 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
-        public void Constructor_DefaultsItemDisplayName_WhenToolNull()
+        public void Constructor_DefaultsItemDisplayName_WhenItemNull()
         {
             var vm = new RentalHistoryViewModel(null, Enumerable.Empty<Rental>(), new StubDialogService());
 

@@ -28,11 +28,11 @@ namespace InventoryManagementApp.Tests.Views
                 {
                     try
                     {
-                        var toolSvc = new StubItemService();
+                        var itemService = new StubItemService();
                         var customerSvc = new StubCustomerService();
                         var fileDlg = new StubFileDialogService { FileToReturn = tmp };
                         var dialog = new StubDialogService();
-                        var vm = new ImportExportViewModel(toolSvc, customerSvc, fileDlg, new StubDatabaseBackupService(), dialog);
+                        var vm = new ImportExportViewModel(itemService, customerSvc, fileDlg, new StubDatabaseBackupService(), dialog);
                         var page = new ImportExportPage { DataContext = vm };
                         var grid = (Grid)page.Content;
                         var panel = (WrapPanel)((Border)grid.Children[0]).Child;
@@ -42,7 +42,7 @@ namespace InventoryManagementApp.Tests.Views
                         var asyncCmd = (CommunityToolkit.Mvvm.Input.IAsyncRelayCommand)importBtn.Command;
                         var task = asyncCmd.ExecuteAsync(null);
                         task.GetAwaiter().GetResult();
-                        Assert.True(toolSvc.ImportCalled);
+                        Assert.True(itemService.ImportCalled);
                         Assert.Single(vm.ImportExportLogs);
                     }
                     catch (Exception ex)
@@ -108,14 +108,14 @@ namespace InventoryManagementApp.Tests.Views
         public Task<System.Collections.Generic.List<ItemModel>> GetAllItemsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new System.Collections.Generic.List<ItemModel>());
         public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public Task DeleteItemAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public Task<ItemModel?> GetItemByIDAsync(int toolID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task DeleteItemAsync(int itemID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<System.Collections.Generic.List<ItemModel>> SearchItemsAsync(string? searchText, CancellationToken cancellationToken = default) => Task.FromResult(new System.Collections.Generic.List<ItemModel>());
-        public Task<bool> ToggleItemCheckOutStatusAsync(int toolID, string currentUser, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<bool> ToggleItemCheckOutStatusAsync(int itemID, string currentUser, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<System.Collections.Generic.List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new System.Collections.Generic.List<ItemModel>());
-        public Task UpdateItemImageAsync(int toolID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, System.Collections.Generic.IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
-        public Task UpdateItemQuantitiesAsync(int toolID, int qtyChange, bool isRental, System.Data.SQLite.SQLiteConnection? conn = null, System.Data.SQLite.SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, System.Data.SQLite.SQLiteConnection? conn = null, System.Data.SQLite.SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult("T1");
     }
 

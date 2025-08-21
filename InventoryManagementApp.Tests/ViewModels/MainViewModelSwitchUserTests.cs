@@ -30,7 +30,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
                 var customerService = new CustomerService(db);
@@ -45,7 +45,7 @@ namespace InventoryManagementApp.Tests.ViewModels
                     return Task.FromResult(true);
                 };
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService,
                     new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService(), null, stubLogin);
 
                 userContext.CurrentUser = new User { UserName = "old", IsAdmin = false };
@@ -82,7 +82,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
                 var customerService = new CustomerService(db);
@@ -97,7 +97,7 @@ namespace InventoryManagementApp.Tests.ViewModels
                     return Task.FromResult(true);
                 };
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService,
                     new StubFileDialogService(), activityLogService, settingsService, db, dialog, null, stubLogin);
 
                 await vm.SwitchUserCommand.ExecuteAsync(null);
@@ -128,7 +128,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
                 var customerService = new CustomerService(db);
@@ -140,7 +140,7 @@ namespace InventoryManagementApp.Tests.ViewModels
                 var logger = new StubLogger<MainViewModel>();
 
                 Func<Task<bool>> stubLogin = () => Task.FromResult(false);
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService,
                     new StubFileDialogService(), activityLogService, settingsService, db, dialog, logger, stubLogin);
 
                 var oldUser = new User { UserName = "old", IsAdmin = false };
@@ -169,7 +169,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
                 var customerService = new CustomerService(db);
@@ -182,7 +182,7 @@ namespace InventoryManagementApp.Tests.ViewModels
 
                 Func<Task<bool>> stubLogin = () => throw new InvalidOperationException("boom");
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService,
                     new StubFileDialogService(), activityLogService, settingsService, db, dialog, logger, stubLogin);
 
                 await vm.SwitchUserCommand.ExecuteAsync(null);
@@ -207,7 +207,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             try
             {
                 var db = new DatabaseService(dbPath);
-                var toolService = new ItemService(db);
+                var itemService = new ItemService(db);
                 var userContext = new ApplicationUserContext();
                 var userService = new UserService(db, userContext);
                 var customerService = new CustomerService(db);
@@ -236,7 +236,7 @@ namespace InventoryManagementApp.Tests.ViewModels
                     return true;
                 };
 
-                var vm = new MainViewModel(toolService, userService, userContext, customerService, rentalService,
+                var vm = new MainViewModel(itemService, userService, userContext, customerService, rentalService,
                     new StubFileDialogService(), activityLogService, settingsService, db, new StubDialogService(), null, stubLogin);
 
                 await vm.SwitchUserCommand.ExecuteAsync(null);
