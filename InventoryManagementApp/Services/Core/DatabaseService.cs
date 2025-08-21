@@ -106,21 +106,8 @@ namespace InventoryManagementApp.Services.Core
         {
             using var conn = CreateConnection();
 
-            // Migration: rename legacy Tools table to Items
-            using (var check = new SQLiteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='Tools';", conn))
-            {
-                var toolsTableExists = check.ExecuteScalar();
-                if (toolsTableExists != null)
-                {
-                    using var itemsCheck = new SQLiteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='Items';", conn);
-                    var itemsExists = itemsCheck.ExecuteScalar();
-                    if (itemsExists == null)
-                    {
-                        using var rename = new SQLiteCommand("ALTER TABLE Tools RENAME TO Items;", conn);
-                        rename.ExecuteNonQuery();
-                    }
-                }
-            }
+            // Legacy migration: rename old Tools table to Items
+            MigrateLegacyToolsTable(conn);
 
             var sql = @"
                 CREATE TABLE IF NOT EXISTS Items (
@@ -202,6 +189,23 @@ namespace InventoryManagementApp.Services.Core
             EnsureIndex(conn, "Users", "UserName", true);
             EnsureIndex(conn, "Customers", "Contact");
             EnsureIndex(conn, "Rentals", new[] { "ItemID", "CustomerID" });
+        }
+
+        void MigrateLegacyToolsTable(SQLiteConnection conn)
+        {
+            // Legacy migration: rename old "Tools" table to "Items"
+            using var check = new SQLiteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='Tools';", conn);
+            var legacyToolsTableExists = check.ExecuteScalar();
+            if (legacyToolsTableExists != null)
+            {
+                using var itemsCheck = new SQLiteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='Items';", conn);
+                var itemsExists = itemsCheck.ExecuteScalar();
+                if (itemsExists == null)
+                {
+                    using var rename = new SQLiteCommand("ALTER TABLE Tools RENAME TO Items;", conn);
+                    rename.ExecuteNonQuery();
+                }
+            }
         }
 
         void EnsureColumn(string table, string column, string type, string? defaultValue = null)
