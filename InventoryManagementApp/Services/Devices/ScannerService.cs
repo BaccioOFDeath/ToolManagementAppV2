@@ -39,7 +39,7 @@ namespace InventoryManagementApp.Services.Devices
                     {
                         Name = $"Scanner {ip}",
                         Ip = ip,
-                        LastSeen = DateTime.UtcNow
+                        LastSeen = DateTime.UtcNow.ToLocalTime()
                     };
                     try
                     {
