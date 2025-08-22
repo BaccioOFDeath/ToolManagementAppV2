@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Utilities.Extensions;
 
+#nullable enable
+
 namespace InventoryManagementApp.ViewModels
 {
     public class CustomerManagementViewModel : ObservableObject
@@ -16,8 +18,8 @@ namespace InventoryManagementApp.ViewModels
 
         public ObservableCollection<CustomerModel> Customers { get; } = new();
 
-        private CustomerModel _selectedCustomer;
-        public CustomerModel SelectedCustomer
+        private CustomerModel? _selectedCustomer;
+        public CustomerModel? SelectedCustomer
         {
             get => _selectedCustomer;
             set
@@ -45,19 +47,19 @@ namespace InventoryManagementApp.ViewModels
         }
 
         public string NewCustomerName { get => _newCustomerName; set => SetProperty(ref _newCustomerName, value); }
-        string _newCustomerName;
+        string _newCustomerName = string.Empty;
         public string NewCustomerEmail { get => _newCustomerEmail; set => SetProperty(ref _newCustomerEmail, value); }
-        string _newCustomerEmail;
+        string _newCustomerEmail = string.Empty;
         public string NewCustomerContact { get => _newCustomerContact; set => SetProperty(ref _newCustomerContact, value); }
-        string _newCustomerContact;
+        string _newCustomerContact = string.Empty;
         public string NewCustomerPhone { get => _newCustomerPhone; set => SetProperty(ref _newCustomerPhone, value); }
-        string _newCustomerPhone;
+        string _newCustomerPhone = string.Empty;
         public string NewCustomerMobile { get => _newCustomerMobile; set => SetProperty(ref _newCustomerMobile, value); }
-        string _newCustomerMobile;
+        string _newCustomerMobile = string.Empty;
         public string NewCustomerAddress { get => _newCustomerAddress; set => SetProperty(ref _newCustomerAddress, value); }
-        string _newCustomerAddress;
+        string _newCustomerAddress = string.Empty;
 
-        private string _customerSearchTerm;
+        private string _customerSearchTerm = string.Empty;
         public string CustomerSearchTerm
         {
             get => _customerSearchTerm;

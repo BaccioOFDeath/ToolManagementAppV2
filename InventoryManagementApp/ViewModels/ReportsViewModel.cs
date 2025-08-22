@@ -7,6 +7,8 @@ using System.Windows.Documents;
 using System.Threading.Tasks;
 using InventoryManagementApp.Services.Items;
 
+#nullable enable
+
 namespace InventoryManagementApp.ViewModels
 {
     public class ReportsViewModel : ObservableObject
@@ -15,7 +17,7 @@ namespace InventoryManagementApp.ViewModels
 
         public ObservableCollection<string> ReportTypes { get; }
 
-        private string _selectedReport;
+        private string _selectedReport = string.Empty;
         public string SelectedReport
         {
             get => _selectedReport;
@@ -28,7 +30,7 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        private DataTable _reportResults;
+        private DataTable _reportResults = new();
         public DataTable ReportResults
         {
             get => _reportResults;
@@ -49,7 +51,7 @@ namespace InventoryManagementApp.ViewModels
                 "Customers",
                 "Users",
                 "Active Rentals",
-                "Full Rental History"
+                "Full Rental History",
             };
 
             RunReportCommand = new AsyncRelayCommand(RunReportAsync, CanRunReport);
@@ -59,7 +61,7 @@ namespace InventoryManagementApp.ViewModels
 
         private async Task RunReportAsync()
         {
-            FlowDocument doc = SelectedReport switch
+            FlowDocument? doc = SelectedReport switch
             {
                 "Summary" => await _reportService.GenerateSummaryReport(),
                 "Inventory" => await _reportService.GenerateInventoryReport(),
@@ -68,13 +70,13 @@ namespace InventoryManagementApp.ViewModels
                 "Users" => await _reportService.GenerateUserReport(),
                 "Active Rentals" => await _reportService.GenerateRentalReport(true),
                 "Full Rental History" => await _reportService.GenerateRentalReport(false),
-                _ => null
+                _ => null,
             };
 
             ReportResults = ConvertToTable(doc);
         }
 
-        private static DataTable ConvertToTable(FlowDocument doc)
+        private static DataTable ConvertToTable(FlowDocument? doc)
         {
             var table = new DataTable();
             table.Columns.Add("Line");
@@ -84,7 +86,7 @@ namespace InventoryManagementApp.ViewModels
 
             var paragraphs = doc.Blocks
                 .OfType<Paragraph>()
-                .Skip(1) // Skip header
+                .Skip(1)
                 .Select(p => new TextRange(p.ContentStart, p.ContentEnd).Text.Trim())
                 .Where(t => !string.IsNullOrWhiteSpace(t));
 
