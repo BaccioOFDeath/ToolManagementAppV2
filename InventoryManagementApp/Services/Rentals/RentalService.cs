@@ -74,9 +74,9 @@ namespace InventoryManagementApp.Services.Rentals
             RentalID = Convert.ToInt32(r["RentalID"]),
             ItemID = Convert.ToInt32(r["ItemID"]),
             CustomerID = Convert.ToInt32(r["CustomerID"]),
-            RentalDate = DateTime.Parse(r["RentalDate"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
-            DueDate = DateTime.Parse(r["DueDate"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
-            ReturnDate = r["ReturnDate"] is DBNull ? null : DateTime.Parse(r["ReturnDate"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
+            RentalDate = ParseDateOrDefault(r["RentalDate"], "RentalDate"),
+            DueDate = ParseDateOrDefault(r["DueDate"], "DueDate"),
+            ReturnDate = r["ReturnDate"] is DBNull ? null : ParseNullableDate(r["ReturnDate"], "ReturnDate"),
             Status = r["Status"].ToString(),
             ItemNumber = r["ItemNumber"].ToString(),
             CustomerName = r["Company"].ToString(),
@@ -88,6 +88,26 @@ namespace InventoryManagementApp.Services.Rentals
             ImagePath = r["ImagePath"].ToString(),
             ItemLocation = r["ItemLocation"].ToString()
         };
+
+        DateTime ParseDateOrDefault(object? value, string field)
+        {
+            var text = value?.ToString();
+            if (DateTime.TryParse(text, CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var dt))
+                return dt;
+            _logger.LogError("Failed to parse {Field}: {Value}", field, text);
+            return default;
+        }
+
+        DateTime? ParseNullableDate(object? value, string field)
+        {
+            var text = value?.ToString();
+            if (DateTime.TryParse(text, CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var dt))
+                return dt;
+            _logger.LogError("Failed to parse {Field}: {Value}", field, text);
+            return null;
+        }
 
         public async Task RentItemAsync(int itemID, int customerID, DateTime rentalDate, DateTime dueDate)
         {
@@ -167,7 +187,13 @@ namespace InventoryManagementApp.Services.Rentals
                     throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
 
                 int itemID = Convert.ToInt32(reader["ItemID"]);
-                DateTime oldDueDate = DateTime.Parse(reader["DueDate"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
+                var dueText = reader["DueDate"].ToString();
+                DateTime oldDueDate;
+                if (!DateTime.TryParse(dueText, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out oldDueDate))
+                {
+                    _logger.LogError("Failed to parse DueDate: {Value}", dueText);
+                    oldDueDate = default;
+                }
 
                 var updateCmd = new SQLiteCommand(
                     "UPDATE Rentals SET DueDate=@NewDueDate WHERE RentalID=@RentalID AND Status='Rented'",

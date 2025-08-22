@@ -159,6 +159,34 @@ namespace InventoryManagementApp.Tests.Services
         }
 
         [Fact]
+        public void GetItemByID_InvalidDates_ReturnsNulls()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var service = new ItemService(dbService);
+
+                service.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Test" });
+                var item = service.GetAllItems().First();
+
+                using var conn = dbService.CreateConnection();
+                var cmd = new SQLiteCommand("UPDATE Items SET PurchasedDate='bad', CheckedOutTime='bad', IsCheckedOut=1 WHERE ItemID=@id", conn);
+                cmd.Parameters.AddWithValue("@id", item.ItemID);
+                cmd.ExecuteNonQuery();
+
+                var fetched = service.GetItemByID(item.ItemID);
+                Assert.Null(fetched.PurchasedDate);
+                Assert.Null(fetched.CheckedOutTime);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public async Task AddItemAsync_SetsGeneratedItemID()
         {
             var dbPath = Path.GetTempFileName();

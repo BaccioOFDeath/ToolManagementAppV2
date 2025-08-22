@@ -301,17 +301,27 @@ namespace InventoryManagementApp.Services.Items
             Supplier = r["Supplier"].ToString(),
             PurchasedDate = r["PurchasedDate"] is DBNull
                 ? (DateTime?)null
-                : DateTime.Parse(r["PurchasedDate"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
+                : ParseNullableDate(r["PurchasedDate"], "PurchasedDate"),
             Notes = r["Notes"].ToString(),
             IsCheckedOut = (r["IsCheckedOut"] is DBNull ? 0 : Convert.ToInt32(r["IsCheckedOut"])) == 1,
             CheckedOutBy = r["CheckedOutBy"].ToString(),
             CheckedOutTime = r["CheckedOutTime"] is DBNull
                 ? (DateTime?)null
-                : DateTime.Parse(r["CheckedOutTime"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
+                : ParseNullableDate(r["CheckedOutTime"], "CheckedOutTime"),
             ImagePath = r["ImagePath"]?.ToString(),
             Keywords = r["Keywords"]?.ToString(),
             IsPowered = (r["IsPowered"] is DBNull ? 0 : Convert.ToInt32(r["IsPowered"])) == 1
         };
+
+        DateTime? ParseNullableDate(object? value, string field)
+        {
+            var text = value?.ToString();
+            if (DateTime.TryParse(text, CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var dt))
+                return dt;
+            _logger.LogError("Failed to parse {Field}: {Value}", field, text);
+            return null;
+        }
 
         private async Task AddItemInternalAsync(ItemModel item, CancellationToken cancellationToken)
         {
