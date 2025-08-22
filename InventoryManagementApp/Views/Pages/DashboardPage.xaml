@@ -37,8 +37,16 @@
                 <StackPanel>
                     <TextBlock Text="Quick Actions" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
                     <WrapPanel>
-                        <Button Style="{StaticResource PrimaryButton}" Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='New {0}'}" Command="{Binding NewItemCommand}" Margin="0,0,8,8"/>
-                        <Button Style="{StaticResource PrimaryButton}" Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Rent {0}'}" Command="{Binding OpenRentalsCommand}" Margin="0,0,8,8"/>
+                        <Button Style="{StaticResource PrimaryButton}"
+                                Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}"
+                                ContentStringFormat="New {0}"
+                                Command="{Binding NewItemCommand}"
+                                Margin="0,0,8,8"/>
+                        <Button Style="{StaticResource PrimaryButton}"
+                                Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}"
+                                ContentStringFormat="Rent {0}"
+                                Command="{Binding OpenRentalsCommand}"
+                                Margin="0,0,8,8"/>
                     </WrapPanel>
                 </StackPanel>
             </Border>
