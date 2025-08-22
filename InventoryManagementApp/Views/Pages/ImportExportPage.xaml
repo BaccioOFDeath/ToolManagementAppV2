@@ -27,8 +27,8 @@
                     <Button Style="{StaticResource CompactPrimaryButton}"
                             Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}"
                             ContentStringFormat="Import {0} Images"
-                            Command="{Binding DataContext.OpenImageImportMappingWindowCommand, RelativeSource={RelativeSource AncestorType=Frame}}"
-                            Visibility="{Binding DataContext.IsCurrentUserAdmin, RelativeSource={RelativeSource AncestorType=Frame}, Converter={StaticResource BoolToVis}}"/>
+                            Command="{Binding DataContext.OpenImageImportMappingWindowCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            Visibility="{Binding DataContext.IsCurrentUserAdmin, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}"/>
                     <Button Style="{StaticResource CompactPrimaryButton}"
                             Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}"
                             ContentStringFormat="Export {0} CSV"
