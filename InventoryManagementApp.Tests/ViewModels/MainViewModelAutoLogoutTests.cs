@@ -84,7 +84,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             public InventoryManagementApp.Models.Domain.CustomerModel? ShowAddCustomerDialog() => null;
             public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
             public void ShowRentalHistory(InventoryManagementApp.Models.Domain.ItemModel item, System.Collections.Generic.IEnumerable<InventoryManagementApp.Models.Domain.RentalModel> history) { }
-            public System.Collections.Generic.Dictionary<string, string>? ShowImportMapping(System.Collections.Generic.IEnumerable<string> headers, System.Collections.Generic.IEnumerable<string> properties) => null;
+            public System.Collections.Generic.Dictionary<string, string>? ShowImportMapping(System.Collections.Generic.IEnumerable<string> headers, System.Collections.Generic.IEnumerable<string> properties, System.Collections.Generic.IEnumerable<string>? requiredPropertyNames = null) => null;
             public Func<InventoryManagementApp.Models.Domain.ItemModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
             public void ShowPrintLabelDialog() { }

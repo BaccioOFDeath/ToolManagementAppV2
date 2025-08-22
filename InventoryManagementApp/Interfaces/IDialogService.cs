@@ -27,7 +27,10 @@ namespace InventoryManagementApp.Interfaces
 
         void ShowRentalsFilter(ManageRentalsViewModel viewModel);
         void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history);
-        Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties);
+        Dictionary<string, string>? ShowImportMapping(
+            IEnumerable<string> headers,
+            IEnumerable<string> properties,
+            IEnumerable<string>? requiredPropertyNames = null);
         Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping();
         void ShowPrintPreview(FlowDocument document, string title, string description);
         void ShowPrintLabelDialog();

@@ -26,7 +26,10 @@ namespace InventoryManagementApp.Tests.Services
                 _window = window;
             }
 
-            protected override ImportMappingWindow CreateImportMappingWindow(IEnumerable<string> headers, IEnumerable<string> propertyNames)
+            protected override ImportMappingWindow CreateImportMappingWindow(
+                IEnumerable<string> headers,
+                IEnumerable<string> propertyNames,
+                IEnumerable<string>? requiredPropertyNames)
                 => _window;
         }
 

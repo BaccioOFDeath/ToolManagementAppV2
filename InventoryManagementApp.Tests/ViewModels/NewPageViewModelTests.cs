@@ -217,7 +217,7 @@ namespace InventoryManagementApp.Tests.ViewModels
         public CustomerModel? ShowAddCustomerDialog() => null;
         public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
         public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history) { }
-        public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties)
+        public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties, IEnumerable<string>? requiredPropertyNames = null)
         {
             ShowImportMappingCalled = true;
             return MapToReturn;
