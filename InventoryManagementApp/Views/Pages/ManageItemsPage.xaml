@@ -33,7 +33,8 @@
                         <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="180"/>
                     </DataGrid.Columns>
                     <DataGrid.ContextMenu>
-                        <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
+                                    DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                             <MenuItem
                                 Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}"
                                 HeaderStringFormat="Rent {0}"
