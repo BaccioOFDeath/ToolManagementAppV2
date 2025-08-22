@@ -201,6 +201,8 @@ namespace InventoryManagementApp.ViewModels
             _userContextChangedHandler = (_, _) => RefreshCurrentUser();
             _userContext.UserChanged += _userContextChangedHandler;
 
+            OpenImageImportMappingWindowCommand = new AsyncRelayCommand(ct => OpenImageImportMappingWindowAsync(ct));
+
             ItemManagement = new ItemManagementViewModel(itemService, customerService, rentalService, _dialogService);
             _itemManagementPropertyChangedHandler = (s, e) =>
             {
@@ -213,7 +215,7 @@ namespace InventoryManagementApp.ViewModels
             UserManagement = new UserManagementViewModel(userService, fileDialogService, _dialogService, _userContext);
             CustomerManagement = new CustomerManagementViewModel(customerService, _dialogService);
             ManageRentals = new ManageRentalsViewModel(rentalService, _dialogService);
-            ImportExport = new ImportExportViewModel(itemService, customerService, fileDialogService, databaseService, _dialogService);
+            ImportExport = new ImportExportViewModel(itemService, customerService, fileDialogService, databaseService, _dialogService, OpenImageImportMappingWindowCommand, _userContext);
             Reports = new ReportsViewModel(new ReportService(itemService, rentalService, activityLogService, customerService, userService));
             ActivityLogs = new ActivityLogsViewModel(activityLogService);
             Settings = new SettingsViewModel(_fileDialogService, _settingsService, _dialogService);
@@ -311,8 +313,6 @@ namespace InventoryManagementApp.ViewModels
             });
 
             OpenImportMappingWindowCommand = new AsyncRelayCommand(ct => OpenImportMappingWindowAsync(ct));
-
-            OpenImageImportMappingWindowCommand = new AsyncRelayCommand(ct => OpenImageImportMappingWindowAsync(ct));
 
             GlobalSearchCommand = new AsyncRelayCommand(ct => GlobalSearchAsync(ct));
 

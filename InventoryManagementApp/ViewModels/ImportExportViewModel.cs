@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.ImportExport;
+using InventoryManagementApp.Models.Domain;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Utilities.IO;
@@ -24,12 +25,16 @@ namespace InventoryManagementApp.ViewModels
         private readonly IDatabaseBackupService _databaseService;
         private readonly IDialogService _dialogService;
         private readonly ILogger<ImportExportViewModel> _logger;
+        private readonly IUserContext _userContext;
 
         public IAsyncRelayCommand ImportItemsCommand { get; }
         public IRelayCommand CancelImportItemsCommand { get; }
         public IAsyncRelayCommand ExportItemsCommand { get; }
         public IAsyncRelayCommand ImportCustomersCommand { get; }
         public IAsyncRelayCommand ExportCustomersCommand { get; }
+        public IAsyncRelayCommand OpenImageImportMappingWindowCommand { get; }
+
+        public bool IsCurrentUserAdmin => _userContext.IsAdmin;
 
         /// <summary>
         /// Command that triggers an asynchronous database backup.
@@ -47,6 +52,8 @@ namespace InventoryManagementApp.ViewModels
                                      IFileDialogService fileDialogService,
                                      IDatabaseBackupService databaseService,
                                      IDialogService dialogService,
+                                     IAsyncRelayCommand? openImageImportMappingWindowCommand = null,
+                                     IUserContext? userContext = null,
                                      ILogger<ImportExportViewModel>? logger = null)
         {
             _itemService = itemService;
@@ -55,12 +62,24 @@ namespace InventoryManagementApp.ViewModels
             _databaseService = databaseService;
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<ImportExportViewModel>.Instance;
+            OpenImageImportMappingWindowCommand = openImageImportMappingWindowCommand ?? new AsyncRelayCommand(ct => Task.CompletedTask);
+            _userContext = userContext ?? new DummyUserContext();
+            _userContext.UserChanged += (_, _) => OnPropertyChanged(nameof(IsCurrentUserAdmin));
             ImportItemsCommand = new AsyncRelayCommand(ct => ImportItemsAsync(ct));
             CancelImportItemsCommand = new RelayCommand(() => ImportItemsCommand.Cancel());
             ExportItemsCommand = new AsyncRelayCommand(ct => ExportItemsAsync(ct));
             ImportCustomersCommand = new AsyncRelayCommand(ct => ImportCustomersAsync(ct));
             ExportCustomersCommand = new AsyncRelayCommand(ct => ExportCustomersAsync(ct));
             BackupDatabaseCommand = new AsyncRelayCommand(ct => BackupDatabaseAsync(ct));
+        }
+
+        private sealed class DummyUserContext : IUserContext
+        {
+            public User? CurrentUser { get; set; }
+            public event EventHandler<User?>? UserChanged;
+            public bool IsAdmin => false;
+            public string UserName => string.Empty;
+            public string Role => string.Empty;
         }
 
         async Task ImportItemsAsync(CancellationToken cancellationToken)
