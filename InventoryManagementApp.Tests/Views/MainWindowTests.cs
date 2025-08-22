@@ -415,7 +415,7 @@ namespace InventoryManagementApp.Tests.Views
                         scrollViewer.RaiseEvent(args);
 
                         Assert.True(args.Handled);
-                        Assert.True(scrollViewer.VerticalOffset > initialOffset);
+                        Assert.Equal(initialOffset + 30, scrollViewer.VerticalOffset);
                     }
                     finally
                     {
