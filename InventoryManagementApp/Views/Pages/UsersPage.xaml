@@ -53,7 +53,7 @@
                     <DataGridTextColumn Header="Created" Binding="{Binding CreatedAt, StringFormat=\{0:yyyy-MM-dd\}}" Width="140"/>
                 </DataGrid.Columns>
                 <DataGrid.ContextMenu>
-                    <ContextMenu>
+                    <ContextMenu Style="{StaticResource {x:Type ContextMenu}}">
                         <MenuItem Header="Edit"
                                   Command="{Binding PlacementTarget.DataContext.EditUserFromRowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                   CommandParameter="{Binding PlacementTarget.SelectedItem,

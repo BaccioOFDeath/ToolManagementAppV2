@@ -343,6 +343,28 @@
         <Setter Property="Padding" Value="10,6"/>
         <Setter Property="Height" Value="36"/>
     </Style>
+    <Style TargetType="ContextMenu">
+        <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+    </Style>
+    <Style TargetType="MenuItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Style.Triggers>
+            <Trigger Property="IsHighlighted" Value="True">
+                <Setter Property="Background" Value="#2D3C4E"/>
+                <Setter Property="Foreground" Value="White"/>
+            </Trigger>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter Property="Background" Value="#1E90FF"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
     <SolidColorBrush x:Key="BtnBg" Color="#2A2E37"/>
     <SolidColorBrush x:Key="BtnBgHover" Color="#353A45"/>
     <SolidColorBrush x:Key="BtnBorder" Color="#444A57"/>

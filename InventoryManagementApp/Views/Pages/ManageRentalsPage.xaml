@@ -31,7 +31,8 @@
                     <StaticResource ResourceKey="RentalStatusColumn"/>
                 </DataGrid.Columns>
                 <DataGrid.ContextMenu>
-                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                    <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
+                                DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Header="Check In" Command="{Binding CheckInCommand}"/>
                         <MenuItem Header="Extend" Command="{Binding ExtendCommand}"/>
                         <MenuItem Header="History" Command="{Binding OpenHistoryCommand}"/>
