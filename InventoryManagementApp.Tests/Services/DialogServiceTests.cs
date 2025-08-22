@@ -47,7 +47,7 @@ namespace InventoryManagementApp.Tests.Services
             var result = service.ShowImportMapping(headers, properties);
 
             Assert.Single(result);
-            Assert.Equal("Prop1", result["H1"]);
+            Assert.Equal("H1", result["Prop1"]);
         }
     }
 }
