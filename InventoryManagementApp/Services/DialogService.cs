@@ -162,7 +162,7 @@ namespace InventoryManagementApp.Services
                 {
                     return win.VM.Mappings
                         .Where(m => !string.IsNullOrEmpty(m.SelectedColumn))
-                        .ToDictionary(m => m.SelectedColumn!, m => m.PropertyName);
+                        .ToDictionary(m => m.PropertyName, m => m.SelectedColumn!);
                 }
             }
             catch (Exception ex) { _logger.LogError(ex, "Failed to show ImportMappingWindow"); }
