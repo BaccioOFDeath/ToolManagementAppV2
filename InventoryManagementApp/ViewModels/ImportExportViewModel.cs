@@ -75,7 +75,18 @@ namespace InventoryManagementApp.ViewModels
 
         private sealed class DummyUserContext : IUserContext
         {
-            public User? CurrentUser { get; set; }
+            User? _currentUser;
+            public User? CurrentUser
+            {
+                get => _currentUser;
+                set
+                {
+                    if (_currentUser == value) return;
+                    _currentUser = value;
+                    UserChanged?.Invoke(this, value);
+                }
+            }
+
             public event EventHandler<User?>? UserChanged;
             public bool IsAdmin => false;
             public string UserName => string.Empty;
