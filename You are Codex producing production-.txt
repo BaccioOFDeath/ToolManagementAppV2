@@ -1,0 +1,89 @@
+You are Codex producing production-grade WPF (.NET 8, C#) code for an Item Inventory Management application.
+
+Context
+Architecture: MVVM (CommunityToolkit.Mvvm 8.x), DI, SOLID, async/await with CancellationToken
+
+Data: SQLite via Dapper 2.x (preferred) or EF Core 8 (AsNoTracking)
+
+Target OS: Windows 10/11 x64
+
+NuGet: Dapper 2.x, Microsoft.Data.Sqlite 8.x, CommunityToolkit.Mvvm 8.x, Serilog.Sinks.Debug 3.x
+
+Hard Constraints
+Memory: < 400 MB steady, < 800 MB peak
+
+Startup: < 2 s cold
+
+UI: smooth, non-blocking for ≥ 1,000,000 rows
+
+Output Rules
+Return only complete, paste-ready code: full namespaces, using directives, XAML, constructors, DI registrations, project paths if relevant.
+
+Include every file or member added or changed—no partial snippets, comments, or explanations.
+
+Choose sensible defaults when assumptions are required and implement them fully.
+
+No async void except event handlers; no blocking on async calls.
+
+Avoid mutable global state and long-lived large collections.
+
+Performance & Memory Guidelines
+Strict server-side paging and UI virtualization; never materialize full datasets.
+
+Stream reads: IAsyncEnumerable<T>, Dapper buffered:false, EF AsNoTracking with Skip/Take.
+
+Stable server-side sorting; 300 ms debounced filtering; cancel in-flight queries on new input.
+
+Default page size 200; max in-memory page window 3 pages.
+
+Prefer readonly/value types; minimize allocations; avoid boxing in hot paths.
+
+Use ArrayPool<T>/pooled buffers for large operations; cache StringBuilder where appropriate.
+
+Propagate CancellationToken end-to-end; ConfigureAwait(false) outside UI.
+
+Deterministic disposal via using/await using or IAsyncDisposable.
+
+Bind UI to a paged ObservableCollection<T> covering only the visible window.
+
+Enable virtualization: VirtualizingStackPanel.IsVirtualizing="True", VirtualizationMode="Recycling", EnableRowVirtualization="True", EnableColumnVirtualization="True".
+
+Lazy-load thumbnails: BitmapCacheOption.OnDemand, DecodePixelWidth="96"; explicitly release images on ContainerContentChanging.
+
+Minimize converters; cache brushes/styles as static resources.
+
+Use compiled or strong bindings where possible.
+
+Execute SQLite PRAGMAs (journal_mode=WAL, synchronous=NORMAL) and create required indexes on connection open.
+
+Avoid DataTable/DataSet; use lightweight models or IDataReader-backed enumerables.
+
+Functional Requirements
+Search: SKU/Name prefix and substring; case- and accent-insensitive.
+
+Sort: Name, SKU, Qty, UpdatedAt; stable.
+
+Server-side paging (default 200, configurable).
+
+Grid editing: Qty, Location, Price with TwoWay bindings; other columns OneWay.
+
+Deferred batch commit: repository exposes Task SaveChangesAsync(IEnumerable<Item> changes, CancellationToken ct); ViewModel queues edits and calls commit.
+
+CSV import/export: streaming, validated, upsert semantics.
+
+Lazy thumbnail load on row enter; release on exit.
+
+Persist settings: page size, visible columns, last sort/filter.
+
+All operations cancelable.
+
+Required Deliverables (produce all in order A–G)
+A) Data Layer: SqliteConnectionFactory and pooled IDbConnection provider, executing WAL and PRAGMAs at open.
+B) Models: Item entity, immutable ItemFilter and ItemPage structs.
+C) Repository: IItemRepository and ItemRepository using Dapper for streaming List/Count with filter, sort, page, and SaveChangesAsync for batch commit.
+D) ViewModel: ItemsViewModel with AsyncRelayCommand, IncrementalLoader, 300 ms debounced filtering, CancellationTokenSource management, reacts to MemoryBudget events, and queues edits until SaveChangesAsync.
+E) XAML UI: ItemsPage.xaml + code-behind, DataContext via DI, DataGrid/ListView with virtualization, TwoWay bindings for editable fields, progress row, “No results” placeholder, image release on ContainerContentChanging.
+F) Memory Management: MemoryBudget class sampling GC.GetTotalMemory on a timer, raising events on thresholds; ViewModel trims page window accordingly.
+G) App Bootstrap: App.xaml/App.xaml.cs registering DI, repositories, viewmodels, logging sink (Debug), launching ItemsPage.
+
+Deliverables must keep peak memory under 800 MB with 1 M rows, maintain responsive UI during filter/sort, and remain fully runnable.
