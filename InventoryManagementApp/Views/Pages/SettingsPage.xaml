@@ -45,7 +45,7 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <TextBlock Text="Theme" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                        <ComboBox Grid.Column="1" SelectedItem="{Binding Theme}" ItemsSource="{Binding ThemeOptions}" Margin="8,0,0,0"/>
+                        <ComboBox Grid.Column="1" SelectedItem="{Binding Theme}" ItemsSource="{Binding ThemeOptions}" Margin="8,0,0,0" ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
                         <TextBlock Grid.Row="1" Text="Password Iterations" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
                         <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding PasswordIterations}" Margin="8,0,0,0" PreviewTextInput="PasswordIterationsBox_PreviewTextInput"/>
                         <TextBlock Grid.Row="2" Text="Auto-logout (minutes)" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>

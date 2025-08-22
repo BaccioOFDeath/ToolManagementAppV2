@@ -15,7 +15,7 @@
             <TextBox Width="260" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
             <DatePicker SelectedDate="{Binding FilterFrom}" Margin="0,8,0,0"/>
             <DatePicker SelectedDate="{Binding FilterTo}" Margin="0,8,0,0"/>
-            <ComboBox Width="180" ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus}" Margin="0,8,0,0"/>
+            <ComboBox Width="180" ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus}" Margin="0,8,0,0" ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
         </StackPanel>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
             <Button Style="{StaticResource PrimaryButton}" Content="Apply" Command="{Binding ApplyFilterCommand}"/>

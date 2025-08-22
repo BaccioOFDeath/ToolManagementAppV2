@@ -10,7 +10,7 @@
         </Grid.RowDefinitions>
         <Border Style="{StaticResource Card}">
             <StackPanel Orientation="Horizontal">
-                <ComboBox Width="260" ItemsSource="{Binding ReportTypes}" SelectedItem="{Binding SelectedReport}"/>
+                <ComboBox Width="260" ItemsSource="{Binding ReportTypes}" SelectedItem="{Binding SelectedReport}" ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
                 <Button Style="{StaticResource PrimaryButton}" Content="Run" Command="{Binding RunReportCommand}" Margin="8,0,0,0"/>
             </StackPanel>
         </Border>
