@@ -35,7 +35,7 @@
                     <DataGrid.ContextMenu>
                         <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                             <MenuItem
-                                Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Rent {0}}"
+                                Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Rent {0}'}"
                                 Command="{Binding OpenRentalsCommand}"/>
                             <MenuItem Header="Delete" Command="{Binding DeleteItemCommand}"/>
                         </ContextMenu>
