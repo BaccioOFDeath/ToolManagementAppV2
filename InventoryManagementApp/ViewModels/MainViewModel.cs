@@ -49,9 +49,10 @@ namespace InventoryManagementApp.ViewModels
         int _autoLogoutMinutes;
 
         EventHandler<User?>? _userContextChangedHandler;
-        PropertyChangedEventHandler? _itemManagementPropertyChangedHandler;
+        PropertyChangedEventHandler? _itemsPropertyChangedHandler;
 
         public ItemManagementViewModel ItemManagement { get; }
+        public ItemsViewModel ItemsViewModel { get; }
         public UserManagementViewModel UserManagement { get; }
         public CustomerManagementViewModel CustomerManagement { get; }
         public ManageRentalsViewModel ManageRentals { get; }
@@ -115,7 +116,7 @@ namespace InventoryManagementApp.ViewModels
             private set => SetProperty(ref _companyLogoPath, value);
         }
 
-        public ItemModel? SelectedItem => ItemManagement.SelectedItem;
+        public ItemModel? SelectedItem => ItemsViewModel.SelectedItem;
 
         public void ResetAutoLogoutTimer()
         {
@@ -205,14 +206,15 @@ namespace InventoryManagementApp.ViewModels
             OpenImageImportMappingWindowCommand = new AsyncRelayCommand(ct => OpenImageImportMappingWindowAsync(ct));
 
             ItemManagement = new ItemManagementViewModel(itemService, customerService, rentalService, _dialogService);
-            _itemManagementPropertyChangedHandler = (s, e) =>
+            ItemsViewModel = new ItemsViewModel(itemService);
+            _itemsPropertyChangedHandler = (s, e) =>
             {
-                if (e.PropertyName == nameof(ItemManagementViewModel.SelectedItem))
+                if (e.PropertyName == nameof(ItemsViewModel.SelectedItem))
                 {
                     OnPropertyChanged(nameof(SelectedItem));
                 }
             };
-            ItemManagement.PropertyChanged += _itemManagementPropertyChangedHandler;
+            ItemsViewModel.PropertyChanged += _itemsPropertyChangedHandler;
             UserManagement = new UserManagementViewModel(userService, fileDialogService, _dialogService, _userContext);
             CustomerManagement = new CustomerManagementViewModel(customerService, _dialogService);
             ManageRentals = new ManageRentalsViewModel(rentalService, _dialogService);
@@ -258,11 +260,12 @@ namespace InventoryManagementApp.ViewModels
             OpenManageItemsCommand = new AsyncRelayCommand(async () =>
             {
                 var plural = LabelProvider.Instance.ItemLabelPlural;
-                var page = new ManageItemsPage { DataContext = ItemManagement, Title = $"Manage {plural}" };
+                var page = new ManageItemsPage { DataContext = ItemsViewModel, Title = $"Manage {plural}" };
                 CurrentPage = page;
                 try
                 {
-                    await ItemManagement.LoadItemsAsync(new ItemPage(1, 50));
+                    if (!ItemsViewModel.Items.Any())
+                        await ItemsViewModel.LoadMoreAsync();
                 }
                 catch (Exception ex)
                 {
@@ -512,10 +515,10 @@ namespace InventoryManagementApp.ViewModels
                 _userContextChangedHandler = null;
             }
 
-            if (_itemManagementPropertyChangedHandler != null)
+            if (_itemsPropertyChangedHandler != null)
             {
-                ItemManagement.PropertyChanged -= _itemManagementPropertyChangedHandler;
-                _itemManagementPropertyChangedHandler = null;
+                ItemsViewModel.PropertyChanged -= _itemsPropertyChangedHandler;
+                _itemsPropertyChangedHandler = null;
             }
             Settings.PropertyChanged -= Settings_PropertyChanged;
             _autoLogoutTimer.Tick -= OnAutoLogoutTimerTick;
