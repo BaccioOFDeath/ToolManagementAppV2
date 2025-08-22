@@ -90,7 +90,10 @@ namespace InventoryManagementApp.ViewModels
             {
                 var headers = await CsvHelperUtil.ReadHeadersAsync(path);
                 var properties = typeof(ItemImportDto).GetProperties().Select(p => p.Name);
-                var map = _dialogService.ShowImportMapping(headers, properties);
+                var map = _dialogService.ShowImportMapping(
+                    headers,
+                    properties,
+                    new[] { nameof(ItemImportDto.ItemNumber), nameof(ItemImportDto.NameDescription) });
                 if (map == null)
                     return;
                 var plural = LabelProvider.Instance.ItemLabelPlural;

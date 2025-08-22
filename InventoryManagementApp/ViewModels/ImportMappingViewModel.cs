@@ -53,7 +53,7 @@ namespace InventoryManagementApp.ViewModels
             );
 
             _requiredProperties = new HashSet<string>(
-                requiredPropertyNames ?? Mappings.Select(m => m.PropertyName));
+                requiredPropertyNames ?? Enumerable.Empty<string>());
 
             OkCommand = new RelayCommand(() =>
             {

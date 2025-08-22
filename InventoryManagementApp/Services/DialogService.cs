@@ -148,9 +148,12 @@ namespace InventoryManagementApp.Services
             catch (Exception ex) { _logger.LogError(ex, "Failed to show RentalHistoryWindow"); }
         }
 
-        public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> propertyNames)
+        public Dictionary<string, string>? ShowImportMapping(
+            IEnumerable<string> headers,
+            IEnumerable<string> propertyNames,
+            IEnumerable<string>? requiredPropertyNames = null)
         {
-            var win = CreateImportMappingWindow(headers, propertyNames);
+            var win = CreateImportMappingWindow(headers, propertyNames, requiredPropertyNames);
             try { win.Owner = System.Windows.Application.Current?.MainWindow; }
             catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for ImportMappingWindow"); }
             try
@@ -166,8 +169,11 @@ namespace InventoryManagementApp.Services
             return null;
         }
 
-        protected virtual ImportMappingWindow CreateImportMappingWindow(IEnumerable<string> headers, IEnumerable<string> propertyNames)
-            => new ImportMappingWindow(headers, propertyNames);
+        protected virtual ImportMappingWindow CreateImportMappingWindow(
+            IEnumerable<string> headers,
+            IEnumerable<string> propertyNames,
+            IEnumerable<string>? requiredPropertyNames)
+            => new ImportMappingWindow(headers, propertyNames, requiredPropertyNames);
 
         public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping()
         {
