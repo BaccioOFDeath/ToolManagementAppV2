@@ -23,7 +23,8 @@ namespace InventoryManagementApp.Tests.Services
                 userService.AddUser(user);
                 var added = userService.GetAllUsers().First();
                 Assert.True(added.IsActive);
-                Assert.True((DateTime.UtcNow - added.CreatedAt).TotalMinutes < 5);
+                Assert.Equal(DateTimeKind.Local, added.CreatedAt.Kind);
+                Assert.True((DateTime.Now - added.CreatedAt).TotalMinutes < 5);
             }
             finally
             {
