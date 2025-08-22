@@ -514,18 +514,39 @@ namespace InventoryManagementApp.Services.Items
                     "SELECT ItemNumber FROM Items", null,
                     r => r.GetString(0), cancellationToken));
 
+            // Track invalid rows for quick lookup when determining CSV row numbers
+            var invalidSet = new HashSet<int>(invalidRows);
+            var currentRow = 1; // header row already processed by CsvHelperUtil
+
             using var tran = conn.BeginTransaction();
             try
             {
                 foreach (var item in items)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    if (string.IsNullOrWhiteSpace(item.ItemNumber) ||
-                        existingNumbers.Contains(item.ItemNumber))
+
+                    // advance to the next data row, skipping rows already marked invalid
+                    currentRow++;
+                    while (invalidSet.Contains(currentRow))
+                        currentRow++;
+
+                    if (string.IsNullOrWhiteSpace(item.ItemNumber))
+                    {
+                        invalidRows.Add(currentRow);
                         continue;
+                    }
+
+                    if (existingNumbers.Contains(item.ItemNumber))
+                    {
+                        // record duplicate rows so the caller can notify the user
+                        invalidRows.Add(currentRow);
+                        continue;
+                    }
+
                     await InsertItemAsync(conn, tran, item, cancellationToken);
                     existingNumbers.Add(item.ItemNumber);
                 }
+
                 tran.Commit();
                 return invalidRows;
             }

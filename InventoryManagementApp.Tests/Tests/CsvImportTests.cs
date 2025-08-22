@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System;
+using System.Linq;
 using InventoryManagementApp.Utilities.IO;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Services.Items;
@@ -161,7 +162,7 @@ public class CsvImportTests
             sw.Stop();
 
             Assert.True(sw.ElapsedMilliseconds < 5000, $"Import took {sw.ElapsedMilliseconds}ms");
-            Assert.Empty(invalid);
+            Assert.Equal(Enumerable.Range(2, 100), invalid);
             Assert.Equal(1000, service.GetAllItems().Count);
         }
         finally

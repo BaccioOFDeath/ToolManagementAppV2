@@ -549,7 +549,7 @@ namespace InventoryManagementApp.Tests.Services
         }
 
         [Fact]
-        public void ImportItemsFromCsv_PartialFailure_RollsBack()
+        public void ImportItemsFromCsv_DuplicateRowsReported()
         {
             var dbPath = Path.GetTempFileName();
             var csvPath = Path.GetTempFileName();
@@ -563,8 +563,10 @@ namespace InventoryManagementApp.Tests.Services
                     {"ItemNumber", "ItemNumber"}
                 };
 
-                Assert.Throws<SQLiteException>(() => service.ImportItemsFromCsv(csvPath, map));
-                Assert.Empty(service.GetAllItems());
+                var invalid = service.ImportItemsFromCsv(csvPath, map);
+                Assert.Single(invalid);
+                Assert.Contains(3, invalid);
+                Assert.Single(service.GetAllItems());
             }
             finally
             {
