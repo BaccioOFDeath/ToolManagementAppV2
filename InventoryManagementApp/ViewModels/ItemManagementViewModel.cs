@@ -81,12 +81,12 @@ namespace InventoryManagementApp.ViewModels
                     _searchCts.Cancel();
                     _searchCts.Dispose();
                     _searchCts = new CancellationTokenSource();
-                    SearchCommand.Execute(_searchCts.Token);
+                    SearchCommand.Execute();
                 }
             }
         }
 
-        public IAsyncRelayCommand<CancellationToken> SearchCommand { get; }
+        public IAsyncRelayCommand SearchCommand { get; }
         public IAsyncRelayCommand NewItemCommand { get; }
         public IAsyncRelayCommand EditItemCommand { get; }
         public IAsyncRelayCommand<IList> DeleteItemsCommand { get; }
@@ -129,7 +129,7 @@ namespace InventoryManagementApp.ViewModels
             _rentalService = rentalService;
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<ItemManagementViewModel>.Instance;
-            SearchCommand = new AsyncRelayCommand<CancellationToken>(FilterItemsAsync);
+            SearchCommand = new AsyncRelayCommand(FilterItemsAsync);
             _searchDebounceTimer = searchDebounceTimer ?? new DispatcherTimerWrapper { Interval = TimeSpan.FromMilliseconds(300) };
             _searchDebounceTimer.Tick += OnSearchDebounceTimerTick;
             NewItemCommand = new AsyncRelayCommand(ct => AddItemAsync(ct));
@@ -150,7 +150,7 @@ namespace InventoryManagementApp.ViewModels
             _searchDebounceTimer.Stop();
             _searchCts.Dispose();
             _searchCts = new CancellationTokenSource();
-            SearchCommand.Execute(_searchCts.Token);
+            SearchCommand.Execute();
         }
 
         public async Task LoadItemsAsync()
@@ -174,8 +174,9 @@ namespace InventoryManagementApp.ViewModels
         /// Invoked by <see cref="SearchCommand"/> whenever the search text or
         /// <see cref="SelectedCategory"/> changes and recomputes <see cref="Categories"/>.
         /// </summary>
-        async Task FilterItemsAsync(CancellationToken cancellationToken)
+        async Task FilterItemsAsync()
         {
+            var cancellationToken = _searchCts.Token;
             var term = string.IsNullOrWhiteSpace(SearchTerm) ? string.Empty : SearchTerm.Trim();
             IEnumerable<ItemModel> source;
 
@@ -210,7 +211,7 @@ namespace InventoryManagementApp.ViewModels
                     NewItem.ItemNumber = await _itemService.GenerateNextItemNumberAsync(cancellationToken);
                 await _itemService.AddItemAsync(NewItem, cancellationToken);
                 await LoadItemsAsync();
-                await FilterItemsAsync(cancellationToken);
+                await FilterItemsAsync();
                 NewItem = new ItemModel();
             }
             catch (OperationCanceledException)
@@ -265,7 +266,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 await _itemService.UpdateItemAsync(updated, cancellationToken);
                 await LoadItemsAsync();
-                await FilterItemsAsync(cancellationToken);
+                await FilterItemsAsync();
                 SelectedItem = Items.FirstOrDefault(t => t.ItemID == updated.ItemID);
             }
             catch (OperationCanceledException)
@@ -315,7 +316,7 @@ namespace InventoryManagementApp.ViewModels
                     await _itemService.DeleteItemAsync(item.ItemID, cancellationToken);
                 }
                 await LoadItemsAsync();
-                await FilterItemsAsync(cancellationToken);
+                await FilterItemsAsync();
                 SelectedItem = null;
             }
             catch (OperationCanceledException)
