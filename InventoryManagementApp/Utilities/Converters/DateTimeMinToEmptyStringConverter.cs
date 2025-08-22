@@ -30,7 +30,7 @@ namespace InventoryManagementApp.Utilities.Converters
                 _logger.LogError(ex, "Convert failed");
             }
 
-            return Binding.DoNothing;
+            return System.Windows.Data.Binding.DoNothing;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -53,7 +53,7 @@ namespace InventoryManagementApp.Utilities.Converters
                 _logger.LogError(ex, "ConvertBack failed");
             }
 
-            return Binding.DoNothing;
+            return System.Windows.Data.Binding.DoNothing;
         }
     }
 }
