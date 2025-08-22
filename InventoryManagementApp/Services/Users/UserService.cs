@@ -72,6 +72,8 @@ namespace InventoryManagementApp.Services.Users
             }
 
             var createdAt = ParseToUtcNullable(HasColumn("CreatedAt") ? rdr["CreatedAt"] : DBNull.Value) ?? DateTime.MinValue;
+            if (createdAt.Kind != DateTimeKind.Local)
+                createdAt = createdAt.ToLocalTime();
 
             return new User
             {
