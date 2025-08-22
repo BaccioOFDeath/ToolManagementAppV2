@@ -11,6 +11,8 @@ namespace InventoryManagementApp
 {
     public partial class MainWindow : Window, IMainWindow
     {
+        const double ScrollFactor = 0.25;
+
         readonly IDatabaseService? _ownedDb;
 
         /// <summary>
@@ -46,7 +48,8 @@ namespace InventoryManagementApp
         {
             if (sender is ScrollViewer scrollViewer)
             {
-                var target = scrollViewer.VerticalOffset - e.Delta;
+                var target = scrollViewer.VerticalOffset - e.Delta * ScrollFactor;
+                target = Math.Max(0, Math.Min(target, scrollViewer.ScrollableHeight));
                 scrollViewer.ScrollToVerticalOffset(target);
                 e.Handled = true;
             }
