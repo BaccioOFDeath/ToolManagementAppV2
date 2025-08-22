@@ -45,7 +45,9 @@
                                 Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}"
                                 HeaderStringFormat="Rent {0}"
                                 Command="{Binding OpenRentalsCommand}"/>
-                            <MenuItem Header="Delete" Command="{Binding DeleteItemCommand}"/>
+                            <MenuItem Header="Delete"
+                                      Command="{Binding DeleteItemsCommand}"
+                                      CommandParameter="{Binding SelectedItems, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                 </DataGrid>

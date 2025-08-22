@@ -364,7 +364,7 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
-        public async Task DeleteItemCommand_RemovesItem()
+        public async Task DeleteItemsCommand_RemovesItem()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -378,8 +378,8 @@ namespace InventoryManagementApp.Tests.ViewModels
                 var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
                 itemService.AddItem(item);
                 await vm.LoadItemsAsync();
-                vm.SelectedItem = vm.Items.First();
-                await vm.DeleteItemCommand.ExecuteAsync(null);
+                var list = new[] { vm.Items.First() };
+                await vm.DeleteItemsCommand.ExecuteAsync(list);
                 Assert.Empty(itemService.GetAllItems());
                 Assert.Empty(vm.Items);
             }
@@ -391,7 +391,7 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
-        public async Task DeleteItemCommand_Cancelled_DoesNotRemoveItem()
+        public async Task DeleteItemsCommand_Cancelled_DoesNotRemoveItem()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -405,8 +405,8 @@ namespace InventoryManagementApp.Tests.ViewModels
                 var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" };
                 itemService.AddItem(item);
                 await vm.LoadItemsAsync();
-                vm.SelectedItem = vm.Items.First();
-                await vm.DeleteItemCommand.ExecuteAsync(null);
+                var list = new[] { vm.Items.First() };
+                await vm.DeleteItemsCommand.ExecuteAsync(list);
                 Assert.Single(itemService.GetAllItems());
                 Assert.Single(vm.Items);
             }
@@ -418,7 +418,34 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
-        public async Task DeleteItemCommand_OnError_ShowsDialogAndLogs()
+        public async Task DeleteItemsCommand_RemovesAllSelectedItems()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                IItemService itemService = new ItemService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+                var dialog = new StubDialogService { ConfirmationResult = true };
+                var vm = new ItemManagementViewModel(itemService, customerService, rentalService, dialog);
+                itemService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer" });
+                itemService.AddItem(new ItemModel { ItemNumber = "T2", NameDescription = "Saw" });
+                await vm.LoadItemsAsync();
+                var list = vm.Items.ToList();
+                await vm.DeleteItemsCommand.ExecuteAsync(list);
+                Assert.Empty(itemService.GetAllItems());
+                Assert.Empty(vm.Items);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public async Task DeleteItemsCommand_OnError_ShowsDialogAndLogs()
         {
             var itemService = new FailingItemService();
             var dialog = new StubDialogService { ConfirmationResult = true };
@@ -427,8 +454,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             var item = new ItemModel { ItemID = 1, ItemNumber = "T1", NameDescription = "Hammer" };
             vm.Items.Add(item);
             vm.SelectedItem = item;
-
-            await vm.DeleteItemCommand.ExecuteAsync(null);
+            await vm.DeleteItemsCommand.ExecuteAsync(new[] { item });
 
             Assert.True(dialog.InfoShown);
             Assert.Equal("Failed to delete item 1", logger.LastError);

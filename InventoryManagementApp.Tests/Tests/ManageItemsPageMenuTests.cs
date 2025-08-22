@@ -39,7 +39,7 @@ namespace InventoryManagementApp.Tests.Tests
                 var items = menu.Items.OfType<MenuItem>().ToArray();
 
                 Assert.Equal(vm.OpenRentalsCommand, items[0].Command);
-                Assert.Equal(vm.DeleteItemCommand, items[1].Command);
+                Assert.Equal(vm.DeleteItemsCommand, items[1].Command);
             }
             finally
             {
