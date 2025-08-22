@@ -119,21 +119,23 @@ namespace InventoryManagementApp.Services.Users
 
         ActivityLog MapLog(IDataRecord r)
         {
-            DateTime timestamp;
             var rawTimestamp = r["Timestamp"]?.ToString();
-            if (!DateTime.TryParse(rawTimestamp, CultureInfo.InvariantCulture,
-                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out timestamp))
+            DateTime timestamp;
+
+            if (!DateTime.TryParseExact(rawTimestamp, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out timestamp) &&
+                !DateTime.TryParse(rawTimestamp, CultureInfo.CurrentCulture, DateTimeStyles.None, out timestamp))
             {
                 _logger.LogWarning("Invalid timestamp '{Timestamp}' for log {LogID}", rawTimestamp, r["LogID"]);
-                timestamp = DateTime.UtcNow;
+                timestamp = DateTime.MinValue;
             }
-
-            // Ensure timestamps are converted to the local timezone before exposing them to the UI.
-            // Attempting to convert DateTime.MinValue can throw if the local offset is negative,
-            // so only convert when the timestamp is valid.
-            if (timestamp != DateTime.MinValue)
+            else
             {
-                timestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Utc).ToLocalTime();
+                if (timestamp.Kind == DateTimeKind.Unspecified)
+                {
+                    timestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Local);
+                }
+                timestamp = timestamp.ToLocalTime();
             }
 
             var log = new ActivityLog
