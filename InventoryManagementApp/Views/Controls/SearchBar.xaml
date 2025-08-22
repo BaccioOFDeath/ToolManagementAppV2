@@ -12,7 +12,8 @@
             </TextBox.InputBindings>
         </TextBox>
         <Button Style="{StaticResource PrimaryButton}"
-                Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Search {0}'}"
+                Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}"
+                ContentStringFormat="Search {0}"
                 Command="{Binding SearchCommand, ElementName=Root}"
                 Margin="8,0,0,0"/>
     </StackPanel>
