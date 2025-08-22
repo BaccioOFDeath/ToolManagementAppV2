@@ -26,6 +26,12 @@
                           Background="{StaticResource SurfaceBrush}"
                           BorderBrush="{StaticResource BorderBrushAlt}"
                           Style="{StaticResource VirtualizedDataGridStyle}">
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <EventSetter Event="PreviewMouseRightButtonDown"
+                                         Handler="DataGridRow_PreviewMouseRightButtonDown"/>
+                        </Style>
+                    </DataGrid.RowStyle>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Number" Binding="{Binding ItemNumber}" Width="140"/>
                         <DataGridTextColumn Header="Name" Binding="{Binding NameDescription}" Width="280"/>
