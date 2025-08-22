@@ -82,10 +82,9 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (OperationCanceledException)
             {
-                var singular = LabelProvider.Instance.ItemLabelSingular;
                 var plural = LabelProvider.Instance.ItemLabelPlural;
-                ImportExportLogs.Add($"{singular} import was cancelled.");
-                await _dialogService.ShowInfoAsync($"{singular} import was cancelled.", $"Import {plural}");
+                ImportExportLogs.Add($"{plural} import was cancelled.");
+                await _dialogService.ShowInfoAsync($"{plural} import was cancelled.", $"Import {plural}");
             }
             catch (Exception ex)
             {
@@ -108,8 +107,8 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (OperationCanceledException)
             {
-                var singular = LabelProvider.Instance.ItemLabelSingular;
-                ImportExportLogs.Add($"{singular} export was cancelled.");
+                var plural = LabelProvider.Instance.ItemLabelPlural;
+                ImportExportLogs.Add($"{plural} export was cancelled.");
             }
             catch (Exception ex)
             {
