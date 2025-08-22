@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -25,7 +26,8 @@ namespace InventoryManagementApp.ViewModels
             SelectAvatarCommand = new RelayCommand<Uri>(uri =>
             {
                 if (uri == null) return;
-                SelectedAvatarPath = uri.LocalPath;
+                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                SelectedAvatarPath = Path.GetRelativePath(baseDir, uri.LocalPath);
                 onSelected();
             });
         }
