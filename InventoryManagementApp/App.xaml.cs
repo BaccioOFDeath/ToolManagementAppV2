@@ -111,6 +111,7 @@ namespace InventoryManagementApp
                 services.AddSingleton<IDialogService, DialogService>();
                 services.AddSingleton<IScannerService, ScannerService>();
                 services.AddSingleton<MemoryBudget>();
+                services.AddTransient<ItemsViewModel>();
                 services.AddSingleton<IMainViewModel, MainViewModel>();
                 services.AddSingleton<ILoginViewModel, LoginViewModel>();
                 services.AddTransient<ItemEditWindow>();
