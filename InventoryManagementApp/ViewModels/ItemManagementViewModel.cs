@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -88,7 +89,7 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand<CancellationToken> SearchCommand { get; }
         public IAsyncRelayCommand NewItemCommand { get; }
         public IAsyncRelayCommand EditItemCommand { get; }
-        public IAsyncRelayCommand DeleteItemCommand { get; }
+        public IAsyncRelayCommand<IList> DeleteItemsCommand { get; }
         public IAsyncRelayCommand OpenRentalsCommand { get; }
         public IRelayCommand ViewDetailsCommand { get; }
         public IAsyncRelayCommand OpenRentalHistoryCommand { get; }
@@ -133,7 +134,7 @@ namespace InventoryManagementApp.ViewModels
             _searchDebounceTimer.Tick += OnSearchDebounceTimerTick;
             NewItemCommand = new AsyncRelayCommand(ct => AddItemAsync(ct));
             EditItemCommand = new AsyncRelayCommand(ct => EditItemAsync(ct), () => SelectedItem != null);
-            DeleteItemCommand = new AsyncRelayCommand(ct => DeleteItemAsync(ct));
+            DeleteItemsCommand = new AsyncRelayCommand<IList>(DeleteItemsAsync);
             OpenRentalsCommand = new AsyncRelayCommand(ct => OpenRentalsAsync(ct), () => SelectedItem != null);
             ViewDetailsCommand = new RelayCommand(ViewDetails, () => SelectedItem != null);
             OpenRentalHistoryCommand = new AsyncRelayCommand(OpenRentalHistoryAsync, () => SelectedItem != null);
@@ -297,18 +298,22 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        async Task DeleteItemAsync(CancellationToken cancellationToken)
+        async Task DeleteItemsAsync(IList items, CancellationToken cancellationToken)
         {
-            if (SelectedItem == null) return;
-            var confirm = await _dialogService.ShowConfirmationAsync(
-                $"Delete {LabelProvider.Instance.ItemLabelSingular.ToLower()} '{SelectedItem.NameDescription}'?",
-                "Confirm Delete");
+            if (items == null || items.Count == 0) return;
+            string message = items.Count == 1
+                ? $"Delete {LabelProvider.Instance.ItemLabelSingular.ToLower()} '{((ItemModel)items[0]).NameDescription}'?"
+                : $"Delete {items.Count} {LabelProvider.Instance.ItemLabelPlural.ToLower()}?";
+            var confirm = await _dialogService.ShowConfirmationAsync(message, "Confirm Delete");
             if (!confirm)
                 return;
 
             try
             {
-                await _itemService.DeleteItemAsync(SelectedItem.ItemID, cancellationToken);
+                foreach (ItemModel item in items)
+                {
+                    await _itemService.DeleteItemAsync(item.ItemID, cancellationToken);
+                }
                 await LoadItemsAsync();
                 await FilterItemsAsync(cancellationToken);
                 SelectedItem = null;
@@ -323,8 +328,8 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to delete {ItemLabelSingular} {ItemID}", LabelProvider.Instance.ItemLabelSingular, SelectedItem.ItemID);
-                await _dialogService.ShowInfoAsync($"Failed to delete {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message}", "Error");
+                _logger.LogError(ex, "Failed to delete {ItemLabelPlural}", LabelProvider.Instance.ItemLabelPlural);
+                await _dialogService.ShowInfoAsync($"Failed to delete {LabelProvider.Instance.ItemLabelPlural.ToLower()}: {ex.Message}", "Error");
             }
         }
 

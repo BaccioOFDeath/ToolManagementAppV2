@@ -14,7 +14,11 @@ namespace InventoryManagementApp.Views.Pages
         {
             if (sender is DataGridRow row)
             {
-                row.IsSelected = true;
+                if (!row.IsSelected)
+                {
+                    row.IsSelected = true;
+                }
+                e.Handled = true;
             }
         }
     }
