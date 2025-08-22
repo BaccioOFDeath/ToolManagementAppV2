@@ -26,6 +26,7 @@ using Microsoft.Extensions.DependencyInjection;
 using InventoryManagementApp.Models.ImportExport;
 using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Helpers;
+using InventoryManagementApp.Data;
 using Application = System.Windows.Application;
 
 namespace InventoryManagementApp.ViewModels
@@ -245,7 +246,7 @@ namespace InventoryManagementApp.ViewModels
                 CurrentPage = page;
                 try
                 {
-                    await ItemManagement.LoadItemsAsync();
+                    await ItemManagement.LoadItemsAsync(new ItemPage(1, 50));
                 }
                 catch (Exception ex)
                 {
@@ -261,7 +262,7 @@ namespace InventoryManagementApp.ViewModels
                 CurrentPage = page;
                 try
                 {
-                    await ItemManagement.LoadItemsAsync();
+                    await ItemManagement.LoadItemsAsync(new ItemPage(1, 50));
                 }
                 catch (Exception ex)
                 {
