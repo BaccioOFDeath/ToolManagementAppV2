@@ -125,7 +125,7 @@ namespace InventoryManagementApp.Services.Users
                     DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out timestamp))
             {
                 _logger.LogWarning("Invalid timestamp '{Timestamp}' for log {LogID}", rawTimestamp, r["LogID"]);
-                timestamp = DateTime.MinValue;
+                timestamp = DateTime.UtcNow;
             }
 
             // Ensure timestamps are converted to the local timezone before exposing them to the UI.

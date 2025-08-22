@@ -94,7 +94,7 @@ namespace InventoryManagementApp.Tests.Services
 
                 Assert.True(result.Success);
                 Assert.NotNull(result.Value);
-                Assert.Equal(DateTime.MinValue, result.Value[0].Timestamp);
+                Assert.NotEqual(DateTime.MinValue, result.Value[0].Timestamp);
             }
             finally
             {
