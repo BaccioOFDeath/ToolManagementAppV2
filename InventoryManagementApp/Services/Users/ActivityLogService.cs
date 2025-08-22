@@ -119,12 +119,21 @@ namespace InventoryManagementApp.Services.Users
 
         ActivityLog MapLog(IDataRecord r)
         {
+            DateTime timestamp;
+            var rawTimestamp = r["Timestamp"]?.ToString();
+            if (!DateTime.TryParse(rawTimestamp, CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out timestamp))
+            {
+                _logger.LogWarning("Invalid timestamp '{Timestamp}' for log {LogID}", rawTimestamp, r["LogID"]);
+                timestamp = DateTime.MinValue;
+            }
+
             var log = new ActivityLog
             {
                 LogID = Convert.ToInt32(r["LogID"]),
                 UserName = r["UserName"].ToString(),
                 Action = r["Action"].ToString(),
-                Timestamp = DateTime.Parse(r["Timestamp"].ToString()!, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal)
+                Timestamp = timestamp
             };
 
             log.UserID = r["UserID"] == DBNull.Value

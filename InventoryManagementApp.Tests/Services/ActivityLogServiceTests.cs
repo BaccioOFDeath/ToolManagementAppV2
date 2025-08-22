@@ -77,5 +77,29 @@ namespace InventoryManagementApp.Tests.Services
                 if (File.Exists(dbPath)) File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public async Task GetRecentLogs_InvalidTimestamp_DoesNotThrow()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                using var db = new DatabaseService(dbPath);
+                using (var conn = db.CreateConnection())
+                using (var cmd = new SQLiteCommand("INSERT INTO ActivityLogs(UserID, UserName, Action, Timestamp) VALUES (1, 'user', 'action', 'not-a-date')", conn))
+                    cmd.ExecuteNonQuery();
+
+                var service = new ActivityLogService(db);
+                var result = await service.GetRecentLogsAsync();
+
+                Assert.True(result.Success);
+                Assert.NotNull(result.Value);
+                Assert.Equal(DateTime.MinValue, result.Value[0].Timestamp);
+            }
+            finally
+            {
+                if (File.Exists(dbPath)) File.Delete(dbPath);
+            }
+        }
     }
 }
