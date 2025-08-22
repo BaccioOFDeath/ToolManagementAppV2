@@ -214,6 +214,54 @@ namespace InventoryManagementApp.Tests.Views
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void CreatedAt_Null_ShowsNA()
+        {
+            var dbPath = Path.GetTempFileName();
+            Exception? threadException = null;
+
+            try
+            {
+                var thread = new Thread(() =>
+                {
+                    try
+                    {
+                        var db = new DatabaseService(dbPath);
+                        IUserService userService = new UserService(db, new ApplicationUserContext());
+                        var vm = new UserManagementViewModel(userService, new StubFileDialogService(), new StubDialogService());
+                        userService.AddUser(new User { UserName = "user1", PasswordHash = "Strong1!" });
+                        vm.LoadUsers();
+                        vm.Users.First().CreatedAt = null;
+
+                        var page = new UsersPage(vm);
+                        var grid = (Grid)page.Content;
+                        var dataGrid = (DataGrid)((Border)grid.Children[1]).Child;
+                        dataGrid.UpdateLayout();
+                        var text = ((TextBlock)dataGrid.Columns[7].GetCellContent(dataGrid.Items[0])).Text;
+                        Assert.Equal("N/A", text);
+                    }
+                    catch (Exception ex)
+                    {
+                        threadException = ex;
+                    }
+                });
+
+                thread.SetApartmentState(ApartmentState.STA);
+                thread.Start();
+                thread.Join();
+
+                if (threadException != null)
+                {
+                    throw threadException;
+                }
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 
     class StubFileDialogService : IFileDialogService

@@ -41,8 +41,8 @@ namespace InventoryManagementApp.Models.Domain
         private bool _isActive = true;
         public bool IsActive { get => _isActive; set => SetProperty(ref _isActive, value); }
 
-        private DateTime _createdAt;
-        public DateTime CreatedAt { get => _createdAt; set => SetProperty(ref _createdAt, value); }
+        private DateTime? _createdAt;
+        public DateTime? CreatedAt { get => _createdAt; set => SetProperty(ref _createdAt, value); }
 
         private bool _passwordExpired;
         public bool PasswordExpired { get => _passwordExpired; set => SetProperty(ref _passwordExpired, value); }
