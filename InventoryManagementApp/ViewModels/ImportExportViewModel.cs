@@ -95,9 +95,16 @@ namespace InventoryManagementApp.ViewModels
                     return;
                 var plural = LabelProvider.Instance.ItemLabelPlural;
                 await _dialogService.ShowInfoAsync($"Importing {plural}...", $"Import {plural}");
-                await _itemService.ImportItemsFromCsvAsync(path, map, cancellationToken);
-                ImportExportLogs.Add($"Successfully imported {plural} from {path}.");
-                await _dialogService.ShowInfoAsync($"Successfully imported {plural} from {path}.", $"Import {plural}");
+                var skippedRows = await _itemService.ImportItemsFromCsvAsync(path, map, cancellationToken);
+                var successMessage = $"Successfully imported {plural} from {path}.";
+                ImportExportLogs.Add(successMessage);
+                if (skippedRows.Any())
+                {
+                    var skippedMessage = $"Skipped rows: {string.Join(", ", skippedRows)}";
+                    ImportExportLogs.Add(skippedMessage);
+                    successMessage += $" {skippedMessage}";
+                }
+                await _dialogService.ShowInfoAsync(successMessage, $"Import {plural}");
             }
             catch (OperationCanceledException)
             {

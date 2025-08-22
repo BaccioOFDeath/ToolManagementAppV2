@@ -105,6 +105,24 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public async System.Threading.Tasks.Task ImportItemsCommand_LogsSkippedRowsAndNotifiesUser()
+        {
+            var tmp = Path.GetTempFileName();
+            File.WriteAllText(tmp, "ItemNumber\n");
+            var fileDlg = new StubFileDialogService { FileToReturn = tmp };
+            var itemService = new CapturingItemService { InvalidRowsToReturn = new List<int> { 2, 5 } };
+            var dialog = new StubDialogService { MapToReturn = new Dictionary<string, string> { { "ItemNumber", "ItemNumber" } } };
+            var vm = new ImportExportViewModel(itemService, new StubCustomerService(), fileDlg, new StubDatabaseBackupService(), dialog);
+
+            await vm.ImportItemsCommand.ExecuteAsync(null);
+
+            Assert.Contains(vm.ImportExportLogs, l => l.Contains("Skipped rows: 2, 5"));
+            var lastMsg = dialog.InfoMessages[dialog.InfoMessages.Count - 1].message;
+            Assert.Contains("Skipped rows: 2, 5", lastMsg);
+            File.Delete(tmp);
+        }
+
+        [Fact]
         public async System.Threading.Tasks.Task ExportCustomersCommand_LogsSuccess()
         {
             var customerSvc = new CapturingCustomerService();
@@ -148,7 +166,8 @@ namespace InventoryManagementApp.Tests.ViewModels
     {
         public Dictionary<string, string>? MapToReturn { get; set; }
         public bool ShowImportMappingCalled { get; private set; }
-        public void ShowInfo(string message, string title) { }
+        public List<(string message, string title)> InfoMessages { get; } = new();
+        public void ShowInfo(string message, string title) => InfoMessages.Add((message, title));
         public bool ShowConfirmation(string message, string title) => false;
         public ItemModel? ShowEditItemDialog(ItemModel item) => null;
         public void ShowItemDetails(ItemModel item) { }
@@ -170,11 +189,12 @@ namespace InventoryManagementApp.Tests.ViewModels
     {
         public bool ImportCalled { get; private set; }
         public IDictionary<string,string>? MapUsed { get; private set; }
+        public List<int> InvalidRowsToReturn { get; set; } = new();
         public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken)
         {
             ImportCalled = true;
             MapUsed = map;
-            return Task.FromResult(new List<int>());
+            return Task.FromResult(InvalidRowsToReturn);
         }
         public Task ExportItemsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task<List<ItemModel>> GetAllItemsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
