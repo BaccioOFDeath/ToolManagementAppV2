@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
@@ -34,5 +35,6 @@ namespace InventoryManagementApp.Interfaces
         Task<List<Rental>> GetAllRentalsAsync();
         Task<List<Rental>> GetRentalHistoryForItemAsync(int itemID);
         Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID);
+        Task<int> GetActiveRentalCountAsync(CancellationToken cancellationToken = default);
     }
 }

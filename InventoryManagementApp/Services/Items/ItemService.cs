@@ -422,6 +422,9 @@ namespace InventoryManagementApp.Services.Items
             return items;
         }
 
+        public Task<int> GetItemCountAsync(CancellationToken cancellationToken = default)
+            => _repository.CountAsync(new ItemFilter(null), cancellationToken);
+
         public async Task<List<ItemModel>> SearchItemsAsync(string? searchText, CancellationToken cancellationToken = default)
         {
             var items = new List<ItemModel>();

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
@@ -251,6 +252,14 @@ namespace InventoryManagementApp.Services.Rentals
             var sql = BaseSelect + " WHERE r.Status='Rented'";
             var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, null, MapRental);
             return list.Where(r => r != null).Select(r => r!).ToList();
+        }
+
+        public async Task<int> GetActiveRentalCountAsync(CancellationToken cancellationToken = default)
+        {
+            using var conn = _dbService.CreateConnection();
+            const string sql = "SELECT COUNT(*) FROM Rentals WHERE Status='Rented'";
+            var result = await SqliteHelper.ExecuteScalarAsync(conn, sql, null, cancellationToken);
+            return Convert.ToInt32(result);
         }
 
         public async Task<List<Rental>> GetOverdueRentalsAsync()

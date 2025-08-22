@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
@@ -15,6 +16,7 @@ namespace InventoryManagementApp.Interfaces
         Task UpdateUserAsync(User user);
         Task<bool> TryDeleteUserAsync(int userID);
         Task<bool> ChangeUserPasswordAsync(int userID, string newPassword);
+        Task<int> GetUserCountAsync(CancellationToken cancellationToken = default);
     }
 }
 

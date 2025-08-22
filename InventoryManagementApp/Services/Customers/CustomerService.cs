@@ -54,6 +54,9 @@ namespace InventoryManagementApp.Services.Customers
         public Task<List<CustomerModel>> GetAllCustomersAsync(CancellationToken cancellationToken = default) =>
             GetAllCustomersInternalAsync(cancellationToken);
 
+        public Task<int> GetCustomerCountAsync(CancellationToken cancellationToken = default) =>
+            GetCustomerCountInternalAsync(cancellationToken);
+
         public Task<List<CustomerModel>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default) =>
             SearchCustomersInternalAsync(searchTerm, cancellationToken);
 
@@ -153,6 +156,22 @@ namespace InventoryManagementApp.Services.Customers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to get all customers");
+                throw;
+            }
+        }
+
+        async Task<int> GetCustomerCountInternalAsync(CancellationToken cancellationToken)
+        {
+            const string sql = "SELECT COUNT(*) FROM Customers";
+            using var conn = _dbService.CreateConnection();
+            try
+            {
+                var result = await SqliteHelper.ExecuteScalarAsync(conn, sql, null, cancellationToken);
+                return Convert.ToInt32(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to count customers");
                 throw;
             }
         }

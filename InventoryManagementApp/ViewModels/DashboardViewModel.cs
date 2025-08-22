@@ -80,14 +80,21 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 StatCards.Clear();
-                var items = await _itemService.GetAllItemsAsync(cancellationToken);
-                StatCards.Add(new StatCard { Title = $"Total {LabelProvider.Instance.ItemLabelPlural}", Value = items.Count.ToString() });
-                var activeRentals = await _rentalService.GetActiveRentalsAsync();
-                var customers = await _customerService.GetAllCustomersAsync(cancellationToken);
-                var users = await _userService.GetAllUsersAsync();
-                StatCards.Add(new StatCard { Title = "Active Rentals", Value = activeRentals.Count.ToString() });
-                StatCards.Add(new StatCard { Title = "Total Customers", Value = customers.Count.ToString() });
-                StatCards.Add(new StatCard { Title = "Total Users", Value = users.Count.ToString() });
+
+                var itemCountTask = _itemService.GetItemCountAsync(cancellationToken);
+                var rentalCountTask = _rentalService.GetActiveRentalCountAsync(cancellationToken);
+                var customerCountTask = _customerService.GetCustomerCountAsync(cancellationToken);
+                var userCountTask = _userService.GetUserCountAsync(cancellationToken);
+
+                var itemCount = await itemCountTask;
+                var activeRentalCount = await rentalCountTask;
+                var customerCount = await customerCountTask;
+                var userCount = await userCountTask;
+
+                StatCards.Add(new StatCard { Title = $"Total {LabelProvider.Instance.ItemLabelPlural}", Value = itemCount.ToString() });
+                StatCards.Add(new StatCard { Title = "Active Rentals", Value = activeRentalCount.ToString() });
+                StatCards.Add(new StatCard { Title = "Total Customers", Value = customerCount.ToString() });
+                StatCards.Add(new StatCard { Title = "Total Users", Value = userCount.ToString() });
             }
             catch (OperationCanceledException)
             {

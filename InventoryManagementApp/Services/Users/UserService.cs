@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.SQLite;
 using System.Data;
+using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
@@ -100,6 +101,14 @@ namespace InventoryManagementApp.Services.Users
             using var conn = _dbService.CreateConnection();
             const string sql = "SELECT UserID, UserName, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired FROM Users";
             return await SqliteHelper.ExecuteReaderAsync(conn, sql, null, MapUser);
+        }
+
+        public async Task<int> GetUserCountAsync(CancellationToken cancellationToken = default)
+        {
+            using var conn = _dbService.CreateConnection();
+            const string sql = "SELECT COUNT(*) FROM Users";
+            var result = await SqliteHelper.ExecuteScalarAsync(conn, sql, null, cancellationToken);
+            return Convert.ToInt32(result);
         }
 
         public async Task<User?> GetUserByIDAsync(int userID)
