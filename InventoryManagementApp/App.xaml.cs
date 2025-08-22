@@ -24,6 +24,8 @@ using InventoryManagementApp.Views.Pages;
 using InventoryManagementApp.Views.Windows;
 using InventoryManagementApp.Services.Devices;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Data;
+using Microsoft.Data.Sqlite;
 
 namespace InventoryManagementApp
 {
@@ -82,6 +84,21 @@ namespace InventoryManagementApp
                 });
                 services.AddSingleton<IDatabaseService>(sp => sp.GetRequiredService<DatabaseService>());
                 services.AddSingleton<IDatabaseBackupService>(sp => sp.GetRequiredService<DatabaseService>());
+                services.AddSingleton(sp =>
+                {
+                    var config = sp.GetRequiredService<IConfiguration>();
+                    var dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                        config["Database:Path"] ?? "inventory.db");
+                    var builder = new SqliteConnectionStringBuilder
+                    {
+                        DataSource = dbPath,
+                        Pooling = true,
+                        Cache = SqliteCacheMode.Shared,
+                        Mode = SqliteOpenMode.ReadWriteCreate
+                    };
+                    return new SqliteConnectionFactory(builder.ToString());
+                });
+                services.AddSingleton<IItemRepository, ItemRepository>();
                 services.AddSingleton<IUserContext, ApplicationUserContext>();
                 services.AddSingleton<IAuthorizationService, AuthorizationService>();
                 services.AddSingleton<IItemService, ItemService>();
