@@ -22,7 +22,8 @@ public sealed class ItemRepository : IItemRepository
         sql += " ORDER BY ItemID LIMIT @Take OFFSET @Skip";
         var param = new { Search = $"%{filter.Search}%", Take = page.Size, Skip = (page.Number - 1) * page.Size };
         using var conn = _factory.Create();
-        var rows = await conn.QueryAsync<Item>(sql, param, buffered: false);
+        var rows = await conn.QueryAsync<Item>(
+            new CommandDefinition(sql, param, buffered: false, cancellationToken: ct));
         foreach (var row in rows)
         {
             ct.ThrowIfCancellationRequested();
