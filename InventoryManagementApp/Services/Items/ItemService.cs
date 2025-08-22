@@ -16,29 +16,30 @@ using System.Globalization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Services.Users;
+using InventoryManagementApp.Data;
 
 namespace InventoryManagementApp.Services.Items
 {
     public class ItemService : IItemService
     {
         readonly DatabaseService _dbService;
-        const string AllItemsSql = "SELECT * FROM Items";
+        readonly IItemRepository _repository;
         const string UpsertItemCsv = @"
             INSERT INTO Items
               (ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, ImagePath, IsCheckedOut, IsPowered)
             VALUES (@ItemNumber,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Keywords,@Avail,@Rent,@Img,0,@Powered);
             SELECT last_insert_rowid();";
         const int MaxQuantityOnHand = 10000;
-        const int MaxSearchTerms = 10;
     
         readonly ILogger<ItemService> _logger;
         readonly IAuthorizationService _auth;
         readonly ActivityLogService? _activityLog;
         readonly IUserContext? _context;
 
-        public ItemService(DatabaseService dbService, IAuthorizationService? authorizationService = null, ILogger<ItemService>? logger = null, ActivityLogService? activityLogService = null, IUserContext? userContext = null)
+        public ItemService(DatabaseService dbService, IItemRepository repository, IAuthorizationService? authorizationService = null, ILogger<ItemService>? logger = null, ActivityLogService? activityLogService = null, IUserContext? userContext = null)
         {
             _dbService = dbService;
+            _repository = repository;
             _auth = authorizationService ?? new NoOpAuthorizationService();
             _logger = logger ?? NullLogger<ItemService>.Instance;
             _activityLog = activityLogService;
@@ -415,54 +416,18 @@ namespace InventoryManagementApp.Services.Items
 
         public async Task<List<ItemModel>> GetAllItemsAsync(CancellationToken cancellationToken = default)
         {
-            using var conn = _dbService.CreateConnection();
-            return await SqliteHelper.ExecuteReaderAsync(conn, AllItemsSql, null, MapItem, cancellationToken);
+            var items = new List<ItemModel>();
+            await foreach (var item in _repository.GetPageAsync(new ItemFilter(null), new ItemPage(1, int.MaxValue), cancellationToken))
+                items.Add(item);
+            return items;
         }
 
         public async Task<List<ItemModel>> SearchItemsAsync(string? searchText, CancellationToken cancellationToken = default)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (string.IsNullOrWhiteSpace(searchText))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                return await GetAllItemsAsync(cancellationToken);
-            }
-
-            using var conn = _dbService.CreateConnection();
-            var terms = searchText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            var originalCount = terms.Length;
-            if (originalCount > MaxSearchTerms)
-            {
-                _logger.LogInformation(
-                    "Search term limit exceeded; truncating from {OriginalCount} to {Max}",
-                    originalCount, MaxSearchTerms);
-                terms = terms.Take(MaxSearchTerms).ToArray();
-            }
-            var searchable = new[]
-            {
-                "ItemNumber",
-                "NameDescription",
-                "Brand",
-                "PartNumber",
-                "Supplier",
-                "Location",
-                "Notes",
-                "Keywords"
-            };
-
-            var sb = new StringBuilder("SELECT * FROM Items WHERE ");
-            var parameters = new List<SQLiteParameter>();
-            for (int i = 0; i < terms.Length; i++)
-            {
-                if (i > 0) sb.Append(" AND ");
-                var paramName = $"@p{i}";
-                var likeClause = string.Join(" OR ", searchable.Select(col => $"{col} LIKE {paramName} COLLATE NOCASE"));
-                sb.Append($"(CAST(ItemID AS TEXT) LIKE {paramName} COLLATE NOCASE OR {likeClause})");
-                parameters.Add(new SQLiteParameter(paramName, $"%{terms[i]}%"));
-            }
-
-            cancellationToken.ThrowIfCancellationRequested();
-            return await SqliteHelper.ExecuteReaderAsync(conn, sb.ToString(), parameters.ToArray(), MapItem, cancellationToken);
+            var items = new List<ItemModel>();
+            await foreach (var item in _repository.GetPageAsync(new ItemFilter(searchText), new ItemPage(1, int.MaxValue), cancellationToken))
+                items.Add(item);
+            return items;
         }
 
         private async Task<bool> ToggleItemCheckOutStatusInternalAsync(int itemID, string currentUser, CancellationToken cancellationToken)
