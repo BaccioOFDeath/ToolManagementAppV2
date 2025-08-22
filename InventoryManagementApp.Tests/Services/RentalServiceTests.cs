@@ -445,6 +445,44 @@ namespace InventoryManagementApp.Tests.Services
             }
         }
 
+        [Fact]
+        public void RentalDates_AreLocalKind()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var itemService = new ItemService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db, itemService);
+
+                var item = new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 };
+                itemService.AddItem(item);
+                var addedItem = itemService.GetAllItems().First();
+
+                customerService.AddCustomer(new Customer { Company = "Acme" });
+                var cust = customerService.GetAllCustomers().First();
+
+                var rentalDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                var dueDate = rentalDate.AddDays(1);
+                rentalService.RentItem(addedItem.ItemID, cust.CustomerID, rentalDate, dueDate);
+
+                var rental = rentalService.GetAllRentals().Single();
+                rentalService.ReturnItem(rental.RentalID, dueDate.AddDays(1));
+
+                var fetched = rentalService.GetAllRentals().Single();
+
+                Assert.Equal(DateTimeKind.Local, fetched.RentalDate.Kind);
+                Assert.Equal(DateTimeKind.Local, fetched.DueDate.Kind);
+                Assert.Equal(DateTimeKind.Local, fetched.ReturnDate!.Value.Kind);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
         class FailingItemService : IItemService
         {
             public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => throw new NotImplementedException();
