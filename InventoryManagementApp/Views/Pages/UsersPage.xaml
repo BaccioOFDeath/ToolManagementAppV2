@@ -50,7 +50,7 @@
                     <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="140"/>
                     <DataGridTextColumn Header="Mobile" Binding="{Binding Mobile}" Width="140"/>
                     <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive}" Width="100"/>
-                    <DataGridTextColumn Header="Created" Binding="{Binding CreatedAt, StringFormat=\{0:yyyy-MM-dd\}}" Width="140"/>
+                    <DataGridTextColumn Header="Created" Binding="{Binding CreatedAt, StringFormat={}{0:yyyy-MM-dd}, TargetNullValue='N/A'}" Width="140"/>
                 </DataGrid.Columns>
                 <DataGrid.ContextMenu>
                     <ContextMenu Style="{StaticResource {x:Type ContextMenu}}">

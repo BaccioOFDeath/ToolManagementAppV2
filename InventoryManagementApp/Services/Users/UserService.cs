@@ -71,9 +71,9 @@ namespace InventoryManagementApp.Services.Users
                 return false;
             }
 
-            var createdAt = ParseToUtcNullable(HasColumn("CreatedAt") ? rdr["CreatedAt"] : DBNull.Value) ?? DateTime.MinValue;
-            if (createdAt.Kind != DateTimeKind.Local)
-                createdAt = createdAt.ToLocalTime();
+            DateTime? createdAt = ParseToUtcNullable(HasColumn("CreatedAt") ? rdr["CreatedAt"] : DBNull.Value);
+            if (createdAt.HasValue && createdAt.Value.Kind != DateTimeKind.Local)
+                createdAt = createdAt.Value.ToLocalTime();
 
             return new User
             {
@@ -198,7 +198,7 @@ namespace InventoryManagementApp.Services.Users
             string hashed = result.hash;
             string salt = result.salt;
 
-            if (user.CreatedAt == default)
+            if (user.CreatedAt == null)
                 user.CreatedAt = DateTime.UtcNow;
             cmd.Parameters.AddRange(new[]
             {

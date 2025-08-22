@@ -37,7 +37,8 @@ public class UserServiceTests
             var stored = userService.GetUserByID(first.UserID);
             Assert.NotNull(stored);
             Assert.True(stored!.IsAdmin);
-            Assert.Equal(DateTimeKind.Local, stored.CreatedAt.Kind);
+            Assert.NotNull(stored.CreatedAt);
+            Assert.Equal(DateTimeKind.Local, stored.CreatedAt!.Value.Kind);
         }
         finally
         {
