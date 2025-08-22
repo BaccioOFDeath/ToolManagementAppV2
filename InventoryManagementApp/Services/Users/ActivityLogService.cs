@@ -128,6 +128,14 @@ namespace InventoryManagementApp.Services.Users
                 timestamp = DateTime.MinValue;
             }
 
+            // Ensure timestamps are converted to the local timezone before exposing them to the UI.
+            // Attempting to convert DateTime.MinValue can throw if the local offset is negative,
+            // so only convert when the timestamp is valid.
+            if (timestamp != DateTime.MinValue)
+            {
+                timestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Utc).ToLocalTime();
+            }
+
             var log = new ActivityLog
             {
                 LogID = Convert.ToInt32(r["LogID"]),
