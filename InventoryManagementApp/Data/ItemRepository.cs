@@ -23,7 +23,7 @@ public sealed class ItemRepository : IItemRepository
         var param = new { Search = $"%{filter.Search}%", Take = page.Size, Skip = (page.Number - 1) * page.Size };
         using var conn = _factory.Create();
         var rows = await conn.QueryAsync<Item>(
-            new CommandDefinition(sql, param, flags: CommandFlags.Buffered, cancellationToken: ct));
+            new CommandDefinition(sql, param, buffered: false, cancellationToken: ct));
         foreach (var row in rows)
         {
             ct.ThrowIfCancellationRequested();
@@ -38,7 +38,7 @@ public sealed class ItemRepository : IItemRepository
         if (!string.IsNullOrWhiteSpace(filter.Search))
             sql += " WHERE ItemNumber LIKE @Search OR NameDescription LIKE @Search";
         using var conn = _factory.Create();
-        return await conn.ExecuteScalarAsync<int>(sql, param);
+        return await conn.ExecuteScalarAsync<int>(new CommandDefinition(sql, param, cancellationToken: ct));
     }
 
     public async Task SaveChangesAsync(IEnumerable<Item> changes, CancellationToken ct)
