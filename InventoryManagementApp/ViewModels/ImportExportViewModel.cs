@@ -94,6 +94,15 @@ namespace InventoryManagementApp.ViewModels
                 if (map == null)
                     return;
                 var plural = LabelProvider.Instance.ItemLabelPlural;
+                if (!map.TryGetValue(nameof(ItemImportDto.ItemNumber), out var itemNumberHeader) || string.IsNullOrWhiteSpace(itemNumberHeader))
+                {
+                    var singular = LabelProvider.Instance.ItemLabelSingular;
+                    var errorMessage = $"Mapping for {singular} number is required.";
+                    ImportExportLogs.Add(errorMessage);
+                    _logger.LogWarning("Import aborted: missing {ItemLabelSingular} number mapping", singular);
+                    await _dialogService.ShowInfoAsync(errorMessage, $"Import {plural}");
+                    return;
+                }
                 await _dialogService.ShowInfoAsync($"Importing {plural}...", $"Import {plural}");
                 var skippedRows = await _itemService.ImportItemsFromCsvAsync(path, map, cancellationToken);
                 var successMessage = $"Successfully imported {plural} from {path}.";

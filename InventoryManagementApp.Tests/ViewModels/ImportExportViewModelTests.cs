@@ -86,6 +86,27 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public async System.Threading.Tasks.Task ImportItemsCommand_MissingItemNumberMapping_ShowsErrorAndDoesNotCallService()
+        {
+            var tmp = Path.GetTempFileName();
+            File.WriteAllText(tmp, "ItemNumber\\n");
+            var fileDlg = new StubFileDialogService { FileToReturn = tmp };
+            var itemService = new CapturingItemService();
+            var dialog = new StubDialogService { MapToReturn = new Dictionary<string, string>() };
+            var vm = new ImportExportViewModel(itemService, new StubCustomerService(), fileDlg, new StubDatabaseBackupService(), dialog);
+
+            await vm.ImportItemsCommand.ExecuteAsync(null);
+
+            Assert.True(dialog.ShowImportMappingCalled);
+            Assert.False(itemService.ImportCalled);
+            Assert.Single(vm.ImportExportLogs);
+            Assert.Contains("number", vm.ImportExportLogs[0], StringComparison.OrdinalIgnoreCase);
+            var lastMsg = dialog.InfoMessages[dialog.InfoMessages.Count - 1].message;
+            Assert.Contains("number", lastMsg, StringComparison.OrdinalIgnoreCase);
+            File.Delete(tmp);
+        }
+
+        [Fact]
         public async System.Threading.Tasks.Task ImportItemsCommand_CanBeCancelled()
         {
             var tmp = Path.GetTempFileName();
