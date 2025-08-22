@@ -41,10 +41,6 @@ namespace InventoryManagementApp.Services.Core
             _logger = logger ?? NullLogger<DatabaseService>.Instance;
             ConfigureDatabase();
             InitializeDatabase();
-            using (var conn = CreateConnection())
-            {
-                RenameColumnIfExists(conn, "Items", "IsPowered", "IsPowered");
-            }
             EnsureColumn("Items", "ItemNumber", "TEXT");
             EnsureColumn("Items", "NameDescription", "TEXT");
             EnsureColumn("Items", "ImagePath", "TEXT");
