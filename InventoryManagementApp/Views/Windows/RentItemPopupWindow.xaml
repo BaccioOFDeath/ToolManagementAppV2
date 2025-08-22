@@ -3,13 +3,13 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
-        Title="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Rent {0}}"
+        Title="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Rent {0}'}"
         Width="800" Height="420"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource BackgroundBrush}">
     <DockPanel Margin="10">
         <Border DockPanel.Dock="Top" Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1" Padding="10" CornerRadius="8">
-            <TextBlock Text="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Rent {0}}" Style="{StaticResource HeadingTextBlock}"/>
+            <TextBlock Text="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Rent {0}'}" Style="{StaticResource HeadingTextBlock}"/>
         </Border>
 
         <Border Style="{StaticResource Card}" Margin="0,8,0,8">
