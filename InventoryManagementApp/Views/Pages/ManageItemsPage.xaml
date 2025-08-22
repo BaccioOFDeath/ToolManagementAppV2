@@ -46,8 +46,10 @@
                                 HeaderStringFormat="Rent {0}"
                                 Command="{Binding OpenRentalsCommand}"/>
                             <MenuItem Header="Delete"
-                                      Command="{Binding DeleteItemsCommand}"
-                                      CommandParameter="{Binding SelectedItems, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
+                                      Command="{Binding PlacementTarget.DataContext.DeleteItemsCommand,
+                                                        RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                      CommandParameter="{Binding PlacementTarget.SelectedItems,
+                                                        RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                 </DataGrid>
