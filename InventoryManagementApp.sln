@@ -4,24 +4,21 @@ VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryManagementApp", "InventoryManagementApp\InventoryManagementApp.csproj", "{D7C90C3C-2641-4E33-87A2-8778E278A369}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryManagementApp.Tests", "InventoryManagementApp.Tests\InventoryManagementApp.Tests.csproj", "{4F6F26B0-3E29-43C7-B5F7-2C7190F6F7D0}"
-EndProject
 Global
-    GlobalSection(SolutionConfigurationPlatforms) = preSolution
-        Debug|Any CPU = Debug|Any CPU
-        Release|Any CPU = Release|Any CPU
-    EndGlobalSection
-    GlobalSection(ProjectConfigurationPlatforms) = postSolution
-        {D7C90C3C-2641-4E33-87A2-8778E278A369}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-        {D7C90C3C-2641-4E33-87A2-8778E278A369}.Debug|Any CPU.Build.0 = Debug|Any CPU
-        {D7C90C3C-2641-4E33-87A2-8778E278A369}.Release|Any CPU.ActiveCfg = Release|Any CPU
-        {D7C90C3C-2641-4E33-87A2-8778E278A369}.Release|Any CPU.Build.0 = Release|Any CPU
-        {4F6F26B0-3E29-43C7-B5F7-2C7190F6F7D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-        {4F6F26B0-3E29-43C7-B5F7-2C7190F6F7D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-        {4F6F26B0-3E29-43C7-B5F7-2C7190F6F7D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-        {4F6F26B0-3E29-43C7-B5F7-2C7190F6F7D0}.Release|Any CPU.Build.0 = Release|Any CPU
-    EndGlobalSection
-    GlobalSection(SolutionProperties) = preSolution
-        HideSolutionNode = FALSE
-    EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D7C90C3C-2641-4E33-87A2-8778E278A369}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7C90C3C-2641-4E33-87A2-8778E278A369}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7C90C3C-2641-4E33-87A2-8778E278A369}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7C90C3C-2641-4E33-87A2-8778E278A369}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CEE5AD04-8E9D-4906-86E0-974EE9BA2E77}
+	EndGlobalSection
 EndGlobal
