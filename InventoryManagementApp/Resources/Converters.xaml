@@ -3,4 +3,5 @@
                     xmlns:conv="clr-namespace:InventoryManagementApp.Utilities.Converters;assembly=InventoryManagementApp">
     <conv:NullToDefaultImageConverter x:Key="NullToDefaultImageConverter"/>
     <conv:BooleanToAdminConverter x:Key="BooleanToAdminConverter"/>
+    <conv:DateTimeMinToEmptyStringConverter x:Key="DateTimeMinToEmptyStringConverter"/>
 </ResourceDictionary>
