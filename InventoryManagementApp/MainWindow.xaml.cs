@@ -11,7 +11,7 @@ namespace InventoryManagementApp
 {
     public partial class MainWindow : Window, IMainWindow
     {
-        const double ScrollFactor = 0.25;
+        const double ScrollFactor = 0.15;
 
         readonly IDatabaseService? _ownedDb;
 
