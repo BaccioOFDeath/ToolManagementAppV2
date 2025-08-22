@@ -81,7 +81,7 @@ namespace InventoryManagementApp.ViewModels
                     _searchCts.Cancel();
                     _searchCts.Dispose();
                     _searchCts = new CancellationTokenSource();
-                    SearchCommand.Execute();
+                    SearchCommand.Execute(null);
                 }
             }
         }
@@ -150,7 +150,7 @@ namespace InventoryManagementApp.ViewModels
             _searchDebounceTimer.Stop();
             _searchCts.Dispose();
             _searchCts = new CancellationTokenSource();
-            SearchCommand.Execute();
+            SearchCommand.Execute(null);
         }
 
         public async Task LoadItemsAsync()
