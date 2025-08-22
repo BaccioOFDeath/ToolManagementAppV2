@@ -31,8 +31,9 @@ namespace InventoryManagementApp.Tests.Services
                 var list = devices.ToList();
                 Assert.Single(list);
                 Assert.Equal("127.0.0.1", list[0].Ip);
-                Assert.InRange(list[0].LastSeen, before, after);
-                Assert.Equal(DateTimeKind.Local, list[0].LastSeen.Kind);
+                Assert.NotNull(list[0].LastSeen);
+                Assert.InRange(list[0].LastSeen!.Value, before, after);
+                Assert.Equal(DateTimeKind.Local, list[0].LastSeen!.Value.Kind);
             }
             finally
             {

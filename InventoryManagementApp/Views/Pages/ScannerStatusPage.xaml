@@ -31,7 +31,7 @@
                         <DataGridTextColumn Header="IP" Binding="{Binding Ip}" Width="180"/>
                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="160"/>
                         <DataGridTextColumn Header="Last Seen"
-                                            Binding="{Binding LastSeen, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
+                                            Binding="{Binding LastSeen, StringFormat='{}{0:yyyy-MM-dd HH:mm}', TargetNullValue=''}"
                                             Width="220"/>
                     </DataGrid.Columns>
                 </DataGrid>

@@ -8,7 +8,7 @@ namespace InventoryManagementApp.Models
         string _name = string.Empty;
         string _ip = string.Empty;
         string _status = string.Empty;
-        DateTime _lastSeen;
+        DateTime? _lastSeen;
 
         public string Name
         {
@@ -28,7 +28,7 @@ namespace InventoryManagementApp.Models
             set => SetProperty(ref _status, value);
         }
 
-        public DateTime LastSeen
+        public DateTime? LastSeen
         {
             get => _lastSeen;
             set => SetProperty(ref _lastSeen, value);

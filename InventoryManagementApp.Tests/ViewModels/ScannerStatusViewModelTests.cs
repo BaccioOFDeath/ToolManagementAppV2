@@ -38,7 +38,8 @@ namespace InventoryManagementApp.Tests.ViewModels
             await vm.RefreshCommand.ExecuteAsync(null);
             Assert.Single(vm.Devices);
             Assert.Equal(1, svc.CallCount);
-            Assert.Equal(DateTimeKind.Local, vm.Devices[0].LastSeen.Kind);
+            Assert.NotNull(vm.Devices[0].LastSeen);
+            Assert.Equal(DateTimeKind.Local, vm.Devices[0].LastSeen!.Value.Kind);
         }
 
         [Fact]
@@ -50,6 +51,28 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.True(vm.IsTimerRunning);
             vm.AutoRefresh = false;
             Assert.False(vm.IsTimerRunning);
+        }
+
+        class NullLastSeenScannerService : IScannerService
+        {
+            public Task<IEnumerable<ScannerDevice>> GetScannerDevicesAsync(CancellationToken cancellationToken)
+            {
+                IEnumerable<ScannerDevice> result = new[]
+                {
+                    new ScannerDevice { Name = "A", Ip = "1.1.1.1", Status = "Online", LastSeen = null }
+                };
+                return Task.FromResult(result);
+            }
+        }
+
+        [Fact]
+        public async Task RefreshCommand_AllowsNullLastSeen()
+        {
+            var svc = new NullLastSeenScannerService();
+            var vm = new ScannerStatusViewModel(svc, new StubDialogService());
+            await vm.RefreshCommand.ExecuteAsync(null);
+            Assert.Single(vm.Devices);
+            Assert.Null(vm.Devices[0].LastSeen);
         }
 
         [Fact]

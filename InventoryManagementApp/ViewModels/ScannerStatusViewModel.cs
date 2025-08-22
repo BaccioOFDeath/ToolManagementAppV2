@@ -62,10 +62,10 @@ namespace InventoryManagementApp.ViewModels
                 Devices.Clear();
                 foreach (var d in devices)
                 {
-                    if (d.LastSeen.Kind != DateTimeKind.Local)
+                    if (d.LastSeen.HasValue && d.LastSeen.Value.Kind != DateTimeKind.Local)
                     {
-                        _logger.LogWarning("Device {Ip} reported LastSeen kind {Kind}; converting to local time", d.Ip, d.LastSeen.Kind);
-                        d.LastSeen = d.LastSeen.ToLocalTime();
+                        _logger.LogWarning("Device {Ip} reported LastSeen kind {Kind}; converting to local time", d.Ip, d.LastSeen.Value.Kind);
+                        d.LastSeen = d.LastSeen.Value.ToLocalTime();
                     }
                     Devices.Add(d);
                 }
