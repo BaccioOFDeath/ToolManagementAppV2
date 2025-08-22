@@ -37,8 +37,10 @@ namespace InventoryManagementApp.Tests.Views
                         var grid = (Grid)page.Content;
                         var panel = (WrapPanel)((Border)grid.Children[0]).Child;
                         var importBtn = (Button)panel.Children[0];
+                        var importImagesBtn = (Button)panel.Children[1];
 
                         Assert.Equal(vm.ImportItemsCommand, importBtn.Command);
+                        Assert.Equal(vm.OpenImageImportMappingWindowCommand, importImagesBtn.Command);
                         var asyncCmd = (CommunityToolkit.Mvvm.Input.IAsyncRelayCommand)importBtn.Command;
                         var task = asyncCmd.ExecuteAsync(null);
                         task.GetAwaiter().GetResult();
