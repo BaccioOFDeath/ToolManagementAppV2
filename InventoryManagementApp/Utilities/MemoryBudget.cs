@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using Timer = System.Threading.Timer;
 
 namespace InventoryManagementApp.Utilities
 {

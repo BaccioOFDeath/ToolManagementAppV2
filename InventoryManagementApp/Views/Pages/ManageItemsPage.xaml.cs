@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using InventoryManagementApp.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
+using Application = System.Windows.Application;
 
 namespace InventoryManagementApp.Views.Pages
 {
