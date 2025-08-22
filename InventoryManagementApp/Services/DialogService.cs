@@ -150,19 +150,24 @@ namespace InventoryManagementApp.Services
 
         public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> propertyNames)
         {
-            var win = new ImportMappingWindow(headers, propertyNames);
+            var win = CreateImportMappingWindow(headers, propertyNames);
             try { win.Owner = System.Windows.Application.Current?.MainWindow; }
             catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for ImportMappingWindow"); }
             try
             {
                 if (win.ShowDialog() == true)
                 {
-                    return win.VM.Mappings.ToDictionary(m => m.SelectedColumn!, m => m.PropertyName);
+                    return win.VM.Mappings
+                        .Where(m => !string.IsNullOrEmpty(m.SelectedColumn))
+                        .ToDictionary(m => m.SelectedColumn!, m => m.PropertyName);
                 }
             }
             catch (Exception ex) { _logger.LogError(ex, "Failed to show ImportMappingWindow"); }
             return null;
         }
+
+        protected virtual ImportMappingWindow CreateImportMappingWindow(IEnumerable<string> headers, IEnumerable<string> propertyNames)
+            => new ImportMappingWindow(headers, propertyNames);
 
         public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping()
         {

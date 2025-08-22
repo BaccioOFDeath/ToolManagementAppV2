@@ -10,14 +10,15 @@ namespace InventoryManagementApp.Views.Windows
 {
     public partial class ImportMappingWindow : Window
     {
-        public ImportMappingWindow(IEnumerable<string> headers, IEnumerable<string> propertyNames)
+        public ImportMappingWindow(IEnumerable<string> headers, IEnumerable<string> propertyNames, IEnumerable<string>? requiredPropertyNames = null)
         {
             InitializeComponent();
             DataContext = new ImportMappingViewModel(
                 headers,
                 propertyNames,
                 () => { DialogResult = true; Close(); },
-                () => { DialogResult = false; Close(); });
+                () => { DialogResult = false; Close(); },
+                requiredPropertyNames);
             this.DisposeDataContextOnUnload();
         }
 
