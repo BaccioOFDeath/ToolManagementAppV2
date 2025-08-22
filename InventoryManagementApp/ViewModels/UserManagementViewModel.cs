@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
@@ -109,15 +110,53 @@ namespace InventoryManagementApp.ViewModels
         public async Task UploadUserPhotoAsync()
         {
             if (SelectedUser == null) return;
+
             var path = _fileDialogService.OpenFile("Image Files|*.png;*.jpg;*.jpeg;*.bmp|All Files|*.*");
-            var full = PathHelper.GetAbsolutePath(path);
-            if (string.IsNullOrEmpty(full))
+            if (string.IsNullOrWhiteSpace(path))
             {
                 await _dialogService.ShowInfoAsync("Selected file path is invalid.", "Invalid Path");
                 return;
             }
 
-            SelectedUser.UserPhotoPath = full;
+            string fullPath;
+            try
+            {
+                fullPath = Path.GetFullPath(path);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to resolve path {Path}", path);
+                await _dialogService.ShowInfoAsync("Selected file path is invalid.", "Invalid Path");
+                return;
+            }
+
+            if (!File.Exists(fullPath))
+            {
+                await _dialogService.ShowInfoAsync("Selected file does not exist.", "Invalid Path");
+                return;
+            }
+
+            var baseDir = Path.GetFullPath(AppDomain.CurrentDomain.BaseDirectory);
+            if (!fullPath.StartsWith(baseDir, StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    var destDir = Path.Combine(baseDir, "Assets", "UserPhotos");
+                    Directory.CreateDirectory(destDir);
+                    var destPath = Path.Combine(destDir, Path.GetFileName(fullPath));
+                    File.Copy(fullPath, destPath, true);
+                    fullPath = destPath;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to copy user photo from {Source}", fullPath);
+                    await _dialogService.ShowInfoAsync("Failed to copy user photo.", "Error");
+                    return;
+                }
+            }
+
+            SelectedUser.UserPhotoPath = Path.GetRelativePath(baseDir, fullPath);
+
             try
             {
                 await _userService.UpdateUserAsync(SelectedUser);
