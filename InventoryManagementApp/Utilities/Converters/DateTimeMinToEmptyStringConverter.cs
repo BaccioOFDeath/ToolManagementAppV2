@@ -19,11 +19,11 @@ namespace InventoryManagementApp.Utilities.Converters
         {
             try
             {
-                if (value is DateTime dt)
-                    return dt == DateTime.MinValue ? null : dt;
+                if (value is DateTime ndt)
+                    return ndt == DateTime.MinValue ? null : ndt;
 
-                if (value is DateTime? ndt)
-                    return ndt.HasValue && ndt.Value == DateTime.MinValue ? null : ndt;
+                if (value == null)
+                    return null;
             }
             catch (Exception ex)
             {
