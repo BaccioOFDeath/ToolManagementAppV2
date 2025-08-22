@@ -21,14 +21,14 @@
                 <TextBlock Text="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}" Style="{StaticResource SectionHeader}" />
                 <WrapPanel>
                     <Button Style="{StaticResource CompactPrimaryButton}"
-                            Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Import {0} CSV}"
+                            Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Import {0} CSV'}"
                             Command="{Binding ImportItemsCommand}"/>
                     <Button Style="{StaticResource CompactPrimaryButton}"
-                            Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Import {0} Images}"
+                            Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Import {0} Images'}"
                             Command="{Binding DataContext.OpenImageImportMappingWindowCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                             Visibility="{Binding DataContext.IsCurrentUserAdmin, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}"/>
                     <Button Style="{StaticResource CompactPrimaryButton}"
-                            Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Export {0} CSV}"
+                            Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Export {0} CSV'}"
                             Command="{Binding ExportItemsCommand}"/>
                     <Button Style="{StaticResource CompactPrimaryButton}"
                             Content="Backup Database"

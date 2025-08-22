@@ -51,7 +51,7 @@
 
     <!-- Shared rental DataGrid columns -->
     <DataGridTextColumn x:Key="RentalIdColumn" Header="Rental #" Binding="{Binding RentalId}" Width="120" x:Shared="False"/>
-    <DataGridTextColumn x:Key="RentalItemNumberColumn" Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat={}{0} #}" Binding="{Binding ItemNumber}" Width="120" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalItemNumberColumn" Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='{}{0} #'}" Binding="{Binding ItemNumber}" Width="120" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalItemNameColumn" Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}" Binding="{Binding NameDescription}" Width="*" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalCustomerColumn" Header="Customer" Binding="{Binding CustomerName}" Width="220" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalOutColumn" Header="Out" Binding="{Binding DateOut, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="180" x:Shared="False"/>
