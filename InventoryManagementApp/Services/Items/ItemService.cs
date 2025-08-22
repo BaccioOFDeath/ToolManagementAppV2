@@ -175,7 +175,9 @@ namespace InventoryManagementApp.Services.Items
                 return result;
 
             cancellationToken.ThrowIfCancellationRequested();
-            var items = await GetAllItemsAsync(cancellationToken);
+            var items = new List<ItemModel>();
+            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), cancellationToken))
+                items.Add(item);
             var groups = new Dictionary<string, List<ItemModel>>(StringComparer.OrdinalIgnoreCase);
             foreach (var item in items)
             {
@@ -414,21 +416,11 @@ namespace InventoryManagementApp.Services.Items
             return list.FirstOrDefault();
         }
 
-        public async Task<List<ItemModel>> GetAllItemsAsync(CancellationToken cancellationToken = default)
-        {
-            var items = new List<ItemModel>();
-            await foreach (var item in _repository.GetPageAsync(new ItemFilter(null), new ItemPage(1, int.MaxValue), cancellationToken))
-                items.Add(item);
-            return items;
-        }
+        public IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, CancellationToken cancellationToken = default)
+            => _repository.GetPageAsync(new ItemFilter(null), page, cancellationToken);
 
-        public async Task<List<ItemModel>> SearchItemsAsync(string? searchText, CancellationToken cancellationToken = default)
-        {
-            var items = new List<ItemModel>();
-            await foreach (var item in _repository.GetPageAsync(new ItemFilter(searchText), new ItemPage(1, int.MaxValue), cancellationToken))
-                items.Add(item);
-            return items;
-        }
+        public IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, CancellationToken cancellationToken = default)
+            => _repository.GetPageAsync(new ItemFilter(searchText), page, cancellationToken);
 
         private async Task<bool> ToggleItemCheckOutStatusInternalAsync(int itemID, string currentUser, CancellationToken cancellationToken)
         {
@@ -525,7 +517,9 @@ namespace InventoryManagementApp.Services.Items
 
         private async Task ExportItemsToCsvInternalAsync(string filePath, CancellationToken cancellationToken)
         {
-            var items = await GetAllItemsAsync(cancellationToken);
+            var items = new List<ItemModel>();
+            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), cancellationToken))
+                items.Add(item);
             await CsvHelperUtil.ExportItemsToCsvAsync(filePath, items);
         }
 

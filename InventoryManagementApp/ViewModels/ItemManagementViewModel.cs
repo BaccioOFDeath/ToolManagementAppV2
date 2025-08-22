@@ -8,6 +8,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using InventoryManagementApp.Data;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Extensions;
@@ -99,6 +100,7 @@ namespace InventoryManagementApp.ViewModels
 
         bool _suppressItemsChanged;
         bool _disposed;
+        const int PageSize = 50;
 
         // Writable for TwoWay binding from XAML. Mirrors SearchTerm and triggers search.
         private string _searchText = string.Empty;
@@ -153,14 +155,16 @@ namespace InventoryManagementApp.ViewModels
             SearchCommand.Execute(null);
         }
 
-        public async Task LoadItemsAsync()
+        public async Task LoadItemsAsync(ItemPage page)
         {
             _suppressItemsChanged = true;
             try
             {
-                var all = await _itemService.GetAllItemsAsync();
-                Items.ReplaceRange(all);
-                SearchResults.ReplaceRange(all);
+                var list = new List<ItemModel>();
+                await foreach (var item in _itemService.GetItemsAsync(page))
+                    list.Add(item);
+                Items.ReplaceRange(list);
+                SearchResults.ReplaceRange(list);
                 LoadCategories(Items);
             }
             finally
@@ -178,29 +182,28 @@ namespace InventoryManagementApp.ViewModels
         {
             var cancellationToken = _searchCts.Token;
             var term = string.IsNullOrWhiteSpace(SearchTerm) ? string.Empty : SearchTerm.Trim();
-            IEnumerable<ItemModel> source;
+            var page = new ItemPage(1, PageSize);
+            var list = new List<ItemModel>();
 
             if (!string.IsNullOrEmpty(term))
             {
-                source = await _itemService.SearchItemsAsync(term, cancellationToken);
+                await foreach (var item in _itemService.SearchItemsAsync(term, page, cancellationToken))
+                    list.Add(item);
             }
             else
             {
-                if (Items.Count == 0)
-                {
-                    var all = await _itemService.GetAllItemsAsync();
-                    Items.ReplaceRange(all);
-                }
-                source = Items;
+                await foreach (var item in _itemService.GetItemsAsync(page, cancellationToken))
+                    list.Add(item);
             }
 
             if (!string.IsNullOrEmpty(SelectedCategory) && SelectedCategory != "All")
             {
-                source = source.Where(t => string.Equals(t.Brand, SelectedCategory, StringComparison.OrdinalIgnoreCase));
+                list = list.Where(t => string.Equals(t.Brand, SelectedCategory, StringComparison.OrdinalIgnoreCase)).ToList();
             }
 
-            SearchResults.ReplaceRange(source);
-            LoadCategories(source, suppressSearch: true);
+            Items.ReplaceRange(list);
+            SearchResults.ReplaceRange(list);
+            LoadCategories(list, suppressSearch: true);
         }
 
         async Task AddItemAsync(CancellationToken cancellationToken)
@@ -210,7 +213,7 @@ namespace InventoryManagementApp.ViewModels
                 if (string.IsNullOrWhiteSpace(NewItem.ItemNumber))
                     NewItem.ItemNumber = await _itemService.GenerateNextItemNumberAsync(cancellationToken);
                 await _itemService.AddItemAsync(NewItem, cancellationToken);
-                await LoadItemsAsync();
+                await LoadItemsAsync(new ItemPage(1, PageSize));
                 await FilterItemsAsync();
                 NewItem = new ItemModel();
             }
@@ -265,7 +268,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 await _itemService.UpdateItemAsync(updated, cancellationToken);
-                await LoadItemsAsync();
+                await LoadItemsAsync(new ItemPage(1, PageSize));
                 await FilterItemsAsync();
                 SelectedItem = Items.FirstOrDefault(t => t.ItemID == updated.ItemID);
             }
@@ -315,7 +318,7 @@ namespace InventoryManagementApp.ViewModels
                 {
                     await _itemService.DeleteItemAsync(item.ItemID, cancellationToken);
                 }
-                await LoadItemsAsync();
+                await LoadItemsAsync(new ItemPage(1, PageSize));
                 await FilterItemsAsync();
                 SelectedItem = null;
             }
@@ -349,7 +352,7 @@ namespace InventoryManagementApp.ViewModels
                         customer.CustomerID,
                         DateTime.Today,
                         dueDate);
-                    await LoadItemsAsync();
+                    await LoadItemsAsync(new ItemPage(1, PageSize));
                 }
             }
             catch (OperationCanceledException)

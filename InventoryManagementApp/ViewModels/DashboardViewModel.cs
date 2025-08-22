@@ -4,6 +4,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
+using InventoryManagementApp.Data;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
@@ -80,8 +81,10 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 StatCards.Clear();
-                var items = await _itemService.GetAllItemsAsync(cancellationToken);
-                StatCards.Add(new StatCard { Title = $"Total {LabelProvider.Instance.ItemLabelPlural}", Value = items.Count.ToString() });
+                var count = 0;
+                await foreach (var _ in _itemService.GetItemsAsync(new ItemPage(1, int.MaxValue), cancellationToken))
+                    count++;
+                StatCards.Add(new StatCard { Title = $"Total {LabelProvider.Instance.ItemLabelPlural}", Value = count.ToString() });
                 var activeRentals = await _rentalService.GetActiveRentalsAsync();
                 var customers = await _customerService.GetAllCustomersAsync(cancellationToken);
                 var users = await _userService.GetAllUsersAsync();

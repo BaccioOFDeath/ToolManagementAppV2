@@ -4,6 +4,8 @@ using System.Linq;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using InventoryManagementApp.Data;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Services.Customers;
@@ -37,7 +39,9 @@ namespace InventoryManagementApp.Services.Items
 
         public async Task<FlowDocument> GenerateInventoryReport()
         {
-            var items = await _itemService.GetAllItemsAsync().ConfigureAwait(false);
+            var items = new List<ItemModel>();
+            await foreach (var item in _itemService.GetItemsAsync(new ItemPage(1, int.MaxValue)).ConfigureAwait(false))
+                items.Add(item);
             var lines = items.Select(t =>
                 $"ItemModel ID: {t.ItemID} | ItemNumber: {t.ItemNumber} | Qty: {t.QuantityOnHand} | Location: {t.Location} | Supplier: {t.Supplier}");
             return BuildReport("ItemModel Inventory Report", lines);
@@ -84,7 +88,7 @@ namespace InventoryManagementApp.Services.Items
 
         public async Task<FlowDocument> GenerateSummaryReport()
         {
-            var totalItemsTask = _itemService.GetAllItemsAsync();
+            var totalItemsTask = CountItemsAsync();
             var totalRentalsTask = _rentalService.GetAllRentalsAsync();
             var totalActiveRentalsTask = _rentalService.GetActiveRentalsAsync();
             var totalCustomersTask = _customerService.GetAllCustomersAsync();
@@ -105,7 +109,7 @@ namespace InventoryManagementApp.Services.Items
 
             var lines = new[]
             {
-                $"Total Items: {totalItems.Count}",
+                $"Total Items: {totalItems}",
                 $"Total Rentals (History): {totalRentals.Count}",
                 $"Active Rentals: {totalActiveRentals.Count}",
                 $"Total Customers: {totalCustomers.Count}",
@@ -113,6 +117,14 @@ namespace InventoryManagementApp.Services.Items
             };
 
             return BuildReport("Application Summary Report", lines);
+        }
+
+        private async Task<int> CountItemsAsync()
+        {
+            var count = 0;
+            await foreach (var _ in _itemService.GetItemsAsync(new ItemPage(1, int.MaxValue)))
+                count++;
+            return count;
         }
 
 
