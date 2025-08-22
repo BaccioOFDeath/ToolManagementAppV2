@@ -53,7 +53,7 @@
             <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding EditingUser.Mobile, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
             <TextBlock Grid.Row="5" Grid.Column="0" Text="Role" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
-            <ComboBox Grid.Row="5" Grid.Column="1" SelectedValuePath="Tag" SelectedValue="{Binding EditingUser.IsAdmin, Mode=TwoWay}" Margin="0,0,0,8">
+            <ComboBox Grid.Row="5" Grid.Column="1" SelectedValuePath="Tag" SelectedValue="{Binding EditingUser.IsAdmin, Mode=TwoWay}" Margin="0,0,0,8" ItemContainerStyle="{StaticResource DropdownItemStyle}">
                 <ComboBoxItem Content="User" Tag="False"/>
                 <ComboBoxItem Content="Admin" Tag="True"/>
             </ComboBox>

@@ -33,7 +33,8 @@
                             <DataTemplate>
                                 <ComboBox ItemsSource="{Binding DataContext.ColumnHeaders, RelativeSource={RelativeSource AncestorType=Window}}"
                                           SelectedItem="{Binding SelectedColumn, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                          Margin="4"/>
+                                          Margin="4"
+                                          ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellEditingTemplate>
                     </DataGridTemplateColumn>

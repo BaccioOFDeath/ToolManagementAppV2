@@ -24,7 +24,8 @@
                 <ComboBox Grid.Column="1"
                           ItemsSource="{Binding Categories}"
                           SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
-                          Margin="8,0,0,0"/>
+                          Margin="8,0,0,0"
+                          ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
                 <Button Grid.Column="2"
                         Style="{StaticResource PrimaryButton}"
                         Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}"

@@ -89,7 +89,8 @@
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
         <Setter Property="Padding" Value="8,4"/>
         <Setter Property="FontSize" Value="14"/>
-        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType=ComboBox}}"/>
+        <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType=ComboBox}}"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
