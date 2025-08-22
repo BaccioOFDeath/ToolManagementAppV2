@@ -409,6 +409,42 @@ namespace InventoryManagementApp.Tests.Services
             }
         }
 
+        [Fact]
+        public void GetAllRentals_InvalidDates_NoException()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var db = new DatabaseService(dbPath);
+                var itemService = new ItemService(db);
+                var customerService = new CustomerService(db);
+                var rentalService = new RentalService(db);
+
+                itemService.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Hammer", QuantityOnHand = 1 });
+                var item = itemService.GetAllItems().First();
+
+                customerService.AddCustomer(new Customer { Company = "Acme" });
+                var cust = customerService.GetAllCustomers().First();
+
+                using var conn = db.CreateConnection();
+                var cmd = new SQLiteCommand("INSERT INTO Rentals (ItemID, CustomerID, RentalDate, DueDate, ReturnDate, Status) VALUES (@I,@C,'bad','bad','bad','Rented')", conn);
+                cmd.Parameters.AddWithValue("@I", item.ItemID);
+                cmd.Parameters.AddWithValue("@C", cust.CustomerID);
+                cmd.ExecuteNonQuery();
+
+                var rentals = rentalService.GetAllRentals();
+                Assert.Single(rentals);
+                Assert.Null(rentals[0].ReturnDate);
+
+                rentalService.ExtendRental(rentals[0].RentalID, DateTime.Today.AddDays(1));
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
         class FailingItemService : IItemService
         {
             public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => throw new NotImplementedException();
