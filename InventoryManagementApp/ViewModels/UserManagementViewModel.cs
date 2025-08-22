@@ -22,6 +22,7 @@ namespace InventoryManagementApp.ViewModels
         private readonly IUserService _userService;
         private readonly IFileDialogService _fileDialogService;
         private readonly IDialogService _dialogService;
+        private readonly IUserContext? _userContext;
         private readonly ILogger<UserManagementViewModel> _logger;
         private readonly IServiceProvider? _serviceProvider;
 
@@ -66,12 +67,14 @@ namespace InventoryManagementApp.ViewModels
         public UserManagementViewModel(IUserService userService,
                                        IFileDialogService fileDialogService,
                                        IDialogService dialogService,
+                                       IUserContext? userContext = null,
                                        ILogger<UserManagementViewModel>? logger = null,
                                        IServiceProvider? serviceProvider = null)
         {
             _userService = userService;
             _fileDialogService = fileDialogService;
             _dialogService = dialogService;
+            _userContext = userContext;
             _logger = logger ?? NullLogger<UserManagementViewModel>.Instance;
             _serviceProvider = serviceProvider;
 
@@ -122,6 +125,8 @@ namespace InventoryManagementApp.ViewModels
                 if (idxAll >= 0) _allUsers[idxAll] = SelectedUser;
                 var idx = Users.IndexOf(SelectedUser);
                 if (idx >= 0) Users[idx] = SelectedUser;
+                if (_userContext?.CurrentUser?.UserID == SelectedUser.UserID)
+                    _userContext.CurrentUser = SelectedUser;
             }
             catch (UnauthorizedAccessException)
             {

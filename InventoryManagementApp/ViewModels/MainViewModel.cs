@@ -210,7 +210,7 @@ namespace InventoryManagementApp.ViewModels
                 }
             };
             ItemManagement.PropertyChanged += _itemManagementPropertyChangedHandler;
-            UserManagement = new UserManagementViewModel(userService, fileDialogService, _dialogService);
+            UserManagement = new UserManagementViewModel(userService, fileDialogService, _dialogService, _userContext);
             CustomerManagement = new CustomerManagementViewModel(customerService, _dialogService);
             ManageRentals = new ManageRentalsViewModel(rentalService, _dialogService);
             ImportExport = new ImportExportViewModel(itemService, customerService, fileDialogService, databaseService, _dialogService);

@@ -206,6 +206,25 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public async Task UploadUserPhotoCommand_CurrentUserUpdatesContext()
+        {
+            var svc = new InMemoryUserService();
+            var user = new User { UserName = "user1", PasswordHash = "Strong1!" };
+            svc.AddUser(user);
+            var ctx = new StubUserContext { CurrentUser = user };
+            var fileSvc = new StubFileDialogService { FileToReturn = "path/to/image.png" };
+            var vm = new UserManagementViewModel(svc, fileSvc, new StubDialogService(), ctx);
+            await vm.LoadUsersAsync();
+            vm.SelectedUser = vm.Users.First();
+            bool raised = false;
+            ctx.UserChanged += (_, __) => raised = true;
+            await vm.UploadUserPhotoCommand.ExecuteAsync(null);
+            var expected = PathHelper.GetAbsolutePath("path/to/image.png");
+            Assert.Equal(expected, ctx.CurrentUser!.UserPhotoPath);
+            Assert.True(raised);
+        }
+
+        [Fact]
         public async Task UploadUserPhotoCommand_RejectsPathsOutsideAppDirectory()
         {
             var dbPath = Path.GetTempFileName();
@@ -565,6 +584,28 @@ class StubDialogService : IDialogService
     public System.Func<ItemModel, System.Collections.Generic.IEnumerable<string>>? ShowImageImportMapping() => null;
     public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
     public void ShowPrintLabelDialog() { }
+}
+
+class StubUserContext : IUserContext
+{
+    private User? _currentUser;
+    public User? CurrentUser
+    {
+        get => _currentUser;
+        set
+        {
+            _currentUser = value;
+            UserChanged?.Invoke(this, value);
+        }
+    }
+
+    public event EventHandler<User?>? UserChanged;
+
+    public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
+
+    public string UserName => CurrentUser?.UserName ?? string.Empty;
+
+    public string Role => CurrentUser?.Role ?? string.Empty;
 }
 
 class InMemoryUserService : IUserService
