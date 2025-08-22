@@ -318,7 +318,7 @@ namespace InventoryManagementApp.Services.Items
             var text = value?.ToString();
             if (DateTime.TryParse(text, CultureInfo.InvariantCulture,
                     DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var dt))
-                return dt;
+                return DateTime.SpecifyKind(dt, DateTimeKind.Utc).ToLocalTime();
             _logger.LogError("Failed to parse {Field}: {Value}", field, text);
             return null;
         }

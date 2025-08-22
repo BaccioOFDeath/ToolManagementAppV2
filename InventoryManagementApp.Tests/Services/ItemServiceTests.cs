@@ -187,6 +187,29 @@ namespace InventoryManagementApp.Tests.Services
         }
 
         [Fact]
+        public void GetItemByID_ValidDates_AreLocal()
+        {
+            var dbPath = Path.GetTempFileName();
+            try
+            {
+                var dbService = new DatabaseService(dbPath);
+                var service = new ItemService(dbService);
+
+                service.AddItem(new ItemModel { ItemNumber = "T1", NameDescription = "Test", PurchasedDate = DateTime.UtcNow });
+                var item = service.GetAllItems().First();
+
+                var fetched = service.GetItemByID(item.ItemID);
+                Assert.NotNull(fetched.PurchasedDate);
+                Assert.Equal(DateTimeKind.Local, fetched.PurchasedDate!.Value.Kind);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
         public async Task AddItemAsync_SetsGeneratedItemID()
         {
             var dbPath = Path.GetTempFileName();
@@ -785,7 +808,7 @@ namespace InventoryManagementApp.Tests.Services
         }
 
         [Fact]
-        public void ToggleItemCheckOutStatus_SetsUtcTime()
+        public void ToggleItemCheckOutStatus_SetsLocalTime()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -811,7 +834,8 @@ namespace InventoryManagementApp.Tests.Services
                 var updated = svc.GetItemByID(item.ItemID);
                 Assert.True(updated.IsCheckedOut);
                 Assert.NotNull(updated.CheckedOutTime);
-                Assert.InRange(updated.CheckedOutTime!.Value, before, after);
+                Assert.Equal(DateTimeKind.Local, updated.CheckedOutTime!.Value.Kind);
+                Assert.InRange(updated.CheckedOutTime!.Value, before.ToLocalTime(), after.ToLocalTime());
             }
             finally
             {
