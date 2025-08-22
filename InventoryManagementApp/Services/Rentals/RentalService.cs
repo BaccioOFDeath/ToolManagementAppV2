@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
+using System.Linq;
 using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
@@ -69,25 +70,36 @@ namespace InventoryManagementApp.Services.Rentals
 
         // Synchronous rental operations removed; use async equivalents instead.
 
-        Rental MapRental(IDataRecord r) => new()
+        Rental? MapRental(IDataRecord r)
         {
-            RentalID = Convert.ToInt32(r["RentalID"]),
-            ItemID = Convert.ToInt32(r["ItemID"]),
-            CustomerID = Convert.ToInt32(r["CustomerID"]),
-            RentalDate = ParseDateOrDefault(r["RentalDate"], "RentalDate"),
-            DueDate = ParseDateOrDefault(r["DueDate"], "DueDate"),
-            ReturnDate = r["ReturnDate"] is DBNull ? null : ParseNullableDate(r["ReturnDate"], "ReturnDate"),
-            Status = r["Status"].ToString(),
-            ItemNumber = r["ItemNumber"].ToString(),
-            CustomerName = r["Company"].ToString(),
-            CustomerContact = r["Contact"].ToString(),
-            CustomerEmail = r["Email"].ToString(),
-            CustomerPhone = r["Phone"].ToString(),
-            CustomerMobile = r["Mobile"].ToString(),
-            CustomerAddress = r["Address"].ToString(),
-            ImagePath = r["ImagePath"].ToString(),
-            ItemLocation = r["ItemLocation"].ToString()
-        };
+            try
+            {
+                return new Rental
+                {
+                    RentalID = Convert.ToInt32(r["RentalID"]),
+                    ItemID = Convert.ToInt32(r["ItemID"]),
+                    CustomerID = Convert.ToInt32(r["CustomerID"]),
+                    RentalDate = ParseDateOrDefault(r["RentalDate"], "RentalDate"),
+                    DueDate = ParseDateOrDefault(r["DueDate"], "DueDate"),
+                    ReturnDate = r["ReturnDate"] is DBNull ? null : ParseNullableDate(r["ReturnDate"], "ReturnDate"),
+                    Status = r["Status"].ToString(),
+                    ItemNumber = r["ItemNumber"].ToString(),
+                    CustomerName = r["Company"].ToString(),
+                    CustomerContact = r["Contact"].ToString(),
+                    CustomerEmail = r["Email"].ToString(),
+                    CustomerPhone = r["Phone"].ToString(),
+                    CustomerMobile = r["Mobile"].ToString(),
+                    CustomerAddress = r["Address"].ToString(),
+                    ImagePath = r["ImagePath"].ToString(),
+                    ItemLocation = r["ItemLocation"].ToString()
+                };
+            }
+            catch (FormatException ex)
+            {
+                _logger.LogError(ex, "Skipping rental with invalid date");
+                return null;
+            }
+        }
 
         DateTime ParseDateOrDefault(object? value, string field)
         {
@@ -96,7 +108,7 @@ namespace InventoryManagementApp.Services.Rentals
                     DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var dt))
                 return DateTime.SpecifyKind(dt, DateTimeKind.Utc).ToLocalTime();
             _logger.LogError("Failed to parse {Field}: {Value}", field, text);
-            return default;
+            throw new FormatException($"Invalid date value for {field}: {text}");
         }
 
         DateTime? ParseNullableDate(object? value, string field)
@@ -237,7 +249,8 @@ namespace InventoryManagementApp.Services.Rentals
         {
             using var conn = _dbService.CreateConnection();
             var sql = BaseSelect + " WHERE r.Status='Rented'";
-            return await SqliteHelper.ExecuteReaderAsync(conn, sql, null, MapRental);
+            var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, null, MapRental);
+            return list.Where(r => r != null).Select(r => r!).ToList();
         }
 
         public async Task<List<Rental>> GetOverdueRentalsAsync()
@@ -245,13 +258,15 @@ namespace InventoryManagementApp.Services.Rentals
             const string sql = BaseSelect + @" WHERE r.Status = 'Rented' AND r.DueDate < @Today";
             var p = new[] { new SQLiteParameter("@Today", DateTime.Today) };
             using var conn = _dbService.CreateConnection();
-            return await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapRental);
+            var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapRental);
+            return list.Where(r => r != null).Select(r => r!).ToList();
         }
 
         public async Task<List<Rental>> GetAllRentalsAsync()
         {
             using var conn = _dbService.CreateConnection();
-            return await SqliteHelper.ExecuteReaderAsync(conn, BaseSelect, null, MapRental);
+            var list = await SqliteHelper.ExecuteReaderAsync(conn, BaseSelect, null, MapRental);
+            return list.Where(r => r != null).Select(r => r!).ToList();
         }
 
         public async Task<List<Rental>> GetRentalHistoryForItemAsync(int itemID)
@@ -259,7 +274,8 @@ namespace InventoryManagementApp.Services.Rentals
             const string sql = BaseSelect + @" WHERE r.ItemID = @ItemID ORDER BY r.RentalDate DESC";
             var p = new[] { new SQLiteParameter("@ItemID", itemID) };
             using var conn = _dbService.CreateConnection();
-            return await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapRental);
+            var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapRental);
+            return list.Where(r => r != null).Select(r => r!).ToList();
         }
 
         public async Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID)
@@ -267,7 +283,8 @@ namespace InventoryManagementApp.Services.Rentals
             const string sql = BaseSelect + @" WHERE r.CustomerID = @CustomerID ORDER BY r.RentalDate DESC";
             var p = new[] { new SQLiteParameter("@CustomerID", customerID) };
             using var conn = _dbService.CreateConnection();
-            return await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapRental);
+            var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapRental);
+            return list.Where(r => r != null).Select(r => r!).ToList();
         }
     }
 }
