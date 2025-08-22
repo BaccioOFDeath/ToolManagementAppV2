@@ -7,7 +7,9 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       mc:Ignorable="av"
       x:Class="InventoryManagementApp.Views.Pages.ItemSearchPage"
-      Background="{StaticResource BackgroundBrush}">
+      Background="{StaticResource BackgroundBrush}"
+      Loaded="Page_Loaded"
+      SizeChanged="Page_SizeChanged">
     <Grid Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
