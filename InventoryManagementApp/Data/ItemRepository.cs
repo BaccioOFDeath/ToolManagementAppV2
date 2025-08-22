@@ -23,7 +23,7 @@ public sealed class ItemRepository : IItemRepository
         var param = new { Search = $"%{filter.Search}%", Take = page.Size, Skip = (page.Number - 1) * page.Size };
         using var conn = _factory.Create();
         var rows = await conn.QueryAsync<Item>(
-            new CommandDefinition(sql, param, flags: CommandFlags.None, cancellationToken: ct));
+            new CommandDefinition(sql, param, flags: CommandFlags.Buffered, cancellationToken: ct));
         foreach (var row in rows)
         {
             ct.ThrowIfCancellationRequested();
