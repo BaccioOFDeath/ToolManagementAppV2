@@ -29,7 +29,7 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat={}{0} Number}" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='{}{0} Number'}" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ItemModel.ItemNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
             <TextBlock Grid.Row="1" Grid.Column="0" Text="Name" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
@@ -47,7 +47,7 @@
             <TextBlock Grid.Row="5" Grid.Column="0" Text="Supplier" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding ItemModel.Supplier, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-            <CheckBox Grid.Row="6" Grid.ColumnSpan="2" Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Power {0}}" IsChecked="{Binding ItemModel.IsPowered}" Margin="0,0,0,8"/>
+            <CheckBox Grid.Row="6" Grid.ColumnSpan="2" Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Power {0}'}" IsChecked="{Binding ItemModel.IsPowered}" Margin="0,0,0,8"/>
 
             <StackPanel Grid.Row="7" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
                 <Image Width="100" Height="100" Stretch="Uniform"
