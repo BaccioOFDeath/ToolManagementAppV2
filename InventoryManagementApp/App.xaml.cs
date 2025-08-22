@@ -24,6 +24,7 @@ using InventoryManagementApp.Views.Pages;
 using InventoryManagementApp.Views.Windows;
 using InventoryManagementApp.Services.Devices;
 using InventoryManagementApp.Data;
+using InventoryManagementApp.Utilities;
 using Microsoft.Data.Sqlite;
 
 namespace InventoryManagementApp
@@ -109,6 +110,7 @@ namespace InventoryManagementApp
                 services.AddSingleton<ISettingsService, SettingsService>();
                 services.AddSingleton<IDialogService, DialogService>();
                 services.AddSingleton<IScannerService, ScannerService>();
+                services.AddSingleton<MemoryBudget>();
                 services.AddSingleton<IMainViewModel, MainViewModel>();
                 services.AddSingleton<ILoginViewModel, LoginViewModel>();
                 services.AddTransient<ItemEditWindow>();
