@@ -410,7 +410,7 @@ namespace InventoryManagementApp.Tests.Services
         }
 
         [Fact]
-        public void GetAllRentals_InvalidDates_NoException()
+        public void GetAllRentals_InvalidDates_Skipped()
         {
             var dbPath = Path.GetTempFileName();
             try
@@ -432,11 +432,12 @@ namespace InventoryManagementApp.Tests.Services
                 cmd.Parameters.AddWithValue("@C", cust.CustomerID);
                 cmd.ExecuteNonQuery();
 
+                // add a valid rental
+                rentalService.RentItem(item.ItemID, cust.CustomerID, DateTime.Today, DateTime.Today.AddDays(1));
+
                 var rentals = rentalService.GetAllRentals();
                 Assert.Single(rentals);
-                Assert.Null(rentals[0].ReturnDate);
-
-                rentalService.ExtendRental(rentals[0].RentalID, DateTime.Today.AddDays(1));
+                Assert.All(rentals, r => Assert.NotEqual(default, r.RentalDate));
             }
             finally
             {
