@@ -239,19 +239,35 @@ namespace InventoryManagementApp.ViewModels
 
             OpenSearchItemsCommand = new AsyncRelayCommand(async () =>
             {
-                await ItemManagement.LoadItemsAsync();
                 var plural = LabelProvider.Instance.ItemLabelPlural;
                 var page = new ItemSearchPage { DataContext = ItemManagement, Title = $"Search {plural}" };
                 // If your ItemManagement VM supports a query setter, apply GlobalSearchText there.
                 CurrentPage = page;
+                try
+                {
+                    await ItemManagement.LoadItemsAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open search items page");
+                    _dialogService.ShowInfo($"Failed to open search {plural} page: {ex.Message}", $"Search {plural}");
+                }
             });
 
             OpenManageItemsCommand = new AsyncRelayCommand(async () =>
             {
-                await ItemManagement.LoadItemsAsync();
                 var plural = LabelProvider.Instance.ItemLabelPlural;
                 var page = new ManageItemsPage { DataContext = ItemManagement, Title = $"Manage {plural}" };
                 CurrentPage = page;
+                try
+                {
+                    await ItemManagement.LoadItemsAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open manage items page");
+                    _dialogService.ShowInfo($"Failed to open manage {plural} page: {ex.Message}", $"Manage {plural}");
+                }
             });
 
             OpenRentalsCommand = new AsyncRelayCommand(async () =>
