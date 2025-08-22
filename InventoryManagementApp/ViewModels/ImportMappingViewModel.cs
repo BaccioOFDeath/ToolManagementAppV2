@@ -35,11 +35,14 @@ namespace InventoryManagementApp.ViewModels
         public IRelayCommand OkCommand { get; }
         public IRelayCommand CancelCommand { get; }
 
+        private readonly HashSet<string> _requiredProperties;
+
         public ImportMappingViewModel(
             IEnumerable<string> headers,
             IEnumerable<string> properties,
             Action onOk,
-            Action onCancel)
+            Action onCancel,
+            IEnumerable<string>? requiredPropertyNames = null)
         {
             var headerList = (headers ?? Enumerable.Empty<string>()).ToList();
             ColumnHeaders = headerList;
@@ -49,9 +52,13 @@ namespace InventoryManagementApp.ViewModels
                     .Select(prop => new FieldMapping(prop, ColumnHeaders))
             );
 
+            _requiredProperties = new HashSet<string>(
+                requiredPropertyNames ?? Mappings.Select(m => m.PropertyName));
+
             OkCommand = new RelayCommand(() =>
             {
-                if (Mappings.Any(m => string.IsNullOrEmpty(m.SelectedColumn)))
+                if (_requiredProperties.Any(req =>
+                        string.IsNullOrEmpty(Mappings.FirstOrDefault(m => m.PropertyName == req)?.SelectedColumn)))
                     return;
                 onOk();
             });

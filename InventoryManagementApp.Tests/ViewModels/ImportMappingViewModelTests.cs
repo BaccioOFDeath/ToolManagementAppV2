@@ -22,5 +22,23 @@ namespace InventoryManagementApp.Tests.ViewModels
                 Assert.Null(mapping.SelectedColumn);
             }
         }
+
+        [Fact]
+        public void OkCommand_InvokesOnOk_WhenRequiredFieldsMapped()
+        {
+            var headers = new[] { "ItemNumber", "NameDescription" };
+            var properties = new[] { "ItemNumber", "NameDescription" };
+            var required = new[] { "ItemNumber" };
+
+            var called = false;
+            var vm = new ImportMappingViewModel(headers, properties, () => called = true, () => { }, required);
+
+            vm.Mappings.First(m => m.PropertyName == "ItemNumber").SelectedColumn = "ItemNumber";
+            // leave NameDescription unmapped
+
+            vm.OkCommand.Execute(null);
+
+            Assert.True(called);
+        }
     }
 }
