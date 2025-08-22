@@ -5,7 +5,7 @@ InventoryManagementApp is a WPF application following the MVVM pattern for manag
 ## Settings and Rebranding
 The application can be rebranded via its **Settings** to suit different inventory domains:
 - **Application Name**: Sets the title shown throughout the UI.
-- **Singular Item Label** and **Plural Item Label**: Customize terminology for inventory items.
+- **Item name (singular)** and **Item name (plural)**: Customize terminology for inventory items.
 
 These options enable using the app for tracking AV gear, sports equipment, or any other lendable items.
 
