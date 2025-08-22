@@ -22,7 +22,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             CallCount++;
             IEnumerable<ScannerDevice> result = new[]
             {
-                new ScannerDevice { Name = "A", Ip = "1.1.1.1", Status = "Online", LastSeen = DateTime.Now }
+                new ScannerDevice { Name = "A", Ip = "1.1.1.1", Status = "Online", LastSeen = DateTime.UtcNow }
             };
             return Task.FromResult(result);
         }
@@ -38,6 +38,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             await vm.RefreshCommand.ExecuteAsync(null);
             Assert.Single(vm.Devices);
             Assert.Equal(1, svc.CallCount);
+            Assert.Equal(DateTimeKind.Local, vm.Devices[0].LastSeen.Kind);
         }
 
         [Fact]

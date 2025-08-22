@@ -24,14 +24,15 @@ namespace InventoryManagementApp.Tests.Services
 
                 var service = new ScannerService(settings);
 
-                var before = DateTime.UtcNow;
+                var before = DateTime.UtcNow.ToLocalTime();
                 var devices = await service.GetScannerDevicesAsync(CancellationToken.None);
-                var after = DateTime.UtcNow;
+                var after = DateTime.UtcNow.ToLocalTime();
 
                 var list = devices.ToList();
                 Assert.Single(list);
                 Assert.Equal("127.0.0.1", list[0].Ip);
                 Assert.InRange(list[0].LastSeen, before, after);
+                Assert.Equal(DateTimeKind.Local, list[0].LastSeen.Kind);
             }
             finally
             {

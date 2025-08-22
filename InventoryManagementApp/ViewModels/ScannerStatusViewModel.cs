@@ -61,7 +61,14 @@ namespace InventoryManagementApp.ViewModels
                 var devices = await _service.GetScannerDevicesAsync(cancellationToken);
                 Devices.Clear();
                 foreach (var d in devices)
+                {
+                    if (d.LastSeen.Kind != DateTimeKind.Local)
+                    {
+                        _logger.LogWarning("Device {Ip} reported LastSeen kind {Kind}; converting to local time", d.Ip, d.LastSeen.Kind);
+                        d.LastSeen = d.LastSeen.ToLocalTime();
+                    }
                     Devices.Add(d);
+                }
             }
             catch (Exception ex)
             {
