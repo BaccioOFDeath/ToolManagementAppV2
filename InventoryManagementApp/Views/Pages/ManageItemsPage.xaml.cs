@@ -1,5 +1,8 @@
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using InventoryManagementApp.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace InventoryManagementApp.Views.Pages
 {
@@ -8,6 +11,7 @@ namespace InventoryManagementApp.Views.Pages
         public ManageItemsPage()
         {
             InitializeComponent();
+            DataContext = ((App)Application.Current).Host.Services.GetRequiredService<ItemsViewModel>();
         }
 
         private void DataGridRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)

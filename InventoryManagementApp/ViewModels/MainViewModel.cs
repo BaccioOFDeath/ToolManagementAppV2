@@ -258,11 +258,12 @@ namespace InventoryManagementApp.ViewModels
             OpenManageItemsCommand = new AsyncRelayCommand(async () =>
             {
                 var plural = LabelProvider.Instance.ItemLabelPlural;
-                var page = new ManageItemsPage { DataContext = ItemManagement, Title = $"Manage {plural}" };
+                var page = new ManageItemsPage { Title = $"Manage {plural}" };
                 CurrentPage = page;
                 try
                 {
-                    await ItemManagement.LoadItemsAsync(new ItemPage(1, 50));
+                    var vm = (ItemsViewModel)page.DataContext;
+                    await vm.LoadMoreAsync();
                 }
                 catch (Exception ex)
                 {
