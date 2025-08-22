@@ -7,6 +7,8 @@ using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Utilities.Helpers;
 
+#nullable enable
+
 namespace InventoryManagementApp.ViewModels
 {
     public class PrintLabelViewModel : ObservableObject
@@ -17,7 +19,7 @@ namespace InventoryManagementApp.ViewModels
 
         public ObservableCollection<string> Templates { get; }
 
-        private string _selectedTemplate;
+        private string _selectedTemplate = string.Empty;
         public string SelectedTemplate
         {
             get => _selectedTemplate;

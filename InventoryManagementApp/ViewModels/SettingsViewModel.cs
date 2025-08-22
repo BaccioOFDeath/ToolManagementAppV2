@@ -11,6 +11,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Utilities.Helpers;
 
+#nullable enable
+
 namespace InventoryManagementApp.ViewModels
 {
     public class SettingsViewModel : ObservableObject
@@ -57,7 +59,7 @@ namespace InventoryManagementApp.ViewModels
             SaveCompanyLogoCommand = new AsyncRelayCommand(SaveCompanyLogoAsync);
         }
 
-        private string _applicationName;
+        private string _applicationName = string.Empty;
         public string ApplicationName
         {
             get => _applicationName;
@@ -82,14 +84,14 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        private string _companyLogoPath;
+        private string _companyLogoPath = string.Empty;
         public string CompanyLogoPath
         {
             get => _companyLogoPath;
             set => SetProperty(ref _companyLogoPath, value);
         }
 
-        private string _itemLabelSingular;
+        private string _itemLabelSingular = string.Empty;
         public string ItemLabelSingular
         {
             get => _itemLabelSingular;
@@ -115,7 +117,7 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        private string _itemLabelPlural;
+        private string _itemLabelPlural = string.Empty;
         public string ItemLabelPlural
         {
             get => _itemLabelPlural;
@@ -148,14 +150,14 @@ namespace InventoryManagementApp.ViewModels
             set => SetProperty(ref _defaultRentalDuration, value);
         }
 
-        private string _connectionString;
+        private string _connectionString = string.Empty;
         public string ConnectionString
         {
             get => _connectionString;
             set => SetProperty(ref _connectionString, value);
         }
 
-        private string _theme;
+        private string _theme = string.Empty;
         public string Theme
         {
             get => _theme;

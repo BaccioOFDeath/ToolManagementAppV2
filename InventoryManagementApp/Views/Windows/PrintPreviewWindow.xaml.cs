@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Documents;
@@ -7,12 +7,14 @@ using System.Windows.Controls; // WPF PrintDialog
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Utilities.Extensions;
 
+#nullable enable
+
 namespace InventoryManagementApp.Views.Windows
 {
     public partial class PrintPreviewWindow : Window
     {
-        private FlowDocument _document;
-        private string _title;
+        private FlowDocument? _document;
+        private string _title = string.Empty;
         private string _logoPath = string.Empty;
 
         public PrintPreviewWindow()
