@@ -23,11 +23,10 @@ namespace InventoryManagementApp.Tests
         public async Task CommandsExistAndExecute()
         {
             var service = new DummyItemService();
-            var repository = new DummyItemRepository();
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(service, repository, memoryBudget, dialog, rental);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental);
 
             Assert.NotNull(vm.EditItemCommand);
             Assert.True(vm.EditItemCommand.CanExecute(null));
@@ -56,11 +55,10 @@ namespace InventoryManagementApp.Tests
                 ["third"] = new() { new ItemModel { ItemID = 3 } }
             };
             var service = new RecordingItemService(data);
-            var repository = new DummyItemRepository();
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(service, repository, memoryBudget, dialog, rental);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental);
 
             vm.Filter = "first";
             await Task.Delay(100);
@@ -84,11 +82,10 @@ namespace InventoryManagementApp.Tests
                 ["new"] = new() { new ItemModel { ItemID = 2 } }
             };
             var service = new RecordingItemService(data, defaults);
-            var repository = new DummyItemRepository();
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(service, repository, memoryBudget, dialog, rental);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental);
 
             await vm.LoadMoreAsync();
             Assert.Single(vm.Items);
@@ -108,11 +105,10 @@ namespace InventoryManagementApp.Tests
         public async Task ConcurrentLoadMoreCallsDoNotDuplicateOrSkipPages()
         {
             var service = new PagingItemService();
-            var repository = new DummyItemRepository();
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(service, repository, memoryBudget, dialog, rental);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental);
 
             var tasks = new[]
             {
@@ -132,11 +128,10 @@ namespace InventoryManagementApp.Tests
         public void DisposeCanBeCalledMultipleTimesAndCancelsToken()
         {
             var service = new DummyItemService();
-            var repository = new DummyItemRepository();
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            var vm = new ItemsViewModel(service, repository, memoryBudget, dialog, rental);
+            var vm = new ItemsViewModel(service, memoryBudget, dialog, rental);
             vm.Items.Add(new ItemModel { ItemID = 1 });
             var ctsField = typeof(ItemsViewModel).GetField("_filterCts", BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.NotNull(ctsField);
@@ -153,33 +148,31 @@ namespace InventoryManagementApp.Tests
         {
             var item = new ItemModel { ItemID = 1, QuantityOnHand = 1, Location = "A", Price = 1m };
             var service = new StaticItemService(item);
-            var repository = new RecordingItemRepository();
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(service, repository, memoryBudget, dialog, rental);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental);
             await vm.LoadMoreAsync();
             var loaded = vm.Items[0];
             loaded.QuantityOnHand = 5;
             loaded.Price = 2m;
             Assert.Equal(1, vm.PendingEdits.Count);
-            Assert.Empty(repository.Saved);
         }
 
         [Fact]
-        public async Task SaveChangesPersistsQueuedEdits()
+        public async Task CommitChangesPersistsQueuedEdits()
         {
             var item = new ItemModel { ItemID = 1, QuantityOnHand = 1, Location = "A", Price = 1m };
-            var service = new StaticItemService(item);
             var repository = new RecordingItemRepository();
+            var service = new StaticItemService(item, repository);
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(service, repository, memoryBudget, dialog, rental);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental);
             await vm.LoadMoreAsync();
             var loaded = vm.Items[0];
             loaded.Location = "B";
-            await vm.SaveChangesCommand.ExecuteAsync(null);
+            await vm.CommitChangesCommand.ExecuteAsync(null);
             Assert.Single(repository.Saved);
             Assert.Empty(vm.PendingEdits);
         }
@@ -190,10 +183,9 @@ namespace InventoryManagementApp.Tests
             var item = new ItemModel { ItemID = 1 };
             var dialog = new RecordingDialogService { EditItemDialogResult = new ItemModel { ItemID = 1 } };
             var itemService = new RecordingItemService2();
-            var repository = new DummyItemRepository();
             var rental = new DummyRentalService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(itemService, repository, memoryBudget, dialog, rental);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental);
             vm.SelectedItem = item;
             await vm.EditItemCommand.ExecuteAsync(null);
             Assert.True(dialog.EditItemDialogCalled);
@@ -206,10 +198,9 @@ namespace InventoryManagementApp.Tests
             var item = new ItemModel { ItemID = 1 };
             var dialog = new RecordingDialogService { EditItemDialogResult = new ItemModel { ItemID = 1 } };
             var itemService = new RecordingItemService2 { UpdateException = new OperationCanceledException() };
-            var repository = new DummyItemRepository();
             var rental = new DummyRentalService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(itemService, repository, memoryBudget, dialog, rental);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental);
             vm.SelectedItem = item;
             await vm.EditItemCommand.ExecuteAsync(null);
             Assert.True(dialog.EditItemDialogCalled);
@@ -221,10 +212,9 @@ namespace InventoryManagementApp.Tests
         {
             var dialog = new RecordingDialogService();
             var itemService = new DummyItemService();
-            var repository = new DummyItemRepository();
             var rental = new DummyRentalService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(itemService, repository, memoryBudget, dialog, rental);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental);
             vm.SelectedItem = new ItemModel();
             vm.ViewDetailsCommand.Execute(null);
             Assert.True(dialog.ItemDetailsCalled);
@@ -235,10 +225,9 @@ namespace InventoryManagementApp.Tests
         {
             var dialog = new RecordingDialogService { DetailsException = new InvalidOperationException() };
             var itemService = new DummyItemService();
-            var repository = new DummyItemRepository();
             var rental = new DummyRentalService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(itemService, repository, memoryBudget, dialog, rental);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental);
             vm.SelectedItem = new ItemModel();
             vm.ViewDetailsCommand.Execute(null);
             Assert.True(dialog.ItemDetailsCalled);
@@ -251,9 +240,8 @@ namespace InventoryManagementApp.Tests
             var dialog = new RecordingDialogService();
             var rentalService = new RecordingRentalService();
             var itemService = new DummyItemService();
-            var repository = new DummyItemRepository();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(itemService, repository, memoryBudget, dialog, rentalService);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rentalService);
             vm.SelectedItem = item;
             await vm.OpenRentalHistoryCommand.ExecuteAsync(null);
             Assert.True(rentalService.HistoryCalled);
@@ -267,9 +255,8 @@ namespace InventoryManagementApp.Tests
             var dialog = new RecordingDialogService();
             var rentalService = new RecordingRentalService { HistoryException = new OperationCanceledException() };
             var itemService = new DummyItemService();
-            var repository = new DummyItemRepository();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(itemService, repository, memoryBudget, dialog, rentalService);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rentalService);
             vm.SelectedItem = item;
             await vm.OpenRentalHistoryCommand.ExecuteAsync(null);
             Assert.True(rentalService.HistoryCalled);
@@ -281,10 +268,9 @@ namespace InventoryManagementApp.Tests
         {
             var dialog = new RecordingDialogService { EditItemDialogResult = new ItemModel { ItemID = 2 } };
             var itemService = new RecordingItemService2();
-            var repository = new DummyItemRepository();
             var rental = new DummyRentalService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(itemService, repository, memoryBudget, dialog, rental);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental);
             await vm.NewItemCommand.ExecuteAsync(null);
             Assert.True(dialog.EditItemDialogCalled);
             Assert.Single(itemService.Added);
@@ -295,10 +281,9 @@ namespace InventoryManagementApp.Tests
         {
             var dialog = new RecordingDialogService { EditItemDialogResult = new ItemModel { ItemID = 2 } };
             var itemService = new RecordingItemService2 { AddException = new OperationCanceledException() };
-            var repository = new DummyItemRepository();
             var rental = new DummyRentalService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(itemService, repository, memoryBudget, dialog, rental);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental);
             await vm.NewItemCommand.ExecuteAsync(null);
             Assert.True(dialog.EditItemDialogCalled);
             Assert.Single(itemService.Added);
@@ -312,7 +297,7 @@ namespace InventoryManagementApp.Tests
             public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task DeleteItemAsync(int itemID, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default) => Task.FromResult<ItemModel?>(null);
+            public Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default) => Task.FromResult<ItemModel?>(_item);
 
             public IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, CancellationToken cancellationToken = default)
             {
@@ -330,6 +315,7 @@ namespace InventoryManagementApp.Tests
             public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
             public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
             public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, SqliteConnection? conn = null, SqliteTransaction? tx = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct) => Task.CompletedTask;
 
             private async IAsyncEnumerable<ItemModel> EnumeratePageAsync(int page, [EnumeratorCancellation] CancellationToken ct)
             {
@@ -359,6 +345,7 @@ namespace InventoryManagementApp.Tests
             public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
             public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
             public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, SqliteConnection? conn = null, SqliteTransaction? tx = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct) => Task.CompletedTask;
         }
 
         private sealed class RecordingItemService : IItemService
@@ -403,6 +390,7 @@ namespace InventoryManagementApp.Tests
             public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
             public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
             public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, SqliteConnection? conn = null, SqliteTransaction? tx = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct) => Task.CompletedTask;
 
             private async IAsyncEnumerable<ItemModel> EnumerateAsync(List<ItemModel> items, [EnumeratorCancellation] CancellationToken ct)
             {
@@ -417,7 +405,12 @@ namespace InventoryManagementApp.Tests
         private sealed class StaticItemService : IItemService
         {
             private readonly ItemModel _item;
-            public StaticItemService(ItemModel item) => _item = item;
+            private readonly IItemRepository? _repository;
+            public StaticItemService(ItemModel item, IItemRepository? repository = null)
+            {
+                _item = item;
+                _repository = repository;
+            }
             public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task DeleteItemAsync(int itemID, CancellationToken cancellationToken = default) => Task.CompletedTask;
@@ -433,19 +426,14 @@ namespace InventoryManagementApp.Tests
             public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
             public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
             public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, SqliteConnection? conn = null, SqliteTransaction? tx = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct)
+                => _repository?.SaveChangesAsync(changes, ct) ?? Task.CompletedTask;
 
             private async IAsyncEnumerable<ItemModel> Enumerate([EnumeratorCancellation] CancellationToken ct)
             {
                 await Task.Yield();
                 yield return _item;
             }
-        }
-
-        private sealed class DummyItemRepository : IItemRepository
-        {
-            public IAsyncEnumerable<ItemModel> GetPageAsync(ItemFilter filter, ItemPage page, CancellationToken ct) => AsyncEnumerable.Empty<ItemModel>();
-            public Task<int> CountAsync(ItemFilter filter, CancellationToken ct) => Task.FromResult(0);
-            public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct) => Task.CompletedTask;
         }
 
         private sealed class RecordingItemRepository : IItemRepository
@@ -578,6 +566,7 @@ namespace InventoryManagementApp.Tests
             public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
             public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
             public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, SqliteConnection? conn = null, SqliteTransaction? tx = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct) => Task.CompletedTask;
         }
     }
 }

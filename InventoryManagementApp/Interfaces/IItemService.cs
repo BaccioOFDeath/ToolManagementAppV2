@@ -18,6 +18,7 @@ namespace InventoryManagementApp.Interfaces
         IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, CancellationToken cancellationToken = default);
         IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, CancellationToken cancellationToken = default);
         Task<int> CountItemsAsync(ItemFilter filter, CancellationToken ct);
+        Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct);
         Task<bool> ToggleItemCheckOutStatusAsync(int itemID, string currentUser, CancellationToken cancellationToken = default);
         Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default);
         Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default);
