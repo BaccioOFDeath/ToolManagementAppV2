@@ -8,6 +8,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Border Style="{StaticResource Card}" Padding="8">
@@ -19,7 +20,6 @@
                 <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus, UpdateSourceTrigger=PropertyChanged}" Width="120" Margin="0,0,8,0"/>
                 <Button Style="{StaticResource PrimaryButton}" Content="Apply" Command="{Binding ApplyFilterCommand}" Margin="0,0,8,0"/>
                 <Button Style="{StaticResource PrimaryButton}" Content="Clear" Command="{Binding ClearFilterCommand}" Margin="0,0,8,0"/>
-                <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}"/>
             </StackPanel>
         </Border>
 
@@ -70,7 +70,15 @@
             </Grid>
         </Border>
 
-        <ProgressBar Grid.Row="2"
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+            <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,8,0"/>
+            <Button Style="{StaticResource PrimaryButton}" Content="Extend" Command="{Binding ExtendCommand}" Margin="0,0,8,0"/>
+            <Button Style="{StaticResource PrimaryButton}" Content="History" Command="{Binding OpenHistoryCommand}" Margin="0,0,8,0"/>
+            <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintRentalCommand}" Margin="0,0,8,0"/>
+            <Button Style="{StaticResource PrimaryButton}" Content="Delete" Command="{Binding DeleteRentalCommand}"/>
+        </StackPanel>
+
+        <ProgressBar Grid.Row="3"
                      IsIndeterminate="True"
                      Height="4"
                      Margin="0,8,0,0"
