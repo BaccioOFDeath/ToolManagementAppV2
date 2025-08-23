@@ -91,6 +91,13 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set => SetProperty(ref _isLoading, value);
+        }
+
         public IRelayCommand ApplyFilterCommand { get; }
         public IRelayCommand ClearFilterCommand { get; }
         public IAsyncRelayCommand CheckInCommand { get; }
@@ -117,6 +124,7 @@ namespace InventoryManagementApp.ViewModels
         /// <summary>Loads all rentals from the service.</summary>
         public async Task LoadRentalsAsync()
         {
+            IsLoading = true;
             try
             {
                 _allRentals = await _rentalService.GetAllRentalsAsync();
@@ -126,6 +134,10 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to load rentals");
                 await _dialogService.ShowInfoAsync($"Failed to load rentals: {ex.Message}", "Error");
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
@@ -172,6 +184,7 @@ namespace InventoryManagementApp.ViewModels
                 return;
             try
             {
+                IsLoading = true;
                 await _rentalService.ReturnItemAsync(SelectedRental.RentalID, DateTime.Today);
                 await LoadRentalsAsync();
             }
@@ -184,6 +197,10 @@ namespace InventoryManagementApp.ViewModels
                 _logger.LogError(ex, "Failed to check in rental {RentalID}", SelectedRental.RentalID);
                 await _dialogService.ShowInfoAsync($"Failed to check in rental: {ex.Message}", "Error");
             }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
         async Task ExtendAsync()
@@ -192,6 +209,7 @@ namespace InventoryManagementApp.ViewModels
                 return;
             try
             {
+                IsLoading = true;
                 var newDueDate = SelectedRental.DueDate.AddDays(7);
                 await _rentalService.ExtendRentalAsync(SelectedRental.RentalID, newDueDate);
                 await LoadRentalsAsync();
@@ -204,6 +222,10 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to extend rental {RentalID}", SelectedRental.RentalID);
                 await _dialogService.ShowInfoAsync($"Failed to extend rental: {ex.Message}", "Error");
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
@@ -296,6 +318,7 @@ namespace InventoryManagementApp.ViewModels
                 return;
             try
             {
+                IsLoading = true;
                 var rentalToDelete = SelectedRental;
                 await _rentalService.DeleteRentalAsync(rentalToDelete.RentalID);
                 _allRentals.Remove(rentalToDelete);
@@ -310,6 +333,10 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to delete rental {RentalID}", SelectedRental.RentalID);
                 await _dialogService.ShowInfoAsync($"Failed to delete rental: {ex.Message}", "Error");
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
     }
