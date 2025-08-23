@@ -98,6 +98,32 @@ public class ItemDisplaySettingsTests
         public string? SaveFile(string filter) => null;
     }
 
+    private sealed class IncompleteSettingsService : ISettingsService
+    {
+        public event EventHandler<IDictionary<ItemDetailField, bool>>? ItemDetailVisibilityChanged;
+        public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task<string?> GetSettingAsync(string key, CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
+        public Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new Dictionary<string, string>());
+        public Task UpdateSettingsAsync(Dictionary<string, string> settings, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
+        public Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
+        public Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);
+        public Task SavePasswordIterationsAsync(int iterations, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task<int> GetAutoLogoutMinutesAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);
+        public Task SaveAutoLogoutMinutesAsync(int minutes, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task<string> GetItemLabelSingularAsync(CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
+        public Task SaveItemLabelSingularAsync(string label, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task<string> GetItemLabelPluralAsync(CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
+        public Task SaveItemLabelPluralAsync(string label, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task<IDictionary<ItemDetailField, bool>> GetItemDetailVisibilityAsync(CancellationToken cancellationToken = default) => Task.FromResult<IDictionary<ItemDetailField, bool>>(new Dictionary<ItemDetailField, bool> { { ItemDetailField.Name, false } });
+        public Task SaveItemDetailVisibilityAsync(IDictionary<ItemDetailField, bool> visibility, CancellationToken cancellationToken = default)
+        {
+            ItemDetailVisibilityChanged?.Invoke(this, visibility);
+            return Task.CompletedTask;
+        }
+    }
+
     [Fact]
     public async Task ItemManagementViewModel_ReflectsDisplaySettings()
     {
@@ -114,6 +140,23 @@ public class ItemDisplaySettingsTests
         var vmTrue = new ItemManagementViewModel(new DummyItemService(), new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
         await vmTrue.InitializeAsync();
         Assert.All(vmTrue.VisibleFields.Values, v => Assert.True(v));
+    }
+
+    [Fact]
+    public async Task InitializeAsync_FillsMissingItemDetailFields()
+    {
+        var settings = new IncompleteSettingsService();
+        var vm = new ItemManagementViewModel(new DummyItemService(), new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
+        await vm.InitializeAsync();
+        var expected = Enum.GetValues<ItemDetailField>();
+        Assert.Equal(expected.Length, vm.VisibleFields.Count);
+        foreach (var field in expected)
+        {
+            if (field == ItemDetailField.Name)
+                Assert.False(vm.VisibleFields[field]);
+            else
+                Assert.True(vm.VisibleFields[field]);
+        }
     }
 
     [Fact]
