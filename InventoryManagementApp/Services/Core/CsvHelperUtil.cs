@@ -59,7 +59,7 @@ namespace InventoryManagementApp.Utilities.IO
                 list.Add(new ItemModel
                 {
                     ItemNumber = itemNumber,
-                    NameDescription = GetMapped(cols, headers, map, "NameDescription"),
+                    Name = GetMapped(cols, headers, map, "NameDescription"),
                     Location = GetMapped(cols, headers, map, "Location"),
                     Brand = GetMapped(cols, headers, map, "Brand"),
                     PartNumber = GetMapped(cols, headers, map, "PartNumber"),
@@ -93,7 +93,7 @@ namespace InventoryManagementApp.Utilities.IO
             lines.AddRange(items.Select(t =>
                 string.Join(",",
                     Quote(t.ItemNumber),
-                    Quote(t.NameDescription),
+                    Quote(t.Name),
                     Quote(t.Location),
                     Quote(t.Brand),
                     Quote(t.PartNumber),
@@ -114,7 +114,7 @@ namespace InventoryManagementApp.Utilities.IO
             lines.AddRange(items.Select(t =>
                 string.Join(",",
                     Quote(t.ItemNumber),
-                    Quote(t.NameDescription),
+                    Quote(t.Name),
                     Quote(t.Location),
                     Quote(t.Brand),
                     Quote(t.PartNumber),

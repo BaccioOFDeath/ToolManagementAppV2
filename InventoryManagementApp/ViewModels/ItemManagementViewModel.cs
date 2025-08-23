@@ -246,7 +246,7 @@ namespace InventoryManagementApp.ViewModels
                 ItemID = SelectedItem.ItemID,
                 ItemNumber = SelectedItem.ItemNumber,
                 PartNumber = SelectedItem.PartNumber,
-                NameDescription = SelectedItem.NameDescription,
+                Name = SelectedItem.Name,
                 Brand = SelectedItem.Brand,
                 Location = SelectedItem.Location,
                 QuantityOnHand = SelectedItem.QuantityOnHand,
@@ -306,7 +306,7 @@ namespace InventoryManagementApp.ViewModels
         {
             if (items == null || items.Count == 0) return;
             string message = items.Count == 1
-                ? $"Delete {LabelProvider.Instance.ItemLabelSingular.ToLower()} '{((ItemModel)items[0]).NameDescription}'?"
+                ? $"Delete {LabelProvider.Instance.ItemLabelSingular.ToLower()} '{((ItemModel)items[0]).Name}'?"
                 : $"Delete {items.Count} {LabelProvider.Instance.ItemLabelPlural.ToLower()}?";
             var confirm = await _dialogService.ShowConfirmationAsync(message, "Confirm Delete");
             if (!confirm)

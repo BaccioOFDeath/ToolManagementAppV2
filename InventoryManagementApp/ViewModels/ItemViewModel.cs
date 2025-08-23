@@ -16,6 +16,6 @@ namespace InventoryManagementApp.ViewModels
             _item = item;
         }
 
-        public string DisplayName => $"{_item.ItemNumber} - {_item.NameDescription}";
+        public string DisplayName => $"{_item.ItemNumber} - {_item.Name}";
     }
 }

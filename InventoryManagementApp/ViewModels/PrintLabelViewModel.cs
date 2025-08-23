@@ -83,7 +83,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 var sp = new StackPanel { Orientation = System.Windows.Controls.Orientation.Vertical };
                 sp.Children.Add(new TextBlock { Text = t.ItemNumber });
-                sp.Children.Add(new TextBlock { Text = t.NameDescription });
+                sp.Children.Add(new TextBlock { Text = t.Name });
                 sp.Children.Add(new TextBlock { Text = t.Location });
                 if (IncludeQr)
                     sp.Children.Add(new TextBlock { Text = "[QR]" });

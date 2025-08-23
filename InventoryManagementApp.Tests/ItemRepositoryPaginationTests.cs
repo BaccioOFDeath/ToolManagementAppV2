@@ -54,8 +54,8 @@ public class ItemRepositoryPaginationTests
         await foreach (var item in repo.GetPageAsync(new ItemFilter(null), page, CancellationToken.None))
             result.Add(item);
         Assert.Collection(result,
-            i => Assert.Equal("Item 3", i.NameDescription),
-            i => Assert.Equal("Item 4", i.NameDescription));
+            i => Assert.Equal("Item 3", i.Name),
+            i => Assert.Equal("Item 4", i.Name));
     }
 
     [Fact]
@@ -68,6 +68,6 @@ public class ItemRepositoryPaginationTests
         var enumerable = repo.GetPageAsync(new ItemFilter(null), page, CancellationToken.None);
         await using var enumerator = enumerable.GetAsyncEnumerator();
         Assert.True(await enumerator.MoveNextAsync());
-        Assert.Equal("Item 1", enumerator.Current.NameDescription);
+        Assert.Equal("Item 1", enumerator.Current.Name);
     }
 }

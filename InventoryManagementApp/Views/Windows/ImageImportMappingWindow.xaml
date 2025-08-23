@@ -15,7 +15,7 @@
                 <WrapPanel>
                     <CheckBox Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='{}{0}Number'}" IsChecked="{Binding UseItemNumber}" Margin="6,0"/>
                     <CheckBox Content="PartNumber" IsChecked="{Binding UsePartNumber}" Margin="6,0"/>
-                    <CheckBox Content="NameDescription" IsChecked="{Binding UseNameDescription}" Margin="6,0"/>
+                    <CheckBox Content="Name" IsChecked="{Binding UseName}" Margin="6,0"/>
                 </WrapPanel>
             </StackPanel>
         </Border>

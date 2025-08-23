@@ -230,7 +230,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 ItemID = SelectedRental.ItemID,
                 ItemNumber = SelectedRental.ItemNumber,
-                NameDescription = SelectedRental.ItemNumber
+                Name = SelectedRental.ItemNumber
             };
 
             _dialogService.ShowRentalHistory(item, history);

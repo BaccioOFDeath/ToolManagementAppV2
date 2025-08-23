@@ -54,7 +54,7 @@ public class ItemRepositorySearchTests
     }
 
     [Fact]
-    public async Task GetPageAsync_SearchNameDescription_IgnoresCase()
+    public async Task GetPageAsync_SearchName_IgnoresCase()
     {
         var factory = CreateFactory();
         await SeedAsync(factory);
@@ -63,6 +63,6 @@ public class ItemRepositorySearchTests
         await foreach (var item in repo.GetPageAsync(new ItemFilter("saw"), new ItemPage(1, 10), CancellationToken.None))
             result.Add(item);
         Assert.Single(result);
-        Assert.Equal("Hand Saw", result[0].NameDescription);
+        Assert.Equal("Hand Saw", result[0].Name);
     }
 }
