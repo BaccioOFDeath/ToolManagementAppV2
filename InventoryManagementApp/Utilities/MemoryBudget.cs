@@ -7,27 +7,34 @@ namespace InventoryManagementApp.Utilities
     public sealed class MemoryBudget : IDisposable
     {
         private readonly Timer _timer;
-        private readonly long _thresholdBytes;
+        private readonly long _steadyThresholdBytes;
+        private readonly long _peakThresholdBytes;
 
-        public event EventHandler? ThresholdExceeded;
+        public event EventHandler? SteadyExceeded;
+        public event EventHandler? PeakExceeded;
 
         public MemoryBudget()
-            : this(TimeSpan.FromSeconds(5), 600L * 1024 * 1024)
+            : this(TimeSpan.FromSeconds(5), 400L * 1024 * 1024, 800L * 1024 * 1024)
         {
         }
 
-        public MemoryBudget(TimeSpan interval, long thresholdBytes)
+        public MemoryBudget(TimeSpan interval, long steadyThresholdBytes, long peakThresholdBytes)
         {
-            _thresholdBytes = thresholdBytes;
+            _steadyThresholdBytes = steadyThresholdBytes;
+            _peakThresholdBytes = peakThresholdBytes;
             _timer = new Timer(CheckMemory, null, interval, interval);
         }
 
         private void CheckMemory(object? state)
         {
             var total = GC.GetTotalMemory(false);
-            if (total > _thresholdBytes)
+            if (total > _peakThresholdBytes)
             {
-                ThresholdExceeded?.Invoke(this, EventArgs.Empty);
+                PeakExceeded?.Invoke(this, EventArgs.Empty);
+            }
+            else if (total > _steadyThresholdBytes)
+            {
+                SteadyExceeded?.Invoke(this, EventArgs.Empty);
             }
         }
 
