@@ -1,4 +1,4 @@
-﻿using System.Data.SQLite;
+﻿using Microsoft.Data.Sqlite;
 using System;
 using System.IO;
 using System.Data;
@@ -102,7 +102,7 @@ namespace InventoryManagementApp.Services.Items
             using var conn = _dbService.CreateConnection();
             return SqliteHelper.ExecuteReaderAsync(conn,
                 "SELECT * FROM Items WHERE CheckedOutBy=@User AND IsCheckedOut=1",
-                new[] { new SQLiteParameter("@User", userName) }, MapItem, cancellationToken);
+                new[] { new SqliteParameter("@User", userName) }, MapItem, cancellationToken);
         }
 
         public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default)
@@ -111,8 +111,8 @@ namespace InventoryManagementApp.Services.Items
             const string sql = "UPDATE Items SET ImagePath=@Img WHERE ItemID=@ID";
             var p = new[]
             {
-                new SQLiteParameter("@Img", imagePath),
-                new SQLiteParameter("@ID", itemID)
+                new SqliteParameter("@Img", imagePath),
+                new SqliteParameter("@ID", itemID)
             };
             using var conn = _dbService.CreateConnection();
             return SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken);
@@ -142,26 +142,26 @@ namespace InventoryManagementApp.Services.Items
             return $"T{max + 1}";
         }
 
-        async Task InsertItemAsync(SQLiteConnection conn, SQLiteTransaction? tran, ItemModel item, CancellationToken cancellationToken)
+        async Task InsertItemAsync(SqliteConnection conn, SqliteTransaction? tran, ItemModel item, CancellationToken cancellationToken)
         {
             ValidateQuantity(item.QuantityOnHand);
             var p = new[]
             {
-                new SQLiteParameter("@ItemNumber", item.ItemNumber),
-                new SQLiteParameter("@Desc", (object)item.NameDescription ?? DBNull.Value),
-                new SQLiteParameter("@Loc", item.Location),
-                new SQLiteParameter("@Brand", item.Brand),
-                new SQLiteParameter("@PN", item.PartNumber),
-                new SQLiteParameter("@Sup", (object)item.Supplier ?? DBNull.Value),
-                new SQLiteParameter("@PD", (object)item.PurchasedDate ?? DBNull.Value),
-                new SQLiteParameter("@Notes", (object)item.Notes ?? DBNull.Value),
-                new SQLiteParameter("@Keywords", (object)item.Keywords ?? DBNull.Value),
-                new SQLiteParameter("@Avail", item.QuantityOnHand),
-                new SQLiteParameter("@Rent", item.RentedQuantity),
-                new SQLiteParameter("@Img", (object)item.ImagePath ?? DBNull.Value),
-                new SQLiteParameter("@Powered", item.IsPowered ? 1 : 0)
+                new SqliteParameter("@ItemNumber", item.ItemNumber),
+                new SqliteParameter("@Desc", (object)item.NameDescription ?? DBNull.Value),
+                new SqliteParameter("@Loc", item.Location),
+                new SqliteParameter("@Brand", item.Brand),
+                new SqliteParameter("@PN", item.PartNumber),
+                new SqliteParameter("@Sup", (object)item.Supplier ?? DBNull.Value),
+                new SqliteParameter("@PD", (object)item.PurchasedDate ?? DBNull.Value),
+                new SqliteParameter("@Notes", (object)item.Notes ?? DBNull.Value),
+                new SqliteParameter("@Keywords", (object)item.Keywords ?? DBNull.Value),
+                new SqliteParameter("@Avail", item.QuantityOnHand),
+                new SqliteParameter("@Rent", item.RentedQuantity),
+                new SqliteParameter("@Img", (object)item.ImagePath ?? DBNull.Value),
+                new SqliteParameter("@Powered", item.IsPowered ? 1 : 0)
             };
-            using var cmd = new SQLiteCommand(UpsertItemCsv, conn, tran);
+            using var cmd = new SqliteCommand(UpsertItemCsv, conn, tran);
             cmd.Parameters.AddRange(p);
             var result = await cmd.ExecuteScalarAsync(cancellationToken);
             if (result != null)
@@ -275,7 +275,7 @@ namespace InventoryManagementApp.Services.Items
                 return false;
 
             var sql = "SELECT COUNT(*) FROM Items WHERE ItemNumber = @TN";
-            var parameters = new List<SQLiteParameter>
+            var parameters = new List<SqliteParameter>
             {
                 new("@TN", itemNumber)
             };
@@ -283,7 +283,7 @@ namespace InventoryManagementApp.Services.Items
             if (exceptId.HasValue)
             {
                 sql += " AND ItemID <> @ID";
-                parameters.Add(new SQLiteParameter("@ID", exceptId.Value));
+                parameters.Add(new SqliteParameter("@ID", exceptId.Value));
             }
 
             using var conn = _dbService.CreateConnection();
@@ -364,29 +364,29 @@ namespace InventoryManagementApp.Services.Items
                 WHERE ItemID = @ID";
             var p = new[]
             {
-                new SQLiteParameter("@ID", item.ItemID),
-                new SQLiteParameter("@ItemNumber", item.ItemNumber),
-                new SQLiteParameter("@Desc", (object)item.NameDescription ?? DBNull.Value),
-                new SQLiteParameter("@Loc", item.Location),
-                new SQLiteParameter("@Brand", item.Brand),
-                new SQLiteParameter("@PN", item.PartNumber),
-                new SQLiteParameter("@Sup", (object)item.Supplier ?? DBNull.Value),
-                new SQLiteParameter("@PD", (object)item.PurchasedDate ?? DBNull.Value),
-                new SQLiteParameter("@Notes", (object)item.Notes ?? DBNull.Value),
-                new SQLiteParameter("@Keywords", (object)item.Keywords ?? DBNull.Value),
-                new SQLiteParameter("@Avail", item.QuantityOnHand),
-                new SQLiteParameter("@Rent", item.RentedQuantity),
-                new SQLiteParameter("@Powered", item.IsPowered ? 1 : 0),
-                new SQLiteParameter("@Out", item.IsCheckedOut ? 1 : 0),
-                new SQLiteParameter("@By", (object)item.CheckedOutBy ?? DBNull.Value),
-                new SQLiteParameter("@Time", (object)item.CheckedOutTime ?? DBNull.Value),
-                new SQLiteParameter("@Img", (object)item.ImagePath ?? DBNull.Value)
+                new SqliteParameter("@ID", item.ItemID),
+                new SqliteParameter("@ItemNumber", item.ItemNumber),
+                new SqliteParameter("@Desc", (object)item.NameDescription ?? DBNull.Value),
+                new SqliteParameter("@Loc", item.Location),
+                new SqliteParameter("@Brand", item.Brand),
+                new SqliteParameter("@PN", item.PartNumber),
+                new SqliteParameter("@Sup", (object)item.Supplier ?? DBNull.Value),
+                new SqliteParameter("@PD", (object)item.PurchasedDate ?? DBNull.Value),
+                new SqliteParameter("@Notes", (object)item.Notes ?? DBNull.Value),
+                new SqliteParameter("@Keywords", (object)item.Keywords ?? DBNull.Value),
+                new SqliteParameter("@Avail", item.QuantityOnHand),
+                new SqliteParameter("@Rent", item.RentedQuantity),
+                new SqliteParameter("@Powered", item.IsPowered ? 1 : 0),
+                new SqliteParameter("@Out", item.IsCheckedOut ? 1 : 0),
+                new SqliteParameter("@By", (object)item.CheckedOutBy ?? DBNull.Value),
+                new SqliteParameter("@Time", (object)item.CheckedOutTime ?? DBNull.Value),
+                new SqliteParameter("@Img", (object)item.ImagePath ?? DBNull.Value)
             };
             try
             {
                 await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken);
             }
-            catch (SQLiteException ex)
+            catch (SqliteException ex)
             {
                 _logger.LogError(ex, "Failed to update item {ItemID}", item.ItemID);
                 throw new InvalidOperationException($"Failed to update item {item.ItemID}.", ex);
@@ -399,9 +399,9 @@ namespace InventoryManagementApp.Services.Items
             try
             {
                 await SqliteHelper.ExecuteNonQueryAsync(conn, "DELETE FROM Items WHERE ItemID=@ID",
-                    new[] { new SQLiteParameter("@ID", itemID) }, cancellationToken);
+                    new[] { new SqliteParameter("@ID", itemID) }, cancellationToken);
             }
-            catch (SQLiteException ex)
+            catch (SqliteException ex)
             {
                 _logger.LogError(ex, "Failed to delete item {ItemID}", itemID);
                 throw new InvalidOperationException($"Failed to delete item {itemID}.", ex);
@@ -412,7 +412,7 @@ namespace InventoryManagementApp.Services.Items
         {
             using var conn = _dbService.CreateConnection();
             var list = await SqliteHelper.ExecuteReaderAsync(conn, "SELECT * FROM Items WHERE ItemID=@ItemID",
-                new[] { new SQLiteParameter("@ItemID", itemID) }, MapItem, cancellationToken);
+                new[] { new SqliteParameter("@ItemID", itemID) }, MapItem, cancellationToken);
             return list.FirstOrDefault();
         }
 
@@ -430,7 +430,7 @@ namespace InventoryManagementApp.Services.Items
             using var conn = _dbService.CreateConnection();
             var record = (await SqliteHelper.ExecuteReaderAsync(conn,
                 "SELECT IsCheckedOut, AvailableQuantity FROM Items WHERE ItemID=@ID",
-                new[] { new SQLiteParameter("@ID", itemID) },
+                new[] { new SqliteParameter("@ID", itemID) },
                 r => new { Out = Convert.ToInt32(r["IsCheckedOut"]) == 1, Qty = Convert.ToInt32(r["AvailableQuantity"]) }, cancellationToken)).FirstOrDefault();
 
             if (record == null)
@@ -452,11 +452,11 @@ namespace InventoryManagementApp.Services.Items
                   AvailableQuantity = AvailableQuantity + @Q
                 WHERE ItemID = @ID", new[]
             {
-                new SQLiteParameter("@Out", newStatus),
-                new SQLiteParameter("@By", by),
-                new SQLiteParameter("@Time", time),
-                new SQLiteParameter("@Q", qtyChange),
-                new SQLiteParameter("@ID", itemID)
+                new SqliteParameter("@Out", newStatus),
+                new SqliteParameter("@By", by),
+                new SqliteParameter("@Time", time),
+                new SqliteParameter("@Q", qtyChange),
+                new SqliteParameter("@ID", itemID)
             }, cancellationToken);
 
             if (rows == 0)
@@ -526,7 +526,7 @@ namespace InventoryManagementApp.Services.Items
             await CsvHelperUtil.ExportItemsToCsvAsync(filePath, items);
         }
 
-        public async Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default)
+        public async Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, SqliteConnection? conn = null, SqliteTransaction? tx = null, CancellationToken cancellationToken = default)
         {
             if (qtyChange <= 0) throw new ArgumentException("Quantity change must be positive.", nameof(qtyChange));
             var sql = isRental
@@ -534,8 +534,8 @@ namespace InventoryManagementApp.Services.Items
                 : @"UPDATE Items SET AvailableQuantity = AvailableQuantity + @Q, RentedQuantity = RentedQuantity - @Q WHERE ItemID = @ID AND RentedQuantity >= @Q";
             var p = new[]
             {
-                new SQLiteParameter("@ID", itemID),
-                new SQLiteParameter("@Q", qtyChange)
+                new SqliteParameter("@ID", itemID),
+                new SqliteParameter("@Q", qtyChange)
             };
 
             if (conn != null)

@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using InventoryManagementApp.Services.Core;
 using System.Text.RegularExpressions;
 using Xunit;
@@ -22,16 +22,16 @@ public class DatabaseServiceMigrationTests
     [Fact]
     public void RenameColumnIfExists_DoesNothingWhenNamesMatch()
     {
-        using var conn = new SQLiteConnection("Data Source=:memory:");
+        using var conn = new SqliteConnection("Data Source=:memory:");
         conn.Open();
-        using var create = new SQLiteCommand("CREATE TABLE Items (IsPowered INTEGER);", conn);
+        using var create = new SqliteCommand("CREATE TABLE Items (IsPowered INTEGER);", conn);
         create.ExecuteNonQuery();
 
         var service = (DatabaseService)FormatterServices.GetUninitializedObject(typeof(DatabaseService));
         var method = typeof(DatabaseService).GetMethod("RenameColumnIfExists", BindingFlags.NonPublic | BindingFlags.Instance)!;
         method.Invoke(service, new object[] { conn, "Items", "IsPowered", "IsPowered" });
 
-        using var pragma = new SQLiteCommand("PRAGMA table_info(Items);", conn);
+        using var pragma = new SqliteCommand("PRAGMA table_info(Items);", conn);
         using var reader = pragma.ExecuteReader();
         var count = 0;
         while (reader.Read())

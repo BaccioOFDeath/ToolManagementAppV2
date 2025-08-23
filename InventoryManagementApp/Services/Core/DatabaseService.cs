@@ -1,4 +1,4 @@
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.IO;
 using System;
 using System.Threading;
@@ -10,7 +10,7 @@ using InventoryManagementApp.Interfaces;
 namespace InventoryManagementApp.Services.Core
 {
     /// <summary>
-    /// Provides SQLite database access for the application. Instances should be
+    /// Provides Sqlite database access for the application. Instances should be
     /// disposed when no longer needed to release pooled connections.
     /// </summary>
     public class DatabaseService : IDisposable, IDatabaseBackupService, IDatabaseService
@@ -19,24 +19,22 @@ namespace InventoryManagementApp.Services.Core
         private readonly ILogger<DatabaseService> _logger;
         bool _disposed;
 
-        public SQLiteConnection CreateConnection()
+        public SqliteConnection CreateConnection()
         {
-            var conn = new SQLiteConnection(ConnectionString);
+            var conn = new SqliteConnection(ConnectionString);
             conn.Open();
             return conn;
         }
 
         public DatabaseService(string dbPath, ILogger<DatabaseService>? logger = null)
         {
-            var builder = new SQLiteConnectionStringBuilder
+            var builder = new SqliteConnectionStringBuilder
             {
                 DataSource = dbPath,
-                Version = 3,
                 Pooling = true,
-                BusyTimeout = 5000,
-                JournalMode = SQLiteJournalModeEnum.Wal
+                Cache = SqliteCacheMode.Shared,
+                DefaultTimeout = 5
             };
-            builder["Cache"] = "Shared";
             ConnectionString = builder.ToString();
             _logger = logger ?? NullLogger<DatabaseService>.Instance;
             ConfigureDatabase();
@@ -78,7 +76,7 @@ namespace InventoryManagementApp.Services.Core
             if (_disposed) return;
             if (disposing)
             {
-                SQLiteConnection.ClearAllPools();
+                SqliteConnection.ClearAllPools();
             }
             _disposed = true;
         }
@@ -90,11 +88,11 @@ namespace InventoryManagementApp.Services.Core
 
         void ConfigureDatabase()
         {
-            using var conn = new SQLiteConnection(ConnectionString);
+            using var conn = new SqliteConnection(ConnectionString);
             conn.Open();
-            using var cmd = new SQLiteCommand("PRAGMA journal_mode=WAL;", conn);
+            using var cmd = new SqliteCommand("PRAGMA journal_mode=WAL;", conn);
             cmd.ExecuteNonQuery();
-            using var timeout = new SQLiteCommand("PRAGMA busy_timeout=5000;", conn);
+            using var timeout = new SqliteCommand("PRAGMA busy_timeout=5000;", conn);
             timeout.ExecuteNonQuery();
         }
 
@@ -171,7 +169,7 @@ namespace InventoryManagementApp.Services.Core
                     Key TEXT PRIMARY KEY,
                     Value TEXT
                 );";
-            using var cmd = new SQLiteCommand(sql, conn);
+            using var cmd = new SqliteCommand(sql, conn);
             cmd.ExecuteNonQuery();
 
             EnsureIndex(conn, "Items", "ItemNumber", true);
@@ -187,18 +185,18 @@ namespace InventoryManagementApp.Services.Core
             EnsureIndex(conn, "Rentals", new[] { "ItemID", "CustomerID" });
         }
 
-        void MigrateLegacyToolsTable(SQLiteConnection conn)
+        void MigrateLegacyToolsTable(SqliteConnection conn)
         {
             // Legacy migration: rename old "Tools" table to "Items"
-            using var check = new SQLiteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='Tools';", conn);
+            using var check = new SqliteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='Tools';", conn);
             var legacyToolsTableExists = check.ExecuteScalar();
             if (legacyToolsTableExists != null)
             {
-                using var itemsCheck = new SQLiteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='Items';", conn);
+                using var itemsCheck = new SqliteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='Items';", conn);
                 var itemsExists = itemsCheck.ExecuteScalar();
                 if (itemsExists == null)
                 {
-                    using var rename = new SQLiteCommand("ALTER TABLE Tools RENAME TO Items;", conn);
+                    using var rename = new SqliteCommand("ALTER TABLE Tools RENAME TO Items;", conn);
                     rename.ExecuteNonQuery();
                 }
             }
@@ -211,15 +209,15 @@ namespace InventoryManagementApp.Services.Core
             {
                 using var conn = CreateConnection();
                 var defaultClause = defaultValue != null ? $" NOT NULL DEFAULT {defaultValue}" : string.Empty;
-                using var alter = new SQLiteCommand($"ALTER TABLE {table} ADD COLUMN {column} {type}{defaultClause}", conn);
+                using var alter = new SqliteCommand($"ALTER TABLE {table} ADD COLUMN {column} {type}{defaultClause}", conn);
                 alter.ExecuteNonQuery();
                 if (defaultValue != null)
                 {
-                    using var update = new SQLiteCommand($"UPDATE {table} SET {column}={defaultValue} WHERE {column} IS NULL", conn);
+                    using var update = new SqliteCommand($"UPDATE {table} SET {column}={defaultValue} WHERE {column} IS NULL", conn);
                     update.ExecuteNonQuery();
                 }
             }
-            catch (SQLiteException ex)
+            catch (SqliteException ex)
             {
                 if (ex.Message.Contains("duplicate column name", StringComparison.OrdinalIgnoreCase))
                 {
@@ -233,10 +231,10 @@ namespace InventoryManagementApp.Services.Core
             }
         }
 
-        void EnsureIndex(SQLiteConnection conn, string table, string column, bool unique = false)
+        void EnsureIndex(SqliteConnection conn, string table, string column, bool unique = false)
             => EnsureIndex(conn, table, new[] { column }, unique);
 
-        void EnsureIndex(SQLiteConnection conn, string table, string[] columns, bool unique = false)
+        void EnsureIndex(SqliteConnection conn, string table, string[] columns, bool unique = false)
         {
             var indexName = $"idx_{table}_{string.Join("_", columns)}";
             if (SqliteHelper.IndexExists(conn, indexName)) return;
@@ -244,10 +242,10 @@ namespace InventoryManagementApp.Services.Core
             {
                 var uniqueSql = unique ? "UNIQUE" : string.Empty;
                 var columnsSql = string.Join(", ", columns);
-                using var cmd = new SQLiteCommand($"CREATE {uniqueSql} INDEX {indexName} ON {table}({columnsSql})", conn);
+                using var cmd = new SqliteCommand($"CREATE {uniqueSql} INDEX {indexName} ON {table}({columnsSql})", conn);
                 cmd.ExecuteNonQuery();
             }
-            catch (SQLiteException ex)
+            catch (SqliteException ex)
             {
                 if (ex.Message.Contains("already exists", StringComparison.OrdinalIgnoreCase))
                 {
@@ -261,9 +259,9 @@ namespace InventoryManagementApp.Services.Core
             }
         }
 
-        void RenameColumnIfExists(SQLiteConnection conn, string table, string oldName, string newName)
+        void RenameColumnIfExists(SqliteConnection conn, string table, string oldName, string newName)
         {
-            using var info = new SQLiteCommand($"PRAGMA table_info({table})", conn);
+            using var info = new SqliteCommand($"PRAGMA table_info({table})", conn);
             using var rdr = info.ExecuteReader();
             var oldExists = false;
             var newExists = false;
@@ -275,13 +273,13 @@ namespace InventoryManagementApp.Services.Core
             }
             if (oldExists && !newExists)
             {
-                using var rename = new SQLiteCommand($"ALTER TABLE {table} RENAME COLUMN {oldName} TO {newName}", conn);
+                using var rename = new SqliteCommand($"ALTER TABLE {table} RENAME COLUMN {oldName} TO {newName}", conn);
                 rename.ExecuteNonQuery();
             }
         }
 
         /// <summary>
-        /// Creates a backup of the current database using SQLite's backup API.
+        /// Creates a backup of the current database using Sqlite's backup API.
         /// </summary>
         /// <remarks>
         /// Ensure this method is called when no open transactions exist on the connection.
@@ -303,17 +301,16 @@ namespace InventoryManagementApp.Services.Core
             try
             {
                 using var source = CreateConnection();
-                var builder = new SQLiteConnectionStringBuilder
+                var builder = new SqliteConnectionStringBuilder
                 {
                     DataSource = backupFilePath,
-                    Version = 3,
-                    Pooling = true
+                    Pooling = true,
+                    Cache = SqliteCacheMode.Shared
                 };
-                builder["Cache"] = "Shared";
-                using var destination = new SQLiteConnection(builder.ToString());
+                using var destination = new SqliteConnection(builder.ToString());
                 destination.Open();
 
-                source.BackupDatabase(destination, "main", "main", -1, null, 0);
+                source.BackupDatabase(destination);
             }
             catch (Exception ex)
             {

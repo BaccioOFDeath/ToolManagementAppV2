@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.Data;
 using System.Threading.Tasks;
 using InventoryManagementApp.Models;
@@ -114,7 +114,7 @@ namespace InventoryManagementApp.Services.Users
         {
             using var conn = _dbService.CreateConnection();
             var list = await SqliteHelper.ExecuteReaderAsync(conn, "SELECT * FROM Users WHERE UserID=@ID",
-                new[] { new SQLiteParameter("@ID", userID) }, MapUser);
+                new[] { new SqliteParameter("@ID", userID) }, MapUser);
             return list.FirstOrDefault();
         }
 
@@ -127,7 +127,7 @@ namespace InventoryManagementApp.Services.Users
 
             var users = await SqliteHelper.ExecuteReaderAsync(conn,
                 "SELECT * FROM Users WHERE UserName=@UserName",
-                new[] { new SQLiteParameter("@UserName", userName) }, MapUser);
+                new[] { new SqliteParameter("@UserName", userName) }, MapUser);
 
             var u = users.FirstOrDefault();
             if (u == null) return (AuthenticationResult.IncorrectPassword, null);
@@ -143,9 +143,9 @@ namespace InventoryManagementApp.Services.Users
                     var upgradedResult = await SecurityHelper.HashPasswordAsync(password).ConfigureAwait(false);
                     var p = new[]
                     {
-                new SQLiteParameter("@Pwd", upgradedResult.hash),
-                new SQLiteParameter("@Salt", upgradedResult.salt),
-                new SQLiteParameter("@ID", u.UserID)
+                new SqliteParameter("@Pwd", upgradedResult.hash),
+                new SqliteParameter("@Salt", upgradedResult.salt),
+                new SqliteParameter("@ID", u.UserID)
             };
                     await SqliteHelper.ExecuteNonQueryAsync(conn, "UPDATE Users SET PasswordHash=@Pwd, PasswordSalt=@Salt WHERE UserID=@ID", p);
                     u.PasswordHash = upgradedResult.hash;
@@ -194,7 +194,7 @@ namespace InventoryManagementApp.Services.Users
                 SELECT last_insert_rowid();";
 
             using var conn = _dbService.CreateConnection();
-            using var cmd = new SQLiteCommand(sql, conn);
+            using var cmd = new SqliteCommand(sql, conn);
 
             var password = (user.PasswordHash ?? string.Empty).Trim();
             if (string.IsNullOrEmpty(password))
@@ -210,25 +210,25 @@ namespace InventoryManagementApp.Services.Users
                 user.CreatedAt = DateTime.UtcNow;
             cmd.Parameters.AddRange(new[]
             {
-                new SQLiteParameter("@UserName", user.UserName),
-                new SQLiteParameter("@PasswordHash", hashed),
-                new SQLiteParameter("@PasswordSalt",     salt),
-                new SQLiteParameter("@Photo",    (object)user.UserPhotoPath ?? DBNull.Value),
-                new SQLiteParameter("@Admin",    user.IsAdmin ? 1 : 0),
-                new SQLiteParameter("@Email",    (object)user.Email ?? DBNull.Value),
-                new SQLiteParameter("@Phone",    (object)user.Phone ?? DBNull.Value),
-                new SQLiteParameter("@Mobile",   (object)user.Mobile ?? DBNull.Value),
-                new SQLiteParameter("@Address",  (object)user.Address ?? DBNull.Value),
-                new SQLiteParameter("@Role",     (object)user.Role ?? DBNull.Value),
-                new SQLiteParameter("@IsActive", user.IsActive ? 1 : 0),
-                new SQLiteParameter("@CreatedAt", user.CreatedAt),
-                new SQLiteParameter("@PasswordExpired", user.PasswordExpired ? 1 : 0)
+                new SqliteParameter("@UserName", user.UserName),
+                new SqliteParameter("@PasswordHash", hashed),
+                new SqliteParameter("@PasswordSalt",     salt),
+                new SqliteParameter("@Photo",    (object)user.UserPhotoPath ?? DBNull.Value),
+                new SqliteParameter("@Admin",    user.IsAdmin ? 1 : 0),
+                new SqliteParameter("@Email",    (object)user.Email ?? DBNull.Value),
+                new SqliteParameter("@Phone",    (object)user.Phone ?? DBNull.Value),
+                new SqliteParameter("@Mobile",   (object)user.Mobile ?? DBNull.Value),
+                new SqliteParameter("@Address",  (object)user.Address ?? DBNull.Value),
+                new SqliteParameter("@Role",     (object)user.Role ?? DBNull.Value),
+                new SqliteParameter("@IsActive", user.IsActive ? 1 : 0),
+                new SqliteParameter("@CreatedAt", user.CreatedAt),
+                new SqliteParameter("@PasswordExpired", user.PasswordExpired ? 1 : 0)
             });
             try
             {
                 user.UserID = Convert.ToInt32(await cmd.ExecuteScalarAsync());
             }
-            catch (SQLiteException ex) when (ex.ResultCode == SQLiteErrorCode.Constraint &&
+            catch (SqliteException ex) when (ex.ResultCode == SqliteErrorCode.Constraint &&
                                              ex.Message.Contains("Users.UserName", StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException("A user with the same username already exists.", ex);
@@ -279,18 +279,18 @@ namespace InventoryManagementApp.Services.Users
 
             var p = new[]
             {
-                new SQLiteParameter("@UserID",   user.UserID),
-                new SQLiteParameter("@UserName", user.UserName),
-                new SQLiteParameter("@PasswordHash", hashed),
-                new SQLiteParameter("@PasswordSalt",     salt),
-                new SQLiteParameter("@Photo",    (object)user.UserPhotoPath ?? DBNull.Value),
-                new SQLiteParameter("@Admin",    user.IsAdmin ? 1 : 0),
-                new SQLiteParameter("@Email",    (object)user.Email ?? DBNull.Value),
-                new SQLiteParameter("@Phone",    (object)user.Phone ?? DBNull.Value),
-                new SQLiteParameter("@Mobile",   (object)user.Mobile ?? DBNull.Value),
-                new SQLiteParameter("@Address",  (object)user.Address ?? DBNull.Value),
-                new SQLiteParameter("@Role",     (object)user.Role ?? DBNull.Value),
-                new SQLiteParameter("@IsActive", user.IsActive ? 1 : 0)
+                new SqliteParameter("@UserID",   user.UserID),
+                new SqliteParameter("@UserName", user.UserName),
+                new SqliteParameter("@PasswordHash", hashed),
+                new SqliteParameter("@PasswordSalt",     salt),
+                new SqliteParameter("@Photo",    (object)user.UserPhotoPath ?? DBNull.Value),
+                new SqliteParameter("@Admin",    user.IsAdmin ? 1 : 0),
+                new SqliteParameter("@Email",    (object)user.Email ?? DBNull.Value),
+                new SqliteParameter("@Phone",    (object)user.Phone ?? DBNull.Value),
+                new SqliteParameter("@Mobile",   (object)user.Mobile ?? DBNull.Value),
+                new SqliteParameter("@Address",  (object)user.Address ?? DBNull.Value),
+                new SqliteParameter("@Role",     (object)user.Role ?? DBNull.Value),
+                new SqliteParameter("@IsActive", user.IsActive ? 1 : 0)
             };
 
             using var conn = _dbService.CreateConnection();
@@ -317,10 +317,10 @@ namespace InventoryManagementApp.Services.Users
 
             var p = new[]
             {
-                new SQLiteParameter("@Pwd", hashed),
-                new SQLiteParameter("@Salt", salt),
-                new SQLiteParameter("@Expired", expired ? 1 : 0),
-                new SQLiteParameter("@ID",  userID)
+                new SqliteParameter("@Pwd", hashed),
+                new SqliteParameter("@Salt", salt),
+                new SqliteParameter("@Expired", expired ? 1 : 0),
+                new SqliteParameter("@ID",  userID)
             };
             using var conn = _dbService.CreateConnection();
             int rows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
@@ -333,7 +333,7 @@ namespace InventoryManagementApp.Services.Users
         {
             var sql = "DELETE FROM Users WHERE UserID=@ID";
             using var conn = _dbService.CreateConnection();
-            await SqliteHelper.ExecuteNonQueryAsync(conn, sql, new[] { new SQLiteParameter("@ID", userID) });
+            await SqliteHelper.ExecuteNonQueryAsync(conn, sql, new[] { new SqliteParameter("@ID", userID) });
         }
 
         public async Task<bool> TryDeleteUserAsync(int userID)
