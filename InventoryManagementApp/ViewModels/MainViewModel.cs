@@ -47,6 +47,7 @@ namespace InventoryManagementApp.ViewModels
         readonly Func<Task<bool>> _showLoginWindow;
         readonly IDispatcherTimer _autoLogoutTimer;
         int _autoLogoutMinutes;
+        CancellationTokenSource? _pageLoadCts;
 
         EventHandler<User?>? _userContextChangedHandler;
         PropertyChangedEventHandler? _itemManagementPropertyChangedHandler;
@@ -66,6 +67,7 @@ namespace InventoryManagementApp.ViewModels
             get => _currentPage;
             set
             {
+                CancelCurrentPageLoad();
                 if (SetProperty(ref _currentPage, value))
                     CurrentPageTitle = value?.Title ?? value?.GetType().Name ?? "Dashboard";
             }
@@ -116,6 +118,13 @@ namespace InventoryManagementApp.ViewModels
         }
 
         public ItemModel? SelectedItem => ItemManagement.SelectedItem;
+
+        void CancelCurrentPageLoad()
+        {
+            _pageLoadCts?.Cancel();
+            _pageLoadCts?.Dispose();
+            _pageLoadCts = null;
+        }
 
         public void ResetAutoLogoutTimer()
         {
@@ -238,7 +247,8 @@ namespace InventoryManagementApp.ViewModels
                     var vm = new DashboardViewModel(_itemService, _rentalService, _customerService, _userService, _activityLogService, OpenManageItemsCommand, OpenRentalsCommand, OpenImportExportCommand);
                     var page = new DashboardPage { DataContext = vm, Title = "Dashboard" };
                     CurrentPage = page;
-                    await Task.CompletedTask;
+                    _pageLoadCts = new CancellationTokenSource();
+                    await vm.LoadAsync(_pageLoadCts.Token);
                 }
                 catch (Exception ex)
                 {

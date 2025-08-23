@@ -121,6 +121,52 @@ public class DashboardViewModelTests
             => Task.FromResult(new Result<List<ActivityLog>>(new List<ActivityLog>(), true));
     }
 
+    private sealed class SlowItemRepository : IItemRepository
+    {
+        public bool Canceled { get; private set; }
+
+        public IAsyncEnumerable<ItemModel> GetPageAsync(ItemFilter filter, ItemPage page, CancellationToken ct)
+            => AsyncEnumerable.Empty<ItemModel>();
+
+        public async Task<int> CountAsync(ItemFilter filter, CancellationToken ct)
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5), ct);
+                return 0;
+            }
+            catch (OperationCanceledException)
+            {
+                Canceled = true;
+                throw;
+            }
+        }
+
+        public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct)
+            => Task.CompletedTask;
+    }
+
+    private sealed class CancellableActivityLogService : ActivityLogService
+    {
+        public bool Canceled { get; private set; }
+
+        public CancellableActivityLogService(DatabaseService db) : base(db) { }
+
+        public override async Task<Result<List<ActivityLog>>> GetRecentLogsAsync(int count = 50, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+                return new Result<List<ActivityLog>>(new List<ActivityLog>(), true);
+            }
+            catch (OperationCanceledException)
+            {
+                Canceled = true;
+                throw;
+            }
+        }
+    }
+
     [Fact]
     public async Task LoadStatsAsync_UsesRepositoryCount()
     {
@@ -153,6 +199,38 @@ public class DashboardViewModelTests
         Assert.Equal(1, userService.CountCalls);
         Assert.Equal(0, userService.GetCalls);
         Assert.Contains(vm.StatCards, s => s.Title == "Total Items" && s.Value == "42");
+    }
+
+    [Fact]
+    public async Task LoadAsync_Cancelled_DoesNotPopulateCollections()
+    {
+        using var db = new DatabaseService(":memory:");
+        var repo = new SlowItemRepository();
+        var itemService = new ItemService(db, repo);
+        var rentalService = new StubRentalService();
+        var customerService = new StubCustomerService();
+        var userService = new StubUserService();
+        var activityLogService = new CancellableActivityLogService(db);
+
+        var vm = new DashboardViewModel(
+            itemService,
+            rentalService,
+            customerService,
+            userService,
+            activityLogService,
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }));
+
+        using var cts = new CancellationTokenSource();
+        var task = vm.LoadAsync(cts.Token);
+        cts.Cancel();
+        await task;
+
+        Assert.True(repo.Canceled);
+        Assert.True(activityLogService.Canceled);
+        Assert.Empty(vm.StatCards);
+        Assert.Empty(vm.RecentActivity);
     }
 }
 
