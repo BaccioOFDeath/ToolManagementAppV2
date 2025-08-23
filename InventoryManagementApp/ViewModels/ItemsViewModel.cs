@@ -14,6 +14,8 @@ using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Helpers;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Application = System.Windows.Application;
 
 namespace InventoryManagementApp.ViewModels
@@ -27,6 +29,7 @@ namespace InventoryManagementApp.ViewModels
         private readonly ICustomerService _customerService;
         private readonly ISettingsService _settingsService;
         private readonly IUserContext _userContext;
+        private readonly ILogger<ItemsViewModel> _logger;
         private CancellationTokenSource _filterCts = new();
         private bool _disposed;
         private readonly List<ItemModel> _pendingEdits = new();
@@ -58,7 +61,7 @@ namespace InventoryManagementApp.ViewModels
 
         public ObservableCollection<SortOption> SortOptions { get; }
 
-        public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService, ICustomerService customerService, ISettingsService settingsService, IUserContext userContext)
+        public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService, ICustomerService customerService, ISettingsService settingsService, IUserContext userContext, ILogger<ItemsViewModel>? logger = null)
         {
             _itemService = itemService;
             _memoryBudget = memoryBudget;
@@ -67,6 +70,7 @@ namespace InventoryManagementApp.ViewModels
             _customerService = customerService;
             _settingsService = settingsService;
             _userContext = userContext;
+            _logger = logger ?? NullLogger<ItemsViewModel>.Instance;
             Items = new IncrementalLoadingCollection<ItemModel>(LoadPageAsync, PageSize);
             SortOptions = new ObservableCollection<SortOption>(new[]
             {
@@ -413,8 +417,10 @@ namespace InventoryManagementApp.ViewModels
             {
                 return;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed to toggle check out status for item {ItemID}", item.ItemID);
+                await _dialogService.ShowInfoAsync($"Failed to update check-out status: {ex.Message}", "Error").ConfigureAwait(false);
                 return;
             }
             if (!result) return;

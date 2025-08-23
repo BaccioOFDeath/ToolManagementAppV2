@@ -131,6 +131,25 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task ToggleCheckOutCommand_OnError_ShowsDialog()
+        {
+            var service = new ThrowingItemService();
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
+            var settings = new DummySettingsService();
+            var userContext = new DummyUserContext { CurrentUser = new User { UserName = "user1" } };
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, userContext);
+            var item = new ItemModel { ItemID = 1, QuantityOnHand = 3 };
+            vm.Items.Add(item);
+
+            await vm.ToggleCheckOutCommand.ExecuteAsync(item);
+
+            Assert.Single(dialog.Infos);
+        }
+
+        [Fact]
         public void SteadyExceeded_TrimsToThreePages()
         {
             var service = new DummyItemService();
@@ -616,7 +635,7 @@ namespace InventoryManagementApp.Tests
             }
         }
 
-        private sealed class DummyItemService : IItemService
+        private class DummyItemService : IItemService
         {
             public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
@@ -625,7 +644,7 @@ namespace InventoryManagementApp.Tests
             public IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default) => AsyncEnumerable.Empty<ItemModel>();
             public IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default) => AsyncEnumerable.Empty<ItemModel>();
             public Task<int> CountItemsAsync(ItemFilter filter, CancellationToken ct) => Task.FromResult(0);
-            public Task<bool> ToggleItemCheckOutStatusAsync(int itemID, CancellationToken cancellationToken = default) => Task.FromResult(false);
+            public virtual Task<bool> ToggleItemCheckOutStatusAsync(int itemID, CancellationToken cancellationToken = default) => Task.FromResult(false);
             public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
             public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => Task.FromResult(new List<int>());
@@ -758,8 +777,13 @@ namespace InventoryManagementApp.Tests
 
         private sealed class DummyDialogService : IDialogService
         {
-            public void ShowInfo(string message, string title) { }
-            public Task ShowInfoAsync(string message, string title) => Task.CompletedTask;
+            public List<(string message, string title)> Infos { get; } = new();
+            public void ShowInfo(string message, string title) => Infos.Add((message, title));
+            public Task ShowInfoAsync(string message, string title)
+            {
+                Infos.Add((message, title));
+                return Task.CompletedTask;
+            }
             public bool ShowConfirmation(string message, string title) => true;
             public Task<bool> ShowConfirmationAsync(string message, string title) => Task.FromResult(true);
             public ItemModel? ShowEditItemDialog(ItemModel item) => null;
@@ -772,6 +796,11 @@ namespace InventoryManagementApp.Tests
             public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(FlowDocument document, string title, string description) { }
             public void ShowPrintLabelDialog() { }
+        }
+
+        private sealed class ThrowingItemService : DummyItemService
+        {
+            public override Task<bool> ToggleItemCheckOutStatusAsync(int itemID, CancellationToken cancellationToken = default) => throw new Exception("error");
         }
 
         private sealed class DummyRentalService : IRentalService
