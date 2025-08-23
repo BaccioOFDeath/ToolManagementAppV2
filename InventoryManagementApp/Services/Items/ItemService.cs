@@ -337,6 +337,8 @@ namespace InventoryManagementApp.Services.Items
         DateTime? ParseNullableDate(object? value, string field)
         {
             var text = value?.ToString();
+            if (string.IsNullOrWhiteSpace(text))
+                return null;
             if (DateTime.TryParse(text, CultureInfo.InvariantCulture,
                     DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var dt))
                 return DateTime.SpecifyKind(dt, DateTimeKind.Utc).ToLocalTime();
