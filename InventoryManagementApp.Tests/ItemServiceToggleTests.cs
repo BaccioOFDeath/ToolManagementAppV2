@@ -113,4 +113,48 @@ public class ItemServiceToggleTests
 
         File.Delete(dbPath);
     }
+
+    [Fact]
+    public async Task RentalItemCannotBeToggled()
+    {
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        await using var db = new DatabaseService(dbPath);
+        await InitializeAsync(db);
+        var userContext = new DummyUserContext { CurrentUser = new User { UserID = 1, UserName = "user1", IsAdmin = false } };
+        var service = new ItemService(db, new DummyItemRepository(), userContext: userContext);
+
+        var result = await service.ToggleItemCheckOutStatusAsync(2, "user1", CancellationToken.None);
+        Assert.False(result);
+
+        using (var conn = db.CreateConnection())
+        {
+            var record = await conn.QuerySingleAsync("SELECT IsCheckedOut FROM Items WHERE ItemID=2");
+            Assert.Equal(0L, record.IsCheckedOut);
+        }
+
+        File.Delete(dbPath);
+    }
+
+    [Fact]
+    public async Task GetItemsCheckedOutByAsyncExcludesRentalItems()
+    {
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        await using var db = new DatabaseService(dbPath);
+        await InitializeAsync(db);
+        var userContext = new DummyUserContext { CurrentUser = new User { UserID = 1, UserName = "user1", IsAdmin = false } };
+        var service = new ItemService(db, new DummyItemRepository(), userContext: userContext);
+
+        await service.ToggleItemCheckOutStatusAsync(1, "user1", CancellationToken.None);
+
+        using (var conn = db.CreateConnection())
+        {
+            await conn.ExecuteAsync("UPDATE Items SET IsCheckedOut=1, CheckedOutBy='user1' WHERE ItemID=2");
+        }
+
+        var items = await service.GetItemsCheckedOutByAsync("user1", CancellationToken.None);
+        Assert.Single(items);
+        Assert.Equal(1, items[0].ItemID);
+
+        File.Delete(dbPath);
+    }
 }
