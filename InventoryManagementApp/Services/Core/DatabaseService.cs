@@ -54,6 +54,7 @@ namespace InventoryManagementApp.Services.Core
             using (var conn = CreateConnection())
             {
                 EnsureIndex(conn, "Items", "Keywords");
+                EnsureIndex(conn, "Items", "IsRentalItem");
             }
             EnsureColumn("Users", "PasswordHash", "TEXT");
             EnsureColumn("Users", "PasswordSalt", "TEXT");
