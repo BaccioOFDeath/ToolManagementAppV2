@@ -13,10 +13,16 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock
-                    Text="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}"
-                    Style="{StaticResource SubheadingTextBlock}"
-                    Margin="0,0,0,8"/>
+                <StackPanel Margin="0,0,0,8">
+                    <TextBlock
+                        Text="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}"
+                        Style="{StaticResource SubheadingTextBlock}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <TextBox Width="200" Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}"/>
+                        <ComboBox Width="180" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSortOption}" DisplayMemberPath="DisplayName" Margin="8,0,0,0"/>
+                        <TextBox Width="60" Text="{Binding PageSize, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,0"/>
+                    </StackPanel>
+                </StackPanel>
 
                 <DataGrid Grid.Row="1"
                           ItemsSource="{Binding Items}"
