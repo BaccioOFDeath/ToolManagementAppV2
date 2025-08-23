@@ -110,6 +110,13 @@ namespace InventoryManagementApp.Services.Items
                 new[] { new SqliteParameter("@User", userName) }, cancellationToken);
         }
 
+        public Task<List<ItemModel>> GetCheckedOutItemsAsync(CancellationToken cancellationToken = default)
+        {
+            using var conn = _dbService.CreateConnection();
+            const string sql = "SELECT * FROM Items WHERE IsCheckedOut=1 AND IFNULL(IsRentalItem,0)=0";
+            return SqliteHelper.ExecuteReaderAsync(conn, sql, MapItem, null, cancellationToken);
+        }
+
         public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();

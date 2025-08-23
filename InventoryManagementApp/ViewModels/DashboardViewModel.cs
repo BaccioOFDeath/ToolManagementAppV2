@@ -29,6 +29,7 @@ namespace InventoryManagementApp.ViewModels
 
         public ObservableCollection<StatCard> StatCards { get; } = new();
         public ObservableCollection<ActivityLog> RecentActivity { get; } = new();
+        public ObservableCollection<ItemModel> CheckedOutItems { get; } = new();
 
         public IRelayCommand NewItemCommand { get; }
         public IRelayCommand OpenRentalsCommand { get; }
@@ -76,7 +77,8 @@ namespace InventoryManagementApp.ViewModels
         public Task LoadAsync(CancellationToken cancellationToken)
             => Task.WhenAll(
                 LoadStatsAsync(cancellationToken),
-                LoadRecentActivityAsync(cancellationToken));
+                LoadRecentActivityAsync(cancellationToken),
+                LoadCheckedOutItemsAsync(cancellationToken));
 
         internal async Task LoadStatsAsync(CancellationToken cancellationToken)
         {
@@ -130,6 +132,24 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load recent activity");
+            }
+        }
+
+        internal async Task LoadCheckedOutItemsAsync(CancellationToken token)
+        {
+            try
+            {
+                CheckedOutItems.Clear();
+                var items = await _itemService.GetCheckedOutItemsAsync(token).ConfigureAwait(false);
+                foreach (var item in items)
+                    CheckedOutItems.Add(item);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load checked-out items");
             }
         }
     }
