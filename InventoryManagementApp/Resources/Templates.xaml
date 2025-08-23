@@ -22,13 +22,13 @@
         <Border Style="{StaticResource Card}" Width="220" Padding="0">
             <Border.Visibility>
                 <MultiBinding Converter="{StaticResource AnyTrueToVisibilityConverter}">
-                    <Binding Path="DataContext.VisibleFields[{x:Static models:ItemDetailField.Image}]" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
-                    <Binding Path="DataContext.VisibleFields[{x:Static models:ItemDetailField.Name}]" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
-                    <Binding Path="DataContext.VisibleFields[{x:Static models:ItemDetailField.ItemNumber}]" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
-                    <Binding Path="DataContext.VisibleFields[{x:Static models:ItemDetailField.Brand}]" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
-                    <Binding Path="DataContext.VisibleFields[{x:Static models:ItemDetailField.Location}]" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
-                    <Binding Path="DataContext.VisibleFields[{x:Static models:ItemDetailField.Price}]" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
-                    <Binding Path="DataContext.VisibleFields[{x:Static models:ItemDetailField.Notes}]" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
+                    <Binding Path="DataContext.VisibleFields[(x:Static models:ItemDetailField.Image)]" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
+                    <Binding Path="DataContext.VisibleFields[(x:Static models:ItemDetailField.Name)]" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
+                    <Binding Path="DataContext.VisibleFields[(x:Static models:ItemDetailField.ItemNumber)]" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
+                    <Binding Path="DataContext.VisibleFields[(x:Static models:ItemDetailField.Brand)]" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
+                    <Binding Path="DataContext.VisibleFields[(x:Static models:ItemDetailField.Location)]" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
+                    <Binding Path="DataContext.VisibleFields[(x:Static models:ItemDetailField.Price)]" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
+                    <Binding Path="DataContext.VisibleFields[(x:Static models:ItemDetailField.Notes)]" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
                 </MultiBinding>
             </Border.Visibility>
             <Grid>
@@ -36,16 +36,16 @@
                     <RowDefinition Height="140"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <Border Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1" CornerRadius="8" Visibility="{Binding DataContext.VisibleFields[{x:Static models:ItemDetailField.Image}], RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}">
+                <Border Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1" CornerRadius="8" Visibility="{Binding DataContext.VisibleFields[(x:Static models:ItemDetailField.Image)], RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}">
                     <Image Stretch="UniformToFill" Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
                 </Border>
                 <StackPanel Grid.Row="1" Margin="0,6,0,0">
-                    <TextBlock Text="{Binding Name}" Style="{StaticResource ListItemTitleTextBlock}" Visibility="{Binding DataContext.VisibleFields[{x:Static models:ItemDetailField.Name}], RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}" Visibility="{Binding DataContext.VisibleFields[{x:Static models:ItemDetailField.ItemNumber}], RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Text="{Binding Brand}" Style="{StaticResource CaptionTextBlock}" Visibility="{Binding DataContext.VisibleFields[{x:Static models:ItemDetailField.Brand}], RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Text="{Binding Location}" Style="{StaticResource CaptionTextBlock}" Visibility="{Binding DataContext.VisibleFields[{x:Static models:ItemDetailField.Location}], RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Text="{Binding Price, StringFormat={}{0:C}}" Style="{StaticResource CaptionTextBlock}" Visibility="{Binding DataContext.VisibleFields[{x:Static models:ItemDetailField.Price}], RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Text="{Binding Notes}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis" Visibility="{Binding DataContext.VisibleFields[{x:Static models:ItemDetailField.Notes}], RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="{Binding Name}" Style="{StaticResource ListItemTitleTextBlock}" Visibility="{Binding DataContext.VisibleFields[(x:Static models:ItemDetailField.Name)], RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}" Visibility="{Binding DataContext.VisibleFields[(x:Static models:ItemDetailField.ItemNumber)], RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="{Binding Brand}" Style="{StaticResource CaptionTextBlock}" Visibility="{Binding DataContext.VisibleFields[(x:Static models:ItemDetailField.Brand)], RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="{Binding Location}" Style="{StaticResource CaptionTextBlock}" Visibility="{Binding DataContext.VisibleFields[(x:Static models:ItemDetailField.Location)], RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="{Binding Price, StringFormat={}{0:C}}" Style="{StaticResource CaptionTextBlock}" Visibility="{Binding DataContext.VisibleFields[(x:Static models:ItemDetailField.Price)], RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="{Binding Notes}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis" Visibility="{Binding DataContext.VisibleFields[(x:Static models:ItemDetailField.Notes)], RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"/>
                 </StackPanel>
             </Grid>
         </Border>
