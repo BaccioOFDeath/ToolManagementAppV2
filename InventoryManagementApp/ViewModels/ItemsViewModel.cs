@@ -14,6 +14,7 @@ using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Helpers;
+using Application = System.Windows.Application;
 
 namespace InventoryManagementApp.ViewModels
 {
