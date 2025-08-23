@@ -89,7 +89,8 @@ namespace InventoryManagementApp.ViewModels
                         selectedSortOption = opt;
                 }
             }
-            _memoryBudget.ThresholdExceeded += OnThresholdExceeded;
+            _memoryBudget.SteadyExceeded += OnSteadyExceeded;
+            _memoryBudget.PeakExceeded += OnPeakExceeded;
 
             EditItemCommand = new AsyncRelayCommand(ct => EditItemAsync(ct));
             ViewDetailsCommand = new RelayCommand(ViewDetails);
@@ -138,7 +139,9 @@ namespace InventoryManagementApp.ViewModels
             await _settingsService.SaveSettingAsync("LastFilter", Filter, token).ConfigureAwait(false);
         }
 
-        private void OnThresholdExceeded(object? sender, EventArgs e) => Items.TrimToWindow(PageSize * 3);
+        private void OnSteadyExceeded(object? sender, EventArgs e) => Items.TrimToWindow(PageSize * 3);
+
+        private void OnPeakExceeded(object? sender, EventArgs e) => Items.Reset();
 
         partial void OnSelectedSortOptionChanged(SortOption value) => _ = ApplySortAsync(value);
 
@@ -327,7 +330,8 @@ namespace InventoryManagementApp.ViewModels
         {
             if (_disposed) return;
             _disposed = true;
-            _memoryBudget.ThresholdExceeded -= OnThresholdExceeded;
+            _memoryBudget.SteadyExceeded -= OnSteadyExceeded;
+            _memoryBudget.PeakExceeded -= OnPeakExceeded;
             foreach (var item in Items)
                 item.PropertyChanged -= Item_PropertyChanged;
             Items.Reset();

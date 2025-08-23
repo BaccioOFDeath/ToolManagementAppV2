@@ -26,7 +26,7 @@ namespace InventoryManagementApp.Tests
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
             var settings = new DummySettingsService();
-            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
 
             Assert.NotNull(vm.EditItemCommand);
@@ -47,6 +47,45 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void SteadyExceeded_TrimsToThreePages()
+        {
+            var service = new DummyItemService();
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var settings = new DummySettingsService();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
+            var pageField = typeof(ItemsViewModel).GetField("pageSize", BindingFlags.NonPublic | BindingFlags.Instance);
+            pageField!.SetValue(vm, 2);
+            vm.Items.PageSize = 2;
+            for (int i = 0; i < 10; i++)
+                vm.Items.Add(new ItemModel { ItemID = i });
+            var method = typeof(ItemsViewModel).GetMethod("OnSteadyExceeded", BindingFlags.NonPublic | BindingFlags.Instance);
+            method!.Invoke(vm, new object?[] { null, EventArgs.Empty });
+            Assert.Equal(6, vm.Items.Count);
+            Assert.Equal(4, vm.Items[0].ItemID);
+        }
+
+        [Fact]
+        public void PeakExceeded_ClearsItems()
+        {
+            var service = new DummyItemService();
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var settings = new DummySettingsService();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
+            var pageField = typeof(ItemsViewModel).GetField("pageSize", BindingFlags.NonPublic | BindingFlags.Instance);
+            pageField!.SetValue(vm, 2);
+            vm.Items.PageSize = 2;
+            vm.Items.Add(new ItemModel { ItemID = 1 });
+            vm.Items.Add(new ItemModel { ItemID = 2 });
+            var method = typeof(ItemsViewModel).GetMethod("OnPeakExceeded", BindingFlags.NonPublic | BindingFlags.Instance);
+            method!.Invoke(vm, new object?[] { null, EventArgs.Empty });
+            Assert.Empty(vm.Items);
+        }
+
+        [Fact]
         public async Task RapidFilterChangesOnlyLoadsLastRequest()
         {
             var data = new Dictionary<string, List<ItemModel>>
@@ -59,7 +98,7 @@ namespace InventoryManagementApp.Tests
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
             var settings = new DummySettingsService();
-            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
 
             vm.Filter = "first";
@@ -87,7 +126,7 @@ namespace InventoryManagementApp.Tests
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
             var settings = new DummySettingsService();
-            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
 
             await vm.LoadMoreAsync();
@@ -111,7 +150,7 @@ namespace InventoryManagementApp.Tests
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
             var settings = new DummySettingsService();
-            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
 
             var tasks = new[]
@@ -135,7 +174,7 @@ namespace InventoryManagementApp.Tests
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
             var settings = new DummySettingsService();
-            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
             var loadTask = vm.LoadMoreAsync();
             Assert.True(vm.Items.IsLoading);
@@ -149,7 +188,7 @@ namespace InventoryManagementApp.Tests
             var service = new DummyItemService();
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
-            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
             var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
             vm.Items.Add(new ItemModel { ItemID = 1 });
@@ -170,7 +209,7 @@ namespace InventoryManagementApp.Tests
             var service = new StaticItemService(item);
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
-            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
             using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
             await vm.LoadMoreAsync();
@@ -188,7 +227,7 @@ namespace InventoryManagementApp.Tests
             var service = new StaticItemService(item, repository);
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
-            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
             using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
             await vm.LoadMoreAsync();
@@ -206,7 +245,7 @@ namespace InventoryManagementApp.Tests
             var dialog = new RecordingDialogService { EditItemDialogResult = new ItemModel { ItemID = 1 } };
             var itemService = new RecordingItemService2();
             var rental = new DummyRentalService();
-            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
             using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, settings);
             vm.SelectedItem = item;
@@ -222,7 +261,7 @@ namespace InventoryManagementApp.Tests
             var dialog = new RecordingDialogService { EditItemDialogResult = new ItemModel { ItemID = 1 } };
             var itemService = new RecordingItemService2 { UpdateException = new OperationCanceledException() };
             var rental = new DummyRentalService();
-            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
             using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, settings);
             vm.SelectedItem = item;
@@ -237,7 +276,7 @@ namespace InventoryManagementApp.Tests
             var dialog = new RecordingDialogService();
             var itemService = new DummyItemService();
             var rental = new DummyRentalService();
-            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
             using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, settings);
             vm.SelectedItem = new ItemModel();
@@ -251,7 +290,7 @@ namespace InventoryManagementApp.Tests
             var dialog = new RecordingDialogService { DetailsException = new InvalidOperationException() };
             var itemService = new DummyItemService();
             var rental = new DummyRentalService();
-            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
             using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, settings);
             vm.SelectedItem = new ItemModel();
@@ -266,7 +305,7 @@ namespace InventoryManagementApp.Tests
             var dialog = new RecordingDialogService();
             var rentalService = new RecordingRentalService();
             var itemService = new DummyItemService();
-            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
             using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rentalService, settings);
             vm.SelectedItem = item;
@@ -282,7 +321,7 @@ namespace InventoryManagementApp.Tests
             var dialog = new RecordingDialogService();
             var rentalService = new RecordingRentalService { HistoryException = new OperationCanceledException() };
             var itemService = new DummyItemService();
-            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
             using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rentalService, settings);
             vm.SelectedItem = item;
@@ -297,7 +336,7 @@ namespace InventoryManagementApp.Tests
             var dialog = new RecordingDialogService { EditItemDialogResult = new ItemModel { ItemID = 2 } };
             var itemService = new RecordingItemService2();
             var rental = new DummyRentalService();
-            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
             using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, settings);
             await vm.NewItemCommand.ExecuteAsync(null);
@@ -311,7 +350,7 @@ namespace InventoryManagementApp.Tests
             var dialog = new RecordingDialogService { EditItemDialogResult = new ItemModel { ItemID = 2 } };
             var itemService = new RecordingItemService2 { AddException = new OperationCanceledException() };
             var rental = new DummyRentalService();
-            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
             using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, settings);
             await vm.NewItemCommand.ExecuteAsync(null);
