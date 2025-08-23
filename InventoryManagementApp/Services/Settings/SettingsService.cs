@@ -1,4 +1,4 @@
-﻿using System.Data.SQLite;
+﻿using Microsoft.Data.Sqlite;
 using System;
 using System.Net;
 using System.Threading;
@@ -38,8 +38,8 @@ namespace InventoryManagementApp.Services.Settings
             {
                 var p = new[]
                 {
-                    new SQLiteParameter("@Key", key),
-                    new SQLiteParameter("@Value", value)
+                    new SqliteParameter("@Key", key),
+                    new SqliteParameter("@Value", value)
                 };
                 using var conn = _dbService.CreateConnection();
                 await SqliteHelper.ExecuteNonQueryAsync(conn, UpsertSql, p, cancellationToken).ConfigureAwait(false);
@@ -49,7 +49,7 @@ namespace InventoryManagementApp.Services.Settings
                 _logger.LogWarning(ex, "Saving setting {Key} canceled or timed out", key);
                 throw;
             }
-            catch (SQLiteException ex) when (ex.ResultCode == SQLiteErrorCode.Busy)
+            catch (SqliteException ex) when (ex.ResultCode == SqliteErrorCode.Busy)
             {
                 _logger.LogWarning(ex, "Saving setting {Key} timed out", key);
                 throw;
@@ -67,7 +67,7 @@ namespace InventoryManagementApp.Services.Settings
             {
                 const string sql = "SELECT Value FROM Settings WHERE Key = @Key";
                 using var conn = _dbService.CreateConnection();
-                var p = new[] { new SQLiteParameter("@Key", key) };
+                var p = new[] { new SqliteParameter("@Key", key) };
                 var result = await SqliteHelper.ExecuteScalarAsync(conn, sql, p, cancellationToken).ConfigureAwait(false);
                 return result?.ToString();
             }
@@ -76,7 +76,7 @@ namespace InventoryManagementApp.Services.Settings
                 _logger.LogWarning(ex, "Retrieving setting {Key} canceled or timed out", key);
                 throw;
             }
-            catch (SQLiteException ex) when (ex.ResultCode == SQLiteErrorCode.Busy)
+            catch (SqliteException ex) when (ex.ResultCode == SqliteErrorCode.Busy)
             {
                 _logger.LogWarning(ex, "Retrieving setting {Key} timed out", key);
                 throw;
@@ -95,7 +95,7 @@ namespace InventoryManagementApp.Services.Settings
                 var dict = new Dictionary<string, string>();
                 const string sql = "SELECT Key, Value FROM Settings";
                 using var conn = _dbService.CreateConnection();
-                using var cmd = new SQLiteCommand(sql, conn);
+                using var cmd = new SqliteCommand(sql, conn);
                 using var rdr = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await rdr.ReadAsync(cancellationToken).ConfigureAwait(false))
                     dict[rdr["Key"].ToString()] = rdr["Value"].ToString();
@@ -106,7 +106,7 @@ namespace InventoryManagementApp.Services.Settings
                 _logger.LogWarning(ex, "Retrieving all settings canceled or timed out");
                 throw;
             }
-            catch (SQLiteException ex) when (ex.ResultCode == SQLiteErrorCode.Busy)
+            catch (SqliteException ex) when (ex.ResultCode == SqliteErrorCode.Busy)
             {
                 _logger.LogWarning(ex, "Retrieving all settings timed out");
                 throw;
@@ -122,7 +122,7 @@ namespace InventoryManagementApp.Services.Settings
         /// Updates or inserts multiple settings within a single transaction.
         /// </summary>
         /// <param name="settings">Key/value pairs to upsert.</param>
-        /// <exception cref="SQLiteException">
+        /// <exception cref="SqliteException">
         /// Thrown when a database error occurs. The original exception is propagated to the caller.
         /// </exception>
         /// <exception cref="InvalidOperationException">
@@ -148,8 +148,8 @@ namespace InventoryManagementApp.Services.Settings
                 {
                     var p = new[]
                     {
-                        new SQLiteParameter("@Key", kv.Key),
-                        new SQLiteParameter("@Value", kv.Value)
+                        new SqliteParameter("@Key", kv.Key),
+                        new SqliteParameter("@Value", kv.Value)
                     };
                     await SqliteHelper.ExecuteNonQueryAsync(conn, tx, UpsertSql, p, cancellationToken).ConfigureAwait(false);
                 }
@@ -161,7 +161,7 @@ namespace InventoryManagementApp.Services.Settings
                 _logger.LogWarning(ex, "Updating settings canceled or timed out");
                 throw;
             }
-            catch (SQLiteException ex) when (ex.ResultCode == SQLiteErrorCode.Busy)
+            catch (SqliteException ex) when (ex.ResultCode == SqliteErrorCode.Busy)
             {
                 tx.Rollback();
                 _logger.LogWarning(ex, "Updating settings timed out");
@@ -181,7 +181,7 @@ namespace InventoryManagementApp.Services.Settings
             try
             {
                 const string sql = "DELETE FROM Settings WHERE Key = @Key";
-                var p = new[] { new SQLiteParameter("@Key", key) };
+                var p = new[] { new SqliteParameter("@Key", key) };
                 using var conn = _dbService.CreateConnection();
                 var affected = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken).ConfigureAwait(false);
                 if (affected == 0)
@@ -192,7 +192,7 @@ namespace InventoryManagementApp.Services.Settings
                 _logger.LogWarning(ex, "Deleting setting {Key} canceled or timed out", key);
                 throw;
             }
-            catch (SQLiteException ex) when (ex.ResultCode == SQLiteErrorCode.Busy)
+            catch (SqliteException ex) when (ex.ResultCode == SqliteErrorCode.Busy)
             {
                 _logger.LogWarning(ex, "Deleting setting {Key} timed out", key);
                 throw;

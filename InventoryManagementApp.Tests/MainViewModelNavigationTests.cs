@@ -94,7 +94,7 @@ namespace InventoryManagementApp.Tests
             public virtual Task ExportItemsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public virtual Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
             public virtual Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
-            public virtual Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, System.Data.SQLite.SQLiteConnection? conn = null, System.Data.SQLite.SQLiteTransaction? tx = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public virtual Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, System.Data.Sqlite.SqliteConnection? conn = null, System.Data.Sqlite.SqliteTransaction? tx = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
         }
 
         private sealed class FailingItemService : DummyItemService

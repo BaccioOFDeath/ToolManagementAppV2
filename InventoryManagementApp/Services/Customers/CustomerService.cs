@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -92,13 +92,13 @@ namespace InventoryManagementApp.Services.Customers
                 WHERE CustomerID = @CustomerID";
             var p = new[]
             {
-                new SQLiteParameter("@Company", customer.Company),
-                new SQLiteParameter("@Email", customer.Email),
-                new SQLiteParameter("@Contact", customer.Contact),
-                new SQLiteParameter("@Phone", customer.Phone),
-                new SQLiteParameter("@Mobile", customer.Mobile),
-                new SQLiteParameter("@Address", customer.Address),
-                new SQLiteParameter("@CustomerID", customer.CustomerID),
+                new SqliteParameter("@Company", customer.Company),
+                new SqliteParameter("@Email", customer.Email),
+                new SqliteParameter("@Contact", customer.Contact),
+                new SqliteParameter("@Phone", customer.Phone),
+                new SqliteParameter("@Mobile", customer.Mobile),
+                new SqliteParameter("@Address", customer.Address),
+                new SqliteParameter("@CustomerID", customer.CustomerID),
             };
             using var conn = _dbService.CreateConnection();
             try
@@ -115,7 +115,7 @@ namespace InventoryManagementApp.Services.Customers
         async Task DeleteCustomerInternalAsync(int customerID, CancellationToken cancellationToken)
         {
             const string sql = "DELETE FROM Customers WHERE CustomerID = @CustomerID";
-            var p = new[] { new SQLiteParameter("@CustomerID", customerID) };
+            var p = new[] { new SqliteParameter("@CustomerID", customerID) };
             using var conn = _dbService.CreateConnection();
             try
             {
@@ -131,7 +131,7 @@ namespace InventoryManagementApp.Services.Customers
         async Task<CustomerModel> GetCustomerByIDInternalAsync(int customerID, CancellationToken cancellationToken)
         {
             const string sql = "SELECT * FROM Customers WHERE CustomerID = @id";
-            var p = new[] { new SQLiteParameter("@id", customerID) };
+            var p = new[] { new SqliteParameter("@id", customerID) };
             using var conn = _dbService.CreateConnection();
             try
             {
@@ -181,7 +181,7 @@ namespace InventoryManagementApp.Services.Customers
             const string sql = @"
                 SELECT * FROM Customers
                 WHERE Company LIKE @t OR Email LIKE @t OR Phone LIKE @t OR Mobile LIKE @t OR Address LIKE @t";
-            var p = new[] { new SQLiteParameter("@t", $"%{searchTerm}%") };
+            var p = new[] { new SqliteParameter("@t", $"%{searchTerm}%") };
             using var conn = _dbService.CreateConnection();
             try
             {
@@ -244,7 +244,7 @@ namespace InventoryManagementApp.Services.Customers
             await Task.Run(() => CsvHelperUtil.ExportCustomersToCsv(filePath, all), cancellationToken);
         }
 
-        async Task InsertCustomerAsync(SQLiteConnection conn, SQLiteTransaction? tran, CustomerModel customer, CancellationToken cancellationToken)
+        async Task InsertCustomerAsync(SqliteConnection conn, SqliteTransaction? tran, CustomerModel customer, CancellationToken cancellationToken)
         {
             const string sql = @"
         INSERT INTO Customers (Company, Email, Contact, Phone, Mobile, Address)
@@ -253,17 +253,17 @@ namespace InventoryManagementApp.Services.Customers
 
             var p = new[]
             {
-                new SQLiteParameter("@Company", customer.Company ?? string.Empty),
-                new SQLiteParameter("@Email",   customer.Email ?? string.Empty),
-                new SQLiteParameter("@Contact", customer.Contact ?? string.Empty),
-                new SQLiteParameter("@Phone",   customer.Phone ?? string.Empty),
-                new SQLiteParameter("@Mobile",  customer.Mobile ?? string.Empty),
-                new SQLiteParameter("@Address", customer.Address ?? string.Empty)
+                new SqliteParameter("@Company", customer.Company ?? string.Empty),
+                new SqliteParameter("@Email",   customer.Email ?? string.Empty),
+                new SqliteParameter("@Contact", customer.Contact ?? string.Empty),
+                new SqliteParameter("@Phone",   customer.Phone ?? string.Empty),
+                new SqliteParameter("@Mobile",  customer.Mobile ?? string.Empty),
+                new SqliteParameter("@Address", customer.Address ?? string.Empty)
             };
 
             try
             {
-                using var cmd = new SQLiteCommand(sql, conn, tran);
+                using var cmd = new SqliteCommand(sql, conn, tran);
                 cmd.Parameters.AddRange(p);
                 customer.CustomerID = Convert.ToInt32(await cmd.ExecuteScalarAsync(cancellationToken));
             }
@@ -284,9 +284,9 @@ namespace InventoryManagementApp.Services.Customers
             {
                 var count = Convert.ToInt32(await SqliteHelper.ExecuteScalarAsync(conn, sql, new[]
                 {
-                    new SQLiteParameter("@Contact", contact),
-                    new SQLiteParameter("@Phone", phone ?? string.Empty),
-                    new SQLiteParameter("@Mobile", mobile ?? string.Empty)
+                    new SqliteParameter("@Contact", contact),
+                    new SqliteParameter("@Phone", phone ?? string.Empty),
+                    new SqliteParameter("@Mobile", mobile ?? string.Empty)
                 }, cancellationToken));
                 return count > 0;
             }

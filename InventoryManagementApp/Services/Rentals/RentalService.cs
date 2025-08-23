@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.Linq;
 using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
@@ -34,7 +34,7 @@ namespace InventoryManagementApp.Services.Rentals
             _context = userContext;
         }
 
-        async Task ExecuteWithTransactionAsync(Func<SQLiteConnection, SQLiteTransaction, Task> action, Func<Task>? postCommitAction = null)
+        async Task ExecuteWithTransactionAsync(Func<SqliteConnection, SqliteTransaction, Task> action, Func<Task>? postCommitAction = null)
         {
             using var conn = _dbService.CreateConnection();
             using var tx = conn.BeginTransaction();
@@ -126,7 +126,7 @@ namespace InventoryManagementApp.Services.Rentals
             _auth.EnsureAdmin();
             await ExecuteWithTransactionAsync(async (conn, tx) =>
             {
-                var availCmd = new SQLiteCommand(
+                var availCmd = new SqliteCommand(
                     "SELECT AvailableQuantity FROM Items WHERE ItemID=@ItemID",
                     conn, tx);
                 availCmd.Parameters.AddWithValue("@ItemID", itemID);
@@ -139,10 +139,10 @@ namespace InventoryManagementApp.Services.Rentals
                     "VALUES (@ItemID, @CustomerID, @RentalDate, @DueDate, 'Rented')",
                     new[]
                     {
-                        new SQLiteParameter("@ItemID", itemID),
-                        new SQLiteParameter("@CustomerID", customerID),
-                        new SQLiteParameter("@RentalDate", rentalDate),
-                        new SQLiteParameter("@DueDate", dueDate)
+                        new SqliteParameter("@ItemID", itemID),
+                        new SqliteParameter("@CustomerID", customerID),
+                        new SqliteParameter("@RentalDate", rentalDate),
+                        new SqliteParameter("@DueDate", dueDate)
                     });
 
                 if (_itemService != null)
@@ -160,7 +160,7 @@ namespace InventoryManagementApp.Services.Rentals
             _auth.EnsureAdmin();
             await ExecuteWithTransactionAsync(async (conn, tx) =>
             {
-                var selCmd = new SQLiteCommand(
+                var selCmd = new SqliteCommand(
                     "SELECT ItemID FROM Rentals WHERE RentalID=@RentalID AND Status='Rented'", conn, tx);
                 selCmd.Parameters.AddWithValue("@RentalID", rentalID);
                 var result = await selCmd.ExecuteScalarAsync();
@@ -171,8 +171,8 @@ namespace InventoryManagementApp.Services.Rentals
                     "UPDATE Rentals SET ReturnDate=@ReturnDate,Status='Returned' WHERE RentalID=@RentalID",
                     new[]
                     {
-                        new SQLiteParameter("@ReturnDate", returnDate),
-                        new SQLiteParameter("@RentalID", rentalID)
+                        new SqliteParameter("@ReturnDate", returnDate),
+                        new SqliteParameter("@RentalID", rentalID)
                     });
 
                 if (_itemService != null)
@@ -190,7 +190,7 @@ namespace InventoryManagementApp.Services.Rentals
             _auth.EnsureAdmin();
             await ExecuteWithTransactionAsync(async (conn, tx) =>
             {
-                var selectCmd = new SQLiteCommand(
+                var selectCmd = new SqliteCommand(
                     "SELECT ItemID, DueDate FROM Rentals WHERE RentalID=@RentalID AND Status='Rented'",
                     conn, tx);
                 selectCmd.Parameters.AddWithValue("@RentalID", rentalID);
@@ -207,7 +207,7 @@ namespace InventoryManagementApp.Services.Rentals
                     oldDueDate = default;
                 }
 
-                var updateCmd = new SQLiteCommand(
+                var updateCmd = new SqliteCommand(
                     "UPDATE Rentals SET DueDate=@NewDueDate WHERE RentalID=@RentalID AND Status='Rented'",
                     conn, tx);
                 updateCmd.Parameters.AddWithValue("@NewDueDate", newDueDate);
@@ -234,7 +234,7 @@ namespace InventoryManagementApp.Services.Rentals
         {
             _auth.EnsureAdmin();
             const string sql = "DELETE FROM Rentals WHERE RentalID = @RentalID";
-            var p = new[] { new SQLiteParameter("@RentalID", rentalID) };
+            var p = new[] { new SqliteParameter("@RentalID", rentalID) };
             using var conn = _dbService.CreateConnection();
             if (await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p) == 0)
                 throw new InvalidOperationException("Rental not found.");
@@ -263,7 +263,7 @@ namespace InventoryManagementApp.Services.Rentals
         public async Task<List<Rental>> GetOverdueRentalsAsync()
         {
             const string sql = BaseSelect + @" WHERE r.Status = 'Rented' AND r.DueDate < @Today";
-            var p = new[] { new SQLiteParameter("@Today", DateTime.Today) };
+            var p = new[] { new SqliteParameter("@Today", DateTime.Today) };
             using var conn = _dbService.CreateConnection();
             var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapRental);
             return list.Where(r => r != null).Select(r => r!).ToList();
@@ -279,7 +279,7 @@ namespace InventoryManagementApp.Services.Rentals
         public async Task<List<Rental>> GetRentalHistoryForItemAsync(int itemID)
         {
             const string sql = BaseSelect + @" WHERE r.ItemID = @ItemID ORDER BY r.RentalDate DESC";
-            var p = new[] { new SQLiteParameter("@ItemID", itemID) };
+            var p = new[] { new SqliteParameter("@ItemID", itemID) };
             using var conn = _dbService.CreateConnection();
             var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapRental);
             return list.Where(r => r != null).Select(r => r!).ToList();
@@ -288,7 +288,7 @@ namespace InventoryManagementApp.Services.Rentals
         public async Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID)
         {
             const string sql = BaseSelect + @" WHERE r.CustomerID = @CustomerID ORDER BY r.RentalDate DESC";
-            var p = new[] { new SQLiteParameter("@CustomerID", customerID) };
+            var p = new[] { new SqliteParameter("@CustomerID", customerID) };
             using var conn = _dbService.CreateConnection();
             var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapRental);
             return list.Where(r => r != null).Select(r => r!).ToList();

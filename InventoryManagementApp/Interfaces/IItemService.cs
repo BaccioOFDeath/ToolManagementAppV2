@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Data;
@@ -26,6 +26,6 @@ namespace InventoryManagementApp.Interfaces
         Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default);
         Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default);
         Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental,
-            SQLiteConnection? conn = null, SQLiteTransaction? tx = null, CancellationToken cancellationToken = default);
+            SqliteConnection? conn = null, SqliteTransaction? tx = null, CancellationToken cancellationToken = default);
     }
 }

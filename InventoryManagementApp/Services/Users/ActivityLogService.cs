@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -33,9 +33,9 @@ namespace InventoryManagementApp.Services.Users
                     VALUES (@UserID, @UserName, @Action)";
                 var p = new[]
                 {
-                    new SQLiteParameter("@UserID",   userID),
-                    new SQLiteParameter("@UserName", userName),
-                    new SQLiteParameter("@Action",   action)
+                    new SqliteParameter("@UserID",   userID),
+                    new SqliteParameter("@UserName", userName),
+                    new SqliteParameter("@Action",   action)
                 };
                 using var conn = _dbService.CreateConnection();
                 await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken).ConfigureAwait(false);
@@ -46,7 +46,7 @@ namespace InventoryManagementApp.Services.Users
                 _logger.LogWarning(ex, "Logging action {Action} canceled or timed out", action);
                 return new Result(false, "Operation canceled");
             }
-            catch (SQLiteException ex) when (ex.ResultCode == SQLiteErrorCode.Busy)
+            catch (SqliteException ex) when (ex.ResultCode == SqliteErrorCode.Busy)
             {
                 _logger.LogWarning(ex, "Logging action {Action} timed out", action);
                 return new Result(false, ex.Message);
@@ -66,7 +66,7 @@ namespace InventoryManagementApp.Services.Users
                     SELECT * FROM ActivityLogs
                      ORDER BY Timestamp DESC
                      LIMIT @Count";
-                var p = new[] { new SQLiteParameter("@Count", count) };
+                var p = new[] { new SqliteParameter("@Count", count) };
                 using var conn = _dbService.CreateConnection();
                 var logs = await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapLog, cancellationToken).ConfigureAwait(false);
                 return new Result<List<ActivityLog>>(logs, true);
@@ -76,7 +76,7 @@ namespace InventoryManagementApp.Services.Users
                 _logger.LogWarning(ex, "Retrieving recent activity logs canceled or timed out");
                 return new Result<List<ActivityLog>>(null, false, "Operation canceled");
             }
-            catch (SQLiteException ex) when (ex.ResultCode == SQLiteErrorCode.Busy)
+            catch (SqliteException ex) when (ex.ResultCode == SqliteErrorCode.Busy)
             {
                 _logger.LogWarning(ex, "Retrieving recent activity logs timed out");
                 return new Result<List<ActivityLog>>(null, false, ex.Message);
@@ -95,7 +95,7 @@ namespace InventoryManagementApp.Services.Users
                 const string sql = @"
                     DELETE FROM ActivityLogs
                      WHERE Timestamp < @Threshold";
-                var p = new[] { new SQLiteParameter("@Threshold", threshold) };
+                var p = new[] { new SqliteParameter("@Threshold", threshold) };
                 using var conn = _dbService.CreateConnection();
                 await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken).ConfigureAwait(false);
                 return new Result(true);
@@ -105,7 +105,7 @@ namespace InventoryManagementApp.Services.Users
                 _logger.LogWarning(ex, "Purging logs prior to {Threshold} canceled or timed out", threshold);
                 return new Result(false, "Operation canceled");
             }
-            catch (SQLiteException ex) when (ex.ResultCode == SQLiteErrorCode.Busy)
+            catch (SqliteException ex) when (ex.ResultCode == SqliteErrorCode.Busy)
             {
                 _logger.LogWarning(ex, "Purging logs prior to {Threshold} timed out", threshold);
                 return new Result(false, ex.Message);
