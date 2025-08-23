@@ -142,6 +142,20 @@ namespace InventoryManagementApp.Models.Domain
             set => SetProperty(ref _checkedOutTime, value);
         }
 
+        private string _checkedInBy = string.Empty;
+        public string CheckedInBy
+        {
+            get => _checkedInBy;
+            set => SetProperty(ref _checkedInBy, value);
+        }
+
+        private DateTime? _checkedInTime;
+        public DateTime? CheckedInTime
+        {
+            get => _checkedInTime;
+            set => SetProperty(ref _checkedInTime, value);
+        }
+
         private string _imagePath = string.Empty;
         public string ImagePath
         {

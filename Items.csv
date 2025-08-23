@@ -1,4 +1,4 @@
-ItemID,OnHand,Purchased,Brand,Description,PartNumber,Supplier,Notes,Location,ImagePath,IsCheckedOut,CheckedOutBy,CheckedOutTime
+ItemID,OnHand,Purchased,Brand,Description,PartNumber,Supplier,Notes,Location,ImagePath,IsCheckedOut,CheckedOutBy,CheckedOutTime,CheckedInBy,CheckedInTime
 ?,1,?,?,Ear stethoscope,?,?,doctors listening noises noise listen hearing,A6,Assets\ItemImages\63691_I.jpg,0,,
 T1,1,?,T&E Tools,VANOS Camshaft Locking Plates,B1021,T&E Tools,M62 m60 4.4L,C3,Assets\ItemImages\T1.jpg,0,,
 T10,1,?,Endeavour,BMW Timing Kit N62 | N73,ETN62N73,All Euro,"A vital timing chain tool kit for 3.6L | 4.0L | 4.4L | 4.8L V8 engines, and new generation V12 engines. These tools align intake & exhaust cams in the correct timing position by holding the valve timing whilst loosening & tightening the camshaft adjuster nut for assembly plus damper tools.",D2,Assets\ItemImages\T10.jpg,0,,

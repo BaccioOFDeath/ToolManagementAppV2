@@ -137,9 +137,11 @@ public class ItemDisplaySettingsTests
                 app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Templates.xaml", UriKind.Absolute) });
                 var template = (DataTemplate)app.Resources["ItemCardTemplate"];
                 var item = new ItemModel { Name = "A", ItemNumber = "1", Brand = "B", Location = "L", Notes = "N", Price = 1m };
-                var itemsControl = new ItemsControl { DataContext = vm, ItemTemplate = template };
+                var page = new Page { DataContext = vm };
+                var itemsControl = new ItemsControl { ItemTemplate = template };
+                page.Content = itemsControl;
                 itemsControl.Items.Add(item);
-                var window = new Window { Content = itemsControl };
+                var window = new Window { Content = page };
                 window.Show();
                 itemsControl.UpdateLayout();
                 var container = (ContentPresenter)itemsControl.ItemContainerGenerator.ContainerFromIndex(0)!;
@@ -151,7 +153,7 @@ public class ItemDisplaySettingsTests
                 settings.SaveItemDetailVisibilityAsync(vis).GetAwaiter().GetResult();
                 vm = new ItemManagementViewModel(new DummyItemService(), new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
                 vm.InitializeAsync().GetAwaiter().GetResult();
-                itemsControl.DataContext = vm;
+                page.DataContext = vm;
                 itemsControl.UpdateLayout();
                 border = (Border)VisualTreeHelper.GetChild(container, 0);
                 Assert.Equal(Visibility.Visible, border.Visibility);

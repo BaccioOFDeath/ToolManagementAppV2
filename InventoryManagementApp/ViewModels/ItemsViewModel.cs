@@ -206,6 +206,8 @@ namespace InventoryManagementApp.ViewModels
                     IsCheckedOut = SelectedItem.IsCheckedOut,
                     CheckedOutBy = SelectedItem.CheckedOutBy,
                     CheckedOutTime = SelectedItem.CheckedOutTime,
+                    CheckedInBy = SelectedItem.CheckedInBy,
+                    CheckedInTime = SelectedItem.CheckedInTime,
                     ImagePath = SelectedItem.ImagePath,
                     Price = SelectedItem.Price,
                     UpdatedAt = SelectedItem.UpdatedAt
@@ -351,6 +353,8 @@ namespace InventoryManagementApp.ViewModels
                     item.IsCheckedOut = refreshed.IsCheckedOut;
                     item.CheckedOutBy = refreshed.CheckedOutBy;
                     item.CheckedOutTime = refreshed.CheckedOutTime;
+                    item.CheckedInBy = refreshed.CheckedInBy;
+                    item.CheckedInTime = refreshed.CheckedInTime;
                     item.ImagePath = refreshed.ImagePath;
                     item.Price = refreshed.Price;
                     item.UpdatedAt = refreshed.UpdatedAt;

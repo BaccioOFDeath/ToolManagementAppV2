@@ -17,7 +17,7 @@ public sealed class ItemRepository : IItemRepository
 
     public async IAsyncEnumerable<Item> GetPageAsync(ItemFilter filter, ItemPage page, [EnumeratorCancellation] CancellationToken ct)
     {
-        var sql = "SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, IsPowered, UpdatedAt FROM Items";
+        var sql = "SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, CheckedInBy, CheckedInTime, IsPowered, UpdatedAt FROM Items";
         var parameters = new DynamicParameters();
         var conditions = new List<string>();
         if (!string.IsNullOrWhiteSpace(filter.Search))
@@ -68,6 +68,8 @@ public sealed class ItemRepository : IItemRepository
         var ordinalIsCheckedOut = reader.GetOrdinal("IsCheckedOut");
         var ordinalCheckedOutBy = reader.GetOrdinal("CheckedOutBy");
         var ordinalCheckedOutTime = reader.GetOrdinal("CheckedOutTime");
+        var ordinalCheckedInBy = reader.GetOrdinal("CheckedInBy");
+        var ordinalCheckedInTime = reader.GetOrdinal("CheckedInTime");
         var ordinalIsPowered = reader.GetOrdinal("IsPowered");
         var ordinalUpdatedAt = reader.GetOrdinal("UpdatedAt");
 
@@ -93,6 +95,8 @@ public sealed class ItemRepository : IItemRepository
                 IsCheckedOut = !reader.IsDBNull(ordinalIsCheckedOut) && reader.GetInt32(ordinalIsCheckedOut) == 1,
                 CheckedOutBy = reader.IsDBNull(ordinalCheckedOutBy) ? string.Empty : reader.GetString(ordinalCheckedOutBy),
                 CheckedOutTime = reader.IsDBNull(ordinalCheckedOutTime) ? null : reader.GetDateTime(ordinalCheckedOutTime),
+                CheckedInBy = reader.IsDBNull(ordinalCheckedInBy) ? string.Empty : reader.GetString(ordinalCheckedInBy),
+                CheckedInTime = reader.IsDBNull(ordinalCheckedInTime) ? null : reader.GetDateTime(ordinalCheckedInTime),
                 IsPowered = !reader.IsDBNull(ordinalIsPowered) && reader.GetInt32(ordinalIsPowered) == 1,
                 UpdatedAt = reader.IsDBNull(ordinalUpdatedAt) ? default : reader.GetDateTime(ordinalUpdatedAt)
             };

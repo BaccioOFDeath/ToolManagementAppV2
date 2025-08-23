@@ -64,6 +64,8 @@ public class ItemServiceToggleTests
             IsCheckedOut INTEGER,
             CheckedOutBy TEXT,
             CheckedOutTime TEXT,
+            CheckedInBy TEXT,
+            CheckedInTime TEXT,
             IsPowered INTEGER,
             UpdatedAt TEXT
         );";
@@ -86,10 +88,12 @@ public class ItemServiceToggleTests
 
         using (var conn = db.CreateConnection())
         {
-            var record = await conn.QuerySingleAsync("SELECT IsCheckedOut, AvailableQuantity, CheckedOutBy FROM Items WHERE ItemID=1");
+            var record = await conn.QuerySingleAsync("SELECT IsCheckedOut, AvailableQuantity, CheckedOutBy, CheckedInBy, CheckedInTime FROM Items WHERE ItemID=1");
             Assert.Equal(1L, record.IsCheckedOut);
             Assert.Equal(0L, record.AvailableQuantity);
             Assert.Equal("user1", (string)record.CheckedOutBy);
+            Assert.Null(record.CheckedInBy);
+            Assert.Null(record.CheckedInTime);
         }
 
         var checkin = await service.ToggleItemCheckOutStatusAsync(1, CancellationToken.None);
@@ -97,10 +101,12 @@ public class ItemServiceToggleTests
 
         using (var conn = db.CreateConnection())
         {
-            var record = await conn.QuerySingleAsync("SELECT IsCheckedOut, AvailableQuantity, CheckedOutBy FROM Items WHERE ItemID=1");
+            var record = await conn.QuerySingleAsync("SELECT IsCheckedOut, AvailableQuantity, CheckedOutBy, CheckedInBy, CheckedInTime FROM Items WHERE ItemID=1");
             Assert.Equal(0L, record.IsCheckedOut);
             Assert.Equal(1L, record.AvailableQuantity);
             Assert.Null(record.CheckedOutBy);
+            Assert.Equal("user1", (string)record.CheckedInBy);
+            Assert.NotNull(record.CheckedInTime);
         }
 
 
@@ -144,10 +150,12 @@ public class ItemServiceToggleTests
 
         using (var conn = db.CreateConnection())
         {
-            var record = await conn.QuerySingleAsync("SELECT IsCheckedOut, AvailableQuantity, CheckedOutBy FROM Items WHERE ItemID=1");
+            var record = await conn.QuerySingleAsync("SELECT IsCheckedOut, AvailableQuantity, CheckedOutBy, CheckedInBy, CheckedInTime FROM Items WHERE ItemID=1");
             Assert.Equal(0L, record.IsCheckedOut);
             Assert.Equal(1L, record.AvailableQuantity);
             Assert.Null(record.CheckedOutBy);
+            Assert.Equal("admin", (string)record.CheckedInBy);
+            Assert.NotNull(record.CheckedInTime);
         }
 
         File.Delete(dbPath);
