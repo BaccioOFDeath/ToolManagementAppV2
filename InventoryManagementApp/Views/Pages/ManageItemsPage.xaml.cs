@@ -5,6 +5,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using InventoryManagementApp.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
+using Image = System.Windows.Controls.Image;
 using Application = System.Windows.Application;
 
 namespace InventoryManagementApp.Views.Pages
