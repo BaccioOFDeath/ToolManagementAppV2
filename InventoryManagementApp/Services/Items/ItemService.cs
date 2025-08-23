@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Services.Users;
 using InventoryManagementApp.Data;
+using Microsoft.VisualBasic.FileIO;
 
 namespace InventoryManagementApp.Services.Items
 {
@@ -467,44 +468,55 @@ namespace InventoryManagementApp.Services.Items
 
         private async Task<List<int>> ImportItemsFromCsvInternalAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken)
         {
-            var (items, invalidRows) = await CsvHelperUtil.LoadItemsFromCsvAsync(filePath, map, cancellationToken);
+            if (map == null || !map.TryGetValue("ItemNumber", out var _) || string.IsNullOrWhiteSpace(map["ItemNumber"]))
+                throw new ArgumentException("Mapping for required field 'ItemNumber' is missing.", nameof(map));
+
+            var invalidRows = new List<int>();
+            using var parser = new TextFieldParser(filePath);
+            parser.SetDelimiters(",");
+            parser.HasFieldsEnclosedInQuotes = true;
+            if (parser.EndOfData)
+                return invalidRows;
+            var headers = parser.ReadFields();
+
             using var conn = _dbService.CreateConnection();
             var existingNumbers = new HashSet<string>(
                 await SqliteHelper.ExecuteReaderAsync(conn,
                     "SELECT ItemNumber FROM Items", null,
                     r => r.GetString(0), cancellationToken));
 
-            // Track invalid rows for quick lookup when determining CSV row numbers
-            var invalidSet = new HashSet<int>(invalidRows);
-            var currentRow = 1; // header row already processed by CsvHelperUtil
-
             using var tran = conn.BeginTransaction();
+            var row = 1; // header already read
             try
             {
-                foreach (var item in items)
+                while (!parser.EndOfData)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-
-                    // advance to the next data row, skipping rows already marked invalid
-                    currentRow++;
-                    while (invalidSet.Contains(currentRow))
-                        currentRow++;
-
-                    if (string.IsNullOrWhiteSpace(item.ItemNumber))
+                    row++;
+                    var cols = parser.ReadFields();
+                    var itemNumber = GetMapped(cols, headers, map, "ItemNumber");
+                    if (string.IsNullOrWhiteSpace(itemNumber) || existingNumbers.Contains(itemNumber))
                     {
-                        invalidRows.Add(currentRow);
+                        invalidRows.Add(row);
                         continue;
                     }
 
-                    if (existingNumbers.Contains(item.ItemNumber))
+                    var item = new ItemModel
                     {
-                        // record duplicate rows so the caller can notify the user
-                        invalidRows.Add(currentRow);
-                        continue;
-                    }
+                        ItemNumber = itemNumber,
+                        NameDescription = GetMapped(cols, headers, map, "NameDescription"),
+                        Location = GetMapped(cols, headers, map, "Location"),
+                        Brand = GetMapped(cols, headers, map, "Brand"),
+                        PartNumber = GetMapped(cols, headers, map, "PartNumber"),
+                        Supplier = GetMapped(cols, headers, map, "Supplier"),
+                        PurchasedDate = TryParseDate(GetMapped(cols, headers, map, "PurchasedDate")),
+                        Notes = GetMapped(cols, headers, map, "Notes"),
+                        QuantityOnHand = TryParseInt(GetMapped(cols, headers, map, "AvailableQuantity")),
+                        IsPowered = TryParseBool(GetMapped(cols, headers, map, "IsPowered"))
+                    };
 
                     await InsertItemAsync(conn, tran, item, cancellationToken);
-                    existingNumbers.Add(item.ItemNumber);
+                    existingNumbers.Add(itemNumber);
                 }
 
                 tran.Commit();
@@ -516,6 +528,20 @@ namespace InventoryManagementApp.Services.Items
                 tran.Rollback();
                 throw;
             }
+
+            static string? GetMapped(string[] row, string[] headers, IDictionary<string, string> map, string key)
+            {
+                if (!map.TryGetValue(key, out var column))
+                    return null;
+                var index = Array.FindIndex(headers, h => string.Equals(h, column, StringComparison.OrdinalIgnoreCase));
+                return index >= 0 && index < row.Length ? row[index].Trim() : null;
+            }
+
+            static int TryParseInt(string? input) => int.TryParse(input, out var result) ? result : 0;
+
+            static bool TryParseBool(string? input) => input != null && (input.Equals("1") || bool.TryParse(input, out var b) && b);
+
+            static DateTime? TryParseDate(string? input) => DateTime.TryParse(input, out var result) ? result : null;
         }
 
         private async Task ExportItemsToCsvInternalAsync(string filePath, CancellationToken cancellationToken)
