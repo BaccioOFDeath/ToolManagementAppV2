@@ -407,7 +407,7 @@ namespace InventoryManagementApp.ViewModels
             bool result;
             try
             {
-                result = await _itemService.ToggleItemCheckOutStatusAsync(item.ItemID, _userContext.UserName, ct).ConfigureAwait(false);
+                result = await _itemService.ToggleItemCheckOutStatusAsync(item.ItemID, ct).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {

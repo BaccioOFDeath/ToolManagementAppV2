@@ -69,7 +69,7 @@ public class ItemServiceToggleTests
         var userContext = new DummyUserContext { CurrentUser = new User { UserID = 1, UserName = "user1", IsAdmin = false } };
         var service = new ItemService(db, new DummyItemRepository(), userContext: userContext);
 
-        var checkout = await service.ToggleItemCheckOutStatusAsync(1, "user1", CancellationToken.None);
+        var checkout = await service.ToggleItemCheckOutStatusAsync(1, CancellationToken.None);
         Assert.True(checkout);
 
         using (var conn = db.CreateConnection())
@@ -80,7 +80,7 @@ public class ItemServiceToggleTests
             Assert.Equal("user1", (string)record.CheckedOutBy);
         }
 
-        var checkin = await service.ToggleItemCheckOutStatusAsync(1, "user1", CancellationToken.None);
+        var checkin = await service.ToggleItemCheckOutStatusAsync(1, CancellationToken.None);
         Assert.True(checkin);
 
         using (var conn = db.CreateConnection())
@@ -103,12 +103,12 @@ public class ItemServiceToggleTests
         await InitializeAsync(db);
         var userContext1 = new DummyUserContext { CurrentUser = new User { UserID = 1, UserName = "user1", IsAdmin = false } };
         var service1 = new ItemService(db, new DummyItemRepository(), userContext: userContext1);
-        var checkout = await service1.ToggleItemCheckOutStatusAsync(1, "user1", CancellationToken.None);
+        var checkout = await service1.ToggleItemCheckOutStatusAsync(1, CancellationToken.None);
         Assert.True(checkout);
 
         var userContext2 = new DummyUserContext { CurrentUser = new User { UserID = 2, UserName = "user2", IsAdmin = false } };
         var service2 = new ItemService(db, new DummyItemRepository(), userContext: userContext2);
-        var attempt = await service2.ToggleItemCheckOutStatusAsync(1, "user2", CancellationToken.None);
+        var attempt = await service2.ToggleItemCheckOutStatusAsync(1, CancellationToken.None);
         Assert.False(attempt);
 
         File.Delete(dbPath);
@@ -123,7 +123,7 @@ public class ItemServiceToggleTests
         var userContext = new DummyUserContext { CurrentUser = new User { UserID = 1, UserName = "user1", IsAdmin = false } };
         var service = new ItemService(db, new DummyItemRepository(), userContext: userContext);
 
-        var result = await service.ToggleItemCheckOutStatusAsync(2, "user1", CancellationToken.None);
+        var result = await service.ToggleItemCheckOutStatusAsync(2, CancellationToken.None);
         Assert.False(result);
 
         using (var conn = db.CreateConnection())
@@ -144,7 +144,7 @@ public class ItemServiceToggleTests
         var userContext = new DummyUserContext { CurrentUser = new User { UserID = 1, UserName = "user1", IsAdmin = false } };
         var service = new ItemService(db, new DummyItemRepository(), userContext: userContext);
 
-        await service.ToggleItemCheckOutStatusAsync(1, "user1", CancellationToken.None);
+        await service.ToggleItemCheckOutStatusAsync(1, CancellationToken.None);
 
         using (var conn = db.CreateConnection())
         {
