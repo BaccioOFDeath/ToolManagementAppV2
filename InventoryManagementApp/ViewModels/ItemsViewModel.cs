@@ -26,6 +26,7 @@ namespace InventoryManagementApp.ViewModels
         private readonly IRentalService _rentalService;
         private readonly ICustomerService _customerService;
         private readonly ISettingsService _settingsService;
+        private readonly IUserContext _userContext;
         private CancellationTokenSource _filterCts = new();
         private bool _disposed;
         private readonly List<ItemModel> _pendingEdits = new();
@@ -39,6 +40,7 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand NewItemCommand { get; }
         public IAsyncRelayCommand<IList> DeleteItemsCommand { get; }
         public IAsyncRelayCommand CommitChangesCommand { get; }
+        public IAsyncRelayCommand<ItemModel> ToggleCheckOutCommand { get; }
 
         public IReadOnlyCollection<ItemModel> PendingEdits => _pendingEdits;
 
@@ -56,7 +58,7 @@ namespace InventoryManagementApp.ViewModels
 
         public ObservableCollection<SortOption> SortOptions { get; }
 
-        public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService, ICustomerService customerService, ISettingsService settingsService)
+        public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService, ICustomerService customerService, ISettingsService settingsService, IUserContext userContext)
         {
             _itemService = itemService;
             _memoryBudget = memoryBudget;
@@ -64,6 +66,7 @@ namespace InventoryManagementApp.ViewModels
             _rentalService = rentalService;
             _customerService = customerService;
             _settingsService = settingsService;
+            _userContext = userContext;
             Items = new IncrementalLoadingCollection<ItemModel>(LoadPageAsync, PageSize);
             SortOptions = new ObservableCollection<SortOption>(new[]
             {
@@ -107,6 +110,7 @@ namespace InventoryManagementApp.ViewModels
             NewItemCommand = new AsyncRelayCommand(ct => NewItemAsync(ct));
             DeleteItemsCommand = new AsyncRelayCommand<IList>(DeleteItemsAsync);
             CommitChangesCommand = new AsyncRelayCommand(ct => CommitChangesAsync(ct));
+            ToggleCheckOutCommand = new AsyncRelayCommand<ItemModel>(ToggleCheckOutAsync);
         }
 
         private async Task<IList<ItemModel>> LoadPageAsync(int page, CancellationToken ct)
@@ -395,6 +399,28 @@ namespace InventoryManagementApp.ViewModels
             {
                 await _dialogService.ShowInfoAsync($"Failed to save changes: {ex.Message}", "Error").ConfigureAwait(false);
             }
+        }
+
+        private async Task ToggleCheckOutAsync(ItemModel? item, CancellationToken ct)
+        {
+            if (item == null) return;
+            bool result;
+            try
+            {
+                result = await _itemService.ToggleItemCheckOutStatusAsync(item.ItemID, _userContext.UserName, ct).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            catch
+            {
+                return;
+            }
+            if (!result) return;
+            var checkedOut = !item.IsCheckedOut;
+            item.IsCheckedOut = checkedOut;
+            item.CheckedOutBy = checkedOut ? _userContext.UserName : string.Empty;
         }
 
         public void Dispose()
