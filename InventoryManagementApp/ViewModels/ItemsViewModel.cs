@@ -18,6 +18,8 @@ namespace InventoryManagementApp.ViewModels
         private readonly IItemService _itemService;
         private readonly IItemRepository _itemRepository;
         private readonly MemoryBudget _memoryBudget;
+        private readonly IDialogService _dialogService;
+        private readonly IRentalService _rentalService;
         private CancellationTokenSource _filterCts = new();
         private bool _disposed;
         private readonly List<ItemModel> _pendingEdits = new();
@@ -25,10 +27,10 @@ namespace InventoryManagementApp.ViewModels
         private const int PageSize = 200;
         public IncrementalLoadingCollection<ItemModel> Items { get; }
 
-        public IRelayCommand EditItemCommand { get; }
+        public IAsyncRelayCommand EditItemCommand { get; }
         public IRelayCommand ViewDetailsCommand { get; }
-        public IRelayCommand OpenRentalHistoryCommand { get; }
-        public IRelayCommand NewItemCommand { get; }
+        public IAsyncRelayCommand OpenRentalHistoryCommand { get; }
+        public IAsyncRelayCommand NewItemCommand { get; }
         public IAsyncRelayCommand SaveChangesCommand { get; }
 
         public IReadOnlyCollection<ItemModel> PendingEdits => _pendingEdits;
@@ -39,18 +41,20 @@ namespace InventoryManagementApp.ViewModels
         [ObservableProperty]
         private string filter = string.Empty;
 
-        public ItemsViewModel(IItemService itemService, IItemRepository itemRepository, MemoryBudget memoryBudget)
+        public ItemsViewModel(IItemService itemService, IItemRepository itemRepository, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService)
         {
             _itemService = itemService;
             _itemRepository = itemRepository;
             _memoryBudget = memoryBudget;
+            _dialogService = dialogService;
+            _rentalService = rentalService;
             Items = new IncrementalLoadingCollection<ItemModel>(LoadPageAsync, PageSize);
             _memoryBudget.ThresholdExceeded += OnThresholdExceeded;
 
-            EditItemCommand = new RelayCommand(() => { /* Edit item placeholder */ });
-            ViewDetailsCommand = new RelayCommand(() => { /* View details placeholder */ });
-            OpenRentalHistoryCommand = new RelayCommand(() => { /* Open rental history placeholder */ });
-            NewItemCommand = new RelayCommand(() => { /* New item placeholder */ });
+            EditItemCommand = new AsyncRelayCommand(ct => EditItemAsync(ct));
+            ViewDetailsCommand = new RelayCommand(ViewDetails);
+            OpenRentalHistoryCommand = new AsyncRelayCommand(ct => OpenRentalHistoryAsync(ct));
+            NewItemCommand = new AsyncRelayCommand(ct => NewItemAsync(ct));
             SaveChangesCommand = new AsyncRelayCommand(ct => SaveChangesAsync(ct));
         }
 
@@ -102,6 +106,114 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (!_pendingEdits.Contains(item))
                     _pendingEdits.Add(item);
+            }
+        }
+
+        private async Task EditItemAsync(CancellationToken ct)
+        {
+            if (SelectedItem == null) return;
+            ItemModel? updated;
+            try
+            {
+                var clone = new ItemModel
+                {
+                    ItemID = SelectedItem.ItemID,
+                    ItemNumber = SelectedItem.ItemNumber,
+                    PartNumber = SelectedItem.PartNumber,
+                    Name = SelectedItem.Name,
+                    Brand = SelectedItem.Brand,
+                    Location = SelectedItem.Location,
+                    QuantityOnHand = SelectedItem.QuantityOnHand,
+                    RentedQuantity = SelectedItem.RentedQuantity,
+                    Supplier = SelectedItem.Supplier,
+                    PurchasedDate = SelectedItem.PurchasedDate,
+                    Notes = SelectedItem.Notes,
+                    Keywords = SelectedItem.Keywords,
+                    IsPowered = SelectedItem.IsPowered,
+                    IsCheckedOut = SelectedItem.IsCheckedOut,
+                    CheckedOutBy = SelectedItem.CheckedOutBy,
+                    CheckedOutTime = SelectedItem.CheckedOutTime,
+                    ImagePath = SelectedItem.ImagePath,
+                    Price = SelectedItem.Price
+                };
+                updated = await _dialogService.ShowEditItemDialogAsync(clone).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            catch
+            {
+                return;
+            }
+            if (updated == null) return;
+            try
+            {
+                await _itemService.UpdateItemAsync(updated, ct).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch
+            {
+            }
+        }
+
+        private void ViewDetails()
+        {
+            if (SelectedItem == null) return;
+            try
+            {
+                _dialogService.ShowItemDetails(SelectedItem);
+            }
+            catch
+            {
+            }
+        }
+
+        private async Task OpenRentalHistoryAsync(CancellationToken ct)
+        {
+            if (SelectedItem == null) return;
+            try
+            {
+                var history = await _rentalService.GetRentalHistoryForItemAsync(SelectedItem.ItemID).ConfigureAwait(false);
+                _dialogService.ShowRentalHistory(SelectedItem, history);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch
+            {
+            }
+        }
+
+        private async Task NewItemAsync(CancellationToken ct)
+        {
+            ItemModel? item;
+            try
+            {
+                item = await _dialogService.ShowEditItemDialogAsync(new ItemModel()).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            catch
+            {
+                return;
+            }
+            if (item == null) return;
+            try
+            {
+                await _itemService.AddItemAsync(item, ct).ConfigureAwait(false);
+                Items.Reset();
+                await Items.LoadMoreAsync(ct).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch
+            {
             }
         }
 
