@@ -145,10 +145,9 @@ public class ItemDisplaySettingsTests
                 itemsControl.UpdateLayout();
                 border = (Border)VisualTreeHelper.GetChild(container, 0);
                 Assert.Equal(Visibility.Visible, border.Visibility);
-                var grid = (Grid)VisualTreeHelper.GetChild(border, 0);
-                var stack = (StackPanel)grid.Children[1];
-                var brandBlock = (TextBlock)stack.Children[2];
-                Assert.Equal(Visibility.Visible, brandBlock.Visibility);
+                var brandBlock = FindVisualChild<TextBlock>(border, tb => tb.Text == "B");
+                Assert.NotNull(brandBlock);
+                Assert.Equal(Visibility.Visible, brandBlock!.Visibility);
                 window.Close();
             }
             catch (Exception ex)
@@ -223,5 +222,19 @@ public class ItemDisplaySettingsTests
         thread.Start();
         thread.Join();
         Assert.True(vm.ItemDetailOptions.Single(o => o.Field == ItemDetailField.Name).IsVisible);
+    }
+
+    private static T? FindVisualChild<T>(DependencyObject parent, Func<T, bool> predicate) where T : DependencyObject
+    {
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T t && predicate(t))
+                return t;
+            var result = FindVisualChild(child, predicate);
+            if (result != null)
+                return result;
+        }
+        return null;
     }
 }
