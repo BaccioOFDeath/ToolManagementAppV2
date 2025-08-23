@@ -20,6 +20,7 @@ namespace InventoryManagementApp.Services.Settings
         readonly DatabaseService _dbService;
         readonly ILogger<SettingsService> _logger;
         readonly IAuthorizationService _auth;
+        public event EventHandler<IDictionary<ItemDetailField, bool>>? ItemDetailVisibilityChanged;
         const string UpsertSql = @"
             INSERT INTO Settings (Key, Value) 
             VALUES (@Key, @Value)
@@ -347,12 +348,13 @@ namespace InventoryManagementApp.Services.Settings
             return visibility;
         }
 
-        public Task SaveItemDetailVisibilityAsync(IDictionary<ItemDetailField, bool> visibility, CancellationToken cancellationToken = default)
+        public async Task SaveItemDetailVisibilityAsync(IDictionary<ItemDetailField, bool> visibility, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
             var dict = visibility.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value);
             var json = JsonSerializer.Serialize(dict);
-            return SaveSettingAsync(ItemDetailVisibilityKey, json, cancellationToken);
+            await SaveSettingAsync(ItemDetailVisibilityKey, json, cancellationToken).ConfigureAwait(false);
+            ItemDetailVisibilityChanged?.Invoke(this, new Dictionary<ItemDetailField, bool>(visibility));
         }
     }
 }

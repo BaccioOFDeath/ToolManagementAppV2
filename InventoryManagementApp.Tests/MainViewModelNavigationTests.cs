@@ -196,6 +196,7 @@ namespace InventoryManagementApp.Tests
 
         private sealed class DummySettingsService : ISettingsService
         {
+            public event EventHandler<IDictionary<ItemDetailField, bool>>? ItemDetailVisibilityChanged;
             public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<string?> GetSettingAsync(string key, CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
             public Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new Dictionary<string, string>());
@@ -214,7 +215,10 @@ namespace InventoryManagementApp.Tests
             public Task<IDictionary<ItemDetailField, bool>> GetItemDetailVisibilityAsync(CancellationToken cancellationToken = default)
                 => Task.FromResult<IDictionary<ItemDetailField, bool>>(Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => true));
             public Task SaveItemDetailVisibilityAsync(IDictionary<ItemDetailField, bool> visibility, CancellationToken cancellationToken = default)
-                => Task.CompletedTask;
+            {
+                ItemDetailVisibilityChanged?.Invoke(this, visibility);
+                return Task.CompletedTask;
+            }
         }
 
         private sealed class DummyDialogService : IDialogService

@@ -167,6 +167,29 @@ public class ItemDisplaySettingsTests
     }
 
     [Fact]
+    public async Task ChangingVisibilityInSettingsUpdatesItemManagement()
+    {
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        await using var db = new DatabaseService(dbPath);
+        var settings = new SettingsService(db);
+        var initial = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => true);
+        await settings.SaveItemDetailVisibilityAsync(initial);
+        var itemVm = new ItemManagementViewModel(new DummyItemService(), new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
+        await itemVm.InitializeAsync();
+        var settingsVm = new SettingsViewModel(new DummyFileDialogService(), settings, new DummyDialogService());
+        await settingsVm.InitializeAsync();
+        var tcs = new TaskCompletionSource<bool>();
+        itemVm.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(ItemManagementViewModel.VisibleFields))
+                tcs.TrySetResult(true);
+        };
+        settingsVm.ItemDetailOptions.Single(o => o.Field == ItemDetailField.Name).IsVisible = false;
+        await tcs.Task.WaitAsync(TimeSpan.FromSeconds(1));
+        Assert.False(itemVm.VisibleFields[ItemDetailField.Name]);
+    }
+
+    [Fact]
     public async Task SettingsViewModel_InitializeAsync_LoadsSettings()
     {
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");

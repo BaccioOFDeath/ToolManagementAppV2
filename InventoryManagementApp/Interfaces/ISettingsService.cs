@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Models;
@@ -7,6 +8,7 @@ namespace InventoryManagementApp.Interfaces
 {
     public interface ISettingsService
     {
+        event EventHandler<IDictionary<ItemDetailField, bool>>? ItemDetailVisibilityChanged;
         Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default);
         Task<string?> GetSettingAsync(string key, CancellationToken cancellationToken = default);
         Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default);
