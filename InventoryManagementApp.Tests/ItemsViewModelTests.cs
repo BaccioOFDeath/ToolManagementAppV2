@@ -9,6 +9,7 @@ using InventoryManagementApp.Data;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Models.ImportExport;
+using InventoryManagementApp.Models;
 using InventoryManagementApp.Utilities;
 using InventoryManagementApp.ViewModels;
 using Xunit;
@@ -19,27 +20,77 @@ namespace InventoryManagementApp.Tests
     public class ItemsViewModelTests
     {
         [Fact]
-        public void CommandsExistAndExecute()
+        public async Task EditItemCommandInvokesDialogServiceAndHandlesCancellationAndException()
         {
             var service = new DummyItemService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget);
+            var dialog = new RecordingDialogService();
+            var rental = new DummyRentalService();
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental);
+            vm.SelectedItem = new ItemModel { ItemID = 1 };
 
-            Assert.NotNull(vm.EditItemCommand);
-            Assert.True(vm.EditItemCommand.CanExecute(null));
-            vm.EditItemCommand.Execute(null);
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+            await vm.EditItemCommand.ExecuteAsync(null, cts.Token);
+            Assert.Equal(0, dialog.EditItemCalls);
 
-            Assert.NotNull(vm.ViewDetailsCommand);
-            Assert.True(vm.ViewDetailsCommand.CanExecute(null));
+            dialog.ThrowOnEdit = true;
+            await vm.EditItemCommand.ExecuteAsync(null);
+            Assert.Equal(1, dialog.EditItemCalls);
+        }
+
+        [Fact]
+        public void ViewDetailsCommandInvokesDialogServiceAndHandlesException()
+        {
+            var service = new DummyItemService();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            var dialog = new RecordingDialogService { ThrowOnDetails = true };
+            var rental = new DummyRentalService();
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental);
+            vm.SelectedItem = new ItemModel { ItemID = 2 };
+
             vm.ViewDetailsCommand.Execute(null);
+            Assert.Equal(1, dialog.ViewDetailsCalls);
+        }
 
-            Assert.NotNull(vm.OpenRentalHistoryCommand);
-            Assert.True(vm.OpenRentalHistoryCommand.CanExecute(null));
-            vm.OpenRentalHistoryCommand.Execute(null);
+        [Fact]
+        public async Task OpenRentalHistoryCommandInvokesServicesAndHandlesCancellationAndException()
+        {
+            var service = new DummyItemService();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            var dialog = new RecordingDialogService();
+            var rental = new RecordingRentalService();
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental);
+            vm.SelectedItem = new ItemModel { ItemID = 5 };
 
-            Assert.NotNull(vm.NewItemCommand);
-            Assert.True(vm.NewItemCommand.CanExecute(null));
-            vm.NewItemCommand.Execute(null);
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+            await vm.OpenRentalHistoryCommand.ExecuteAsync(null, cts.Token);
+            Assert.Equal(0, rental.Calls);
+
+            rental.ThrowOnGetHistory = true;
+            await vm.OpenRentalHistoryCommand.ExecuteAsync(null);
+            Assert.Equal(1, rental.Calls);
+            Assert.Equal(1, dialog.RentalHistoryCalls);
+        }
+
+        [Fact]
+        public async Task NewItemCommandInvokesDialogServiceAndHandlesCancellationAndException()
+        {
+            var service = new DummyItemService();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            var dialog = new RecordingDialogService();
+            var rental = new DummyRentalService();
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental);
+
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+            await vm.NewItemCommand.ExecuteAsync(null, cts.Token);
+            Assert.Equal(0, dialog.EditItemCalls);
+
+            dialog.ThrowOnEdit = true;
+            await vm.NewItemCommand.ExecuteAsync(null);
+            Assert.Equal(1, dialog.EditItemCalls);
         }
 
         [Fact]
@@ -53,7 +104,7 @@ namespace InventoryManagementApp.Tests
             };
             var service = new RecordingItemService(data);
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget);
+            using var vm = new ItemsViewModel(service, memoryBudget, new DummyDialogService(), new DummyRentalService());
 
             vm.Filter = "first";
             await Task.Delay(100);
@@ -78,7 +129,7 @@ namespace InventoryManagementApp.Tests
             };
             var service = new RecordingItemService(data, defaults);
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget);
+            using var vm = new ItemsViewModel(service, memoryBudget, new DummyDialogService(), new DummyRentalService());
 
             await vm.LoadMoreAsync();
             Assert.Single(vm.Items);
@@ -99,7 +150,7 @@ namespace InventoryManagementApp.Tests
         {
             var service = new PagingItemService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget);
+            using var vm = new ItemsViewModel(service, memoryBudget, new DummyDialogService(), new DummyRentalService());
 
             var tasks = new[]
             {
@@ -120,7 +171,7 @@ namespace InventoryManagementApp.Tests
         {
             var service = new DummyItemService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            var vm = new ItemsViewModel(service, memoryBudget);
+            var vm = new ItemsViewModel(service, memoryBudget, new DummyDialogService(), new DummyRentalService());
             vm.Items.Add(new ItemModel { ItemID = 1 });
             var ctsField = typeof(ItemsViewModel).GetField("_filterCts", BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.NotNull(ctsField);
@@ -130,6 +181,76 @@ namespace InventoryManagementApp.Tests
             vm.Dispose();
             Assert.True(token.IsCancellationRequested);
             Assert.Empty(vm.Items);
+        }
+
+        private class DummyDialogService : IDialogService
+        {
+            public virtual void ShowInfo(string message, string title) { }
+            public virtual bool ShowConfirmation(string message, string title) => false;
+            public virtual ItemModel? ShowEditItemDialog(ItemModel item) => null;
+            public virtual void ShowItemDetails(ItemModel item) { }
+            public virtual (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;
+            public virtual CustomerModel? ShowAddCustomerDialog() => null;
+            public virtual void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
+            public virtual void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history) { }
+            public virtual Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties, IEnumerable<string>? requiredPropertyNames = null) => null;
+            public virtual Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
+            public virtual void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
+            public virtual void ShowPrintLabelDialog() { }
+        }
+
+        private sealed class RecordingDialogService : DummyDialogService
+        {
+            public int EditItemCalls { get; private set; }
+            public int ViewDetailsCalls { get; private set; }
+            public int RentalHistoryCalls { get; private set; }
+            public bool ThrowOnEdit { get; set; }
+            public bool ThrowOnDetails { get; set; }
+
+            public override ItemModel? ShowEditItemDialog(ItemModel item)
+            {
+                EditItemCalls++;
+                if (ThrowOnEdit) throw new InvalidOperationException();
+                return item;
+            }
+
+            public override void ShowItemDetails(ItemModel item)
+            {
+                ViewDetailsCalls++;
+                if (ThrowOnDetails) throw new InvalidOperationException();
+            }
+
+            public override void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history)
+            {
+                RentalHistoryCalls++;
+            }
+        }
+
+        private class DummyRentalService : IRentalService
+        {
+            public virtual Task RentItemAsync(int itemID, int customerID, DateTime rentalDate, DateTime dueDate) => Task.CompletedTask;
+            public virtual Task ReturnItemAsync(int rentalID, DateTime returnDate) => Task.CompletedTask;
+            public virtual Task ExtendRentalAsync(int rentalID, DateTime newDueDate) => Task.CompletedTask;
+            public virtual Task DeleteRentalAsync(int rentalID) => Task.CompletedTask;
+            public virtual Task<List<Rental>> GetActiveRentalsAsync() => Task.FromResult(new List<Rental>());
+            public virtual Task<int> CountActiveRentalsAsync() => Task.FromResult(0);
+            public virtual Task<List<Rental>> GetOverdueRentalsAsync() => Task.FromResult(new List<Rental>());
+            public virtual Task<List<Rental>> GetAllRentalsAsync() => Task.FromResult(new List<Rental>());
+            public virtual Task<List<Rental>> GetRentalHistoryForItemAsync(int itemID) => Task.FromResult(new List<Rental>());
+            public virtual Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID) => Task.FromResult(new List<Rental>());
+        }
+
+        private sealed class RecordingRentalService : DummyRentalService
+        {
+            public int Calls { get; private set; }
+            public bool ThrowOnGetHistory { get; set; }
+
+            public override Task<List<Rental>> GetRentalHistoryForItemAsync(int itemID)
+            {
+                Calls++;
+                if (ThrowOnGetHistory) throw new InvalidOperationException();
+                return Task.FromResult(new List<Rental>());
+            }
         }
 
         private sealed class PagingItemService : IItemService

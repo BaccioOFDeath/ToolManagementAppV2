@@ -9,6 +9,8 @@ using InventoryManagementApp.Data;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Utilities;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -16,16 +18,19 @@ namespace InventoryManagementApp.ViewModels
     {
         private readonly IItemService _itemService;
         private readonly MemoryBudget _memoryBudget;
+        private readonly IDialogService _dialogService;
+        private readonly IRentalService _rentalService;
+        private readonly ILogger<ItemsViewModel> _logger;
         private CancellationTokenSource _filterCts = new();
         private bool _disposed;
 
         private const int PageSize = 200;
         public IncrementalLoadingCollection<ItemModel> Items { get; }
 
-        public IRelayCommand EditItemCommand { get; }
+        public IAsyncRelayCommand EditItemCommand { get; }
         public IRelayCommand ViewDetailsCommand { get; }
-        public IRelayCommand OpenRentalHistoryCommand { get; }
-        public IRelayCommand NewItemCommand { get; }
+        public IAsyncRelayCommand OpenRentalHistoryCommand { get; }
+        public IAsyncRelayCommand NewItemCommand { get; }
 
         [ObservableProperty]
         private ItemModel? selectedItem;
@@ -33,17 +38,31 @@ namespace InventoryManagementApp.ViewModels
         [ObservableProperty]
         private string filter = string.Empty;
 
-        public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget)
+        partial void OnSelectedItemChanged(ItemModel? value)
+        {
+            EditItemCommand.NotifyCanExecuteChanged();
+            ViewDetailsCommand.NotifyCanExecuteChanged();
+            OpenRentalHistoryCommand.NotifyCanExecuteChanged();
+        }
+
+        public ItemsViewModel(IItemService itemService,
+                              MemoryBudget memoryBudget,
+                              IDialogService dialogService,
+                              IRentalService rentalService,
+                              ILogger<ItemsViewModel>? logger = null)
         {
             _itemService = itemService;
             _memoryBudget = memoryBudget;
+            _dialogService = dialogService;
+            _rentalService = rentalService;
+            _logger = logger ?? NullLogger<ItemsViewModel>.Instance;
             Items = new IncrementalLoadingCollection<ItemModel>(LoadPageAsync, PageSize);
             _memoryBudget.ThresholdExceeded += OnThresholdExceeded;
 
-            EditItemCommand = new RelayCommand(() => { /* Edit item placeholder */ });
-            ViewDetailsCommand = new RelayCommand(() => { /* View details placeholder */ });
-            OpenRentalHistoryCommand = new RelayCommand(() => { /* Open rental history placeholder */ });
-            NewItemCommand = new RelayCommand(() => { /* New item placeholder */ });
+            EditItemCommand = new AsyncRelayCommand(ct => EditItemAsync(ct), () => SelectedItem != null);
+            ViewDetailsCommand = new RelayCommand(ViewDetails, () => SelectedItem != null);
+            OpenRentalHistoryCommand = new AsyncRelayCommand(ct => OpenRentalHistoryAsync(ct), () => SelectedItem != null);
+            NewItemCommand = new AsyncRelayCommand(ct => NewItemAsync(ct));
         }
 
         private async Task<IList<ItemModel>> LoadPageAsync(int page, CancellationToken ct)
@@ -80,6 +99,74 @@ namespace InventoryManagementApp.ViewModels
             }
             Items.Reset();
             await Items.LoadMoreAsync(token).ConfigureAwait(false);
+        }
+
+        private async Task EditItemAsync(CancellationToken ct)
+        {
+            var item = SelectedItem;
+            if (item == null) return;
+            try
+            {
+                ct.ThrowIfCancellationRequested();
+                await _dialogService.ShowEditItemDialogAsync(item).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to edit item {ItemId}", item.ItemID);
+            }
+        }
+
+        private void ViewDetails()
+        {
+            var item = SelectedItem;
+            if (item == null) return;
+            try
+            {
+                _dialogService.ShowItemDetails(item);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to view details for item {ItemId}", item.ItemID);
+            }
+        }
+
+        private async Task OpenRentalHistoryAsync(CancellationToken ct)
+        {
+            var item = SelectedItem;
+            if (item == null) return;
+            try
+            {
+                ct.ThrowIfCancellationRequested();
+                var history = await _rentalService.GetRentalHistoryForItemAsync(item.ItemID).ConfigureAwait(false);
+                _dialogService.ShowRentalHistory(item, history);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to open rental history for item {ItemId}", item.ItemID);
+            }
+        }
+
+        private async Task NewItemAsync(CancellationToken ct)
+        {
+            var item = new ItemModel();
+            try
+            {
+                ct.ThrowIfCancellationRequested();
+                await _dialogService.ShowEditItemDialogAsync(item).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create new item");
+            }
         }
 
         private void OnThresholdExceeded(object? sender, EventArgs e) => Items.TrimToWindow(PageSize * 3);
