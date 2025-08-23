@@ -30,6 +30,7 @@ namespace InventoryManagementApp.Interfaces
         Task ExtendRentalAsync(int rentalID, DateTime newDueDate);
         Task DeleteRentalAsync(int rentalID);
         Task<List<Rental>> GetActiveRentalsAsync();
+        Task<int> CountActiveRentalsAsync();
         Task<List<Rental>> GetOverdueRentalsAsync();
         Task<List<Rental>> GetAllRentalsAsync();
         Task<List<Rental>> GetRentalHistoryForItemAsync(int itemID);

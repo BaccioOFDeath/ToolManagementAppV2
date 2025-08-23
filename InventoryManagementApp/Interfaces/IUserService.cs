@@ -8,6 +8,7 @@ namespace InventoryManagementApp.Interfaces
     public interface IUserService
     {
         Task<List<User>> GetAllUsersAsync();
+        Task<int> CountUsersAsync();
         Task<User?> GetUserByIDAsync(int userID);
         Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password);
         Task<User?> GetCurrentUserAsync();

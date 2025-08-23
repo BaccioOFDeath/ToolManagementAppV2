@@ -36,8 +36,20 @@ public class DashboardViewModelTests
 
     private sealed class StubRentalService : IRentalService
     {
+        public int CountCalls { get; private set; }
+        public int GetCalls { get; private set; }
+
+        public Task<int> CountActiveRentalsAsync()
+        {
+            CountCalls++;
+            return Task.FromResult(3);
+        }
+
         public Task<List<Rental>> GetActiveRentalsAsync()
-            => Task.FromResult(new List<Rental>());
+        {
+            GetCalls++;
+            return Task.FromResult(new List<Rental>());
+        }
 
         public Task DeleteRentalAsync(int rentalID) => throw new NotImplementedException();
         public Task ExtendRentalAsync(int rentalID, DateTime newDueDate) => throw new NotImplementedException();
@@ -51,8 +63,20 @@ public class DashboardViewModelTests
 
     private sealed class StubCustomerService : ICustomerService
     {
+        public int CountCalls { get; private set; }
+        public int GetCalls { get; private set; }
+
+        public Task<int> CountCustomersAsync(CancellationToken cancellationToken = default)
+        {
+            CountCalls++;
+            return Task.FromResult(4);
+        }
+
         public Task<List<Customer>> GetAllCustomersAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<Customer>());
+        {
+            GetCalls++;
+            return Task.FromResult(new List<Customer>());
+        }
 
         public Task AddCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task UpdateCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => throw new NotImplementedException();
@@ -65,8 +89,20 @@ public class DashboardViewModelTests
 
     private sealed class StubUserService : IUserService
     {
+        public int CountCalls { get; private set; }
+        public int GetCalls { get; private set; }
+
+        public Task<int> CountUsersAsync()
+        {
+            CountCalls++;
+            return Task.FromResult(5);
+        }
+
         public Task<List<User>> GetAllUsersAsync()
-            => Task.FromResult(new List<User>());
+        {
+            GetCalls++;
+            return Task.FromResult(new List<User>());
+        }
 
         public Task<User?> GetUserByIDAsync(int userID) => throw new NotImplementedException();
         public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => throw new NotImplementedException();
@@ -110,6 +146,12 @@ public class DashboardViewModelTests
         await vm.LoadStatsAsync(CancellationToken.None);
 
         Assert.Equal(before + 1, repo.CountCalls);
+        Assert.Equal(1, rentalService.CountCalls);
+        Assert.Equal(0, rentalService.GetCalls);
+        Assert.Equal(1, customerService.CountCalls);
+        Assert.Equal(0, customerService.GetCalls);
+        Assert.Equal(1, userService.CountCalls);
+        Assert.Equal(0, userService.GetCalls);
         Assert.Contains(vm.StatCards, s => s.Title == "Total Items" && s.Value == "42");
     }
 }

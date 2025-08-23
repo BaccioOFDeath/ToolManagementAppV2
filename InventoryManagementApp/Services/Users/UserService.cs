@@ -102,6 +102,14 @@ namespace InventoryManagementApp.Services.Users
             return await SqliteHelper.ExecuteReaderAsync(conn, sql, null, MapUser);
         }
 
+        public async Task<int> CountUsersAsync()
+        {
+            using var conn = _dbService.CreateConnection();
+            const string sql = "SELECT COUNT(*) FROM Users";
+            var result = await SqliteHelper.ExecuteScalarAsync(conn, sql);
+            return Convert.ToInt32(result);
+        }
+
         public async Task<User?> GetUserByIDAsync(int userID)
         {
             using var conn = _dbService.CreateConnection();
