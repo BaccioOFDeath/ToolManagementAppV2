@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Data;
@@ -300,10 +301,13 @@ namespace InventoryManagementApp.ViewModels
                 foreach (var item in toRemove)
                 {
                     await _itemService.DeleteItemAsync(item.ItemID, ct).ConfigureAwait(false);
-                    Items.Remove(item);
+                    await Application.Current.Dispatcher.InvokeAsync(() => Items.Remove(item));
                 }
-                if (SelectedItem != null && toRemove.Contains(SelectedItem))
-                    SelectedItem = null;
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    if (SelectedItem != null && toRemove.Contains(SelectedItem))
+                        SelectedItem = null;
+                });
             }
             catch (UnauthorizedAccessException)
             {
