@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -13,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Utilities.Helpers;
 using InventoryManagementApp.Models;
+using InventoryManagementApp.Messages;
 
 #nullable enable
 
@@ -150,6 +152,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 await _settingsService.SaveItemLabelSingularAsync(value).ConfigureAwait(false);
                 LabelProvider.Instance.UpdateLabels(value, ItemLabelPlural);
+                WeakReferenceMessenger.Default.Send(new ItemSettingsChangedMessage());
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -181,6 +184,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 await _settingsService.SaveItemLabelPluralAsync(value).ConfigureAwait(false);
                 LabelProvider.Instance.UpdateLabels(ItemLabelSingular, value);
+                WeakReferenceMessenger.Default.Send(new ItemSettingsChangedMessage());
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -306,6 +310,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 var dict = ItemDetailOptions.ToDictionary(o => o.Field, o => o.IsVisible);
                 await _settingsService.SaveItemDetailVisibilityAsync(dict).ConfigureAwait(false);
+                WeakReferenceMessenger.Default.Send(new ItemSettingsChangedMessage());
             }
             catch (UnauthorizedAccessException ex)
             {

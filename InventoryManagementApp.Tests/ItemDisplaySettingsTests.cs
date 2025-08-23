@@ -20,12 +20,22 @@ public class ItemDisplaySettingsTests
 {
     private sealed class DummyItemService : IItemService
     {
+        public Action? OnGetItems;
+        public Action? OnSearchItems;
         public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task DeleteItemAsync(int itemID, CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default) => Task.FromResult<ItemModel?>(null);
-        public IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default) => AsyncEnumerable.Empty<ItemModel>();
-        public IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default) => AsyncEnumerable.Empty<ItemModel>();
+        public IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default)
+        {
+            OnGetItems?.Invoke();
+            return AsyncEnumerable.Empty<ItemModel>();
+        }
+        public IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default)
+        {
+            OnSearchItems?.Invoke();
+            return AsyncEnumerable.Empty<ItemModel>();
+        }
         public Task<int> CountItemsAsync(ItemFilter filter, CancellationToken ct) => Task.FromResult(0);
         public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct) => Task.CompletedTask;
         public Task<bool> ToggleItemCheckOutStatusAsync(int itemID, CancellationToken cancellationToken = default) => Task.FromResult(false);
@@ -166,14 +176,17 @@ public class ItemDisplaySettingsTests
     }
 
     [Fact]
-    public async Task ChangingVisibilityInSettingsUpdatesItemManagement()
+    public async Task ChangingVisibilityInSettingsRefreshesItemManagement()
     {
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
         await using var db = new DatabaseService(dbPath);
         var settings = new SettingsService(db);
         var initial = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => true);
         await settings.SaveItemDetailVisibilityAsync(initial);
-        var itemVm = new ItemManagementViewModel(new DummyItemService(), new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
+        var itemService = new DummyItemService();
+        var searchTcs = new TaskCompletionSource<bool>();
+        itemService.OnGetItems = () => searchTcs.TrySetResult(true);
+        var itemVm = new ItemManagementViewModel(itemService, new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
         await itemVm.InitializeAsync();
         var settingsVm = new SettingsViewModel(new DummyFileDialogService(), settings, new DummyDialogService());
         await settingsVm.InitializeAsync();
@@ -184,8 +197,25 @@ public class ItemDisplaySettingsTests
                 tcs.TrySetResult(true);
         };
         settingsVm.ItemDetailOptions.Single(o => o.Field == ItemDetailField.Name).IsVisible = false;
-        await tcs.Task.WaitAsync(TimeSpan.FromSeconds(1));
+        await Task.WhenAll(tcs.Task.WaitAsync(TimeSpan.FromSeconds(1)), searchTcs.Task.WaitAsync(TimeSpan.FromSeconds(1)));
         Assert.False(itemVm.VisibleFields[ItemDetailField.Name]);
+    }
+
+    [Fact]
+    public async Task ChangingItemLabelRefreshesItemManagement()
+    {
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        await using var db = new DatabaseService(dbPath);
+        var settings = new SettingsService(db);
+        var itemService = new DummyItemService();
+        var searchTcs = new TaskCompletionSource<bool>();
+        itemService.OnGetItems = () => searchTcs.TrySetResult(true);
+        var itemVm = new ItemManagementViewModel(itemService, new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
+        await itemVm.InitializeAsync();
+        var settingsVm = new SettingsViewModel(new DummyFileDialogService(), settings, new DummyDialogService());
+        await settingsVm.InitializeAsync();
+        settingsVm.ItemLabelSingular = "Widget";
+        await searchTcs.Task.WaitAsync(TimeSpan.FromSeconds(1));
     }
 
     [Fact]
