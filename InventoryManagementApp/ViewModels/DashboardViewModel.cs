@@ -81,9 +81,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 StatCards.Clear();
-                var count = 0;
-                await foreach (var _ in _itemService.GetItemsAsync(new ItemPage(1, int.MaxValue), cancellationToken))
-                    count++;
+                var count = await _itemService.CountItemsAsync(new ItemFilter(null), cancellationToken);
                 StatCards.Add(new StatCard { Title = $"Total {LabelProvider.Instance.ItemLabelPlural}", Value = count.ToString() });
                 var activeRentals = await _rentalService.GetActiveRentalsAsync();
                 var customers = await _customerService.GetAllCustomersAsync(cancellationToken);

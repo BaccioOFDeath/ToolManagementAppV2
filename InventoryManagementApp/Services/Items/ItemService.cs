@@ -422,6 +422,9 @@ namespace InventoryManagementApp.Services.Items
         public IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, CancellationToken cancellationToken = default)
             => _repository.GetPageAsync(new ItemFilter(searchText), page, cancellationToken);
 
+        public Task<int> CountItemsAsync(ItemFilter filter, CancellationToken ct)
+            => _repository.CountAsync(filter, ct);
+
         private async Task<bool> ToggleItemCheckOutStatusInternalAsync(int itemID, string currentUser, CancellationToken cancellationToken)
         {
             using var conn = _dbService.CreateConnection();
