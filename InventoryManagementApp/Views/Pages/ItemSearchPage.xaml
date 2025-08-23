@@ -12,31 +12,9 @@
       SizeChanged="Page_SizeChanged">
     <Grid Margin="8">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Border Style="{StaticResource Card}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
-                <ComboBox Grid.Column="1"
-                          ItemsSource="{Binding Categories}"
-                          SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
-                          Margin="8,0,0,0"
-                          ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
-                <Button Grid.Column="2"
-                        Style="{StaticResource PrimaryButton}"
-                        Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}"
-                        ContentStringFormat="Search {0}"
-                        Command="{Binding SearchCommand}"
-                        Margin="8,0,0,0"/>
-            </Grid>
-        </Border>
-        <ListBox x:Name="ItemsList" Grid.Row="1"
+        <ListBox x:Name="ItemsList" Grid.Row="0"
                  Background="{StaticResource SurfaceBrush}"
                  ItemsSource="{Binding SearchResults}"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
