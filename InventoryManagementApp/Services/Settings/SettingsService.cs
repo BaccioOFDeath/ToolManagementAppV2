@@ -326,7 +326,10 @@ namespace InventoryManagementApp.Services.Settings
             var value = await GetSettingAsync(key, cancellationToken).ConfigureAwait(false);
             if (value is null)
             {
-                await SaveSettingAsync(key, defaultValue.ToString(), cancellationToken).ConfigureAwait(false);
+                if (_auth.IsAdmin)
+                {
+                    await SaveSettingAsync(key, defaultValue.ToString(), cancellationToken).ConfigureAwait(false);
+                }
                 return defaultValue;
             }
             return ParseBool(value, defaultValue);
