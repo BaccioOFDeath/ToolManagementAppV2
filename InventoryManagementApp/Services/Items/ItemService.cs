@@ -86,7 +86,7 @@ namespace InventoryManagementApp.Services.Items
             }
         }
 
-        public async Task<bool> ToggleItemCheckOutStatusAsync(int itemID, string currentUser, CancellationToken cancellationToken = default)
+        public async Task<bool> ToggleItemCheckOutStatusAsync(int itemID, CancellationToken cancellationToken = default)
         {
             if (_context?.CurrentUser == null)
                 throw new InvalidOperationException("Current user is not available.");
