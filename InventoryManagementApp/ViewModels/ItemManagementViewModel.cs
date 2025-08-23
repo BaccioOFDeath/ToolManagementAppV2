@@ -169,7 +169,8 @@ namespace InventoryManagementApp.ViewModels
         {
             if (_initialized) return;
             var vis = await _settingsService.GetItemDetailVisibilityAsync().ConfigureAwait(false);
-            VisibleFields = new Dictionary<ItemDetailField, bool>(vis);
+            var complete = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, f => vis.TryGetValue(f, out var v) ? v : true);
+            VisibleFields = complete;
             WeakReferenceMessenger.Default.Register<ItemManagementViewModel, ItemSettingsChangedMessage>(this, static (r, m) => r.OnItemSettingsChanged());
             _initialized = true;
         }
@@ -179,7 +180,8 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 var vis = await _settingsService.GetItemDetailVisibilityAsync().ConfigureAwait(false);
-                VisibleFields = new Dictionary<ItemDetailField, bool>(vis);
+                var complete = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, f => vis.TryGetValue(f, out var v) ? v : true);
+                VisibleFields = complete;
                 _searchCts?.Cancel();
                 _searchCts?.Dispose();
                 _searchCts = new CancellationTokenSource();
