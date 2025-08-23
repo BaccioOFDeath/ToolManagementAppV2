@@ -88,12 +88,15 @@ namespace InventoryManagementApp.Services.Items
 
         public async Task<bool> ToggleItemCheckOutStatusAsync(int itemID, string currentUser, CancellationToken cancellationToken = default)
         {
-            _auth.EnsureAdmin();
-            var result = await ToggleItemCheckOutStatusInternalAsync(itemID, currentUser, cancellationToken).ConfigureAwait(false);
+            if (_context?.CurrentUser == null)
+                throw new InvalidOperationException("Current user is not available.");
+
+            var caller = _context.UserName;
+            var result = await ToggleItemCheckOutStatusInternalAsync(itemID, caller, cancellationToken).ConfigureAwait(false);
             if (result && _activityLog != null)
             {
-                int userId = _context?.CurrentUser?.UserID ?? 0;
-                await _activityLog.LogActionAsync(userId, currentUser, $"Toggled item {itemID} check-out status", cancellationToken).ConfigureAwait(false);
+                int userId = _context.CurrentUser?.UserID ?? 0;
+                await _activityLog.LogActionAsync(userId, caller, $"Toggled item {itemID} check-out status", cancellationToken).ConfigureAwait(false);
             }
             return result;
         }
@@ -437,15 +440,22 @@ namespace InventoryManagementApp.Services.Items
         {
             using var conn = _dbService.CreateConnection();
             var record = (await SqliteHelper.ExecuteReaderAsync(conn,
-                "SELECT IsCheckedOut, AvailableQuantity FROM Items WHERE ItemID=@ID",
-                r => new { Out = Convert.ToInt32(r["IsCheckedOut"]) == 1, Qty = Convert.ToInt32(r["AvailableQuantity"]) },
+                "SELECT IsCheckedOut, AvailableQuantity, CheckedOutBy FROM Items WHERE ItemID=@ID",
+                r => new { Out = Convert.ToInt32(r["IsCheckedOut"]) == 1, Qty = Convert.ToInt32(r["AvailableQuantity"]), By = r["CheckedOutBy"]?.ToString() },
                 new[] { new SqliteParameter("@ID", itemID) }, cancellationToken)).FirstOrDefault();
 
             if (record == null)
                 throw new InvalidOperationException($"ItemModel {itemID} not found.");
 
-            if (!record.Out && record.Qty <= 0)
+            if (!record.Out)
+            {
+                if (record.Qty <= 0)
+                    return false;
+            }
+            else if (!string.Equals(record.By, currentUser, StringComparison.OrdinalIgnoreCase))
+            {
                 return false;
+            }
 
             var newStatus = record.Out ? 0 : 1;
             var time = record.Out ? (object)DBNull.Value : DateTime.UtcNow;
