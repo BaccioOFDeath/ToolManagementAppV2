@@ -40,7 +40,7 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public async Task EditUserUpdatesCurrentUserPhoto()
+        public async Task UpdateUserAsync_UpdatesCurrentUserPhotoAndRaisesEvent()
         {
             await RunOnStaThread(async () =>
             {
@@ -72,16 +72,13 @@ namespace InventoryManagementApp.Tests
                 allUsersField!.SetValue(um, allUsers);
                 um.SelectedUser = currentUser;
 
-                var clone = new User { UserID = 1, UserName = "u", UserPhotoPath = "new.png" };
-                await userService.UpdateUserAsync(clone);
-                var idx = um.Users.IndexOf(currentUser);
-                if (idx >= 0) um.Users[idx] = clone;
-                var idxAll = allUsers.IndexOf(currentUser);
-                if (idxAll >= 0) allUsers[idxAll] = clone;
-                if (ReferenceEquals(um.SelectedUser, currentUser)) um.SelectedUser = clone;
-                if (userContext.CurrentUser?.UserID == clone.UserID)
-                    userContext.CurrentUser = clone;
+                bool fired = false;
+                userContext.UserChanged += (_, _) => fired = true;
 
+                um.SelectedUser.UserPhotoPath = "new.png";
+                await um.UpdateUserAsync();
+
+                Assert.True(fired);
                 Assert.Equal("new.png", vm.CurrentUserPhotoPath);
             });
         }
