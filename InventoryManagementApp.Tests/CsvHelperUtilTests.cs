@@ -26,6 +26,23 @@ public class CsvHelperUtilTests
     }
 
     [Fact]
+    public void LoadItemsFromCsv_PopulatesKeywords()
+    {
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
+        File.WriteAllText(path, "ItemNumber,Keywords\nNUM1,tag1 tag2");
+        var map = new Dictionary<string, string>
+        {
+            ["ItemNumber"] = "ItemNumber",
+            [nameof(ItemImportDto.Keywords)] = "Keywords"
+        };
+        var items = CsvHelperUtil.LoadItemsFromCsv(path, map, out var invalid);
+        Assert.Single(items);
+        Assert.Equal("tag1 tag2", items[0].Keywords);
+        Assert.Empty(invalid);
+        File.Delete(path);
+    }
+
+    [Fact]
     public async Task LoadItemsFromCsvAsync_PopulatesName()
     {
         var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
@@ -38,6 +55,23 @@ public class CsvHelperUtilTests
         var (items, invalid) = await CsvHelperUtil.LoadItemsFromCsvAsync(path, map);
         Assert.Single(items);
         Assert.Equal("ItemName", items[0].Name);
+        Assert.Empty(invalid);
+        File.Delete(path);
+    }
+
+    [Fact]
+    public async Task LoadItemsFromCsvAsync_PopulatesKeywords()
+    {
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
+        await File.WriteAllTextAsync(path, "ItemNumber,Keywords\nNUM1,tag1 tag2");
+        var map = new Dictionary<string, string>
+        {
+            ["ItemNumber"] = "ItemNumber",
+            [nameof(ItemImportDto.Keywords)] = "Keywords"
+        };
+        var (items, invalid) = await CsvHelperUtil.LoadItemsFromCsvAsync(path, map);
+        Assert.Single(items);
+        Assert.Equal("tag1 tag2", items[0].Keywords);
         Assert.Empty(invalid);
         File.Delete(path);
     }
