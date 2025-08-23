@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Reflection;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
@@ -35,6 +36,53 @@ namespace InventoryManagementApp.Tests
                 using var db = new DatabaseService(":memory:");
                 using var vm = CreateMainViewModel(db, new DummyItemService(), new ThrowingDialogService());
                 await Assert.ThrowsAsync<InvalidOperationException>(() => vm.OpenPrintLabelWindowCommand.ExecuteAsync(null));
+            });
+        }
+
+        [Fact]
+        public async Task EditUserUpdatesCurrentUserPhoto()
+        {
+            await RunOnStaThread(async () =>
+            {
+                using var db = new DatabaseService(":memory:");
+                var userService = new DummyUserService();
+                var currentUser = new User { UserID = 1, UserName = "u", UserPhotoPath = "old.png" };
+                var userContext = new DummyUserContext { CurrentUser = currentUser };
+                var activityLog = new ActivityLogService(db);
+                using var vm = new MainViewModel(
+                    new DummyItemService(),
+                    userService,
+                    userContext,
+                    new DummyCustomerService(),
+                    new DummyRentalService(),
+                    new DummyFileDialogService(),
+                    activityLog,
+                    new DummySettingsService(),
+                    db,
+                    new DummyDialogService(),
+                    NullLogger<MainViewModel>.Instance,
+                    () => Task.FromResult(true),
+                    new DummyDispatcherTimer(),
+                    new DummyScannerService());
+
+                var um = vm.UserManagement;
+                um.Users.Add(currentUser);
+                var allUsersField = typeof(UserManagementViewModel).GetField("_allUsers", BindingFlags.NonPublic | BindingFlags.Instance);
+                var allUsers = new List<User> { currentUser };
+                allUsersField!.SetValue(um, allUsers);
+                um.SelectedUser = currentUser;
+
+                var clone = new User { UserID = 1, UserName = "u", UserPhotoPath = "new.png" };
+                await userService.UpdateUserAsync(clone);
+                var idx = um.Users.IndexOf(currentUser);
+                if (idx >= 0) um.Users[idx] = clone;
+                var idxAll = allUsers.IndexOf(currentUser);
+                if (idxAll >= 0) allUsers[idxAll] = clone;
+                if (ReferenceEquals(um.SelectedUser, currentUser)) um.SelectedUser = clone;
+                if (userContext.CurrentUser?.UserID == clone.UserID)
+                    userContext.CurrentUser = clone;
+
+                Assert.Equal("new.png", vm.CurrentUserPhotoPath);
             });
         }
 

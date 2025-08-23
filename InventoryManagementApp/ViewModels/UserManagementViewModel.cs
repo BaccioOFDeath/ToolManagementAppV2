@@ -352,6 +352,8 @@ namespace InventoryManagementApp.ViewModels
                         var idxAll = _allUsers.IndexOf(user);
                         if (idxAll >= 0) _allUsers[idxAll] = clone;
                         if (ReferenceEquals(SelectedUser, user)) SelectedUser = clone;
+                        if (_userContext?.CurrentUser?.UserID == clone.UserID)
+                            _userContext.CurrentUser = clone;
                         if (win != null)
                             win.DialogResult = true;
                     }
