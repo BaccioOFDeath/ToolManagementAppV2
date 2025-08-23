@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -93,30 +94,16 @@ public class ItemDisplaySettingsTests
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
         await using var db = new DatabaseService(dbPath);
         var settings = new SettingsService(db);
-        await settings.SaveShowItemImageAsync(false);
-        await settings.SaveShowItemNameAsync(false);
-        await settings.SaveShowItemNumberAsync(false);
-        await settings.SaveShowItemLocationAsync(false);
-        await settings.SaveShowItemNotesAsync(false);
+        var allFalse = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => false);
+        await settings.SaveItemDetailVisibilityAsync(allFalse);
         var vmFalse = new ItemManagementViewModel(new DummyItemService(), new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
         await vmFalse.InitializeAsync();
-        Assert.False(vmFalse.ShowImage);
-        Assert.False(vmFalse.ShowName);
-        Assert.False(vmFalse.ShowItemNumber);
-        Assert.False(vmFalse.ShowLocation);
-        Assert.False(vmFalse.ShowNotes);
-        await settings.SaveShowItemImageAsync(true);
-        await settings.SaveShowItemNameAsync(true);
-        await settings.SaveShowItemNumberAsync(true);
-        await settings.SaveShowItemLocationAsync(true);
-        await settings.SaveShowItemNotesAsync(true);
+        Assert.All(vmFalse.VisibleFields.Values, v => Assert.False(v));
+        var allTrue = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => true);
+        await settings.SaveItemDetailVisibilityAsync(allTrue);
         var vmTrue = new ItemManagementViewModel(new DummyItemService(), new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
         await vmTrue.InitializeAsync();
-        Assert.True(vmTrue.ShowImage);
-        Assert.True(vmTrue.ShowName);
-        Assert.True(vmTrue.ShowItemNumber);
-        Assert.True(vmTrue.ShowLocation);
-        Assert.True(vmTrue.ShowNotes);
+        Assert.All(vmTrue.VisibleFields.Values, v => Assert.True(v));
     }
 
     [Fact]
@@ -130,11 +117,8 @@ public class ItemDisplaySettingsTests
                 var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
                 using var db = new DatabaseService(dbPath);
                 var settings = new SettingsService(db);
-                settings.SaveShowItemImageAsync(false).GetAwaiter().GetResult();
-                settings.SaveShowItemNameAsync(false).GetAwaiter().GetResult();
-                settings.SaveShowItemNumberAsync(false).GetAwaiter().GetResult();
-                settings.SaveShowItemLocationAsync(false).GetAwaiter().GetResult();
-                settings.SaveShowItemNotesAsync(false).GetAwaiter().GetResult();
+                var allFalse = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => false);
+                settings.SaveItemDetailVisibilityAsync(allFalse).GetAwaiter().GetResult();
                 var vm = new ItemManagementViewModel(new DummyItemService(), new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
                 vm.InitializeAsync().GetAwaiter().GetResult();
                 var app = new Application();
@@ -142,7 +126,7 @@ public class ItemDisplaySettingsTests
                 app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
                 app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Templates.xaml", UriKind.Absolute) });
                 var template = (DataTemplate)app.Resources["ItemCardTemplate"];
-                var item = new ItemModel { Name = "A", ItemNumber = "1", Location = "L", Notes = "N" };
+                var item = new ItemModel { Name = "A", ItemNumber = "1", Brand = "B", Location = "L", Notes = "N", Price = 1m };
                 var itemsControl = new ItemsControl { DataContext = vm, ItemTemplate = template };
                 itemsControl.Items.Add(item);
                 var window = new Window { Content = itemsControl };
@@ -152,13 +136,19 @@ public class ItemDisplaySettingsTests
                 container.ApplyTemplate();
                 var border = (Border)VisualTreeHelper.GetChild(container, 0);
                 Assert.Equal(Visibility.Collapsed, border.Visibility);
-                settings.SaveShowItemNameAsync(true).GetAwaiter().GetResult();
+                var vis = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => false);
+                vis[ItemDetailField.Brand] = true;
+                settings.SaveItemDetailVisibilityAsync(vis).GetAwaiter().GetResult();
                 vm = new ItemManagementViewModel(new DummyItemService(), new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
                 vm.InitializeAsync().GetAwaiter().GetResult();
                 itemsControl.DataContext = vm;
                 itemsControl.UpdateLayout();
                 border = (Border)VisualTreeHelper.GetChild(container, 0);
                 Assert.Equal(Visibility.Visible, border.Visibility);
+                var grid = (Grid)VisualTreeHelper.GetChild(border, 0);
+                var stack = (StackPanel)grid.Children[1];
+                var brandBlock = (TextBlock)stack.Children[2];
+                Assert.Equal(Visibility.Visible, brandBlock.Visibility);
                 window.Close();
             }
             catch (Exception ex)
@@ -183,11 +173,13 @@ public class ItemDisplaySettingsTests
         await using var db = new DatabaseService(dbPath);
         var settings = new SettingsService(db);
         await settings.SaveSettingAsync("ApplicationName", "TestApp");
-        await settings.SaveShowItemNameAsync(true);
+        var vis = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => false);
+        vis[ItemDetailField.Name] = true;
+        await settings.SaveItemDetailVisibilityAsync(vis);
         var vm = new SettingsViewModel(new DummyFileDialogService(), settings, new DummyDialogService());
         await vm.InitializeAsync();
         Assert.Equal("TestApp", vm.ApplicationName);
-        Assert.True(vm.ShowItemName);
+        Assert.True(vm.ItemDetailOptions.Single(o => o.Field == ItemDetailField.Name).IsVisible);
     }
 
     [Fact]
@@ -196,6 +188,8 @@ public class ItemDisplaySettingsTests
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
         using var db = new DatabaseService(dbPath);
         var settings = new SettingsService(db);
+        var vis = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => true);
+        settings.SaveItemDetailVisibilityAsync(vis).GetAwaiter().GetResult();
         var vm = new SettingsViewModel(new DummyFileDialogService(), settings, new DummyDialogService());
         var thread = new Thread(() =>
         {
@@ -205,5 +199,6 @@ public class ItemDisplaySettingsTests
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
         thread.Join();
+        Assert.True(vm.ItemDetailOptions.Single(o => o.Field == ItemDetailField.Name).IsVisible);
     }
 }

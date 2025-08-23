@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
@@ -10,6 +12,7 @@ using InventoryManagementApp.Services.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Utilities.Helpers;
+using InventoryManagementApp.Models;
 
 #nullable enable
 
@@ -21,6 +24,8 @@ namespace InventoryManagementApp.ViewModels
         readonly ISettingsService _settingsService;
         readonly IDialogService _dialogService;
         readonly ILogger<SettingsViewModel> _logger;
+        public ObservableCollection<ItemDetailOption> ItemDetailOptions { get; } = new();
+        bool _bulkUpdating;
 
         public SettingsViewModel(IFileDialogService fileDialog, ISettingsService settingsService, IDialogService dialogService, ILogger<SettingsViewModel>? logger = null)
         {
@@ -49,11 +54,17 @@ namespace InventoryManagementApp.ViewModels
             SaveCompanyLogoCommand = new AsyncRelayCommand(SaveCompanyLogoAsync);
             SelectAllItemDisplayCommand = new RelayCommand(() =>
             {
-                ShowItemImage = ShowItemName = ShowItemNumber = ShowItemLocation = ShowItemNotes = true;
+                _bulkUpdating = true;
+                foreach (var o in ItemDetailOptions) o.IsVisible = true;
+                _bulkUpdating = false;
+                _ = SaveVisibilityAsync();
             });
             SelectNoneItemDisplayCommand = new RelayCommand(() =>
             {
-                ShowItemImage = ShowItemName = ShowItemNumber = ShowItemLocation = ShowItemNotes = false;
+                _bulkUpdating = true;
+                foreach (var o in ItemDetailOptions) o.IsVisible = false;
+                _bulkUpdating = false;
+                _ = SaveVisibilityAsync();
             });
         }
 
@@ -69,20 +80,17 @@ namespace InventoryManagementApp.ViewModels
                 _applicationName = appName;
             _passwordIterations = await _settingsService.GetPasswordIterationsAsync().ConfigureAwait(false);
             _autoLogoutMinutes = await _settingsService.GetAutoLogoutMinutesAsync().ConfigureAwait(false);
-            _showItemImage = await _settingsService.GetShowItemImageAsync().ConfigureAwait(false);
-            _showItemName = await _settingsService.GetShowItemNameAsync().ConfigureAwait(false);
-            _showItemNumber = await _settingsService.GetShowItemNumberAsync().ConfigureAwait(false);
-            _showItemLocation = await _settingsService.GetShowItemLocationAsync().ConfigureAwait(false);
-            _showItemNotes = await _settingsService.GetShowItemNotesAsync().ConfigureAwait(false);
+            var vis = await _settingsService.GetItemDetailVisibilityAsync().ConfigureAwait(false);
+            foreach (var field in Enum.GetValues<ItemDetailField>())
+            {
+                var option = new ItemDetailOption(field, vis.TryGetValue(field, out var v) ? v : true);
+                option.PropertyChanged += ItemDetailOption_PropertyChanged;
+                ItemDetailOptions.Add(option);
+            }
             OnPropertyChanged(nameof(CompanyLogoPath));
             OnPropertyChanged(nameof(ApplicationName));
             OnPropertyChanged(nameof(PasswordIterations));
             OnPropertyChanged(nameof(AutoLogoutMinutes));
-            OnPropertyChanged(nameof(ShowItemImage));
-            OnPropertyChanged(nameof(ShowItemName));
-            OnPropertyChanged(nameof(ShowItemNumber));
-            OnPropertyChanged(nameof(ShowItemLocation));
-            OnPropertyChanged(nameof(ShowItemNotes));
             _initialized = true;
         }
 
@@ -284,24 +292,20 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        private bool _showItemImage;
-        public bool ShowItemImage
+        void ItemDetailOption_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            get => _showItemImage;
-            set
+            if (e.PropertyName == nameof(ItemDetailOption.IsVisible) && !_bulkUpdating)
             {
-                if (SetProperty(ref _showItemImage, value))
-                {
-                    _ = SaveShowItemImageAsync(value);
-                }
+                _ = SaveVisibilityAsync();
             }
         }
 
-        async Task SaveShowItemImageAsync(bool value)
+        async Task SaveVisibilityAsync()
         {
             try
             {
-                await _settingsService.SaveShowItemImageAsync(value).ConfigureAwait(false);
+                var dict = ItemDetailOptions.ToDictionary(o => o.Field, o => o.IsVisible);
+                await _settingsService.SaveItemDetailVisibilityAsync(dict).ConfigureAwait(false);
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -310,127 +314,7 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to save ShowItemImage setting.");
-            }
-        }
-
-        private bool _showItemName;
-        public bool ShowItemName
-        {
-            get => _showItemName;
-            set
-            {
-                if (SetProperty(ref _showItemName, value))
-                {
-                    _ = SaveShowItemNameAsync(value);
-                }
-            }
-        }
-
-        async Task SaveShowItemNameAsync(bool value)
-        {
-            try
-            {
-                await _settingsService.SaveShowItemNameAsync(value).ConfigureAwait(false);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogWarning(ex, "Unauthorized to change settings.");
-                _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to save ShowItemName setting.");
-            }
-        }
-
-        private bool _showItemNumber;
-        public bool ShowItemNumber
-        {
-            get => _showItemNumber;
-            set
-            {
-                if (SetProperty(ref _showItemNumber, value))
-                {
-                    _ = SaveShowItemNumberAsync(value);
-                }
-            }
-        }
-
-        async Task SaveShowItemNumberAsync(bool value)
-        {
-            try
-            {
-                await _settingsService.SaveShowItemNumberAsync(value).ConfigureAwait(false);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogWarning(ex, "Unauthorized to change settings.");
-                _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to save ShowItemNumber setting.");
-            }
-        }
-
-        private bool _showItemLocation;
-        public bool ShowItemLocation
-        {
-            get => _showItemLocation;
-            set
-            {
-                if (SetProperty(ref _showItemLocation, value))
-                {
-                    _ = SaveShowItemLocationAsync(value);
-                }
-            }
-        }
-
-        async Task SaveShowItemLocationAsync(bool value)
-        {
-            try
-            {
-                await _settingsService.SaveShowItemLocationAsync(value).ConfigureAwait(false);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogWarning(ex, "Unauthorized to change settings.");
-                _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to save ShowItemLocation setting.");
-            }
-        }
-
-        private bool _showItemNotes;
-        public bool ShowItemNotes
-        {
-            get => _showItemNotes;
-            set
-            {
-                if (SetProperty(ref _showItemNotes, value))
-                {
-                    _ = SaveShowItemNotesAsync(value);
-                }
-            }
-        }
-
-        async Task SaveShowItemNotesAsync(bool value)
-        {
-            try
-            {
-                await _settingsService.SaveShowItemNotesAsync(value).ConfigureAwait(false);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogWarning(ex, "Unauthorized to change settings.");
-                _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to save ShowItemNotes setting.");
+                _logger.LogError(ex, "Failed to save item detail visibility.");
             }
         }
 

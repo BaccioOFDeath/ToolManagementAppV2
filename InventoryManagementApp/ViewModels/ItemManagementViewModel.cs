@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Models;
 using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Extensions;
 using InventoryManagementApp.Services;
@@ -150,50 +151,19 @@ namespace InventoryManagementApp.ViewModels
             Items.CollectionChanged += Items_CollectionChanged;
         }
 
-        bool _showImage;
-        public bool ShowImage
+        ReadOnlyDictionary<ItemDetailField, bool> _visibleFields = new(new Dictionary<ItemDetailField, bool>());
+        public ReadOnlyDictionary<ItemDetailField, bool> VisibleFields
         {
-            get => _showImage;
-            private set => SetProperty(ref _showImage, value);
-        }
-
-        bool _showName;
-        public bool ShowName
-        {
-            get => _showName;
-            private set => SetProperty(ref _showName, value);
-        }
-
-        bool _showItemNumber;
-        public bool ShowItemNumber
-        {
-            get => _showItemNumber;
-            private set => SetProperty(ref _showItemNumber, value);
-        }
-
-        bool _showLocation;
-        public bool ShowLocation
-        {
-            get => _showLocation;
-            private set => SetProperty(ref _showLocation, value);
-        }
-
-        bool _showNotes;
-        public bool ShowNotes
-        {
-            get => _showNotes;
-            private set => SetProperty(ref _showNotes, value);
+            get => _visibleFields;
+            private set => SetProperty(ref _visibleFields, value);
         }
 
         bool _initialized;
         public async Task InitializeAsync()
         {
             if (_initialized) return;
-            ShowImage = await _settingsService.GetShowItemImageAsync().ConfigureAwait(false);
-            ShowName = await _settingsService.GetShowItemNameAsync().ConfigureAwait(false);
-            ShowItemNumber = await _settingsService.GetShowItemNumberAsync().ConfigureAwait(false);
-            ShowLocation = await _settingsService.GetShowItemLocationAsync().ConfigureAwait(false);
-            ShowNotes = await _settingsService.GetShowItemNotesAsync().ConfigureAwait(false);
+            var vis = await _settingsService.GetItemDetailVisibilityAsync().ConfigureAwait(false);
+            VisibleFields = new ReadOnlyDictionary<ItemDetailField, bool>(new Dictionary<ItemDetailField, bool>(vis));
             _initialized = true;
         }
 
