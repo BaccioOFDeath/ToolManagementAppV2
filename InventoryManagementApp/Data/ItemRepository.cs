@@ -16,7 +16,7 @@ public sealed class ItemRepository : IItemRepository
 
     public async IAsyncEnumerable<Item> GetPageAsync(ItemFilter filter, ItemPage page, [EnumeratorCancellation] CancellationToken ct)
     {
-        var sql = "SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, IsPowered FROM Items";
+        var sql = "SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, IsPowered FROM Items";
         if (!string.IsNullOrWhiteSpace(filter.Search))
             sql += " WHERE ItemNumber LIKE @Search COLLATE NOCASE OR NameDescription LIKE @Search COLLATE NOCASE";
         sql += " ORDER BY ItemID LIMIT @Take OFFSET @Skip";
@@ -37,6 +37,7 @@ public sealed class ItemRepository : IItemRepository
         var ordinalKeywords = reader.GetOrdinal("Keywords");
         var ordinalQuantityOnHand = reader.GetOrdinal("QuantityOnHand");
         var ordinalRentedQuantity = reader.GetOrdinal("RentedQuantity");
+        var ordinalPrice = reader.GetOrdinal("Price");
         var ordinalImagePath = reader.GetOrdinal("ImagePath");
         var ordinalIsCheckedOut = reader.GetOrdinal("IsCheckedOut");
         var ordinalCheckedOutBy = reader.GetOrdinal("CheckedOutBy");
@@ -59,6 +60,7 @@ public sealed class ItemRepository : IItemRepository
                 Keywords = reader.IsDBNull(ordinalKeywords) ? string.Empty : reader.GetString(ordinalKeywords),
                 QuantityOnHand = reader.IsDBNull(ordinalQuantityOnHand) ? 0 : reader.GetInt32(ordinalQuantityOnHand),
                 RentedQuantity = reader.IsDBNull(ordinalRentedQuantity) ? 0 : reader.GetInt32(ordinalRentedQuantity),
+                Price = reader.IsDBNull(ordinalPrice) ? 0m : reader.GetDecimal(ordinalPrice),
                 ImagePath = reader.IsDBNull(ordinalImagePath) ? string.Empty : reader.GetString(ordinalImagePath),
                 IsCheckedOut = !reader.IsDBNull(ordinalIsCheckedOut) && reader.GetInt32(ordinalIsCheckedOut) == 1,
                 CheckedOutBy = reader.IsDBNull(ordinalCheckedOutBy) ? string.Empty : reader.GetString(ordinalCheckedOutBy),
@@ -85,7 +87,7 @@ public sealed class ItemRepository : IItemRepository
     {
         using var conn = _factory.Create();
         using var tx = conn.BeginTransaction();
-        const string sql = "UPDATE Items SET NameDescription=@Name, Location=@Location, AvailableQuantity=@QuantityOnHand WHERE ItemID=@ItemID";
+        const string sql = "UPDATE Items SET NameDescription=@Name, Location=@Location, AvailableQuantity=@QuantityOnHand, Price=@Price WHERE ItemID=@ItemID";
         foreach (var item in changes)
         {
             ct.ThrowIfCancellationRequested();
@@ -94,6 +96,7 @@ public sealed class ItemRepository : IItemRepository
                 item.Name,
                 item.Location,
                 QuantityOnHand = item.QuantityOnHand,
+                item.Price,
                 item.ItemID
             }, tx);
         }
