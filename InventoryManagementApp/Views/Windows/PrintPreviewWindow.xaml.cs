@@ -70,7 +70,9 @@ namespace InventoryManagementApp.Views.Windows
         {
             if (DocViewer.Document != null)
             {
-                DocViewer.Document.PageWidth = DocViewer.ViewportWidth;
+                // FlowDocumentScrollViewer does not have ViewportWidth.
+                // Use a reasonable default or set PageWidth to the window/client width.
+                DocViewer.Document.PageWidth = DocViewer.ActualWidth;
             }
         }
 
