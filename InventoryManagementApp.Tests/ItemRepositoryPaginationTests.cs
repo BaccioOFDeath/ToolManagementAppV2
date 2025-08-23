@@ -57,4 +57,17 @@ public class ItemRepositoryPaginationTests
             i => Assert.Equal("Item 3", i.NameDescription),
             i => Assert.Equal("Item 4", i.NameDescription));
     }
+
+    [Fact]
+    public async Task GetPageAsync_PartialEnumeration_DoesNotThrow()
+    {
+        var factory = CreateFactory();
+        await SeedAsync(factory);
+        var repo = new ItemRepository(factory);
+        var page = new ItemPage(1, 5);
+        var enumerable = repo.GetPageAsync(new ItemFilter(null), page, CancellationToken.None);
+        await using var enumerator = enumerable.GetAsyncEnumerator();
+        Assert.True(await enumerator.MoveNextAsync());
+        Assert.Equal("Item 1", enumerator.Current.NameDescription);
+    }
 }
