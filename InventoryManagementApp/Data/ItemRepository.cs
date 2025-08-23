@@ -71,9 +71,12 @@ public sealed class ItemRepository : IItemRepository
     public async Task<int> CountAsync(ItemFilter filter, CancellationToken ct)
     {
         var sql = "SELECT COUNT(*) FROM Items";
-        object param = new { Search = $"%{filter.Search}%" };
+        object? param = null;
         if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
             sql += " WHERE ItemNumber LIKE @Search COLLATE NOCASE OR NameDescription LIKE @Search COLLATE NOCASE";
+            param = new { Search = $"%{filter.Search}%" };
+        }
         using var conn = _factory.Create();
         return await conn.ExecuteScalarAsync<int>(new CommandDefinition(sql, param, cancellationToken: ct));
     }

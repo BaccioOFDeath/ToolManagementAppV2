@@ -1,0 +1,64 @@
+using System.Threading;
+using System.Threading.Tasks;
+using Dapper;
+using InventoryManagementApp.Data;
+using InventoryManagementApp.Models.Domain;
+using Xunit;
+
+public class ItemRepositoryCountTests
+{
+    private static SqliteConnectionFactory CreateFactory()
+        => new("Data Source=:memory:");
+
+    private static async Task SeedAsync(SqliteConnectionFactory factory)
+    {
+        using var conn = factory.Create();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = @"CREATE TABLE Items (
+            ItemID INTEGER PRIMARY KEY AUTOINCREMENT,
+            ItemNumber TEXT,
+            NameDescription TEXT,
+            Location TEXT,
+            Brand TEXT,
+            PartNumber TEXT,
+            Supplier TEXT,
+            PurchasedDate TEXT,
+            Notes TEXT,
+            Keywords TEXT,
+            AvailableQuantity INTEGER,
+            RentedQuantity INTEGER,
+            ImagePath TEXT,
+            IsCheckedOut INTEGER,
+            CheckedOutBy TEXT,
+            CheckedOutTime TEXT,
+            IsPowered INTEGER
+        );";
+        cmd.ExecuteNonQuery();
+        await conn.ExecuteAsync(
+            "INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsCheckedOut, IsPowered) VALUES (@ItemNumber,@Name,0,0,0,0)",
+            new { ItemNumber = "A1", Name = "Hand Saw" });
+        await conn.ExecuteAsync(
+            "INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsCheckedOut, IsPowered) VALUES (@ItemNumber,@Name,0,0,0,0)",
+            new { ItemNumber = "B2", Name = "Hammer" });
+    }
+
+    [Fact]
+    public async Task CountAsync_NoSearch_ReturnsTotalCount()
+    {
+        var factory = CreateFactory();
+        await SeedAsync(factory);
+        var repo = new ItemRepository(factory);
+        var count = await repo.CountAsync(new ItemFilter(null), CancellationToken.None);
+        Assert.Equal(2, count);
+    }
+
+    [Fact]
+    public async Task CountAsync_WithSearch_FiltersResults()
+    {
+        var factory = CreateFactory();
+        await SeedAsync(factory);
+        var repo = new ItemRepository(factory);
+        var count = await repo.CountAsync(new ItemFilter("saw"), CancellationToken.None);
+        Assert.Equal(1, count);
+    }
+}
