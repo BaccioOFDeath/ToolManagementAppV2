@@ -20,11 +20,11 @@ namespace InventoryManagementApp.ViewModels
         private readonly MemoryBudget _memoryBudget;
         private readonly IDialogService _dialogService;
         private readonly IRentalService _rentalService;
+        private readonly ISettingsService _settingsService;
         private CancellationTokenSource _filterCts = new();
         private bool _disposed;
         private readonly List<ItemModel> _pendingEdits = new();
 
-        private const int PageSize = 200;
         public IncrementalLoadingCollection<ItemModel> Items { get; }
 
         public IAsyncRelayCommand EditItemCommand { get; }
@@ -42,18 +42,53 @@ namespace InventoryManagementApp.ViewModels
         private string filter = string.Empty;
 
         [ObservableProperty]
-        private SortField sortField = SortField.Name;
+        private SortOption selectedSortOption;
 
         [ObservableProperty]
-        private SortDirection sortDirection = SortDirection.Ascending;
+        private int pageSize = 200;
 
-        public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService)
+        public ObservableCollection<SortOption> SortOptions { get; }
+
+        public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService, ISettingsService settingsService)
         {
             _itemService = itemService;
             _memoryBudget = memoryBudget;
             _dialogService = dialogService;
             _rentalService = rentalService;
+            _settingsService = settingsService;
             Items = new IncrementalLoadingCollection<ItemModel>(LoadPageAsync, PageSize);
+            SortOptions = new ObservableCollection<SortOption>(new[]
+            {
+                new SortOption(SortField.Name, SortDirection.Ascending, "Name Asc"),
+                new SortOption(SortField.Name, SortDirection.Descending, "Name Desc"),
+                new SortOption(SortField.ItemNumber, SortDirection.Ascending, "Number Asc"),
+                new SortOption(SortField.ItemNumber, SortDirection.Descending, "Number Desc"),
+                new SortOption(SortField.QuantityOnHand, SortDirection.Ascending, "Qty Asc"),
+                new SortOption(SortField.QuantityOnHand, SortDirection.Descending, "Qty Desc"),
+                new SortOption(SortField.UpdatedAt, SortDirection.Ascending, "Updated Asc"),
+                new SortOption(SortField.UpdatedAt, SortDirection.Descending, "Updated Desc")
+            });
+            selectedSortOption = SortOptions[0];
+            var psSetting = _settingsService.GetSettingAsync("PageSize").GetAwaiter().GetResult();
+            if (int.TryParse(psSetting, out var ps) && ps > 0)
+            {
+                pageSize = ps;
+                Items.PageSize = ps;
+            }
+            var filterSetting = _settingsService.GetSettingAsync("LastFilter").GetAwaiter().GetResult();
+            if (!string.IsNullOrEmpty(filterSetting))
+                filter = filterSetting;
+            var sortSetting = _settingsService.GetSettingAsync("LastSort").GetAwaiter().GetResult();
+            if (!string.IsNullOrEmpty(sortSetting))
+            {
+                var parts = sortSetting.Split('|');
+                if (parts.Length == 2 && Enum.TryParse(parts[0], out SortField sf) && Enum.TryParse(parts[1], out SortDirection sd))
+                {
+                    var opt = SortOptions.FirstOrDefault(o => o.Field == sf && o.Direction == sd);
+                    if (opt != default)
+                        selectedSortOption = opt;
+                }
+            }
             _memoryBudget.ThresholdExceeded += OnThresholdExceeded;
 
             EditItemCommand = new AsyncRelayCommand(ct => EditItemAsync(ct));
@@ -68,8 +103,8 @@ namespace InventoryManagementApp.ViewModels
             var result = new List<ItemModel>();
             var pageInfo = new ItemPage(page, PageSize);
             var source = string.IsNullOrWhiteSpace(Filter)
-                ? _itemService.GetItemsAsync(pageInfo, SortField, SortDirection, ct)
-                : _itemService.SearchItemsAsync(Filter, pageInfo, SortField, SortDirection, ct);
+                ? _itemService.GetItemsAsync(pageInfo, SelectedSortOption.Field, SelectedSortOption.Direction, ct)
+                : _itemService.SearchItemsAsync(Filter, pageInfo, SelectedSortOption.Field, SelectedSortOption.Direction, ct);
             await foreach (var item in source.ConfigureAwait(false))
             {
                 item.PropertyChanged += Item_PropertyChanged;
@@ -100,9 +135,30 @@ namespace InventoryManagementApp.ViewModels
             }
             Items.Reset();
             await Items.LoadMoreAsync(token).ConfigureAwait(false);
+            await _settingsService.SaveSettingAsync("LastFilter", Filter, token).ConfigureAwait(false);
         }
 
         private void OnThresholdExceeded(object? sender, EventArgs e) => Items.TrimToWindow(PageSize * 3);
+
+        partial void OnSelectedSortOptionChanged(SortOption value) => _ = ApplySortAsync(value);
+
+        private async Task ApplySortAsync(SortOption value)
+        {
+            Items.Reset();
+            await Items.LoadMoreAsync().ConfigureAwait(false);
+            await _settingsService.SaveSettingAsync("LastSort", $"{value.Field}|{value.Direction}").ConfigureAwait(false);
+        }
+
+        partial void OnPageSizeChanged(int value) => _ = ApplyPageSizeAsync(value);
+
+        private async Task ApplyPageSizeAsync(int value)
+        {
+            Items.PageSize = value;
+            Items.TrimToWindow(value * 3);
+            Items.Reset();
+            await Items.LoadMoreAsync().ConfigureAwait(false);
+            await _settingsService.SaveSettingAsync("PageSize", value.ToString()).ConfigureAwait(false);
+        }
 
         private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
@@ -283,10 +339,16 @@ namespace InventoryManagementApp.ViewModels
     public class IncrementalLoadingCollection<T> : ObservableCollection<T>
     {
         private readonly Func<int, CancellationToken, Task<IList<T>>> _loader;
-        private readonly int _pageSize;
+        private int _pageSize;
         private int _page;
         private readonly SemaphoreSlim _gate = new(1, 1);
         public bool HasMoreItems { get; private set; } = true;
+
+        public int PageSize
+        {
+            get => _pageSize;
+            set => _pageSize = value;
+        }
 
         public IncrementalLoadingCollection(Func<int, CancellationToken, Task<IList<T>>> loader, int pageSize)
         {
