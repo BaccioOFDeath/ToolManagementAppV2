@@ -84,8 +84,8 @@ namespace InventoryManagementApp.Tests
             public virtual Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public virtual Task DeleteItemAsync(int itemID, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public virtual Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default) => Task.FromResult<ItemModel?>(null);
-            public virtual IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, CancellationToken cancellationToken = default) => AsyncEnumerable.Empty<ItemModel>();
-            public virtual IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, CancellationToken cancellationToken = default) => AsyncEnumerable.Empty<ItemModel>();
+            public virtual IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, CancellationToken cancellationToken = default) => AsyncEnumerable.Empty<ItemModel>();
+            public virtual IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, CancellationToken cancellationToken = default) => AsyncEnumerable.Empty<ItemModel>();
             public virtual Task<int> CountItemsAsync(ItemFilter filter, CancellationToken ct) => Task.FromResult(0);
             public virtual Task<bool> ToggleItemCheckOutStatusAsync(int itemID, string currentUser, CancellationToken cancellationToken = default) => Task.FromResult(false);
             public virtual Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
@@ -100,7 +100,7 @@ namespace InventoryManagementApp.Tests
 
         private sealed class FailingItemService : DummyItemService
         {
-            public override IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, CancellationToken cancellationToken = default) => AsyncEnumerable.Throw<ItemModel>(new InvalidOperationException("fail"));
+            public override IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, CancellationToken cancellationToken = default) => AsyncEnumerable.Throw<ItemModel>(new InvalidOperationException("fail"));
         }
 
         private sealed class DummyUserService : IUserService

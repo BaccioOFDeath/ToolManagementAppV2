@@ -32,14 +32,15 @@ public class ItemRepositoryPaginationTests
             IsCheckedOut INTEGER,
             CheckedOutBy TEXT,
             CheckedOutTime TEXT,
-            IsPowered INTEGER
+            IsPowered INTEGER,
+            UpdatedAt TEXT
         );";
         cmd.ExecuteNonQuery();
         for (int i = 1; i <= 5; i++)
         {
             await conn.ExecuteAsync(
-                "INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsCheckedOut, IsPowered) VALUES (@ItemNumber,@Name,0,0,0,0)",
-                new { ItemNumber = $"I{i}", Name = $"Item {i}" });
+                "INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,0,0,0,0,@UpdatedAt)",
+                new { ItemNumber = $"I{i}", Name = $"Item {i}", UpdatedAt = System.DateTime.UtcNow });
         }
     }
 

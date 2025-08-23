@@ -142,6 +142,13 @@ namespace InventoryManagementApp.Models.Domain
             set => SetProperty(ref _imagePath, value);
         }
 
+        private DateTime _updatedAt;
+        public DateTime UpdatedAt
+        {
+            get => _updatedAt;
+            set => SetProperty(ref _updatedAt, value);
+        }
+
         public int OnHand => QuantityOnHand;
 
         public string Purchased => PurchasedDate?.ToString("yyyy-MM-dd") ?? string.Empty;

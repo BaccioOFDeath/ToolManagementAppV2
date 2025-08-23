@@ -41,6 +41,12 @@ namespace InventoryManagementApp.ViewModels
         [ObservableProperty]
         private string filter = string.Empty;
 
+        [ObservableProperty]
+        private SortField sortField = SortField.Name;
+
+        [ObservableProperty]
+        private SortDirection sortDirection = SortDirection.Ascending;
+
         public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService)
         {
             _itemService = itemService;
@@ -62,8 +68,8 @@ namespace InventoryManagementApp.ViewModels
             var result = new List<ItemModel>();
             var pageInfo = new ItemPage(page, PageSize);
             var source = string.IsNullOrWhiteSpace(Filter)
-                ? _itemService.GetItemsAsync(pageInfo, ct)
-                : _itemService.SearchItemsAsync(Filter, pageInfo, ct);
+                ? _itemService.GetItemsAsync(pageInfo, SortField, SortDirection, ct)
+                : _itemService.SearchItemsAsync(Filter, pageInfo, SortField, SortDirection, ct);
             await foreach (var item in source.ConfigureAwait(false))
             {
                 item.PropertyChanged += Item_PropertyChanged;
@@ -133,7 +139,8 @@ namespace InventoryManagementApp.ViewModels
                     CheckedOutBy = SelectedItem.CheckedOutBy,
                     CheckedOutTime = SelectedItem.CheckedOutTime,
                     ImagePath = SelectedItem.ImagePath,
-                    Price = SelectedItem.Price
+                    Price = SelectedItem.Price,
+                    UpdatedAt = SelectedItem.UpdatedAt
                 };
                 updated = await _dialogService.ShowEditItemDialogAsync(clone).ConfigureAwait(false);
             }
@@ -246,6 +253,7 @@ namespace InventoryManagementApp.ViewModels
                     item.CheckedOutTime = refreshed.CheckedOutTime;
                     item.ImagePath = refreshed.ImagePath;
                     item.Price = refreshed.Price;
+                    item.UpdatedAt = refreshed.UpdatedAt;
                     item.PropertyChanged += Item_PropertyChanged;
                 }
                 await _dialogService.ShowInfoAsync("Changes saved.", "Success").ConfigureAwait(false);

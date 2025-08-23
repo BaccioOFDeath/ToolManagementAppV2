@@ -161,7 +161,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 var list = new List<ItemModel>();
-                await foreach (var item in _itemService.GetItemsAsync(page))
+                await foreach (var item in _itemService.GetItemsAsync(page, SortField.Name, SortDirection.Ascending))
                     list.Add(item);
                 Items.ReplaceRange(list);
                 SearchResults.ReplaceRange(list);
@@ -187,12 +187,12 @@ namespace InventoryManagementApp.ViewModels
 
             if (!string.IsNullOrEmpty(term))
             {
-                await foreach (var item in _itemService.SearchItemsAsync(term, page, cancellationToken))
+                await foreach (var item in _itemService.SearchItemsAsync(term, page, SortField.Name, SortDirection.Ascending, cancellationToken))
                     list.Add(item);
             }
             else
             {
-                await foreach (var item in _itemService.GetItemsAsync(page, cancellationToken))
+                await foreach (var item in _itemService.GetItemsAsync(page, SortField.Name, SortDirection.Ascending, cancellationToken))
                     list.Add(item);
             }
 

@@ -177,7 +177,7 @@ namespace InventoryManagementApp.Services.Items
 
             cancellationToken.ThrowIfCancellationRequested();
             var items = new List<ItemModel>();
-            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), cancellationToken))
+            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken))
                 items.Add(item);
             var groups = new Dictionary<string, List<ItemModel>>(StringComparer.OrdinalIgnoreCase);
             foreach (var item in items)
@@ -314,7 +314,8 @@ namespace InventoryManagementApp.Services.Items
                 : ParseNullableDate(r["CheckedOutTime"], "CheckedOutTime"),
             ImagePath = r["ImagePath"]?.ToString(),
             Keywords = r["Keywords"]?.ToString(),
-            IsPowered = (r["IsPowered"] is DBNull ? 0 : Convert.ToInt32(r["IsPowered"])) == 1
+            IsPowered = (r["IsPowered"] is DBNull ? 0 : Convert.ToInt32(r["IsPowered"])) == 1,
+            UpdatedAt = ParseNullableDate(r["UpdatedAt"], "UpdatedAt") ?? default
         };
 
         DateTime? ParseNullableDate(object? value, string field)
@@ -417,11 +418,11 @@ namespace InventoryManagementApp.Services.Items
             return list.FirstOrDefault();
         }
 
-        public IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, CancellationToken cancellationToken = default)
-            => _repository.GetPageAsync(new ItemFilter(null), page, cancellationToken);
+        public IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, CancellationToken cancellationToken = default)
+            => _repository.GetPageAsync(new ItemFilter(null, sortField, sortDirection), page, cancellationToken);
 
-        public IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, CancellationToken cancellationToken = default)
-            => _repository.GetPageAsync(new ItemFilter(searchText), page, cancellationToken);
+        public IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, CancellationToken cancellationToken = default)
+            => _repository.GetPageAsync(new ItemFilter(searchText, sortField, sortDirection), page, cancellationToken);
 
         public Task<int> CountItemsAsync(ItemFilter filter, CancellationToken ct)
             => _repository.CountAsync(filter, ct);
@@ -547,7 +548,7 @@ namespace InventoryManagementApp.Services.Items
         private async Task ExportItemsToCsvInternalAsync(string filePath, CancellationToken cancellationToken)
         {
             var items = new List<ItemModel>();
-            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), cancellationToken))
+            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken))
                 items.Add(item);
             await CsvHelperUtil.ExportItemsToCsvAsync(filePath, items);
         }
