@@ -245,6 +245,13 @@ namespace InventoryManagementApp.Services.Rentals
             }
         }
 
+        public async Task<int> CountActiveRentalsAsync()
+        {
+            using var conn = _dbService.CreateConnection();
+            const string sql = "SELECT COUNT(*) FROM Rentals WHERE Status='Rented'";
+            return Convert.ToInt32(await SqliteHelper.ExecuteScalarAsync(conn, sql).ConfigureAwait(false));
+        }
+
         public async Task<List<Rental>> GetActiveRentalsAsync()
         {
             using var conn = _dbService.CreateConnection();
