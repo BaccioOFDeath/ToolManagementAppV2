@@ -9,7 +9,7 @@ namespace InventoryManagementApp.Services.Core
 {
     public static class SqliteHelper
     {
-        public static int ExecuteNonQuery(string connStr, string sql, SqliteParameter[] parameters = null)
+        public static int ExecuteNonQuery(string connStr, string sql, SqliteParameter[]? parameters = null)
         {
             using var conn = new SqliteConnection(connStr);
             conn.Open();
@@ -18,21 +18,21 @@ namespace InventoryManagementApp.Services.Core
             return cmd.ExecuteNonQuery();
         }
 
-        public static int ExecuteNonQuery(SqliteConnection conn, SqliteTransaction tx, string sql, SqliteParameter[] parameters)
+        public static int ExecuteNonQuery(SqliteConnection conn, SqliteTransaction tx, string sql, SqliteParameter[]? parameters = null)
         {
             using var cmd = new SqliteCommand(sql, conn, tx);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
             return cmd.ExecuteNonQuery();
         }
 
-        public static int ExecuteNonQuery(SqliteConnection conn, string sql, SqliteParameter[] parameters = null)
+        public static int ExecuteNonQuery(SqliteConnection conn, string sql, SqliteParameter[]? parameters = null)
         {
             using var cmd = new SqliteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
             return cmd.ExecuteNonQuery();
         }
 
-        public static object ExecuteScalar(string connStr, string sql, SqliteParameter[] parameters = null)
+        public static object ExecuteScalar(string connStr, string sql, SqliteParameter[]? parameters = null)
         {
             using var conn = new SqliteConnection(connStr);
             conn.Open();
@@ -41,14 +41,14 @@ namespace InventoryManagementApp.Services.Core
             return cmd.ExecuteScalar();
         }
 
-        public static object ExecuteScalar(SqliteConnection conn, string sql, SqliteParameter[] parameters = null)
+        public static object ExecuteScalar(SqliteConnection conn, string sql, SqliteParameter[]? parameters = null)
         {
             using var cmd = new SqliteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
             return cmd.ExecuteScalar();
         }
 
-        public static List<T> ExecuteReader<T>(string connStr, string sql, SqliteParameter[] parameters, Func<IDataRecord, T> map)
+        public static List<T> ExecuteReader<T>(string connStr, string sql, SqliteParameter[]? parameters = null, Func<IDataRecord, T> map)
         {
             var list = new List<T>();
             using var conn = new SqliteConnection(connStr);
@@ -61,7 +61,7 @@ namespace InventoryManagementApp.Services.Core
             return list;
         }
 
-        public static List<T> ExecuteReader<T>(SqliteConnection conn, string sql, SqliteParameter[] parameters, Func<IDataRecord, T> map)
+        public static List<T> ExecuteReader<T>(SqliteConnection conn, string sql, SqliteParameter[]? parameters = null, Func<IDataRecord, T> map)
         {
             var list = new List<T>();
             using var cmd = new SqliteCommand(sql, conn);
@@ -99,7 +99,7 @@ namespace InventoryManagementApp.Services.Core
             return rdr.Read();
         }
 
-        public static async Task<int> ExecuteNonQueryAsync(string connStr, string sql, SqliteParameter[] parameters = null, CancellationToken cancellationToken = default)
+        public static async Task<int> ExecuteNonQueryAsync(string connStr, string sql, SqliteParameter[]? parameters = null, CancellationToken cancellationToken = default)
         {
             using var conn = new SqliteConnection(connStr);
             await conn.OpenAsync(cancellationToken);
@@ -108,21 +108,21 @@ namespace InventoryManagementApp.Services.Core
             return await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        public static async Task<int> ExecuteNonQueryAsync(SqliteConnection conn, SqliteTransaction tx, string sql, SqliteParameter[] parameters, CancellationToken cancellationToken = default)
+        public static async Task<int> ExecuteNonQueryAsync(SqliteConnection conn, SqliteTransaction tx, string sql, SqliteParameter[]? parameters = null, CancellationToken cancellationToken = default)
         {
             using var cmd = new SqliteCommand(sql, conn, tx);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
             return await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        public static async Task<int> ExecuteNonQueryAsync(SqliteConnection conn, string sql, SqliteParameter[] parameters = null, CancellationToken cancellationToken = default)
+        public static async Task<int> ExecuteNonQueryAsync(SqliteConnection conn, string sql, SqliteParameter[]? parameters = null, CancellationToken cancellationToken = default)
         {
             using var cmd = new SqliteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
             return await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        public static async Task<object> ExecuteScalarAsync(string connStr, string sql, SqliteParameter[] parameters = null, CancellationToken cancellationToken = default)
+        public static async Task<object> ExecuteScalarAsync(string connStr, string sql, SqliteParameter[]? parameters = null, CancellationToken cancellationToken = default)
         {
             using var conn = new SqliteConnection(connStr);
             await conn.OpenAsync(cancellationToken);
@@ -131,14 +131,14 @@ namespace InventoryManagementApp.Services.Core
             return await cmd.ExecuteScalarAsync(cancellationToken);
         }
 
-        public static async Task<object> ExecuteScalarAsync(SqliteConnection conn, string sql, SqliteParameter[] parameters = null, CancellationToken cancellationToken = default)
+        public static async Task<object> ExecuteScalarAsync(SqliteConnection conn, string sql, SqliteParameter[]? parameters = null, CancellationToken cancellationToken = default)
         {
             using var cmd = new SqliteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
             return await cmd.ExecuteScalarAsync(cancellationToken);
         }
 
-        public static async Task<List<T>> ExecuteReaderAsync<T>(string connStr, string sql, SqliteParameter[] parameters, Func<IDataRecord, T> map, CancellationToken cancellationToken = default)
+        public static async Task<List<T>> ExecuteReaderAsync<T>(string connStr, string sql, SqliteParameter[]? parameters = null, Func<IDataRecord, T> map, CancellationToken cancellationToken = default)
         {
             var list = new List<T>();
             using var conn = new SqliteConnection(connStr);
@@ -151,7 +151,7 @@ namespace InventoryManagementApp.Services.Core
             return list;
         }
 
-        public static async Task<List<T>> ExecuteReaderAsync<T>(SqliteConnection conn, string sql, SqliteParameter[] parameters, Func<IDataRecord, T> map, CancellationToken cancellationToken = default)
+        public static async Task<List<T>> ExecuteReaderAsync<T>(SqliteConnection conn, string sql, SqliteParameter[]? parameters = null, Func<IDataRecord, T> map, CancellationToken cancellationToken = default)
         {
             var list = new List<T>();
             using var cmd = new SqliteCommand(sql, conn);
