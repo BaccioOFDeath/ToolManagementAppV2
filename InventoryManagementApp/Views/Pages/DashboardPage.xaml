@@ -62,7 +62,11 @@
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding ItemNumber}" Margin="0,0,8,0"/>
-                                    <TextBlock Text="{Binding CheckedOutBy}"/>
+                                    <TextBlock Text="{Binding CheckedOutBy}" Margin="0,0,8,0"/>
+                                    <Button Content="Check In"
+                                            Command="{Binding DataContext.CheckInItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="0,0,0,0"/>
                                 </StackPanel>
                             </DataTemplate>
                         </ListView.ItemTemplate>

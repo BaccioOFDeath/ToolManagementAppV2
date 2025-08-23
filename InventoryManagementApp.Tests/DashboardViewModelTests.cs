@@ -126,6 +126,9 @@ public class DashboardViewModelTests
     {
         public List<ItemModel> Items { get; } = new();
         public int CheckedOutCalls { get; private set; }
+        public int ToggleCalls { get; private set; }
+        public int LastToggledItemID { get; private set; }
+        public bool ToggleResult { get; set; } = true;
 
         public Task<int> CountItemsAsync(ItemFilter filter, CancellationToken ct) => Task.FromResult(0);
         public Task<List<ItemModel>> GetCheckedOutItemsAsync(CancellationToken cancellationToken = default)
@@ -141,7 +144,12 @@ public class DashboardViewModelTests
         public IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default) => AsyncEnumerable.Empty<ItemModel>();
         public IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default) => AsyncEnumerable.Empty<ItemModel>();
         public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct) => Task.CompletedTask;
-        public Task<bool> ToggleItemCheckOutStatusAsync(int itemID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<bool> ToggleItemCheckOutStatusAsync(int itemID, CancellationToken cancellationToken = default)
+        {
+            ToggleCalls++;
+            LastToggledItemID = itemID;
+            return Task.FromResult(ToggleResult);
+        }
         public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => throw new NotImplementedException();
@@ -319,6 +327,66 @@ public class DashboardViewModelTests
         Assert.Equal("X1", vm.CheckedOutItems[0].ItemNumber);
         Assert.Equal("Alice", vm.CheckedOutItems[0].CheckedOutBy);
         Assert.Equal(1, itemService.CheckedOutCalls);
+    }
+
+    [Fact]
+    public async Task CheckInItemCommand_RemovesItemOnSuccess()
+    {
+        using var db = new DatabaseService(":memory:");
+        var itemService = new StubItemService();
+        var rentalService = new StubRentalService();
+        var customerService = new StubCustomerService();
+        var userService = new StubUserService();
+        var activityLogService = new StubActivityLogService(db);
+
+        var vm = new DashboardViewModel(
+            itemService,
+            rentalService,
+            customerService,
+            userService,
+            activityLogService,
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }));
+
+        var item = new ItemModel { ItemID = 1, ItemNumber = "X1", CheckedOutBy = "Alice" };
+        vm.CheckedOutItems.Add(item);
+
+        await vm.CheckInItemCommand.ExecuteAsync(item);
+
+        Assert.Empty(vm.CheckedOutItems);
+        Assert.Equal(1, itemService.ToggleCalls);
+        Assert.Equal(1, itemService.LastToggledItemID);
+    }
+
+    [Fact]
+    public async Task CheckInItemCommand_DoesNotRemoveWhenServiceFails()
+    {
+        using var db = new DatabaseService(":memory:");
+        var itemService = new StubItemService { ToggleResult = false };
+        var rentalService = new StubRentalService();
+        var customerService = new StubCustomerService();
+        var userService = new StubUserService();
+        var activityLogService = new StubActivityLogService(db);
+
+        var vm = new DashboardViewModel(
+            itemService,
+            rentalService,
+            customerService,
+            userService,
+            activityLogService,
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }));
+
+        var item = new ItemModel { ItemID = 2, ItemNumber = "Y1", CheckedOutBy = "Bob" };
+        vm.CheckedOutItems.Add(item);
+
+        await vm.CheckInItemCommand.ExecuteAsync(item);
+
+        Assert.Single(vm.CheckedOutItems);
+        Assert.Equal(1, itemService.ToggleCalls);
+        Assert.Equal(2, itemService.LastToggledItemID);
     }
 }
 
