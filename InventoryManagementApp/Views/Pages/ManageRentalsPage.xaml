@@ -9,10 +9,18 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <ToolBar HorizontalAlignment="Right">
-            <Button Style="{StaticResource PrimaryButton}" Content="Filter" Command="{Binding OpenFilterWindowCommand}"/>
-            <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="8,0,0,0"/>
-        </ToolBar>
+        <Border Style="{StaticResource Card}" Padding="8">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Rentals" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,16,0"/>
+                <TextBox Width="160" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
+                <DatePicker SelectedDate="{Binding FilterFrom, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
+                <DatePicker SelectedDate="{Binding FilterTo, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
+                <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus, UpdateSourceTrigger=PropertyChanged}" Width="120" Margin="0,0,8,0"/>
+                <Button Style="{StaticResource PrimaryButton}" Content="Apply" Command="{Binding ApplyFilterCommand}" Margin="0,0,8,0"/>
+                <Button Style="{StaticResource PrimaryButton}" Content="Clear" Command="{Binding ClearFilterCommand}" Margin="0,0,8,0"/>
+                <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}"/>
+            </StackPanel>
+        </Border>
 
         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
             <DataGrid ItemsSource="{Binding Rentals}"
@@ -42,7 +50,5 @@
                 </DataGrid.ContextMenu>
             </DataGrid>
         </Border>
-
-        <!-- Filter overlay removed; filtering handled by RentalsFilterWindow -->
     </Grid>
 </Page>
