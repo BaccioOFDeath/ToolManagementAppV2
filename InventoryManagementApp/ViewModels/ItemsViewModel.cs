@@ -6,7 +6,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Data;
@@ -25,25 +24,20 @@ namespace InventoryManagementApp.ViewModels
         private readonly MemoryBudget _memoryBudget;
         private readonly IDialogService _dialogService;
         private readonly IRentalService _rentalService;
-        private readonly ICustomerService _customerService;
         private readonly ISettingsService _settingsService;
-        private readonly IUserContext _userContext;
         private readonly ILogger<ItemsViewModel> _logger;
         private CancellationTokenSource _filterCts = new();
         private bool _disposed;
         private readonly List<ItemModel> _pendingEdits = new();
-        private readonly HashSet<ItemModel> _togglingItems = new();
 
         public IncrementalLoadingCollection<ItemModel> Items { get; }
 
         public IAsyncRelayCommand EditItemCommand { get; }
         public IRelayCommand ViewDetailsCommand { get; }
         public IAsyncRelayCommand OpenRentalHistoryCommand { get; }
-        public IAsyncRelayCommand OpenRentalsCommand { get; }
         public IAsyncRelayCommand NewItemCommand { get; }
         public IAsyncRelayCommand<IList> DeleteItemsCommand { get; }
         public IAsyncRelayCommand CommitChangesCommand { get; }
-        public IAsyncRelayCommand<ItemModel> ToggleCheckOutCommand { get; }
 
         public IReadOnlyCollection<ItemModel> PendingEdits => _pendingEdits;
 
@@ -61,15 +55,13 @@ namespace InventoryManagementApp.ViewModels
 
         public ObservableCollection<SortOption> SortOptions { get; }
 
-        public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService, ICustomerService customerService, ISettingsService settingsService, IUserContext userContext, ILogger<ItemsViewModel> logger)
+        public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService, ISettingsService settingsService, ILogger<ItemsViewModel> logger)
         {
             _itemService = itemService;
             _memoryBudget = memoryBudget;
             _dialogService = dialogService;
             _rentalService = rentalService;
-            _customerService = customerService;
             _settingsService = settingsService;
-            _userContext = userContext;
             _logger = logger;
             Items = new IncrementalLoadingCollection<ItemModel>(LoadPageAsync, PageSize);
             SortOptions = new ObservableCollection<SortOption>(new[]
@@ -110,11 +102,9 @@ namespace InventoryManagementApp.ViewModels
             EditItemCommand = new AsyncRelayCommand(ct => EditItemAsync(ct));
             ViewDetailsCommand = new RelayCommand(ViewDetails);
             OpenRentalHistoryCommand = new AsyncRelayCommand(ct => OpenRentalHistoryAsync(ct));
-            OpenRentalsCommand = new AsyncRelayCommand(ct => OpenRentalsAsync(ct));
             NewItemCommand = new AsyncRelayCommand(ct => NewItemAsync(ct));
             DeleteItemsCommand = new AsyncRelayCommand<IList>(DeleteItemsAsync);
             CommitChangesCommand = new AsyncRelayCommand(ct => CommitChangesAsync(ct));
-            ToggleCheckOutCommand = new AsyncRelayCommand<ItemModel>(ToggleCheckOutAsync);
         }
 
         private async Task<IList<ItemModel>> LoadPageAsync(int page, CancellationToken ct)
@@ -184,7 +174,6 @@ namespace InventoryManagementApp.ViewModels
         private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (sender is not ItemModel item) return;
-            if (_togglingItems.Contains(item)) return;
             if (e.PropertyName == nameof(ItemModel.QuantityOnHand) || e.PropertyName == nameof(ItemModel.Location) || e.PropertyName == nameof(ItemModel.Price))
             {
                 if (!_pendingEdits.Contains(item))
@@ -263,34 +252,6 @@ namespace InventoryManagementApp.ViewModels
             {
                 var history = await _rentalService.GetRentalHistoryForItemAsync(SelectedItem.ItemID).ConfigureAwait(false);
                 _dialogService.ShowRentalHistory(SelectedItem, history);
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch
-            {
-            }
-        }
-
-        private async Task OpenRentalsAsync(CancellationToken ct)
-        {
-            if (SelectedItem == null) return;
-            try
-            {
-                var customers = await _customerService.GetAllCustomersAsync(ct).ConfigureAwait(false);
-                var result = _dialogService.ShowRentItemDialog(SelectedItem, customers);
-                if (result != null)
-                {
-                    var (customer, dueDate) = result.Value;
-                    await _rentalService.RentItemAsync(SelectedItem.ItemID, customer.CustomerID, DateTime.Today, dueDate).ConfigureAwait(false);
-                    var refreshed = await _itemService.GetItemByIDAsync(SelectedItem.ItemID, ct).ConfigureAwait(false);
-                    if (refreshed != null)
-                    {
-                        SelectedItem.QuantityOnHand = refreshed.QuantityOnHand;
-                        SelectedItem.RentedQuantity = refreshed.RentedQuantity;
-                        SelectedItem.UpdatedAt = refreshed.UpdatedAt;
-                    }
-                }
             }
             catch (OperationCanceledException)
             {
@@ -403,35 +364,6 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 await _dialogService.ShowInfoAsync($"Failed to save changes: {ex.Message}", "Error").ConfigureAwait(false);
-            }
-        }
-
-        private async Task ToggleCheckOutAsync(ItemModel? item, CancellationToken ct)
-        {
-            if (item == null) return;
-            _togglingItems.Add(item);
-            try
-            {
-                var result = await _itemService.ToggleItemCheckOutStatusAsync(item.ItemID, ct).ConfigureAwait(false);
-                if (!result) return;
-                var checkedOut = !item.IsCheckedOut;
-                item.IsCheckedOut = checkedOut;
-                item.CheckedOutBy = checkedOut ? _userContext.UserName : string.Empty;
-                item.QuantityOnHand += checkedOut ? -1 : 1;
-            }
-            catch (OperationCanceledException)
-            {
-                return;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to toggle check out status for item {ItemID}", item.ItemID);
-                await _dialogService.ShowInfoAsync($"Failed to update check-out status: {ex.Message}", "Error").ConfigureAwait(false);
-                return;
-            }
-            finally
-            {
-                _togglingItems.Remove(item);
             }
         }
 
