@@ -211,7 +211,7 @@ namespace InventoryManagementApp.Services.Items
                 }
             }
 
-            var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ItemImages");
+            var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "ItemImages");
             if (!Directory.Exists(destDir))
             {
                 try
@@ -268,7 +268,7 @@ namespace InventoryManagementApp.Services.Items
                         continue;
                     }
                 }
-                var relative = $"ItemImages/{Path.GetFileName(dest)}";
+                var relative = $"Assets/ItemImages/{Path.GetFileName(dest)}";
                 await UpdateItemImageAsync(item.ItemID, relative, cancellationToken);
                 result.ImportedCount++;
                 processed++;

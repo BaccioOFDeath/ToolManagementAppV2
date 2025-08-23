@@ -282,4 +282,10 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Assets/ItemImages/**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
