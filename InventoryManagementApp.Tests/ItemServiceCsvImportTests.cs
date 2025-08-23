@@ -77,4 +77,33 @@ public class ItemServiceCsvImportTests
         File.Delete(csvPath);
         File.Delete(dbPath);
     }
+
+    [Fact]
+    public async Task ImportItemsFromCsv_PopulatesKeywords()
+    {
+        var csvPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
+        await File.WriteAllTextAsync(csvPath, "ItemNumber,Keywords\nNUM1,tag1 tag2");
+
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        await using var db = new DatabaseService(dbPath);
+        var service = new ItemService(db, new DummyItemRepository());
+
+        var map = new Dictionary<string, string>
+        {
+            ["ItemNumber"] = "ItemNumber",
+            [nameof(ItemImportDto.Keywords)] = "Keywords"
+        };
+
+        var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
+        Assert.Empty(invalid);
+
+        using var conn = db.CreateConnection();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT Keywords FROM Items WHERE ItemNumber='NUM1'";
+        var keywords = cmd.ExecuteScalar()?.ToString();
+        Assert.Equal("tag1 tag2", keywords);
+
+        File.Delete(csvPath);
+        File.Delete(dbPath);
+    }
 }

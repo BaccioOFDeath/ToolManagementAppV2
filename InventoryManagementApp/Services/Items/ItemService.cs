@@ -515,6 +515,7 @@ namespace InventoryManagementApp.Services.Items
                         Supplier = GetMapped(cols, headers, map, "Supplier"),
                         PurchasedDate = TryParseDate(GetMapped(cols, headers, map, "PurchasedDate")),
                         Notes = GetMapped(cols, headers, map, "Notes"),
+                        Keywords = GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords)),
                         QuantityOnHand = TryParseInt(GetMapped(cols, headers, map, "AvailableQuantity")),
                         IsPowered = TryParseBool(GetMapped(cols, headers, map, "IsPowered"))
                     };
