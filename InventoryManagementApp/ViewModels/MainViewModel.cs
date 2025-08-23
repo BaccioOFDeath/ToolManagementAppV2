@@ -46,8 +46,10 @@ namespace InventoryManagementApp.ViewModels
         readonly ILogger<MainViewModel> _logger;
         readonly Func<Task<bool>> _showLoginWindow;
         readonly IDispatcherTimer _autoLogoutTimer;
+        readonly IDispatcherTimer _globalSearchDebounceTimer;
         int _autoLogoutMinutes;
         CancellationTokenSource? _pageLoadCts;
+        CancellationTokenSource? _globalSearchCts;
 
         EventHandler<User?>? _userContextChangedHandler;
         PropertyChangedEventHandler? _itemManagementPropertyChangedHandler;
@@ -84,7 +86,15 @@ namespace InventoryManagementApp.ViewModels
         public string GlobalSearchText
         {
             get => _globalSearchText;
-            set => SetProperty(ref _globalSearchText, value);
+            set
+            {
+                if (SetProperty(ref _globalSearchText, value))
+                {
+                    _globalSearchCts?.Cancel();
+                    _globalSearchDebounceTimer.Stop();
+                    _globalSearchDebounceTimer.Start();
+                }
+            }
         }
 
         public bool IsCurrentUserAdmin => _userContext.IsAdmin;
@@ -186,7 +196,8 @@ namespace InventoryManagementApp.ViewModels
                              ILogger<MainViewModel>? logger = null,
                              Func<Task<bool>>? showLoginWindow = null,
                              IDispatcherTimer? autoLogoutTimer = null,
-                             IScannerService? scannerService = null)
+                             IScannerService? scannerService = null,
+                             IDispatcherTimer? globalSearchDebounceTimer = null)
         {
             _itemService = itemService;
             _userService = userService;
@@ -413,6 +424,8 @@ namespace InventoryManagementApp.ViewModels
             OpenImportMappingWindowCommand = new AsyncRelayCommand(ct => OpenImportMappingWindowAsync(ct));
 
             GlobalSearchCommand = new AsyncRelayCommand(ct => GlobalSearchAsync(ct));
+            _globalSearchDebounceTimer = globalSearchDebounceTimer ?? new DispatcherTimerWrapper { Interval = TimeSpan.FromMilliseconds(300) };
+            _globalSearchDebounceTimer.Tick += OnGlobalSearchDebounceTimerTick;
 
             SwitchUserCommand = new AsyncRelayCommand(async () =>
             {
@@ -597,6 +610,14 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
+        void OnGlobalSearchDebounceTimerTick(object? s, EventArgs e)
+        {
+            _globalSearchDebounceTimer.Stop();
+            _globalSearchCts?.Dispose();
+            _globalSearchCts = new CancellationTokenSource();
+            _ = GlobalSearchCommand.ExecuteAsync(_globalSearchCts.Token);
+        }
+
         async Task GlobalSearchAsync(CancellationToken cancellationToken)
         {
             ItemManagement.SearchText = GlobalSearchText;
@@ -623,6 +644,10 @@ namespace InventoryManagementApp.ViewModels
             Settings.PropertyChanged -= Settings_PropertyChanged;
             _autoLogoutTimer.Tick -= OnAutoLogoutTimerTick;
             _autoLogoutTimer.Stop();
+            _globalSearchDebounceTimer.Tick -= OnGlobalSearchDebounceTimerTick;
+            _globalSearchDebounceTimer.Stop();
+            _globalSearchCts?.Cancel();
+            _globalSearchCts?.Dispose();
             ItemManagement.Dispose();
         }
 
