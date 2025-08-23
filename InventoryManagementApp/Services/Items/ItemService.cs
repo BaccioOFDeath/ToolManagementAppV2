@@ -27,8 +27,8 @@ namespace InventoryManagementApp.Services.Items
         readonly IItemRepository _repository;
         const string UpsertItemCsv = @"
             INSERT INTO Items
-              (ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, ImagePath, IsCheckedOut, IsPowered)
-            VALUES (@ItemNumber,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Keywords,@Avail,@Rent,@Img,0,@Powered);
+              (ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, IsRentalItem, ImagePath, IsCheckedOut, IsPowered)
+            VALUES (@ItemNumber,@Desc,@Loc,@Brand,@PN,@Sup,@PD,@Notes,@Keywords,@Avail,@Rent,@Rental,@Img,0,@Powered);
             SELECT last_insert_rowid();";
         const int MaxQuantityOnHand = 10000;
     
@@ -160,6 +160,7 @@ namespace InventoryManagementApp.Services.Items
                 new SqliteParameter("@Keywords", (object)item.Keywords ?? DBNull.Value),
                 new SqliteParameter("@Avail", item.QuantityOnHand),
                 new SqliteParameter("@Rent", item.RentedQuantity),
+                new SqliteParameter("@Rental", item.IsRentalItem ? 1 : 0),
                 new SqliteParameter("@Img", (object)item.ImagePath ?? DBNull.Value),
                 new SqliteParameter("@Powered", item.IsPowered ? 1 : 0)
             };
@@ -178,7 +179,7 @@ namespace InventoryManagementApp.Services.Items
 
             cancellationToken.ThrowIfCancellationRequested();
             var items = new List<ItemModel>();
-            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken))
+            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken))
                 items.Add(item);
             var groups = new Dictionary<string, List<ItemModel>>(StringComparer.OrdinalIgnoreCase);
             foreach (var item in items)
@@ -316,6 +317,7 @@ namespace InventoryManagementApp.Services.Items
             ImagePath = r["ImagePath"]?.ToString(),
             Keywords = r["Keywords"]?.ToString(),
             IsPowered = (r["IsPowered"] is DBNull ? 0 : Convert.ToInt32(r["IsPowered"])) == 1,
+            IsRentalItem = (r["IsRentalItem"] is DBNull ? 0 : Convert.ToInt32(r["IsRentalItem"])) == 1,
             UpdatedAt = ParseNullableDate(r["UpdatedAt"], "UpdatedAt") ?? default
         };
 
@@ -359,6 +361,7 @@ namespace InventoryManagementApp.Services.Items
                   Keywords = @Keywords,
                   AvailableQuantity = @Avail,
                   RentedQuantity = @Rent,
+                  IsRentalItem = @Rental,
                   IsPowered = @Powered,
                   IsCheckedOut = @Out,
                   CheckedOutBy = @By,
@@ -379,6 +382,7 @@ namespace InventoryManagementApp.Services.Items
                 new SqliteParameter("@Keywords", (object)item.Keywords ?? DBNull.Value),
                 new SqliteParameter("@Avail", item.QuantityOnHand),
                 new SqliteParameter("@Rent", item.RentedQuantity),
+                new SqliteParameter("@Rental", item.IsRentalItem ? 1 : 0),
                 new SqliteParameter("@Powered", item.IsPowered ? 1 : 0),
                 new SqliteParameter("@Out", item.IsCheckedOut ? 1 : 0),
                 new SqliteParameter("@By", (object)item.CheckedOutBy ?? DBNull.Value),
@@ -420,11 +424,11 @@ namespace InventoryManagementApp.Services.Items
             return list.FirstOrDefault();
         }
 
-        public IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, CancellationToken cancellationToken = default)
-            => _repository.GetPageAsync(new ItemFilter(null, sortField, sortDirection), page, cancellationToken);
+        public IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default)
+            => _repository.GetPageAsync(new ItemFilter(null, sortField, sortDirection, isRentalItem), page, cancellationToken);
 
-        public IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, CancellationToken cancellationToken = default)
-            => _repository.GetPageAsync(new ItemFilter(searchText, sortField, sortDirection), page, cancellationToken);
+        public IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default)
+            => _repository.GetPageAsync(new ItemFilter(searchText, sortField, sortDirection, isRentalItem), page, cancellationToken);
 
         public Task<int> CountItemsAsync(ItemFilter filter, CancellationToken ct)
             => _repository.CountAsync(filter, ct);
@@ -517,7 +521,8 @@ namespace InventoryManagementApp.Services.Items
                         Notes = GetMapped(cols, headers, map, "Notes"),
                         Keywords = GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords)),
                         QuantityOnHand = TryParseInt(GetMapped(cols, headers, map, "AvailableQuantity")),
-                        IsPowered = TryParseBool(GetMapped(cols, headers, map, "IsPowered"))
+                        IsPowered = TryParseBool(GetMapped(cols, headers, map, "IsPowered")),
+                        IsRentalItem = TryParseBool(GetMapped(cols, headers, map, "IsRentalItem"))
                     };
 
                     await InsertItemAsync(conn, tran, item, cancellationToken);
@@ -552,7 +557,7 @@ namespace InventoryManagementApp.Services.Items
         private async Task ExportItemsToCsvInternalAsync(string filePath, CancellationToken cancellationToken)
         {
             var items = new List<ItemModel>();
-            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken))
+            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken))
                 items.Add(item);
             await CsvHelperUtil.ExportItemsToCsvAsync(filePath, items);
         }

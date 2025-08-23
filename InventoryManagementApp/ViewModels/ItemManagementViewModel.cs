@@ -187,12 +187,12 @@ namespace InventoryManagementApp.ViewModels
 
             if (!string.IsNullOrEmpty(term))
             {
-                await foreach (var item in _itemService.SearchItemsAsync(term, page, SortField.Name, SortDirection.Ascending, cancellationToken))
+                await foreach (var item in _itemService.SearchItemsAsync(term, page, SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken))
                     list.Add(item);
             }
             else
             {
-                await foreach (var item in _itemService.GetItemsAsync(page, SortField.Name, SortDirection.Ascending, cancellationToken))
+                await foreach (var item in _itemService.GetItemsAsync(page, SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken))
                     list.Add(item);
             }
 
@@ -257,6 +257,7 @@ namespace InventoryManagementApp.ViewModels
                 Notes = selected.Notes,
                 Keywords = selected.Keywords,
                 IsPowered = selected.IsPowered,
+                IsRentalItem = selected.IsRentalItem,
                 IsCheckedOut = selected.IsCheckedOut,
                 CheckedOutBy = selected.CheckedOutBy,
                 CheckedOutTime = selected.CheckedOutTime,

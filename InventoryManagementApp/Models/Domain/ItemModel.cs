@@ -73,6 +73,13 @@ namespace InventoryManagementApp.Models.Domain
             set => SetProperty(ref _rentedQuantity, value);
         }
 
+        private bool _isRentalItem;
+        public bool IsRentalItem
+        {
+            get => _isRentalItem;
+            set => SetProperty(ref _isRentalItem, value);
+        }
+
         private string _supplier = string.Empty;
         public string Supplier
         {

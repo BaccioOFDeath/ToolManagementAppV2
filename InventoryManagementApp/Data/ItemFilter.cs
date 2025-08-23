@@ -14,4 +14,4 @@ public enum SortDirection
     Descending
 }
 
-public readonly record struct ItemFilter(string? Search, SortField SortField = SortField.Name, SortDirection SortDirection = SortDirection.Ascending);
+public readonly record struct ItemFilter(string? Search, SortField SortField = SortField.Name, SortDirection SortDirection = SortDirection.Ascending, bool? IsRentalItem = null);

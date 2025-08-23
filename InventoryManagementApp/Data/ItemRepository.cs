@@ -17,15 +17,23 @@ public sealed class ItemRepository : IItemRepository
 
     public async IAsyncEnumerable<Item> GetPageAsync(ItemFilter filter, ItemPage page, [EnumeratorCancellation] CancellationToken ct)
     {
-        var sql = "SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, IsPowered, UpdatedAt FROM Items";
+        var sql = "SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, IsPowered, UpdatedAt FROM Items";
         var parameters = new DynamicParameters();
+        var conditions = new List<string>();
         if (!string.IsNullOrWhiteSpace(filter.Search))
         {
-            sql += " WHERE ItemNumber LIKE @ItemNumberPrefix COLLATE NOCASE_NOACCENT OR ItemNumber LIKE @ItemNumberSubstring COLLATE NOCASE_NOACCENT OR NameDescription LIKE @NameSubstring COLLATE NOCASE_NOACCENT";
+            conditions.Add("(ItemNumber LIKE @ItemNumberPrefix COLLATE NOCASE_NOACCENT OR ItemNumber LIKE @ItemNumberSubstring COLLATE NOCASE_NOACCENT OR NameDescription LIKE @NameSubstring COLLATE NOCASE_NOACCENT)");
             parameters.Add("ItemNumberPrefix", $"{filter.Search}%");
             parameters.Add("ItemNumberSubstring", $"%{filter.Search}%");
             parameters.Add("NameSubstring", $"%{filter.Search}%");
         }
+        if (filter.IsRentalItem.HasValue)
+        {
+            conditions.Add("IsRentalItem=@IsRental");
+            parameters.Add("IsRental", filter.IsRentalItem.Value ? 1 : 0);
+        }
+        if (conditions.Count > 0)
+            sql += " WHERE " + string.Join(" AND ", conditions);
         var orderColumn = filter.SortField switch
         {
             SortField.Name => "NameDescription",
@@ -54,6 +62,7 @@ public sealed class ItemRepository : IItemRepository
         var ordinalKeywords = reader.GetOrdinal("Keywords");
         var ordinalQuantityOnHand = reader.GetOrdinal("QuantityOnHand");
         var ordinalRentedQuantity = reader.GetOrdinal("RentedQuantity");
+        var ordinalIsRental = reader.GetOrdinal("IsRentalItem");
         var ordinalPrice = reader.GetOrdinal("Price");
         var ordinalImagePath = reader.GetOrdinal("ImagePath");
         var ordinalIsCheckedOut = reader.GetOrdinal("IsCheckedOut");
@@ -78,6 +87,7 @@ public sealed class ItemRepository : IItemRepository
                 Keywords = reader.IsDBNull(ordinalKeywords) ? string.Empty : reader.GetString(ordinalKeywords),
                 QuantityOnHand = reader.IsDBNull(ordinalQuantityOnHand) ? 0 : reader.GetInt32(ordinalQuantityOnHand),
                 RentedQuantity = reader.IsDBNull(ordinalRentedQuantity) ? 0 : reader.GetInt32(ordinalRentedQuantity),
+                IsRentalItem = !reader.IsDBNull(ordinalIsRental) && reader.GetInt32(ordinalIsRental) == 1,
                 Price = reader.IsDBNull(ordinalPrice) ? 0m : reader.GetDecimal(ordinalPrice),
                 ImagePath = reader.IsDBNull(ordinalImagePath) ? string.Empty : reader.GetString(ordinalImagePath),
                 IsCheckedOut = !reader.IsDBNull(ordinalIsCheckedOut) && reader.GetInt32(ordinalIsCheckedOut) == 1,
@@ -93,13 +103,21 @@ public sealed class ItemRepository : IItemRepository
     {
         var sql = "SELECT COUNT(*) FROM Items";
         var parameters = new DynamicParameters();
+        var conditions = new List<string>();
         if (!string.IsNullOrWhiteSpace(filter.Search))
         {
-            sql += " WHERE ItemNumber LIKE @ItemNumberPrefix COLLATE NOCASE_NOACCENT OR ItemNumber LIKE @ItemNumberSubstring COLLATE NOCASE_NOACCENT OR NameDescription LIKE @NameSubstring COLLATE NOCASE_NOACCENT";
+            conditions.Add("(ItemNumber LIKE @ItemNumberPrefix COLLATE NOCASE_NOACCENT OR ItemNumber LIKE @ItemNumberSubstring COLLATE NOCASE_NOACCENT OR NameDescription LIKE @NameSubstring COLLATE NOCASE_NOACCENT)");
             parameters.Add("ItemNumberPrefix", $"{filter.Search}%");
             parameters.Add("ItemNumberSubstring", $"%{filter.Search}%");
             parameters.Add("NameSubstring", $"%{filter.Search}%");
         }
+        if (filter.IsRentalItem.HasValue)
+        {
+            conditions.Add("IsRentalItem=@IsRental");
+            parameters.Add("IsRental", filter.IsRentalItem.Value ? 1 : 0);
+        }
+        if (conditions.Count > 0)
+            sql += " WHERE " + string.Join(" AND ", conditions);
         await using var conn = (DbConnection)_factory.Create();
         return await conn.ExecuteScalarAsync<int>(new CommandDefinition(sql, parameters, flags: CommandFlags.Pipelined, cancellationToken: ct));
     }

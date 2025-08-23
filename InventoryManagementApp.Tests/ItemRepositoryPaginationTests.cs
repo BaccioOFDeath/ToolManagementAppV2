@@ -15,7 +15,7 @@ public class ItemRepositoryPaginationTests
     {
         using var conn = factory.Create();
         var cmd = conn.CreateCommand();
-        cmd.CommandText = @"CREATE TABLE Items (
+            cmd.CommandText = @"CREATE TABLE Items (
             ItemID INTEGER PRIMARY KEY AUTOINCREMENT,
             ItemNumber TEXT,
             NameDescription TEXT,
@@ -28,6 +28,7 @@ public class ItemRepositoryPaginationTests
             Keywords TEXT,
             AvailableQuantity INTEGER,
             RentedQuantity INTEGER,
+            IsRentalItem INTEGER,
             Price NUMERIC NOT NULL DEFAULT 0,
             ImagePath TEXT,
             IsCheckedOut INTEGER,
@@ -40,7 +41,7 @@ public class ItemRepositoryPaginationTests
         for (int i = 1; i <= 5; i++)
         {
             await conn.ExecuteAsync(
-                "INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,0,0,0,0,@UpdatedAt)",
+                "INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsRentalItem, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,0,0,0,0,0,@UpdatedAt)",
                 new { ItemNumber = $"I{i}", Name = $"Item {i}", UpdatedAt = System.DateTime.UtcNow });
         }
     }

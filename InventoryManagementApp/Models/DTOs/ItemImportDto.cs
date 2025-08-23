@@ -13,5 +13,6 @@
         public string? Keywords { get; set; }
         public int AvailableQuantity { get; set; }
         public int RentedQuantity { get; set; }
+        public bool IsRentalItem { get; set; }
     }
 }
