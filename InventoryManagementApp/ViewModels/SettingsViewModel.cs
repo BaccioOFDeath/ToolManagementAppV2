@@ -43,6 +43,11 @@ namespace InventoryManagementApp.ViewModels
             _autoLogoutMinutes = _settingsService.GetAutoLogoutMinutesAsync().GetAwaiter().GetResult();
             _itemLabelSingular = LabelProvider.Instance.ItemLabelSingular;
             _itemLabelPlural = LabelProvider.Instance.ItemLabelPlural;
+            _showItemImage = _settingsService.GetShowItemImageAsync().GetAwaiter().GetResult();
+            _showItemName = _settingsService.GetShowItemNameAsync().GetAwaiter().GetResult();
+            _showItemNumber = _settingsService.GetShowItemNumberAsync().GetAwaiter().GetResult();
+            _showItemLocation = _settingsService.GetShowItemLocationAsync().GetAwaiter().GetResult();
+            _showItemNotes = _settingsService.GetShowItemNotesAsync().GetAwaiter().GetResult();
             TestDbCommand = new RelayCommand(() =>
             {
                 var success = TestDbConnection(out var message);
@@ -57,6 +62,14 @@ namespace InventoryManagementApp.ViewModels
             });
             BrowseCompanyLogoCommand = new RelayCommand(BrowseCompanyLogo);
             SaveCompanyLogoCommand = new AsyncRelayCommand(SaveCompanyLogoAsync);
+            SelectAllItemDisplayCommand = new RelayCommand(() =>
+            {
+                ShowItemImage = ShowItemName = ShowItemNumber = ShowItemLocation = ShowItemNotes = true;
+            });
+            SelectNoneItemDisplayCommand = new RelayCommand(() =>
+            {
+                ShowItemImage = ShowItemName = ShowItemNumber = ShowItemLocation = ShowItemNotes = false;
+            });
         }
 
         private string _applicationName = string.Empty;
@@ -242,11 +255,138 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
+        private bool _showItemImage;
+        public bool ShowItemImage
+        {
+            get => _showItemImage;
+            set
+            {
+                if (SetProperty(ref _showItemImage, value))
+                {
+                    try
+                    {
+                        _settingsService.SaveShowItemImageAsync(value).GetAwaiter().GetResult();
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        _logger.LogWarning(ex, "Unauthorized to change settings.");
+                        _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to save ShowItemImage setting.");
+                    }
+                }
+            }
+        }
+
+        private bool _showItemName;
+        public bool ShowItemName
+        {
+            get => _showItemName;
+            set
+            {
+                if (SetProperty(ref _showItemName, value))
+                {
+                    try
+                    {
+                        _settingsService.SaveShowItemNameAsync(value).GetAwaiter().GetResult();
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        _logger.LogWarning(ex, "Unauthorized to change settings.");
+                        _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to save ShowItemName setting.");
+                    }
+                }
+            }
+        }
+
+        private bool _showItemNumber;
+        public bool ShowItemNumber
+        {
+            get => _showItemNumber;
+            set
+            {
+                if (SetProperty(ref _showItemNumber, value))
+                {
+                    try
+                    {
+                        _settingsService.SaveShowItemNumberAsync(value).GetAwaiter().GetResult();
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        _logger.LogWarning(ex, "Unauthorized to change settings.");
+                        _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to save ShowItemNumber setting.");
+                    }
+                }
+            }
+        }
+
+        private bool _showItemLocation;
+        public bool ShowItemLocation
+        {
+            get => _showItemLocation;
+            set
+            {
+                if (SetProperty(ref _showItemLocation, value))
+                {
+                    try
+                    {
+                        _settingsService.SaveShowItemLocationAsync(value).GetAwaiter().GetResult();
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        _logger.LogWarning(ex, "Unauthorized to change settings.");
+                        _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to save ShowItemLocation setting.");
+                    }
+                }
+            }
+        }
+
+        private bool _showItemNotes;
+        public bool ShowItemNotes
+        {
+            get => _showItemNotes;
+            set
+            {
+                if (SetProperty(ref _showItemNotes, value))
+                {
+                    try
+                    {
+                        _settingsService.SaveShowItemNotesAsync(value).GetAwaiter().GetResult();
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        _logger.LogWarning(ex, "Unauthorized to change settings.");
+                        _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to save ShowItemNotes setting.");
+                    }
+                }
+            }
+        }
+
         public ObservableCollection<string> ThemeOptions { get; }
 
         public IRelayCommand TestDbCommand { get; }
         public IRelayCommand BrowseCompanyLogoCommand { get; }
         public IAsyncRelayCommand SaveCompanyLogoCommand { get; }
+        public IRelayCommand SelectAllItemDisplayCommand { get; }
+        public IRelayCommand SelectNoneItemDisplayCommand { get; }
 
         internal bool TestDbConnection(out string message)
         {

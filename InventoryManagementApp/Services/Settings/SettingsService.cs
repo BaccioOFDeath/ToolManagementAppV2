@@ -209,6 +209,11 @@ namespace InventoryManagementApp.Services.Settings
         const string AutoLogoutMinutesKey = "AutoLogoutMinutes";
         const string ItemLabelSingularKey = "ItemLabelSingular";
         const string ItemLabelPluralKey = "ItemLabelPlural";
+        const string ShowItemImageKey = "ShowItemImage";
+        const string ShowItemNameKey = "ShowItemName";
+        const string ShowItemNumberKey = "ShowItemNumber";
+        const string ShowItemLocationKey = "ShowItemLocation";
+        const string ShowItemNotesKey = "ShowItemNotes";
 
         public async Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default)
         {
@@ -313,5 +318,48 @@ namespace InventoryManagementApp.Services.Settings
             _auth.EnsureAdmin();
             await SaveSettingAsync(ItemLabelPluralKey, label, cancellationToken).ConfigureAwait(false);
         }
+
+        static bool ParseBool(string? value, bool defaultValue) => bool.TryParse(value, out var b) ? b : defaultValue;
+
+        async Task<bool> GetBoolSettingAsync(string key, bool defaultValue, CancellationToken cancellationToken)
+        {
+            var value = await GetSettingAsync(key, cancellationToken).ConfigureAwait(false);
+            if (value is null)
+            {
+                await SaveSettingAsync(key, defaultValue.ToString(), cancellationToken).ConfigureAwait(false);
+                return defaultValue;
+            }
+            return ParseBool(value, defaultValue);
+        }
+
+        public Task<bool> GetShowItemImageAsync(CancellationToken cancellationToken = default)
+            => GetBoolSettingAsync(ShowItemImageKey, true, cancellationToken);
+
+        public Task SaveShowItemImageAsync(bool value, CancellationToken cancellationToken = default)
+            => SaveSettingAsync(ShowItemImageKey, value.ToString(), cancellationToken);
+
+        public Task<bool> GetShowItemNameAsync(CancellationToken cancellationToken = default)
+            => GetBoolSettingAsync(ShowItemNameKey, true, cancellationToken);
+
+        public Task SaveShowItemNameAsync(bool value, CancellationToken cancellationToken = default)
+            => SaveSettingAsync(ShowItemNameKey, value.ToString(), cancellationToken);
+
+        public Task<bool> GetShowItemNumberAsync(CancellationToken cancellationToken = default)
+            => GetBoolSettingAsync(ShowItemNumberKey, true, cancellationToken);
+
+        public Task SaveShowItemNumberAsync(bool value, CancellationToken cancellationToken = default)
+            => SaveSettingAsync(ShowItemNumberKey, value.ToString(), cancellationToken);
+
+        public Task<bool> GetShowItemLocationAsync(CancellationToken cancellationToken = default)
+            => GetBoolSettingAsync(ShowItemLocationKey, true, cancellationToken);
+
+        public Task SaveShowItemLocationAsync(bool value, CancellationToken cancellationToken = default)
+            => SaveSettingAsync(ShowItemLocationKey, value.ToString(), cancellationToken);
+
+        public Task<bool> GetShowItemNotesAsync(CancellationToken cancellationToken = default)
+            => GetBoolSettingAsync(ShowItemNotesKey, true, cancellationToken);
+
+        public Task SaveShowItemNotesAsync(bool value, CancellationToken cancellationToken = default)
+            => SaveSettingAsync(ShowItemNotesKey, value.ToString(), cancellationToken);
     }
 }

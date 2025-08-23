@@ -166,6 +166,16 @@ namespace InventoryManagementApp.Tests
             public Task SaveItemLabelSingularAsync(string label, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<string> GetItemLabelPluralAsync(CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
             public Task SaveItemLabelPluralAsync(string label, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<bool> GetShowItemImageAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
+            public Task SaveShowItemImageAsync(bool value, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<bool> GetShowItemNameAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
+            public Task SaveShowItemNameAsync(bool value, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<bool> GetShowItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
+            public Task SaveShowItemNumberAsync(bool value, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<bool> GetShowItemLocationAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
+            public Task SaveShowItemLocationAsync(bool value, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<bool> GetShowItemNotesAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
+            public Task SaveShowItemNotesAsync(bool value, CancellationToken cancellationToken = default) => Task.CompletedTask;
         }
 
         private sealed class DummyDialogService : IDialogService
