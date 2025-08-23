@@ -224,30 +224,37 @@ namespace InventoryManagementApp.ViewModels
         /// </summary>
         async Task FilterItemsAsync()
         {
-            var cancellationToken = _searchCts?.Token ?? CancellationToken.None;
-            var term = string.IsNullOrWhiteSpace(SearchTerm) ? string.Empty : SearchTerm.Trim();
-            var page = new ItemPage(1, PageSize);
-            var list = new List<ItemModel>();
-
-            if (!string.IsNullOrEmpty(term))
+            try
             {
-                await foreach (var item in _itemService.SearchItemsAsync(term, page, SortField.Name, SortDirection.Ascending, isRentalItem: false, cancellationToken: cancellationToken))
-                    list.Add(item);
-            }
-            else
-            {
-                await foreach (var item in _itemService.GetItemsAsync(page, SortField.Name, SortDirection.Ascending, isRentalItem: false, cancellationToken: cancellationToken))
-                    list.Add(item);
-            }
+                var cancellationToken = _searchCts?.Token ?? CancellationToken.None;
+                var term = string.IsNullOrWhiteSpace(SearchTerm) ? string.Empty : SearchTerm.Trim();
+                var page = new ItemPage(1, PageSize);
+                var list = new List<ItemModel>();
 
-            if (!string.IsNullOrEmpty(SelectedCategory) && SelectedCategory != "All")
-            {
-                list = list.Where(t => string.Equals(t.Brand, SelectedCategory, StringComparison.OrdinalIgnoreCase)).ToList();
-            }
+                if (!string.IsNullOrEmpty(term))
+                {
+                    await foreach (var item in _itemService.SearchItemsAsync(term, page, SortField.Name, SortDirection.Ascending, isRentalItem: false, cancellationToken: cancellationToken))
+                        list.Add(item);
+                }
+                else
+                {
+                    await foreach (var item in _itemService.GetItemsAsync(page, SortField.Name, SortDirection.Ascending, isRentalItem: false, cancellationToken: cancellationToken))
+                        list.Add(item);
+                }
 
-            Items.ReplaceRange(list);
-            SearchResults.ReplaceRange(list);
-            LoadCategories(list, suppressSearch: true);
+                if (!string.IsNullOrEmpty(SelectedCategory) && SelectedCategory != "All")
+                {
+                    list = list.Where(t => string.Equals(t.Brand, SelectedCategory, StringComparison.OrdinalIgnoreCase)).ToList();
+                }
+
+                Items.ReplaceRange(list);
+                SearchResults.ReplaceRange(list);
+                LoadCategories(list, suppressSearch: true);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
         }
 
         async Task AddItemAsync(CancellationToken cancellationToken)
