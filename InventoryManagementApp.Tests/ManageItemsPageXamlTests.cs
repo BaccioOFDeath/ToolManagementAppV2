@@ -13,7 +13,7 @@ namespace InventoryManagementApp.Tests
     public class ManageItemsPageXamlTests
     {
         [Fact]
-        public void DataGrid_UsesVirtualization()
+        public void DataGrid_UsesRowAndColumnVirtualization()
         {
             Exception? threadEx = null;
             var thread = new Thread(() =>
@@ -35,6 +35,8 @@ namespace InventoryManagementApp.Tests
 
                     Assert.True(VirtualizingStackPanel.GetIsVirtualizing(dataGrid));
                     Assert.Equal(VirtualizationMode.Recycling, VirtualizingStackPanel.GetVirtualizationMode(dataGrid));
+                    Assert.True(dataGrid.EnableRowVirtualization);
+                    Assert.True(dataGrid.EnableColumnVirtualization);
                 }
                 catch (Exception ex)
                 {

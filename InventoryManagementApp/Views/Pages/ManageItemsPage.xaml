@@ -23,6 +23,7 @@
                           SelectedItem="{Binding SelectedItem}"
                           IsReadOnly="True"
                           AutoGenerateColumns="False"
+                          EnableColumnVirtualization="True"
                           Background="{StaticResource SurfaceBrush}"
                           BorderBrush="{StaticResource BorderBrushAlt}"
                           Style="{StaticResource VirtualizedDataGridStyle}">
