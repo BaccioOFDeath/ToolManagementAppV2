@@ -16,6 +16,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Border Style="{StaticResource Card}" Grid.Column="0">
                 <StackPanel>
@@ -48,6 +49,29 @@
                                 Command="{Binding OpenRentalsCommand}"
                                 Margin="0,0,8,8"/>
                     </WrapPanel>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Grid.Column="2">
+                <StackPanel>
+                    <TextBlock Text="Checked-Out Items" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
+                    <ListView ItemsSource="{Binding CheckedOutItems}"
+                              Style="{StaticResource CardListView}"
+                              VirtualizingPanel.IsVirtualizing="True"
+                              VirtualizingPanel.VirtualizationMode="Recycling">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding ItemNumber}" Margin="0,0,8,0"/>
+                                    <TextBlock Text="{Binding CheckedOutBy}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel/>
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                    </ListView>
                 </StackPanel>
             </Border>
         </Grid>

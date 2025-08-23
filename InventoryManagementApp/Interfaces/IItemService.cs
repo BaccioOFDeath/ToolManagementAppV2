@@ -21,6 +21,7 @@ namespace InventoryManagementApp.Interfaces
         Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct);
         Task<bool> ToggleItemCheckOutStatusAsync(int itemID, string currentUser, CancellationToken cancellationToken = default);
         Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default);
+        Task<List<ItemModel>> GetCheckedOutItemsAsync(CancellationToken cancellationToken = default);
         Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default);
         Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken);
         Task ExportItemsToCsvAsync(string filePath, CancellationToken cancellationToken = default);

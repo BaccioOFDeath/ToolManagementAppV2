@@ -13,6 +13,7 @@ using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Services.Items;
 using InventoryManagementApp.Services.Users;
 using InventoryManagementApp.ViewModels;
+using Microsoft.Data.Sqlite;
 using Xunit;
 
 public class DashboardViewModelTests
@@ -119,6 +120,35 @@ public class DashboardViewModelTests
 
         public override Task<Result<List<ActivityLog>>> GetRecentLogsAsync(int count = 50, CancellationToken cancellationToken = default)
             => Task.FromResult(new Result<List<ActivityLog>>(new List<ActivityLog>(), true));
+    }
+
+    private sealed class StubItemService : IItemService
+    {
+        public List<ItemModel> Items { get; } = new();
+        public int CheckedOutCalls { get; private set; }
+
+        public Task<int> CountItemsAsync(ItemFilter filter, CancellationToken ct) => Task.FromResult(0);
+        public Task<List<ItemModel>> GetCheckedOutItemsAsync(CancellationToken cancellationToken = default)
+        {
+            CheckedOutCalls++;
+            return Task.FromResult(Items);
+        }
+
+        public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task DeleteItemAsync(int itemID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default) => AsyncEnumerable.Empty<ItemModel>();
+        public IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default) => AsyncEnumerable.Empty<ItemModel>();
+        public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct) => Task.CompletedTask;
+        public Task<bool> ToggleItemCheckOutStatusAsync(int itemID, string currentUser, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task ExportItemsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, SqliteConnection? conn = null, SqliteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 
     private sealed class SlowItemRepository : IItemRepository
@@ -231,6 +261,35 @@ public class DashboardViewModelTests
         Assert.True(activityLogService.Canceled);
         Assert.Empty(vm.StatCards);
         Assert.Empty(vm.RecentActivity);
+    }
+
+    [Fact]
+    public async Task LoadAsync_PopulatesCheckedOutItems()
+    {
+        using var db = new DatabaseService(":memory:");
+        var itemService = new StubItemService();
+        itemService.Items.Add(new ItemModel { ItemNumber = "X1", CheckedOutBy = "Alice" });
+        var rentalService = new StubRentalService();
+        var customerService = new StubCustomerService();
+        var userService = new StubUserService();
+        var activityLogService = new StubActivityLogService(db);
+
+        var vm = new DashboardViewModel(
+            itemService,
+            rentalService,
+            customerService,
+            userService,
+            activityLogService,
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }));
+
+        await vm.LoadAsync(CancellationToken.None);
+
+        Assert.Single(vm.CheckedOutItems);
+        Assert.Equal("X1", vm.CheckedOutItems[0].ItemNumber);
+        Assert.Equal("Alice", vm.CheckedOutItems[0].CheckedOutBy);
+        Assert.Equal(1, itemService.CheckedOutCalls);
     }
 }
 
