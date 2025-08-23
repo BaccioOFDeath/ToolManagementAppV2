@@ -352,7 +352,8 @@ namespace InventoryManagementApp.ViewModels
                         var idxAll = _allUsers.IndexOf(user);
                         if (idxAll >= 0) _allUsers[idxAll] = clone;
                         if (ReferenceEquals(SelectedUser, user)) SelectedUser = clone;
-                        win?.DialogResult = true;
+                        if (win != null)
+                            win.DialogResult = true;
                     }
                     catch (UnauthorizedAccessException)
                     {
@@ -364,7 +365,11 @@ namespace InventoryManagementApp.ViewModels
                         _dialogService.ShowInfo($"Failed to update user: {ex.Message}", "Error");
                     }
                 },
-                onCancel: () => win?.Close(),
+                onCancel: () =>
+                {
+                    if (win != null)
+                        win.Close();
+                },
                 onRemoveAvatar: () => clone.UserPhotoPath = null);
 
             try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for UsersEditWindow"); }

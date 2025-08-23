@@ -133,7 +133,8 @@ namespace InventoryManagementApp.ViewModels.Rental
             var window = System.Windows.Application.Current.Windows
                 .OfType<Window>()
                 .FirstOrDefault(w => w.DataContext == this);
-            window?.Close();
+            if (window != null)
+                window.Close();
         }
     }
 }

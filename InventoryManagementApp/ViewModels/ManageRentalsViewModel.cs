@@ -165,7 +165,8 @@ namespace InventoryManagementApp.ViewModels
             var window = System.Windows.Application.Current.Windows
                 .OfType<Window>()
                 .FirstOrDefault(w => w.DataContext == this);
-            window?.Close();
+            if (window != null)
+                window.Close();
         }
 
         async Task CheckInAsync()
