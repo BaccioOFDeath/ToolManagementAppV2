@@ -17,6 +17,7 @@ namespace InventoryManagementApp.ViewModels
         private readonly IItemService _itemService;
         private readonly MemoryBudget _memoryBudget;
         private CancellationTokenSource _filterCts = new();
+        private bool _disposed;
 
         private const int PageSize = 200;
         public IncrementalLoadingCollection<ItemModel> Items { get; }
@@ -85,7 +86,10 @@ namespace InventoryManagementApp.ViewModels
 
         public void Dispose()
         {
+            if (_disposed) return;
+            _disposed = true;
             _memoryBudget.ThresholdExceeded -= OnThresholdExceeded;
+            Items.Reset();
             _filterCts.Cancel();
             _filterCts.Dispose();
         }

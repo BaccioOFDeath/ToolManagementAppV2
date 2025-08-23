@@ -12,6 +12,7 @@ using InventoryManagementApp.Models.ImportExport;
 using InventoryManagementApp.Utilities;
 using InventoryManagementApp.ViewModels;
 using Xunit;
+using System.Reflection;
 
 namespace InventoryManagementApp.Tests
 {
@@ -112,6 +113,23 @@ namespace InventoryManagementApp.Tests
             Assert.Equal(pageSize * 3, vm.Items.Count);
             Assert.Equal(new[] { 1, 2, 3 }, service.Pages);
             Assert.Equal(vm.Items.Count, vm.Items.Select(i => i.ItemID).Distinct().Count());
+        }
+
+        [Fact]
+        public void DisposeCanBeCalledMultipleTimesAndCancelsToken()
+        {
+            var service = new DummyItemService();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            var vm = new ItemsViewModel(service, memoryBudget);
+            vm.Items.Add(new ItemModel { ItemID = 1 });
+            var ctsField = typeof(ItemsViewModel).GetField("_filterCts", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.NotNull(ctsField);
+            var cts = (CancellationTokenSource)ctsField!.GetValue(vm)!;
+            var token = cts.Token;
+            vm.Dispose();
+            vm.Dispose();
+            Assert.True(token.IsCancellationRequested);
+            Assert.Empty(vm.Items);
         }
 
         private sealed class PagingItemService : IItemService
