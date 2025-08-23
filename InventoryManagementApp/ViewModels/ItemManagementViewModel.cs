@@ -25,6 +25,7 @@ namespace InventoryManagementApp.ViewModels
         private readonly ICustomerService _customerService;
         private readonly IRentalService _rentalService;
         private readonly IDialogService _dialogService;
+        private readonly ISettingsService _settingsService;
         private readonly ILogger<ItemManagementViewModel> _logger;
 
         public ObservableCollection<ItemModel> Items { get; } = new();
@@ -123,6 +124,7 @@ namespace InventoryManagementApp.ViewModels
                                        ICustomerService customerService,
                                        IRentalService rentalService,
                                        IDialogService dialogService,
+                                       ISettingsService settingsService,
                                        ILogger<ItemManagementViewModel>? logger = null,
                                        IDispatcherTimer? searchDebounceTimer = null)
         {
@@ -130,6 +132,7 @@ namespace InventoryManagementApp.ViewModels
             _customerService = customerService;
             _rentalService = rentalService;
             _dialogService = dialogService;
+            _settingsService = settingsService;
             _logger = logger ?? NullLogger<ItemManagementViewModel>.Instance;
             SearchCommand = new AsyncRelayCommand(FilterItemsAsync);
             _searchDebounceTimer = searchDebounceTimer ?? new DispatcherTimerWrapper { Interval = TimeSpan.FromMilliseconds(300) };
@@ -140,12 +143,23 @@ namespace InventoryManagementApp.ViewModels
             OpenRentalsCommand = new AsyncRelayCommand(ct => OpenRentalsAsync(ct), () => SelectedItem != null);
             ViewDetailsCommand = new RelayCommand(ViewDetails, () => SelectedItem != null);
             OpenRentalHistoryCommand = new AsyncRelayCommand(OpenRentalHistoryAsync, () => SelectedItem != null);
+            ShowImage = _settingsService.GetShowItemImageAsync().GetAwaiter().GetResult();
+            ShowName = _settingsService.GetShowItemNameAsync().GetAwaiter().GetResult();
+            ShowItemNumber = _settingsService.GetShowItemNumberAsync().GetAwaiter().GetResult();
+            ShowLocation = _settingsService.GetShowItemLocationAsync().GetAwaiter().GetResult();
+            ShowNotes = _settingsService.GetShowItemNotesAsync().GetAwaiter().GetResult();
             // Ensure no duplicate event subscriptions when the view model is
             // constructed multiple times or the collection persists across
             // instances.
             Items.CollectionChanged -= Items_CollectionChanged;
             Items.CollectionChanged += Items_CollectionChanged;
         }
+
+        public bool ShowImage { get; }
+        public bool ShowName { get; }
+        public bool ShowItemNumber { get; }
+        public bool ShowLocation { get; }
+        public bool ShowNotes { get; }
 
         void OnSearchDebounceTimerTick(object? s, EventArgs e)
         {

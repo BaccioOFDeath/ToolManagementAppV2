@@ -27,5 +27,17 @@ namespace InventoryManagementApp.Interfaces
         Task SaveItemLabelSingularAsync(string label, CancellationToken cancellationToken = default);
         Task<string> GetItemLabelPluralAsync(CancellationToken cancellationToken = default);
         Task SaveItemLabelPluralAsync(string label, CancellationToken cancellationToken = default);
+
+        // Item display configuration
+        Task<bool> GetShowItemImageAsync(CancellationToken cancellationToken = default);
+        Task SaveShowItemImageAsync(bool value, CancellationToken cancellationToken = default);
+        Task<bool> GetShowItemNameAsync(CancellationToken cancellationToken = default);
+        Task SaveShowItemNameAsync(bool value, CancellationToken cancellationToken = default);
+        Task<bool> GetShowItemNumberAsync(CancellationToken cancellationToken = default);
+        Task SaveShowItemNumberAsync(bool value, CancellationToken cancellationToken = default);
+        Task<bool> GetShowItemLocationAsync(CancellationToken cancellationToken = default);
+        Task SaveShowItemLocationAsync(bool value, CancellationToken cancellationToken = default);
+        Task<bool> GetShowItemNotesAsync(CancellationToken cancellationToken = default);
+        Task SaveShowItemNotesAsync(bool value, CancellationToken cancellationToken = default);
     }
 }

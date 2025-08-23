@@ -19,17 +19,28 @@
     </ItemsPanelTemplate>
     <DataTemplate x:Key="ItemCardTemplate">
         <Border Style="{StaticResource Card}" Width="220" Padding="0">
+            <Border.Visibility>
+                <MultiBinding Converter="{StaticResource AnyTrueToVisibilityConverter}">
+                    <Binding Path="DataContext.ShowImage" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
+                    <Binding Path="DataContext.ShowName" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
+                    <Binding Path="DataContext.ShowItemNumber" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
+                    <Binding Path="DataContext.ShowLocation" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
+                    <Binding Path="DataContext.ShowNotes" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
+                </MultiBinding>
+            </Border.Visibility>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="140"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <Border Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1" CornerRadius="8">
+                <Border Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1" CornerRadius="8" Visibility="{Binding DataContext.ShowImage, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}">
                     <Image Stretch="UniformToFill" Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
                 </Border>
                 <StackPanel Grid.Row="1" Margin="0,6,0,0">
-                    <TextBlock Text="{Binding Name}" Style="{StaticResource ListItemTitleTextBlock}"/>
-                    <TextBlock Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}"/>
+                    <TextBlock Text="{Binding Name}" Style="{StaticResource ListItemTitleTextBlock}" Visibility="{Binding DataContext.ShowName, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}" Visibility="{Binding DataContext.ShowItemNumber, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="{Binding Location}" Style="{StaticResource CaptionTextBlock}" Visibility="{Binding DataContext.ShowLocation, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="{Binding Notes}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis" Visibility="{Binding DataContext.ShowNotes, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"/>
                 </StackPanel>
             </Grid>
         </Border>

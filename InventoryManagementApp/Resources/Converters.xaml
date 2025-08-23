@@ -4,4 +4,5 @@
     <conv:NullToDefaultImageConverter x:Key="NullToDefaultImageConverter"/>
     <conv:BooleanToAdminConverter x:Key="BooleanToAdminConverter"/>
     <conv:DateTimeMinToEmptyStringConverter x:Key="DateTimeMinToEmptyStringConverter"/>
+    <conv:AnyTrueToVisibilityConverter x:Key="AnyTrueToVisibilityConverter"/>
 </ResourceDictionary>
