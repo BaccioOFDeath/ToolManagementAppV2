@@ -50,8 +50,8 @@ namespace InventoryManagementApp.ViewModels
             set => SetProperty(ref _searchTerm, value);
         }
 
-        private ItemModel _selectedItem;
-        public ItemModel SelectedItem
+        private ItemModel? _selectedItem;
+        public ItemModel? SelectedItem
         {
             get => _selectedItem;
             set
@@ -79,8 +79,8 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _selectedCategory, value))
                 {
-                    _searchCts.Cancel();
-                    _searchCts.Dispose();
+                    _searchCts?.Cancel();
+                    _searchCts?.Dispose();
                     _searchCts = new CancellationTokenSource();
                     SearchCommand.Execute(null);
                 }
@@ -96,7 +96,7 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand OpenRentalHistoryCommand { get; }
 
         readonly IDispatcherTimer _searchDebounceTimer;
-        CancellationTokenSource _searchCts = new();
+        CancellationTokenSource? _searchCts = new();
 
         bool _suppressItemsChanged;
         bool _disposed;
@@ -112,7 +112,7 @@ namespace InventoryManagementApp.ViewModels
                 if (SetProperty(ref _searchText, value))
                 {
                     SearchTerm = value;
-                    _searchCts.Cancel();
+                    _searchCts?.Cancel();
                     _searchDebounceTimer.Stop();
                     _searchDebounceTimer.Start();
                 }
@@ -150,7 +150,7 @@ namespace InventoryManagementApp.ViewModels
         void OnSearchDebounceTimerTick(object? s, EventArgs e)
         {
             _searchDebounceTimer.Stop();
-            _searchCts.Dispose();
+            _searchCts?.Dispose();
             _searchCts = new CancellationTokenSource();
             SearchCommand.Execute(null);
         }
@@ -180,7 +180,7 @@ namespace InventoryManagementApp.ViewModels
         /// </summary>
         async Task FilterItemsAsync()
         {
-            var cancellationToken = _searchCts.Token;
+            var cancellationToken = _searchCts?.Token ?? CancellationToken.None;
             var term = string.IsNullOrWhiteSpace(SearchTerm) ? string.Empty : SearchTerm.Trim();
             var page = new ItemPage(1, PageSize);
             var list = new List<ItemModel>();
@@ -239,27 +239,28 @@ namespace InventoryManagementApp.ViewModels
 
         async Task EditItemAsync(CancellationToken cancellationToken)
         {
-            if (SelectedItem == null) return;
+            var selected = SelectedItem;
+            if (selected == null) return;
 
             var clone = new ItemModel
             {
-                ItemID = SelectedItem.ItemID,
-                ItemNumber = SelectedItem.ItemNumber,
-                PartNumber = SelectedItem.PartNumber,
-                Name = SelectedItem.Name,
-                Brand = SelectedItem.Brand,
-                Location = SelectedItem.Location,
-                QuantityOnHand = SelectedItem.QuantityOnHand,
-                RentedQuantity = SelectedItem.RentedQuantity,
-                Supplier = SelectedItem.Supplier,
-                PurchasedDate = SelectedItem.PurchasedDate,
-                Notes = SelectedItem.Notes,
-                Keywords = SelectedItem.Keywords,
-                IsPowered = SelectedItem.IsPowered,
-                IsCheckedOut = SelectedItem.IsCheckedOut,
-                CheckedOutBy = SelectedItem.CheckedOutBy,
-                CheckedOutTime = SelectedItem.CheckedOutTime,
-                ImagePath = SelectedItem.ImagePath
+                ItemID = selected.ItemID,
+                ItemNumber = selected.ItemNumber,
+                PartNumber = selected.PartNumber,
+                Name = selected.Name,
+                Brand = selected.Brand,
+                Location = selected.Location,
+                QuantityOnHand = selected.QuantityOnHand,
+                RentedQuantity = selected.RentedQuantity,
+                Supplier = selected.Supplier,
+                PurchasedDate = selected.PurchasedDate,
+                Notes = selected.Notes,
+                Keywords = selected.Keywords,
+                IsPowered = selected.IsPowered,
+                IsCheckedOut = selected.IsCheckedOut,
+                CheckedOutBy = selected.CheckedOutBy,
+                CheckedOutTime = selected.CheckedOutTime,
+                ImagePath = selected.ImagePath
             };
 
             var updated = await _dialogService.ShowEditItemDialogAsync(clone);
@@ -284,21 +285,23 @@ namespace InventoryManagementApp.ViewModels
 
         void ViewDetails()
         {
-            if (SelectedItem == null) return;
-            _dialogService.ShowItemDetails(SelectedItem);
+            var item = SelectedItem;
+            if (item == null) return;
+            _dialogService.ShowItemDetails(item);
         }
 
         async Task OpenRentalHistoryAsync()
         {
-            if (SelectedItem == null) return;
+            var item = SelectedItem;
+            if (item == null) return;
             try
             {
-                var history = await _rentalService.GetRentalHistoryForItemAsync(SelectedItem.ItemID);
-                _dialogService.ShowRentalHistory(SelectedItem, history);
+                var history = await _rentalService.GetRentalHistoryForItemAsync(item.ItemID);
+                _dialogService.ShowRentalHistory(item, history);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to open rental history for {ItemLabelSingular} {ItemID}", LabelProvider.Instance.ItemLabelSingular, SelectedItem.ItemID);
+                _logger.LogError(ex, "Failed to open rental history for {ItemLabelSingular} {ItemID}", LabelProvider.Instance.ItemLabelSingular, item.ItemID);
             }
         }
 
@@ -339,16 +342,17 @@ namespace InventoryManagementApp.ViewModels
 
         async Task OpenRentalsAsync(CancellationToken cancellationToken)
         {
-            if (SelectedItem == null) return;
+            var item = SelectedItem;
+            if (item == null) return;
 
             try
             {
                 var customers = await _customerService.GetAllCustomersAsync(cancellationToken);
-                var result = _dialogService.ShowRentItemDialog(SelectedItem, customers);
+                var result = _dialogService.ShowRentItemDialog(item, customers);
                 if (result != null)
                 {
                     var (customer, dueDate) = result.Value;
-                    await _rentalService.RentItemAsync(SelectedItem.ItemID,
+                    await _rentalService.RentItemAsync(item.ItemID,
                         customer.CustomerID,
                         DateTime.Today,
                         dueDate);
@@ -365,7 +369,7 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to rent {ItemLabelSingular} {ItemID}", LabelProvider.Instance.ItemLabelSingular, SelectedItem?.ItemID);
+                _logger.LogError(ex, "Failed to rent {ItemLabelSingular} {ItemID}", LabelProvider.Instance.ItemLabelSingular, item.ItemID);
                 await _dialogService.ShowInfoAsync($"Failed to rent {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message}", "Error");
             }
         }
@@ -412,7 +416,7 @@ namespace InventoryManagementApp.ViewModels
             _searchDebounceTimer.Tick -= OnSearchDebounceTimerTick;
             _searchDebounceTimer.Stop();
 
-            var cts = Interlocked.Exchange(ref _searchCts, null!);
+            var cts = Interlocked.Exchange(ref _searchCts, null);
             try
             {
                 cts?.Cancel();

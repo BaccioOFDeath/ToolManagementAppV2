@@ -22,6 +22,7 @@ namespace InventoryManagementApp.Services
 
         public DialogService(IServiceProvider serviceProvider, ILogger<DialogService>? logger = null)
         {
+            ArgumentNullException.ThrowIfNull(serviceProvider);
             _serviceProvider = serviceProvider;
             _logger = logger ?? NullLogger<DialogService>.Instance;
         }
@@ -59,11 +60,12 @@ namespace InventoryManagementApp.Services
 
         public ItemModel? ShowEditItemDialog(ItemModel item)
         {
+            ArgumentNullException.ThrowIfNull(item);
             ItemEditWindow? win = null;
             win = ActivatorUtilities.CreateInstance<ItemEditWindow>(_serviceProvider,
                 item,
-                (Action)(() => win!.DialogResult = true),
-                (Action)(() => win!.DialogResult = false));
+                (Action)(() => { if (win != null) win.DialogResult = true; }),
+                (Action)(() => { if (win != null) win.DialogResult = false; }));
             try { win.Owner = System.Windows.Application.Current?.MainWindow; }
             catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for ItemEditWindow"); }
             try { return win.ShowDialog() == true ? item : null; }
@@ -72,6 +74,7 @@ namespace InventoryManagementApp.Services
 
         public Task<ItemModel?> ShowEditItemDialogAsync(ItemModel item)
         {
+            ArgumentNullException.ThrowIfNull(item);
             var dispatcher = System.Windows.Application.Current?.Dispatcher;
             if (dispatcher != null)
                 return dispatcher.InvokeAsync(() => ShowEditItemDialog(item)).Task;
@@ -82,8 +85,8 @@ namespace InventoryManagementApp.Services
 
         public void ShowItemDetails(ItemModel item)
         {
-            ItemDetailsWindow win = null!;
-            win = new ItemDetailsWindow(item);
+            ArgumentNullException.ThrowIfNull(item);
+            var win = new ItemDetailsWindow(item);
             try { win.Owner = System.Windows.Application.Current?.MainWindow; }
             catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for ItemDetailsWindow"); }
             try { win.ShowDialog(); }
@@ -92,11 +95,12 @@ namespace InventoryManagementApp.Services
 
         public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers)
         {
+            ArgumentNullException.ThrowIfNull(item);
+            ArgumentNullException.ThrowIfNull(customers);
             var vm = new RentItemPopupViewModel(item, customers);
             var win = new RentItemPopupWindow { DataContext = vm };
 
-            EventHandler handler = null!;
-            handler = (_, _) => win.Close();
+            EventHandler handler = (_, _) => win.Close();
             vm.RequestClose += handler;
 
             try
@@ -119,10 +123,10 @@ namespace InventoryManagementApp.Services
         public CustomerModel? ShowAddCustomerDialog()
         {
             var customer = new CustomerModel();
-            CustomerEditWindow win = null!;
+            CustomerEditWindow? win = null;
             win = new CustomerEditWindow(customer,
-                onSave: () => win.DialogResult = true,
-                onCancel: () => win.DialogResult = false);
+                onSave: () => { if (win != null) win.DialogResult = true; },
+                onCancel: () => { if (win != null) win.DialogResult = false; });
             try { win.Owner = System.Windows.Application.Current?.MainWindow; }
             catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for CustomerEditWindow"); }
             try { return win.ShowDialog() == true ? customer : null; }
@@ -140,6 +144,8 @@ namespace InventoryManagementApp.Services
 
         public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history)
         {
+            ArgumentNullException.ThrowIfNull(item);
+            ArgumentNullException.ThrowIfNull(history);
             var vm = new RentalHistoryViewModel(item, history, this);
             var win = new RentalHistoryWindow(vm) { Title = $"Rental History - {item.ItemNumber}" };
             try { win.Owner = System.Windows.Application.Current?.MainWindow; }
@@ -153,6 +159,8 @@ namespace InventoryManagementApp.Services
             IEnumerable<string> propertyNames,
             IEnumerable<string>? requiredPropertyNames = null)
         {
+            ArgumentNullException.ThrowIfNull(headers);
+            ArgumentNullException.ThrowIfNull(propertyNames);
             var win = CreateImportMappingWindow(headers, propertyNames, requiredPropertyNames);
             try { win.Owner = System.Windows.Application.Current?.MainWindow; }
             catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for ImportMappingWindow"); }
@@ -162,7 +170,7 @@ namespace InventoryManagementApp.Services
                 {
                     return win.VM.Mappings
                         .Where(m => !string.IsNullOrEmpty(m.SelectedColumn))
-                        .ToDictionary(m => m.PropertyName, m => m.SelectedColumn!);
+                        .ToDictionary(m => m.PropertyName, m => m.SelectedColumn ?? string.Empty);
                 }
             }
             catch (Exception ex) { _logger.LogError(ex, "Failed to show ImportMappingWindow"); }
@@ -186,6 +194,9 @@ namespace InventoryManagementApp.Services
 
         public void ShowPrintPreview(FlowDocument document, string title, string description)
         {
+            ArgumentNullException.ThrowIfNull(document);
+            ArgumentNullException.ThrowIfNull(title);
+            ArgumentNullException.ThrowIfNull(description);
             var win = new PrintPreviewWindow();
             try { win.Owner = System.Windows.Application.Current?.MainWindow; }
             catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for PrintPreviewWindow"); }
