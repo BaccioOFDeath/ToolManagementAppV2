@@ -68,7 +68,8 @@ namespace InventoryManagementApp.Utilities.IO
                     Notes = GetMapped(cols, headers, map, "Notes"),
                     Keywords = GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords)),
                     QuantityOnHand = TryParseInt(GetMapped(cols, headers, map, "AvailableQuantity")),
-                    IsPowered = TryParseBool(GetMapped(cols, headers, map, "IsPowered"))
+                    IsPowered = TryParseBool(GetMapped(cols, headers, map, "IsPowered")),
+                    IsRentalItem = TryParseBool(GetMapped(cols, headers, map, nameof(ItemImportDto.IsRentalItem)))
                 });
             }
 
@@ -112,10 +113,11 @@ namespace InventoryManagementApp.Utilities.IO
                         Supplier = GetMapped(cols, headers, map, "Supplier"),
                         PurchasedDate = TryParseDate(GetMapped(cols, headers, map, "PurchasedDate")),
                         Notes = GetMapped(cols, headers, map, "Notes"),
-                        Keywords = GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords)),
-                        QuantityOnHand = TryParseInt(GetMapped(cols, headers, map, "AvailableQuantity")),
-                        IsPowered = TryParseBool(GetMapped(cols, headers, map, "IsPowered"))
-                    });
+                    Keywords = GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords)),
+                    QuantityOnHand = TryParseInt(GetMapped(cols, headers, map, "AvailableQuantity")),
+                    IsPowered = TryParseBool(GetMapped(cols, headers, map, "IsPowered")),
+                    IsRentalItem = TryParseBool(GetMapped(cols, headers, map, nameof(ItemImportDto.IsRentalItem)))
+                });
                 }
 
                 return (list, invalidRows);
@@ -126,7 +128,7 @@ namespace InventoryManagementApp.Utilities.IO
         {
             var lines = new List<string>
             {
-                "ItemNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowered"
+                "ItemNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowered,IsRentalItem"
             };
             lines.AddRange(items.Select(t =>
                 string.Join(",",
@@ -139,7 +141,8 @@ namespace InventoryManagementApp.Utilities.IO
                     Quote(t.PurchasedDate?.ToString("yyyy-MM-dd")),
                     Quote(t.Notes),
                     Quote(t.QuantityOnHand.ToString()),
-                    Quote(t.IsPowered ? "1" : "0"))));
+                    Quote(t.IsPowered ? "1" : "0"),
+                    Quote(t.IsRentalItem ? "1" : "0"))));
             File.WriteAllLines(filePath, lines);
         }
 
@@ -147,7 +150,7 @@ namespace InventoryManagementApp.Utilities.IO
         {
             var lines = new List<string>
             {
-                "ItemNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowered"
+                "ItemNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowered,IsRentalItem"
             };
             lines.AddRange(items.Select(t =>
                 string.Join(",",
@@ -160,7 +163,8 @@ namespace InventoryManagementApp.Utilities.IO
                     Quote(t.PurchasedDate?.ToString("yyyy-MM-dd")),
                     Quote(t.Notes),
                     Quote(t.QuantityOnHand.ToString()),
-                    Quote(t.IsPowered ? "1" : "0"))));
+                    Quote(t.IsPowered ? "1" : "0"),
+                    Quote(t.IsRentalItem ? "1" : "0"))));
             await File.WriteAllLinesAsync(filePath, lines).ConfigureAwait(false);
         }
 

@@ -114,8 +114,8 @@ namespace InventoryManagementApp.ViewModels
             var result = new List<ItemModel>();
             var pageInfo = new ItemPage(page, PageSize);
             var source = string.IsNullOrWhiteSpace(Filter)
-                ? _itemService.GetItemsAsync(pageInfo, SelectedSortOption.Field, SelectedSortOption.Direction, ct)
-                : _itemService.SearchItemsAsync(Filter, pageInfo, SelectedSortOption.Field, SelectedSortOption.Direction, ct);
+                ? _itemService.GetItemsAsync(pageInfo, SelectedSortOption.Field, SelectedSortOption.Direction, cancellationToken: ct)
+                : _itemService.SearchItemsAsync(Filter, pageInfo, SelectedSortOption.Field, SelectedSortOption.Direction, cancellationToken: ct);
             await foreach (var item in source.ConfigureAwait(false))
             {
                 item.PropertyChanged += Item_PropertyChanged;
@@ -204,6 +204,7 @@ namespace InventoryManagementApp.ViewModels
                     Notes = SelectedItem.Notes,
                     Keywords = SelectedItem.Keywords,
                     IsPowered = SelectedItem.IsPowered,
+                    IsRentalItem = SelectedItem.IsRentalItem,
                     IsCheckedOut = SelectedItem.IsCheckedOut,
                     CheckedOutBy = SelectedItem.CheckedOutBy,
                     CheckedOutTime = SelectedItem.CheckedOutTime,
