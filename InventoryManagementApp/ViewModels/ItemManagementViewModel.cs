@@ -170,7 +170,7 @@ namespace InventoryManagementApp.ViewModels
             if (_initialized) return;
             var vis = await _settingsService.GetItemDetailVisibilityAsync().ConfigureAwait(false);
             VisibleFields = new Dictionary<ItemDetailField, bool>(vis);
-            WeakReferenceMessenger.Default.Register<ItemSettingsChangedMessage>(this, (r, m) => r.OnItemSettingsChanged());
+            WeakReferenceMessenger.Default.Register<ItemManagementViewModel, ItemSettingsChangedMessage>(this, static (r, m) => r.OnItemSettingsChanged());
             _initialized = true;
         }
 
@@ -305,6 +305,8 @@ namespace InventoryManagementApp.ViewModels
                 IsCheckedOut = selected.IsCheckedOut,
                 CheckedOutBy = selected.CheckedOutBy,
                 CheckedOutTime = selected.CheckedOutTime,
+                CheckedInBy = selected.CheckedInBy,
+                CheckedInTime = selected.CheckedInTime,
                 ImagePath = selected.ImagePath
             };
 
@@ -457,6 +459,14 @@ namespace InventoryManagementApp.ViewModels
                 var checkedOut = !item.IsCheckedOut;
                 item.IsCheckedOut = checkedOut;
                 item.QuantityOnHand += checkedOut ? -1 : 1;
+                var refreshed = await _itemService.GetItemByIDAsync(item.ItemID, cancellationToken).ConfigureAwait(false);
+                if (refreshed != null)
+                {
+                    item.CheckedOutBy = refreshed.CheckedOutBy;
+                    item.CheckedOutTime = refreshed.CheckedOutTime;
+                    item.CheckedInBy = refreshed.CheckedInBy;
+                    item.CheckedInTime = refreshed.CheckedInTime;
+                }
             }
             catch (OperationCanceledException)
             {

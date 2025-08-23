@@ -33,6 +33,8 @@ public class ItemRepositoryCountTests
             IsCheckedOut INTEGER,
             CheckedOutBy TEXT,
             CheckedOutTime TEXT,
+            CheckedInBy TEXT,
+            CheckedInTime TEXT,
             IsPowered INTEGER,
             UpdatedAt TEXT
         );";

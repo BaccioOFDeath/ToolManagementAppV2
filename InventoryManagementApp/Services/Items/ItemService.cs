@@ -327,6 +327,10 @@ namespace InventoryManagementApp.Services.Items
             CheckedOutTime = r["CheckedOutTime"] is DBNull
                 ? (DateTime?)null
                 : ParseNullableDate(r["CheckedOutTime"], "CheckedOutTime"),
+            CheckedInBy = r["CheckedInBy"].ToString(),
+            CheckedInTime = r["CheckedInTime"] is DBNull
+                ? (DateTime?)null
+                : ParseNullableDate(r["CheckedInTime"], "CheckedInTime"),
             ImagePath = r["ImagePath"]?.ToString(),
             Keywords = r["Keywords"]?.ToString(),
             IsPowered = (r["IsPowered"] is DBNull ? 0 : Convert.ToInt32(r["IsPowered"])) == 1,
@@ -381,6 +385,8 @@ namespace InventoryManagementApp.Services.Items
                   IsCheckedOut = @Out,
                   CheckedOutBy = @By,
                   CheckedOutTime = @Time,
+                  CheckedInBy = @InBy,
+                  CheckedInTime = @InTime,
                   ImagePath = @Img
                 WHERE ItemID = @ID";
             var p = new[]
@@ -402,6 +408,8 @@ namespace InventoryManagementApp.Services.Items
                 new SqliteParameter("@Out", item.IsCheckedOut ? 1 : 0),
                 new SqliteParameter("@By", (object)item.CheckedOutBy ?? DBNull.Value),
                 new SqliteParameter("@Time", (object)item.CheckedOutTime ?? DBNull.Value),
+                new SqliteParameter("@InBy", (object)item.CheckedInBy ?? DBNull.Value),
+                new SqliteParameter("@InTime", (object)item.CheckedInTime ?? DBNull.Value),
                 new SqliteParameter("@Img", (object)item.ImagePath ?? DBNull.Value)
             };
             try
@@ -479,8 +487,10 @@ namespace InventoryManagementApp.Services.Items
             }
 
             var newStatus = record.Out ? 0 : 1;
-            var time = record.Out ? (object)DBNull.Value : DateTime.UtcNow;
-            var by = record.Out ? (object)DBNull.Value : currentUser;
+            var outTime = record.Out ? (object)DBNull.Value : DateTime.UtcNow;
+            var outBy = record.Out ? (object)DBNull.Value : currentUser;
+            var inTime = record.Out ? DateTime.UtcNow : (object)DBNull.Value;
+            var inBy = record.Out ? (object)currentUser : DBNull.Value;
             var qtyChange = record.Out ? 1 : -1;
 
             var rows = await SqliteHelper.ExecuteNonQueryAsync(conn, @"
@@ -488,12 +498,16 @@ namespace InventoryManagementApp.Services.Items
                   IsCheckedOut = @Out,
                   CheckedOutBy = @By,
                   CheckedOutTime = @Time,
+                  CheckedInBy = @InBy,
+                  CheckedInTime = @InTime,
                   AvailableQuantity = AvailableQuantity + @Q
                 WHERE ItemID = @ID", new[]
             {
                 new SqliteParameter("@Out", newStatus),
-                new SqliteParameter("@By", by),
-                new SqliteParameter("@Time", time),
+                new SqliteParameter("@By", outBy),
+                new SqliteParameter("@Time", outTime),
+                new SqliteParameter("@InBy", inBy),
+                new SqliteParameter("@InTime", inTime),
                 new SqliteParameter("@Q", qtyChange),
                 new SqliteParameter("@ID", itemID)
             }, cancellationToken);

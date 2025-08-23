@@ -44,6 +44,8 @@ namespace InventoryManagementApp.Services.Core
             EnsureColumn("Items", "ImagePath", "TEXT");
             EnsureColumn("Items", "CheckedOutBy", "TEXT");
             EnsureColumn("Items", "CheckedOutTime", "DATETIME");
+            EnsureColumn("Items", "CheckedInBy", "TEXT");
+            EnsureColumn("Items", "CheckedInTime", "DATETIME");
             EnsureColumn("Items", "Keywords", "TEXT");
             EnsureColumn("Items", "IsPowered", "INTEGER", "0");
             EnsureColumn("Items", "IsCheckedOut", "INTEGER", "0");
@@ -126,6 +128,8 @@ namespace InventoryManagementApp.Services.Core
                     IsCheckedOut INTEGER NOT NULL DEFAULT 0,
                     CheckedOutBy TEXT,
                     CheckedOutTime DATETIME,
+                    CheckedInBy TEXT,
+                    CheckedInTime DATETIME,
                     UpdatedAt DATETIME
                 );
                 CREATE TABLE IF NOT EXISTS Users (
