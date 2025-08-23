@@ -16,6 +16,8 @@ namespace InventoryManagementApp.Services.Users
             _logger = logger ?? NullLogger<AuthorizationService>.Instance;
         }
 
+        public bool IsAdmin => _userContext.IsAdmin;
+
         public void EnsureAdmin()
         {
             if (!_userContext.IsAdmin)
