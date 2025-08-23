@@ -19,6 +19,8 @@ namespace InventoryManagementApp.Utilities.Converters
         private static readonly ConcurrentDictionary<string, BitmapImage> _imageCache =
             new ConcurrentDictionary<string, BitmapImage>(StringComparer.OrdinalIgnoreCase);
         private static readonly ConcurrentQueue<string> _cacheOrder = new ConcurrentQueue<string>();
+        private static readonly ConcurrentDictionary<string, byte> _invalidPaths =
+            new ConcurrentDictionary<string, byte>(StringComparer.OrdinalIgnoreCase);
         private readonly ILogger<NullToDefaultImageConverter> _logger;
 
         public NullToDefaultImageConverter() : this(null) { }
@@ -38,42 +40,58 @@ namespace InventoryManagementApp.Utilities.Converters
             {
                 try
                 {
-                    var absPath = Uri.IsWellFormedUriString(path, UriKind.Absolute)
-                        ? path
-                        : Helpers.PathHelper.GetAbsolutePath(path, false);
-
-                    if (!string.IsNullOrEmpty(absPath))
+                    string absPath;
+                    if (Uri.IsWellFormedUriString(path, UriKind.Absolute))
                     {
-                        if (_imageCache.TryGetValue(absPath, out var cached))
-                            return cached;
-
-                        var image = new BitmapImage();
-                        image.BeginInit();
-                        image.CacheOption = BitmapCacheOption.OnLoad;
-                        image.UriSource = new Uri(absPath, UriKind.Absolute);
-                        image.EndInit();
-                        image.Freeze();
-
-                        if (_imageCache.TryAdd(absPath, image))
-                        {
-                            _cacheOrder.Enqueue(absPath);
-                            while (_cacheOrder.Count > MaxCacheEntries && _cacheOrder.TryDequeue(out var oldKey))
-                            {
-                                _imageCache.TryRemove(oldKey, out _);
-                            }
-                        }
-
-                        return image;
+                        absPath = path;
                     }
+                    else
+                    {
+                        if (_invalidPaths.ContainsKey(path))
+                            return GetDefaultImage(parameter);
+
+                        absPath = Helpers.PathHelper.GetAbsolutePath(path, false);
+                        if (string.IsNullOrEmpty(absPath))
+                        {
+                            _invalidPaths.TryAdd(path, 0);
+                            return GetDefaultImage(parameter);
+                        }
+                    }
+
+                    if (_imageCache.TryGetValue(absPath, out var cached))
+                        return cached;
+
+                    var image = new BitmapImage();
+                    image.BeginInit();
+                    image.CacheOption = BitmapCacheOption.OnLoad;
+                    image.UriSource = new Uri(absPath, UriKind.Absolute);
+                    image.EndInit();
+                    image.Freeze();
+
+                    if (_imageCache.TryAdd(absPath, image))
+                    {
+                        _cacheOrder.Enqueue(absPath);
+                        while (_cacheOrder.Count > MaxCacheEntries && _cacheOrder.TryDequeue(out var oldKey))
+                        {
+                            _imageCache.TryRemove(oldKey, out _);
+                        }
+                    }
+
+                    return image;
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to load image from {Path}", path);
+                    _invalidPaths.TryAdd(path, 0);
                     // fall-through to default
                 }
             }
 
-            // Figure out which default we need
+            return GetDefaultImage(parameter);
+        }
+
+        private BitmapImage GetDefaultImage(object parameter)
+        {
             string type = (parameter as string)?.ToLowerInvariant() ?? "user";
             switch (type)
             {
@@ -87,7 +105,7 @@ namespace InventoryManagementApp.Utilities.Converters
                         _defaultLogo = LoadFromResource("DefaultLogo.png");
                     return _defaultLogo;
 
-                default: // user
+                default:
                     if (_defaultUser == null)
                         _defaultUser = LoadFromResource("DefaultUserPhoto.png");
                     return _defaultUser;
