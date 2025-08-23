@@ -343,6 +343,18 @@ namespace InventoryManagementApp.ViewModels
         private int _page;
         private readonly SemaphoreSlim _gate = new(1, 1);
         public bool HasMoreItems { get; private set; } = true;
+        private bool _isLoading;
+
+        public bool IsLoading
+        {
+            get => _isLoading;
+            private set
+            {
+                if (_isLoading == value) return;
+                _isLoading = value;
+                OnPropertyChanged(new PropertyChangedEventArgs(nameof(IsLoading)));
+            }
+        }
 
         public int PageSize
         {
@@ -362,6 +374,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 if (!HasMoreItems) return;
+                IsLoading = true;
                 var next = _page + 1;
                 var items = await _loader(next, ct).ConfigureAwait(false);
                 foreach (var item in items)
@@ -372,6 +385,7 @@ namespace InventoryManagementApp.ViewModels
             }
             finally
             {
+                IsLoading = false;
                 _gate.Release();
             }
         }

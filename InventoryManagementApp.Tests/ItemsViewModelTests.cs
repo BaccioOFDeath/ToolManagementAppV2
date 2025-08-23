@@ -129,6 +129,21 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task IncrementalCollectionTracksLoadingState()
+        {
+            var service = new RecordingItemService(new Dictionary<string, List<ItemModel>>(), new List<ItemModel> { new ItemModel { ItemID = 1 } });
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var settings = new DummySettingsService();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
+            var loadTask = vm.LoadMoreAsync();
+            Assert.True(vm.Items.IsLoading);
+            await loadTask;
+            Assert.False(vm.Items.IsLoading);
+        }
+
+        [Fact]
         public void DisposeCanBeCalledMultipleTimesAndCancelsToken()
         {
             var service = new DummyItemService();
