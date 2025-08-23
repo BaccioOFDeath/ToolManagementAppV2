@@ -421,6 +421,7 @@ namespace InventoryManagementApp.ViewModels
             var checkedOut = !item.IsCheckedOut;
             item.IsCheckedOut = checkedOut;
             item.CheckedOutBy = checkedOut ? _userContext.UserName : string.Empty;
+            item.QuantityOnHand += checkedOut ? -1 : 1;
         }
 
         public void Dispose()

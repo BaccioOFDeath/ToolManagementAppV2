@@ -88,16 +88,18 @@ namespace InventoryManagementApp.Tests
             var userContext = new DummyUserContext { CurrentUser = new User { UserName = "user1" } };
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, userContext);
-            var item = new ItemModel { ItemID = 1 };
+            var item = new ItemModel { ItemID = 1, QuantityOnHand = 5 };
             vm.Items.Add(item);
 
             await vm.ToggleCheckOutCommand.ExecuteAsync(item);
             Assert.True(item.IsCheckedOut);
             Assert.Equal("user1", item.CheckedOutBy);
+            Assert.Equal(4, item.QuantityOnHand);
 
             await vm.ToggleCheckOutCommand.ExecuteAsync(item);
             Assert.False(item.IsCheckedOut);
             Assert.Equal(string.Empty, item.CheckedOutBy);
+            Assert.Equal(5, item.QuantityOnHand);
         }
 
         [Fact]
@@ -111,7 +113,7 @@ namespace InventoryManagementApp.Tests
             var userContext = new DummyUserContext { CurrentUser = new User { UserName = "user1" } };
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, userContext);
-            var item = new ItemModel { ItemID = 1 };
+            var item = new ItemModel { ItemID = 1, QuantityOnHand = 3 };
             vm.Items.Add(item);
             vm.SelectedItem = item;
 
@@ -119,11 +121,13 @@ namespace InventoryManagementApp.Tests
 
             Assert.True(vm.SelectedItem!.IsCheckedOut);
             Assert.Equal("user1", vm.SelectedItem.CheckedOutBy);
+            Assert.Equal(2, vm.SelectedItem.QuantityOnHand);
 
             await vm.ToggleCheckOutCommand.ExecuteAsync(item);
 
             Assert.False(vm.SelectedItem!.IsCheckedOut);
             Assert.Equal(string.Empty, vm.SelectedItem.CheckedOutBy);
+            Assert.Equal(3, vm.SelectedItem.QuantityOnHand);
         }
 
         [Fact]
