@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
@@ -52,6 +53,34 @@ namespace InventoryManagementApp.Tests
             thread.Join();
 
             if (threadEx != null) throw threadEx;
+        }
+
+        [Fact]
+        public void DataGrid_AllowsMultiSelection()
+        {
+            var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml"));
+            var xaml = File.ReadAllText(path);
+            Assert.Contains("SelectionMode=\"Extended\"", xaml);
+
+            xaml = Regex.Replace(xaml, "x:Class=\"[^\"]*\"\\s*", string.Empty);
+            var page = (Page)XamlReader.Parse(xaml);
+            var dataGrid = FindVisualChild<DataGrid>(page) ?? throw new InvalidOperationException("DataGrid not found");
+            Assert.Equal(DataGridSelectionMode.Extended, dataGrid.SelectionMode);
+        }
+
+        [Fact]
+        public void DataGridRow_RightClickSelectHandlerIsWired()
+        {
+            var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml"));
+            var xaml = File.ReadAllText(path);
+            xaml = Regex.Replace(xaml, "x:Class=\"[^\"]*\"\\s*", string.Empty);
+
+            var page = (Page)XamlReader.Parse(xaml);
+            var dataGrid = FindVisualChild<DataGrid>(page) ?? throw new InvalidOperationException("DataGrid not found");
+            var rowStyle = dataGrid.RowStyle ?? throw new InvalidOperationException("RowStyle not found");
+            var eventSetter = rowStyle.Setters.OfType<EventSetter>().FirstOrDefault(es => es.Event == UIElement.PreviewMouseRightButtonDownEvent);
+            Assert.NotNull(eventSetter);
+            Assert.Equal("DataGridRow_PreviewMouseRightButtonDown", eventSetter!.Handler);
         }
 
         private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject

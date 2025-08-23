@@ -20,12 +20,9 @@ namespace InventoryManagementApp.Views.Pages
 
         private void DataGridRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (sender is DataGridRow row)
+            if (sender is DataGridRow row && !row.IsSelected)
             {
-                if (!row.IsSelected)
-                {
-                    row.IsSelected = true;
-                }
+                row.IsSelected = true;
                 e.Handled = true;
             }
         }

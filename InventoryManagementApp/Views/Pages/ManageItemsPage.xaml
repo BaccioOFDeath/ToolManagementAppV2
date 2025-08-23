@@ -28,6 +28,7 @@
                 <Grid Grid.Row="1">
                     <DataGrid ItemsSource="{Binding Items}"
                               SelectedItem="{Binding SelectedItem}"
+                              SelectionMode="Extended"
                               IsReadOnly="False"
                               AutoGenerateColumns="False"
                               EnableColumnVirtualization="True"
