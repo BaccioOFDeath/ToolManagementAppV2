@@ -92,7 +92,7 @@ namespace InventoryManagementApp.Services.Items
                 throw new InvalidOperationException("Current user is not available.");
 
             var caller = _context.UserName;
-            var result = await ToggleItemCheckOutStatusInternalAsync(itemID, caller, cancellationToken).ConfigureAwait(false);
+            var result = await ToggleItemCheckOutStatusInternalAsync(itemID, caller, _auth.IsAdmin, cancellationToken).ConfigureAwait(false);
             if (!result)
                 return false;
 
@@ -446,7 +446,7 @@ namespace InventoryManagementApp.Services.Items
         public Task<int> CountItemsAsync(ItemFilter filter, CancellationToken ct)
             => _repository.CountAsync(filter, ct);
 
-        private async Task<bool> ToggleItemCheckOutStatusInternalAsync(int itemID, string currentUser, CancellationToken cancellationToken)
+        private async Task<bool> ToggleItemCheckOutStatusInternalAsync(int itemID, string currentUser, bool isAdmin, CancellationToken cancellationToken)
         {
             using var conn = _dbService.CreateConnection();
             var record = (await SqliteHelper.ExecuteReaderAsync(conn,
@@ -471,7 +471,7 @@ namespace InventoryManagementApp.Services.Items
                 if (record.Qty <= 0)
                     return false;
             }
-            else if (!string.Equals(record.By, currentUser, StringComparison.OrdinalIgnoreCase))
+            else if (!isAdmin && !string.Equals(record.By, currentUser, StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
