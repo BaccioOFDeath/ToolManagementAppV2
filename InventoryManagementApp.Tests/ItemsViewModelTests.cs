@@ -13,6 +13,7 @@ using InventoryManagementApp.Models.ImportExport;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Utilities;
 using InventoryManagementApp.ViewModels;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using System.Reflection;
 using System.Windows.Documents;
@@ -30,7 +31,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
 
             Assert.NotNull(vm.EditItemCommand);
             Assert.True(vm.EditItemCommand.CanExecute(null));
@@ -67,7 +68,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
             var item1 = new ItemModel { ItemID = 1, Name = "A" };
             var item2 = new ItemModel { ItemID = 2, Name = "B" };
             vm.Items.Add(item1);
@@ -88,7 +89,7 @@ namespace InventoryManagementApp.Tests
             var settings = new DummySettingsService();
             var userContext = new DummyUserContext { CurrentUser = new User { UserName = "user1" } };
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, userContext);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, userContext, NullLogger<ItemsViewModel>.Instance);
             var item = new ItemModel { ItemID = 1, QuantityOnHand = 5 };
             vm.Items.Add(item);
 
@@ -113,7 +114,7 @@ namespace InventoryManagementApp.Tests
             var settings = new DummySettingsService();
             var userContext = new DummyUserContext { CurrentUser = new User { UserName = "user1" } };
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, userContext);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, userContext, NullLogger<ItemsViewModel>.Instance);
             var item = new ItemModel { ItemID = 1, QuantityOnHand = 3 };
             vm.Items.Add(item);
             vm.SelectedItem = item;
@@ -141,7 +142,7 @@ namespace InventoryManagementApp.Tests
             var settings = new DummySettingsService();
             var userContext = new DummyUserContext { CurrentUser = new User { UserName = "user1" } };
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, userContext);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, userContext, NullLogger<ItemsViewModel>.Instance);
             var item = new ItemModel { ItemID = 1, QuantityOnHand = 5 };
             vm.Items.Add(item);
 
@@ -161,7 +162,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
             var pageField = typeof(ItemsViewModel).GetField("pageSize", BindingFlags.NonPublic | BindingFlags.Instance);
             pageField!.SetValue(vm, 2);
             vm.Items.PageSize = 2;
@@ -182,7 +183,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
             var pageField = typeof(ItemsViewModel).GetField("pageSize", BindingFlags.NonPublic | BindingFlags.Instance);
             pageField!.SetValue(vm, 2);
             vm.Items.PageSize = 2;
@@ -208,7 +209,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
 
             vm.Filter = "first";
             await Task.Delay(100);
@@ -237,7 +238,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
 
             await vm.LoadMoreAsync();
             Assert.Single(vm.Items);
@@ -262,7 +263,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
 
             var tasks = new[]
             {
@@ -287,7 +288,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
             var loadTask = vm.LoadMoreAsync();
             Assert.True(vm.Items.IsLoading);
             await loadTask;
@@ -303,7 +304,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
             vm.Items.Add(new ItemModel { ItemID = 1 });
             var ctsField = typeof(ItemsViewModel).GetField("_filterCts", BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.NotNull(ctsField);
@@ -325,7 +326,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
             await vm.LoadMoreAsync();
             var loaded = vm.Items[0];
             loaded.QuantityOnHand = 5;
@@ -344,7 +345,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
             await vm.LoadMoreAsync();
             var loaded = vm.Items[0];
             loaded.Location = "B";
@@ -363,7 +364,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
             vm.SelectedItem = item;
             await vm.EditItemCommand.ExecuteAsync(null);
             Assert.True(dialog.EditItemDialogCalled);
@@ -380,7 +381,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
             vm.SelectedItem = item;
             await vm.EditItemCommand.ExecuteAsync(null);
             Assert.True(dialog.EditItemDialogCalled);
@@ -396,7 +397,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
             vm.SelectedItem = new ItemModel();
             vm.ViewDetailsCommand.Execute(null);
             Assert.True(dialog.ItemDetailsCalled);
@@ -411,7 +412,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
             vm.SelectedItem = new ItemModel();
             vm.ViewDetailsCommand.Execute(null);
             Assert.True(dialog.ItemDetailsCalled);
@@ -427,7 +428,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rentalService, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rentalService, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
             vm.SelectedItem = item;
             await vm.OpenRentalHistoryCommand.ExecuteAsync(null);
             Assert.True(rentalService.HistoryCalled);
@@ -444,7 +445,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rentalService, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rentalService, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
             vm.SelectedItem = item;
             await vm.OpenRentalHistoryCommand.ExecuteAsync(null);
             Assert.True(rentalService.HistoryCalled);
@@ -461,7 +462,7 @@ namespace InventoryManagementApp.Tests
             var itemService = new DummyItemService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rentalService, customerService, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rentalService, customerService, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
             vm.SelectedItem = item;
             await vm.OpenRentalsCommand.ExecuteAsync(null);
             Assert.True(customerService.GetAllCalled);
@@ -479,7 +480,7 @@ namespace InventoryManagementApp.Tests
             var itemService = new DummyItemService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rentalService, customerService, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rentalService, customerService, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
             vm.SelectedItem = item;
             await vm.OpenRentalsCommand.ExecuteAsync(null);
             Assert.True(customerService.GetAllCalled);
@@ -496,7 +497,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
             await vm.NewItemCommand.ExecuteAsync(null);
             Assert.True(dialog.EditItemDialogCalled);
             Assert.Single(itemService.Added);
@@ -511,7 +512,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
             await vm.NewItemCommand.ExecuteAsync(null);
             Assert.True(dialog.EditItemDialogCalled);
             Assert.Single(itemService.Added);
@@ -526,7 +527,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
             await vm.LoadMoreAsync();
             Assert.Single(vm.Items);
             Assert.False(vm.Items[0].IsRentalItem);
@@ -542,7 +543,7 @@ namespace InventoryManagementApp.Tests
             var customer = new DummyCustomerService();
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings, new DummyUserContext(), NullLogger<ItemsViewModel>.Instance);
             vm.Filter = "abc";
             await vm.LoadMoreAsync();
             Assert.Single(vm.Items);
