@@ -3,22 +3,25 @@ using System.Data;
 using System.Globalization;
 using System.Text;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Logging;
 
 namespace InventoryManagementApp.Data;
 
 public sealed class SqliteConnectionFactory
 {
     private readonly string _connectionString;
+    private readonly ILogger<SqliteConnectionFactory>? _logger;
     private static readonly object _lock = new();
     internal static int PragmasExecutionCount { get; private set; }
 
-    public SqliteConnectionFactory(string connectionString)
+    public SqliteConnectionFactory(string connectionString, ILogger<SqliteConnectionFactory>? logger = null)
     {
         var builder = new SqliteConnectionStringBuilder(connectionString)
         {
             Pooling = true
         };
         _connectionString = builder.ToString();
+        _logger = logger;
     }
 
     internal static void Reset()
@@ -62,6 +65,8 @@ public sealed class SqliteConnectionFactory
                     sb.AppendLine("CREATE INDEX IF NOT EXISTS IX_Items_AvailableQuantity ON Items(AvailableQuantity);");
                 if (columns.Contains("UpdatedAt"))
                     sb.AppendLine("CREATE INDEX IF NOT EXISTS IX_Items_UpdatedAt ON Items(UpdatedAt);");
+                else
+                    _logger?.LogWarning("Column 'UpdatedAt' not found in Items table; skipping index creation for IX_Items_UpdatedAt.");
                 if (sb.Length > 0)
                 {
                     cmd.CommandText = sb.ToString();
