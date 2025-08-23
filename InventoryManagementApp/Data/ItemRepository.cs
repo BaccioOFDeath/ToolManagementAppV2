@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ public sealed class ItemRepository : IItemRepository
             sql += " WHERE ItemNumber LIKE @Search COLLATE NOCASE OR NameDescription LIKE @Search COLLATE NOCASE";
         sql += " ORDER BY ItemID LIMIT @Take OFFSET @Skip";
         var param = new { Search = $"%{filter.Search}%", Take = page.Size, Skip = (page.Number - 1) * page.Size };
-        await using var conn = _factory.Create();
+        await using var conn = (DbConnection)_factory.Create();
         await using var reader = await conn.ExecuteReaderAsync(
             new CommandDefinition(sql, param, cancellationToken: ct)).ConfigureAwait(false);
 
@@ -79,13 +80,13 @@ public sealed class ItemRepository : IItemRepository
             sql += " WHERE ItemNumber LIKE @Search COLLATE NOCASE OR NameDescription LIKE @Search COLLATE NOCASE";
             param = new { Search = $"%{filter.Search}%" };
         }
-        using var conn = _factory.Create();
+        await using var conn = (DbConnection)_factory.Create();
         return await conn.ExecuteScalarAsync<int>(new CommandDefinition(sql, param, cancellationToken: ct));
     }
 
     public async Task SaveChangesAsync(IEnumerable<Item> changes, CancellationToken ct)
     {
-        using var conn = _factory.Create();
+        await using var conn = (DbConnection)_factory.Create();
         using var tx = conn.BeginTransaction();
         const string sql = "UPDATE Items SET NameDescription=@Name, Location=@Location, AvailableQuantity=@QuantityOnHand, Price=@Price WHERE ItemID=@ItemID";
         foreach (var item in changes)
