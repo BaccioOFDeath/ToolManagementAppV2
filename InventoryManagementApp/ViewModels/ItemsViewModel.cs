@@ -420,8 +420,9 @@ namespace InventoryManagementApp.ViewModels
             {
                 return;
             }
-            catch
+            catch (Exception ex)
             {
+                await _dialogService.ShowInfoAsync($"Failed to toggle check out status: {ex.Message}", "Error").ConfigureAwait(false);
                 return;
             }
             finally
