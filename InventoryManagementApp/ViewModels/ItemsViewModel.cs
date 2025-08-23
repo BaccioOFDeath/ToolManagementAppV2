@@ -24,6 +24,7 @@ namespace InventoryManagementApp.ViewModels
         private readonly MemoryBudget _memoryBudget;
         private readonly IDialogService _dialogService;
         private readonly IRentalService _rentalService;
+        private readonly ICustomerService _customerService;
         private readonly ISettingsService _settingsService;
         private CancellationTokenSource _filterCts = new();
         private bool _disposed;
@@ -34,6 +35,7 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand EditItemCommand { get; }
         public IRelayCommand ViewDetailsCommand { get; }
         public IAsyncRelayCommand OpenRentalHistoryCommand { get; }
+        public IAsyncRelayCommand OpenRentalsCommand { get; }
         public IAsyncRelayCommand NewItemCommand { get; }
         public IAsyncRelayCommand<IList> DeleteItemsCommand { get; }
         public IAsyncRelayCommand CommitChangesCommand { get; }
@@ -54,12 +56,13 @@ namespace InventoryManagementApp.ViewModels
 
         public ObservableCollection<SortOption> SortOptions { get; }
 
-        public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService, ISettingsService settingsService)
+        public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService, ICustomerService customerService, ISettingsService settingsService)
         {
             _itemService = itemService;
             _memoryBudget = memoryBudget;
             _dialogService = dialogService;
             _rentalService = rentalService;
+            _customerService = customerService;
             _settingsService = settingsService;
             Items = new IncrementalLoadingCollection<ItemModel>(LoadPageAsync, PageSize);
             SortOptions = new ObservableCollection<SortOption>(new[]
@@ -100,6 +103,7 @@ namespace InventoryManagementApp.ViewModels
             EditItemCommand = new AsyncRelayCommand(ct => EditItemAsync(ct));
             ViewDetailsCommand = new RelayCommand(ViewDetails);
             OpenRentalHistoryCommand = new AsyncRelayCommand(ct => OpenRentalHistoryAsync(ct));
+            OpenRentalsCommand = new AsyncRelayCommand(ct => OpenRentalsAsync(ct));
             NewItemCommand = new AsyncRelayCommand(ct => NewItemAsync(ct));
             DeleteItemsCommand = new AsyncRelayCommand<IList>(DeleteItemsAsync);
             CommitChangesCommand = new AsyncRelayCommand(ct => CommitChangesAsync(ct));
@@ -249,6 +253,34 @@ namespace InventoryManagementApp.ViewModels
             {
                 var history = await _rentalService.GetRentalHistoryForItemAsync(SelectedItem.ItemID).ConfigureAwait(false);
                 _dialogService.ShowRentalHistory(SelectedItem, history);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch
+            {
+            }
+        }
+
+        private async Task OpenRentalsAsync(CancellationToken ct)
+        {
+            if (SelectedItem == null) return;
+            try
+            {
+                var customers = await _customerService.GetAllCustomersAsync(ct).ConfigureAwait(false);
+                var result = _dialogService.ShowRentItemDialog(SelectedItem, customers);
+                if (result != null)
+                {
+                    var (customer, dueDate) = result.Value;
+                    await _rentalService.RentItemAsync(SelectedItem.ItemID, customer.CustomerID, DateTime.Today, dueDate).ConfigureAwait(false);
+                    var refreshed = await _itemService.GetItemByIDAsync(SelectedItem.ItemID, ct).ConfigureAwait(false);
+                    if (refreshed != null)
+                    {
+                        SelectedItem.QuantityOnHand = refreshed.QuantityOnHand;
+                        SelectedItem.RentedQuantity = refreshed.RentedQuantity;
+                        SelectedItem.UpdatedAt = refreshed.UpdatedAt;
+                    }
+                }
             }
             catch (OperationCanceledException)
             {

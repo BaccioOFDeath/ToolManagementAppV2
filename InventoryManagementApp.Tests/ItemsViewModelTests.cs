@@ -26,9 +26,10 @@ namespace InventoryManagementApp.Tests
             var service = new DummyItemService();
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings);
 
             Assert.NotNull(vm.EditItemCommand);
             Assert.True(vm.EditItemCommand.CanExecute(null));
@@ -41,6 +42,10 @@ namespace InventoryManagementApp.Tests
             Assert.NotNull(vm.OpenRentalHistoryCommand);
             Assert.True(vm.OpenRentalHistoryCommand.CanExecute(null));
             await vm.OpenRentalHistoryCommand.ExecuteAsync(null);
+
+            Assert.NotNull(vm.OpenRentalsCommand);
+            Assert.True(vm.OpenRentalsCommand.CanExecute(null));
+            await vm.OpenRentalsCommand.ExecuteAsync(null);
 
             Assert.NotNull(vm.NewItemCommand);
             Assert.True(vm.NewItemCommand.CanExecute(null));
@@ -58,9 +63,10 @@ namespace InventoryManagementApp.Tests
             var service = new DummyItemService();
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings);
             var item1 = new ItemModel { ItemID = 1, Name = "A" };
             var item2 = new ItemModel { ItemID = 2, Name = "B" };
             vm.Items.Add(item1);
@@ -77,9 +83,10 @@ namespace InventoryManagementApp.Tests
             var service = new DummyItemService();
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings);
             var pageField = typeof(ItemsViewModel).GetField("pageSize", BindingFlags.NonPublic | BindingFlags.Instance);
             pageField!.SetValue(vm, 2);
             vm.Items.PageSize = 2;
@@ -97,9 +104,10 @@ namespace InventoryManagementApp.Tests
             var service = new DummyItemService();
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings);
             var pageField = typeof(ItemsViewModel).GetField("pageSize", BindingFlags.NonPublic | BindingFlags.Instance);
             pageField!.SetValue(vm, 2);
             vm.Items.PageSize = 2;
@@ -122,9 +130,10 @@ namespace InventoryManagementApp.Tests
             var service = new RecordingItemService(data);
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings);
 
             vm.Filter = "first";
             await Task.Delay(100);
@@ -150,9 +159,10 @@ namespace InventoryManagementApp.Tests
             var service = new RecordingItemService(data, defaults);
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings);
 
             await vm.LoadMoreAsync();
             Assert.Single(vm.Items);
@@ -174,9 +184,10 @@ namespace InventoryManagementApp.Tests
             var service = new PagingItemService();
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings);
 
             var tasks = new[]
             {
@@ -198,9 +209,10 @@ namespace InventoryManagementApp.Tests
             var service = new RecordingItemService(new Dictionary<string, List<ItemModel>>(), new List<ItemModel> { new ItemModel { ItemID = 1 } });
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings);
             var loadTask = vm.LoadMoreAsync();
             Assert.True(vm.Items.IsLoading);
             await loadTask;
@@ -213,9 +225,10 @@ namespace InventoryManagementApp.Tests
             var service = new DummyItemService();
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
+            var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings);
             vm.Items.Add(new ItemModel { ItemID = 1 });
             var ctsField = typeof(ItemsViewModel).GetField("_filterCts", BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.NotNull(ctsField);
@@ -234,9 +247,10 @@ namespace InventoryManagementApp.Tests
             var service = new StaticItemService(item);
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings);
             await vm.LoadMoreAsync();
             var loaded = vm.Items[0];
             loaded.QuantityOnHand = 5;
@@ -252,9 +266,10 @@ namespace InventoryManagementApp.Tests
             var service = new StaticItemService(item, repository);
             var dialog = new DummyDialogService();
             var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings);
             await vm.LoadMoreAsync();
             var loaded = vm.Items[0];
             loaded.Location = "B";
@@ -270,9 +285,10 @@ namespace InventoryManagementApp.Tests
             var dialog = new RecordingDialogService { EditItemDialogResult = new ItemModel { ItemID = 1 } };
             var itemService = new RecordingItemService2();
             var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, settings);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings);
             vm.SelectedItem = item;
             await vm.EditItemCommand.ExecuteAsync(null);
             Assert.True(dialog.EditItemDialogCalled);
@@ -286,9 +302,10 @@ namespace InventoryManagementApp.Tests
             var dialog = new RecordingDialogService { EditItemDialogResult = new ItemModel { ItemID = 1 } };
             var itemService = new RecordingItemService2 { UpdateException = new OperationCanceledException() };
             var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, settings);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings);
             vm.SelectedItem = item;
             await vm.EditItemCommand.ExecuteAsync(null);
             Assert.True(dialog.EditItemDialogCalled);
@@ -301,9 +318,10 @@ namespace InventoryManagementApp.Tests
             var dialog = new RecordingDialogService();
             var itemService = new DummyItemService();
             var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, settings);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings);
             vm.SelectedItem = new ItemModel();
             vm.ViewDetailsCommand.Execute(null);
             Assert.True(dialog.ItemDetailsCalled);
@@ -315,9 +333,10 @@ namespace InventoryManagementApp.Tests
             var dialog = new RecordingDialogService { DetailsException = new InvalidOperationException() };
             var itemService = new DummyItemService();
             var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, settings);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings);
             vm.SelectedItem = new ItemModel();
             vm.ViewDetailsCommand.Execute(null);
             Assert.True(dialog.ItemDetailsCalled);
@@ -330,9 +349,10 @@ namespace InventoryManagementApp.Tests
             var dialog = new RecordingDialogService();
             var rentalService = new RecordingRentalService();
             var itemService = new DummyItemService();
+            var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rentalService, settings);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rentalService, customer, settings);
             vm.SelectedItem = item;
             await vm.OpenRentalHistoryCommand.ExecuteAsync(null);
             Assert.True(rentalService.HistoryCalled);
@@ -346,13 +366,50 @@ namespace InventoryManagementApp.Tests
             var dialog = new RecordingDialogService();
             var rentalService = new RecordingRentalService { HistoryException = new OperationCanceledException() };
             var itemService = new DummyItemService();
+            var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rentalService, settings);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rentalService, customer, settings);
             vm.SelectedItem = item;
             await vm.OpenRentalHistoryCommand.ExecuteAsync(null);
             Assert.True(rentalService.HistoryCalled);
             Assert.False(dialog.RentalHistoryCalled);
+        }
+
+        [Fact]
+        public async Task OpenRentalsCommand_InvokesServices()
+        {
+            var item = new ItemModel { ItemID = 1 };
+            var dialog = new RecordingDialogService { RentItemDialogResult = (new Customer { CustomerID = 1 }, DateTime.Today) };
+            var rentalService = new RecordingRentalService();
+            var customerService = new RecordingCustomerService();
+            var itemService = new DummyItemService();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            var settings = new DummySettingsService();
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rentalService, customerService, settings);
+            vm.SelectedItem = item;
+            await vm.OpenRentalsCommand.ExecuteAsync(null);
+            Assert.True(customerService.GetAllCalled);
+            Assert.True(dialog.RentItemDialogCalled);
+            Assert.True(rentalService.RentCalled);
+        }
+
+        [Fact]
+        public async Task OpenRentalsCommand_HandlesCancellation()
+        {
+            var item = new ItemModel { ItemID = 1 };
+            var dialog = new RecordingDialogService();
+            var rentalService = new RecordingRentalService();
+            var customerService = new RecordingCustomerService { GetAllException = new OperationCanceledException() };
+            var itemService = new DummyItemService();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            var settings = new DummySettingsService();
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rentalService, customerService, settings);
+            vm.SelectedItem = item;
+            await vm.OpenRentalsCommand.ExecuteAsync(null);
+            Assert.True(customerService.GetAllCalled);
+            Assert.False(dialog.RentItemDialogCalled);
+            Assert.False(rentalService.RentCalled);
         }
 
         [Fact]
@@ -361,9 +418,10 @@ namespace InventoryManagementApp.Tests
             var dialog = new RecordingDialogService { EditItemDialogResult = new ItemModel { ItemID = 2 } };
             var itemService = new RecordingItemService2();
             var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, settings);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings);
             await vm.NewItemCommand.ExecuteAsync(null);
             Assert.True(dialog.EditItemDialogCalled);
             Assert.Single(itemService.Added);
@@ -375,9 +433,10 @@ namespace InventoryManagementApp.Tests
             var dialog = new RecordingDialogService { EditItemDialogResult = new ItemModel { ItemID = 2 } };
             var itemService = new RecordingItemService2 { AddException = new OperationCanceledException() };
             var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             var settings = new DummySettingsService();
-            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, settings);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings);
             await vm.NewItemCommand.ExecuteAsync(null);
             Assert.True(dialog.EditItemDialogCalled);
             Assert.Single(itemService.Added);
@@ -574,6 +633,19 @@ namespace InventoryManagementApp.Tests
             public Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID) => Task.FromResult(new List<Rental>());
         }
 
+        private sealed class DummyCustomerService : ICustomerService
+        {
+            public Task AddCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task UpdateCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task DeleteCustomerAsync(int customerID, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<Customer> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default) => Task.FromResult(new Customer());
+            public Task<List<Customer>> GetAllCustomersAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<Customer>());
+            public Task<int> CountCustomersAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);
+            public Task<List<Customer>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default) => Task.FromResult(new List<Customer>());
+            public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default) => Task.FromResult(new CustomerImportResult());
+            public Task ExportCustomersToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        }
+
         private sealed class DummySettingsService : ISettingsService
         {
             public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default) => Task.CompletedTask;
@@ -598,10 +670,13 @@ namespace InventoryManagementApp.Tests
             public bool EditItemDialogCalled { get; private set; }
             public bool ItemDetailsCalled { get; private set; }
             public bool RentalHistoryCalled { get; private set; }
+            public bool RentItemDialogCalled { get; private set; }
             public ItemModel? EditItemDialogResult { get; set; }
             public Exception? EditItemDialogException { get; set; }
             public Exception? DetailsException { get; set; }
             public Exception? RentalHistoryException { get; set; }
+            public (CustomerModel customer, DateTime dueDate)? RentItemDialogResult { get; set; }
+            public Exception? RentItemDialogException { get; set; }
             public void ShowInfo(string message, string title) { }
             public bool ShowConfirmation(string message, string title) => true;
             public ItemModel? ShowEditItemDialog(ItemModel item)
@@ -615,7 +690,12 @@ namespace InventoryManagementApp.Tests
                 ItemDetailsCalled = true;
                 if (DetailsException != null) throw DetailsException;
             }
-            public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;
+            public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers)
+            {
+                RentItemDialogCalled = true;
+                if (RentItemDialogException != null) throw RentItemDialogException;
+                return RentItemDialogResult;
+            }
             public CustomerModel? ShowAddCustomerDialog() => null;
             public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
             public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history)
@@ -632,8 +712,15 @@ namespace InventoryManagementApp.Tests
         private sealed class RecordingRentalService : IRentalService
         {
             public bool HistoryCalled { get; private set; }
+            public bool RentCalled { get; private set; }
             public Exception? HistoryException { get; set; }
-            public Task RentItemAsync(int itemID, int customerID, DateTime rentalDate, DateTime dueDate) => Task.CompletedTask;
+            public Exception? RentException { get; set; }
+            public Task RentItemAsync(int itemID, int customerID, DateTime rentalDate, DateTime dueDate)
+            {
+                RentCalled = true;
+                if (RentException != null) throw RentException;
+                return Task.CompletedTask;
+            }
             public Task ReturnItemAsync(int rentalID, DateTime returnDate) => Task.CompletedTask;
             public Task ExtendRentalAsync(int rentalID, DateTime newDueDate) => Task.CompletedTask;
             public Task DeleteRentalAsync(int rentalID) => Task.CompletedTask;
@@ -648,6 +735,26 @@ namespace InventoryManagementApp.Tests
                 return Task.FromResult(new List<Rental>());
             }
             public Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID) => Task.FromResult(new List<Rental>());
+        }
+
+        private sealed class RecordingCustomerService : ICustomerService
+        {
+            public bool GetAllCalled { get; private set; }
+            public Exception? GetAllException { get; set; }
+            public Task AddCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task UpdateCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task DeleteCustomerAsync(int customerID, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<Customer> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default) => Task.FromResult(new Customer());
+            public Task<List<Customer>> GetAllCustomersAsync(CancellationToken cancellationToken = default)
+            {
+                GetAllCalled = true;
+                if (GetAllException != null) throw GetAllException;
+                return Task.FromResult(new List<Customer> { new Customer { CustomerID = 1 } });
+            }
+            public Task<int> CountCustomersAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);
+            public Task<List<Customer>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default) => Task.FromResult(new List<Customer>());
+            public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default) => Task.FromResult(new CustomerImportResult());
+            public Task ExportCustomersToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
         }
 
         private sealed class RecordingItemService2 : IItemService
