@@ -18,7 +18,7 @@ public sealed class ItemRepository : IItemRepository
     {
         var sql = "SELECT * FROM Items";
         if (!string.IsNullOrWhiteSpace(filter.Search))
-            sql += " WHERE ItemNumber LIKE @Search OR NameDescription LIKE @Search";
+            sql += " WHERE ItemNumber LIKE @Search COLLATE NOCASE OR NameDescription LIKE @Search COLLATE NOCASE";
         sql += " ORDER BY ItemID LIMIT @Take OFFSET @Skip";
         var param = new { Search = $"%{filter.Search}%", Take = page.Size, Skip = (page.Number - 1) * page.Size };
         await using var conn = _factory.Create();
@@ -73,7 +73,7 @@ public sealed class ItemRepository : IItemRepository
         var sql = "SELECT COUNT(*) FROM Items";
         object param = new { Search = $"%{filter.Search}%" };
         if (!string.IsNullOrWhiteSpace(filter.Search))
-            sql += " WHERE ItemNumber LIKE @Search OR NameDescription LIKE @Search";
+            sql += " WHERE ItemNumber LIKE @Search COLLATE NOCASE OR NameDescription LIKE @Search COLLATE NOCASE";
         using var conn = _factory.Create();
         return await conn.ExecuteScalarAsync<int>(new CommandDefinition(sql, param, cancellationToken: ct));
     }
