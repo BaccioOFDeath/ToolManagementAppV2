@@ -40,7 +40,7 @@ namespace InventoryManagementApp.Utilities.Converters
                 {
                     var absPath = Uri.IsWellFormedUriString(path, UriKind.Absolute)
                         ? path
-                        : Helpers.PathHelper.GetAbsolutePath(path, true);
+                        : Helpers.PathHelper.GetAbsolutePath(path, false);
 
                     if (!string.IsNullOrEmpty(absPath))
                     {
