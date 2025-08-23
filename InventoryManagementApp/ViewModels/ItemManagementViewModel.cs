@@ -96,6 +96,8 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand OpenRentalsCommand { get; }
         public IRelayCommand ViewDetailsCommand { get; }
         public IAsyncRelayCommand OpenRentalHistoryCommand { get; }
+        public IAsyncRelayCommand<ItemModel> RentItemCommand { get; }
+        public IAsyncRelayCommand<ItemModel> ToggleCheckOutCommand { get; }
 
         readonly IDispatcherTimer _searchDebounceTimer;
         CancellationTokenSource? _searchCts = new();
@@ -144,6 +146,8 @@ namespace InventoryManagementApp.ViewModels
             OpenRentalsCommand = new AsyncRelayCommand(ct => OpenRentalsAsync(ct), () => SelectedItem != null);
             ViewDetailsCommand = new RelayCommand(ViewDetails, () => SelectedItem != null);
             OpenRentalHistoryCommand = new AsyncRelayCommand(OpenRentalHistoryAsync, () => SelectedItem != null);
+            RentItemCommand = new AsyncRelayCommand<ItemModel>(RentItemAsync);
+            ToggleCheckOutCommand = new AsyncRelayCommand<ItemModel>(ToggleCheckOutAsync);
             // Ensure no duplicate event subscriptions when the view model is
             // constructed multiple times or the collection persists across
             // instances.
@@ -392,6 +396,59 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to rent {ItemLabelSingular} {ItemID}", LabelProvider.Instance.ItemLabelSingular, item.ItemID);
                 await _dialogService.ShowInfoAsync($"Failed to rent {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message}", "Error");
+            }
+        }
+
+        private async Task RentItemAsync(ItemModel? item, CancellationToken cancellationToken)
+        {
+            if (item == null) return;
+            try
+            {
+                var customers = await _customerService.GetAllCustomersAsync(cancellationToken);
+                var result = _dialogService.ShowRentItemDialog(item, customers);
+                if (result != null)
+                {
+                    var (customer, dueDate) = result.Value;
+                    await _rentalService.RentItemAsync(item.ItemID, customer.CustomerID, DateTime.Today, dueDate);
+                    await LoadItemsAsync(new ItemPage(1, PageSize));
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync($"You are not authorized to rent {LabelProvider.Instance.ItemLabelPlural.ToLower()}.", "Unauthorized");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to rent {ItemLabelSingular} {ItemID}", LabelProvider.Instance.ItemLabelSingular, item.ItemID);
+                await _dialogService.ShowInfoAsync($"Failed to rent {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message}", "Error");
+            }
+        }
+
+        private async Task ToggleCheckOutAsync(ItemModel? item, CancellationToken cancellationToken)
+        {
+            if (item == null) return;
+            try
+            {
+                var result = await _itemService.ToggleItemCheckOutStatusAsync(item.ItemID, cancellationToken).ConfigureAwait(false);
+                if (!result) return;
+                var checkedOut = !item.IsCheckedOut;
+                item.IsCheckedOut = checkedOut;
+                item.QuantityOnHand += checkedOut ? -1 : 1;
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync("You are not authorized to update check-out status.", "Unauthorized");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to toggle check out status for item {ItemID}", item.ItemID);
+                await _dialogService.ShowInfoAsync($"Failed to update check-out status: {ex.Message}", "Error");
             }
         }
 
