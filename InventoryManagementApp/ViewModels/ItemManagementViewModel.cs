@@ -155,8 +155,8 @@ namespace InventoryManagementApp.ViewModels
             Items.CollectionChanged += Items_CollectionChanged;
         }
 
-        ReadOnlyDictionary<ItemDetailField, bool> _visibleFields = new(new Dictionary<ItemDetailField, bool>());
-        public ReadOnlyDictionary<ItemDetailField, bool> VisibleFields
+        Dictionary<ItemDetailField, bool> _visibleFields = new();
+        public Dictionary<ItemDetailField, bool> VisibleFields
         {
             get => _visibleFields;
             private set => SetProperty(ref _visibleFields, value);
@@ -167,8 +167,14 @@ namespace InventoryManagementApp.ViewModels
         {
             if (_initialized) return;
             var vis = await _settingsService.GetItemDetailVisibilityAsync().ConfigureAwait(false);
-            VisibleFields = new ReadOnlyDictionary<ItemDetailField, bool>(new Dictionary<ItemDetailField, bool>(vis));
+            VisibleFields = new Dictionary<ItemDetailField, bool>(vis);
+            _settingsService.ItemDetailVisibilityChanged += OnItemDetailVisibilityChanged;
             _initialized = true;
+        }
+
+        void OnItemDetailVisibilityChanged(object? sender, IDictionary<ItemDetailField, bool> e)
+        {
+            VisibleFields = new Dictionary<ItemDetailField, bool>(e);
         }
 
         void OnSearchDebounceTimerTick(object? s, EventArgs e)
@@ -505,6 +511,7 @@ namespace InventoryManagementApp.ViewModels
             cts?.Dispose();
 
             Items.CollectionChanged -= Items_CollectionChanged;
+            _settingsService.ItemDetailVisibilityChanged -= OnItemDetailVisibilityChanged;
         }
     }
 }
