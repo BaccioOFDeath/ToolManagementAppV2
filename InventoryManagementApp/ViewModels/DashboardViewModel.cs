@@ -71,10 +71,12 @@ namespace InventoryManagementApp.ViewModels
                 try { _openImportExportCommand.Execute(null); }
                 catch (Exception ex) { _logger.LogError(ex, "Failed to open import/export page"); }
             });
-
-            _ = LoadStatsAsync(CancellationToken.None);
-            _ = LoadRecentActivityAsync(CancellationToken.None);
         }
+
+        public Task LoadAsync(CancellationToken cancellationToken)
+            => Task.WhenAll(
+                LoadStatsAsync(cancellationToken),
+                LoadRecentActivityAsync(cancellationToken));
 
         internal async Task LoadStatsAsync(CancellationToken cancellationToken)
         {
