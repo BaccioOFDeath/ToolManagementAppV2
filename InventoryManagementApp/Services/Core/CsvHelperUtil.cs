@@ -66,6 +66,7 @@ namespace InventoryManagementApp.Utilities.IO
                     Supplier = GetMapped(cols, headers, map, "Supplier"),
                     PurchasedDate = TryParseDate(GetMapped(cols, headers, map, "PurchasedDate")),
                     Notes = GetMapped(cols, headers, map, "Notes"),
+                    Keywords = GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords)),
                     QuantityOnHand = TryParseInt(GetMapped(cols, headers, map, "AvailableQuantity")),
                     IsPowered = TryParseBool(GetMapped(cols, headers, map, "IsPowered"))
                 });
@@ -79,8 +80,45 @@ namespace InventoryManagementApp.Utilities.IO
         {
             return await Task.Run(() =>
             {
-                var items = LoadItemsFromCsv(filePath, map, out var invalid);
-                return (items, invalid);
+                ValidateRequired(map, "ItemNumber");
+                var list = new List<ItemModel>();
+                var invalidRows = new List<int>();
+                using var parser = new TextFieldParser(filePath);
+                parser.SetDelimiters(",");
+                parser.HasFieldsEnclosedInQuotes = true;
+
+                if (parser.EndOfData) return (list, invalidRows);
+                var headers = parser.ReadFields();
+
+                var row = 1; // header already read
+                while (!parser.EndOfData)
+                {
+                    row++;
+                    var cols = parser.ReadFields();
+                    var itemNumber = GetMapped(cols, headers, map, "ItemNumber");
+                    if (string.IsNullOrWhiteSpace(itemNumber))
+                    {
+                        invalidRows.Add(row);
+                        continue;
+                    }
+
+                    list.Add(new ItemModel
+                    {
+                        ItemNumber = itemNumber,
+                        Name = GetMapped(cols, headers, map, "NameDescription"),
+                        Location = GetMapped(cols, headers, map, "Location"),
+                        Brand = GetMapped(cols, headers, map, "Brand"),
+                        PartNumber = GetMapped(cols, headers, map, "PartNumber"),
+                        Supplier = GetMapped(cols, headers, map, "Supplier"),
+                        PurchasedDate = TryParseDate(GetMapped(cols, headers, map, "PurchasedDate")),
+                        Notes = GetMapped(cols, headers, map, "Notes"),
+                        Keywords = GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords)),
+                        QuantityOnHand = TryParseInt(GetMapped(cols, headers, map, "AvailableQuantity")),
+                        IsPowered = TryParseBool(GetMapped(cols, headers, map, "IsPowered"))
+                    });
+                }
+
+                return (list, invalidRows);
             }, cancellationToken).ConfigureAwait(false);
         }
 

@@ -8,6 +8,8 @@ using InventoryManagementApp.Data;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Services.Items;
+using InventoryManagementApp.Models.ImportExport;
+using Microsoft.Data.Sqlite;
 using Xunit;
 
 public class ItemServiceCsvImportTests
@@ -43,6 +45,36 @@ public class ItemServiceCsvImportTests
 
         Assert.Empty(invalid);
         Assert.True(after - before < 80_000_000);
+
+        File.Delete(csvPath);
+        File.Delete(dbPath);
+    }
+
+    [Fact]
+    public async Task ImportItemsFromCsvAsync_PersistsKeywords()
+    {
+        var csvPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
+        await File.WriteAllTextAsync(csvPath, "ItemNumber,Keywords\nNUM1,\"drill hammer\"");
+
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        await using var db = new DatabaseService(dbPath);
+        var service = new ItemService(db, new DummyItemRepository());
+        var map = new Dictionary<string, string>
+        {
+            ["ItemNumber"] = "ItemNumber",
+            [nameof(ItemImportDto.Keywords)] = "Keywords"
+        };
+
+        var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
+        Assert.Empty(invalid);
+
+        using var conn = db.CreateConnection();
+        var result = await SqliteHelper.ExecuteScalarAsync(conn,
+            "SELECT Keywords FROM Items WHERE ItemNumber=@num",
+            new[] { new SqliteParameter("@num", "NUM1") },
+            CancellationToken.None);
+
+        Assert.Equal("drill hammer", result?.ToString());
 
         File.Delete(csvPath);
         File.Delete(dbPath);
