@@ -29,9 +29,33 @@ namespace InventoryManagementApp.Views.Pages
             }
         }
 
-        private void DataGridRow_ContainerContentChanging(object? sender, DependencyPropertyChangedEventArgs e)
+        private void DataGridRow_Loaded(object sender, RoutedEventArgs e)
         {
-            if (sender is not DataGridRow row) return;
+            if (sender is DataGridRow row)
+            {
+                row.DataContextChanged += DataGridRow_DataContextChanged;
+            }
+        }
+
+        private void DataGridRow_Unloaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is DataGridRow row)
+            {
+                row.DataContextChanged -= DataGridRow_DataContextChanged;
+                ReleaseRowImage(row);
+            }
+        }
+
+        private void DataGridRow_DataContextChanged(object? sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (sender is DataGridRow row)
+            {
+                ReleaseRowImage(row);
+            }
+        }
+
+        private static void ReleaseRowImage(DataGridRow row)
+        {
             var img = FindVisualChild<Image>(row);
             if (img?.Source is BitmapImage bmp)
             {
