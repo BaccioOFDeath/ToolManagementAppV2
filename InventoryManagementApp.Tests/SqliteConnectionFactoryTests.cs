@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using InventoryManagementApp.Data;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
 public class SqliteConnectionFactoryTests
@@ -62,5 +63,47 @@ public class SqliteConnectionFactoryTests
         Assert.Contains("IX_Items_NameDescription", indexes);
         Assert.Contains("IX_Items_AvailableQuantity", indexes);
         Assert.DoesNotContain("IX_Items_UpdatedAt", indexes);
+    }
+
+    [Fact]
+    public void Create_LogsWarningWhenUpdatedAtColumnMissing()
+    {
+        SqliteConnectionFactory.Reset();
+        var logger = new ListLogger<SqliteConnectionFactory>();
+        var factory = new SqliteConnectionFactory("Data Source=:memory:", logger);
+        using (var conn = factory.Create())
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "CREATE TABLE Items (ItemNumber TEXT, NameDescription TEXT, AvailableQuantity INTEGER);";
+            cmd.ExecuteNonQuery();
+        }
+
+        using (factory.Create()) { }
+
+        Assert.Contains(LogLevel.Warning, logger.Levels);
+        Assert.Contains(logger.Messages, m => m.Contains("UpdatedAt"));
+    }
+}
+
+internal sealed class ListLogger<T> : ILogger<T>
+{
+    public List<LogLevel> Levels { get; } = new();
+    public List<string> Messages { get; } = new();
+
+    public IDisposable BeginScope<TState>(TState state) => NullScope.Instance;
+
+    public bool IsEnabled(LogLevel logLevel) => true;
+
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+        Func<TState, Exception?, string> formatter)
+    {
+        Levels.Add(logLevel);
+        Messages.Add(formatter(state, exception));
+    }
+
+    private sealed class NullScope : IDisposable
+    {
+        public static readonly NullScope Instance = new();
+        public void Dispose() { }
     }
 }
