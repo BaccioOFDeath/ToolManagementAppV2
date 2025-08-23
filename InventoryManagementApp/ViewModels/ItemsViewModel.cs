@@ -30,6 +30,7 @@ namespace InventoryManagementApp.ViewModels
         private CancellationTokenSource _filterCts = new();
         private bool _disposed;
         private readonly List<ItemModel> _pendingEdits = new();
+        private readonly HashSet<ItemModel> _togglingItems = new();
 
         public IncrementalLoadingCollection<ItemModel> Items { get; }
 
@@ -180,6 +181,7 @@ namespace InventoryManagementApp.ViewModels
         private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (sender is not ItemModel item) return;
+            if (_togglingItems.Contains(item)) return;
             if (e.PropertyName == nameof(ItemModel.QuantityOnHand) || e.PropertyName == nameof(ItemModel.Location) || e.PropertyName == nameof(ItemModel.Price))
             {
                 if (!_pendingEdits.Contains(item))
@@ -404,10 +406,15 @@ namespace InventoryManagementApp.ViewModels
         private async Task ToggleCheckOutAsync(ItemModel? item, CancellationToken ct)
         {
             if (item == null) return;
-            bool result;
+            _togglingItems.Add(item);
             try
             {
-                result = await _itemService.ToggleItemCheckOutStatusAsync(item.ItemID, ct).ConfigureAwait(false);
+                var result = await _itemService.ToggleItemCheckOutStatusAsync(item.ItemID, ct).ConfigureAwait(false);
+                if (!result) return;
+                var checkedOut = !item.IsCheckedOut;
+                item.IsCheckedOut = checkedOut;
+                item.CheckedOutBy = checkedOut ? _userContext.UserName : string.Empty;
+                item.QuantityOnHand += checkedOut ? -1 : 1;
             }
             catch (OperationCanceledException)
             {
@@ -417,11 +424,10 @@ namespace InventoryManagementApp.ViewModels
             {
                 return;
             }
-            if (!result) return;
-            var checkedOut = !item.IsCheckedOut;
-            item.IsCheckedOut = checkedOut;
-            item.CheckedOutBy = checkedOut ? _userContext.UserName : string.Empty;
-            item.QuantityOnHand += checkedOut ? -1 : 1;
+            finally
+            {
+                _togglingItems.Remove(item);
+            }
         }
 
         public void Dispose()

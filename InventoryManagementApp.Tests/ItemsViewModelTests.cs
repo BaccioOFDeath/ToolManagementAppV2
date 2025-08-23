@@ -131,6 +131,27 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task ToggleCheckOutCommand_DoesNotAddPendingEdits()
+        {
+            var service = new ToggleItemService();
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
+            var settings = new DummySettingsService();
+            var userContext = new DummyUserContext { CurrentUser = new User { UserName = "user1" } };
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, userContext);
+            var item = new ItemModel { ItemID = 1, QuantityOnHand = 5 };
+            vm.Items.Add(item);
+
+            await vm.ToggleCheckOutCommand.ExecuteAsync(item);
+            Assert.Empty(vm.PendingEdits);
+
+            await vm.ToggleCheckOutCommand.ExecuteAsync(item);
+            Assert.Empty(vm.PendingEdits);
+        }
+
+        [Fact]
         public void SteadyExceeded_TrimsToThreePages()
         {
             var service = new DummyItemService();
