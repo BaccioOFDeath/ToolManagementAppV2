@@ -61,6 +61,7 @@ namespace InventoryManagementApp
                     .MinimumLevel.Debug()
                     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                     .Enrich.FromLogContext()
+                    .WriteTo.Debug()
                     .WriteTo.Async(w => w.File(
                         path: logFile,
                         rollingInterval: RollingInterval.Day,
