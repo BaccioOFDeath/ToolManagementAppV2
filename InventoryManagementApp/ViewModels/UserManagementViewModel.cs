@@ -191,6 +191,8 @@ namespace InventoryManagementApp.ViewModels
                 if (idxAll >= 0) _allUsers[idxAll] = SelectedUser;
                 var idx = Users.IndexOf(SelectedUser);
                 if (idx >= 0) Users[idx] = SelectedUser;
+                if (_userContext?.CurrentUser?.UserID == SelectedUser.UserID)
+                    _userContext.CurrentUser = SelectedUser;
             }
             catch (UnauthorizedAccessException)
             {

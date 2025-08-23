@@ -38,6 +38,45 @@ namespace InventoryManagementApp.Tests
             });
         }
 
+        [Fact]
+        public async Task UpdateUserAsync_RaisesUserChangedAndUpdatesPhoto()
+        {
+            await RunOnStaThread(async () =>
+            {
+                using var db = new DatabaseService(":memory:");
+                var activityLog = new ActivityLogService(db);
+                var userContext = new DummyUserContext();
+                using var vm = new MainViewModel(
+                    new DummyItemService(),
+                    new DummyUserService(),
+                    userContext,
+                    new DummyCustomerService(),
+                    new DummyRentalService(),
+                    new DummyFileDialogService(),
+                    activityLog,
+                    new DummySettingsService(),
+                    db,
+                    new DummyDialogService(),
+                    NullLogger<MainViewModel>.Instance,
+                    () => Task.FromResult(true),
+                    new DummyDispatcherTimer(),
+                    new DummyScannerService());
+
+                var current = new User { UserID = 1, UserPhotoPath = "old.png" };
+                var updated = new User { UserID = 1, UserPhotoPath = "new.png" };
+                userContext.CurrentUser = current;
+                vm.UserManagement.SelectedUser = updated;
+
+                var fired = false;
+                userContext.UserChanged += (_, _) => fired = true;
+
+                await vm.UserManagement.UpdateUserAsync();
+
+                Assert.True(fired);
+                Assert.Equal(updated.UserPhotoPath, vm.CurrentUserPhotoPath);
+            });
+        }
+
         static MainViewModel CreateMainViewModel(DatabaseService db, IItemService itemService, IDialogService dialogService)
         {
             var activityLog = new ActivityLogService(db);
