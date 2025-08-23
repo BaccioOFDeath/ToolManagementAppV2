@@ -96,6 +96,7 @@ namespace InventoryManagementApp.ViewModels
         private readonly Func<int, CancellationToken, Task<IList<T>>> _loader;
         private readonly int _pageSize;
         private int _page;
+        private readonly SemaphoreSlim _gate = new(1, 1);
         public bool HasMoreItems { get; private set; } = true;
 
         public IncrementalLoadingCollection(Func<int, CancellationToken, Task<IList<T>>> loader, int pageSize)
@@ -106,14 +107,22 @@ namespace InventoryManagementApp.ViewModels
 
         public async Task LoadMoreAsync(CancellationToken ct = default)
         {
-            if (!HasMoreItems) return;
-            var next = _page + 1;
-            var items = await _loader(next, ct).ConfigureAwait(false);
-            foreach (var item in items)
-                Add(item);
-            _page = next;
-            if (items.Count < _pageSize)
-                HasMoreItems = false;
+            await _gate.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                if (!HasMoreItems) return;
+                var next = _page + 1;
+                var items = await _loader(next, ct).ConfigureAwait(false);
+                foreach (var item in items)
+                    Add(item);
+                _page = next;
+                if (items.Count < _pageSize)
+                    HasMoreItems = false;
+            }
+            finally
+            {
+                _gate.Release();
+            }
         }
 
         public void Reset()
