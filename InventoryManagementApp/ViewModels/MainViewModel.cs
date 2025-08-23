@@ -261,6 +261,7 @@ namespace InventoryManagementApp.ViewModels
             OpenSearchItemsCommand = new AsyncRelayCommand(async () =>
             {
                 var plural = LabelProvider.Instance.ItemLabelPlural;
+                await ItemManagement.InitializeAsync();
                 var page = new ItemSearchPage { DataContext = ItemManagement, Title = $"Search {plural}" };
                 CurrentPage = page;
                 try
@@ -345,13 +346,13 @@ namespace InventoryManagementApp.ViewModels
             {
                 try
                 {
+                    await Settings.InitializeAsync();
                     var page = new SettingsPage
                     {
                         DataContext = Settings,
                         Title = "Settings"
                     };
                     CurrentPage = page;
-                    await Task.CompletedTask;
                 }
                 catch (Exception ex)
                 {

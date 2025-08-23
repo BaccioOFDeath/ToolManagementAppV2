@@ -29,25 +29,10 @@ namespace InventoryManagementApp.ViewModels
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<SettingsViewModel>.Instance;
 
-            var logoPath = _settingsService.GetSettingAsync("CompanyLogoPath").GetAwaiter().GetResult();
-            if (!string.IsNullOrWhiteSpace(logoPath))
-                CompanyLogoPath = logoPath;
-
-            var appName = _settingsService.GetSettingAsync("ApplicationName").GetAwaiter().GetResult();
-            if (!string.IsNullOrWhiteSpace(appName))
-                _applicationName = appName;
-
             ThemeOptions = new ObservableCollection<string> { "Light", "Dark" };
             _theme = ThemeOptions[0];
-            _passwordIterations = _settingsService.GetPasswordIterationsAsync().GetAwaiter().GetResult();
-            _autoLogoutMinutes = _settingsService.GetAutoLogoutMinutesAsync().GetAwaiter().GetResult();
             _itemLabelSingular = LabelProvider.Instance.ItemLabelSingular;
             _itemLabelPlural = LabelProvider.Instance.ItemLabelPlural;
-            _showItemImage = _settingsService.GetShowItemImageAsync().GetAwaiter().GetResult();
-            _showItemName = _settingsService.GetShowItemNameAsync().GetAwaiter().GetResult();
-            _showItemNumber = _settingsService.GetShowItemNumberAsync().GetAwaiter().GetResult();
-            _showItemLocation = _settingsService.GetShowItemLocationAsync().GetAwaiter().GetResult();
-            _showItemNotes = _settingsService.GetShowItemNotesAsync().GetAwaiter().GetResult();
             TestDbCommand = new RelayCommand(() =>
             {
                 var success = TestDbConnection(out var message);
@@ -72,6 +57,35 @@ namespace InventoryManagementApp.ViewModels
             });
         }
 
+        bool _initialized;
+        public async Task InitializeAsync()
+        {
+            if (_initialized) return;
+            var logoPath = await _settingsService.GetSettingAsync("CompanyLogoPath").ConfigureAwait(false);
+            if (!string.IsNullOrWhiteSpace(logoPath))
+                _companyLogoPath = logoPath;
+            var appName = await _settingsService.GetSettingAsync("ApplicationName").ConfigureAwait(false);
+            if (!string.IsNullOrWhiteSpace(appName))
+                _applicationName = appName;
+            _passwordIterations = await _settingsService.GetPasswordIterationsAsync().ConfigureAwait(false);
+            _autoLogoutMinutes = await _settingsService.GetAutoLogoutMinutesAsync().ConfigureAwait(false);
+            _showItemImage = await _settingsService.GetShowItemImageAsync().ConfigureAwait(false);
+            _showItemName = await _settingsService.GetShowItemNameAsync().ConfigureAwait(false);
+            _showItemNumber = await _settingsService.GetShowItemNumberAsync().ConfigureAwait(false);
+            _showItemLocation = await _settingsService.GetShowItemLocationAsync().ConfigureAwait(false);
+            _showItemNotes = await _settingsService.GetShowItemNotesAsync().ConfigureAwait(false);
+            OnPropertyChanged(nameof(CompanyLogoPath));
+            OnPropertyChanged(nameof(ApplicationName));
+            OnPropertyChanged(nameof(PasswordIterations));
+            OnPropertyChanged(nameof(AutoLogoutMinutes));
+            OnPropertyChanged(nameof(ShowItemImage));
+            OnPropertyChanged(nameof(ShowItemName));
+            OnPropertyChanged(nameof(ShowItemNumber));
+            OnPropertyChanged(nameof(ShowItemLocation));
+            OnPropertyChanged(nameof(ShowItemNotes));
+            _initialized = true;
+        }
+
         private string _applicationName = string.Empty;
         public string ApplicationName
         {
@@ -80,20 +94,25 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _applicationName, value))
                 {
-                    try
-                    {
-                        _settingsService.SaveSettingAsync("ApplicationName", value).GetAwaiter().GetResult();
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        _logger.LogWarning(ex, "Unauthorized to change settings.");
-                        _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to save application name.");
-                    }
+                    _ = SaveApplicationNameAsync(value);
                 }
+            }
+        }
+
+        async Task SaveApplicationNameAsync(string value)
+        {
+            try
+            {
+                await _settingsService.SaveSettingAsync("ApplicationName", value).ConfigureAwait(false);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Unauthorized to change settings.");
+                _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save application name.");
             }
         }
 
@@ -112,21 +131,26 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _itemLabelSingular, value))
                 {
-                    try
-                    {
-                        _settingsService.SaveItemLabelSingularAsync(value).GetAwaiter().GetResult();
-                        LabelProvider.Instance.UpdateLabels(value, ItemLabelPlural);
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        _logger.LogWarning(ex, "Unauthorized to change settings.");
-                        _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to save item label singular.");
-                    }
+                    _ = SaveItemLabelSingularAsync(value);
                 }
+            }
+        }
+
+        async Task SaveItemLabelSingularAsync(string value)
+        {
+            try
+            {
+                await _settingsService.SaveItemLabelSingularAsync(value).ConfigureAwait(false);
+                LabelProvider.Instance.UpdateLabels(value, ItemLabelPlural);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Unauthorized to change settings.");
+                _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save item label singular.");
             }
         }
 
@@ -138,21 +162,26 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _itemLabelPlural, value))
                 {
-                    try
-                    {
-                        _settingsService.SaveItemLabelPluralAsync(value).GetAwaiter().GetResult();
-                        LabelProvider.Instance.UpdateLabels(ItemLabelSingular, value);
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        _logger.LogWarning(ex, "Unauthorized to change settings.");
-                        _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to save item label plural.");
-                    }
+                    _ = SaveItemLabelPluralAsync(value);
                 }
+            }
+        }
+
+        async Task SaveItemLabelPluralAsync(string value)
+        {
+            try
+            {
+                await _settingsService.SaveItemLabelPluralAsync(value).ConfigureAwait(false);
+                LabelProvider.Instance.UpdateLabels(ItemLabelSingular, value);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Unauthorized to change settings.");
+                _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save item label plural.");
             }
         }
 
@@ -182,7 +211,7 @@ namespace InventoryManagementApp.ViewModels
         public int PasswordIterations
         {
             get => _passwordIterations;
-            set => SetPasswordIterationsAsync(value).GetAwaiter().GetResult();
+            set => _ = SetPasswordIterationsAsync(value);
         }
 
         async Task SetPasswordIterationsAsync(int value, CancellationToken token = default)
@@ -227,7 +256,7 @@ namespace InventoryManagementApp.ViewModels
         public int AutoLogoutMinutes
         {
             get => _autoLogoutMinutes;
-            set => SetAutoLogoutMinutesAsync(value).GetAwaiter().GetResult();
+            set => _ = SetAutoLogoutMinutesAsync(value);
         }
 
         async Task SetAutoLogoutMinutesAsync(int value, CancellationToken token = default)
@@ -263,20 +292,25 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _showItemImage, value))
                 {
-                    try
-                    {
-                        _settingsService.SaveShowItemImageAsync(value).GetAwaiter().GetResult();
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        _logger.LogWarning(ex, "Unauthorized to change settings.");
-                        _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to save ShowItemImage setting.");
-                    }
+                    _ = SaveShowItemImageAsync(value);
                 }
+            }
+        }
+
+        async Task SaveShowItemImageAsync(bool value)
+        {
+            try
+            {
+                await _settingsService.SaveShowItemImageAsync(value).ConfigureAwait(false);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Unauthorized to change settings.");
+                _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save ShowItemImage setting.");
             }
         }
 
@@ -288,20 +322,25 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _showItemName, value))
                 {
-                    try
-                    {
-                        _settingsService.SaveShowItemNameAsync(value).GetAwaiter().GetResult();
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        _logger.LogWarning(ex, "Unauthorized to change settings.");
-                        _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to save ShowItemName setting.");
-                    }
+                    _ = SaveShowItemNameAsync(value);
                 }
+            }
+        }
+
+        async Task SaveShowItemNameAsync(bool value)
+        {
+            try
+            {
+                await _settingsService.SaveShowItemNameAsync(value).ConfigureAwait(false);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Unauthorized to change settings.");
+                _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save ShowItemName setting.");
             }
         }
 
@@ -313,20 +352,25 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _showItemNumber, value))
                 {
-                    try
-                    {
-                        _settingsService.SaveShowItemNumberAsync(value).GetAwaiter().GetResult();
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        _logger.LogWarning(ex, "Unauthorized to change settings.");
-                        _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to save ShowItemNumber setting.");
-                    }
+                    _ = SaveShowItemNumberAsync(value);
                 }
+            }
+        }
+
+        async Task SaveShowItemNumberAsync(bool value)
+        {
+            try
+            {
+                await _settingsService.SaveShowItemNumberAsync(value).ConfigureAwait(false);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Unauthorized to change settings.");
+                _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save ShowItemNumber setting.");
             }
         }
 
@@ -338,20 +382,25 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _showItemLocation, value))
                 {
-                    try
-                    {
-                        _settingsService.SaveShowItemLocationAsync(value).GetAwaiter().GetResult();
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        _logger.LogWarning(ex, "Unauthorized to change settings.");
-                        _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to save ShowItemLocation setting.");
-                    }
+                    _ = SaveShowItemLocationAsync(value);
                 }
+            }
+        }
+
+        async Task SaveShowItemLocationAsync(bool value)
+        {
+            try
+            {
+                await _settingsService.SaveShowItemLocationAsync(value).ConfigureAwait(false);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Unauthorized to change settings.");
+                _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save ShowItemLocation setting.");
             }
         }
 
@@ -363,20 +412,25 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _showItemNotes, value))
                 {
-                    try
-                    {
-                        _settingsService.SaveShowItemNotesAsync(value).GetAwaiter().GetResult();
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        _logger.LogWarning(ex, "Unauthorized to change settings.");
-                        _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to save ShowItemNotes setting.");
-                    }
+                    _ = SaveShowItemNotesAsync(value);
                 }
+            }
+        }
+
+        async Task SaveShowItemNotesAsync(bool value)
+        {
+            try
+            {
+                await _settingsService.SaveShowItemNotesAsync(value).ConfigureAwait(false);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Unauthorized to change settings.");
+                _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save ShowItemNotes setting.");
             }
         }
 
