@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -15,9 +16,11 @@ namespace InventoryManagementApp.ViewModels
     public partial class ItemsViewModel : ObservableObject, IDisposable
     {
         private readonly IItemService _itemService;
+        private readonly IItemRepository _itemRepository;
         private readonly MemoryBudget _memoryBudget;
         private CancellationTokenSource _filterCts = new();
         private bool _disposed;
+        private readonly List<ItemModel> _pendingEdits = new();
 
         private const int PageSize = 200;
         public IncrementalLoadingCollection<ItemModel> Items { get; }
@@ -26,6 +29,9 @@ namespace InventoryManagementApp.ViewModels
         public IRelayCommand ViewDetailsCommand { get; }
         public IRelayCommand OpenRentalHistoryCommand { get; }
         public IRelayCommand NewItemCommand { get; }
+        public IAsyncRelayCommand SaveChangesCommand { get; }
+
+        public IReadOnlyCollection<ItemModel> PendingEdits => _pendingEdits;
 
         [ObservableProperty]
         private ItemModel? selectedItem;
@@ -33,9 +39,10 @@ namespace InventoryManagementApp.ViewModels
         [ObservableProperty]
         private string filter = string.Empty;
 
-        public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget)
+        public ItemsViewModel(IItemService itemService, IItemRepository itemRepository, MemoryBudget memoryBudget)
         {
             _itemService = itemService;
+            _itemRepository = itemRepository;
             _memoryBudget = memoryBudget;
             Items = new IncrementalLoadingCollection<ItemModel>(LoadPageAsync, PageSize);
             _memoryBudget.ThresholdExceeded += OnThresholdExceeded;
@@ -44,6 +51,7 @@ namespace InventoryManagementApp.ViewModels
             ViewDetailsCommand = new RelayCommand(() => { /* View details placeholder */ });
             OpenRentalHistoryCommand = new RelayCommand(() => { /* Open rental history placeholder */ });
             NewItemCommand = new RelayCommand(() => { /* New item placeholder */ });
+            SaveChangesCommand = new AsyncRelayCommand(ct => SaveChangesAsync(ct));
         }
 
         private async Task<IList<ItemModel>> LoadPageAsync(int page, CancellationToken ct)
@@ -54,7 +62,10 @@ namespace InventoryManagementApp.ViewModels
                 ? _itemService.GetItemsAsync(pageInfo, ct)
                 : _itemService.SearchItemsAsync(Filter, pageInfo, ct);
             await foreach (var item in source.ConfigureAwait(false))
+            {
+                item.PropertyChanged += Item_PropertyChanged;
                 result.Add(item);
+            }
             return result;
         }
 
@@ -84,11 +95,30 @@ namespace InventoryManagementApp.ViewModels
 
         private void OnThresholdExceeded(object? sender, EventArgs e) => Items.TrimToWindow(PageSize * 3);
 
+        private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (sender is not ItemModel item) return;
+            if (e.PropertyName == nameof(ItemModel.QuantityOnHand) || e.PropertyName == nameof(ItemModel.Location) || e.PropertyName == nameof(ItemModel.Price))
+            {
+                if (!_pendingEdits.Contains(item))
+                    _pendingEdits.Add(item);
+            }
+        }
+
+        private async Task SaveChangesAsync(CancellationToken ct)
+        {
+            if (_pendingEdits.Count == 0) return;
+            await _itemRepository.SaveChangesAsync(_pendingEdits, ct).ConfigureAwait(false);
+            _pendingEdits.Clear();
+        }
+
         public void Dispose()
         {
             if (_disposed) return;
             _disposed = true;
             _memoryBudget.ThresholdExceeded -= OnThresholdExceeded;
+            foreach (var item in Items)
+                item.PropertyChanged -= Item_PropertyChanged;
             Items.Reset();
             _filterCts.Cancel();
             _filterCts.Dispose();

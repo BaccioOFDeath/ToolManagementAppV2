@@ -21,7 +21,7 @@
                 <DataGrid Grid.Row="1"
                           ItemsSource="{Binding Items}"
                           SelectedItem="{Binding SelectedItem}"
-                          IsReadOnly="True"
+                          IsReadOnly="False"
                           AutoGenerateColumns="False"
                           EnableColumnVirtualization="True"
                           Background="{StaticResource SurfaceBrush}"
@@ -34,10 +34,12 @@
                         </Style>
                     </DataGrid.RowStyle>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Number" Binding="{Binding ItemNumber}" Width="140"/>
-                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="280"/>
-                        <DataGridTextColumn Header="Brand" Binding="{Binding Brand}" Width="160"/>
-                        <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="180"/>
+                        <DataGridTextColumn Header="Number" Binding="{Binding ItemNumber, Mode=OneWay}" Width="140"/>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name, Mode=OneWay}" Width="280"/>
+                        <DataGridTextColumn Header="Brand" Binding="{Binding Brand, Mode=OneWay}" Width="160"/>
+                        <DataGridTextColumn Header="Qty" Binding="{Binding QuantityOnHand, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="100"/>
+                        <DataGridTextColumn Header="Location" Binding="{Binding Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="180"/>
+                        <DataGridTextColumn Header="Price" Binding="{Binding Price, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
                     </DataGrid.Columns>
                     <DataGrid.ContextMenu>
                         <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"

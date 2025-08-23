@@ -22,8 +22,9 @@ namespace InventoryManagementApp.Tests
         public void CommandsExistAndExecute()
         {
             var service = new DummyItemService();
+            var repository = new DummyItemRepository();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget);
+            using var vm = new ItemsViewModel(service, repository, memoryBudget);
 
             Assert.NotNull(vm.EditItemCommand);
             Assert.True(vm.EditItemCommand.CanExecute(null));
@@ -52,8 +53,9 @@ namespace InventoryManagementApp.Tests
                 ["third"] = new() { new ItemModel { ItemID = 3 } }
             };
             var service = new RecordingItemService(data);
+            var repository = new DummyItemRepository();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget);
+            using var vm = new ItemsViewModel(service, repository, memoryBudget);
 
             vm.Filter = "first";
             await Task.Delay(100);
@@ -77,8 +79,9 @@ namespace InventoryManagementApp.Tests
                 ["new"] = new() { new ItemModel { ItemID = 2 } }
             };
             var service = new RecordingItemService(data, defaults);
+            var repository = new DummyItemRepository();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget);
+            using var vm = new ItemsViewModel(service, repository, memoryBudget);
 
             await vm.LoadMoreAsync();
             Assert.Single(vm.Items);
@@ -98,8 +101,9 @@ namespace InventoryManagementApp.Tests
         public async Task ConcurrentLoadMoreCallsDoNotDuplicateOrSkipPages()
         {
             var service = new PagingItemService();
+            var repository = new DummyItemRepository();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            using var vm = new ItemsViewModel(service, memoryBudget);
+            using var vm = new ItemsViewModel(service, repository, memoryBudget);
 
             var tasks = new[]
             {
@@ -119,8 +123,9 @@ namespace InventoryManagementApp.Tests
         public void DisposeCanBeCalledMultipleTimesAndCancelsToken()
         {
             var service = new DummyItemService();
+            var repository = new DummyItemRepository();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
-            var vm = new ItemsViewModel(service, memoryBudget);
+            var vm = new ItemsViewModel(service, repository, memoryBudget);
             vm.Items.Add(new ItemModel { ItemID = 1 });
             var ctsField = typeof(ItemsViewModel).GetField("_filterCts", BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.NotNull(ctsField);
@@ -130,6 +135,38 @@ namespace InventoryManagementApp.Tests
             vm.Dispose();
             Assert.True(token.IsCancellationRequested);
             Assert.Empty(vm.Items);
+        }
+
+        [Fact]
+        public async Task EditsAreQueued()
+        {
+            var item = new ItemModel { ItemID = 1, QuantityOnHand = 1, Location = "A", Price = 1m };
+            var service = new StaticItemService(item);
+            var repository = new RecordingItemRepository();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            using var vm = new ItemsViewModel(service, repository, memoryBudget);
+            await vm.LoadMoreAsync();
+            var loaded = vm.Items[0];
+            loaded.QuantityOnHand = 5;
+            loaded.Price = 2m;
+            Assert.Equal(1, vm.PendingEdits.Count);
+            Assert.Empty(repository.Saved);
+        }
+
+        [Fact]
+        public async Task SaveChangesPersistsQueuedEdits()
+        {
+            var item = new ItemModel { ItemID = 1, QuantityOnHand = 1, Location = "A", Price = 1m };
+            var service = new StaticItemService(item);
+            var repository = new RecordingItemRepository();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue);
+            using var vm = new ItemsViewModel(service, repository, memoryBudget);
+            await vm.LoadMoreAsync();
+            var loaded = vm.Items[0];
+            loaded.Location = "B";
+            await vm.SaveChangesCommand.ExecuteAsync(null);
+            Assert.Single(repository.Saved);
+            Assert.Empty(vm.PendingEdits);
         }
 
         private sealed class PagingItemService : IItemService
@@ -239,6 +276,52 @@ namespace InventoryManagementApp.Tests
                     await Task.Delay(10, ct);
                     yield return item;
                 }
+            }
+        }
+
+        private sealed class StaticItemService : IItemService
+        {
+            private readonly ItemModel _item;
+            public StaticItemService(ItemModel item) => _item = item;
+            public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task DeleteItemAsync(int itemID, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default) => Task.FromResult<ItemModel?>(null);
+            public IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, CancellationToken cancellationToken = default) => Enumerate(cancellationToken);
+            public IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, CancellationToken cancellationToken = default) => Enumerate(cancellationToken);
+            public Task<int> CountItemsAsync(ItemFilter filter, CancellationToken ct) => Task.FromResult(0);
+            public Task<bool> ToggleItemCheckOutStatusAsync(int itemID, string currentUser, CancellationToken cancellationToken = default) => Task.FromResult(false);
+            public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
+            public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => Task.FromResult(new List<int>());
+            public Task ExportItemsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
+            public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
+            public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, SqliteConnection? conn = null, SqliteTransaction? tx = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+            private async IAsyncEnumerable<ItemModel> Enumerate([EnumeratorCancellation] CancellationToken ct)
+            {
+                await Task.Yield();
+                yield return _item;
+            }
+        }
+
+        private sealed class DummyItemRepository : IItemRepository
+        {
+            public IAsyncEnumerable<ItemModel> GetPageAsync(ItemFilter filter, ItemPage page, CancellationToken ct) => AsyncEnumerable.Empty<ItemModel>();
+            public Task<int> CountAsync(ItemFilter filter, CancellationToken ct) => Task.FromResult(0);
+            public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct) => Task.CompletedTask;
+        }
+
+        private sealed class RecordingItemRepository : IItemRepository
+        {
+            public List<ItemModel> Saved { get; } = new();
+            public IAsyncEnumerable<ItemModel> GetPageAsync(ItemFilter filter, ItemPage page, CancellationToken ct) => AsyncEnumerable.Empty<ItemModel>();
+            public Task<int> CountAsync(ItemFilter filter, CancellationToken ct) => Task.FromResult(0);
+            public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct)
+            {
+                Saved.AddRange(changes);
+                return Task.CompletedTask;
             }
         }
     }

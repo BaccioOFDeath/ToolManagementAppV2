@@ -46,6 +46,13 @@ namespace InventoryManagementApp.Models.Domain
             set => SetProperty(ref _location, value);
         }
 
+        private decimal _price;
+        public decimal Price
+        {
+            get => _price;
+            set => SetProperty(ref _price, value);
+        }
+
         private int _quantityOnHand;
         public int QuantityOnHand
         {
