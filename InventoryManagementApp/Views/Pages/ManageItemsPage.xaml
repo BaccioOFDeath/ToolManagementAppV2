@@ -11,6 +11,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <StackPanel Margin="0,0,0,8">
@@ -24,46 +25,71 @@
                     </StackPanel>
                 </StackPanel>
 
-                <DataGrid Grid.Row="1"
-                          ItemsSource="{Binding Items}"
-                          SelectedItem="{Binding SelectedItem}"
-                          IsReadOnly="False"
-                          AutoGenerateColumns="False"
-                          EnableColumnVirtualization="True"
-                          Background="{StaticResource SurfaceBrush}"
-                          BorderBrush="{StaticResource BorderBrushAlt}"
-                          Style="{StaticResource VirtualizedDataGridStyle}">
-                    <DataGrid.RowStyle>
-                        <Style TargetType="DataGridRow">
-                            <EventSetter Event="PreviewMouseRightButtonDown"
-                                         Handler="DataGridRow_PreviewMouseRightButtonDown"/>
-                        </Style>
-                    </DataGrid.RowStyle>
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Number" Binding="{Binding ItemNumber, Mode=OneWay}" Width="140"/>
-                        <DataGridTextColumn Header="Name" Binding="{Binding Name, Mode=OneWay}" Width="280"/>
-                        <DataGridTextColumn Header="Brand" Binding="{Binding Brand, Mode=OneWay}" Width="160"/>
-                        <DataGridTextColumn Header="Qty" Binding="{Binding QuantityOnHand, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="100"/>
-                        <DataGridTextColumn Header="Location" Binding="{Binding Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="180"/>
-                        <DataGridTextColumn Header="Price" Binding="{Binding Price, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
-                    </DataGrid.Columns>
-                    <DataGrid.ContextMenu>
-                        <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
-                                    DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                            <MenuItem
-                                Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}"
-                                HeaderStringFormat="Rent {0}"
-                                Command="{Binding OpenRentalsCommand}"/>
-                            <MenuItem Header="Delete"
-                                      Command="{Binding PlacementTarget.DataContext.DeleteItemsCommand,
-                                                        RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                      CommandParameter="{Binding PlacementTarget.SelectedItems,
-                                                        RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                        </ContextMenu>
-                    </DataGrid.ContextMenu>
-                </DataGrid>
+                <Grid Grid.Row="1">
+                    <DataGrid ItemsSource="{Binding Items}"
+                              SelectedItem="{Binding SelectedItem}"
+                              IsReadOnly="False"
+                              AutoGenerateColumns="False"
+                              EnableColumnVirtualization="True"
+                              Background="{StaticResource SurfaceBrush}"
+                              BorderBrush="{StaticResource BorderBrushAlt}"
+                              Style="{StaticResource VirtualizedDataGridStyle}">
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <EventSetter Event="PreviewMouseRightButtonDown"
+                                             Handler="DataGridRow_PreviewMouseRightButtonDown"/>
+                                <EventSetter Event="DataContextChanged"
+                                             Handler="DataGridRow_ContainerContentChanging"/>
+                            </Style>
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Number" Binding="{Binding ItemNumber, Mode=OneWay}" Width="140"/>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name, Mode=OneWay}" Width="280"/>
+                            <DataGridTextColumn Header="Brand" Binding="{Binding Brand, Mode=OneWay}" Width="160"/>
+                            <DataGridTextColumn Header="Qty" Binding="{Binding QuantityOnHand, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="100"/>
+                            <DataGridTextColumn Header="Location" Binding="{Binding Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="180"/>
+                            <DataGridTextColumn Header="Price" Binding="{Binding Price, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
+                        </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
+                                        DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                <MenuItem
+                                    Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}"
+                                    HeaderStringFormat="Rent {0}"
+                                    Command="{Binding OpenRentalsCommand}"/>
+                                <MenuItem Header="Delete"
+                                          Command="{Binding PlacementTarget.DataContext.DeleteItemsCommand,
+                                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding PlacementTarget.SelectedItems,
+                                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                    </DataGrid>
+                    <TextBlock Text="No results"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               FontSize="16"
+                               FontWeight="SemiBold">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Items.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
 
-                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                <ProgressBar Grid.Row="2"
+                             IsIndeterminate="True"
+                             Height="4"
+                             Margin="0,8,0,0"
+                             Visibility="{Binding Items.IsLoading, Converter={StaticResource BoolToVis}}"/>
+
+                <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
                     <Button
                         Style="{StaticResource PrimaryButton}"
                         Content="Edit"
