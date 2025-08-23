@@ -49,7 +49,7 @@ namespace InventoryManagementApp.Services.Settings
                 _logger.LogWarning(ex, "Saving setting {Key} canceled or timed out", key);
                 throw;
             }
-            catch (SqliteException ex) when (ex.ResultCode == SqliteErrorCode.Busy)
+            catch (SqliteException ex) when ((SqliteErrorCode)ex.SqliteErrorCode == SqliteErrorCode.Busy)
             {
                 _logger.LogWarning(ex, "Saving setting {Key} timed out", key);
                 throw;
@@ -76,7 +76,7 @@ namespace InventoryManagementApp.Services.Settings
                 _logger.LogWarning(ex, "Retrieving setting {Key} canceled or timed out", key);
                 throw;
             }
-            catch (SqliteException ex) when (ex.ResultCode == SqliteErrorCode.Busy)
+            catch (SqliteException ex) when ((SqliteErrorCode)ex.SqliteErrorCode == SqliteErrorCode.Busy)
             {
                 _logger.LogWarning(ex, "Retrieving setting {Key} timed out", key);
                 throw;
@@ -106,7 +106,7 @@ namespace InventoryManagementApp.Services.Settings
                 _logger.LogWarning(ex, "Retrieving all settings canceled or timed out");
                 throw;
             }
-            catch (SqliteException ex) when (ex.ResultCode == SqliteErrorCode.Busy)
+            catch (SqliteException ex) when ((SqliteErrorCode)ex.SqliteErrorCode == SqliteErrorCode.Busy)
             {
                 _logger.LogWarning(ex, "Retrieving all settings timed out");
                 throw;
@@ -161,7 +161,7 @@ namespace InventoryManagementApp.Services.Settings
                 _logger.LogWarning(ex, "Updating settings canceled or timed out");
                 throw;
             }
-            catch (SqliteException ex) when (ex.ResultCode == SqliteErrorCode.Busy)
+            catch (SqliteException ex) when ((SqliteErrorCode)ex.SqliteErrorCode == SqliteErrorCode.Busy)
             {
                 tx.Rollback();
                 _logger.LogWarning(ex, "Updating settings timed out");
@@ -192,7 +192,7 @@ namespace InventoryManagementApp.Services.Settings
                 _logger.LogWarning(ex, "Deleting setting {Key} canceled or timed out", key);
                 throw;
             }
-            catch (SqliteException ex) when (ex.ResultCode == SqliteErrorCode.Busy)
+            catch (SqliteException ex) when ((SqliteErrorCode)ex.SqliteErrorCode == SqliteErrorCode.Busy)
             {
                 _logger.LogWarning(ex, "Deleting setting {Key} timed out", key);
                 throw;
