@@ -228,7 +228,7 @@ namespace InventoryManagementApp.Services.Users
             {
                 user.UserID = Convert.ToInt32(await cmd.ExecuteScalarAsync());
             }
-            catch (SqliteException ex) when ((SqliteErrorCode)ex.SqliteErrorCode == SqliteErrorCode.Constraint &&
+            catch (SqliteException ex) when (ex.SqliteErrorCode == (int)SqliteError.Constraint &&
                                              ex.Message.Contains("Users.UserName", StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException("A user with the same username already exists.", ex);

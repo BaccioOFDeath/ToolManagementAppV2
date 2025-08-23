@@ -46,7 +46,7 @@ namespace InventoryManagementApp.Services.Users
                 _logger.LogWarning(ex, "Logging action {Action} canceled or timed out", action);
                 return new Result(false, "Operation canceled");
             }
-            catch (SqliteException ex) when ((SqliteErrorCode)ex.SqliteErrorCode == SqliteErrorCode.Busy)
+            catch (SqliteException ex) when (ex.SqliteErrorCode == (int)SqliteError.Busy)
             {
                 _logger.LogWarning(ex, "Logging action {Action} timed out", action);
                 return new Result(false, ex.Message);
@@ -76,7 +76,7 @@ namespace InventoryManagementApp.Services.Users
                 _logger.LogWarning(ex, "Retrieving recent activity logs canceled or timed out");
                 return new Result<List<ActivityLog>>(null, false, "Operation canceled");
             }
-            catch (SqliteException ex) when ((SqliteErrorCode)ex.SqliteErrorCode == SqliteErrorCode.Busy)
+            catch (SqliteException ex) when (ex.SqliteErrorCode == (int)SqliteError.Busy)
             {
                 _logger.LogWarning(ex, "Retrieving recent activity logs timed out");
                 return new Result<List<ActivityLog>>(null, false, ex.Message);
@@ -105,7 +105,7 @@ namespace InventoryManagementApp.Services.Users
                 _logger.LogWarning(ex, "Purging logs prior to {Threshold} canceled or timed out", threshold);
                 return new Result(false, "Operation canceled");
             }
-            catch (SqliteException ex) when ((SqliteErrorCode)ex.SqliteErrorCode == SqliteErrorCode.Busy)
+            catch (SqliteException ex) when (ex.SqliteErrorCode == (int)SqliteError.Busy)
             {
                 _logger.LogWarning(ex, "Purging logs prior to {Threshold} timed out", threshold);
                 return new Result(false, ex.Message);
