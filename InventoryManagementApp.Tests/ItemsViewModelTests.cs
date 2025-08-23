@@ -491,6 +491,39 @@ namespace InventoryManagementApp.Tests
             Assert.Single(itemService.Added);
         }
 
+        [Fact]
+        public async Task LoadMoreAsync_ExcludesRentalItems()
+        {
+            var itemService = new RentalFilteringItemService();
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
+            var settings = new DummySettingsService();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            await vm.LoadMoreAsync();
+            Assert.Single(vm.Items);
+            Assert.False(vm.Items[0].IsRentalItem);
+            Assert.Equal(false, itemService.LastIsRentalItem);
+        }
+
+        [Fact]
+        public async Task LoadMoreAsync_SearchExcludesRentalItems()
+        {
+            var itemService = new RentalFilteringItemService();
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
+            var settings = new DummySettingsService();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, customer, settings, new DummyUserContext());
+            vm.Filter = "abc";
+            await vm.LoadMoreAsync();
+            Assert.Single(vm.Items);
+            Assert.False(vm.Items[0].IsRentalItem);
+            Assert.Equal(false, itemService.LastIsRentalItem);
+        }
+
         private sealed class PagingItemService : IItemService
         {
             private const int PageSize = 200;
@@ -526,6 +559,55 @@ namespace InventoryManagementApp.Tests
                     await Task.Yield();
                     ct.ThrowIfCancellationRequested();
                     yield return new ItemModel { ItemID = (page - 1) * PageSize + i + 1 };
+                }
+            }
+        }
+
+        private sealed class RentalFilteringItemService : IItemService
+        {
+            public bool? LastIsRentalItem { get; private set; }
+            public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task DeleteItemAsync(int itemID, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default) => Task.FromResult<ItemModel?>(null);
+
+            public IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default)
+            {
+                LastIsRentalItem = isRentalItem;
+                return Enumerate(isRentalItem, cancellationToken);
+            }
+
+            public IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default)
+            {
+                LastIsRentalItem = isRentalItem;
+                return Enumerate(isRentalItem, cancellationToken);
+            }
+
+            public Task<int> CountItemsAsync(ItemFilter filter, CancellationToken ct) => Task.FromResult(0);
+            public Task<bool> ToggleItemCheckOutStatusAsync(int itemID, string currentUser, CancellationToken cancellationToken = default) => Task.FromResult(false);
+            public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
+            public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => Task.FromResult(new List<int>());
+            public Task ExportItemsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
+            public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
+            public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, SqliteConnection? conn = null, SqliteTransaction? tx = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct) => Task.CompletedTask;
+
+            private async IAsyncEnumerable<ItemModel> Enumerate(bool? isRentalItem, [EnumeratorCancellation] CancellationToken ct = default)
+            {
+                var items = new[]
+                {
+                    new ItemModel { ItemID = 1, IsRentalItem = false },
+                    new ItemModel { ItemID = 2, IsRentalItem = true }
+                };
+                foreach (var item in items)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    if (isRentalItem == false && item.IsRentalItem)
+                        continue;
+                    yield return item;
+                    await Task.Yield();
                 }
             }
         }
