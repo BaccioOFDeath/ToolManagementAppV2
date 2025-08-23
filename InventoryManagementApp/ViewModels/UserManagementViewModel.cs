@@ -72,6 +72,9 @@ namespace InventoryManagementApp.ViewModels
                                        ILogger<UserManagementViewModel>? logger = null,
                                        IServiceProvider? serviceProvider = null)
         {
+            ArgumentNullException.ThrowIfNull(userService);
+            ArgumentNullException.ThrowIfNull(fileDialogService);
+            ArgumentNullException.ThrowIfNull(dialogService);
             _userService = userService;
             _fileDialogService = fileDialogService;
             _dialogService = dialogService;
@@ -87,7 +90,7 @@ namespace InventoryManagementApp.ViewModels
             SearchUsersCommand = new RelayCommand(SearchUsers);
             ClearUserSearchCommand = new RelayCommand(ClearUserSearch);
 
-            EditUserCommand = new RelayCommand(() => EditUser(SelectedUser!), () => SelectedUser != null);
+            EditUserCommand = new RelayCommand(() => EditUser(SelectedUser), () => SelectedUser != null);
             EditUserFromRowCommand = new RelayCommand<UserModel>(EditUser);
             ResetPasswordFromRowCommand = new AsyncRelayCommand<UserModel>(ResetPasswordFor);
             DeleteUserFromRowCommand = new AsyncRelayCommand<UserModel>(DeleteUserAsync);
@@ -349,7 +352,7 @@ namespace InventoryManagementApp.ViewModels
                         var idxAll = _allUsers.IndexOf(user);
                         if (idxAll >= 0) _allUsers[idxAll] = clone;
                         if (ReferenceEquals(SelectedUser, user)) SelectedUser = clone;
-                        win.DialogResult = true;
+                        win?.DialogResult = true;
                     }
                     catch (UnauthorizedAccessException)
                     {
@@ -361,14 +364,14 @@ namespace InventoryManagementApp.ViewModels
                         _dialogService.ShowInfo($"Failed to update user: {ex.Message}", "Error");
                     }
                 },
-                onCancel: () => win.Close(),
+                onCancel: () => win?.Close(),
                 onRemoveAvatar: () => clone.UserPhotoPath = null);
 
             try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for UsersEditWindow"); }
             try { win.ShowDialog(); } catch (Exception ex) { _logger.LogError(ex, "Failed to show UsersEditWindow"); }
         }
 
-        async Task ResetPasswordFor(UserModel user)
+        async Task ResetPasswordFor(UserModel? user)
         {
             if (user == null) return;
             var newPassword = SecurityHelper.GeneratePassword();
@@ -392,7 +395,7 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        async Task DeleteUserAsync(UserModel user)
+        async Task DeleteUserAsync(UserModel? user)
         {
             if (user == null) return;
             try

@@ -13,8 +13,8 @@ namespace InventoryManagementApp.ViewModels
 {
     public class CustomerManagementViewModel : ObservableObject
     {
-        private readonly ICustomerService _customerService;
-        private readonly IDialogService _dialogService;
+        private readonly ICustomerService? _customerService;
+        private readonly IDialogService? _dialogService;
 
         public ObservableCollection<CustomerModel> Customers { get; } = new();
 
@@ -84,14 +84,15 @@ namespace InventoryManagementApp.ViewModels
 
         public async Task LoadCustomersAsync()
         {
+            if (_customerService == null) return;
             var all = await _customerService.GetAllCustomersAsync();
             Customers.ReplaceRange(all);
         }
 
         async Task AddCustomerAsync()
         {
-            var customer = _dialogService.ShowAddCustomerDialog();
-            if (customer == null) return;
+            var customer = _dialogService?.ShowAddCustomerDialog();
+            if (customer == null || _customerService == null || _dialogService == null) return;
 
             try
             {
@@ -107,7 +108,7 @@ namespace InventoryManagementApp.ViewModels
 
         async Task UpdateCustomerAsync()
         {
-            if (SelectedCustomer == null) return;
+            if (SelectedCustomer == null || _customerService == null || _dialogService == null) return;
             var updated = new CustomerModel
             {
                 CustomerID = SelectedCustomer.CustomerID,
@@ -132,6 +133,7 @@ namespace InventoryManagementApp.ViewModels
 
         async Task SearchCustomersAsync()
         {
+            if (_customerService == null) return;
             var all = await _customerService.GetAllCustomersAsync();
             if (!string.IsNullOrWhiteSpace(CustomerSearchTerm))
             {
@@ -159,7 +161,7 @@ namespace InventoryManagementApp.ViewModels
 
         async Task DeleteCustomerAsync()
         {
-            if (SelectedCustomer == null)
+            if (SelectedCustomer == null || _customerService == null || _dialogService == null)
                 return;
 
             try
