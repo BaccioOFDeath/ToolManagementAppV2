@@ -47,6 +47,8 @@ namespace InventoryManagementApp.Services.Core
             EnsureColumn("Items", "Keywords", "TEXT");
             EnsureColumn("Items", "IsPowered", "INTEGER", "0");
             EnsureColumn("Items", "IsCheckedOut", "INTEGER", "0");
+            EnsureColumn("Items", "Price", "NUMERIC", "0");
+            EnsureColumn("Items", "UpdatedAt", "DATETIME");
             // Ensure indexes that depend on newly added columns
             using (var conn = CreateConnection())
             {
@@ -116,10 +118,12 @@ namespace InventoryManagementApp.Services.Core
                     Notes TEXT,
                     AvailableQuantity INTEGER NOT NULL DEFAULT 0,
                     RentedQuantity INTEGER NOT NULL DEFAULT 0,
+                    Price NUMERIC NOT NULL DEFAULT 0,
                     IsPowered INTEGER NOT NULL DEFAULT 0,
                     IsCheckedOut INTEGER NOT NULL DEFAULT 0,
                     CheckedOutBy TEXT,
-                    CheckedOutTime DATETIME
+                    CheckedOutTime DATETIME,
+                    UpdatedAt DATETIME
                 );
                 CREATE TABLE IF NOT EXISTS Users (
                     UserID INTEGER PRIMARY KEY AUTOINCREMENT,
