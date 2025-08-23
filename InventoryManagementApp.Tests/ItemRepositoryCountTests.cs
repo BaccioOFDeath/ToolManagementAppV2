@@ -27,6 +27,7 @@ public class ItemRepositoryCountTests
             Keywords TEXT,
             AvailableQuantity INTEGER,
             RentedQuantity INTEGER,
+            Price NUMERIC NOT NULL DEFAULT 0,
             ImagePath TEXT,
             IsCheckedOut INTEGER,
             CheckedOutBy TEXT,

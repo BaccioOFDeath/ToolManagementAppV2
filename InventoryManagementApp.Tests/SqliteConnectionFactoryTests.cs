@@ -22,7 +22,7 @@ public class SqliteConnectionFactoryTests
         using (var conn = factory.Create())
         {
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "CREATE TABLE Items (ItemNumber TEXT, NameDescription TEXT, AvailableQuantity INTEGER, UpdatedAt TEXT);";
+            cmd.CommandText = "CREATE TABLE Items (ItemNumber TEXT, NameDescription TEXT, AvailableQuantity INTEGER, Price NUMERIC NOT NULL DEFAULT 0, UpdatedAt TEXT);";
             cmd.ExecuteNonQuery();
         }
 
@@ -37,5 +37,30 @@ public class SqliteConnectionFactoryTests
         Assert.Contains("IX_Items_NameDescription", indexes);
         Assert.Contains("IX_Items_AvailableQuantity", indexes);
         Assert.Contains("IX_Items_UpdatedAt", indexes);
+    }
+
+    [Fact]
+    public void Create_DoesNotCreateIndexWhenColumnMissing()
+    {
+        SqliteConnectionFactory.Reset();
+        var factory = new SqliteConnectionFactory("Data Source=:memory:");
+        using (var conn = factory.Create())
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "CREATE TABLE Items (ItemNumber TEXT, NameDescription TEXT, AvailableQuantity INTEGER);";
+            cmd.ExecuteNonQuery();
+        }
+
+        using var verify = factory.Create();
+        using var check = verify.CreateCommand();
+        check.CommandText = "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='Items' ORDER BY name;";
+        using var reader = check.ExecuteReader();
+        var indexes = new List<string>();
+        while (reader.Read())
+            indexes.Add(reader.GetString(0));
+        Assert.Contains("IX_Items_ItemNumber", indexes);
+        Assert.Contains("IX_Items_NameDescription", indexes);
+        Assert.Contains("IX_Items_AvailableQuantity", indexes);
+        Assert.DoesNotContain("IX_Items_UpdatedAt", indexes);
     }
 }

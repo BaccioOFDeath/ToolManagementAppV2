@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
+using System.Text;
 using Microsoft.Data.Sqlite;
 
 namespace InventoryManagementApp.Data;
@@ -44,13 +46,27 @@ public sealed class SqliteConnectionFactory
 
             if (exists)
             {
-                cmd.CommandText = """
-                    CREATE INDEX IF NOT EXISTS IX_Items_ItemNumber ON Items(ItemNumber);
-                    CREATE INDEX IF NOT EXISTS IX_Items_NameDescription ON Items(NameDescription);
-                    CREATE INDEX IF NOT EXISTS IX_Items_AvailableQuantity ON Items(AvailableQuantity);
-                    CREATE INDEX IF NOT EXISTS IX_Items_UpdatedAt ON Items(UpdatedAt);
-                    """;
-                cmd.ExecuteNonQuery();
+                cmd.CommandText = "PRAGMA table_info('Items');";
+                using var reader = cmd.ExecuteReader();
+                var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                while (reader.Read())
+                    columns.Add(reader.GetString(1));
+                reader.Close();
+
+                var sb = new StringBuilder();
+                if (columns.Contains("ItemNumber"))
+                    sb.AppendLine("CREATE INDEX IF NOT EXISTS IX_Items_ItemNumber ON Items(ItemNumber);");
+                if (columns.Contains("NameDescription"))
+                    sb.AppendLine("CREATE INDEX IF NOT EXISTS IX_Items_NameDescription ON Items(NameDescription);");
+                if (columns.Contains("AvailableQuantity"))
+                    sb.AppendLine("CREATE INDEX IF NOT EXISTS IX_Items_AvailableQuantity ON Items(AvailableQuantity);");
+                if (columns.Contains("UpdatedAt"))
+                    sb.AppendLine("CREATE INDEX IF NOT EXISTS IX_Items_UpdatedAt ON Items(UpdatedAt);");
+                if (sb.Length > 0)
+                {
+                    cmd.CommandText = sb.ToString();
+                    cmd.ExecuteNonQuery();
+                }
             }
 
             PragmasExecutionCount++;
