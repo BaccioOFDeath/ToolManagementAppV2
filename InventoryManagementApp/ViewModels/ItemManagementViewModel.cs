@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Extensions;
 using InventoryManagementApp.Services;
 using InventoryManagementApp.Utilities.Helpers;
+using InventoryManagementApp.Messages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -168,13 +170,25 @@ namespace InventoryManagementApp.ViewModels
             if (_initialized) return;
             var vis = await _settingsService.GetItemDetailVisibilityAsync().ConfigureAwait(false);
             VisibleFields = new Dictionary<ItemDetailField, bool>(vis);
-            _settingsService.ItemDetailVisibilityChanged += OnItemDetailVisibilityChanged;
+            WeakReferenceMessenger.Default.Register<ItemSettingsChangedMessage>(this, (r, m) => r.OnItemSettingsChanged());
             _initialized = true;
         }
 
-        void OnItemDetailVisibilityChanged(object? sender, IDictionary<ItemDetailField, bool> e)
+        async void OnItemSettingsChanged()
         {
-            VisibleFields = new Dictionary<ItemDetailField, bool>(e);
+            try
+            {
+                var vis = await _settingsService.GetItemDetailVisibilityAsync().ConfigureAwait(false);
+                VisibleFields = new Dictionary<ItemDetailField, bool>(vis);
+                _searchCts?.Cancel();
+                _searchCts?.Dispose();
+                _searchCts = new CancellationTokenSource();
+                await SearchCommand.ExecuteAsync(null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to handle settings change");
+            }
         }
 
         void OnSearchDebounceTimerTick(object? s, EventArgs e)
@@ -511,7 +525,7 @@ namespace InventoryManagementApp.ViewModels
             cts?.Dispose();
 
             Items.CollectionChanged -= Items_CollectionChanged;
-            _settingsService.ItemDetailVisibilityChanged -= OnItemDetailVisibilityChanged;
+            WeakReferenceMessenger.Default.Unregister<ItemSettingsChangedMessage>(this);
         }
     }
 }
