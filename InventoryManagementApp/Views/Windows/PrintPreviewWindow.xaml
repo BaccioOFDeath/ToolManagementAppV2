@@ -40,7 +40,7 @@
         </Border>
 
         <Border Style="{StaticResource Card}" Padding="0" Margin="0,8,0,0">
-            <DocumentViewer x:Name="DocViewer"/>
+            <FlowDocumentScrollViewer x:Name="DocViewer"/>
         </Border>
     </DockPanel>
 </Window>

@@ -68,7 +68,10 @@ namespace InventoryManagementApp.Views.Windows
 
         private void OnPageSetup()
         {
-            DocViewer.FitToWidth();
+            if (DocViewer.Document != null)
+            {
+                DocViewer.Document.PageWidth = DocViewer.ViewportWidth;
+            }
         }
 
         private void OnPrint()
