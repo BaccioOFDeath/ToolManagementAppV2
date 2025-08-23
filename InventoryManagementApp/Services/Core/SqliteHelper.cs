@@ -48,7 +48,7 @@ namespace InventoryManagementApp.Services.Core
             return cmd.ExecuteScalar();
         }
 
-        public static List<T> ExecuteReader<T>(string connStr, string sql, SqliteParameter[]? parameters = null, Func<IDataRecord, T> map)
+        public static List<T> ExecuteReader<T>(string connStr, string sql, Func<IDataRecord, T> map, SqliteParameter[]? parameters = null)
         {
             var list = new List<T>();
             using var conn = new SqliteConnection(connStr);
@@ -61,7 +61,7 @@ namespace InventoryManagementApp.Services.Core
             return list;
         }
 
-        public static List<T> ExecuteReader<T>(SqliteConnection conn, string sql, SqliteParameter[]? parameters = null, Func<IDataRecord, T> map)
+        public static List<T> ExecuteReader<T>(SqliteConnection conn, string sql, Func<IDataRecord, T> map, SqliteParameter[]? parameters = null)
         {
             var list = new List<T>();
             using var cmd = new SqliteCommand(sql, conn);
@@ -138,7 +138,7 @@ namespace InventoryManagementApp.Services.Core
             return await cmd.ExecuteScalarAsync(cancellationToken);
         }
 
-        public static async Task<List<T>> ExecuteReaderAsync<T>(string connStr, string sql, SqliteParameter[]? parameters = null, Func<IDataRecord, T> map, CancellationToken cancellationToken = default)
+        public static async Task<List<T>> ExecuteReaderAsync<T>(string connStr, string sql, Func<IDataRecord, T> map, SqliteParameter[]? parameters = null, CancellationToken cancellationToken = default)
         {
             var list = new List<T>();
             using var conn = new SqliteConnection(connStr);
@@ -151,7 +151,7 @@ namespace InventoryManagementApp.Services.Core
             return list;
         }
 
-        public static async Task<List<T>> ExecuteReaderAsync<T>(SqliteConnection conn, string sql, SqliteParameter[]? parameters = null, Func<IDataRecord, T> map, CancellationToken cancellationToken = default)
+        public static async Task<List<T>> ExecuteReaderAsync<T>(SqliteConnection conn, string sql, Func<IDataRecord, T> map, SqliteParameter[]? parameters = null, CancellationToken cancellationToken = default)
         {
             var list = new List<T>();
             using var cmd = new SqliteCommand(sql, conn);

@@ -99,7 +99,7 @@ namespace InventoryManagementApp.Services.Users
         {
             using var conn = _dbService.CreateConnection();
             const string sql = "SELECT UserID, UserName, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired FROM Users";
-            return await SqliteHelper.ExecuteReaderAsync(conn, sql, null, MapUser);
+            return await SqliteHelper.ExecuteReaderAsync(conn, sql, MapUser);
         }
 
         public async Task<int> CountUsersAsync()
@@ -114,7 +114,8 @@ namespace InventoryManagementApp.Services.Users
         {
             using var conn = _dbService.CreateConnection();
             var list = await SqliteHelper.ExecuteReaderAsync(conn, "SELECT * FROM Users WHERE UserID=@ID",
-                new[] { new SqliteParameter("@ID", userID) }, MapUser);
+                MapUser,
+                new[] { new SqliteParameter("@ID", userID) });
             return list.FirstOrDefault();
         }
 
@@ -127,7 +128,8 @@ namespace InventoryManagementApp.Services.Users
 
             var users = await SqliteHelper.ExecuteReaderAsync(conn,
                 "SELECT * FROM Users WHERE UserName=@UserName",
-                new[] { new SqliteParameter("@UserName", userName) }, MapUser);
+                MapUser,
+                new[] { new SqliteParameter("@UserName", userName) });
 
             var u = users.FirstOrDefault();
             if (u == null) return (AuthenticationResult.IncorrectPassword, null);

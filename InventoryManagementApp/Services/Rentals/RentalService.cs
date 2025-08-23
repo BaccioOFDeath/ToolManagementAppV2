@@ -256,7 +256,7 @@ namespace InventoryManagementApp.Services.Rentals
         {
             using var conn = _dbService.CreateConnection();
             var sql = BaseSelect + " WHERE r.Status='Rented'";
-            var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, null, MapRental);
+            var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental);
             return list.Where(r => r != null).Select(r => r!).ToList();
         }
 
@@ -265,14 +265,14 @@ namespace InventoryManagementApp.Services.Rentals
             const string sql = BaseSelect + @" WHERE r.Status = 'Rented' AND r.DueDate < @Today";
             var p = new[] { new SqliteParameter("@Today", DateTime.Today) };
             using var conn = _dbService.CreateConnection();
-            var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapRental);
+            var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);
             return list.Where(r => r != null).Select(r => r!).ToList();
         }
 
         public async Task<List<Rental>> GetAllRentalsAsync()
         {
             using var conn = _dbService.CreateConnection();
-            var list = await SqliteHelper.ExecuteReaderAsync(conn, BaseSelect, null, MapRental);
+            var list = await SqliteHelper.ExecuteReaderAsync(conn, BaseSelect, MapRental);
             return list.Where(r => r != null).Select(r => r!).ToList();
         }
 
@@ -281,7 +281,7 @@ namespace InventoryManagementApp.Services.Rentals
             const string sql = BaseSelect + @" WHERE r.ItemID = @ItemID ORDER BY r.RentalDate DESC";
             var p = new[] { new SqliteParameter("@ItemID", itemID) };
             using var conn = _dbService.CreateConnection();
-            var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapRental);
+            var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);
             return list.Where(r => r != null).Select(r => r!).ToList();
         }
 
@@ -290,7 +290,7 @@ namespace InventoryManagementApp.Services.Rentals
             const string sql = BaseSelect + @" WHERE r.CustomerID = @CustomerID ORDER BY r.RentalDate DESC";
             var p = new[] { new SqliteParameter("@CustomerID", customerID) };
             using var conn = _dbService.CreateConnection();
-            var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapRental);
+            var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);
             return list.Where(r => r != null).Select(r => r!).ToList();
         }
     }
