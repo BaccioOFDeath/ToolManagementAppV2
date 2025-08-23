@@ -34,6 +34,7 @@ namespace InventoryManagementApp.ViewModels
         public IRelayCommand NewItemCommand { get; }
         public IRelayCommand OpenRentalsCommand { get; }
         public IRelayCommand OpenImportExportCommand { get; }
+        public IAsyncRelayCommand<ItemModel> CheckInItemCommand { get; }
 
         public DashboardViewModel(IItemService itemService,
                                   IRentalService rentalService,
@@ -72,6 +73,8 @@ namespace InventoryManagementApp.ViewModels
                 try { _openImportExportCommand.Execute(null); }
                 catch (Exception ex) { _logger.LogError(ex, "Failed to open import/export page"); }
             });
+
+            CheckInItemCommand = new AsyncRelayCommand<ItemModel>(CheckInItemAsync);
         }
 
         public Task LoadAsync(CancellationToken cancellationToken)
@@ -150,6 +153,24 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load checked-out items");
+            }
+        }
+
+        private async Task CheckInItemAsync(ItemModel? item, CancellationToken token)
+        {
+            if (item == null) return;
+            try
+            {
+                var result = await _itemService.ToggleItemCheckOutStatusAsync(item.ItemID, token).ConfigureAwait(false);
+                if (result)
+                    CheckedOutItems.Remove(item);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to check in item {ItemID}", item.ItemID);
             }
         }
     }
