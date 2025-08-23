@@ -31,21 +31,33 @@ namespace InventoryManagementApp.ViewModels
         public string SearchText
         {
             get => _searchText;
-            set => SetProperty(ref _searchText, value);
+            set
+            {
+                if (SetProperty(ref _searchText, value))
+                    ApplyFilterCommand.Execute(null);
+            }
         }
 
         private DateTime? _filterFrom;
         public DateTime? FilterFrom
         {
             get => _filterFrom;
-            set => SetProperty(ref _filterFrom, value);
+            set
+            {
+                if (SetProperty(ref _filterFrom, value))
+                    ApplyFilterCommand.Execute(null);
+            }
         }
 
         private DateTime? _filterTo;
         public DateTime? FilterTo
         {
             get => _filterTo;
-            set => SetProperty(ref _filterTo, value);
+            set
+            {
+                if (SetProperty(ref _filterTo, value))
+                    ApplyFilterCommand.Execute(null);
+            }
         }
 
         public ObservableCollection<string> StatusOptions { get; } =
@@ -55,7 +67,11 @@ namespace InventoryManagementApp.ViewModels
         public string SelectedStatus
         {
             get => _selectedStatus;
-            set => SetProperty(ref _selectedStatus, value);
+            set
+            {
+                if (SetProperty(ref _selectedStatus, value))
+                    ApplyFilterCommand.Execute(null);
+            }
         }
 
         private RentalModel _selectedRental;
@@ -77,8 +93,6 @@ namespace InventoryManagementApp.ViewModels
 
         public IRelayCommand ApplyFilterCommand { get; }
         public IRelayCommand ClearFilterCommand { get; }
-        public IRelayCommand OpenFilterWindowCommand { get; }
-        public IRelayCommand CloseCommand { get; }
         public IAsyncRelayCommand CheckInCommand { get; }
         public IAsyncRelayCommand ExtendCommand { get; }
         public IAsyncRelayCommand OpenHistoryCommand { get; }
@@ -93,8 +107,6 @@ namespace InventoryManagementApp.ViewModels
 
             ApplyFilterCommand = new RelayCommand(ApplyFilter);
             ClearFilterCommand = new RelayCommand(ClearFilter);
-            OpenFilterWindowCommand = new RelayCommand(OpenFilterWindow);
-            CloseCommand = new RelayCommand(CloseFilterWindow);
             CheckInCommand = new AsyncRelayCommand(CheckInAsync, () => SelectedRental != null);
             ExtendCommand = new AsyncRelayCommand(ExtendAsync, () => SelectedRental != null);
             OpenHistoryCommand = new AsyncRelayCommand(OpenHistoryAsync, () => SelectedRental != null);
@@ -152,21 +164,6 @@ namespace InventoryManagementApp.ViewModels
             FilterTo = null;
             SelectedStatus = StatusOptions.First();
             Rentals.ReplaceRange(_allRentals);
-        }
-
-        void OpenFilterWindow()
-        {
-            _dialogService.ShowRentalsFilter(this);
-        }
-
-        void CloseFilterWindow()
-        {
-            if (System.Windows.Application.Current == null) return;
-            var window = System.Windows.Application.Current.Windows
-                .OfType<Window>()
-                .FirstOrDefault(w => w.DataContext == this);
-            if (window != null)
-                window.Close();
         }
 
         async Task CheckInAsync()
