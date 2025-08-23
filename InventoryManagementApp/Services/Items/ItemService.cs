@@ -93,19 +93,22 @@ namespace InventoryManagementApp.Services.Items
 
             var caller = _context.UserName;
             var result = await ToggleItemCheckOutStatusInternalAsync(itemID, caller, cancellationToken).ConfigureAwait(false);
-            if (result && _activityLog != null)
+            if (!result)
+                return false;
+
+            if (_activityLog != null)
             {
                 int userId = _context.CurrentUser?.UserID ?? 0;
                 await _activityLog.LogActionAsync(userId, caller, $"Toggled item {itemID} check-out status", cancellationToken).ConfigureAwait(false);
             }
-            return result;
+            return true;
         }
 
         public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default)
         {
             using var conn = _dbService.CreateConnection();
             return SqliteHelper.ExecuteReaderAsync(conn,
-                "SELECT * FROM Items WHERE CheckedOutBy=@User AND IsCheckedOut=1",
+                "SELECT * FROM Items WHERE CheckedOutBy=@User AND IsCheckedOut=1 AND IFNULL(IsRentalItem,0)=0",
                 MapItem,
                 new[] { new SqliteParameter("@User", userName) }, cancellationToken);
         }
@@ -447,12 +450,21 @@ namespace InventoryManagementApp.Services.Items
         {
             using var conn = _dbService.CreateConnection();
             var record = (await SqliteHelper.ExecuteReaderAsync(conn,
-                "SELECT IsCheckedOut, AvailableQuantity, CheckedOutBy FROM Items WHERE ItemID=@ID",
-                r => new { Out = Convert.ToInt32(r["IsCheckedOut"]) == 1, Qty = Convert.ToInt32(r["AvailableQuantity"]), By = r["CheckedOutBy"]?.ToString() },
+                "SELECT IsRentalItem, IsCheckedOut, AvailableQuantity, CheckedOutBy FROM Items WHERE ItemID=@ID",
+                r => new
+                {
+                    Rental = Convert.ToInt32(r["IsRentalItem"]) == 1,
+                    Out = Convert.ToInt32(r["IsCheckedOut"]) == 1,
+                    Qty = Convert.ToInt32(r["AvailableQuantity"]),
+                    By = r["CheckedOutBy"]?.ToString()
+                },
                 new[] { new SqliteParameter("@ID", itemID) }, cancellationToken)).FirstOrDefault();
 
             if (record == null)
                 throw new InvalidOperationException($"ItemModel {itemID} not found.");
+
+            if (record.Rental)
+                return false;
 
             if (!record.Out)
             {
