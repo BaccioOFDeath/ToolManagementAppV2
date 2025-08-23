@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using Microsoft.Data.Sqlite;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -44,6 +45,30 @@ namespace InventoryManagementApp.Tests
             Assert.NotNull(vm.NewItemCommand);
             Assert.True(vm.NewItemCommand.CanExecute(null));
             await vm.NewItemCommand.ExecuteAsync(null);
+
+            var items = (IList)new List<ItemModel>();
+            Assert.NotNull(vm.DeleteItemsCommand);
+            Assert.True(vm.DeleteItemsCommand.CanExecute(items));
+            await vm.DeleteItemsCommand.ExecuteAsync(items);
+        }
+
+        [Fact]
+        public async Task DeleteItemsCommand_RemovesItems()
+        {
+            var service = new DummyItemService();
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var settings = new DummySettingsService();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings);
+            var item1 = new ItemModel { ItemID = 1, Name = "A" };
+            var item2 = new ItemModel { ItemID = 2, Name = "B" };
+            vm.Items.Add(item1);
+            vm.Items.Add(item2);
+            var list = (IList)new List<ItemModel> { item1 };
+            await vm.DeleteItemsCommand.ExecuteAsync(list);
+            Assert.Single(vm.Items);
+            Assert.Equal(2, vm.Items[0].ItemID);
         }
 
         [Fact]
@@ -520,7 +545,9 @@ namespace InventoryManagementApp.Tests
         private sealed class DummyDialogService : IDialogService
         {
             public void ShowInfo(string message, string title) { }
+            public Task ShowInfoAsync(string message, string title) => Task.CompletedTask;
             public bool ShowConfirmation(string message, string title) => true;
+            public Task<bool> ShowConfirmationAsync(string message, string title) => Task.FromResult(true);
             public ItemModel? ShowEditItemDialog(ItemModel item) => null;
             public void ShowItemDetails(ItemModel item) { }
             public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading;
@@ -11,6 +12,7 @@ using InventoryManagementApp.Data;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Utilities;
+using InventoryManagementApp.Utilities.Helpers;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -31,6 +33,7 @@ namespace InventoryManagementApp.ViewModels
         public IRelayCommand ViewDetailsCommand { get; }
         public IAsyncRelayCommand OpenRentalHistoryCommand { get; }
         public IAsyncRelayCommand NewItemCommand { get; }
+        public IAsyncRelayCommand<IList> DeleteItemsCommand { get; }
         public IAsyncRelayCommand CommitChangesCommand { get; }
 
         public IReadOnlyCollection<ItemModel> PendingEdits => _pendingEdits;
@@ -96,6 +99,7 @@ namespace InventoryManagementApp.ViewModels
             ViewDetailsCommand = new RelayCommand(ViewDetails);
             OpenRentalHistoryCommand = new AsyncRelayCommand(ct => OpenRentalHistoryAsync(ct));
             NewItemCommand = new AsyncRelayCommand(ct => NewItemAsync(ct));
+            DeleteItemsCommand = new AsyncRelayCommand<IList>(DeleteItemsAsync);
             CommitChangesCommand = new AsyncRelayCommand(ct => CommitChangesAsync(ct));
         }
 
@@ -279,6 +283,35 @@ namespace InventoryManagementApp.ViewModels
             }
             catch
             {
+            }
+        }
+
+        private async Task DeleteItemsAsync(IList? items, CancellationToken ct)
+        {
+            if (items == null || items.Count == 0) return;
+            var message = items.Count == 1
+                ? $"Delete {LabelProvider.Instance.ItemLabelSingular.ToLower()} '{((ItemModel)items[0]).Name}'?"
+                : $"Delete {items.Count} {LabelProvider.Instance.ItemLabelPlural.ToLower()}?";
+            var confirm = await _dialogService.ShowConfirmationAsync(message, "Confirm Delete").ConfigureAwait(false);
+            if (!confirm) return;
+            try
+            {
+                var toRemove = items.Cast<ItemModel>().ToList();
+                foreach (var item in toRemove)
+                {
+                    await _itemService.DeleteItemAsync(item.ItemID, ct).ConfigureAwait(false);
+                    Items.Remove(item);
+                }
+                if (SelectedItem != null && toRemove.Contains(SelectedItem))
+                    SelectedItem = null;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync($"You are not authorized to delete {LabelProvider.Instance.ItemLabelPlural.ToLower()}.", "Unauthorized").ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowInfoAsync($"Failed to delete {LabelProvider.Instance.ItemLabelPlural.ToLower()}: {ex.Message}", "Error").ConfigureAwait(false);
             }
         }
 
