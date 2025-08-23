@@ -149,7 +149,7 @@ namespace InventoryManagementApp.Services.Items
             var p = new[]
             {
                 new SqliteParameter("@ItemNumber", item.ItemNumber),
-                new SqliteParameter("@Desc", (object)item.NameDescription ?? DBNull.Value),
+                new SqliteParameter("@Desc", (object)item.Name ?? DBNull.Value),
                 new SqliteParameter("@Loc", item.Location),
                 new SqliteParameter("@Brand", item.Brand),
                 new SqliteParameter("@PN", item.PartNumber),
@@ -297,7 +297,7 @@ namespace InventoryManagementApp.Services.Items
             ItemID = r["ItemID"] is DBNull ? 0 : Convert.ToInt32(r["ItemID"]),
             ItemNumber = r["ItemNumber"].ToString(),
             PartNumber = r["PartNumber"].ToString(),
-            NameDescription = r["NameDescription"].ToString(),
+            Name = r["NameDescription"].ToString(),
             Brand = r["Brand"].ToString(),
             Location = r["Location"].ToString(),
             QuantityOnHand = r["AvailableQuantity"] is DBNull ? 0 : Convert.ToInt32(r["AvailableQuantity"]),
@@ -367,7 +367,7 @@ namespace InventoryManagementApp.Services.Items
             {
                 new SqliteParameter("@ID", item.ItemID),
                 new SqliteParameter("@ItemNumber", item.ItemNumber),
-                new SqliteParameter("@Desc", (object)item.NameDescription ?? DBNull.Value),
+                new SqliteParameter("@Desc", (object)item.Name ?? DBNull.Value),
                 new SqliteParameter("@Loc", item.Location),
                 new SqliteParameter("@Brand", item.Brand),
                 new SqliteParameter("@PN", item.PartNumber),
@@ -504,7 +504,7 @@ namespace InventoryManagementApp.Services.Items
                     var item = new ItemModel
                     {
                         ItemNumber = itemNumber,
-                        NameDescription = GetMapped(cols, headers, map, "NameDescription"),
+                        Name = GetMapped(cols, headers, map, "NameDescription"),
                         Location = GetMapped(cols, headers, map, "Location"),
                         Brand = GetMapped(cols, headers, map, "Brand"),
                         PartNumber = GetMapped(cols, headers, map, "PartNumber"),

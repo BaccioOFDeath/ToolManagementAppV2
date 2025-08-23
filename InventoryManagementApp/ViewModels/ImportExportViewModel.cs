@@ -104,7 +104,7 @@ namespace InventoryManagementApp.ViewModels
                 var map = _dialogService.ShowImportMapping(
                     headers,
                     properties,
-                    new[] { nameof(ItemImportDto.ItemNumber), nameof(ItemImportDto.NameDescription) });
+                    new[] { nameof(ItemImportDto.ItemNumber), nameof(ItemImportDto.Name) });
                 if (map == null)
                     return;
                 var plural = LabelProvider.Instance.ItemLabelPlural;

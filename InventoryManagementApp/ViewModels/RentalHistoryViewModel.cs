@@ -46,7 +46,7 @@ namespace InventoryManagementApp.ViewModels.Rental
         public RentalHistoryViewModel(ItemModel? item, IEnumerable<RentalModel>? history, IDialogService dialogService, ILogger<RentalHistoryViewModel>? logger = null)
         {
             ItemDisplayName = item != null
-                ? $"{item.ItemNumber} - {item.NameDescription}"
+                ? $"{item.ItemNumber} - {item.Name}"
                 : "Rental History";
 
             _allHistory = (history ?? Enumerable.Empty<RentalModel>()).ToList();

@@ -55,7 +55,7 @@ namespace InventoryManagementApp.Services.Rentals
 
         const string BaseSelect = @"SELECT r.*,
                                     t.ItemNumber,
-                                    t.NameDescription,
+                                    t.NameDescription AS Name,
                                     t.Location AS ItemLocation,
                                     t.ImagePath,
                                     c.Company,

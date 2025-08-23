@@ -25,11 +25,11 @@ namespace InventoryManagementApp.Models.Domain
             set => SetProperty(ref _partNumber, value);
         }
 
-        private string _nameDescription = string.Empty;
-        public string NameDescription
+        private string _name = string.Empty;
+        public string Name
         {
-            get => _nameDescription;
-            set => SetProperty(ref _nameDescription, value);
+            get => _name;
+            set => SetProperty(ref _name, value);
         }
 
         private string _brand = string.Empty;

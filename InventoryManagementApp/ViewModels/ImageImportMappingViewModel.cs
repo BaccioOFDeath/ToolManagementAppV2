@@ -14,8 +14,8 @@ namespace InventoryManagementApp.ViewModels
         bool _usePartNumber;
         public bool UsePartNumber { get => _usePartNumber; set => SetProperty(ref _usePartNumber, value); }
 
-        bool _useNameDescription;
-        public bool UseNameDescription { get => _useNameDescription; set => SetProperty(ref _useNameDescription, value); }
+        bool _useName;
+        public bool UseName { get => _useName; set => SetProperty(ref _useName, value); }
 
         public IRelayCommand OkCommand { get; }
         public IRelayCommand CancelCommand { get; }
@@ -35,8 +35,8 @@ namespace InventoryManagementApp.ViewModels
                     keys.Add(t.ItemNumber.Trim().ToUpperInvariant());
                 if (UsePartNumber && !string.IsNullOrWhiteSpace(t.PartNumber))
                     keys.Add(t.PartNumber.Trim().ToUpperInvariant());
-                if (UseNameDescription && !string.IsNullOrWhiteSpace(t.NameDescription))
-                    keys.Add(t.NameDescription.Trim().ToUpperInvariant());
+                if (UseName && !string.IsNullOrWhiteSpace(t.Name))
+                    keys.Add(t.Name.Trim().ToUpperInvariant());
                 return keys;
             };
         }

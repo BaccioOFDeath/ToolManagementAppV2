@@ -33,7 +33,7 @@
             <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ItemModel.ItemNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
             <TextBlock Grid.Row="1" Grid.Column="0" Text="Name" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
-            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ItemModel.NameDescription, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ItemModel.Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
             <TextBlock Grid.Row="2" Grid.Column="0" Text="Brand" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
             <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ItemModel.Brand, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>

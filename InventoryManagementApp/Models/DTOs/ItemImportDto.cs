@@ -3,7 +3,7 @@
     public class ItemImportDto
     {
         public string ItemNumber { get; set; }
-        public string NameDescription { get; set; }
+        public string Name { get; set; }
         public string Location { get; set; }
         public string Brand { get; set; }
         public string PartNumber { get; set; }
