@@ -21,13 +21,50 @@ public sealed class ItemRepository : IItemRepository
             sql += " WHERE ItemNumber LIKE @Search OR NameDescription LIKE @Search";
         sql += " ORDER BY ItemID LIMIT @Take OFFSET @Skip";
         var param = new { Search = $"%{filter.Search}%", Take = page.Size, Skip = (page.Number - 1) * page.Size };
-        using var conn = _factory.Create();
-        var rows = await conn.QueryAsync<Item>(
-            new CommandDefinition(sql, param, flags: CommandFlags.None, cancellationToken: ct));
-        foreach (var row in rows)
+        await using var conn = _factory.Create();
+        await using var reader = await conn.ExecuteReaderAsync(
+            new CommandDefinition(sql, param, cancellationToken: ct)).ConfigureAwait(false);
+
+        var ordinalItemID = reader.GetOrdinal("ItemID");
+        var ordinalItemNumber = reader.GetOrdinal("ItemNumber");
+        var ordinalNameDescription = reader.GetOrdinal("NameDescription");
+        var ordinalLocation = reader.GetOrdinal("Location");
+        var ordinalBrand = reader.GetOrdinal("Brand");
+        var ordinalPartNumber = reader.GetOrdinal("PartNumber");
+        var ordinalSupplier = reader.GetOrdinal("Supplier");
+        var ordinalPurchasedDate = reader.GetOrdinal("PurchasedDate");
+        var ordinalNotes = reader.GetOrdinal("Notes");
+        var ordinalKeywords = reader.GetOrdinal("Keywords");
+        var ordinalAvailableQuantity = reader.GetOrdinal("AvailableQuantity");
+        var ordinalRentedQuantity = reader.GetOrdinal("RentedQuantity");
+        var ordinalImagePath = reader.GetOrdinal("ImagePath");
+        var ordinalIsCheckedOut = reader.GetOrdinal("IsCheckedOut");
+        var ordinalCheckedOutBy = reader.GetOrdinal("CheckedOutBy");
+        var ordinalCheckedOutTime = reader.GetOrdinal("CheckedOutTime");
+        var ordinalIsPowered = reader.GetOrdinal("IsPowered");
+
+        while (await reader.ReadAsync(ct).ConfigureAwait(false))
         {
-            ct.ThrowIfCancellationRequested();
-            yield return row;
+            yield return new Item
+            {
+                ItemID = !reader.IsDBNull(ordinalItemID) ? reader.GetInt32(ordinalItemID) : 0,
+                ItemNumber = reader.IsDBNull(ordinalItemNumber) ? string.Empty : reader.GetString(ordinalItemNumber),
+                NameDescription = reader.IsDBNull(ordinalNameDescription) ? string.Empty : reader.GetString(ordinalNameDescription),
+                Location = reader.IsDBNull(ordinalLocation) ? string.Empty : reader.GetString(ordinalLocation),
+                Brand = reader.IsDBNull(ordinalBrand) ? string.Empty : reader.GetString(ordinalBrand),
+                PartNumber = reader.IsDBNull(ordinalPartNumber) ? string.Empty : reader.GetString(ordinalPartNumber),
+                Supplier = reader.IsDBNull(ordinalSupplier) ? string.Empty : reader.GetString(ordinalSupplier),
+                PurchasedDate = reader.IsDBNull(ordinalPurchasedDate) ? null : reader.GetDateTime(ordinalPurchasedDate),
+                Notes = reader.IsDBNull(ordinalNotes) ? string.Empty : reader.GetString(ordinalNotes),
+                Keywords = reader.IsDBNull(ordinalKeywords) ? string.Empty : reader.GetString(ordinalKeywords),
+                QuantityOnHand = reader.IsDBNull(ordinalAvailableQuantity) ? 0 : reader.GetInt32(ordinalAvailableQuantity),
+                RentedQuantity = reader.IsDBNull(ordinalRentedQuantity) ? 0 : reader.GetInt32(ordinalRentedQuantity),
+                ImagePath = reader.IsDBNull(ordinalImagePath) ? string.Empty : reader.GetString(ordinalImagePath),
+                IsCheckedOut = !reader.IsDBNull(ordinalIsCheckedOut) && reader.GetInt32(ordinalIsCheckedOut) == 1,
+                CheckedOutBy = reader.IsDBNull(ordinalCheckedOutBy) ? string.Empty : reader.GetString(ordinalCheckedOutBy),
+                CheckedOutTime = reader.IsDBNull(ordinalCheckedOutTime) ? null : reader.GetDateTime(ordinalCheckedOutTime),
+                IsPowered = !reader.IsDBNull(ordinalIsPowered) && reader.GetInt32(ordinalIsPowered) == 1
+            };
         }
     }
 
