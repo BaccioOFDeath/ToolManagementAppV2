@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
@@ -20,6 +21,11 @@ namespace InventoryManagementApp.ViewModels
         private const int PageSize = 200;
         public IncrementalLoadingCollection<ItemModel> Items { get; }
 
+        public IRelayCommand EditItemCommand { get; }
+        public IRelayCommand ViewDetailsCommand { get; }
+        public IRelayCommand OpenRentalHistoryCommand { get; }
+        public IRelayCommand NewItemCommand { get; }
+
         [ObservableProperty]
         private ItemModel? selectedItem;
 
@@ -32,6 +38,11 @@ namespace InventoryManagementApp.ViewModels
             _memoryBudget = memoryBudget;
             Items = new IncrementalLoadingCollection<ItemModel>(LoadPageAsync, PageSize);
             _memoryBudget.ThresholdExceeded += OnThresholdExceeded;
+
+            EditItemCommand = new RelayCommand(() => { /* Edit item placeholder */ });
+            ViewDetailsCommand = new RelayCommand(() => { /* View details placeholder */ });
+            OpenRentalHistoryCommand = new RelayCommand(() => { /* Open rental history placeholder */ });
+            NewItemCommand = new RelayCommand(() => { /* New item placeholder */ });
         }
 
         private async Task<IList<ItemModel>> LoadPageAsync(int page, CancellationToken ct)
