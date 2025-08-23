@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Models.Domain;
+using InventoryManagementApp.Models.ImportExport;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Services.Items;
 using Xunit;
@@ -43,6 +44,35 @@ public class ItemServiceCsvImportTests
 
         Assert.Empty(invalid);
         Assert.True(after - before < 80_000_000);
+
+        File.Delete(csvPath);
+        File.Delete(dbPath);
+    }
+
+    [Fact]
+    public async Task ImportItemsFromCsv_PopulatesNames()
+    {
+        var csvPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
+        await File.WriteAllTextAsync(csvPath, "ItemNumber,NameDescription\nNUM1,ItemName");
+
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        await using var db = new DatabaseService(dbPath);
+        var service = new ItemService(db, new DummyItemRepository());
+
+        var map = new Dictionary<string, string>
+        {
+            ["ItemNumber"] = "ItemNumber",
+            [nameof(ItemImportDto.Name)] = "NameDescription"
+        };
+
+        var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
+        Assert.Empty(invalid);
+
+        using var conn = db.CreateConnection();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT NameDescription FROM Items WHERE ItemNumber='NUM1'";
+        var name = cmd.ExecuteScalar()?.ToString();
+        Assert.Equal("ItemName", name);
 
         File.Delete(csvPath);
         File.Delete(dbPath);

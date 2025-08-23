@@ -508,7 +508,7 @@ namespace InventoryManagementApp.Services.Items
                     var item = new ItemModel
                     {
                         ItemNumber = itemNumber,
-                        Name = GetMapped(cols, headers, map, "NameDescription"),
+                        Name = GetMapped(cols, headers, map, nameof(ItemImportDto.Name)),
                         Location = GetMapped(cols, headers, map, "Location"),
                         Brand = GetMapped(cols, headers, map, "Brand"),
                         PartNumber = GetMapped(cols, headers, map, "PartNumber"),
