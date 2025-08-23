@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -16,7 +17,6 @@ namespace InventoryManagementApp.ViewModels
     public partial class ItemsViewModel : ObservableObject, IDisposable
     {
         private readonly IItemService _itemService;
-        private readonly IItemRepository _itemRepository;
         private readonly MemoryBudget _memoryBudget;
         private readonly IDialogService _dialogService;
         private readonly IRentalService _rentalService;
@@ -31,7 +31,7 @@ namespace InventoryManagementApp.ViewModels
         public IRelayCommand ViewDetailsCommand { get; }
         public IAsyncRelayCommand OpenRentalHistoryCommand { get; }
         public IAsyncRelayCommand NewItemCommand { get; }
-        public IAsyncRelayCommand SaveChangesCommand { get; }
+        public IAsyncRelayCommand CommitChangesCommand { get; }
 
         public IReadOnlyCollection<ItemModel> PendingEdits => _pendingEdits;
 
@@ -41,10 +41,9 @@ namespace InventoryManagementApp.ViewModels
         [ObservableProperty]
         private string filter = string.Empty;
 
-        public ItemsViewModel(IItemService itemService, IItemRepository itemRepository, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService)
+        public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService)
         {
             _itemService = itemService;
-            _itemRepository = itemRepository;
             _memoryBudget = memoryBudget;
             _dialogService = dialogService;
             _rentalService = rentalService;
@@ -55,7 +54,7 @@ namespace InventoryManagementApp.ViewModels
             ViewDetailsCommand = new RelayCommand(ViewDetails);
             OpenRentalHistoryCommand = new AsyncRelayCommand(ct => OpenRentalHistoryAsync(ct));
             NewItemCommand = new AsyncRelayCommand(ct => NewItemAsync(ct));
-            SaveChangesCommand = new AsyncRelayCommand(ct => SaveChangesAsync(ct));
+            CommitChangesCommand = new AsyncRelayCommand(ct => CommitChangesAsync(ct));
         }
 
         private async Task<IList<ItemModel>> LoadPageAsync(int page, CancellationToken ct)
@@ -217,11 +216,47 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        private async Task SaveChangesAsync(CancellationToken ct)
+        private async Task CommitChangesAsync(CancellationToken ct)
         {
             if (_pendingEdits.Count == 0) return;
-            await _itemRepository.SaveChangesAsync(_pendingEdits, ct).ConfigureAwait(false);
-            _pendingEdits.Clear();
+            var edits = _pendingEdits.ToList();
+            try
+            {
+                await _itemService.SaveChangesAsync(edits, ct).ConfigureAwait(false);
+                _pendingEdits.Clear();
+                foreach (var item in edits)
+                {
+                    var refreshed = await _itemService.GetItemByIDAsync(item.ItemID, ct).ConfigureAwait(false);
+                    if (refreshed == null) continue;
+                    item.PropertyChanged -= Item_PropertyChanged;
+                    item.ItemNumber = refreshed.ItemNumber;
+                    item.PartNumber = refreshed.PartNumber;
+                    item.Name = refreshed.Name;
+                    item.Brand = refreshed.Brand;
+                    item.Location = refreshed.Location;
+                    item.QuantityOnHand = refreshed.QuantityOnHand;
+                    item.RentedQuantity = refreshed.RentedQuantity;
+                    item.Supplier = refreshed.Supplier;
+                    item.PurchasedDate = refreshed.PurchasedDate;
+                    item.Notes = refreshed.Notes;
+                    item.Keywords = refreshed.Keywords;
+                    item.IsPowered = refreshed.IsPowered;
+                    item.IsCheckedOut = refreshed.IsCheckedOut;
+                    item.CheckedOutBy = refreshed.CheckedOutBy;
+                    item.CheckedOutTime = refreshed.CheckedOutTime;
+                    item.ImagePath = refreshed.ImagePath;
+                    item.Price = refreshed.Price;
+                    item.PropertyChanged += Item_PropertyChanged;
+                }
+                await _dialogService.ShowInfoAsync("Changes saved.", "Success").ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowInfoAsync($"Failed to save changes: {ex.Message}", "Error").ConfigureAwait(false);
+            }
         }
 
         public void Dispose()

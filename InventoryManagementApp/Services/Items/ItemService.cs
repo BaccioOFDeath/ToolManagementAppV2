@@ -586,5 +586,11 @@ namespace InventoryManagementApp.Services.Items
                 }
             }
         }
+
+        public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct)
+        {
+            _auth.EnsureAdmin();
+            return _repository.SaveChangesAsync(changes, ct);
+        }
     }
 }
