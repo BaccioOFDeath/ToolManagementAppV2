@@ -31,15 +31,16 @@ public class ItemRepositoryCountTests
             IsCheckedOut INTEGER,
             CheckedOutBy TEXT,
             CheckedOutTime TEXT,
-            IsPowered INTEGER
+            IsPowered INTEGER,
+            UpdatedAt TEXT
         );";
         cmd.ExecuteNonQuery();
         await conn.ExecuteAsync(
-            "INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsCheckedOut, IsPowered) VALUES (@ItemNumber,@Name,0,0,0,0)",
-            new { ItemNumber = "A1", Name = "Hand Saw" });
+            "INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,0,0,0,0,@UpdatedAt)",
+            new { ItemNumber = "A1", Name = "Hand Saw", UpdatedAt = System.DateTime.UtcNow });
         await conn.ExecuteAsync(
-            "INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsCheckedOut, IsPowered) VALUES (@ItemNumber,@Name,0,0,0,0)",
-            new { ItemNumber = "B2", Name = "Hammer" });
+            "INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,0,0,0,0,@UpdatedAt)",
+            new { ItemNumber = "B2", Name = "Hammer", UpdatedAt = System.DateTime.UtcNow });
     }
 
     [Fact]

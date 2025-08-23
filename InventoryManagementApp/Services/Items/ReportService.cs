@@ -40,7 +40,7 @@ namespace InventoryManagementApp.Services.Items
         public async Task<FlowDocument> GenerateInventoryReport()
         {
             var items = new List<ItemModel>();
-            await foreach (var item in _itemService.GetItemsAsync(new ItemPage(1, int.MaxValue)).ConfigureAwait(false))
+            await foreach (var item in _itemService.GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending).ConfigureAwait(false))
                 items.Add(item);
             var lines = items.Select(t =>
                 $"ItemModel ID: {t.ItemID} | ItemNumber: {t.ItemNumber} | Qty: {t.QuantityOnHand} | Location: {t.Location} | Supplier: {t.Supplier}");
@@ -122,7 +122,7 @@ namespace InventoryManagementApp.Services.Items
         private async Task<int> CountItemsAsync()
         {
             var count = 0;
-            await foreach (var _ in _itemService.GetItemsAsync(new ItemPage(1, int.MaxValue)))
+            await foreach (var _ in _itemService.GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending))
                 count++;
             return count;
         }

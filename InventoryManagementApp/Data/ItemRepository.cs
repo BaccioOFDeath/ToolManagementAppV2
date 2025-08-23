@@ -17,10 +17,19 @@ public sealed class ItemRepository : IItemRepository
 
     public async IAsyncEnumerable<Item> GetPageAsync(ItemFilter filter, ItemPage page, [EnumeratorCancellation] CancellationToken ct)
     {
-        var sql = "SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, IsPowered FROM Items";
+        var sql = "SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, IsPowered, UpdatedAt FROM Items";
         if (!string.IsNullOrWhiteSpace(filter.Search))
             sql += " WHERE ItemNumber LIKE @Search COLLATE NOCASE OR NameDescription LIKE @Search COLLATE NOCASE";
-        sql += " ORDER BY ItemID LIMIT @Take OFFSET @Skip";
+        var orderColumn = filter.SortField switch
+        {
+            SortField.Name => "NameDescription",
+            SortField.ItemNumber => "ItemNumber",
+            SortField.QuantityOnHand => "AvailableQuantity",
+            SortField.UpdatedAt => "UpdatedAt",
+            _ => "ItemID"
+        };
+        var orderDirection = filter.SortDirection == SortDirection.Ascending ? "ASC" : "DESC";
+        sql += $" ORDER BY {orderColumn} {orderDirection} LIMIT @Take OFFSET @Skip";
         var param = new { Search = $"%{filter.Search}%", Take = page.Size, Skip = (page.Number - 1) * page.Size };
         await using var conn = (DbConnection)_factory.Create();
         await using var reader = await conn.ExecuteReaderAsync(
@@ -44,6 +53,7 @@ public sealed class ItemRepository : IItemRepository
         var ordinalCheckedOutBy = reader.GetOrdinal("CheckedOutBy");
         var ordinalCheckedOutTime = reader.GetOrdinal("CheckedOutTime");
         var ordinalIsPowered = reader.GetOrdinal("IsPowered");
+        var ordinalUpdatedAt = reader.GetOrdinal("UpdatedAt");
 
         while (await reader.ReadAsync(ct).ConfigureAwait(false))
         {
@@ -66,7 +76,8 @@ public sealed class ItemRepository : IItemRepository
                 IsCheckedOut = !reader.IsDBNull(ordinalIsCheckedOut) && reader.GetInt32(ordinalIsCheckedOut) == 1,
                 CheckedOutBy = reader.IsDBNull(ordinalCheckedOutBy) ? string.Empty : reader.GetString(ordinalCheckedOutBy),
                 CheckedOutTime = reader.IsDBNull(ordinalCheckedOutTime) ? null : reader.GetDateTime(ordinalCheckedOutTime),
-                IsPowered = !reader.IsDBNull(ordinalIsPowered) && reader.GetInt32(ordinalIsPowered) == 1
+                IsPowered = !reader.IsDBNull(ordinalIsPowered) && reader.GetInt32(ordinalIsPowered) == 1,
+                UpdatedAt = reader.IsDBNull(ordinalUpdatedAt) ? default : reader.GetDateTime(ordinalUpdatedAt)
             };
         }
     }
