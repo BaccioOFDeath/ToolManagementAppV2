@@ -1,4 +1,5 @@
 using System.Data;
+using System.Globalization;
 using Microsoft.Data.Sqlite;
 
 namespace InventoryManagementApp.Data;
@@ -27,6 +28,10 @@ public sealed class SqliteConnectionFactory
     {
         var connection = new SqliteConnection(_connectionString);
         connection.Open();
+
+        connection.CreateCollation("NOCASE_NOACCENT", static (x, y) =>
+            string.Compare(x, y, CultureInfo.InvariantCulture,
+                CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace));
 
         lock (_lock)
         {

@@ -39,6 +39,9 @@ public class ItemRepositorySearchTests
         await conn.ExecuteAsync(
             "INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,0,0,0,0,@UpdatedAt)",
             new { ItemNumber = "ABC123", Name = "Hand Saw", UpdatedAt = System.DateTime.UtcNow });
+        await conn.ExecuteAsync(
+            "INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,0,0,0,0,@UpdatedAt)",
+            new { ItemNumber = "CAFÉ1", Name = "Café Table", UpdatedAt = System.DateTime.UtcNow });
     }
 
     [Fact]
@@ -65,5 +68,29 @@ public class ItemRepositorySearchTests
             result.Add(item);
         Assert.Single(result);
         Assert.Equal("Hand Saw", result[0].Name);
+    }
+
+    [Fact]
+    public async Task GetPageAsync_SearchName_AccentInsensitive()
+    {
+        var factory = CreateFactory();
+        await SeedAsync(factory);
+        var repo = new ItemRepository(factory);
+        var result = new List<ItemModel>();
+        await foreach (var item in repo.GetPageAsync(new ItemFilter("cafe"), new ItemPage(1, 10), CancellationToken.None))
+            result.Add(item);
+        Assert.Contains(result, i => i.Name == "Café Table");
+    }
+
+    [Fact]
+    public async Task GetPageAsync_SearchItemNumber_AccentInsensitive()
+    {
+        var factory = CreateFactory();
+        await SeedAsync(factory);
+        var repo = new ItemRepository(factory);
+        var result = new List<ItemModel>();
+        await foreach (var item in repo.GetPageAsync(new ItemFilter("cafe"), new ItemPage(1, 10), CancellationToken.None))
+            result.Add(item);
+        Assert.Contains(result, i => i.ItemNumber == "CAFÉ1");
     }
 }

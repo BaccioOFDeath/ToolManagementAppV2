@@ -18,8 +18,14 @@ public sealed class ItemRepository : IItemRepository
     public async IAsyncEnumerable<Item> GetPageAsync(ItemFilter filter, ItemPage page, [EnumeratorCancellation] CancellationToken ct)
     {
         var sql = "SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, IsPowered, UpdatedAt FROM Items";
+        var parameters = new DynamicParameters();
         if (!string.IsNullOrWhiteSpace(filter.Search))
-            sql += " WHERE ItemNumber LIKE @Search COLLATE NOCASE OR NameDescription LIKE @Search COLLATE NOCASE";
+        {
+            sql += " WHERE ItemNumber LIKE @ItemNumberPrefix COLLATE NOCASE_NOACCENT OR ItemNumber LIKE @ItemNumberSubstring COLLATE NOCASE_NOACCENT OR NameDescription LIKE @NameSubstring COLLATE NOCASE_NOACCENT";
+            parameters.Add("ItemNumberPrefix", $"{filter.Search}%");
+            parameters.Add("ItemNumberSubstring", $"%{filter.Search}%");
+            parameters.Add("NameSubstring", $"%{filter.Search}%");
+        }
         var orderColumn = filter.SortField switch
         {
             SortField.Name => "NameDescription",
@@ -29,11 +35,12 @@ public sealed class ItemRepository : IItemRepository
             _ => "ItemID"
         };
         var orderDirection = filter.SortDirection == SortDirection.Ascending ? "ASC" : "DESC";
-        sql += $" ORDER BY {orderColumn} {orderDirection} LIMIT @Take OFFSET @Skip";
-        var param = new { Search = $"%{filter.Search}%", Take = page.Size, Skip = (page.Number - 1) * page.Size };
+        sql += $" ORDER BY {orderColumn} {orderDirection}, ItemID ASC LIMIT @Take OFFSET @Skip";
+        parameters.Add("Take", page.Size);
+        parameters.Add("Skip", (page.Number - 1) * page.Size);
         await using var conn = (DbConnection)_factory.Create();
-        await using var reader = await conn.ExecuteReaderAsync(
-            new CommandDefinition(sql, param, cancellationToken: ct)).ConfigureAwait(false);
+        var command = new CommandDefinition(sql, parameters, flags: CommandFlags.Pipelined, cancellationToken: ct);
+        await using var reader = await conn.ExecuteReaderAsync(command).ConfigureAwait(false);
 
         var ordinalItemID = reader.GetOrdinal("ItemID");
         var ordinalItemNumber = reader.GetOrdinal("ItemNumber");
@@ -85,14 +92,16 @@ public sealed class ItemRepository : IItemRepository
     public async Task<int> CountAsync(ItemFilter filter, CancellationToken ct)
     {
         var sql = "SELECT COUNT(*) FROM Items";
-        object? param = null;
+        var parameters = new DynamicParameters();
         if (!string.IsNullOrWhiteSpace(filter.Search))
         {
-            sql += " WHERE ItemNumber LIKE @Search COLLATE NOCASE OR NameDescription LIKE @Search COLLATE NOCASE";
-            param = new { Search = $"%{filter.Search}%" };
+            sql += " WHERE ItemNumber LIKE @ItemNumberPrefix COLLATE NOCASE_NOACCENT OR ItemNumber LIKE @ItemNumberSubstring COLLATE NOCASE_NOACCENT OR NameDescription LIKE @NameSubstring COLLATE NOCASE_NOACCENT";
+            parameters.Add("ItemNumberPrefix", $"{filter.Search}%");
+            parameters.Add("ItemNumberSubstring", $"%{filter.Search}%");
+            parameters.Add("NameSubstring", $"%{filter.Search}%");
         }
         await using var conn = (DbConnection)_factory.Create();
-        return await conn.ExecuteScalarAsync<int>(new CommandDefinition(sql, param, cancellationToken: ct));
+        return await conn.ExecuteScalarAsync<int>(new CommandDefinition(sql, parameters, flags: CommandFlags.Pipelined, cancellationToken: ct));
     }
 
     public async Task SaveChangesAsync(IEnumerable<Item> changes, CancellationToken ct)
