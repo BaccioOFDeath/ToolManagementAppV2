@@ -151,7 +151,7 @@ namespace InventoryManagementApp.Services.Customers
             using var conn = _dbService.CreateConnection();
             try
             {
-                return await SqliteHelper.ExecuteReaderAsync(conn, sql, MapCustomer, cancellationToken);
+                return await SqliteHelper.ExecuteReaderAsync(conn, sql, MapCustomer, cancellationToken: cancellationToken);
             }
             catch (Exception ex)
             {
