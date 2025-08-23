@@ -264,6 +264,35 @@ public class DashboardViewModelTests
     }
 
     [Fact]
+    public async Task LoadCheckedOutItemsAsync_PopulatesCollection()
+    {
+        using var db = new DatabaseService(":memory:");
+        var itemService = new StubItemService();
+        itemService.Items.Add(new ItemModel { ItemNumber = "Y1", CheckedOutBy = "Bob" });
+        var rentalService = new StubRentalService();
+        var customerService = new StubCustomerService();
+        var userService = new StubUserService();
+        var activityLogService = new StubActivityLogService(db);
+
+        var vm = new DashboardViewModel(
+            itemService,
+            rentalService,
+            customerService,
+            userService,
+            activityLogService,
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }));
+
+        await vm.LoadCheckedOutItemsAsync(CancellationToken.None);
+
+        Assert.Single(vm.CheckedOutItems);
+        Assert.Equal("Y1", vm.CheckedOutItems[0].ItemNumber);
+        Assert.Equal("Bob", vm.CheckedOutItems[0].CheckedOutBy);
+        Assert.Equal(1, itemService.CheckedOutCalls);
+    }
+
+    [Fact]
     public async Task LoadAsync_PopulatesCheckedOutItems()
     {
         using var db = new DatabaseService(":memory:");

@@ -41,8 +41,8 @@ public class ItemRepositoryPaginationTests
         for (int i = 1; i <= 5; i++)
         {
             await conn.ExecuteAsync(
-                "INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsRentalItem, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,0,0,0,0,0,@UpdatedAt)",
-                new { ItemNumber = $"I{i}", Name = $"Item {i}", UpdatedAt = System.DateTime.UtcNow });
+                "INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsRentalItem, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,0,0,@IsRental,0,0,@UpdatedAt)",
+                new { ItemNumber = $"I{i}", Name = $"Item {i}", IsRental = i % 2, UpdatedAt = System.DateTime.UtcNow });
         }
     }
 
