@@ -103,7 +103,8 @@ namespace InventoryManagementApp.Services.Items
             using var conn = _dbService.CreateConnection();
             return SqliteHelper.ExecuteReaderAsync(conn,
                 "SELECT * FROM Items WHERE CheckedOutBy=@User AND IsCheckedOut=1",
-                new[] { new SqliteParameter("@User", userName) }, MapItem, cancellationToken);
+                MapItem,
+                new[] { new SqliteParameter("@User", userName) }, cancellationToken);
         }
 
         public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default)
@@ -414,7 +415,8 @@ namespace InventoryManagementApp.Services.Items
         {
             using var conn = _dbService.CreateConnection();
             var list = await SqliteHelper.ExecuteReaderAsync(conn, "SELECT * FROM Items WHERE ItemID=@ItemID",
-                new[] { new SqliteParameter("@ItemID", itemID) }, MapItem, cancellationToken);
+                MapItem,
+                new[] { new SqliteParameter("@ItemID", itemID) }, cancellationToken);
             return list.FirstOrDefault();
         }
 
@@ -432,8 +434,8 @@ namespace InventoryManagementApp.Services.Items
             using var conn = _dbService.CreateConnection();
             var record = (await SqliteHelper.ExecuteReaderAsync(conn,
                 "SELECT IsCheckedOut, AvailableQuantity FROM Items WHERE ItemID=@ID",
-                new[] { new SqliteParameter("@ID", itemID) },
-                r => new { Out = Convert.ToInt32(r["IsCheckedOut"]) == 1, Qty = Convert.ToInt32(r["AvailableQuantity"]) }, cancellationToken)).FirstOrDefault();
+                r => new { Out = Convert.ToInt32(r["IsCheckedOut"]) == 1, Qty = Convert.ToInt32(r["AvailableQuantity"]) },
+                new[] { new SqliteParameter("@ID", itemID) }, cancellationToken)).FirstOrDefault();
 
             if (record == null)
                 throw new InvalidOperationException($"ItemModel {itemID} not found.");
@@ -483,8 +485,9 @@ namespace InventoryManagementApp.Services.Items
             using var conn = _dbService.CreateConnection();
             var existingNumbers = new HashSet<string>(
                 await SqliteHelper.ExecuteReaderAsync(conn,
-                    "SELECT ItemNumber FROM Items", null,
-                    r => r.GetString(0), cancellationToken));
+                    "SELECT ItemNumber FROM Items",
+                    r => r.GetString(0),
+                    null, cancellationToken));
 
             using var tran = conn.BeginTransaction();
             var row = 1; // header already read

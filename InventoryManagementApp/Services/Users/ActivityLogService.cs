@@ -68,7 +68,7 @@ namespace InventoryManagementApp.Services.Users
                      LIMIT @Count";
                 var p = new[] { new SqliteParameter("@Count", count) };
                 using var conn = _dbService.CreateConnection();
-                var logs = await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapLog, cancellationToken).ConfigureAwait(false);
+                var logs = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapLog, p, cancellationToken).ConfigureAwait(false);
                 return new Result<List<ActivityLog>>(logs, true);
             }
             catch (OperationCanceledException ex)

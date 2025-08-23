@@ -135,7 +135,7 @@ namespace InventoryManagementApp.Services.Customers
             using var conn = _dbService.CreateConnection();
             try
             {
-                var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapCustomer, cancellationToken);
+                var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapCustomer, p, cancellationToken);
                 return list.FirstOrDefault();
             }
             catch (Exception ex)
@@ -151,7 +151,7 @@ namespace InventoryManagementApp.Services.Customers
             using var conn = _dbService.CreateConnection();
             try
             {
-                return await SqliteHelper.ExecuteReaderAsync(conn, sql, null, MapCustomer, cancellationToken);
+                return await SqliteHelper.ExecuteReaderAsync(conn, sql, MapCustomer, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -185,7 +185,7 @@ namespace InventoryManagementApp.Services.Customers
             using var conn = _dbService.CreateConnection();
             try
             {
-                return await SqliteHelper.ExecuteReaderAsync(conn, sql, p, MapCustomer, cancellationToken);
+                return await SqliteHelper.ExecuteReaderAsync(conn, sql, MapCustomer, p, cancellationToken);
             }
             catch (Exception ex)
             {
