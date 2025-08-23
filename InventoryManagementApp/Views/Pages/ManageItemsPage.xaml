@@ -38,8 +38,10 @@
                             <Style TargetType="DataGridRow">
                                 <EventSetter Event="PreviewMouseRightButtonDown"
                                              Handler="DataGridRow_PreviewMouseRightButtonDown"/>
-                                <EventSetter Event="DataContextChanged"
-                                             Handler="DataGridRow_ContainerContentChanging"/>
+                                <EventSetter Event="Loaded"
+                                             Handler="DataGridRow_Loaded"/>
+                                <EventSetter Event="Unloaded"
+                                             Handler="DataGridRow_Unloaded"/>
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
