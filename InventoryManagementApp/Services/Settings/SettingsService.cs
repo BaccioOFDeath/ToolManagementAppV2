@@ -3,8 +3,12 @@ using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text.Json;
+using System.Collections.Generic;
+using System.Linq;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Services.Users;
@@ -209,11 +213,7 @@ namespace InventoryManagementApp.Services.Settings
         const string AutoLogoutMinutesKey = "AutoLogoutMinutes";
         const string ItemLabelSingularKey = "ItemLabelSingular";
         const string ItemLabelPluralKey = "ItemLabelPlural";
-        const string ShowItemImageKey = "ShowItemImage";
-        const string ShowItemNameKey = "ShowItemName";
-        const string ShowItemNumberKey = "ShowItemNumber";
-        const string ShowItemLocationKey = "ShowItemLocation";
-        const string ShowItemNotesKey = "ShowItemNotes";
+        const string ItemDetailVisibilityKey = "ItemDetailVisibility";
 
         public async Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default)
         {
@@ -319,50 +319,40 @@ namespace InventoryManagementApp.Services.Settings
             await SaveSettingAsync(ItemLabelPluralKey, label, cancellationToken).ConfigureAwait(false);
         }
 
-        static bool ParseBool(string? value, bool defaultValue) => bool.TryParse(value, out var b) ? b : defaultValue;
-
-        async Task<bool> GetBoolSettingAsync(string key, bool defaultValue, CancellationToken cancellationToken)
+        public async Task<IDictionary<ItemDetailField, bool>> GetItemDetailVisibilityAsync(CancellationToken cancellationToken = default)
         {
-            var value = await GetSettingAsync(key, cancellationToken).ConfigureAwait(false);
-            if (value is null)
+            var json = await GetSettingAsync(ItemDetailVisibilityKey, cancellationToken).ConfigureAwait(false);
+            Dictionary<ItemDetailField, bool> visibility;
+            if (!string.IsNullOrWhiteSpace(json))
             {
+                try
+                {
+                    var dict = JsonSerializer.Deserialize<Dictionary<string, bool>>(json!) ?? new();
+                    visibility = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, f => dict.TryGetValue(f.ToString(), out var v) ? v : true);
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogError(ex, "Failed to parse item detail visibility settings");
+                    visibility = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => true);
+                }
+            }
+            else
+            {
+                visibility = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => true);
                 if (_auth.IsAdmin)
                 {
-                    await SaveSettingAsync(key, defaultValue.ToString(), cancellationToken).ConfigureAwait(false);
+                    await SaveItemDetailVisibilityAsync(visibility, cancellationToken).ConfigureAwait(false);
                 }
-                return defaultValue;
             }
-            return ParseBool(value, defaultValue);
+            return visibility;
         }
 
-        public Task<bool> GetShowItemImageAsync(CancellationToken cancellationToken = default)
-            => GetBoolSettingAsync(ShowItemImageKey, true, cancellationToken);
-
-        public Task SaveShowItemImageAsync(bool value, CancellationToken cancellationToken = default)
-            => SaveSettingAsync(ShowItemImageKey, value.ToString(), cancellationToken);
-
-        public Task<bool> GetShowItemNameAsync(CancellationToken cancellationToken = default)
-            => GetBoolSettingAsync(ShowItemNameKey, true, cancellationToken);
-
-        public Task SaveShowItemNameAsync(bool value, CancellationToken cancellationToken = default)
-            => SaveSettingAsync(ShowItemNameKey, value.ToString(), cancellationToken);
-
-        public Task<bool> GetShowItemNumberAsync(CancellationToken cancellationToken = default)
-            => GetBoolSettingAsync(ShowItemNumberKey, true, cancellationToken);
-
-        public Task SaveShowItemNumberAsync(bool value, CancellationToken cancellationToken = default)
-            => SaveSettingAsync(ShowItemNumberKey, value.ToString(), cancellationToken);
-
-        public Task<bool> GetShowItemLocationAsync(CancellationToken cancellationToken = default)
-            => GetBoolSettingAsync(ShowItemLocationKey, true, cancellationToken);
-
-        public Task SaveShowItemLocationAsync(bool value, CancellationToken cancellationToken = default)
-            => SaveSettingAsync(ShowItemLocationKey, value.ToString(), cancellationToken);
-
-        public Task<bool> GetShowItemNotesAsync(CancellationToken cancellationToken = default)
-            => GetBoolSettingAsync(ShowItemNotesKey, true, cancellationToken);
-
-        public Task SaveShowItemNotesAsync(bool value, CancellationToken cancellationToken = default)
-            => SaveSettingAsync(ShowItemNotesKey, value.ToString(), cancellationToken);
+        public Task SaveItemDetailVisibilityAsync(IDictionary<ItemDetailField, bool> visibility, CancellationToken cancellationToken = default)
+        {
+            _auth.EnsureAdmin();
+            var dict = visibility.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value);
+            var json = JsonSerializer.Serialize(dict);
+            return SaveSettingAsync(ItemDetailVisibilityKey, json, cancellationToken);
+        }
     }
 }

@@ -22,10 +22,10 @@ public class SettingsServiceAuthorizationTests
         var auth = new NonAdminAuthorizationService();
         var settings = new SettingsService(db, auth);
 
-        var value = await settings.GetShowItemImageAsync();
+        var dict = await settings.GetItemDetailVisibilityAsync();
 
-        Assert.True(value);
-        Assert.Null(await settings.GetSettingAsync("ShowItemImage"));
+        Assert.All(dict.Values, Assert.True);
+        Assert.Null(await settings.GetSettingAsync("ItemDetailVisibility"));
     }
 }
 

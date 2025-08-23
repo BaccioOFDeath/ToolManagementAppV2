@@ -73,13 +73,13 @@
                         <Button Style="{StaticResource PrimaryButton}" Content="Select All" Command="{Binding SelectAllItemDisplayCommand}" Margin="0,0,8,0"/>
                         <Button Style="{StaticResource PrimaryButton}" Content="Select None" Command="{Binding SelectNoneItemDisplayCommand}"/>
                     </StackPanel>
-                    <StackPanel Margin="0,8,0,0">
-                        <CheckBox Content="Show Image" IsChecked="{Binding ShowItemImage}"/>
-                        <CheckBox Content="Show Name" IsChecked="{Binding ShowItemName}"/>
-                        <CheckBox Content="Show Item Number" IsChecked="{Binding ShowItemNumber}"/>
-                        <CheckBox Content="Show Location" IsChecked="{Binding ShowItemLocation}"/>
-                        <CheckBox Content="Show Notes" IsChecked="{Binding ShowItemNotes}"/>
-                    </StackPanel>
+                    <ItemsControl ItemsSource="{Binding ItemDetailOptions}" Margin="0,8,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox Content="{Binding Field}" IsChecked="{Binding IsVisible, Mode=TwoWay}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </StackPanel>
             </Border>
 

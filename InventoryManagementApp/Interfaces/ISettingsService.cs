@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using InventoryManagementApp.Models;
 
 namespace InventoryManagementApp.Interfaces
 {
@@ -29,15 +30,7 @@ namespace InventoryManagementApp.Interfaces
         Task SaveItemLabelPluralAsync(string label, CancellationToken cancellationToken = default);
 
         // Item display configuration
-        Task<bool> GetShowItemImageAsync(CancellationToken cancellationToken = default);
-        Task SaveShowItemImageAsync(bool value, CancellationToken cancellationToken = default);
-        Task<bool> GetShowItemNameAsync(CancellationToken cancellationToken = default);
-        Task SaveShowItemNameAsync(bool value, CancellationToken cancellationToken = default);
-        Task<bool> GetShowItemNumberAsync(CancellationToken cancellationToken = default);
-        Task SaveShowItemNumberAsync(bool value, CancellationToken cancellationToken = default);
-        Task<bool> GetShowItemLocationAsync(CancellationToken cancellationToken = default);
-        Task SaveShowItemLocationAsync(bool value, CancellationToken cancellationToken = default);
-        Task<bool> GetShowItemNotesAsync(CancellationToken cancellationToken = default);
-        Task SaveShowItemNotesAsync(bool value, CancellationToken cancellationToken = default);
+        Task<IDictionary<ItemDetailField, bool>> GetItemDetailVisibilityAsync(CancellationToken cancellationToken = default);
+        Task SaveItemDetailVisibilityAsync(IDictionary<ItemDetailField, bool> visibility, CancellationToken cancellationToken = default);
     }
 }
