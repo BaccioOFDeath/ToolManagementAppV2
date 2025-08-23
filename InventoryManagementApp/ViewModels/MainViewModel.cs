@@ -144,25 +144,25 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        public IRelayCommand OpenDashboardCommand { get; }
+        public IAsyncRelayCommand OpenDashboardCommand { get; }
         public IAsyncRelayCommand OpenSearchItemsCommand { get; }
         public IAsyncRelayCommand OpenManageItemsCommand { get; }
         public IAsyncRelayCommand OpenRentalsCommand { get; }
         public IAsyncRelayCommand OpenCustomersCommand { get; }
         public IAsyncRelayCommand OpenUsersCommand { get; }
-        public IRelayCommand OpenSettingsCommand { get; }
-        public IRelayCommand OpenImportExportCommand { get; }
+        public IAsyncRelayCommand OpenSettingsCommand { get; }
+        public IAsyncRelayCommand OpenImportExportCommand { get; }
         public IAsyncRelayCommand OpenActivityLogsCommand { get; }
-        public IRelayCommand OpenReportsCommand { get; }
+        public IAsyncRelayCommand OpenReportsCommand { get; }
         public IAsyncRelayCommand OpenImportMappingWindowCommand { get; }
         public IAsyncRelayCommand OpenImageImportMappingWindowCommand { get; }
         public IRelayCommand ExitCommand { get; }
         public IAsyncRelayCommand GlobalSearchCommand { get; }
         public IAsyncRelayCommand SwitchUserCommand { get; }
 
-        public IRelayCommand OpenPrintPreviewWindowCommand { get; }
-        public IRelayCommand OpenPrintLabelWindowCommand { get; }
-        public IRelayCommand OpenScannerStatusPageCommand { get; }
+        public IAsyncRelayCommand OpenPrintPreviewWindowCommand { get; }
+        public IAsyncRelayCommand OpenPrintLabelWindowCommand { get; }
+        public IAsyncRelayCommand OpenScannerStatusPageCommand { get; }
 
         public MainViewModel(IItemService itemService,
                              IUserService userService,
@@ -231,18 +231,27 @@ namespace InventoryManagementApp.ViewModels
             Settings.PropertyChanged += Settings_PropertyChanged;
             UpdateAutoLogoutTimer();
 
-            OpenDashboardCommand = new RelayCommand(() =>
+            OpenDashboardCommand = new AsyncRelayCommand(async () =>
             {
-                var vm = new DashboardViewModel(_itemService, _rentalService, _customerService, _userService, _activityLogService, OpenManageItemsCommand, OpenRentalsCommand, OpenImportExportCommand);
-                var page = new DashboardPage { DataContext = vm, Title = "Dashboard" };
-                CurrentPage = page;
+                try
+                {
+                    var vm = new DashboardViewModel(_itemService, _rentalService, _customerService, _userService, _activityLogService, OpenManageItemsCommand, OpenRentalsCommand, OpenImportExportCommand);
+                    var page = new DashboardPage { DataContext = vm, Title = "Dashboard" };
+                    CurrentPage = page;
+                    await Task.CompletedTask;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open dashboard page");
+                    _dialogService.ShowInfo($"Failed to open dashboard page: {ex.Message}", "Dashboard");
+                    throw;
+                }
             });
 
             OpenSearchItemsCommand = new AsyncRelayCommand(async () =>
             {
                 var plural = LabelProvider.Instance.ItemLabelPlural;
                 var page = new ItemSearchPage { DataContext = ItemManagement, Title = $"Search {plural}" };
-                // If your ItemManagement VM supports a query setter, apply GlobalSearchText there.
                 CurrentPage = page;
                 try
                 {
@@ -252,6 +261,7 @@ namespace InventoryManagementApp.ViewModels
                 {
                     _logger.LogError(ex, "Failed to open search items page");
                     _dialogService.ShowInfo($"Failed to open search {plural} page: {ex.Message}", $"Search {plural}");
+                    throw;
                 }
             });
 
@@ -269,21 +279,40 @@ namespace InventoryManagementApp.ViewModels
                 {
                     _logger.LogError(ex, "Failed to open manage items page");
                     _dialogService.ShowInfo($"Failed to open manage {plural} page: {ex.Message}", $"Manage {plural}");
+                    throw;
                 }
             });
 
             OpenRentalsCommand = new AsyncRelayCommand(async () =>
             {
-                await ManageRentals.LoadRentalsAsync();
-                var page = new ManageRentalsPage { DataContext = ManageRentals, Title = "Manage Rentals" };
-                CurrentPage = page;
+                try
+                {
+                    await ManageRentals.LoadRentalsAsync();
+                    var page = new ManageRentalsPage { DataContext = ManageRentals, Title = "Manage Rentals" };
+                    CurrentPage = page;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open rentals page");
+                    _dialogService.ShowInfo($"Failed to open rentals page: {ex.Message}", "Manage Rentals");
+                    throw;
+                }
             });
 
             OpenCustomersCommand = new AsyncRelayCommand(async () =>
             {
-                await CustomerManagement.LoadCustomersAsync();
-                var page = new CustomersPage { DataContext = CustomerManagement, Title = "Customers" };
-                CurrentPage = page;
+                try
+                {
+                    await CustomerManagement.LoadCustomersAsync();
+                    var page = new CustomersPage { DataContext = CustomerManagement, Title = "Customers" };
+                    CurrentPage = page;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open customers page");
+                    _dialogService.ShowInfo($"Failed to open customers page: {ex.Message}", "Customers");
+                    throw;
+                }
             });
 
             OpenUsersCommand = new AsyncRelayCommand(async () =>
@@ -298,36 +327,76 @@ namespace InventoryManagementApp.ViewModels
                 {
                     _logger.LogError(ex, "Failed to open users page");
                     _dialogService.ShowInfo($"Failed to open users page: {ex.Message}", "Users");
+                    throw;
                 }
             });
 
-            OpenSettingsCommand = new RelayCommand(() =>
+            OpenSettingsCommand = new AsyncRelayCommand(async () =>
             {
-                var page = new SettingsPage
+                try
+                {
+                    var page = new SettingsPage
                     {
                         DataContext = Settings,
                         Title = "Settings"
                     };
-                CurrentPage = page;
+                    CurrentPage = page;
+                    await Task.CompletedTask;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open settings page");
+                    _dialogService.ShowInfo($"Failed to open settings page: {ex.Message}", "Settings");
+                    throw;
+                }
             });
 
-            OpenImportExportCommand = new RelayCommand(() =>
+            OpenImportExportCommand = new AsyncRelayCommand(async () =>
             {
-                var page = new ImportExportPage { DataContext = ImportExport, Title = "Import / Export" };
-                CurrentPage = page;
+                try
+                {
+                    var page = new ImportExportPage { DataContext = ImportExport, Title = "Import / Export" };
+                    CurrentPage = page;
+                    await Task.CompletedTask;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open import/export page");
+                    _dialogService.ShowInfo($"Failed to open import/export page: {ex.Message}", "Import / Export");
+                    throw;
+                }
             });
 
             OpenActivityLogsCommand = new AsyncRelayCommand(async () =>
             {
-                await ActivityLogs.LoadLogsAsync();
-                var page = new ActivityLogsPage { DataContext = ActivityLogs, Title = "Activity Logs" };
-                CurrentPage = page;
+                try
+                {
+                    await ActivityLogs.LoadLogsAsync();
+                    var page = new ActivityLogsPage { DataContext = ActivityLogs, Title = "Activity Logs" };
+                    CurrentPage = page;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open activity logs page");
+                    _dialogService.ShowInfo($"Failed to open activity logs page: {ex.Message}", "Activity Logs");
+                    throw;
+                }
             });
 
-            OpenReportsCommand = new RelayCommand(() =>
+            OpenReportsCommand = new AsyncRelayCommand(async () =>
             {
-                var page = new ReportsPage { DataContext = Reports, Title = "Reports" };
-                CurrentPage = page;
+                try
+                {
+                    var page = new ReportsPage { DataContext = Reports, Title = "Reports" };
+                    CurrentPage = page;
+                    await Task.CompletedTask;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open reports page");
+                    _dialogService.ShowInfo($"Failed to open reports page: {ex.Message}", "Reports");
+                    throw;
+                }
             });
 
             OpenImportMappingWindowCommand = new AsyncRelayCommand(ct => OpenImportMappingWindowAsync(ct));
@@ -343,7 +412,7 @@ namespace InventoryManagementApp.ViewModels
                 {
                     if (await _showLoginWindow())
                     {
-                        OpenDashboardCommand.Execute(null);
+                        await OpenDashboardCommand.ExecuteAsync(null);
                     }
                     else
                     {
@@ -357,6 +426,7 @@ namespace InventoryManagementApp.ViewModels
                     _userContext.CurrentUser = previousUser;
                     _logger.LogError(ex, "Switch user failed.");
                     _dialogService.ShowInfo("Failed to switch user.", "Switch User");
+                    throw;
                 }
             });
 
@@ -381,33 +451,54 @@ namespace InventoryManagementApp.ViewModels
                 }
             });
 
-            OpenPrintPreviewWindowCommand = new RelayCommand(() =>
+            OpenPrintPreviewWindowCommand = new AsyncRelayCommand(async () =>
             {
-                var doc = new FlowDocument(new Paragraph(new Run("Preview document")));
-                _dialogService.ShowPrintPreview(doc, "Print Preview", string.Empty);
+                try
+                {
+                    var doc = new FlowDocument(new Paragraph(new Run("Preview document")));
+                    _dialogService.ShowPrintPreview(doc, "Print Preview", string.Empty);
+                    await Task.CompletedTask;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open print preview window");
+                    throw;
+                }
             });
 
-            OpenPrintLabelWindowCommand = new RelayCommand(() =>
+            OpenPrintLabelWindowCommand = new AsyncRelayCommand(async () =>
             {
                 try
                 {
                     _dialogService.ShowPrintLabelDialog();
+                    await Task.CompletedTask;
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to open print label dialog");
                     _dialogService.ShowInfo($"Failed to open print label dialog: {ex.Message}", "Error");
+                    throw;
                 }
             });
 
-            OpenScannerStatusPageCommand = new RelayCommand(() =>
+            OpenScannerStatusPageCommand = new AsyncRelayCommand(async () =>
             {
-                var vm = new ScannerStatusViewModel(_scannerService, _dialogService);
-                var page = new ScannerStatusPage { DataContext = vm, Title = "Scanner Status" };
-                CurrentPage = page;
+                try
+                {
+                    var vm = new ScannerStatusViewModel(_scannerService, _dialogService);
+                    var page = new ScannerStatusPage { DataContext = vm, Title = "Scanner Status" };
+                    CurrentPage = page;
+                    await Task.CompletedTask;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open scanner status page");
+                    _dialogService.ShowInfo($"Failed to open scanner status page: {ex.Message}", "Scanner Status");
+                    throw;
+                }
             });
 
-            OpenDashboardCommand.Execute(null);
+            _ = OpenDashboardCommand.ExecuteAsync(null);
         }
 
         void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
