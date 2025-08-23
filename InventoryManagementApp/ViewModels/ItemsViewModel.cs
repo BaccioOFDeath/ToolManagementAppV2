@@ -426,7 +426,7 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to toggle check out status for item {ItemID}", item.ItemID);
-                await _dialogService.ShowInfoAsync($"Failed to update check-out status: {ex.Message}", "Error", ct).ConfigureAwait(false);
+                await _dialogService.ShowInfoAsync($"Failed to update check-out status: {ex.Message}", "Error").ConfigureAwait(false);
                 return;
             }
             finally
