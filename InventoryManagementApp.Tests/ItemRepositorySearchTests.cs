@@ -42,7 +42,7 @@ public class ItemRepositorySearchTests
             "INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsRentalItem, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,0,0,0,0,0,@UpdatedAt)",
             new { ItemNumber = "ABC123", Name = "Hand Saw", UpdatedAt = System.DateTime.UtcNow });
         await conn.ExecuteAsync(
-            "INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsRentalItem, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,0,0,0,0,0,@UpdatedAt)",
+            "INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsRentalItem, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,0,0,1,0,0,@UpdatedAt)",
             new { ItemNumber = "CAFÉ1", Name = "Café Table", UpdatedAt = System.DateTime.UtcNow });
     }
 
@@ -94,5 +94,33 @@ public class ItemRepositorySearchTests
         await foreach (var item in repo.GetPageAsync(new ItemFilter("cafe"), new ItemPage(1, 10), CancellationToken.None))
             result.Add(item);
         Assert.Contains(result, i => i.ItemNumber == "CAFÉ1");
+    }
+
+    [Fact]
+    public async Task GetPageAsync_FilterByIsRentalItem_True_ReturnsRentalItemsOnly()
+    {
+        var factory = CreateFactory();
+        await SeedAsync(factory);
+        var repo = new ItemRepository(factory);
+        var result = new List<ItemModel>();
+        await foreach (var item in repo.GetPageAsync(new ItemFilter(null, IsRentalItem: true), new ItemPage(1, 10), CancellationToken.None))
+            result.Add(item);
+        Assert.Single(result);
+        Assert.True(result[0].IsRentalItem);
+        Assert.Equal("Café Table", result[0].Name);
+    }
+
+    [Fact]
+    public async Task GetPageAsync_FilterByIsRentalItem_False_ReturnsNonRentalItemsOnly()
+    {
+        var factory = CreateFactory();
+        await SeedAsync(factory);
+        var repo = new ItemRepository(factory);
+        var result = new List<ItemModel>();
+        await foreach (var item in repo.GetPageAsync(new ItemFilter(null, IsRentalItem: false), new ItemPage(1, 10), CancellationToken.None))
+            result.Add(item);
+        Assert.Single(result);
+        Assert.False(result[0].IsRentalItem);
+        Assert.Equal("Hand Saw", result[0].Name);
     }
 }

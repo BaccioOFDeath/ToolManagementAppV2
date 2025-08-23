@@ -101,6 +101,32 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task ToggleCheckOutCommand_UpdatesSelectedItemState()
+        {
+            var service = new ToggleItemService();
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var customer = new DummyCustomerService();
+            var settings = new DummySettingsService();
+            var userContext = new DummyUserContext { CurrentUser = new User { UserName = "user1" } };
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, customer, settings, userContext);
+            var item = new ItemModel { ItemID = 1 };
+            vm.Items.Add(item);
+            vm.SelectedItem = item;
+
+            await vm.ToggleCheckOutCommand.ExecuteAsync(item);
+
+            Assert.True(vm.SelectedItem!.IsCheckedOut);
+            Assert.Equal("user1", vm.SelectedItem.CheckedOutBy);
+
+            await vm.ToggleCheckOutCommand.ExecuteAsync(item);
+
+            Assert.False(vm.SelectedItem!.IsCheckedOut);
+            Assert.Equal(string.Empty, vm.SelectedItem.CheckedOutBy);
+        }
+
+        [Fact]
         public void SteadyExceeded_TrimsToThreePages()
         {
             var service = new DummyItemService();
