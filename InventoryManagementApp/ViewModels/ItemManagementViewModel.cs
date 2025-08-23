@@ -143,11 +143,6 @@ namespace InventoryManagementApp.ViewModels
             OpenRentalsCommand = new AsyncRelayCommand(ct => OpenRentalsAsync(ct), () => SelectedItem != null);
             ViewDetailsCommand = new RelayCommand(ViewDetails, () => SelectedItem != null);
             OpenRentalHistoryCommand = new AsyncRelayCommand(OpenRentalHistoryAsync, () => SelectedItem != null);
-            ShowImage = _settingsService.GetShowItemImageAsync().GetAwaiter().GetResult();
-            ShowName = _settingsService.GetShowItemNameAsync().GetAwaiter().GetResult();
-            ShowItemNumber = _settingsService.GetShowItemNumberAsync().GetAwaiter().GetResult();
-            ShowLocation = _settingsService.GetShowItemLocationAsync().GetAwaiter().GetResult();
-            ShowNotes = _settingsService.GetShowItemNotesAsync().GetAwaiter().GetResult();
             // Ensure no duplicate event subscriptions when the view model is
             // constructed multiple times or the collection persists across
             // instances.
@@ -155,11 +150,52 @@ namespace InventoryManagementApp.ViewModels
             Items.CollectionChanged += Items_CollectionChanged;
         }
 
-        public bool ShowImage { get; }
-        public bool ShowName { get; }
-        public bool ShowItemNumber { get; }
-        public bool ShowLocation { get; }
-        public bool ShowNotes { get; }
+        bool _showImage;
+        public bool ShowImage
+        {
+            get => _showImage;
+            private set => SetProperty(ref _showImage, value);
+        }
+
+        bool _showName;
+        public bool ShowName
+        {
+            get => _showName;
+            private set => SetProperty(ref _showName, value);
+        }
+
+        bool _showItemNumber;
+        public bool ShowItemNumber
+        {
+            get => _showItemNumber;
+            private set => SetProperty(ref _showItemNumber, value);
+        }
+
+        bool _showLocation;
+        public bool ShowLocation
+        {
+            get => _showLocation;
+            private set => SetProperty(ref _showLocation, value);
+        }
+
+        bool _showNotes;
+        public bool ShowNotes
+        {
+            get => _showNotes;
+            private set => SetProperty(ref _showNotes, value);
+        }
+
+        bool _initialized;
+        public async Task InitializeAsync()
+        {
+            if (_initialized) return;
+            ShowImage = await _settingsService.GetShowItemImageAsync().ConfigureAwait(false);
+            ShowName = await _settingsService.GetShowItemNameAsync().ConfigureAwait(false);
+            ShowItemNumber = await _settingsService.GetShowItemNumberAsync().ConfigureAwait(false);
+            ShowLocation = await _settingsService.GetShowItemLocationAsync().ConfigureAwait(false);
+            ShowNotes = await _settingsService.GetShowItemNotesAsync().ConfigureAwait(false);
+            _initialized = true;
+        }
 
         void OnSearchDebounceTimerTick(object? s, EventArgs e)
         {

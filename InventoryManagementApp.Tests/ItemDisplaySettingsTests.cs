@@ -81,6 +81,12 @@ public class ItemDisplaySettingsTests
         public void ShowPrintLabelDialog() { }
     }
 
+    private sealed class DummyFileDialogService : IFileDialogService
+    {
+        public string? OpenFile(string filter, string? initialDirectory = null) => null;
+        public string? SaveFile(string filter) => null;
+    }
+
     [Fact]
     public async Task ItemManagementViewModel_ReflectsDisplaySettings()
     {
@@ -93,6 +99,7 @@ public class ItemDisplaySettingsTests
         await settings.SaveShowItemLocationAsync(false);
         await settings.SaveShowItemNotesAsync(false);
         var vmFalse = new ItemManagementViewModel(new DummyItemService(), new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
+        await vmFalse.InitializeAsync();
         Assert.False(vmFalse.ShowImage);
         Assert.False(vmFalse.ShowName);
         Assert.False(vmFalse.ShowItemNumber);
@@ -104,6 +111,7 @@ public class ItemDisplaySettingsTests
         await settings.SaveShowItemLocationAsync(true);
         await settings.SaveShowItemNotesAsync(true);
         var vmTrue = new ItemManagementViewModel(new DummyItemService(), new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
+        await vmTrue.InitializeAsync();
         Assert.True(vmTrue.ShowImage);
         Assert.True(vmTrue.ShowName);
         Assert.True(vmTrue.ShowItemNumber);
@@ -128,6 +136,7 @@ public class ItemDisplaySettingsTests
                 settings.SaveShowItemLocationAsync(false).GetAwaiter().GetResult();
                 settings.SaveShowItemNotesAsync(false).GetAwaiter().GetResult();
                 var vm = new ItemManagementViewModel(new DummyItemService(), new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
+                vm.InitializeAsync().GetAwaiter().GetResult();
                 var app = new Application();
                 app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
                 app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
@@ -145,6 +154,7 @@ public class ItemDisplaySettingsTests
                 Assert.Equal(Visibility.Collapsed, border.Visibility);
                 settings.SaveShowItemNameAsync(true).GetAwaiter().GetResult();
                 vm = new ItemManagementViewModel(new DummyItemService(), new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
+                vm.InitializeAsync().GetAwaiter().GetResult();
                 itemsControl.DataContext = vm;
                 itemsControl.UpdateLayout();
                 border = (Border)VisualTreeHelper.GetChild(container, 0);
@@ -164,5 +174,36 @@ public class ItemDisplaySettingsTests
         thread.Start();
         thread.Join();
         if (threadEx != null) throw threadEx;
+    }
+
+    [Fact]
+    public async Task SettingsViewModel_InitializeAsync_LoadsSettings()
+    {
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        await using var db = new DatabaseService(dbPath);
+        var settings = new SettingsService(db);
+        await settings.SaveSettingAsync("ApplicationName", "TestApp");
+        await settings.SaveShowItemNameAsync(true);
+        var vm = new SettingsViewModel(new DummyFileDialogService(), settings, new DummyDialogService());
+        await vm.InitializeAsync();
+        Assert.Equal("TestApp", vm.ApplicationName);
+        Assert.True(vm.ShowItemName);
+    }
+
+    [Fact]
+    public void SettingsViewModel_InitializeAsync_DoesNotDeadlock()
+    {
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        using var db = new DatabaseService(dbPath);
+        var settings = new SettingsService(db);
+        var vm = new SettingsViewModel(new DummyFileDialogService(), settings, new DummyDialogService());
+        var thread = new Thread(() =>
+        {
+            SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
+            vm.InitializeAsync().GetAwaiter().GetResult();
+        });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join();
     }
 }
