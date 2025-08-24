@@ -123,6 +123,40 @@ namespace InventoryManagementApp.Tests
             });
         }
 
+        [Fact]
+        public async Task Dispose_NullifiesGlobalSearchToken()
+        {
+            await RunOnStaThread(async () =>
+            {
+                using var db = new DatabaseService(":memory:");
+                var debounceTimer = new MockDispatcherTimer();
+                var vm = new MainViewModel(
+                    new DummyItemService(),
+                    new DummyUserService(),
+                    new DummyUserContext(),
+                    new DummyCustomerService(),
+                    new DummyRentalService(),
+                    new DummyFileDialogService(),
+                    new ActivityLogService(db),
+                    new DummySettingsService(),
+                    db,
+                    new DummyDialogService(),
+                    NullLogger<MainViewModel>.Instance,
+                    () => Task.FromResult(true),
+                    new DummyDispatcherTimer(),
+                    new DummyScannerService(),
+                    debounceTimer);
+
+                vm.Dispose();
+
+                var ex = Record.Exception(() => vm.GlobalSearchText = "test");
+                Assert.Null(ex);
+
+                var ex2 = Record.Exception(() => vm.Dispose());
+                Assert.Null(ex2);
+            });
+        }
+
         static Task RunOnStaThread(Func<Task> action)
         {
             var tcs = new TaskCompletionSource<object?>();

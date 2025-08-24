@@ -90,7 +90,9 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _globalSearchText, value))
                 {
-                    _globalSearchCts?.Cancel();
+                    var cts = Interlocked.Exchange(ref _globalSearchCts, null);
+                    cts?.Cancel();
+                    cts?.Dispose();
                     _globalSearchDebounceTimer.Stop();
                     _globalSearchDebounceTimer.Start();
                 }
@@ -614,8 +616,9 @@ namespace InventoryManagementApp.ViewModels
         void OnGlobalSearchDebounceTimerTick(object? s, EventArgs e)
         {
             _globalSearchDebounceTimer.Stop();
-            _globalSearchCts?.Dispose();
-            _globalSearchCts = new CancellationTokenSource();
+            var old = Interlocked.Exchange(ref _globalSearchCts, new CancellationTokenSource());
+            old?.Cancel();
+            old?.Dispose();
             _ = GlobalSearchCommand.ExecuteAsync(_globalSearchCts.Token);
         }
 
@@ -646,8 +649,9 @@ namespace InventoryManagementApp.ViewModels
             _autoLogoutTimer.Stop();
             _globalSearchDebounceTimer.Tick -= OnGlobalSearchDebounceTimerTick;
             _globalSearchDebounceTimer.Stop();
-            _globalSearchCts?.Cancel();
-            _globalSearchCts?.Dispose();
+            var cts = Interlocked.Exchange(ref _globalSearchCts, null);
+            cts?.Cancel();
+            cts?.Dispose();
             ItemManagement.Dispose();
         }
 
