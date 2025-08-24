@@ -7,6 +7,8 @@ using InventoryManagementApp.Utilities.Converters;
 using InventoryManagementApp.Utilities.Helpers;
 using System.Collections.Concurrent;
 using System.Reflection;
+using System.IO;
+using Microsoft.Extensions.Caching.Memory;
 using Xunit;
 
 namespace InventoryManagementApp.Tests
@@ -65,6 +67,52 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
+                    Application.Current?.Shutdown();
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
+        [Fact]
+        public void Convert_CacheEvictsLeastRecentlyUsed()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                string tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+                Directory.CreateDirectory(tempDir);
+                try
+                {
+                    var converter = new NullToDefaultImageConverter();
+                    var cacheField = typeof(NullToDefaultImageConverter).GetField("_imageCache", BindingFlags.NonPublic | BindingFlags.Static);
+                    var cache = (MemoryCache)cacheField!.GetValue(null)!;
+                    cache.Compact(1.0);
+
+                    var pngBytes = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAAC0lEQVQI12NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=");
+                    var firstPath = Path.Combine(tempDir, "0.png");
+                    File.WriteAllBytes(firstPath, pngBytes);
+                    var firstImage = Assert.IsType<BitmapImage>(converter.Convert(firstPath, typeof(BitmapImage), "user", CultureInfo.InvariantCulture));
+
+                    for (int i = 1; i <= 100; i++)
+                    {
+                        var path = Path.Combine(tempDir, $"{i}.png");
+                        File.WriteAllBytes(path, pngBytes);
+                        converter.Convert(path, typeof(BitmapImage), "user", CultureInfo.InvariantCulture);
+                    }
+
+                    var secondImage = Assert.IsType<BitmapImage>(converter.Convert(firstPath, typeof(BitmapImage), "user", CultureInfo.InvariantCulture));
+                    Assert.NotSame(firstImage, secondImage);
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+                finally
+                {
+                    try { Directory.Delete(tempDir, true); } catch { }
                     Application.Current?.Shutdown();
                 }
             });
