@@ -84,9 +84,10 @@ namespace InventoryManagementApp.Views.Pages
 
         private async void ManageItemsPage_Loaded(object sender, RoutedEventArgs e)
         {
-            if (DataContext is not ItemsViewModel)
+            if (DataContext is not ItemsViewModel vm)
             {
-                DataContext = ((App)Application.Current).Host.Services.GetRequiredService<ItemsViewModel>();
+                vm = ((App)Application.Current).Host.Services.GetRequiredService<ItemsViewModel>();
+                DataContext = vm;
             }
 
             try
