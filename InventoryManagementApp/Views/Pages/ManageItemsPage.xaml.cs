@@ -91,7 +91,8 @@ namespace InventoryManagementApp.Views.Pages
 
             try
             {
-                await ((ItemsViewModel)DataContext).LoadMoreAsync(_loadCts.Token);
+                await vm.InitializeAsync(_loadCts.Token);
+                await vm.LoadMoreAsync(_loadCts.Token);
             }
             catch (OperationCanceledException)
             {
