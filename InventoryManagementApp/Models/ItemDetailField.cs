@@ -9,6 +9,7 @@ namespace InventoryManagementApp.Models
         ItemNumber,
         PartNumber,
         Brand,
+        QuantityOnHand,
         Location,
         Price,
         Notes

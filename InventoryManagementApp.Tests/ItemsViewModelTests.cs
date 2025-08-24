@@ -416,6 +416,34 @@ namespace InventoryManagementApp.Tests
             Assert.Equal(false, itemService.LastIsRentalItem);
         }
 
+        [Fact]
+        public void VisibleFields_LoadFromSettings()
+        {
+            var visibility = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => false);
+            var itemService = new DummyItemService();
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var settings = new DummySettingsService(visibility);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance);
+            Assert.All(vm.VisibleFields.Values, v => Assert.False(v));
+        }
+
+        [Fact]
+        public void VisibleFields_UpdateOnSettingsChange()
+        {
+            var visibility = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => false);
+            var itemService = new DummyItemService();
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var settings = new DummySettingsService(visibility);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance);
+            var updated = visibility.ToDictionary(kvp => kvp.Key, _ => true);
+            settings.SaveItemDetailVisibilityAsync(updated).GetAwaiter().GetResult();
+            Assert.All(vm.VisibleFields.Values, v => Assert.True(v));
+        }
+
         private sealed class PagingItemService : IItemService
         {
             private const int PageSize = 200;
@@ -711,6 +739,11 @@ namespace InventoryManagementApp.Tests
 
         private sealed class DummySettingsService : ISettingsService
         {
+            IDictionary<ItemDetailField, bool> _visibility;
+            public DummySettingsService(IDictionary<ItemDetailField, bool>? visibility = null)
+            {
+                _visibility = visibility ?? Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => true);
+            }
             public event EventHandler<IDictionary<ItemDetailField, bool>>? ItemDetailVisibilityChanged;
             public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<string?> GetSettingAsync(string key, CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
@@ -728,9 +761,10 @@ namespace InventoryManagementApp.Tests
             public Task<string> GetItemLabelPluralAsync(CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
             public Task SaveItemLabelPluralAsync(string label, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<IDictionary<ItemDetailField, bool>> GetItemDetailVisibilityAsync(CancellationToken cancellationToken = default)
-                => Task.FromResult<IDictionary<ItemDetailField, bool>>(Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => true));
+                => Task.FromResult(_visibility);
             public Task SaveItemDetailVisibilityAsync(IDictionary<ItemDetailField, bool> visibility, CancellationToken cancellationToken = default)
             {
+                _visibility = visibility;
                 ItemDetailVisibilityChanged?.Invoke(this, visibility);
                 return Task.CompletedTask;
             }

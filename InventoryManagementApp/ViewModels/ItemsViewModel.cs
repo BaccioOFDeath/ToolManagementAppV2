@@ -11,6 +11,7 @@ using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
+using InventoryManagementApp.Models;
 using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
@@ -40,6 +41,13 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand CommitChangesCommand { get; }
 
         public IReadOnlyCollection<ItemModel> PendingEdits => _pendingEdits;
+
+        Dictionary<ItemDetailField, bool> _visibleFields = new();
+        public Dictionary<ItemDetailField, bool> VisibleFields
+        {
+            get => _visibleFields;
+            private set => SetProperty(ref _visibleFields, value);
+        }
 
         [ObservableProperty]
         private ItemModel? selectedItem;
@@ -96,6 +104,10 @@ namespace InventoryManagementApp.ViewModels
                         selectedSortOption = opt;
                 }
             }
+            var vis = _settingsService.GetItemDetailVisibilityAsync().GetAwaiter().GetResult();
+            var complete = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, f => vis.TryGetValue(f, out var v) ? v : true);
+            VisibleFields = complete;
+            _settingsService.ItemDetailVisibilityChanged += OnItemDetailVisibilityChanged;
             _memoryBudget.SteadyExceeded += OnSteadyExceeded;
             _memoryBudget.PeakExceeded += OnPeakExceeded;
 
@@ -105,6 +117,19 @@ namespace InventoryManagementApp.ViewModels
             NewItemCommand = new AsyncRelayCommand(ct => NewItemAsync(ct));
             DeleteItemsCommand = new AsyncRelayCommand<IList>(DeleteItemsAsync);
             CommitChangesCommand = new AsyncRelayCommand(ct => CommitChangesAsync(ct));
+        }
+
+        void OnItemDetailVisibilityChanged(object? sender, IDictionary<ItemDetailField, bool> visibility)
+        {
+            try
+            {
+                var complete = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, f => visibility.TryGetValue(f, out var v) ? v : true);
+                VisibleFields = complete;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to handle visibility change");
+            }
         }
 
         private async Task<IList<ItemModel>> LoadPageAsync(int page, CancellationToken ct)
