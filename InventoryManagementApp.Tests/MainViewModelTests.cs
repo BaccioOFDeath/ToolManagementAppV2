@@ -60,6 +60,69 @@ namespace InventoryManagementApp.Tests
             });
         }
 
+        [Fact]
+        public async Task GlobalSearchAsync_ClearsTextWithoutTriggeringNewSearch()
+        {
+            await RunOnStaThread(async () =>
+            {
+                using var db = new DatabaseService(":memory:");
+                var globalDebounceTimer = new MockDispatcherTimer();
+                var searchDebounceTimer = new MockDispatcherTimer();
+                using var vm = new MainViewModel(
+                    new DummyItemService(),
+                    new DummyUserService(),
+                    new DummyUserContext(),
+                    new DummyCustomerService(),
+                    new DummyRentalService(),
+                    new DummyFileDialogService(),
+                    new ActivityLogService(db),
+                    new DummySettingsService(),
+                    db,
+                    new DummyDialogService(),
+                    NullLogger<MainViewModel>.Instance,
+                    () => Task.FromResult(true),
+                    new DummyDispatcherTimer(),
+                    new DummyScannerService(),
+                    globalDebounceTimer);
+
+                var itemManagement = new ItemManagementViewModel(
+                    new DummyItemService(),
+                    new DummyCustomerService(),
+                    new DummyRentalService(),
+                    new DummyDialogService(),
+                    new DummySettingsService(),
+                    NullLogger<ItemManagementViewModel>.Instance,
+                    searchDebounceTimer);
+
+                int searchExecuted = 0;
+                var searchField = typeof(ItemManagementViewModel).GetField("<SearchCommand>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
+                searchField!.SetValue(itemManagement, new AsyncRelayCommand(ct =>
+                {
+                    searchExecuted++;
+                    return Task.CompletedTask;
+                }));
+
+                var itemManagementField = typeof(MainViewModel).GetField("<ItemManagement>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
+                itemManagementField!.SetValue(vm, itemManagement);
+
+                int openSearchCalls = 0;
+                var openSearchField = typeof(MainViewModel).GetField("<OpenSearchItemsCommand>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
+                openSearchField!.SetValue(vm, new AsyncRelayCommand(ct =>
+                {
+                    openSearchCalls++;
+                    return Task.CompletedTask;
+                }));
+
+                vm.GlobalSearchText = "hammer";
+                globalDebounceTimer.Fire();
+
+                Assert.Equal("hammer", itemManagement.SearchText);
+                Assert.Equal(string.Empty, vm.GlobalSearchText);
+                Assert.Equal(1, searchExecuted);
+                Assert.Equal(1, openSearchCalls);
+            });
+        }
+
         static Task RunOnStaThread(Func<Task> action)
         {
             var tcs = new TaskCompletionSource<object?>();
