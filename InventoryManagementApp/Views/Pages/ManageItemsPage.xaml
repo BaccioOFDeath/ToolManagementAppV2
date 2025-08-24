@@ -37,6 +37,9 @@
                               Background="{StaticResource SurfaceBrush}"
                               BorderBrush="{StaticResource BorderBrushAlt}"
                               Style="{StaticResource VirtualizedDataGridStyle}">
+                        <DataGrid.Resources>
+                            <helpers:BindingProxy x:Key="VmProxy" Data="{Binding}"/>
+                        </DataGrid.Resources>
                         <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow">
                                 <EventSetter Event="PreviewMouseRightButtonDown"
@@ -48,12 +51,12 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Number" Visibility="{Binding Path=DataContext.ShowItemNumber, Source={x:Reference PageRoot}, Converter={StaticResource BoolToVis}}" Binding="{Binding ItemNumber, Mode=OneWay}" Width="140"/>
-                            <DataGridTextColumn Header="Name" Visibility="{Binding Path=DataContext.ShowName, Source={x:Reference PageRoot}, Converter={StaticResource BoolToVis}}" Binding="{Binding Name, Mode=OneWay}" Width="280"/>
-                            <DataGridTextColumn Header="Brand" Visibility="{Binding Path=DataContext.ShowBrand, Source={x:Reference PageRoot}, Converter={StaticResource BoolToVis}}" Binding="{Binding Brand, Mode=OneWay}" Width="160"/>
-                        <DataGridTextColumn Header="Qty" Visibility="{Binding Path=DataContext.ShowQuantityOnHand, Source={x:Reference PageRoot}, Converter={StaticResource BoolToVis}}" Binding="{Binding QuantityOnHand, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="100"/>
-                            <DataGridTextColumn Header="Location" Visibility="{Binding Path=DataContext.ShowLocation, Source={x:Reference PageRoot}, Converter={StaticResource BoolToVis}}" Binding="{Binding Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="180"/>
-                            <DataGridTextColumn Header="Price" Visibility="{Binding Path=DataContext.ShowPrice, Source={x:Reference PageRoot}, Converter={StaticResource BoolToVis}}" Binding="{Binding Price, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
+                            <DataGridTextColumn Header="Number" Visibility="{Binding Data.ShowItemNumber, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding ItemNumber, Mode=OneWay}" Width="140"/>
+                            <DataGridTextColumn Header="Name" Visibility="{Binding Data.ShowName, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Name, Mode=OneWay}" Width="280"/>
+                            <DataGridTextColumn Header="Brand" Visibility="{Binding Data.ShowBrand, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Brand, Mode=OneWay}" Width="160"/>
+                            <DataGridTextColumn Header="Qty" Visibility="{Binding Data.ShowQuantityOnHand, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding QuantityOnHand, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="100"/>
+                            <DataGridTextColumn Header="Location" Visibility="{Binding Data.ShowLocation, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="180"/>
+                            <DataGridTextColumn Header="Price" Visibility="{Binding Data.ShowPrice, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Price, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
