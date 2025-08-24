@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,7 +15,6 @@ using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Extensions;
 using InventoryManagementApp.Services;
 using InventoryManagementApp.Utilities.Helpers;
-using InventoryManagementApp.Messages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -171,16 +169,15 @@ namespace InventoryManagementApp.ViewModels
             var vis = await _settingsService.GetItemDetailVisibilityAsync().ConfigureAwait(false);
             var complete = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, f => vis.TryGetValue(f, out var v) ? v : true);
             VisibleFields = complete;
-            WeakReferenceMessenger.Default.Register<ItemManagementViewModel, ItemSettingsChangedMessage>(this, static (r, m) => r.OnItemSettingsChanged());
+            _settingsService.ItemDetailVisibilityChanged += OnItemDetailVisibilityChanged;
             _initialized = true;
         }
 
-        async void OnItemSettingsChanged()
+        async void OnItemDetailVisibilityChanged(object? sender, IDictionary<ItemDetailField, bool> visibility)
         {
             try
             {
-                var vis = await _settingsService.GetItemDetailVisibilityAsync().ConfigureAwait(false);
-                var complete = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, f => vis.TryGetValue(f, out var v) ? v : true);
+                var complete = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, f => visibility.TryGetValue(f, out var v) ? v : true);
                 VisibleFields = complete;
                 _searchCts?.Cancel();
                 _searchCts?.Dispose();
@@ -189,7 +186,7 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to handle settings change");
+                _logger.LogError(ex, "Failed to handle visibility change");
             }
         }
 
@@ -544,7 +541,7 @@ namespace InventoryManagementApp.ViewModels
             cts?.Dispose();
 
             Items.CollectionChanged -= Items_CollectionChanged;
-            WeakReferenceMessenger.Default.Unregister<ItemSettingsChangedMessage>(this);
+            _settingsService.ItemDetailVisibilityChanged -= OnItemDetailVisibilityChanged;
         }
     }
 }

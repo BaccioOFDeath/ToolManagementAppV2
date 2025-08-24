@@ -49,6 +49,36 @@ public class ItemDisplaySettingsTests
         public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, Microsoft.Data.Sqlite.SqliteConnection? conn = null, Microsoft.Data.Sqlite.SqliteTransaction? tx = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 
+    private sealed class TrackingItemService : IItemService
+    {
+        public int CallCount { get; private set; }
+        public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task DeleteItemAsync(int itemID, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default) => Task.FromResult<ItemModel?>(null);
+        public async IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            CallCount++;
+            yield return new ItemModel { Name = $"Item{CallCount}" };
+            await Task.CompletedTask;
+        }
+        public IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default)
+        {
+            return GetItemsAsync(page, sortField, sortDirection, isRentalItem, cancellationToken);
+        }
+        public Task<int> CountItemsAsync(ItemFilter filter, CancellationToken ct) => Task.FromResult(0);
+        public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct) => Task.CompletedTask;
+        public Task<bool> ToggleItemCheckOutStatusAsync(int itemID, CancellationToken cancellationToken = default) => Task.FromResult(false);
+        public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
+        public Task<List<ItemModel>> GetCheckedOutItemsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
+        public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => Task.FromResult(new List<int>());
+        public Task ExportItemsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
+        public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
+        public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, Microsoft.Data.Sqlite.SqliteConnection? conn = null, Microsoft.Data.Sqlite.SqliteTransaction? tx = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    }
+
     private sealed class DummyCustomerService : ICustomerService
     {
         public Task AddCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => Task.CompletedTask;
@@ -244,6 +274,26 @@ public class ItemDisplaySettingsTests
         settingsVm.ItemDetailOptions.Single(o => o.Field == ItemDetailField.Name).IsVisible = false;
         await Task.WhenAll(tcs.Task.WaitAsync(TimeSpan.FromSeconds(1)), searchTcs.Task.WaitAsync(TimeSpan.FromSeconds(1)));
         Assert.False(itemVm.VisibleFields[ItemDetailField.Name]);
+    }
+
+    [Fact]
+    public async Task SaveItemDetailVisibilityAsync_UpdatesViewModel()
+    {
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        await using var db = new DatabaseService(dbPath);
+        var settings = new SettingsService(db);
+        var itemService = new TrackingItemService();
+        var vm = new ItemManagementViewModel(itemService, new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
+        await vm.InitializeAsync();
+        await vm.SearchCommand.ExecuteAsync(null);
+        var first = vm.SearchResults.First().Name;
+        var allFalse = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => false);
+        await settings.SaveItemDetailVisibilityAsync(allFalse);
+        for (var i = 0; itemService.CallCount < 2 && i < 100; i++)
+            await Task.Delay(10);
+        Assert.Equal(2, itemService.CallCount);
+        Assert.NotEqual(first, vm.SearchResults.First().Name);
+        Assert.All(vm.VisibleFields.Values, v => Assert.False(v));
     }
 
     [Fact]
