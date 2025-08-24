@@ -22,13 +22,13 @@
         <Border Style="{StaticResource Card}" Width="220" Padding="0">
             <Border.Visibility>
                 <MultiBinding Converter="{StaticResource AnyTrueToVisibilityConverter}">
-                    <Binding Path="DataContext.VisibleFields[{x:Static models:ItemDetailField.Image}]" RelativeSource="{RelativeSource AncestorType=Page}"/>
-                    <Binding Path="DataContext.VisibleFields[{x:Static models:ItemDetailField.Name}]" RelativeSource="{RelativeSource AncestorType=Page}"/>
-                    <Binding Path="DataContext.VisibleFields[{x:Static models:ItemDetailField.ItemNumber}]" RelativeSource="{RelativeSource AncestorType=Page}"/>
-                    <Binding Path="DataContext.VisibleFields[{x:Static models:ItemDetailField.Brand}]" RelativeSource="{RelativeSource AncestorType=Page}"/>
-                    <Binding Path="DataContext.VisibleFields[{x:Static models:ItemDetailField.Location}]" RelativeSource="{RelativeSource AncestorType=Page}"/>
-                    <Binding Path="DataContext.VisibleFields[{x:Static models:ItemDetailField.Price}]" RelativeSource="{RelativeSource AncestorType=Page}"/>
-                    <Binding Path="DataContext.VisibleFields[{x:Static models:ItemDetailField.Notes}]" RelativeSource="{RelativeSource AncestorType=Page}"/>
+                    <Binding Path="DataContext.VisibleFields[(models:ItemDetailField)Image]" RelativeSource="{RelativeSource AncestorType=Page}"/>
+                    <Binding Path="DataContext.VisibleFields[(models:ItemDetailField)Name]" RelativeSource="{RelativeSource AncestorType=Page}"/>
+                    <Binding Path="DataContext.VisibleFields[(models:ItemDetailField)ItemNumber]" RelativeSource="{RelativeSource AncestorType=Page}"/>
+                    <Binding Path="DataContext.VisibleFields[(models:ItemDetailField)Brand]" RelativeSource="{RelativeSource AncestorType=Page}"/>
+                    <Binding Path="DataContext.VisibleFields[(models:ItemDetailField)Location]" RelativeSource="{RelativeSource AncestorType=Page}"/>
+                    <Binding Path="DataContext.VisibleFields[(models:ItemDetailField)Price]" RelativeSource="{RelativeSource AncestorType=Page}"/>
+                    <Binding Path="DataContext.VisibleFields[(models:ItemDetailField)Notes]" RelativeSource="{RelativeSource AncestorType=Page}"/>
                 </MultiBinding>
             </Border.Visibility>
             <Grid>
@@ -37,7 +37,7 @@
                     <RowDefinition Height="120"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <Border Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1" CornerRadius="8" Visibility="{Binding DataContext.VisibleFields[{x:Static models:ItemDetailField.Image}], RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}">
+                <Border Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1" CornerRadius="8" Visibility="{Binding DataContext.VisibleFields[(models:ItemDetailField)Image], RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}">
                     <Image Stretch="UniformToFill" Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
                 </Border>
                 <Grid Grid.Row="1" Margin="0,6,0,0">
@@ -49,12 +49,12 @@
                         <RowDefinition Height="20"/>
                         <RowDefinition Height="20"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Text="{Binding Name}" Style="{StaticResource ListItemTitleTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxHeight="20" Visibility="{Binding DataContext.VisibleFields[{x:Static models:ItemDetailField.Name}], RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Grid.Row="1" Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxHeight="20" Visibility="{Binding DataContext.VisibleFields[{x:Static models:ItemDetailField.ItemNumber}], RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Grid.Row="2" Text="{Binding Brand}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxHeight="20" Visibility="{Binding DataContext.VisibleFields[{x:Static models:ItemDetailField.Brand}], RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Grid.Row="3" Text="{Binding Location}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxHeight="20" Visibility="{Binding DataContext.VisibleFields[{x:Static models:ItemDetailField.Location}], RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Grid.Row="4" Text="{Binding Price, StringFormat={}{0:C}}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxHeight="20" Visibility="{Binding DataContext.VisibleFields[{x:Static models:ItemDetailField.Price}], RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Grid.Row="5" Text="{Binding Notes}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxHeight="20" Visibility="{Binding DataContext.VisibleFields[{x:Static models:ItemDetailField.Notes}], RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Grid.Row="0" Text="{Binding Name}" Style="{StaticResource ListItemTitleTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxHeight="20" Visibility="{Binding DataContext.VisibleFields[(models:ItemDetailField)Name], RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Grid.Row="1" Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxHeight="20" Visibility="{Binding DataContext.VisibleFields[(models:ItemDetailField)ItemNumber], RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Grid.Row="2" Text="{Binding Brand}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxHeight="20" Visibility="{Binding DataContext.VisibleFields[(models:ItemDetailField)Brand], RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Grid.Row="3" Text="{Binding Location}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxHeight="20" Visibility="{Binding DataContext.VisibleFields[(models:ItemDetailField)Location], RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Grid.Row="4" Text="{Binding Price, StringFormat={}{0:C}}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxHeight="20" Visibility="{Binding DataContext.VisibleFields[(models:ItemDetailField)Price], RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Grid.Row="5" Text="{Binding Notes}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxHeight="20" Visibility="{Binding DataContext.VisibleFields[(models:ItemDetailField)Notes], RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
                 </Grid>
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,0">
                     <Button Content="Rent"
