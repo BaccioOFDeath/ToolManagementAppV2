@@ -159,8 +159,32 @@ namespace InventoryManagementApp.ViewModels
         public Dictionary<ItemDetailField, bool> VisibleFields
         {
             get => _visibleFields;
-            private set => SetProperty(ref _visibleFields, value);
+            private set
+            {
+                if (SetProperty(ref _visibleFields, value))
+                {
+                    OnPropertyChanged(nameof(ShowImage));
+                    OnPropertyChanged(nameof(ShowName));
+                    OnPropertyChanged(nameof(ShowItemNumber));
+                    OnPropertyChanged(nameof(ShowPartNumber));
+                    OnPropertyChanged(nameof(ShowBrand));
+                    OnPropertyChanged(nameof(ShowQuantityOnHand));
+                    OnPropertyChanged(nameof(ShowLocation));
+                    OnPropertyChanged(nameof(ShowPrice));
+                    OnPropertyChanged(nameof(ShowNotes));
+                }
+            }
         }
+
+        public bool ShowImage => VisibleFields.TryGetValue(ItemDetailField.Image, out var v) && v;
+        public bool ShowName => VisibleFields.TryGetValue(ItemDetailField.Name, out var v) && v;
+        public bool ShowItemNumber => VisibleFields.TryGetValue(ItemDetailField.ItemNumber, out var v) && v;
+        public bool ShowPartNumber => VisibleFields.TryGetValue(ItemDetailField.PartNumber, out var v) && v;
+        public bool ShowBrand => VisibleFields.TryGetValue(ItemDetailField.Brand, out var v) && v;
+        public bool ShowQuantityOnHand => VisibleFields.TryGetValue(ItemDetailField.QuantityOnHand, out var v) && v;
+        public bool ShowLocation => VisibleFields.TryGetValue(ItemDetailField.Location, out var v) && v;
+        public bool ShowPrice => VisibleFields.TryGetValue(ItemDetailField.Price, out var v) && v;
+        public bool ShowNotes => VisibleFields.TryGetValue(ItemDetailField.Notes, out var v) && v;
 
         bool _initialized;
         public async Task InitializeAsync()
@@ -171,6 +195,10 @@ namespace InventoryManagementApp.ViewModels
             VisibleFields = complete;
             _settingsService.ItemDetailVisibilityChanged += OnItemDetailVisibilityChanged;
             _initialized = true;
+            _searchCts?.Cancel();
+            _searchCts?.Dispose();
+            _searchCts = new CancellationTokenSource();
+            await SearchCommand.ExecuteAsync(null);
         }
 
         async void OnItemDetailVisibilityChanged(object? sender, IDictionary<ItemDetailField, bool> visibility)
