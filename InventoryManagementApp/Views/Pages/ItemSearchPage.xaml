@@ -11,12 +11,26 @@
       Background="{StaticResource BackgroundBrush}"
       Loaded="Page_Loaded"
       SizeChanged="Page_SizeChanged">
+    <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup x:Name="AdaptiveStates">
+            <VisualState x:Name="Narrow">
+                <VisualState.Setters>
+                    <Setter Target="FilterBar.Orientation" Value="Vertical" />
+                </VisualState.Setters>
+            </VisualState>
+            <VisualState x:Name="Wide">
+                <VisualState.Setters>
+                    <Setter Target="FilterBar.Orientation" Value="Horizontal" />
+                </VisualState.Setters>
+            </VisualState>
+        </VisualStateGroup>
+    </VisualStateManager.VisualStateGroups>
     <Grid Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+        <StackPanel x:Name="FilterBar" Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
             <controls:SearchBar Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SearchCommand="{Binding SearchCommand}"/>
             <ComboBox Width="180" Margin="8,0,0,0" ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}"/>
         </StackPanel>
