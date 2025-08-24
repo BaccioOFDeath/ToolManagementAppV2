@@ -221,8 +221,8 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 await Task.Delay(300, token).ConfigureAwait(false);
-                Items.Reset();
-                await Items.LoadMoreAsync(token).ConfigureAwait(false);
+                var firstPage = await LoadPageAsync(1, token).ConfigureAwait(false);
+                Items.ResetWith(firstPage);
                 await _settingsService.SaveSettingAsync("LastFilter", Filter, token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
@@ -239,8 +239,8 @@ namespace InventoryManagementApp.ViewModels
 
         private async Task ApplySortAsync(SortOption value)
         {
-            Items.Reset();
-            await Items.LoadMoreAsync().ConfigureAwait(false);
+            var firstPage = await LoadPageAsync(1, CancellationToken.None).ConfigureAwait(false);
+            Items.ResetWith(firstPage);
             await _settingsService.SaveSettingAsync("LastSort", $"{value.Field}|{value.Direction}").ConfigureAwait(false);
         }
 
@@ -250,8 +250,8 @@ namespace InventoryManagementApp.ViewModels
         {
             Items.PageSize = value;
             Items.TrimToWindow(value * 3);
-            Items.Reset();
-            await Items.LoadMoreAsync().ConfigureAwait(false);
+            var firstPage = await LoadPageAsync(1, CancellationToken.None).ConfigureAwait(false);
+            Items.ResetWith(firstPage);
             await _settingsService.SaveSettingAsync("PageSize", value.ToString()).ConfigureAwait(false);
         }
 
@@ -538,6 +538,15 @@ namespace InventoryManagementApp.ViewModels
             Clear();
             _page = 0;
             HasMoreItems = true;
+        }
+
+        public void ResetWith(IList<T> items)
+        {
+            Clear();
+            foreach (var item in items)
+                Add(item);
+            _page = items.Count > 0 ? 1 : 0;
+            HasMoreItems = items.Count == _pageSize;
         }
 
         public void TrimToWindow(int max)
