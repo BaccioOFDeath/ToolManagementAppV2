@@ -50,6 +50,7 @@ namespace InventoryManagementApp.ViewModels
         int _autoLogoutMinutes;
         CancellationTokenSource? _pageLoadCts;
         CancellationTokenSource? _globalSearchCts;
+        bool _suppressGlobalSearch;
 
         EventHandler<User?>? _userContextChangedHandler;
         PropertyChangedEventHandler? _itemManagementPropertyChangedHandler;
@@ -90,9 +91,12 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _globalSearchText, value))
                 {
-                    _globalSearchCts?.Cancel();
-                    _globalSearchDebounceTimer.Stop();
-                    _globalSearchDebounceTimer.Start();
+                    if (!_suppressGlobalSearch)
+                    {
+                        _globalSearchCts?.Cancel();
+                        _globalSearchDebounceTimer.Stop();
+                        _globalSearchDebounceTimer.Start();
+                    }
                 }
             }
         }
@@ -624,7 +628,15 @@ namespace InventoryManagementApp.ViewModels
             await OpenSearchItemsCommand.ExecuteAsync(null);
             if (ItemManagement.SearchCommand != null)
                 await ItemManagement.SearchCommand.ExecuteAsync(cancellationToken);
-            GlobalSearchText = string.Empty;
+            try
+            {
+                _suppressGlobalSearch = true;
+                GlobalSearchText = string.Empty;
+            }
+            finally
+            {
+                _suppressGlobalSearch = false;
+            }
         }
 
         /// <inheritdoc />
