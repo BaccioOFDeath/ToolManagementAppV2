@@ -18,6 +18,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Services.Users;
 using InventoryManagementApp.Data;
 using Microsoft.VisualBasic.FileIO;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace InventoryManagementApp.Services.Items
 {
@@ -254,12 +256,13 @@ namespace InventoryManagementApp.Services.Items
                     result.ConflictingFiles.Add(file);
                     continue;
                 }
-                var dest = Path.Combine(destDir, Path.GetFileName(file));
+                var fileName = Path.GetFileNameWithoutExtension(file) + ".jpg";
+                var dest = Path.Combine(destDir, fileName);
                 if (!File.Exists(dest))
                 {
                     try
                     {
-                        await CopyFileAsync(file, dest, cancellationToken);
+                        await CopyFileAsync(file, dest, 96, 96, cancellationToken);
                     }
                     catch (IOException ex)
                     {
@@ -268,7 +271,7 @@ namespace InventoryManagementApp.Services.Items
                         continue;
                     }
                 }
-                var relative = $"Assets/ItemImages/{Path.GetFileName(dest)}";
+                var relative = $"Assets/ItemImages/{fileName}";
                 await UpdateItemImageAsync(item.ItemID, relative, cancellationToken);
                 result.ImportedCount++;
                 processed++;
@@ -278,11 +281,34 @@ namespace InventoryManagementApp.Services.Items
             return result;
         }
 
-        protected virtual async Task CopyFileAsync(string sourceFileName, string destFileName, CancellationToken cancellationToken)
+        protected virtual Task CopyFileAsync(string sourceFileName, string destFileName, int maxWidth, int maxHeight, CancellationToken cancellationToken)
         {
-            await using var source = new FileStream(sourceFileName, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, true);
-            await using var destination = new FileStream(destFileName, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
-            await source.CopyToAsync(destination, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.UriSource = new Uri(sourceFileName);
+            bitmap.EndInit();
+            bitmap.Freeze();
+
+            double scale = Math.Min((double)maxWidth / bitmap.PixelWidth, (double)maxHeight / bitmap.PixelHeight);
+            if (scale > 1.0)
+                scale = 1.0;
+
+            BitmapSource source = bitmap;
+            if (scale < 1.0)
+            {
+                source = new TransformedBitmap(bitmap, new ScaleTransform(scale, scale));
+                source.Freeze();
+            }
+
+            var encoder = new JpegBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(source));
+
+            using var stream = new FileStream(destFileName, FileMode.Create, FileAccess.Write, FileShare.None);
+            encoder.Save(stream);
+            return Task.CompletedTask;
         }
 
         private async Task<bool> ItemExistsAsync(string itemNumber, int? exceptId = null, CancellationToken cancellationToken = default)
