@@ -46,8 +46,34 @@ namespace InventoryManagementApp.ViewModels
         public Dictionary<ItemDetailField, bool> VisibleFields
         {
             get => _visibleFields;
-            private set => SetProperty(ref _visibleFields, value);
+            private set
+            {
+                if (SetProperty(ref _visibleFields, value))
+                {
+                    OnPropertyChanged(nameof(ShowImage));
+                    OnPropertyChanged(nameof(ShowName));
+                    OnPropertyChanged(nameof(ShowItemNumber));
+                    OnPropertyChanged(nameof(ShowPartNumber));
+                    OnPropertyChanged(nameof(ShowBrand));
+                    OnPropertyChanged(nameof(ShowQuantityOnHand));
+                    OnPropertyChanged(nameof(ShowLocation));
+                    OnPropertyChanged(nameof(ShowPrice));
+                    OnPropertyChanged(nameof(ShowNotes));
+                }
+            }
         }
+
+        private bool GetVisible(ItemDetailField field) => VisibleFields.TryGetValue(field, out var v) && v;
+
+        public bool ShowImage => GetVisible(ItemDetailField.Image);
+        public bool ShowName => GetVisible(ItemDetailField.Name);
+        public bool ShowItemNumber => GetVisible(ItemDetailField.ItemNumber);
+        public bool ShowPartNumber => GetVisible(ItemDetailField.PartNumber);
+        public bool ShowBrand => GetVisible(ItemDetailField.Brand);
+        public bool ShowQuantityOnHand => GetVisible(ItemDetailField.QuantityOnHand);
+        public bool ShowLocation => GetVisible(ItemDetailField.Location);
+        public bool ShowPrice => GetVisible(ItemDetailField.Price);
+        public bool ShowNotes => GetVisible(ItemDetailField.Notes);
 
         [ObservableProperty]
         private ItemModel? selectedItem;

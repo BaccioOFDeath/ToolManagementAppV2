@@ -470,6 +470,23 @@ namespace InventoryManagementApp.Tests
             Assert.All(vm.VisibleFields.Values, v => Assert.True(v));
         }
 
+        [Fact]
+        public async Task ShowProperties_ReflectVisibility()
+        {
+            var visibility = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => false);
+            var itemService = new DummyItemService();
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var settings = new DummySettingsService(visibility);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance);
+            await vm.InitializeAsync();
+            Assert.False(vm.ShowName);
+            var updated = visibility.ToDictionary(kvp => kvp.Key, _ => true);
+            await settings.SaveItemDetailVisibilityAsync(updated);
+            Assert.True(vm.ShowName);
+        }
+
         private sealed class PagingItemService : IItemService
         {
             private const int PageSize = 200;
