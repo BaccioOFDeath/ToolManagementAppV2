@@ -124,33 +124,40 @@ namespace InventoryManagementApp.ViewModels
 
         public async Task InitializeAsync(CancellationToken ct = default)
         {
-            var psSetting = await _settingsService.GetSettingAsync("PageSize", ct).ConfigureAwait(false);
-            if (int.TryParse(psSetting, out var ps) && ps > 0)
+            try
             {
-                pageSize = ps;
-                Items.PageSize = ps;
-            }
-
-            var filterSetting = await _settingsService.GetSettingAsync("LastFilter", ct).ConfigureAwait(false);
-            if (!string.IsNullOrEmpty(filterSetting))
-                filter = filterSetting;
-
-            var sortSetting = await _settingsService.GetSettingAsync("LastSort", ct).ConfigureAwait(false);
-            if (!string.IsNullOrEmpty(sortSetting))
-            {
-                var parts = sortSetting.Split('|');
-                if (parts.Length == 2 && Enum.TryParse(parts[0], out SortField sf) && Enum.TryParse(parts[1], out SortDirection sd))
+                var psSetting = await _settingsService.GetSettingAsync("PageSize", ct).ConfigureAwait(false);
+                if (int.TryParse(psSetting, out var ps) && ps > 0)
                 {
-                    var opt = SortOptions.FirstOrDefault(o => o.Field == sf && o.Direction == sd);
-                    if (opt != default)
-                        selectedSortOption = opt;
+                    pageSize = ps;
+                    Items.PageSize = ps;
                 }
-            }
 
-            var vis = await _settingsService.GetItemDetailVisibilityAsync(ct).ConfigureAwait(false);
-            var complete = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, f => vis.TryGetValue(f, out var v) ? v : true);
-            VisibleFields = complete;
-            _settingsService.ItemDetailVisibilityChanged += OnItemDetailVisibilityChanged;
+                var filterSetting = await _settingsService.GetSettingAsync("LastFilter", ct).ConfigureAwait(false);
+                if (!string.IsNullOrEmpty(filterSetting))
+                    filter = filterSetting;
+
+                var sortSetting = await _settingsService.GetSettingAsync("LastSort", ct).ConfigureAwait(false);
+                if (!string.IsNullOrEmpty(sortSetting))
+                {
+                    var parts = sortSetting.Split('|');
+                    if (parts.Length == 2 && Enum.TryParse(parts[0], out SortField sf) && Enum.TryParse(parts[1], out SortDirection sd))
+                    {
+                        var opt = SortOptions.FirstOrDefault(o => o.Field == sf && o.Direction == sd);
+                        if (opt != default)
+                            selectedSortOption = opt;
+                    }
+                }
+
+                var vis = await _settingsService.GetItemDetailVisibilityAsync(ct).ConfigureAwait(false);
+                var complete = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, f => vis.TryGetValue(f, out var v) ? v : true);
+                VisibleFields = complete;
+                _settingsService.ItemDetailVisibilityChanged += OnItemDetailVisibilityChanged;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogDebug("Initialization canceled");
+            }
         }
 
         void OnItemDetailVisibilityChanged(object? sender, IDictionary<ItemDetailField, bool> visibility)
@@ -168,20 +175,38 @@ namespace InventoryManagementApp.ViewModels
 
         private async Task<IList<ItemModel>> LoadPageAsync(int page, CancellationToken ct)
         {
-            var result = new List<ItemModel>();
-            var pageInfo = new ItemPage(page, PageSize);
-            var source = string.IsNullOrWhiteSpace(Filter)
-                ? _itemService.GetItemsAsync(pageInfo, SelectedSortOption.Field, SelectedSortOption.Direction, isRentalItem: false, cancellationToken: ct)
-                : _itemService.SearchItemsAsync(Filter, pageInfo, SelectedSortOption.Field, SelectedSortOption.Direction, isRentalItem: false, cancellationToken: ct);
-            await foreach (var item in source.ConfigureAwait(false))
+            try
             {
-                item.PropertyChanged += Item_PropertyChanged;
-                result.Add(item);
+                var result = new List<ItemModel>();
+                var pageInfo = new ItemPage(page, PageSize);
+                var source = string.IsNullOrWhiteSpace(Filter)
+                    ? _itemService.GetItemsAsync(pageInfo, SelectedSortOption.Field, SelectedSortOption.Direction, isRentalItem: false, cancellationToken: ct)
+                    : _itemService.SearchItemsAsync(Filter, pageInfo, SelectedSortOption.Field, SelectedSortOption.Direction, isRentalItem: false, cancellationToken: ct);
+                await foreach (var item in source.ConfigureAwait(false))
+                {
+                    item.PropertyChanged += Item_PropertyChanged;
+                    result.Add(item);
+                }
+                return result;
             }
-            return result;
+            catch (OperationCanceledException)
+            {
+                _logger.LogDebug("Page load canceled");
+                return Array.Empty<ItemModel>();
+            }
         }
 
-        public Task LoadMoreAsync(CancellationToken ct = default) => Items.LoadMoreAsync(ct);
+        public async Task LoadMoreAsync(CancellationToken ct = default)
+        {
+            try
+            {
+                await Items.LoadMoreAsync(ct).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogDebug("Incremental load canceled");
+            }
+        }
 
         partial void OnFilterChanged(string value)
         {
@@ -196,14 +221,14 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 await Task.Delay(300, token).ConfigureAwait(false);
+                Items.Reset();
+                await Items.LoadMoreAsync(token).ConfigureAwait(false);
+                await _settingsService.SaveSettingAsync("LastFilter", Filter, token).ConfigureAwait(false);
             }
-            catch (TaskCanceledException)
+            catch (OperationCanceledException)
             {
-                return;
+                _logger.LogDebug("Filter application canceled");
             }
-            Items.Reset();
-            await Items.LoadMoreAsync(token).ConfigureAwait(false);
-            await _settingsService.SaveSettingAsync("LastFilter", Filter, token).ConfigureAwait(false);
         }
 
         private void OnSteadyExceeded(object? sender, EventArgs e) => Items.TrimToWindow(PageSize * 3);
@@ -275,6 +300,7 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (OperationCanceledException)
             {
+                _logger.LogDebug("Edit item dialog canceled");
                 return;
             }
             catch
@@ -288,6 +314,7 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (OperationCanceledException)
             {
+                _logger.LogDebug("Edit item canceled");
             }
             catch
             {
@@ -316,6 +343,7 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (OperationCanceledException)
             {
+                _logger.LogDebug("Rental history load canceled");
             }
             catch
             {
@@ -331,6 +359,7 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (OperationCanceledException)
             {
+                _logger.LogDebug("New item dialog canceled");
                 return;
             }
             catch
@@ -346,6 +375,7 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (OperationCanceledException)
             {
+                _logger.LogDebug("New item creation canceled");
             }
             catch
             {
@@ -377,6 +407,10 @@ namespace InventoryManagementApp.ViewModels
             catch (UnauthorizedAccessException)
             {
                 await _dialogService.ShowInfoAsync($"You are not authorized to delete {LabelProvider.Instance.ItemLabelPlural.ToLower()}.", "Unauthorized").ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogDebug("Delete items canceled");
             }
             catch (Exception ex)
             {
@@ -423,6 +457,7 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (OperationCanceledException)
             {
+                _logger.LogDebug("Commit changes canceled");
             }
             catch (Exception ex)
             {
