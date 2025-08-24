@@ -487,6 +487,37 @@ namespace InventoryManagementApp.Tests
             Assert.True(vm.ShowName);
         }
 
+        [Fact]
+        public async Task LoadPageAsync_Canceled_ReturnsEmpty()
+        {
+            var service = new RecordingItemService(new Dictionary<string, List<ItemModel>>(), new List<ItemModel> { new ItemModel { ItemID = 1 } });
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var settings = new DummySettingsService();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance);
+            var method = typeof(ItemsViewModel).GetMethod("LoadPageAsync", BindingFlags.NonPublic | BindingFlags.Instance)!;
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+            var result = await (Task<IList<ItemModel>>)method.Invoke(vm, new object?[] { 1, cts.Token })!;
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task LoadMoreAsync_Canceled_DoesNotThrow()
+        {
+            var service = new RecordingItemService(new Dictionary<string, List<ItemModel>>(), new List<ItemModel> { new ItemModel { ItemID = 1 } });
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var settings = new DummySettingsService();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance);
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+            await vm.LoadMoreAsync(cts.Token);
+            Assert.Empty(vm.Items);
+        }
+
         private sealed class PagingItemService : IItemService
         {
             private const int PageSize = 200;
