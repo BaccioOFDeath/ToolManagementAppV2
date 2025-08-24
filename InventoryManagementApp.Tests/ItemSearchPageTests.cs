@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Documents;
+using System.Reflection;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -108,6 +109,64 @@ namespace InventoryManagementApp.Tests
                     SpinWait.SpinUntil(() => vm.SearchResults.Count == 1 && vm.SearchResults[0].Brand == "Paints", TimeSpan.FromSeconds(5));
                     Assert.Single(vm.SearchResults);
                     Assert.Equal("Paints", vm.SearchResults[0].Brand);
+
+                    app.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
+        [Fact]
+        public void UpdateState_ChangesVisualStateWithWidth()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var host = Host.CreateDefaultBuilder()
+                        .ConfigureServices(services =>
+                        {
+                            services.AddSingleton<IDialogService, DummyDialogService>();
+                            services.AddSingleton<ILogger<App>>(sp => NullLogger<App>.Instance);
+                        })
+                        .Build();
+
+                    var app = new App(host);
+                    var page = new ItemSearchPage();
+                    page.Width = 700;
+                    page.Height = 500;
+                    page.Measure(new Size(page.Width, page.Height));
+                    page.Arrange(new Rect(0, 0, page.Width, page.Height));
+                    page.UpdateLayout();
+                    page.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent));
+
+                    var filterBar = (StackPanel)page.FindName("FilterBar")!;
+                    var updateState = typeof(ItemSearchPage).GetMethod("UpdateState", BindingFlags.Instance | BindingFlags.NonPublic)!;
+                    updateState.Invoke(page, null);
+
+                    var groups = VisualStateManager.GetVisualStateGroups(page);
+                    var state = ((VisualStateGroup)groups[0]).CurrentState?.Name;
+                    Assert.Equal("Narrow", state);
+                    Assert.Equal(Orientation.Vertical, filterBar.Orientation);
+
+                    page.Width = 900;
+                    page.Measure(new Size(page.Width, page.Height));
+                    page.Arrange(new Rect(0, 0, page.Width, page.Height));
+                    page.UpdateLayout();
+                    updateState.Invoke(page, null);
+
+                    groups = VisualStateManager.GetVisualStateGroups(page);
+                    state = ((VisualStateGroup)groups[0]).CurrentState?.Name;
+                    Assert.Equal("Wide", state);
+                    Assert.Equal(Orientation.Horizontal, filterBar.Orientation);
 
                     app.Shutdown();
                 }
