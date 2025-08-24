@@ -45,7 +45,7 @@
                  av:ItemsSource="{av:SampleData ItemCount=5}">
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <VirtualizingStackPanel Orientation="Horizontal"/>
+                    <VirtualizingStackPanel/>
                 </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
         </ListBox>
