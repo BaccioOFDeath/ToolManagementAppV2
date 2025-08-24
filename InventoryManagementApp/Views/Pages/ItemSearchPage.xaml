@@ -11,20 +11,6 @@
       Background="{StaticResource BackgroundBrush}"
       Loaded="Page_Loaded"
       SizeChanged="Page_SizeChanged">
-    <VisualStateManager.VisualStateGroups>
-        <VisualStateGroup x:Name="AdaptiveStates">
-            <VisualState x:Name="Narrow">
-                <VisualState.Setters>
-                    <Setter Target="FilterBar.Orientation" Value="Vertical" />
-                </VisualState.Setters>
-            </VisualState>
-            <VisualState x:Name="Wide">
-                <VisualState.Setters>
-                    <Setter Target="FilterBar.Orientation" Value="Horizontal" />
-                </VisualState.Setters>
-            </VisualState>
-        </VisualStateGroup>
-    </VisualStateManager.VisualStateGroups>
     <Grid Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
