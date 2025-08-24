@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -12,10 +13,14 @@ namespace InventoryManagementApp.Views.Pages
 {
     public partial class ManageItemsPage : Page
     {
+        private CancellationTokenSource _loadCts = new();
+
         public ManageItemsPage()
         {
             InitializeComponent();
             DataContext = ((App)Application.Current).Host.Services.GetRequiredService<ItemsViewModel>();
+            Loaded += ManageItemsPage_Loaded;
+            Unloaded += ManageItemsPage_Unloaded;
         }
 
         private void DataGridRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
@@ -75,6 +80,24 @@ namespace InventoryManagementApp.Views.Pages
                     return descendant;
             }
             return null;
+        }
+
+        private async void ManageItemsPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await ((ItemsViewModel)DataContext).LoadMoreAsync(_loadCts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
+        private void ManageItemsPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            _loadCts.Cancel();
+            _loadCts.Dispose();
+            _loadCts = new CancellationTokenSource();
         }
     }
 }
