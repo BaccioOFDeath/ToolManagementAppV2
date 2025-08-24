@@ -84,9 +84,11 @@ namespace InventoryManagementApp.Views.Pages
 
         private async void ManageItemsPage_Loaded(object sender, RoutedEventArgs e)
         {
+            var vm = (ItemsViewModel)DataContext;
             try
             {
-                await ((ItemsViewModel)DataContext).LoadMoreAsync(_loadCts.Token);
+                await vm.InitializeAsync(_loadCts.Token);
+                await vm.LoadMoreAsync(_loadCts.Token);
             }
             catch (OperationCanceledException)
             {
