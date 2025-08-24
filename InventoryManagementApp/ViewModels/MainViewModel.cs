@@ -295,11 +295,12 @@ namespace InventoryManagementApp.ViewModels
             {
                 var plural = LabelProvider.Instance.ItemLabelPlural;
                 var page = new ManageItemsPage { Title = $"Manage {plural}" };
-                CurrentPage = page;
+                var vm = (ItemsViewModel)page.DataContext;
                 try
                 {
-                    var vm = (ItemsViewModel)page.DataContext;
+                    await vm.InitializeAsync();
                     await vm.LoadMoreAsync();
+                    CurrentPage = page;
                 }
                 catch (Exception ex)
                 {

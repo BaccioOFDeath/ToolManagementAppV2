@@ -31,6 +31,7 @@ namespace InventoryManagementApp.Tests
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance);
+            await vm.InitializeAsync();
 
             Assert.NotNull(vm.EditItemCommand);
             Assert.True(vm.EditItemCommand.CanExecute(null));
@@ -63,6 +64,7 @@ namespace InventoryManagementApp.Tests
             var settings = new DummySettingsService();
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance);
+            await vm.InitializeAsync();
             var item1 = new ItemModel { ItemID = 1, Name = "A" };
             var item2 = new ItemModel { ItemID = 2, Name = "B" };
             vm.Items.Add(item1);
@@ -71,6 +73,28 @@ namespace InventoryManagementApp.Tests
             await vm.DeleteItemsCommand.ExecuteAsync(list);
             Assert.Single(vm.Items);
             Assert.Equal(2, vm.Items[0].ItemID);
+        }
+
+        [Fact]
+        public async Task InitializeAsync_AppliesSettings()
+        {
+            var service = new DummyItemService();
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var settingValues = new Dictionary<string, string>
+            {
+                ["PageSize"] = "50",
+                ["LastFilter"] = "abc",
+                ["LastSort"] = $"{SortField.ItemNumber}|{SortDirection.Descending}"
+            };
+            var settings = new DummySettingsService(settings: settingValues);
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance);
+            await vm.InitializeAsync();
+            Assert.Equal(50, vm.PageSize);
+            Assert.Equal("abc", vm.Filter);
+            Assert.Equal(SortField.ItemNumber, vm.SelectedSortOption.Field);
+            Assert.Equal(SortDirection.Descending, vm.SelectedSortOption.Direction);
         }
 
         [Fact]
@@ -417,7 +441,7 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void VisibleFields_LoadFromSettings()
+        public async Task VisibleFields_LoadFromSettings()
         {
             var visibility = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => false);
             var itemService = new DummyItemService();
@@ -426,11 +450,12 @@ namespace InventoryManagementApp.Tests
             var settings = new DummySettingsService(visibility);
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance);
+            await vm.InitializeAsync();
             Assert.All(vm.VisibleFields.Values, v => Assert.False(v));
         }
 
         [Fact]
-        public void VisibleFields_UpdateOnSettingsChange()
+        public async Task VisibleFields_UpdateOnSettingsChange()
         {
             var visibility = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => false);
             var itemService = new DummyItemService();
@@ -439,8 +464,9 @@ namespace InventoryManagementApp.Tests
             var settings = new DummySettingsService(visibility);
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance);
+            await vm.InitializeAsync();
             var updated = visibility.ToDictionary(kvp => kvp.Key, _ => true);
-            settings.SaveItemDetailVisibilityAsync(updated).GetAwaiter().GetResult();
+            await settings.SaveItemDetailVisibilityAsync(updated);
             Assert.All(vm.VisibleFields.Values, v => Assert.True(v));
         }
 
@@ -740,16 +766,33 @@ namespace InventoryManagementApp.Tests
         private sealed class DummySettingsService : ISettingsService
         {
             IDictionary<ItemDetailField, bool> _visibility;
-            public DummySettingsService(IDictionary<ItemDetailField, bool>? visibility = null)
+            readonly Dictionary<string, string> _settings;
+            public DummySettingsService(IDictionary<ItemDetailField, bool>? visibility = null, Dictionary<string, string>? settings = null)
             {
                 _visibility = visibility ?? Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => true);
+                _settings = settings ?? new();
             }
             public event EventHandler<IDictionary<ItemDetailField, bool>>? ItemDetailVisibilityChanged;
-            public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task<string?> GetSettingAsync(string key, CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
-            public Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new Dictionary<string, string>());
-            public Task UpdateSettingsAsync(Dictionary<string, string> settings, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default)
+            {
+                _settings[key] = value;
+                return Task.CompletedTask;
+            }
+            public Task<string?> GetSettingAsync(string key, CancellationToken cancellationToken = default)
+                => Task.FromResult(_settings.TryGetValue(key, out var v) ? v : null);
+            public Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default)
+                => Task.FromResult(new Dictionary<string, string>(_settings));
+            public Task UpdateSettingsAsync(Dictionary<string, string> settings, CancellationToken cancellationToken = default)
+            {
+                foreach (var kvp in settings)
+                    _settings[kvp.Key] = kvp.Value;
+                return Task.CompletedTask;
+            }
+            public Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default)
+            {
+                _settings.Remove(key);
+                return Task.CompletedTask;
+            }
             public Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
             public Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
             public Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);

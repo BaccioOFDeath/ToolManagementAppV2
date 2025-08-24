@@ -84,16 +84,32 @@ namespace InventoryManagementApp.ViewModels
                 new SortOption(SortField.UpdatedAt, SortDirection.Descending, "Updated Desc")
             });
             selectedSortOption = SortOptions[0];
-            var psSetting = _settingsService.GetSettingAsync("PageSize").GetAwaiter().GetResult();
+            VisibleFields = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => true);
+            _memoryBudget.SteadyExceeded += OnSteadyExceeded;
+            _memoryBudget.PeakExceeded += OnPeakExceeded;
+
+            EditItemCommand = new AsyncRelayCommand(ct => EditItemAsync(ct));
+            ViewDetailsCommand = new RelayCommand(ViewDetails);
+            OpenRentalHistoryCommand = new AsyncRelayCommand(ct => OpenRentalHistoryAsync(ct));
+            NewItemCommand = new AsyncRelayCommand(ct => NewItemAsync(ct));
+            DeleteItemsCommand = new AsyncRelayCommand<IList>(DeleteItemsAsync);
+            CommitChangesCommand = new AsyncRelayCommand(ct => CommitChangesAsync(ct));
+        }
+
+        public async Task InitializeAsync(CancellationToken ct = default)
+        {
+            var psSetting = await _settingsService.GetSettingAsync("PageSize", ct).ConfigureAwait(false);
             if (int.TryParse(psSetting, out var ps) && ps > 0)
             {
                 pageSize = ps;
                 Items.PageSize = ps;
             }
-            var filterSetting = _settingsService.GetSettingAsync("LastFilter").GetAwaiter().GetResult();
+
+            var filterSetting = await _settingsService.GetSettingAsync("LastFilter", ct).ConfigureAwait(false);
             if (!string.IsNullOrEmpty(filterSetting))
                 filter = filterSetting;
-            var sortSetting = _settingsService.GetSettingAsync("LastSort").GetAwaiter().GetResult();
+
+            var sortSetting = await _settingsService.GetSettingAsync("LastSort", ct).ConfigureAwait(false);
             if (!string.IsNullOrEmpty(sortSetting))
             {
                 var parts = sortSetting.Split('|');
@@ -104,19 +120,11 @@ namespace InventoryManagementApp.ViewModels
                         selectedSortOption = opt;
                 }
             }
-            var vis = _settingsService.GetItemDetailVisibilityAsync().GetAwaiter().GetResult();
+
+            var vis = await _settingsService.GetItemDetailVisibilityAsync(ct).ConfigureAwait(false);
             var complete = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, f => vis.TryGetValue(f, out var v) ? v : true);
             VisibleFields = complete;
             _settingsService.ItemDetailVisibilityChanged += OnItemDetailVisibilityChanged;
-            _memoryBudget.SteadyExceeded += OnSteadyExceeded;
-            _memoryBudget.PeakExceeded += OnPeakExceeded;
-
-            EditItemCommand = new AsyncRelayCommand(ct => EditItemAsync(ct));
-            ViewDetailsCommand = new RelayCommand(ViewDetails);
-            OpenRentalHistoryCommand = new AsyncRelayCommand(ct => OpenRentalHistoryAsync(ct));
-            NewItemCommand = new AsyncRelayCommand(ct => NewItemAsync(ct));
-            DeleteItemsCommand = new AsyncRelayCommand<IList>(DeleteItemsAsync);
-            CommitChangesCommand = new AsyncRelayCommand(ct => CommitChangesAsync(ct));
         }
 
         void OnItemDetailVisibilityChanged(object? sender, IDictionary<ItemDetailField, bool> visibility)
