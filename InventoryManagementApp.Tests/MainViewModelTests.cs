@@ -61,7 +61,7 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public async Task GlobalSearchAsync_ClearsTextWithoutTriggeringNewSearch()
+        public async Task GlobalSearchAsync_PreservesTextWithoutTriggeringNewSearch()
         {
             await RunOnStaThread(async () =>
             {
@@ -117,7 +117,7 @@ namespace InventoryManagementApp.Tests
                 globalDebounceTimer.Fire();
 
                 Assert.Equal("hammer", itemManagement.SearchText);
-                Assert.Equal(string.Empty, vm.GlobalSearchText);
+                Assert.Equal("hammer", vm.GlobalSearchText);
                 Assert.Equal(1, searchExecuted);
                 Assert.Equal(1, openSearchCalls);
             });
