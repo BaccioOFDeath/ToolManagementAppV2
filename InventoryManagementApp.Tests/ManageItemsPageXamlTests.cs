@@ -83,6 +83,19 @@ namespace InventoryManagementApp.Tests
             Assert.Equal("DataGridRow_PreviewMouseRightButtonDown", eventSetter!.Handler);
         }
 
+        [Fact]
+        public void Columns_BindVisibilityToVisibleFields()
+        {
+            var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml"));
+            var xaml = File.ReadAllText(path);
+            Assert.Contains("VisibleFields[(models:ItemDetailField)ItemNumber]", xaml);
+            Assert.Contains("VisibleFields[(models:ItemDetailField)Name]", xaml);
+            Assert.Contains("VisibleFields[(models:ItemDetailField)Brand]", xaml);
+            Assert.Contains("VisibleFields[(models:ItemDetailField)QuantityOnHand]", xaml);
+            Assert.Contains("VisibleFields[(models:ItemDetailField)Location]", xaml);
+            Assert.Contains("VisibleFields[(models:ItemDetailField)Price]", xaml);
+        }
+
         private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
