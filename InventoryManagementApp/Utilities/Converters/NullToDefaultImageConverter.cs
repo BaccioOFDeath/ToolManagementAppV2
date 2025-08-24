@@ -62,7 +62,7 @@ namespace InventoryManagementApp.Utilities.Converters
                     var image = new BitmapImage();
                     image.BeginInit();
                     image.CacheOption = BitmapCacheOption.OnDemand;
-                    image.DecodePixelWidth = 96;
+                    image.DecodePixelWidth = 256;
                     image.CreateOptions = BitmapCreateOptions.DelayCreation;
                     image.UriSource = new Uri(absPath, UriKind.Absolute);
                     image.EndInit();

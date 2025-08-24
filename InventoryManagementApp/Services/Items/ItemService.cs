@@ -262,7 +262,7 @@ namespace InventoryManagementApp.Services.Items
                 {
                     try
                     {
-                        await CopyFileAsync(file, dest, 96, 96, cancellationToken);
+                        await CopyFileAsync(file, dest, 256, 256, cancellationToken);
                     }
                     catch (IOException ex)
                     {
