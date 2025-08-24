@@ -1,10 +1,10 @@
-﻿// Revised NullToDefaultImageConverter.cs
 using System;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using System.IO;
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -16,9 +16,7 @@ namespace InventoryManagementApp.Utilities.Converters
         private static BitmapImage _defaultItem;
         private static BitmapImage _defaultLogo;
         private const int MaxCacheEntries = 100;
-        private static readonly ConcurrentDictionary<string, BitmapImage> _imageCache =
-            new ConcurrentDictionary<string, BitmapImage>(StringComparer.OrdinalIgnoreCase);
-        private static readonly ConcurrentQueue<string> _cacheOrder = new ConcurrentQueue<string>();
+        private static readonly MemoryCache _imageCache = new(new MemoryCacheOptions { SizeLimit = MaxCacheEntries });
         private static readonly ConcurrentDictionary<string, byte> _invalidPaths =
             new ConcurrentDictionary<string, byte>(StringComparer.OrdinalIgnoreCase);
         private readonly ILogger<NullToDefaultImageConverter> _logger;
@@ -58,24 +56,23 @@ namespace InventoryManagementApp.Utilities.Converters
                         }
                     }
 
-                    if (_imageCache.TryGetValue(absPath, out var cached))
+                    if (_imageCache.TryGetValue(absPath, out BitmapImage cached))
                         return cached;
 
                     var image = new BitmapImage();
                     image.BeginInit();
-                    image.CacheOption = BitmapCacheOption.OnLoad;
+                    image.CacheOption = BitmapCacheOption.OnDemand;
+                    image.DecodePixelWidth = 96;
+                    image.CreateOptions = BitmapCreateOptions.DelayCreation;
                     image.UriSource = new Uri(absPath, UriKind.Absolute);
                     image.EndInit();
                     image.Freeze();
 
-                    if (_imageCache.TryAdd(absPath, image))
+                    _imageCache.Set(absPath, image, new MemoryCacheEntryOptions
                     {
-                        _cacheOrder.Enqueue(absPath);
-                        while (_cacheOrder.Count > MaxCacheEntries && _cacheOrder.TryDequeue(out var oldKey))
-                        {
-                            _imageCache.TryRemove(oldKey, out _);
-                        }
-                    }
+                        Size = 1,
+                        Priority = CacheItemPriority.Low
+                    });
 
                     return image;
                 }
