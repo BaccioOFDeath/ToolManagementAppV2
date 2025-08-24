@@ -84,6 +84,11 @@ namespace InventoryManagementApp.Views.Pages
 
         private async void ManageItemsPage_Loaded(object sender, RoutedEventArgs e)
         {
+            if (DataContext is not ItemsViewModel)
+            {
+                DataContext = ((App)Application.Current).Host.Services.GetRequiredService<ItemsViewModel>();
+            }
+
             try
             {
                 await ((ItemsViewModel)DataContext).LoadMoreAsync(_loadCts.Token);
@@ -96,6 +101,11 @@ namespace InventoryManagementApp.Views.Pages
         private void ManageItemsPage_Unloaded(object sender, RoutedEventArgs e)
         {
             _loadCts.Cancel();
+            if (DataContext is ItemsViewModel vm)
+            {
+                vm.Dispose();
+                DataContext = null;
+            }
             _loadCts.Dispose();
             _loadCts = new CancellationTokenSource();
         }
