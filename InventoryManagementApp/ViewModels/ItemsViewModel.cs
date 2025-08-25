@@ -34,6 +34,7 @@ namespace InventoryManagementApp.ViewModels
 
         public IncrementalLoadingCollection<ItemModel> Items { get; }
 
+        public IAsyncRelayCommand SearchCommand { get; }
         public IAsyncRelayCommand EditItemCommand { get; }
         public IRelayCommand ViewDetailsCommand { get; }
         public IAsyncRelayCommand OpenRentalHistoryCommand { get; }
@@ -99,6 +100,7 @@ namespace InventoryManagementApp.ViewModels
             _settingsService = settingsService;
             _logger = logger;
             Items = new IncrementalLoadingCollection<ItemModel>(LoadPageAsync, PageSize);
+            SearchCommand = new AsyncRelayCommand(StartFilterAsync);
             SortOptions = new ObservableCollection<SortOption>(new[]
             {
                 new SortOption(SortField.Name, SortDirection.Ascending, "Name Asc"),
@@ -210,7 +212,7 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        partial void OnFilterChanged(string value)
+        private Task StartFilterAsync()
         {
             _filterCts.Cancel();
             _filterCts.Dispose();
@@ -218,7 +220,12 @@ namespace InventoryManagementApp.ViewModels
             _loadCts.Cancel();
             _loadCts.Dispose();
             _loadCts = new CancellationTokenSource();
-            _ = ApplyFilterAsync(_filterCts.Token);
+            return ApplyFilterAsync(_filterCts.Token);
+        }
+
+        partial void OnFilterChanged(string value)
+        {
+            _ = StartFilterAsync();
         }
 
         private async Task ApplyFilterAsync(CancellationToken token)

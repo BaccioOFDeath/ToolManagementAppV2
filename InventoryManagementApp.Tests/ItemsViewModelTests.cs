@@ -195,6 +195,31 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task SearchCommandFiltersItems()
+        {
+            var defaults = new List<ItemModel> { new ItemModel { ItemID = 1 } };
+            var data = new Dictionary<string, List<ItemModel>>
+            {
+                ["new"] = new() { new ItemModel { ItemID = 2 } }
+            };
+            var service = new RecordingItemService(data, defaults);
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var settings = new DummySettingsService();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance);
+
+            await vm.LoadMoreAsync();
+            vm.Filter = "new";
+            await vm.SearchCommand.ExecuteAsync(null);
+
+            Assert.Equal(new[] { "new" }, service.SearchRequests);
+            Assert.Single(vm.Items);
+            Assert.Equal(2, vm.Items[0].ItemID);
+            Assert.DoesNotContain(vm.Items, i => i.ItemID == 1);
+        }
+
+        [Fact]
         public async Task NoUnfilteredItemsAfterRapidFilterChanges()
         {
             var defaults = new List<ItemModel> { new ItemModel { ItemID = 1 } };

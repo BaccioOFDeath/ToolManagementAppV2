@@ -5,6 +5,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
       xmlns:models="clr-namespace:InventoryManagementApp.Models"
+      xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
       Background="{StaticResource BackgroundBrush}">
     <Grid Margin="8">
         <Border Style="{StaticResource Card}">
@@ -20,11 +21,7 @@
                     <TextBlock
                         Text="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}"
                         Style="{StaticResource SubheadingTextBlock}"/>
-                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                        <TextBox Width="200" Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}"/>
-                        <ComboBox Width="180" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSortOption}" DisplayMemberPath="DisplayName" Margin="8,0,0,0"/>
-                        <TextBox Width="60" Text="{Binding PageSize, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,0"/>
-                    </StackPanel>
+                    <controls:SearchBar Text="{Binding Filter}" SearchCommand="{Binding SearchCommand}" />
                 </StackPanel>
 
                 <Grid Grid.Row="1">
