@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
@@ -22,12 +23,16 @@ public sealed class ItemRepository : IItemRepository
         var conditions = new List<string>();
         if (!string.IsNullOrWhiteSpace(filter.Search))
         {
-            conditions.Add("(ItemNumber LIKE @ItemNumberPrefix COLLATE NOCASE_NOACCENT OR ItemNumber LIKE @ItemNumberSubstring COLLATE NOCASE_NOACCENT OR NameDescription LIKE @NameSubstring COLLATE NOCASE_NOACCENT OR Notes LIKE @NotesSubstring COLLATE NOCASE_NOACCENT OR Keywords LIKE @KeywordsSubstring COLLATE NOCASE_NOACCENT)");
-            parameters.Add("ItemNumberPrefix", $"{filter.Search}%");
-            parameters.Add("ItemNumberSubstring", $"%{filter.Search}%");
-            parameters.Add("NameSubstring", $"%{filter.Search}%");
-            parameters.Add("NotesSubstring", $"%{filter.Search}%");
-            parameters.Add("KeywordsSubstring", $"%{filter.Search}%");
+            var tokens = filter.Search.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            for (var i = 0; i < tokens.Length; i++)
+            {
+                conditions.Add("(ItemNumber LIKE @ItemNumberPrefix" + i + " COLLATE NOCASE_NOACCENT OR ItemNumber LIKE @ItemNumberSubstring" + i + " COLLATE NOCASE_NOACCENT OR NameDescription LIKE @NameSubstring" + i + " COLLATE NOCASE_NOACCENT OR Notes LIKE @NotesSubstring" + i + " COLLATE NOCASE_NOACCENT OR Keywords LIKE @KeywordsSubstring" + i + " COLLATE NOCASE_NOACCENT)");
+                parameters.Add("ItemNumberPrefix" + i, tokens[i] + "%");
+                parameters.Add("ItemNumberSubstring" + i, "%" + tokens[i] + "%");
+                parameters.Add("NameSubstring" + i, "%" + tokens[i] + "%");
+                parameters.Add("NotesSubstring" + i, "%" + tokens[i] + "%");
+                parameters.Add("KeywordsSubstring" + i, "%" + tokens[i] + "%");
+            }
         }
         if (filter.IsRentalItem.HasValue)
         {
@@ -112,12 +117,16 @@ public sealed class ItemRepository : IItemRepository
         var conditions = new List<string>();
         if (!string.IsNullOrWhiteSpace(filter.Search))
         {
-            conditions.Add("(ItemNumber LIKE @ItemNumberPrefix COLLATE NOCASE_NOACCENT OR ItemNumber LIKE @ItemNumberSubstring COLLATE NOCASE_NOACCENT OR NameDescription LIKE @NameSubstring COLLATE NOCASE_NOACCENT OR Notes LIKE @NotesSubstring COLLATE NOCASE_NOACCENT OR Keywords LIKE @KeywordsSubstring COLLATE NOCASE_NOACCENT)");
-            parameters.Add("ItemNumberPrefix", $"{filter.Search}%");
-            parameters.Add("ItemNumberSubstring", $"%{filter.Search}%");
-            parameters.Add("NameSubstring", $"%{filter.Search}%");
-            parameters.Add("NotesSubstring", $"%{filter.Search}%");
-            parameters.Add("KeywordsSubstring", $"%{filter.Search}%");
+            var tokens = filter.Search.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            for (var i = 0; i < tokens.Length; i++)
+            {
+                conditions.Add("(ItemNumber LIKE @ItemNumberPrefix" + i + " COLLATE NOCASE_NOACCENT OR ItemNumber LIKE @ItemNumberSubstring" + i + " COLLATE NOCASE_NOACCENT OR NameDescription LIKE @NameSubstring" + i + " COLLATE NOCASE_NOACCENT OR Notes LIKE @NotesSubstring" + i + " COLLATE NOCASE_NOACCENT OR Keywords LIKE @KeywordsSubstring" + i + " COLLATE NOCASE_NOACCENT)");
+                parameters.Add("ItemNumberPrefix" + i, tokens[i] + "%");
+                parameters.Add("ItemNumberSubstring" + i, "%" + tokens[i] + "%");
+                parameters.Add("NameSubstring" + i, "%" + tokens[i] + "%");
+                parameters.Add("NotesSubstring" + i, "%" + tokens[i] + "%");
+                parameters.Add("KeywordsSubstring" + i, "%" + tokens[i] + "%");
+            }
         }
         if (filter.IsRentalItem.HasValue)
         {
