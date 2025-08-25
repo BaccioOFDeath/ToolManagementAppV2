@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Media;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -63,6 +66,63 @@ namespace InventoryManagementApp.Tests
             thread.Start();
             thread.Join();
             if (threadEx != null) throw threadEx;
+        }
+
+        [Fact]
+        public void Columns_AreVisible_WhenFlagsTrue()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var host = Host.CreateDefaultBuilder()
+                        .ConfigureServices(services =>
+                        {
+                            services.AddSingleton<IItemService, StubItemService>();
+                            services.AddSingleton<IDialogService, StubDialogService>();
+                            services.AddSingleton<IRentalService, StubRentalService>();
+                            services.AddSingleton<ISettingsService, StubSettingsService>();
+                            services.AddSingleton(sp => new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue));
+                            services.AddSingleton<ItemsViewModel>();
+                            services.AddSingleton<ILogger<ItemsViewModel>>(sp => NullLogger<ItemsViewModel>.Instance);
+                        })
+                        .Build();
+
+                    var app = new App(host);
+                    var page = new ManageItemsPage();
+                    var method = typeof(ManageItemsPage).GetMethod("ManageItemsPage_Loaded", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    method!.Invoke(page, new object[] { page, new RoutedEventArgs() });
+                    var dataGrid = FindVisualChild<DataGrid>(page) ?? throw new InvalidOperationException("DataGrid not found");
+                    foreach (var col in dataGrid.Columns)
+                        Assert.Equal(Visibility.Visible, col.Visibility);
+                    Assert.Contains(dataGrid.Columns, c => Equals("Part #", c.Header));
+                    Assert.Contains(dataGrid.Columns, c => Equals("Notes", c.Header));
+                    app.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
+        private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T t)
+                    return t;
+                var result = FindVisualChild<T>(child);
+                if (result != null)
+                    return result;
+            }
+            return null;
         }
 
         private sealed class StubItemService : IItemService

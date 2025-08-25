@@ -155,6 +155,8 @@ namespace InventoryManagementApp.ViewModels
                 var vis = await _settingsService.GetItemDetailVisibilityAsync(ct).ConfigureAwait(false);
                 var complete = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, f => vis.TryGetValue(f, out var v) ? v : true);
                 VisibleFields = complete;
+                if (vis.Count != complete.Count)
+                    await _settingsService.SaveItemDetailVisibilityAsync(complete, ct).ConfigureAwait(false);
                 _settingsService.ItemDetailVisibilityChanged += OnItemDetailVisibilityChanged;
             }
             catch (OperationCanceledException)
