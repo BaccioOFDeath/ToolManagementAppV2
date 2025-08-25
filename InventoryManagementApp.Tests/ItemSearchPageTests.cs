@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Documents;
 using System.Reflection;
@@ -109,6 +110,60 @@ namespace InventoryManagementApp.Tests
                     SpinWait.SpinUntil(() => vm.SearchResults.Count == 1 && vm.SearchResults[0].Brand == "Paints", TimeSpan.FromSeconds(5));
                     Assert.Single(vm.SearchResults);
                     Assert.Equal("Paints", vm.SearchResults[0].Brand);
+
+                    app.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
+        [Fact]
+        public void MouseWheel_ScrollsHorizontally()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var host = Host.CreateDefaultBuilder()
+                        .ConfigureServices(services =>
+                        {
+                            services.AddSingleton<IItemService, StubItemService>();
+                            services.AddSingleton<IDialogService, DummyDialogService>();
+                            services.AddSingleton<ICustomerService, DummyCustomerService>();
+                            services.AddSingleton<IRentalService, DummyRentalService>();
+                            services.AddSingleton<ISettingsService, DummySettingsService>();
+                            services.AddSingleton<ItemManagementViewModel>();
+                            services.AddSingleton<ILogger<ItemManagementViewModel>>(sp => NullLogger<ItemManagementViewModel>.Instance);
+                        })
+                        .Build();
+
+                    var app = new App(host);
+                    var vm = host.Services.GetRequiredService<ItemManagementViewModel>();
+                    vm.LoadItemsAsync(new ItemPage(1, 50)).GetAwaiter().GetResult();
+
+                    var page = new ItemSearchPage { DataContext = vm };
+                    page.ItemsList.Width = 100;
+                    page.Measure(new Size(100, 100));
+                    page.Arrange(new Rect(0, 0, 100, 100));
+                    page.UpdateLayout();
+                    var scrollViewer = FindVisualChild<ScrollViewer>(page.ItemsList) ?? throw new InvalidOperationException("ScrollViewer not found");
+                    Assert.Equal(Visibility.Visible, scrollViewer.ComputedHorizontalScrollBarVisibility);
+
+                    var args = new MouseWheelEventArgs(Mouse.PrimaryDevice, 0, -120)
+                    {
+                        RoutedEvent = UIElement.PreviewMouseWheelEvent,
+                        Source = page.ItemsList
+                    };
+                    page.ItemsList.RaiseEvent(args);
+                    Assert.True(scrollViewer.HorizontalOffset > 0);
 
                     app.Shutdown();
                 }
