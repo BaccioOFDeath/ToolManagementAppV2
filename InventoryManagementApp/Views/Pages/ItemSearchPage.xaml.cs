@@ -11,6 +11,7 @@ namespace InventoryManagementApp.Views.Pages
         public ItemSearchPage()
         {
             InitializeComponent();
+            ItemsList.AddHandler(UIElement.PreviewMouseWheelEvent, new MouseWheelEventHandler(ItemsList_OnPreviewMouseWheel), true);
         }
 
         private async void Page_Loaded(object sender, RoutedEventArgs e)
@@ -28,12 +29,12 @@ namespace InventoryManagementApp.Views.Pages
             VisualStateManager.GoToState(this, state, true);
         }
 
-        private void ItemsList_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        private void ItemsList_OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (sender is DependencyObject d)
             {
                 var scrollViewer = FindScrollViewer(d);
-                if (scrollViewer?.ComputedHorizontalScrollBarVisibility == Visibility.Visible)
+                if (scrollViewer != null)
                 {
                     scrollViewer.ScrollToHorizontalOffset(scrollViewer.HorizontalOffset - e.Delta);
                     e.Handled = true;
