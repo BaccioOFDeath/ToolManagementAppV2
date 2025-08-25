@@ -28,6 +28,7 @@ namespace InventoryManagementApp.ViewModels
         private readonly ISettingsService _settingsService;
         private readonly ILogger<ItemsViewModel> _logger;
         private CancellationTokenSource _filterCts = new();
+        private CancellationTokenSource _loadCts = new();
         private bool _disposed;
         private readonly List<ItemModel> _pendingEdits = new();
 
@@ -200,7 +201,8 @@ namespace InventoryManagementApp.ViewModels
         {
             try
             {
-                await Items.LoadMoreAsync(ct).ConfigureAwait(false);
+                using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, _loadCts.Token);
+                await Items.LoadMoreAsync(linked.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -213,6 +215,9 @@ namespace InventoryManagementApp.ViewModels
             _filterCts.Cancel();
             _filterCts.Dispose();
             _filterCts = new CancellationTokenSource();
+            _loadCts.Cancel();
+            _loadCts.Dispose();
+            _loadCts = new CancellationTokenSource();
             _ = ApplyFilterAsync(_filterCts.Token);
         }
 
@@ -221,7 +226,8 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 await Task.Delay(300, token).ConfigureAwait(false);
-                var firstPage = await LoadPageAsync(1, token).ConfigureAwait(false);
+                using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, _loadCts.Token);
+                var firstPage = await LoadPageAsync(1, linked.Token).ConfigureAwait(false);
                 Items.ResetWith(firstPage);
                 await _settingsService.SaveSettingAsync("LastFilter", Filter, token).ConfigureAwait(false);
             }
@@ -239,7 +245,7 @@ namespace InventoryManagementApp.ViewModels
 
         private async Task ApplySortAsync(SortOption value)
         {
-            var firstPage = await LoadPageAsync(1, CancellationToken.None).ConfigureAwait(false);
+            var firstPage = await LoadPageAsync(1, _loadCts.Token).ConfigureAwait(false);
             Items.ResetWith(firstPage);
             await _settingsService.SaveSettingAsync("LastSort", $"{value.Field}|{value.Direction}").ConfigureAwait(false);
         }
@@ -250,7 +256,7 @@ namespace InventoryManagementApp.ViewModels
         {
             Items.PageSize = value;
             Items.TrimToWindow(value * 3);
-            var firstPage = await LoadPageAsync(1, CancellationToken.None).ConfigureAwait(false);
+            var firstPage = await LoadPageAsync(1, _loadCts.Token).ConfigureAwait(false);
             Items.ResetWith(firstPage);
             await _settingsService.SaveSettingAsync("PageSize", value.ToString()).ConfigureAwait(false);
         }
@@ -476,6 +482,8 @@ namespace InventoryManagementApp.ViewModels
             Items.Reset();
             _filterCts.Cancel();
             _filterCts.Dispose();
+            _loadCts.Cancel();
+            _loadCts.Dispose();
         }
     }
 
