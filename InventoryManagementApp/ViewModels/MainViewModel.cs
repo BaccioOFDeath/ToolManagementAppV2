@@ -26,7 +26,6 @@ using Microsoft.Extensions.DependencyInjection;
 using InventoryManagementApp.Models.ImportExport;
 using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Helpers;
-using InventoryManagementApp.Data;
 using Application = System.Windows.Application;
 
 namespace InventoryManagementApp.ViewModels
@@ -274,12 +273,11 @@ namespace InventoryManagementApp.ViewModels
             OpenSearchItemsCommand = new AsyncRelayCommand(async () =>
             {
                 var plural = LabelProvider.Instance.ItemLabelPlural;
-                await ItemManagement.InitializeAsync();
                 var page = new ItemSearchPage { DataContext = ItemManagement, Title = $"Search {plural}" };
-                CurrentPage = page;
                 try
                 {
-                    await ItemManagement.LoadItemsAsync(new ItemPage(1, 50));
+                    await ItemManagement.InitializeAsync();
+                    CurrentPage = page;
                 }
                 catch (Exception ex)
                 {
