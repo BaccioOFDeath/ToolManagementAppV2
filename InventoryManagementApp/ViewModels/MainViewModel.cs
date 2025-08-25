@@ -433,6 +433,16 @@ namespace InventoryManagementApp.ViewModels
                 var previousUser = _userContext.CurrentUser;
                 _userContext.CurrentUser = null;
                 CloseNonMainWindows();
+                GlobalSearchText = string.Empty;
+                try
+                {
+                    await _settingsService.DeleteSettingAsync("LastFilter").ConfigureAwait(false);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                }
+                if (CurrentPage?.DataContext is ItemsViewModel itemsVm)
+                    itemsVm.Filter = string.Empty;
                 try
                 {
                     if (await _showLoginWindow())
