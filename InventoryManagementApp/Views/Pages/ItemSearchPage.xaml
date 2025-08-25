@@ -12,40 +12,10 @@
       Loaded="Page_Loaded"
       SizeChanged="Page_SizeChanged">
     <Grid Margin="8">
-        <VisualStateManager.VisualStateGroups>
-            <VisualStateGroup>
-                <VisualState x:Name="Narrow">
-                    <Storyboard>
-                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="FilterBar"
-                                                       Storyboard.TargetProperty="Orientation">
-                            <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Orientation.Vertical}"/>
-                        </ObjectAnimationUsingKeyFrames>
-                    </Storyboard>
-                </VisualState>
-                <VisualState x:Name="Wide">
-                    <Storyboard>
-                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="FilterBar"
-                                                       Storyboard.TargetProperty="Orientation">
-                            <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Orientation.Horizontal}"/>
-                        </ObjectAnimationUsingKeyFrames>
-                    </Storyboard>
-                </VisualState>
-            </VisualStateGroup>
-        </VisualStateManager.VisualStateGroups>
-
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-
-        <StackPanel x:Name="FilterBar" Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
-            <controls:SearchBar Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                SearchCommand="{Binding SearchCommand}"/>
-            <ComboBox ItemsSource="{Binding Categories}"
-                      SelectedItem="{Binding SelectedCategory}"
-                      Margin="8,0,0,0"
-                      Width="180"/>
-        </StackPanel>
 
         <ListBox x:Name="ItemsList" Grid.Row="1"
                  Background="{StaticResource SurfaceBrush}"
