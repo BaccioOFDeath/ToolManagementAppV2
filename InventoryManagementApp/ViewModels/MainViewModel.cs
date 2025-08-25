@@ -433,7 +433,7 @@ namespace InventoryManagementApp.ViewModels
                 var previousUser = _userContext.CurrentUser;
                 _userContext.CurrentUser = null;
                 CloseNonMainWindows();
-                GlobalSearchText = string.Empty;
+                ClearSearch();
                 try
                 {
                     await _settingsService.DeleteSettingAsync("LastFilter").ConfigureAwait(false);
@@ -564,6 +564,7 @@ namespace InventoryManagementApp.ViewModels
         async void OnAutoLogoutTimerTick(object? s, EventArgs e)
         {
             _autoLogoutTimer.Stop();
+            ClearSearch();
             await SwitchUserCommand.ExecuteAsync(null);
         }
 
@@ -636,6 +637,12 @@ namespace InventoryManagementApp.ViewModels
             await OpenSearchItemsCommand.ExecuteAsync(null);
             if (ItemManagement.SearchCommand != null)
                 await ItemManagement.SearchCommand.ExecuteAsync(cancellationToken);
+        }
+
+        public void ClearSearch()
+        {
+            GlobalSearchText = string.Empty;
+            _globalSearchDebounceTimer.Stop();
         }
 
         /// <inheritdoc />
