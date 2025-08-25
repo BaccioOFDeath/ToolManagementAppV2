@@ -8,6 +8,8 @@ namespace InventoryManagementApp.Views.Pages
 {
     public partial class ItemSearchPage : Page
     {
+        private const double ScrollFactor = 0.25;
+
         public ItemSearchPage()
         {
             InitializeComponent();
@@ -36,7 +38,7 @@ namespace InventoryManagementApp.Views.Pages
                 var scrollViewer = FindScrollViewer(d);
                 if (scrollViewer != null)
                 {
-                    scrollViewer.ScrollToHorizontalOffset(scrollViewer.HorizontalOffset - e.Delta);
+                    scrollViewer.ScrollToHorizontalOffset(scrollViewer.HorizontalOffset - e.Delta * ScrollFactor);
                     e.Handled = true;
                 }
             }
