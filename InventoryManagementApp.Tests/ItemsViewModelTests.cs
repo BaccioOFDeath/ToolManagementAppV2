@@ -195,6 +195,32 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task NoUnfilteredItemsAfterRapidFilterChanges()
+        {
+            var defaults = new List<ItemModel> { new ItemModel { ItemID = 1 } };
+            var data = new Dictionary<string, List<ItemModel>>
+            {
+                ["new"] = new() { new ItemModel { ItemID = 2 } }
+            };
+            var service = new RecordingItemService(data, defaults, delayMs:100);
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var settings = new DummySettingsService();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance);
+
+            var loadTask = vm.LoadMoreAsync();
+            vm.Filter = "new";
+
+            await Task.Delay(700);
+            await loadTask;
+
+            Assert.Single(vm.Items);
+            Assert.Equal(2, vm.Items[0].ItemID);
+            Assert.DoesNotContain(vm.Items, i => i.ItemID == 1);
+        }
+
+        [Fact]
         public async Task ConcurrentLoadMoreCallsDoNotDuplicateOrSkipPages()
         {
             var service = new PagingItemService();
@@ -670,14 +696,16 @@ namespace InventoryManagementApp.Tests
         {
             private readonly Dictionary<string, List<ItemModel>> _searchData;
             private readonly List<ItemModel> _defaultItems;
+            private readonly int _delay;
 
             public List<string?> SearchRequests { get; } = new();
             public int GetCalls { get; private set; }
 
-            public RecordingItemService(Dictionary<string, List<ItemModel>> searchData, List<ItemModel>? defaultItems = null)
+            public RecordingItemService(Dictionary<string, List<ItemModel>> searchData, List<ItemModel>? defaultItems = null, int delayMs = 10)
             {
                 _searchData = searchData;
                 _defaultItems = defaultItems ?? new List<ItemModel>();
+                _delay = delayMs;
             }
 
             public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
@@ -714,7 +742,7 @@ namespace InventoryManagementApp.Tests
             {
                 foreach (var item in items)
                 {
-                    await Task.Delay(10, ct);
+                    await Task.Delay(_delay, ct);
                     yield return item;
                 }
             }
