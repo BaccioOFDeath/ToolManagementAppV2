@@ -23,7 +23,7 @@ public class SqliteConnectionFactoryTests
         using (var conn = factory.Create())
         {
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "CREATE TABLE Items (ItemNumber TEXT, NameDescription TEXT, AvailableQuantity INTEGER, Price NUMERIC NOT NULL DEFAULT 0, UpdatedAt TEXT);";
+            cmd.CommandText = "CREATE TABLE Items (ItemNumber TEXT, NameDescription TEXT, AvailableQuantity INTEGER, Price NUMERIC NOT NULL DEFAULT 0, UpdatedAt TEXT, Notes TEXT, Keywords TEXT);";
             cmd.ExecuteNonQuery();
         }
 
@@ -38,6 +38,8 @@ public class SqliteConnectionFactoryTests
         Assert.Contains("IX_Items_NameDescription", indexes);
         Assert.Contains("IX_Items_AvailableQuantity", indexes);
         Assert.Contains("IX_Items_UpdatedAt", indexes);
+        Assert.Contains("IX_Items_Notes", indexes);
+        Assert.Contains("IX_Items_Keywords", indexes);
     }
 
     [Fact]
@@ -63,6 +65,8 @@ public class SqliteConnectionFactoryTests
         Assert.Contains("IX_Items_NameDescription", indexes);
         Assert.Contains("IX_Items_AvailableQuantity", indexes);
         Assert.DoesNotContain("IX_Items_UpdatedAt", indexes);
+        Assert.DoesNotContain("IX_Items_Notes", indexes);
+        Assert.DoesNotContain("IX_Items_Keywords", indexes);
     }
 
     [Fact]
