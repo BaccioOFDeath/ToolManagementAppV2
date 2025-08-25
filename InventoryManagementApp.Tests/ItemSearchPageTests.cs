@@ -53,6 +53,8 @@ namespace InventoryManagementApp.Tests
                     var vm = host.Services.GetRequiredService<ItemManagementViewModel>();
                     vm.LoadItemsAsync(new ItemPage(1, 50)).GetAwaiter().GetResult();
 
+                    var initialCount = vm.Items.Count;
+
                     var page = new ItemSearchPage { DataContext = vm };
                     var searchBar = FindVisualChild<InventoryManagementApp.Controls.SearchBar>(page) ?? throw new InvalidOperationException("SearchBar not found");
                     searchBar.Text = "Screw";
@@ -64,6 +66,7 @@ namespace InventoryManagementApp.Tests
                     SpinWait.SpinUntil(() => vm.SearchResults.Count == 1, TimeSpan.FromSeconds(5));
                     Assert.Single(vm.SearchResults);
                     Assert.Equal("Screwdriver", vm.SearchResults[0].Name);
+                    Assert.Equal(initialCount, vm.Items.Count);
 
                     app.Shutdown();
                 }
