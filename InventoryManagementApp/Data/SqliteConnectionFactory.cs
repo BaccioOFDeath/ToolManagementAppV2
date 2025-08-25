@@ -63,6 +63,10 @@ public sealed class SqliteConnectionFactory
                     sb.AppendLine("CREATE INDEX IF NOT EXISTS IX_Items_NameDescription ON Items(NameDescription);");
                 if (columns.Contains("AvailableQuantity"))
                     sb.AppendLine("CREATE INDEX IF NOT EXISTS IX_Items_AvailableQuantity ON Items(AvailableQuantity);");
+                if (columns.Contains("Notes"))
+                    sb.AppendLine("CREATE INDEX IF NOT EXISTS IX_Items_Notes ON Items(Notes);");
+                if (columns.Contains("Keywords"))
+                    sb.AppendLine("CREATE INDEX IF NOT EXISTS IX_Items_Keywords ON Items(Keywords);");
                 if (columns.Contains("UpdatedAt"))
                     sb.AppendLine("CREATE INDEX IF NOT EXISTS IX_Items_UpdatedAt ON Items(UpdatedAt);");
                 else
