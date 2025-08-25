@@ -76,4 +76,15 @@ public class ItemRepositoryCountTests
         var count = await repo.CountAsync(new ItemFilter(null, IsRentalItem: true), CancellationToken.None);
         Assert.Equal(1, count);
     }
+
+    [Fact]
+    public async Task CountAsync_Cancelled_Throws()
+    {
+        var factory = CreateFactory();
+        await SeedAsync(factory);
+        var repo = new ItemRepository(factory);
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+        await Assert.ThrowsAsync<OperationCanceledException>(() => repo.CountAsync(new ItemFilter(null), cts.Token));
+    }
 }
