@@ -19,7 +19,7 @@
         <WrapPanel Orientation="Horizontal" ItemWidth="260" ItemHeight="100"/>
     </ItemsPanelTemplate>
     <DataTemplate x:Key="ItemCardTemplate">
-        <Border Style="{StaticResource Card}" Width="256" Padding="0" Margin="4">
+        <Border Style="{StaticResource Card}" Width="280" Padding="0" Margin="4">
             <Border.Visibility>
                 <MultiBinding Converter="{StaticResource AnyTrueToVisibilityConverter}">
                     <Binding Path="DataContext.ShowImage" RelativeSource="{RelativeSource AncestorType=Page}"/>
@@ -33,12 +33,12 @@
             </Border.Visibility>
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="256"/>
+                    <RowDefinition Height="280"/>
                     <RowDefinition Height="120"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Border Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1" CornerRadius="8" Visibility="{Binding DataContext.ShowImage, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}">
-                    <Image Width="256" Height="256" Stretch="Uniform" Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
+                    <Image Width="280" Height="280" Stretch="Uniform" Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
                 </Border>
                 <Grid Grid.Row="1" Margin="0,6,0,0">
                     <Grid.RowDefinitions>

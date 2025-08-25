@@ -38,7 +38,7 @@ namespace InventoryManagementApp.Views.Pages
                 var scrollViewer = FindScrollViewer(d);
                 if (scrollViewer != null)
                 {
-                    scrollViewer.ScrollToHorizontalOffset(scrollViewer.HorizontalOffset - e.Delta * ScrollFactor);
+                    scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta * ScrollFactor);
                     e.Handled = true;
                 }
             }
