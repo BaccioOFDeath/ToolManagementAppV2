@@ -19,7 +19,7 @@
         <WrapPanel Orientation="Horizontal" ItemWidth="260" ItemHeight="100"/>
     </ItemsPanelTemplate>
     <DataTemplate x:Key="ItemCardTemplate">
-        <Border Style="{StaticResource Card}" Width="256" Padding="0">
+        <Border Style="{StaticResource Card}" Width="256" Padding="0" Margin="4">
             <Border.Visibility>
                 <MultiBinding Converter="{StaticResource AnyTrueToVisibilityConverter}">
                     <Binding Path="DataContext.ShowImage" RelativeSource="{RelativeSource AncestorType=Page}"/>
