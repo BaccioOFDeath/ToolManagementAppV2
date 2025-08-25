@@ -46,6 +46,9 @@ public class ItemRepositorySearchTests
         await conn.ExecuteAsync(
             "INSERT INTO Items (ItemNumber, NameDescription, Notes, Keywords, AvailableQuantity, RentedQuantity, IsRentalItem, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,@Notes,@Keywords,0,0,1,0,0,@UpdatedAt)",
             new { ItemNumber = "CAFÉ1", Name = "Café Table", Notes = "Sturdy café furniture", Keywords = "table,café", UpdatedAt = System.DateTime.UtcNow });
+        await conn.ExecuteAsync(
+            "INSERT INTO Items (ItemNumber, NameDescription, Notes, Keywords, AvailableQuantity, RentedQuantity, IsRentalItem, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,@Notes,@Keywords,0,0,0,0,0,@UpdatedAt)",
+            new { ItemNumber = "DRL1", Name = "Red Drill", Notes = "Powerful red drill", Keywords = "drill,red", UpdatedAt = System.DateTime.UtcNow });
     }
 
     [Fact]
@@ -150,5 +153,32 @@ public class ItemRepositorySearchTests
         Assert.Single(result);
         Assert.False(result[0].IsRentalItem);
         Assert.Equal("Hand Saw", result[0].Name);
+    }
+
+    [Fact]
+    public async Task GetPageAsync_SearchMultipleTokens_OrderInsensitive()
+    {
+        var factory = CreateFactory();
+        await SeedAsync(factory);
+        var repo = new ItemRepository(factory);
+        var first = new List<ItemModel>();
+        await foreach (var item in repo.GetPageAsync(new ItemFilter("red drill"), new ItemPage(1, 10), CancellationToken.None))
+            first.Add(item);
+        var second = new List<ItemModel>();
+        await foreach (var item in repo.GetPageAsync(new ItemFilter("drill red"), new ItemPage(1, 10), CancellationToken.None))
+            second.Add(item);
+        Assert.Equal(first.Count, second.Count);
+        Assert.Equal(first[0].ItemID, second[0].ItemID);
+    }
+
+    [Fact]
+    public async Task CountAsync_SearchMultipleTokens_OrderInsensitive()
+    {
+        var factory = CreateFactory();
+        await SeedAsync(factory);
+        var repo = new ItemRepository(factory);
+        var first = await repo.CountAsync(new ItemFilter("red drill"), CancellationToken.None);
+        var second = await repo.CountAsync(new ItemFilter("drill red"), CancellationToken.None);
+        Assert.Equal(first, second);
     }
 }
