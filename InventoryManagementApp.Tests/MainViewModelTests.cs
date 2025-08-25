@@ -4,11 +4,13 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
+using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Services.Users;
 using InventoryManagementApp.ViewModels;
@@ -154,6 +156,42 @@ namespace InventoryManagementApp.Tests
 
                 var ex2 = Record.Exception(() => vm.Dispose());
                 Assert.Null(ex2);
+            });
+        }
+        [Fact]
+        public async Task SwitchUserCommand_ClearsItemsViewModelFilter()
+        {
+            await RunOnStaThread(async () =>
+            {
+                using var db = new DatabaseService(":memory:");
+                var debounceTimer = new MockDispatcherTimer();
+                using var vm = new MainViewModel(
+                    new DummyItemService(),
+                    new DummyUserService(),
+                    new DummyUserContext(),
+                    new DummyCustomerService(),
+                    new DummyRentalService(),
+                    new DummyFileDialogService(),
+                    new ActivityLogService(db),
+                    new DummySettingsService(),
+                    db,
+                    new DummyDialogService(),
+                    NullLogger<MainViewModel>.Instance,
+                    () => Task.FromResult(true),
+                    new DummyDispatcherTimer(),
+                    new DummyScannerService(),
+                    debounceTimer);
+
+                var openDashboardField = typeof(MainViewModel).GetField("<OpenDashboardCommand>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
+                openDashboardField!.SetValue(vm, new AsyncRelayCommand(() => Task.CompletedTask));
+
+                using var itemsVm = new ItemsViewModel(new DummyItemService(), new MemoryBudget(), new DummyDialogService(), new DummyRentalService(), new DummySettingsService(), NullLogger<ItemsViewModel>.Instance);
+                itemsVm.Filter = "test";
+                vm.CurrentPage = new Page { DataContext = itemsVm };
+
+                await vm.SwitchUserCommand.ExecuteAsync(null);
+
+                Assert.Equal(string.Empty, itemsVm.Filter);
             });
         }
 
