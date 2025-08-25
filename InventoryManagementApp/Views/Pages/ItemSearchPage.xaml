@@ -21,6 +21,7 @@
                  ItemsSource="{Binding SearchResults}"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 PreviewMouseWheel="ItemsList_PreviewMouseWheel"
                  VirtualizingPanel.IsVirtualizing="True"
                  VirtualizingPanel.VirtualizationMode="Recycling"
                  ItemTemplate="{StaticResource ItemCardTemplate}"
