@@ -15,14 +15,20 @@
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup>
                 <VisualState x:Name="Narrow">
-                    <VisualState.Setters>
-                        <Setter Target="FilterBar.Orientation" Value="Vertical"/>
-                    </VisualState.Setters>
+                    <Storyboard>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="FilterBar"
+                                                       Storyboard.TargetProperty="Orientation">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Orientation.Vertical}"/>
+                        </ObjectAnimationUsingKeyFrames>
+                    </Storyboard>
                 </VisualState>
                 <VisualState x:Name="Wide">
-                    <VisualState.Setters>
-                        <Setter Target="FilterBar.Orientation" Value="Horizontal"/>
-                    </VisualState.Setters>
+                    <Storyboard>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="FilterBar"
+                                                       Storyboard.TargetProperty="Orientation">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Orientation.Horizontal}"/>
+                        </ObjectAnimationUsingKeyFrames>
+                    </Storyboard>
                 </VisualState>
             </VisualStateGroup>
         </VisualStateManager.VisualStateGroups>
