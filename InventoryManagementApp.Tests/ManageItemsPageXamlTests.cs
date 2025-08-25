@@ -89,11 +89,13 @@ namespace InventoryManagementApp.Tests
             var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml"));
             var xaml = File.ReadAllText(path);
             Assert.Contains("ShowItemNumber", xaml);
+            Assert.Contains("ShowPartNumber", xaml);
             Assert.Contains("ShowName", xaml);
             Assert.Contains("ShowBrand", xaml);
             Assert.Contains("ShowQuantityOnHand", xaml);
             Assert.Contains("ShowLocation", xaml);
             Assert.Contains("ShowPrice", xaml);
+            Assert.Contains("ShowNotes", xaml);
         }
 
         private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
