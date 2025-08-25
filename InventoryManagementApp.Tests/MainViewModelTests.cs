@@ -158,6 +158,43 @@ namespace InventoryManagementApp.Tests
                 Assert.Null(ex2);
             });
         }
+
+        [Fact]
+        public async Task SwitchUserCommand_ClearsGlobalSearchText()
+        {
+            await RunOnStaThread(async () =>
+            {
+                using var db = new DatabaseService(":memory:");
+                var debounceTimer = new MockDispatcherTimer();
+                using var vm = new MainViewModel(
+                    new DummyItemService(),
+                    new DummyUserService(),
+                    new DummyUserContext(),
+                    new DummyCustomerService(),
+                    new DummyRentalService(),
+                    new DummyFileDialogService(),
+                    new ActivityLogService(db),
+                    new DummySettingsService(),
+                    db,
+                    new DummyDialogService(),
+                    NullLogger<MainViewModel>.Instance,
+                    () => Task.FromResult(true),
+                    new DummyDispatcherTimer(),
+                    new DummyScannerService(),
+                    debounceTimer);
+
+                var openDashboardField = typeof(MainViewModel).GetField("<OpenDashboardCommand>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
+                openDashboardField!.SetValue(vm, new AsyncRelayCommand(() => Task.CompletedTask));
+
+                vm.GlobalSearchText = "test";
+
+                await vm.SwitchUserCommand.ExecuteAsync(null);
+
+                Assert.Equal(string.Empty, vm.GlobalSearchText);
+                Assert.False(debounceTimer.IsEnabled);
+            });
+        }
+
         [Fact]
         public async Task SwitchUserCommand_ClearsItemsViewModelFilter()
         {
