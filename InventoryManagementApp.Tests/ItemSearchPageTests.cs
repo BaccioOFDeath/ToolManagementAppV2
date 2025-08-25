@@ -179,6 +179,48 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ItemsList_OccupiesRemainingHeight()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var host = Host.CreateDefaultBuilder()
+                        .ConfigureServices(services =>
+                        {
+                            services.AddSingleton<IDialogService, DummyDialogService>();
+                            services.AddSingleton<ILogger<App>>(sp => NullLogger<App>.Instance);
+                        })
+                        .Build();
+
+                    var app = new App(host);
+                    var page = new ItemSearchPage();
+                    page.Width = 800;
+                    page.Height = 600;
+                    page.Measure(new Size(page.Width, page.Height));
+                    page.Arrange(new Rect(0, 0, page.Width, page.Height));
+                    page.UpdateLayout();
+
+                    var filterBar = (StackPanel)page.FindName("FilterBar")!;
+                    var grid = (Grid)page.Content;
+                    var expected = grid.ActualHeight - filterBar.ActualHeight - filterBar.Margin.Bottom;
+                    Assert.InRange(page.ItemsList.ActualHeight, expected - 1, expected + 1);
+
+                    app.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
+        [Fact]
         public void UpdateState_ChangesVisualStateWithWidth()
         {
             Exception? threadEx = null;
