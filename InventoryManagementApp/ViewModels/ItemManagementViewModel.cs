@@ -251,13 +251,18 @@ namespace InventoryManagementApp.ViewModels
         /// </summary>
         async Task FilterItemsAsync()
         {
+            var cancellationToken = _searchCts?.Token ?? CancellationToken.None;
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
+            var term = string.IsNullOrWhiteSpace(SearchTerm) ? string.Empty : SearchTerm.Trim();
+            var page = new ItemPage(1, PageSize);
+            var list = new List<ItemModel>();
+
+            SearchResults.Clear();
+
             try
             {
-                var cancellationToken = _searchCts?.Token ?? CancellationToken.None;
-                var term = string.IsNullOrWhiteSpace(SearchTerm) ? string.Empty : SearchTerm.Trim();
-                var page = new ItemPage(1, PageSize);
-                var list = new List<ItemModel>();
-
                 if (!string.IsNullOrEmpty(term))
                 {
                     await foreach (var item in _itemService.SearchItemsAsync(term, page, SortField.Name, SortDirection.Ascending, isRentalItem: false, cancellationToken: cancellationToken))
@@ -268,19 +273,27 @@ namespace InventoryManagementApp.ViewModels
                     await foreach (var item in _itemService.GetItemsAsync(page, SortField.Name, SortDirection.Ascending, isRentalItem: false, cancellationToken: cancellationToken))
                         list.Add(item);
                 }
+            }
+            catch (OperationCanceledException ex)
+            {
+                _logger.LogDebug(ex, "Item search cancelled");
+                return;
+            }
 
-                if (!string.IsNullOrEmpty(SelectedCategory) && SelectedCategory != "All")
-                {
-                    list = list.Where(t => string.Equals(t.Brand, SelectedCategory, StringComparison.OrdinalIgnoreCase)).ToList();
-                }
+            if (!string.IsNullOrEmpty(SelectedCategory) && SelectedCategory != "All")
+            {
+                list = list.Where(t => string.Equals(t.Brand, SelectedCategory, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
 
+            if (string.IsNullOrEmpty(term))
+            {
                 Items.ReplaceRange(list);
                 SearchResults.ReplaceRange(list);
                 LoadCategories(list, suppressSearch: true);
             }
-            catch (OperationCanceledException)
+            else
             {
-                return;
+                SearchResults.ReplaceRange(list);
             }
         }
 
