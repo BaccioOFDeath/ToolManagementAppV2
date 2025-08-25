@@ -75,4 +75,18 @@ public class ItemRepositoryPaginationTests
         Assert.True(await enumerator.MoveNextAsync());
         Assert.Equal("Item 1", enumerator.Current.Name);
     }
+
+    [Fact]
+    public async Task GetPageAsync_Cancelled_Throws()
+    {
+        var factory = CreateFactory();
+        await SeedAsync(factory);
+        var repo = new ItemRepository(factory);
+        var page = new ItemPage(1, 5);
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+        var enumerable = repo.GetPageAsync(new ItemFilter(null), page, cts.Token);
+        await using var enumerator = enumerable.GetAsyncEnumerator();
+        await Assert.ThrowsAsync<OperationCanceledException>(async () => await enumerator.MoveNextAsync());
+    }
 }
