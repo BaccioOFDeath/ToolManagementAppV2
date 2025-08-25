@@ -41,11 +41,11 @@ public class ItemRepositorySearchTests
         );";
         cmd.ExecuteNonQuery();
         await conn.ExecuteAsync(
-            "INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsRentalItem, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,0,0,0,0,0,@UpdatedAt)",
-            new { ItemNumber = "ABC123", Name = "Hand Saw", UpdatedAt = System.DateTime.UtcNow });
+            "INSERT INTO Items (ItemNumber, NameDescription, Notes, Keywords, AvailableQuantity, RentedQuantity, IsRentalItem, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,@Notes,@Keywords,0,0,0,0,0,@UpdatedAt)",
+            new { ItemNumber = "ABC123", Name = "Hand Saw", Notes = "A sharp saw", Keywords = "tool,cutting", UpdatedAt = System.DateTime.UtcNow });
         await conn.ExecuteAsync(
-            "INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsRentalItem, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,0,0,1,0,0,@UpdatedAt)",
-            new { ItemNumber = "CAFÉ1", Name = "Café Table", UpdatedAt = System.DateTime.UtcNow });
+            "INSERT INTO Items (ItemNumber, NameDescription, Notes, Keywords, AvailableQuantity, RentedQuantity, IsRentalItem, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,@Notes,@Keywords,0,0,1,0,0,@UpdatedAt)",
+            new { ItemNumber = "CAFÉ1", Name = "Café Table", Notes = "Sturdy café furniture", Keywords = "table,café", UpdatedAt = System.DateTime.UtcNow });
     }
 
     [Fact]
@@ -96,6 +96,32 @@ public class ItemRepositorySearchTests
         await foreach (var item in repo.GetPageAsync(new ItemFilter("cafe"), new ItemPage(1, 10), CancellationToken.None))
             result.Add(item);
         Assert.Contains(result, i => i.ItemNumber == "CAFÉ1");
+    }
+
+    [Fact]
+    public async Task GetPageAsync_SearchNotes_IgnoresCase()
+    {
+        var factory = CreateFactory();
+        await SeedAsync(factory);
+        var repo = new ItemRepository(factory);
+        var result = new List<ItemModel>();
+        await foreach (var item in repo.GetPageAsync(new ItemFilter("SHARP"), new ItemPage(1, 10), CancellationToken.None))
+            result.Add(item);
+        Assert.Single(result);
+        Assert.Equal("Hand Saw", result[0].Name);
+    }
+
+    [Fact]
+    public async Task GetPageAsync_SearchKeywords_IgnoresCase()
+    {
+        var factory = CreateFactory();
+        await SeedAsync(factory);
+        var repo = new ItemRepository(factory);
+        var result = new List<ItemModel>();
+        await foreach (var item in repo.GetPageAsync(new ItemFilter("TOOL"), new ItemPage(1, 10), CancellationToken.None))
+            result.Add(item);
+        Assert.Single(result);
+        Assert.Equal("Hand Saw", result[0].Name);
     }
 
     [Fact]
