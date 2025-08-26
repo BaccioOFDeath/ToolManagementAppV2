@@ -106,6 +106,8 @@ namespace InventoryManagementApp.ViewModels
 
         public string? CurrentUserPhotoPath => _userContext.CurrentUser?.UserPhotoPath;
 
+        public bool HasCurrentUser => _userContext.CurrentUser != null;
+
         private string _applicationName = string.Empty;
         public string ApplicationName
         {
@@ -152,6 +154,7 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(CurrentUserName));
             OnPropertyChanged(nameof(CurrentUserRole));
             OnPropertyChanged(nameof(CurrentUserPhotoPath));
+            OnPropertyChanged(nameof(HasCurrentUser));
         }
 
         void CloseNonMainWindows()
@@ -429,11 +432,12 @@ namespace InventoryManagementApp.ViewModels
             _globalSearchDebounceTimer.Tick += OnGlobalSearchDebounceTimerTick;
 
             SwitchUserCommand = new AsyncRelayCommand(async () =>
-            {
-                var previousUser = _userContext.CurrentUser;
-                _userContext.CurrentUser = null;
-                CloseNonMainWindows();
-                ClearSearch();
+                {
+                    var previousUser = _userContext.CurrentUser;
+                    _userContext.CurrentUser = null;
+                    RefreshCurrentUser();
+                    CloseNonMainWindows();
+                    ClearSearch();
                 try
                 {
                     await _settingsService.DeleteSettingAsync("LastFilter").ConfigureAwait(false);
