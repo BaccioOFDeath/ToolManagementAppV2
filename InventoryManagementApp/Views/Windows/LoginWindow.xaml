@@ -59,7 +59,43 @@
                                             BorderBrush="{StaticResource BorderBrushAlt}"
                                             BorderThickness="1"
                                             ClipToBounds="True">
-                                        <Image Stretch="Uniform" Source="{Binding UserPhotoPath, ConverterParameter=user, Converter={StaticResource NullToDefaultImageConverter}}"/>
+                                        <Grid>
+                                            <Image Stretch="Uniform"
+                                                   Source="{Binding UserPhotoPath}">
+                                                <Image.Style>
+                                                    <Style TargetType="Image">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding UserPhotoPath}" Value="">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding UserPhotoPath}" Value="{x:Null}">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Image.Style>
+                                            </Image>
+                                            <TextBlock Text="{Binding UserName, Converter={StaticResource NameToInitialsConverter}}"
+                                                       FontSize="48"
+                                                       Foreground="{StaticResource ForegroundBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding UserPhotoPath}" Value="">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding UserPhotoPath}" Value="{x:Null}">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Grid>
                                     </Border>
                                     <TextBlock Grid.Row="1"
                                                Text="{Binding UserName}"
