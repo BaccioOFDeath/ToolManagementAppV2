@@ -20,7 +20,6 @@
                     <Button Style="{StaticResource PrimaryButton}" Content="Delete" Command="{Binding DeleteRentalCommand}"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
-                    <TextBlock Text="Rentals" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,16,0"/>
                     <TextBox Width="160" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
                     <DatePicker SelectedDate="{Binding FilterFrom, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
                     <DatePicker SelectedDate="{Binding FilterTo, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
