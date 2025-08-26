@@ -26,6 +26,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
@@ -49,7 +50,9 @@
 
             <CheckBox Grid.Row="6" Grid.ColumnSpan="2" Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Power {0}'}" IsChecked="{Binding ItemModel.IsPowered}" Margin="0,0,0,8"/>
 
-            <StackPanel Grid.Row="7" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
+            <CheckBox Grid.Row="7" Grid.ColumnSpan="2" Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Rental {0}'}" IsChecked="{Binding ItemModel.IsRentalItem}" Margin="0,0,0,8"/>
+
+            <StackPanel Grid.Row="8" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
                 <Image Width="100" Height="100" Stretch="Uniform"
                        Source="{Binding ItemModel.ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
                 <StackPanel Orientation="Vertical" Margin="8,0,0,0">
@@ -58,7 +61,7 @@
                 </StackPanel>
             </StackPanel>
 
-            <StackPanel Grid.Row="8" Grid.ColumnSpan="2" Orientation="Vertical">
+            <StackPanel Grid.Row="9" Grid.ColumnSpan="2" Orientation="Vertical">
                 <TextBlock Text="Notes" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
                 <TextBox Text="{Binding ItemModel.Notes, UpdateSourceTrigger=PropertyChanged}" Height="90" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
             </StackPanel>
