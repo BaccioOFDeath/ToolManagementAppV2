@@ -98,6 +98,17 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("ShowNotes", xaml);
         }
 
+        [Fact]
+        public void ActionButtons_AppearAtTop()
+        {
+            var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml"));
+            var xaml = File.ReadAllText(path);
+            Assert.DoesNotContain("Grid.Row=\"3\"", xaml);
+            var editIndex = xaml.IndexOf("Content=\"Edit\"");
+            var dataGridIndex = xaml.IndexOf("<DataGrid");
+            Assert.True(editIndex >= 0 && dataGridIndex >= 0 && editIndex < dataGridIndex);
+        }
+
         private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
