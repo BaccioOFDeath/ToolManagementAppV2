@@ -97,7 +97,7 @@ namespace InventoryManagementApp.Services
         {
             ArgumentNullException.ThrowIfNull(item);
             ArgumentNullException.ThrowIfNull(customers);
-            var vm = new RentItemPopupViewModel(item, customers);
+            var vm = ActivatorUtilities.CreateInstance<RentItemPopupViewModel>(_serviceProvider, item, customers, this);
             var win = new RentItemPopupWindow { DataContext = vm };
 
             EventHandler handler = (_, _) => win.Close();
