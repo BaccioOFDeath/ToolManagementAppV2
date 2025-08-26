@@ -6,6 +6,8 @@ using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
+using CustomerModel = InventoryManagementApp.Models.Domain.Customer;
+using RentalModel = InventoryManagementApp.Models.Domain.Rental;
 using InventoryManagementApp.ViewModels;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -115,6 +117,7 @@ namespace InventoryManagementApp.Tests
                 return RentItemDialogResult;
             }
             public CustomerModel? ShowAddCustomerDialog() => null;
+            public CustomerModel? ShowEditCustomerDialog(CustomerModel customer) => null;
             public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
             public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history) { }
             public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties, IEnumerable<string>? requiredPropertyNames = null) => null;

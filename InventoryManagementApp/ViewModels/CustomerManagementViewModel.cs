@@ -70,6 +70,10 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand UpdateCustomerCommand { get; }
         public IAsyncRelayCommand SearchCustomersCommand { get; }
         public IAsyncRelayCommand DeleteCustomerCommand { get; }
+        public IRelayCommand EditCustomerCommand { get; }
+        public IRelayCommand<CustomerModel> EditCustomerFromRowCommand { get; }
+        public IAsyncRelayCommand<CustomerModel> DeleteCustomerFromRowCommand { get; }
+        public IAsyncRelayCommand ClearCustomerSearchCommand { get; }
 
         public CustomerManagementViewModel(ICustomerService customerService, IDialogService dialogService)
         {
@@ -79,7 +83,11 @@ namespace InventoryManagementApp.ViewModels
             AddCustomerCommand = new AsyncRelayCommand(AddCustomerAsync);
             UpdateCustomerCommand = new AsyncRelayCommand(UpdateCustomerAsync, () => SelectedCustomer != null);
             SearchCustomersCommand = new AsyncRelayCommand(SearchCustomersAsync);
-            DeleteCustomerCommand = new AsyncRelayCommand(DeleteCustomerAsync, () => SelectedCustomer != null);
+            DeleteCustomerCommand = new AsyncRelayCommand(() => DeleteCustomerAsync(), () => SelectedCustomer != null);
+            EditCustomerCommand = new RelayCommand(() => EditCustomer(SelectedCustomer), () => SelectedCustomer != null);
+            EditCustomerFromRowCommand = new RelayCommand<CustomerModel>(EditCustomer);
+            DeleteCustomerFromRowCommand = new AsyncRelayCommand<CustomerModel>(c => DeleteCustomerAsync(c));
+            ClearCustomerSearchCommand = new AsyncRelayCommand(ClearCustomerSearchAsync);
         }
 
         public async Task LoadCustomersAsync()
@@ -159,20 +167,43 @@ namespace InventoryManagementApp.ViewModels
             NewCustomerAddress = string.Empty;
         }
 
-        async Task DeleteCustomerAsync()
+        async Task ClearCustomerSearchAsync()
         {
-            if (SelectedCustomer == null || _customerService == null || _dialogService == null)
+            CustomerSearchTerm = string.Empty;
+            await LoadCustomersAsync();
+        }
+
+        async Task DeleteCustomerAsync(CustomerModel? customer = null)
+        {
+            customer ??= SelectedCustomer;
+            if (customer == null || _customerService == null || _dialogService == null)
                 return;
 
             try
             {
-                await _customerService.DeleteCustomerAsync(SelectedCustomer.CustomerID);
+                await _customerService.DeleteCustomerAsync(customer.CustomerID);
                 await SearchCustomersAsync();
-                SelectedCustomer = null;
+                if (ReferenceEquals(SelectedCustomer, customer)) SelectedCustomer = null;
             }
             catch (UnauthorizedAccessException)
             {
                 await _dialogService.ShowInfoAsync("You are not authorized to delete customers.", "Unauthorized");
+            }
+        }
+
+        async void EditCustomer(CustomerModel? customer)
+        {
+            if (customer == null || _dialogService == null || _customerService == null) return;
+            var edited = _dialogService.ShowEditCustomerDialog(customer);
+            if (edited == null) return;
+            try
+            {
+                await _customerService.UpdateCustomerAsync(edited);
+                await LoadCustomersAsync();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                await _dialogService.ShowInfoAsync("You are not authorized to update customers.", "Unauthorized");
             }
         }
     }

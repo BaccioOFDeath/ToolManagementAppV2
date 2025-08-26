@@ -7,6 +7,8 @@ using InventoryManagementApp.Data;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Models;
+using CustomerModel = InventoryManagementApp.Models.Domain.Customer;
+using RentalModel = InventoryManagementApp.Models.Domain.Rental;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Services.Users;
 using InventoryManagementApp.ViewModels;
@@ -229,6 +231,7 @@ namespace InventoryManagementApp.Tests
             public virtual void ShowItemDetails(ItemModel item) { }
             public virtual (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;
             public virtual CustomerModel? ShowAddCustomerDialog() => null;
+            public virtual CustomerModel? ShowEditCustomerDialog(CustomerModel customer) => null;
             public virtual void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
             public virtual void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history) { }
             public virtual Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties, IEnumerable<string>? requiredPropertyNames = null) => null;

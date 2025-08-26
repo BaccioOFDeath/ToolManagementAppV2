@@ -133,6 +133,29 @@ namespace InventoryManagementApp.Services
             catch (Exception ex) { _logger.LogError(ex, "Failed to show CustomerEditWindow"); return null; }
         }
 
+        public CustomerModel? ShowEditCustomerDialog(CustomerModel customer)
+        {
+            ArgumentNullException.ThrowIfNull(customer);
+            var copy = new CustomerModel
+            {
+                CustomerID = customer.CustomerID,
+                Company = customer.Company,
+                Email = customer.Email,
+                Contact = customer.Contact,
+                Phone = customer.Phone,
+                Mobile = customer.Mobile,
+                Address = customer.Address
+            };
+            CustomerEditWindow? win = null;
+            win = new CustomerEditWindow(copy,
+                onSave: () => { if (win != null) win.DialogResult = true; },
+                onCancel: () => { if (win != null) win.DialogResult = false; });
+            try { win.Owner = System.Windows.Application.Current?.MainWindow; }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for CustomerEditWindow"); }
+            try { return win.ShowDialog() == true ? copy : null; }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to show CustomerEditWindow"); return null; }
+        }
+
         public void ShowRentalsFilter(ManageRentalsViewModel viewModel)
         {
             var win = new RentalsFilterWindow { DataContext = viewModel };

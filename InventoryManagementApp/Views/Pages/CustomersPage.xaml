@@ -8,12 +8,18 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Border Style="{StaticResource Card}">
-            <StackPanel Orientation="Horizontal">
-                <TextBox Width="260" Text="{Binding CustomerSearchTerm, UpdateSourceTrigger=PropertyChanged}"/>
-                <Button Style="{StaticResource PrimaryButton}" Content="Find" Command="{Binding SearchCustomersCommand}" Margin="8,0,0,0"/>
-                <Button Style="{StaticResource PrimaryButton}" Content="Add Customer" Command="{Binding AddCustomerCommand}" Margin="8,0,0,0"/>
-            </StackPanel>
+        <Border Style="{StaticResource Card}" Padding="12">
+            <DockPanel LastChildFill="False">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                    <Button Style="{StaticResource PrimaryButton}" Content="Add Customer" Command="{Binding AddCustomerCommand}" Margin="0,0,8,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Edit Customer" Command="{Binding EditCustomerCommand}" Margin="0,0,8,0"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
+                    <TextBox Width="260" Text="{Binding CustomerSearchTerm, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Search" Command="{Binding SearchCustomersCommand}" Margin="0,0,8,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Clear" Command="{Binding ClearCustomerSearchCommand}" Margin="0,0,8,0"/>
+                </StackPanel>
+            </DockPanel>
         </Border>
         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
             <DataGrid ItemsSource="{Binding Customers}" SelectedItem="{Binding SelectedCustomer}" IsReadOnly="True" AutoGenerateColumns="False" Style="{StaticResource VirtualizedDataGridStyle}">
@@ -23,6 +29,16 @@
                     <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="180"/>
                     <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="240"/>
                 </DataGrid.Columns>
+                <DataGrid.ContextMenu>
+                    <ContextMenu Style="{StaticResource {x:Type ContextMenu}}">
+                        <MenuItem Header="Edit"
+                                  Command="{Binding PlacementTarget.DataContext.EditCustomerFromRowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                        <MenuItem Header="Delete"
+                                  Command="{Binding PlacementTarget.DataContext.DeleteCustomerFromRowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
             </DataGrid>
         </Border>
     </Grid>

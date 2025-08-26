@@ -52,6 +52,7 @@ namespace InventoryManagementApp.Tests
         {
             public CustomerModel? AddCustomerDialogResult { get; set; }
             public CustomerModel? ShowAddCustomerDialog() => AddCustomerDialogResult;
+            public CustomerModel? ShowEditCustomerDialog(CustomerModel customer) => null;
             public void ShowInfo(string message, string title) { }
             public bool ShowConfirmation(string message, string title) => true;
             public ItemModel? ShowEditItemDialog(ItemModel item) => null;

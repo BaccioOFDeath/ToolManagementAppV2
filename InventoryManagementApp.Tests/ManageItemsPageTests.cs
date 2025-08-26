@@ -20,6 +20,8 @@ using InventoryManagementApp.Utilities;
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Views.Pages;
 using Xunit;
+using CustomerModel = InventoryManagementApp.Models.Domain.Customer;
+using RentalModel = InventoryManagementApp.Models.Domain.Rental;
 
 namespace InventoryManagementApp.Tests
 {
@@ -164,6 +166,7 @@ namespace InventoryManagementApp.Tests
             public void ShowItemDetails(ItemModel item) { }
             public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;
             public CustomerModel? ShowAddCustomerDialog() => null;
+            public CustomerModel? ShowEditCustomerDialog(CustomerModel customer) => null;
             public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
             public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history) { }
             public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties, IEnumerable<string>? requiredPropertyNames = null) => null;
