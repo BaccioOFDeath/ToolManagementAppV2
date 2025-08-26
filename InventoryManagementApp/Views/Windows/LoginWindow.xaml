@@ -61,7 +61,7 @@
                                             ClipToBounds="True">
                                         <Grid>
                                             <Image Stretch="Uniform"
-                                                   Source="{Binding UserPhotoPath}">
+                                                   Source="{Binding UserPhotoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=user}">
                                                 <Image.Style>
                                                     <Style TargetType="Image">
                                                         <Setter Property="Visibility" Value="Visible"/>

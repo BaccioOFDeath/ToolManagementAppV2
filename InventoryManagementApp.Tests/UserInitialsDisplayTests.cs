@@ -194,6 +194,54 @@ namespace InventoryManagementApp.Tests
             if (threadEx != null) throw threadEx;
         }
 
+        [Fact]
+        public void LoginWindow_ShowsPhotoWhenPhotoPathExists()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
+
+                    var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Windows", "LoginWindow.xaml"));
+                    var xaml = File.ReadAllText(path);
+                    xaml = Regex.Replace(xaml, "x:Class=\\\"[^\\\"]*\\\"\\s*", string.Empty);
+                    var window = (Window)XamlReader.Parse(xaml);
+                    var photoPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "Assets", "Avatars", "40.png"));
+                    window.DataContext = new { WindowTitle = "", Users = new[] { new { UserName = "John Doe", UserPhotoPath = photoPath } } };
+                    window.Measure(new Size(120, 120));
+                    window.Arrange(new Rect(0, 0, 120, 120));
+                    window.UpdateLayout();
+                    var itemsControl = FindVisualChildren<ItemsControl>(window).First(i => i.Name == "UsersListBox");
+                    var element = (FrameworkElement)itemsControl.ItemTemplate.LoadContent();
+                    element.DataContext = new { UserName = "John Doe", UserPhotoPath = photoPath };
+                    element.Measure(new Size(100, 100));
+                    element.Arrange(new Rect(0, 0, 100, 100));
+                    element.UpdateLayout();
+                    var textBlock = FindVisualChild<TextBlock>(element) ?? throw new InvalidOperationException("TextBlock not found");
+                    var image = FindVisualChild<Image>(element) ?? throw new InvalidOperationException("Image not found");
+                    Assert.Equal(Visibility.Collapsed, textBlock.Visibility);
+                    Assert.Equal(Visibility.Visible, image.Visibility);
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+                finally
+                {
+                    Application.Current?.Shutdown();
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
         private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
