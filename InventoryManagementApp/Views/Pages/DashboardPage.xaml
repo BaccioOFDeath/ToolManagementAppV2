@@ -62,6 +62,12 @@
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
+                                    <StackPanel.ToolTip>
+                                        <Image Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                               MaxWidth="150"
+                                               MaxHeight="150"
+                                               Stretch="Uniform"/>
+                                    </StackPanel.ToolTip>
                                     <TextBlock Text="{Binding ItemNumber}" Margin="0,0,8,0"/>
                                     <TextBlock Text="{Binding CheckedOutBy}" Margin="0,0,8,0"/>
                                     <Button Content="Check In"
@@ -89,6 +95,12 @@
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
+                                    <StackPanel.ToolTip>
+                                        <Image Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                               MaxWidth="150"
+                                               MaxHeight="150"
+                                               Stretch="Uniform"/>
+                                    </StackPanel.ToolTip>
                                     <TextBlock Text="{Binding ItemNumber}" Margin="0,0,8,0"/>
                                     <TextBlock Text="{Binding CustomerName}" Margin="0,0,8,0"/>
                                     <Button Content="Return"
