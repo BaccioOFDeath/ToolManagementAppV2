@@ -30,9 +30,35 @@
             </Grid.RowDefinitions>
 
             <Border Grid.RowSpan="7" Width="96" Height="96" CornerRadius="8" VerticalAlignment="top" Background="{StaticResource SurfaceAltBrush}" Margin="0,0,12,0">
-                <Image Width="96" Height="96"
-                       Source="{Binding EditingUser.UserPhotoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=user}"
-                       Stretch="UniformToFill" ClipToBounds="True"/>
+                <Grid>
+                    <Image Width="96" Height="96"
+                           Source="{Binding EditingUser.UserPhotoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=user}"
+                           Stretch="UniformToFill" ClipToBounds="True">
+                        <Image.Style>
+                            <Style TargetType="Image">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding EditingUser.UserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Image.Style>
+                    </Image>
+                    <TextBlock Text="{Binding EditingUser.UserName, Converter={StaticResource NameToInitialsConverter}}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding EditingUser.UserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
             </Border>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,8">
