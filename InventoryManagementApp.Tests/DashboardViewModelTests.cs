@@ -39,6 +39,9 @@ public class DashboardViewModelTests
     {
         public int CountCalls { get; private set; }
         public int GetCalls { get; private set; }
+        public int ReturnCalls { get; private set; }
+        public List<Rental> Rentals { get; } = new();
+        public bool ReturnShouldThrow { get; set; }
 
         public Task<int> CountActiveRentalsAsync()
         {
@@ -49,7 +52,15 @@ public class DashboardViewModelTests
         public Task<List<Rental>> GetActiveRentalsAsync()
         {
             GetCalls++;
-            return Task.FromResult(new List<Rental>());
+            return Task.FromResult(Rentals);
+        }
+
+        public Task ReturnItemAsync(int rentalID, DateTime returnDate)
+        {
+            ReturnCalls++;
+            if (ReturnShouldThrow)
+                throw new Exception("fail");
+            return Task.CompletedTask;
         }
 
         public Task DeleteRentalAsync(int rentalID) => throw new NotImplementedException();
@@ -59,7 +70,6 @@ public class DashboardViewModelTests
         public Task<List<Rental>> GetRentalHistoryForItemAsync(int itemID) => throw new NotImplementedException();
         public Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID) => throw new NotImplementedException();
         public Task RentItemAsync(int itemID, int customerID, DateTime rentalDate, DateTime dueDate) => throw new NotImplementedException();
-        public Task ReturnItemAsync(int rentalID, DateTime returnDate) => throw new NotImplementedException();
     }
 
     private sealed class StubCustomerService : ICustomerService
@@ -387,6 +397,122 @@ public class DashboardViewModelTests
         Assert.Single(vm.CheckedOutItems);
         Assert.Equal(1, itemService.ToggleCalls);
         Assert.Equal(2, itemService.LastToggledItemID);
+    }
+
+    [Fact]
+    public async Task LoadRentedItemsAsync_PopulatesCollection()
+    {
+        using var db = new DatabaseService(":memory:");
+        var itemService = new StubItemService();
+        var rentalService = new StubRentalService();
+        rentalService.Rentals.Add(new Rental { RentalID = 1, ItemNumber = "R1", CustomerName = "Carl" });
+        var customerService = new StubCustomerService();
+        var userService = new StubUserService();
+        var activityLogService = new StubActivityLogService(db);
+
+        var vm = new DashboardViewModel(
+            itemService,
+            rentalService,
+            customerService,
+            userService,
+            activityLogService,
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }));
+
+        await vm.LoadRentedItemsAsync(CancellationToken.None);
+
+        Assert.Single(vm.RentedItems);
+        Assert.Equal("R1", vm.RentedItems[0].ItemNumber);
+        Assert.Equal("Carl", vm.RentedItems[0].CustomerName);
+        Assert.Equal(1, rentalService.GetCalls);
+    }
+
+    [Fact]
+    public async Task LoadAsync_PopulatesRentedItems()
+    {
+        using var db = new DatabaseService(":memory:");
+        var itemService = new StubItemService();
+        var rentalService = new StubRentalService();
+        rentalService.Rentals.Add(new Rental { RentalID = 2, ItemNumber = "R2", CustomerName = "Dana" });
+        var customerService = new StubCustomerService();
+        var userService = new StubUserService();
+        var activityLogService = new StubActivityLogService(db);
+
+        var vm = new DashboardViewModel(
+            itemService,
+            rentalService,
+            customerService,
+            userService,
+            activityLogService,
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }));
+
+        await vm.LoadAsync(CancellationToken.None);
+
+        Assert.Single(vm.RentedItems);
+        Assert.Equal("R2", vm.RentedItems[0].ItemNumber);
+        Assert.Equal("Dana", vm.RentedItems[0].CustomerName);
+    }
+
+    [Fact]
+    public async Task ReturnRentalCommand_RemovesRentalOnSuccess()
+    {
+        using var db = new DatabaseService(":memory:");
+        var itemService = new StubItemService();
+        var rentalService = new StubRentalService();
+        var customerService = new StubCustomerService();
+        var userService = new StubUserService();
+        var activityLogService = new StubActivityLogService(db);
+
+        var vm = new DashboardViewModel(
+            itemService,
+            rentalService,
+            customerService,
+            userService,
+            activityLogService,
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }));
+
+        var rental = new Rental { RentalID = 3, ItemNumber = "R3", CustomerName = "Eve" };
+        vm.RentedItems.Add(rental);
+
+        await vm.ReturnRentalCommand.ExecuteAsync(rental);
+
+        Assert.Empty(vm.RentedItems);
+        Assert.Equal(1, rentalService.ReturnCalls);
+    }
+
+    [Fact]
+    public async Task ReturnRentalCommand_DoesNotRemoveWhenServiceFails()
+    {
+        using var db = new DatabaseService(":memory:");
+        var itemService = new StubItemService();
+        var rentalService = new StubRentalService { ReturnShouldThrow = true };
+        var customerService = new StubCustomerService();
+        var userService = new StubUserService();
+        var activityLogService = new StubActivityLogService(db);
+
+        var vm = new DashboardViewModel(
+            itemService,
+            rentalService,
+            customerService,
+            userService,
+            activityLogService,
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }));
+
+        var rental = new Rental { RentalID = 4, ItemNumber = "R4", CustomerName = "Frank" };
+        vm.RentedItems.Add(rental);
+
+        await vm.ReturnRentalCommand.ExecuteAsync(rental);
+
+        Assert.Single(vm.RentedItems);
+        Assert.Equal(rental, vm.RentedItems[0]);
+        Assert.Equal(1, rentalService.ReturnCalls);
     }
 }
 

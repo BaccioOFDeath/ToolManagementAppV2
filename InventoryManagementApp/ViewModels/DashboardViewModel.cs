@@ -30,11 +30,13 @@ namespace InventoryManagementApp.ViewModels
         public ObservableCollection<StatCard> StatCards { get; } = new();
         public ObservableCollection<ActivityLog> RecentActivity { get; } = new();
         public ObservableCollection<ItemModel> CheckedOutItems { get; } = new();
+        public ObservableCollection<RentalModel> RentedItems { get; } = new();
 
         public IRelayCommand NewItemCommand { get; }
         public IRelayCommand OpenRentalsCommand { get; }
         public IRelayCommand OpenImportExportCommand { get; }
         public IAsyncRelayCommand<ItemModel> CheckInItemCommand { get; }
+        public IAsyncRelayCommand<RentalModel> ReturnRentalCommand { get; }
 
         public DashboardViewModel(IItemService itemService,
                                   IRentalService rentalService,
@@ -75,13 +77,15 @@ namespace InventoryManagementApp.ViewModels
             });
 
             CheckInItemCommand = new AsyncRelayCommand<ItemModel>(CheckInItemAsync);
+            ReturnRentalCommand = new AsyncRelayCommand<RentalModel>(ReturnRentalAsync);
         }
 
         public Task LoadAsync(CancellationToken cancellationToken)
             => Task.WhenAll(
                 LoadStatsAsync(cancellationToken),
                 LoadRecentActivityAsync(cancellationToken),
-                LoadCheckedOutItemsAsync(cancellationToken));
+                LoadCheckedOutItemsAsync(cancellationToken),
+                LoadRentedItemsAsync(cancellationToken));
 
         internal async Task LoadStatsAsync(CancellationToken cancellationToken)
         {
@@ -156,6 +160,25 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
+        internal async Task LoadRentedItemsAsync(CancellationToken token)
+        {
+            try
+            {
+                token.ThrowIfCancellationRequested();
+                RentedItems.Clear();
+                var rentals = await _rentalService.GetActiveRentalsAsync().ConfigureAwait(false);
+                foreach (var rental in rentals)
+                    RentedItems.Add(rental);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load rented items");
+            }
+        }
+
         private async Task CheckInItemAsync(ItemModel? item, CancellationToken token)
         {
             if (item == null) return;
@@ -171,6 +194,23 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to check in item {ItemID}", item.ItemID);
+            }
+        }
+
+        private async Task ReturnRentalAsync(RentalModel? rental, CancellationToken token)
+        {
+            if (rental == null) return;
+            try
+            {
+                await _rentalService.ReturnItemAsync(rental.RentalID, DateTime.Today).ConfigureAwait(false);
+                RentedItems.Remove(rental);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to return rental {RentalID}", rental.RentalID);
             }
         }
     }
