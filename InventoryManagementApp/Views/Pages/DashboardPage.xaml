@@ -17,6 +17,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Border Style="{StaticResource Card}" Grid.Column="0">
                 <StackPanel>
@@ -65,6 +66,33 @@
                                     <TextBlock Text="{Binding CheckedOutBy}" Margin="0,0,8,0"/>
                                     <Button Content="Check In"
                                             Command="{Binding DataContext.CheckInItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="0,0,0,0"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel/>
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                    </ListView>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Grid.Column="3">
+                <StackPanel>
+                    <TextBlock Text="Rented Items" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
+                    <ListView ItemsSource="{Binding RentedItems}"
+                              Style="{StaticResource CardListView}"
+                              VirtualizingPanel.IsVirtualizing="True"
+                              VirtualizingPanel.VirtualizationMode="Recycling">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding ItemNumber}" Margin="0,0,8,0"/>
+                                    <TextBlock Text="{Binding CustomerName}" Margin="0,0,8,0"/>
+                                    <Button Content="Return"
+                                            Command="{Binding DataContext.ReturnRentalCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
                                             CommandParameter="{Binding}"
                                             Margin="0,0,0,0"/>
                                 </StackPanel>
