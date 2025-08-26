@@ -38,9 +38,35 @@
                     <DataGridTemplateColumn Header="Avatar" Width="60">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Image Width="36" Height="36"
-                                       Source="{Binding UserPhotoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=user}"
-                                       Stretch="Uniform"/>
+                                <Grid Width="36" Height="36">
+                                    <Image Source="{Binding UserPhotoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=user}"
+                                           Stretch="Uniform">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding UserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+                                    <TextBlock Text="{Binding UserName, Converter={StaticResource NameToInitialsConverter}}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               FontWeight="Bold">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding UserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>

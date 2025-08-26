@@ -5,4 +5,6 @@
     <conv:BooleanToAdminConverter x:Key="BooleanToAdminConverter"/>
     <conv:DateTimeMinToEmptyStringConverter x:Key="DateTimeMinToEmptyStringConverter"/>
     <conv:AnyTrueToVisibilityConverter x:Key="AnyTrueToVisibilityConverter"/>
+    <conv:NonEmptyStringToBoolConverter x:Key="NonEmptyStringToBoolConverter"/>
+    <conv:NameToInitialsConverter x:Key="NameToInitialsConverter"/>
 </ResourceDictionary>
