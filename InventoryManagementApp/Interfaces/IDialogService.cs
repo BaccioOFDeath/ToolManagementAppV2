@@ -24,6 +24,10 @@ namespace InventoryManagementApp.Interfaces
         void ShowItemDetails(ItemModel item);
         (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers);
         CustomerModel? ShowAddCustomerDialog();
+        CustomerModel? ShowEditCustomerDialog(CustomerModel customer);
+        Task<CustomerModel?> ShowEditCustomerDialogAsync(CustomerModel customer) =>
+            System.Windows.Application.Current?.Dispatcher?.InvokeAsync(() => ShowEditCustomerDialog(customer)).Task
+            ?? Task.FromResult<CustomerModel?>(null);
 
         void ShowRentalsFilter(ManageRentalsViewModel viewModel);
         void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history);
