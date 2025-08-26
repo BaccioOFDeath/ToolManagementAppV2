@@ -21,6 +21,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="200"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Customer" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
@@ -29,9 +30,10 @@
                           DisplayMemberPath="Company"
                           SelectedItem="{Binding SelectedCustomer, Mode=TwoWay}" Margin="8,4"
                           ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
+                <Button Grid.Row="0" Grid.Column="2" Style="{StaticResource PrimaryButton}" Content="Add Customer" Command="{Binding AddCustomerCommand}" Margin="8,4,0,4"/>
 
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Due Date" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                <DatePicker Grid.Row="1" Grid.Column="1"
+                <DatePicker Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
                             SelectedDate="{Binding SelectedDueDate, Mode=TwoWay}" Margin="8,4"/>
             </Grid>
         </Border>
