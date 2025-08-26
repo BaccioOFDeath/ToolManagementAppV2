@@ -117,7 +117,8 @@
                                 </Image.Style>
                             </Image>
                             <TextBlock Text="{Binding CurrentUserName, Converter={StaticResource NameToInitialsConverter}}"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold">
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="28"
+                                       Foreground="{StaticResource ForegroundBrush}">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="Visibility" Value="Visible"/>
