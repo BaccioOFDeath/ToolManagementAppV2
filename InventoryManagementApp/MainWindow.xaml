@@ -103,33 +103,41 @@
                     <TextBlock Text="{Binding CurrentPageTitle}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="10" Style="{StaticResource PageTitleTextBlock}"/>
                     <Border Width="60" Height="60" DockPanel.Dock="Right"  CornerRadius="16" ClipToBounds="True" Margin="0,0,8,0">
                         <Grid>
-                            <Image Source="{Binding CurrentUserPhotoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=user}"
-                                   Stretch="Uniform">
-                                <Image.Style>
-                                    <Style TargetType="Image">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding CurrentUserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True">
-                                                <Setter Property="Visibility" Value="Visible"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Image.Style>
-                            </Image>
-                            <TextBlock Text="{Binding CurrentUserName, Converter={StaticResource NameToInitialsConverter}}"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="28"
-                                       Foreground="{StaticResource ForegroundBrush}">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding CurrentUserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
+                              <Image Source="{Binding CurrentUserPhotoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=user}"
+                                     Stretch="Uniform">
+                                  <Image.Style>
+                                      <Style TargetType="Image">
+                                          <Setter Property="Visibility" Value="Visible"/>
+                                          <Style.Triggers>
+                                              <MultiDataTrigger>
+                                                  <MultiDataTrigger.Conditions>
+                                                      <Condition Binding="{Binding HasCurrentUser}" Value="True"/>
+                                                      <Condition Binding="{Binding CurrentUserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="False"/>
+                                                  </MultiDataTrigger.Conditions>
+                                                  <Setter Property="Visibility" Value="Collapsed"/>
+                                              </MultiDataTrigger>
+                                          </Style.Triggers>
+                                      </Style>
+                                  </Image.Style>
+                              </Image>
+                              <TextBlock Text="{Binding CurrentUserName, Converter={StaticResource NameToInitialsConverter}}"
+                                         HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="28"
+                                         Foreground="{StaticResource ForegroundBrush}">
+                                  <TextBlock.Style>
+                                      <Style TargetType="TextBlock">
+                                          <Setter Property="Visibility" Value="Collapsed"/>
+                                          <Style.Triggers>
+                                              <MultiDataTrigger>
+                                                  <MultiDataTrigger.Conditions>
+                                                      <Condition Binding="{Binding HasCurrentUser}" Value="True"/>
+                                                      <Condition Binding="{Binding CurrentUserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="False"/>
+                                                  </MultiDataTrigger.Conditions>
+                                                  <Setter Property="Visibility" Value="Visible"/>
+                                              </MultiDataTrigger>
+                                          </Style.Triggers>
+                                      </Style>
+                                  </TextBlock.Style>
+                              </TextBlock>
                         </Grid>
                     </Border>
                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
