@@ -379,7 +379,8 @@ namespace InventoryManagementApp.ViewModels
                 Address = source.Address,
                 Role = source.Role,
                 IsActive = source.IsActive,
-                CreatedAt = source.CreatedAt
+                CreatedAt = source.CreatedAt,
+                InitialsBrush = source.InitialsBrush
             };
 
             UsersEditWindow? win = null;
