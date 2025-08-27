@@ -35,7 +35,7 @@
                       CanUserAddRows="False"
                       Style="{StaticResource VirtualizedDataGridStyle}">
                 <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="Avatar" Width="60">
+                    <DataGridTemplateColumn Header="Image" Width="60">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Grid Width="36" Height="36">
