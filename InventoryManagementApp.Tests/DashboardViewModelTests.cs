@@ -31,6 +31,9 @@ public class DashboardViewModelTests
             return Task.FromResult(42);
         }
 
+        public Task<ItemModel?> GetByIdAsync(int id, CancellationToken ct)
+            => Task.FromResult<ItemModel?>(null);
+
         public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct)
             => Task.CompletedTask;
 
@@ -208,6 +211,7 @@ public class DashboardViewModelTests
         public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken ct) => Task.FromResult(new List<ItemModel>());
         public Task<List<ItemModel>> GetCheckedOutItemsAsync(CancellationToken ct) => Task.FromResult(new List<ItemModel>());
         public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken ct) => Task.CompletedTask;
+        public Task<ItemModel?> GetByIdAsync(int id, CancellationToken ct) => Task.FromResult<ItemModel?>(null);
     }
 
     private sealed class CancellableActivityLogService : ActivityLogService
