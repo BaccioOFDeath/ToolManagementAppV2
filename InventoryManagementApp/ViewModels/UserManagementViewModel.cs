@@ -410,7 +410,7 @@ namespace InventoryManagementApp.ViewModels
                     if (win != null)
                         win.Close();
                 },
-                onRemoveAvatar: () => clone.UserPhotoPath = null);
+                fileDialogService: _fileDialogService);
 
             try { win.Owner = System.Windows.Application.Current?.MainWindow; } catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for UsersEditWindow"); }
             try { win.ShowDialog(); } catch (Exception ex) { _logger.LogError(ex, "Failed to show UsersEditWindow"); }

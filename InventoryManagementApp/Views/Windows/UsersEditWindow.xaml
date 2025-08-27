@@ -75,8 +75,8 @@
             </Border>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,8">
-                <Button Style="{StaticResource PrimaryButton}" Content="Browse Avatar" Command="{Binding BrowseAvatarCommand}" Margin="0,0,8,0"/>
-                <Button Style="{StaticResource PrimaryButton}" Width="130" Content="Remove Avatar" Command="{Binding RemoveAvatarCommand}"/>
+                <Button Style="{StaticResource PrimaryButton}" Content="Browse Image" Command="{Binding BrowseImageCommand}" Margin="0,0,8,0"/>
+                <Button Style="{StaticResource PrimaryButton}" Width="130" Content="Remove Image" Command="{Binding RemoveImageCommand}"/>
             </StackPanel>
 
             <TextBlock Grid.Row="1" Grid.Column="0" Text="Username" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
