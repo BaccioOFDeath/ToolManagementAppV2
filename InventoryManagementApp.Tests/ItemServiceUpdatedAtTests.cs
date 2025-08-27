@@ -12,17 +12,6 @@ using Xunit;
 
 public class ItemServiceUpdatedAtTests
 {
-    private sealed class DummyItemRepository : IItemRepository
-    {
-        public IAsyncEnumerable<ItemModel> GetPageAsync(ItemFilter filter, ItemPage page, CancellationToken ct) => AsyncEnumerable.Empty<ItemModel>();
-        public Task<int> CountAsync(ItemFilter filter, CancellationToken ct) => Task.FromResult(0);
-        public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct) => Task.CompletedTask;
-        public Task<int> InsertAsync(ItemModel item, CancellationToken ct) => Task.FromResult(0);
-        public Task UpdateAsync(ItemModel item, CancellationToken ct) => Task.CompletedTask;
-        public Task DeleteAsync(int itemID, CancellationToken ct) => Task.CompletedTask;
-        public Task<bool> ToggleCheckOutStatusAsync(int itemID, string currentUser, bool isAdmin, CancellationToken ct) => Task.FromResult(false);
-    }
-
     [Theory]
     [InlineData(null)]
     [InlineData("")]
@@ -31,8 +20,10 @@ public class ItemServiceUpdatedAtTests
     {
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
         using var db = new DatabaseService(dbPath);
+        var factory = new SqliteConnectionFactory(db.ConnectionString);
+        var repository = new ItemRepository(factory);
         var logger = new ListLogger<ItemService>();
-        var service = new ItemService(db, new DummyItemRepository(), logger: logger);
+        var service = new ItemService(db, repository, logger: logger);
 
         using (var conn = db.CreateConnection())
         using (var cmd = conn.CreateCommand())

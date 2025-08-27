@@ -14,4 +14,7 @@ public interface IItemRepository
     Task UpdateAsync(Item item, CancellationToken ct);
     Task DeleteAsync(int itemID, CancellationToken ct);
     Task<bool> ToggleCheckOutStatusAsync(int itemID, string currentUser, bool isAdmin, CancellationToken ct);
+    Task<List<Item>> GetItemsCheckedOutByAsync(string userName, CancellationToken ct);
+    Task<List<Item>> GetCheckedOutItemsAsync(CancellationToken ct);
+    Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken ct);
 }
