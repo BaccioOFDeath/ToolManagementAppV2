@@ -302,4 +302,28 @@ public sealed class ItemRepository : IItemRepository
 
         return true;
     }
+
+    public async Task<List<Item>> GetItemsCheckedOutByAsync(string userName, CancellationToken ct)
+    {
+        const string sql = @"SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, CheckedInBy, CheckedInTime, IsPowered, UpdatedAt FROM Items WHERE CheckedOutBy=@User AND IsCheckedOut=1 AND IFNULL(IsRentalItem,0)=0";
+        await using var conn = (DbConnection)_factory.Create();
+        var items = await conn.QueryAsync<Item>(new CommandDefinition(sql, new { User = userName }, cancellationToken: ct)).ConfigureAwait(false);
+        return items.AsList();
+    }
+
+    public async Task<List<Item>> GetCheckedOutItemsAsync(CancellationToken ct)
+    {
+        const string sql = @"SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, CheckedInBy, CheckedInTime, IsPowered, UpdatedAt FROM Items WHERE IsCheckedOut=1 AND IFNULL(IsRentalItem,0)=0";
+        await using var conn = (DbConnection)_factory.Create();
+        var items = await conn.QueryAsync<Item>(new CommandDefinition(sql, cancellationToken: ct)).ConfigureAwait(false);
+        return items.AsList();
+    }
+
+    public async Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken ct)
+    {
+        await using var conn = (DbConnection)_factory.Create();
+        var rows = await conn.ExecuteAsync(new CommandDefinition("UPDATE Items SET ImagePath=@Img WHERE ItemID=@ID", new { Img = imagePath, ID = itemID }, cancellationToken: ct));
+        if (rows == 0)
+            throw new InvalidOperationException($"Failed to update image for item {itemID}.");
+    }
 }

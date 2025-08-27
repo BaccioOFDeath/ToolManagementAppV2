@@ -102,32 +102,15 @@ namespace InventoryManagementApp.Services.Items
         }
 
         public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default)
-        {
-            using var conn = _dbService.CreateConnection();
-            return SqliteHelper.ExecuteReaderAsync(conn,
-                "SELECT * FROM Items WHERE CheckedOutBy=@User AND IsCheckedOut=1 AND IFNULL(IsRentalItem,0)=0",
-                MapItem,
-                new[] { new SqliteParameter("@User", userName) }, cancellationToken);
-        }
+            => _repository.GetItemsCheckedOutByAsync(userName, cancellationToken);
 
         public Task<List<ItemModel>> GetCheckedOutItemsAsync(CancellationToken cancellationToken = default)
-        {
-            using var conn = _dbService.CreateConnection();
-            const string sql = "SELECT * FROM Items WHERE IsCheckedOut=1 AND IFNULL(IsRentalItem,0)=0";
-            return SqliteHelper.ExecuteReaderAsync(conn, sql, MapItem, null, cancellationToken);
-        }
+            => _repository.GetCheckedOutItemsAsync(cancellationToken);
 
         public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
-            const string sql = "UPDATE Items SET ImagePath=@Img WHERE ItemID=@ID";
-            var p = new[]
-            {
-                new SqliteParameter("@Img", imagePath),
-                new SqliteParameter("@ID", itemID)
-            };
-            using var conn = _dbService.CreateConnection();
-            return SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken);
+            return _repository.UpdateItemImageAsync(itemID, imagePath, cancellationToken);
         }
 
         public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken)

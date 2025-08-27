@@ -38,6 +38,9 @@ public class DashboardViewModelTests
         public Task UpdateAsync(ItemModel item, CancellationToken ct) => Task.CompletedTask;
         public Task DeleteAsync(int itemID, CancellationToken ct) => Task.CompletedTask;
         public Task<bool> ToggleCheckOutStatusAsync(int itemID, string currentUser, bool isAdmin, CancellationToken ct) => Task.FromResult(false);
+        public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken ct) => Task.FromResult(new List<ItemModel>());
+        public Task<List<ItemModel>> GetCheckedOutItemsAsync(CancellationToken ct) => Task.FromResult(new List<ItemModel>());
+        public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken ct) => Task.CompletedTask;
     }
 
     private sealed class StubRentalService : IRentalService
@@ -202,6 +205,9 @@ public class DashboardViewModelTests
         public Task UpdateAsync(ItemModel item, CancellationToken ct) => Task.CompletedTask;
         public Task DeleteAsync(int itemID, CancellationToken ct) => Task.CompletedTask;
         public Task<bool> ToggleCheckOutStatusAsync(int itemID, string currentUser, bool isAdmin, CancellationToken ct) => Task.FromResult(false);
+        public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken ct) => Task.FromResult(new List<ItemModel>());
+        public Task<List<ItemModel>> GetCheckedOutItemsAsync(CancellationToken ct) => Task.FromResult(new List<ItemModel>());
+        public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken ct) => Task.CompletedTask;
     }
 
     private sealed class CancellableActivityLogService : ActivityLogService
