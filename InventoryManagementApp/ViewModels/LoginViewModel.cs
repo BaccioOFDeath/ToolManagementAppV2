@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using MediaBrush = System.Windows.Media.Brush;
+using MediaBrushes = System.Windows.Media.Brushes;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
@@ -208,22 +210,22 @@ namespace InventoryManagementApp.ViewModels
 
         static void AssignInitialsBrushes(IList<User> users)
         {
-            var palette = (Application.Current?.TryFindResource("UserInitialsBrushes") as IEnumerable<Brush>)?.ToList()
-                          ?? new List<Brush>();
+            var palette = (Application.Current?.TryFindResource("UserInitialsBrushes") as IEnumerable<MediaBrush>)?.ToList()
+                          ?? new List<MediaBrush>();
             var groups = users.GroupBy(u => GetInitials(u.UserName));
             foreach (var group in groups)
             {
                 if (group.Count() <= 1)
                 {
                     foreach (var user in group)
-                        user.InitialsBrush = Brushes.Transparent;
+                        user.InitialsBrush = MediaBrushes.Transparent;
                     continue;
                 }
 
                 var idx = 0;
                 foreach (var user in group)
                 {
-                    user.InitialsBrush = palette.Count > 0 ? palette[idx % palette.Count] : Brushes.Transparent;
+                    user.InitialsBrush = palette.Count > 0 ? palette[idx % palette.Count] : MediaBrushes.Transparent;
                     idx++;
                 }
             }

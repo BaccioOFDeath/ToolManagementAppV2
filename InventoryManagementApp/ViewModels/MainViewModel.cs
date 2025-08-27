@@ -27,6 +27,8 @@ using InventoryManagementApp.Models.ImportExport;
 using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Helpers;
 using Application = System.Windows.Application;
+using MediaBrush = System.Windows.Media.Brush;
+using MediaBrushes = System.Windows.Media.Brushes;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -108,7 +110,7 @@ namespace InventoryManagementApp.ViewModels
 
         public bool HasCurrentUser => _userContext.CurrentUser != null;
 
-        public Brush? CurrentUserInitialsBrush => _userContext.CurrentUser?.InitialsBrush;
+        public MediaBrush? CurrentUserInitialsBrush => _userContext.CurrentUser?.InitialsBrush;
 
         private string _applicationName = string.Empty;
         public string ApplicationName
