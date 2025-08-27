@@ -117,7 +117,6 @@ namespace InventoryManagementApp
                 services.AddSingleton<IMainViewModel, MainViewModel>();
                 services.AddSingleton<ILoginViewModel, LoginViewModel>();
                 services.AddTransient<ItemEditWindow>();
-                services.AddTransient<AvatarSelectionWindow>();
                 services.AddTransient<PasswordPromptWindow>();
                 services.AddTransient<ISetupWizard, SetupWizardWindow>();
                 services.AddTransient<SetupWizardWindow>();
