@@ -21,28 +21,8 @@ public sealed class ItemRepository : IItemRepository
     {
         ct.ThrowIfCancellationRequested();
         var sql = "SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, CheckedInBy, CheckedInTime, IsPowered, UpdatedAt FROM Items";
-        var parameters = new DynamicParameters();
-        var conditions = new List<string>();
-        if (!string.IsNullOrWhiteSpace(filter.Search))
-        {
-            var tokens = filter.Search.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            for (var i = 0; i < tokens.Length; i++)
-            {
-                conditions.Add("(ItemNumber LIKE @ItemNumberPrefix" + i + " COLLATE NOCASE_NOACCENT OR ItemNumber LIKE @ItemNumberSubstring" + i + " COLLATE NOCASE_NOACCENT OR NameDescription LIKE @NameSubstring" + i + " COLLATE NOCASE_NOACCENT OR Notes LIKE @NotesSubstring" + i + " COLLATE NOCASE_NOACCENT OR Keywords LIKE @KeywordsSubstring" + i + " COLLATE NOCASE_NOACCENT)");
-                parameters.Add("ItemNumberPrefix" + i, tokens[i] + "%");
-                parameters.Add("ItemNumberSubstring" + i, "%" + tokens[i] + "%");
-                parameters.Add("NameSubstring" + i, "%" + tokens[i] + "%");
-                parameters.Add("NotesSubstring" + i, "%" + tokens[i] + "%");
-                parameters.Add("KeywordsSubstring" + i, "%" + tokens[i] + "%");
-            }
-        }
-        if (filter.IsRentalItem.HasValue)
-        {
-            conditions.Add("IsRentalItem=@IsRental");
-            parameters.Add("IsRental", filter.IsRentalItem.Value ? 1 : 0);
-        }
-        if (conditions.Count > 0)
-            sql += " WHERE " + string.Join(" AND ", conditions);
+        var (whereClause, parameters) = BuildFilter(filter);
+        sql += whereClause;
         var orderColumn = filter.SortField switch
         {
             SortField.Name => "NameDescription",
@@ -126,28 +106,8 @@ public sealed class ItemRepository : IItemRepository
     {
         ct.ThrowIfCancellationRequested();
         var sql = "SELECT COUNT(*) FROM Items";
-        var parameters = new DynamicParameters();
-        var conditions = new List<string>();
-        if (!string.IsNullOrWhiteSpace(filter.Search))
-        {
-            var tokens = filter.Search.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            for (var i = 0; i < tokens.Length; i++)
-            {
-                conditions.Add("(ItemNumber LIKE @ItemNumberPrefix" + i + " COLLATE NOCASE_NOACCENT OR ItemNumber LIKE @ItemNumberSubstring" + i + " COLLATE NOCASE_NOACCENT OR NameDescription LIKE @NameSubstring" + i + " COLLATE NOCASE_NOACCENT OR Notes LIKE @NotesSubstring" + i + " COLLATE NOCASE_NOACCENT OR Keywords LIKE @KeywordsSubstring" + i + " COLLATE NOCASE_NOACCENT)");
-                parameters.Add("ItemNumberPrefix" + i, tokens[i] + "%");
-                parameters.Add("ItemNumberSubstring" + i, "%" + tokens[i] + "%");
-                parameters.Add("NameSubstring" + i, "%" + tokens[i] + "%");
-                parameters.Add("NotesSubstring" + i, "%" + tokens[i] + "%");
-                parameters.Add("KeywordsSubstring" + i, "%" + tokens[i] + "%");
-            }
-        }
-        if (filter.IsRentalItem.HasValue)
-        {
-            conditions.Add("IsRentalItem=@IsRental");
-            parameters.Add("IsRental", filter.IsRentalItem.Value ? 1 : 0);
-        }
-        if (conditions.Count > 0)
-            sql += " WHERE " + string.Join(" AND ", conditions);
+        var (whereClause, parameters) = BuildFilter(filter);
+        sql += whereClause;
         await using var conn = (DbConnection)_factory.Create();
         return await conn.ExecuteScalarAsync<int>(new CommandDefinition(sql, parameters, cancellationToken: ct));
     }
@@ -336,5 +296,31 @@ public sealed class ItemRepository : IItemRepository
         var rows = await conn.ExecuteAsync(new CommandDefinition("UPDATE Items SET ImagePath=@Img WHERE ItemID=@ID", new { Img = imagePath, ID = itemID }, cancellationToken: ct));
         if (rows == 0)
             throw new InvalidOperationException($"Failed to update image for item {itemID}.");
+    }
+
+    private static (string WhereClause, DynamicParameters Parameters) BuildFilter(ItemFilter filter)
+    {
+        var parameters = new DynamicParameters();
+        var conditions = new List<string>();
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            var tokens = filter.Search.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            for (var i = 0; i < tokens.Length; i++)
+            {
+                conditions.Add("(ItemNumber LIKE @ItemNumberPrefix" + i + " COLLATE NOCASE_NOACCENT OR ItemNumber LIKE @ItemNumberSubstring" + i + " COLLATE NOCASE_NOACCENT OR NameDescription LIKE @NameSubstring" + i + " COLLATE NOCASE_NOACCENT OR Notes LIKE @NotesSubstring" + i + " COLLATE NOCASE_NOACCENT OR Keywords LIKE @KeywordsSubstring" + i + " COLLATE NOCASE_NOACCENT)");
+                parameters.Add("ItemNumberPrefix" + i, tokens[i] + "%");
+                parameters.Add("ItemNumberSubstring" + i, "%" + tokens[i] + "%");
+                parameters.Add("NameSubstring" + i, "%" + tokens[i] + "%");
+                parameters.Add("NotesSubstring" + i, "%" + tokens[i] + "%");
+                parameters.Add("KeywordsSubstring" + i, "%" + tokens[i] + "%");
+            }
+        }
+        if (filter.IsRentalItem.HasValue)
+        {
+            conditions.Add("IsRentalItem=@IsRental");
+            parameters.Add("IsRental", filter.IsRentalItem.Value ? 1 : 0);
+        }
+        var whereClause = conditions.Count > 0 ? " WHERE " + string.Join(" AND ", conditions) : string.Empty;
+        return (whereClause, parameters);
     }
 }
