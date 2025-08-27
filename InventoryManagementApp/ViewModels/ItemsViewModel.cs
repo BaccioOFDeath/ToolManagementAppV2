@@ -237,7 +237,7 @@ namespace InventoryManagementApp.ViewModels
                 await Task.Delay(300, token).ConfigureAwait(false);
                 using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, _loadCts.Token);
                 var firstPage = await LoadPageAsync(1, linked.Token).ConfigureAwait(false);
-                Items.ResetWith(firstPage);
+                Application.Current.Dispatcher.Invoke(() => Items.ResetWith(firstPage));
                 await _settingsService.SaveSettingAsync("LastFilter", Filter, token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
@@ -257,7 +257,7 @@ namespace InventoryManagementApp.ViewModels
         private async Task ApplySortAsync(SortOption value)
         {
             var firstPage = await LoadPageAsync(1, _loadCts.Token).ConfigureAwait(false);
-            Items.ResetWith(firstPage);
+            Application.Current.Dispatcher.Invoke(() => Items.ResetWith(firstPage));
             await _settingsService.SaveSettingAsync("LastSort", $"{value.Field}|{value.Direction}").ConfigureAwait(false);
         }
 
@@ -268,7 +268,7 @@ namespace InventoryManagementApp.ViewModels
             Items.PageSize = value;
             Application.Current.Dispatcher.Invoke(() => Items.TrimToWindow(value * 3));
             var firstPage = await LoadPageAsync(1, _loadCts.Token).ConfigureAwait(false);
-            Items.ResetWith(firstPage);
+            Application.Current.Dispatcher.Invoke(() => Items.ResetWith(firstPage));
             await _settingsService.SaveSettingAsync("PageSize", value.ToString()).ConfigureAwait(false);
         }
 
@@ -539,10 +539,14 @@ namespace InventoryManagementApp.ViewModels
                 IsLoading = true;
                 var next = _page + 1;
                 var items = await _loader(next, ct).ConfigureAwait(false);
-                foreach (var item in items)
-                    Add(item);
+                var result = items.ToList();
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    foreach (var item in result)
+                        Add(item);
+                });
                 _page = next;
-                if (items.Count < _pageSize)
+                if (result.Count < _pageSize)
                     HasMoreItems = false;
             }
             finally
