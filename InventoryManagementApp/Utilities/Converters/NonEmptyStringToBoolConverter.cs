@@ -1,6 +1,7 @@
 ﻿// NonEmptyStringToBoolConverter.cs
 using System;
 using System.Globalization;
+using System.IO;
 using System.Windows.Data;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -16,8 +17,11 @@ namespace InventoryManagementApp.Utilities.Converters
         public NonEmptyStringToBoolConverter(ILogger<NonEmptyStringToBoolConverter>? logger = null)
             => _logger = logger ?? NullLogger<NonEmptyStringToBoolConverter>.Instance;
 
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
-            !string.IsNullOrEmpty(value as string);
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var path = value as string;
+            return !string.IsNullOrWhiteSpace(path) && File.Exists(path);
+        }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
