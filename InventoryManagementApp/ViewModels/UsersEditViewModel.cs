@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace InventoryManagementApp.ViewModels
@@ -34,10 +35,26 @@ namespace InventoryManagementApp.ViewModels
         void BrowseImage()
         {
             var path = _fileDialog.OpenFile("Image Files|*.png;*.jpg;*.jpeg;*.bmp|All Files|*.*");
-            if (!string.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(path))
             {
-                EditingUser.UserPhotoPath = path;
+                return;
             }
+
+            var fullPath = Path.GetFullPath(path);
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            var targetPath = fullPath;
+
+            if (!fullPath.StartsWith(baseDir, StringComparison.OrdinalIgnoreCase))
+            {
+                var assetsDir = Path.Combine(baseDir, "Assets", "UserPhotos");
+                Directory.CreateDirectory(assetsDir);
+                var fileName = Path.GetFileName(fullPath);
+                targetPath = Path.Combine(assetsDir, fileName);
+                File.Copy(fullPath, targetPath, true);
+            }
+
+            var relativePath = Path.GetRelativePath(baseDir, targetPath);
+            EditingUser.UserPhotoPath = relativePath;
         }
 
         void RemoveImage()

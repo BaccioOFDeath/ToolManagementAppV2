@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
@@ -17,15 +18,44 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void BrowseImageCommand_SetsPhotoPath()
+        public void BrowseImageCommand_UsesRelativePathForBaseDirectoryFile()
         {
             var user = new User();
-            var dialog = new DummyFileDialogService { Result = "test.png" };
+            var dialog = new DummyFileDialogService();
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            var filePath = Path.Combine(baseDir, Guid.NewGuid() + ".png");
+            File.WriteAllText(filePath, "test");
+            dialog.Result = filePath;
             var vm = new UsersEditViewModel(user, dialog, onSave: () => Task.CompletedTask, onCancel: () => { });
 
             vm.BrowseImageCommand.Execute(null);
 
-            Assert.Equal("test.png", user.UserPhotoPath);
+            Assert.Equal(Path.GetFileName(filePath), user.UserPhotoPath);
+
+            File.Delete(filePath);
+        }
+
+        [Fact]
+        public void BrowseImageCommand_CopiesExternalFileToAssets()
+        {
+            var user = new User();
+            var dialog = new DummyFileDialogService();
+            var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".png");
+            File.WriteAllText(tempFile, "test");
+            dialog.Result = tempFile;
+            var vm = new UsersEditViewModel(user, dialog, onSave: () => Task.CompletedTask, onCancel: () => { });
+
+            vm.BrowseImageCommand.Execute(null);
+
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            var expectedRelative = Path.Combine("Assets", "UserPhotos", Path.GetFileName(tempFile));
+            var destPath = Path.Combine(baseDir, expectedRelative);
+
+            Assert.Equal(expectedRelative, user.UserPhotoPath);
+            Assert.True(File.Exists(destPath));
+
+            File.Delete(tempFile);
+            File.Delete(destPath);
         }
 
         [Fact]
