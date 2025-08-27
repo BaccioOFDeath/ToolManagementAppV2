@@ -113,6 +113,7 @@
                                                   <MultiDataTrigger.Conditions>
                                                       <Condition Binding="{Binding HasCurrentUser, FallbackValue=True}" Value="True"/>
                                                       <Condition Binding="{Binding CurrentUserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="False"/>
+                                                      <Condition Binding="{Binding CurrentUserName, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True"/>
                                                   </MultiDataTrigger.Conditions>
                                                   <Setter Property="Visibility" Value="Collapsed"/>
                                               </MultiDataTrigger>
@@ -129,6 +130,7 @@
                                                   <MultiDataTrigger.Conditions>
                                                       <Condition Binding="{Binding HasCurrentUser, FallbackValue=True}" Value="True"/>
                                                       <Condition Binding="{Binding CurrentUserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="False"/>
+                                                      <Condition Binding="{Binding CurrentUserName, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True"/>
                                                   </MultiDataTrigger.Conditions>
                                                   <Setter Property="Visibility" Value="Visible"/>
                                               </MultiDataTrigger>
@@ -146,6 +148,7 @@
                                                       <MultiDataTrigger.Conditions>
                                                           <Condition Binding="{Binding HasCurrentUser, FallbackValue=True}" Value="True"/>
                                                           <Condition Binding="{Binding CurrentUserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="False"/>
+                                                          <Condition Binding="{Binding CurrentUserName, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True"/>
                                                       </MultiDataTrigger.Conditions>
                                                       <Setter Property="Visibility" Value="Visible"/>
                                                   </MultiDataTrigger>
