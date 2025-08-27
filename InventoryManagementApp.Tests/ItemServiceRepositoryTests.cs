@@ -43,6 +43,7 @@ public class ItemServiceRepositoryTests
         public IAsyncEnumerable<ItemModel> GetPageAsync(ItemFilter filter, ItemPage page, CancellationToken ct)
             => AsyncEnumerable.Empty<ItemModel>();
         public Task<int> CountAsync(ItemFilter filter, CancellationToken ct) => Task.FromResult(0);
+        public Task<ItemModel?> GetByIdAsync(int id, CancellationToken ct) => Task.FromResult<ItemModel?>(null);
         public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct) => Task.CompletedTask;
         public Task<int> InsertAsync(ItemModel item, CancellationToken ct) => Task.FromResult(0);
         public Task UpdateAsync(ItemModel item, CancellationToken ct) => Task.CompletedTask;

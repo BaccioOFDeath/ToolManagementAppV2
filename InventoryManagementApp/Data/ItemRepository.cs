@@ -152,6 +152,16 @@ public sealed class ItemRepository : IItemRepository
         return await conn.ExecuteScalarAsync<int>(new CommandDefinition(sql, parameters, cancellationToken: ct));
     }
 
+    public async Task<Item?> GetByIdAsync(int id, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        const string sql = @"SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier,
+            PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, ImagePath,
+            IsCheckedOut, CheckedOutBy, CheckedOutTime, CheckedInBy, CheckedInTime, IsPowered, UpdatedAt FROM Items WHERE ItemID=@ID";
+        await using var conn = (DbConnection)_factory.Create();
+        return await conn.QueryFirstOrDefaultAsync<Item>(new CommandDefinition(sql, new { ID = id }, cancellationToken: ct)).ConfigureAwait(false);
+    }
+
     public async Task SaveChangesAsync(IEnumerable<Item> changes, CancellationToken ct)
     {
         await using var conn = (DbConnection)_factory.Create();

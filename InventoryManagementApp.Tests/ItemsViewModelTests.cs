@@ -814,6 +814,7 @@ namespace InventoryManagementApp.Tests
             public List<ItemModel> Saved { get; } = new();
             public IAsyncEnumerable<ItemModel> GetPageAsync(ItemFilter filter, ItemPage page, CancellationToken ct) => AsyncEnumerable.Empty<ItemModel>();
             public Task<int> CountAsync(ItemFilter filter, CancellationToken ct) => Task.FromResult(0);
+            public Task<ItemModel?> GetByIdAsync(int id, CancellationToken ct) => Task.FromResult<ItemModel?>(null);
             public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct)
             {
                 Saved.AddRange(changes);

@@ -1,7 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
 using System;
 using System.IO;
-using System.Data;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
@@ -12,7 +11,6 @@ using InventoryManagementApp.Utilities.IO;
 using InventoryManagementApp.Models.ImportExport;
 using InventoryManagementApp.Interfaces;
 using System.Text;
-using System.Globalization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Services.Users;
@@ -284,49 +282,6 @@ namespace InventoryManagementApp.Services.Items
             return count > 0;
         }
     
-        ItemModel MapItem(IDataRecord r) => new()
-        {
-            ItemID = r["ItemID"] is DBNull ? 0 : Convert.ToInt32(r["ItemID"]),
-            ItemNumber = r["ItemNumber"].ToString(),
-            PartNumber = r["PartNumber"].ToString(),
-            Name = r["NameDescription"].ToString(),
-            Brand = r["Brand"].ToString(),
-            Location = r["Location"].ToString(),
-            QuantityOnHand = r["AvailableQuantity"] is DBNull ? 0 : Convert.ToInt32(r["AvailableQuantity"]),
-            RentedQuantity = r["RentedQuantity"] is DBNull ? 0 : Convert.ToInt32(r["RentedQuantity"]),
-            Supplier = r["Supplier"].ToString(),
-            PurchasedDate = r["PurchasedDate"] is DBNull
-                ? (DateTime?)null
-                : ParseNullableDate(r["PurchasedDate"], "PurchasedDate"),
-            Notes = r["Notes"].ToString(),
-            IsCheckedOut = (r["IsCheckedOut"] is DBNull ? 0 : Convert.ToInt32(r["IsCheckedOut"])) == 1,
-            CheckedOutBy = r["CheckedOutBy"].ToString(),
-            CheckedOutTime = r["CheckedOutTime"] is DBNull
-                ? (DateTime?)null
-                : ParseNullableDate(r["CheckedOutTime"], "CheckedOutTime"),
-            CheckedInBy = r["CheckedInBy"].ToString(),
-            CheckedInTime = r["CheckedInTime"] is DBNull
-                ? (DateTime?)null
-                : ParseNullableDate(r["CheckedInTime"], "CheckedInTime"),
-            ImagePath = r["ImagePath"]?.ToString(),
-            Keywords = r["Keywords"]?.ToString(),
-            IsPowered = (r["IsPowered"] is DBNull ? 0 : Convert.ToInt32(r["IsPowered"])) == 1,
-            IsRentalItem = (r["IsRentalItem"] is DBNull ? 0 : Convert.ToInt32(r["IsRentalItem"])) == 1,
-            UpdatedAt = ParseNullableDate(r["UpdatedAt"], "UpdatedAt") ?? default
-        };
-
-        DateTime? ParseNullableDate(object? value, string field)
-        {
-            var text = value?.ToString();
-            if (string.IsNullOrWhiteSpace(text))
-                return null;
-            if (DateTime.TryParse(text, CultureInfo.InvariantCulture,
-                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var dt))
-                return DateTime.SpecifyKind(dt, DateTimeKind.Utc).ToLocalTime();
-            _logger.LogError("Failed to parse {Field}: {Value}", field, text);
-            return null;
-        }
-
         private async Task AddItemInternalAsync(ItemModel item, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(item?.ItemNumber))
@@ -350,14 +305,8 @@ namespace InventoryManagementApp.Services.Items
             await _repository.DeleteAsync(itemID, cancellationToken);
         }
 
-        public async Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default)
-        {
-            using var conn = _dbService.CreateConnection();
-            var list = await SqliteHelper.ExecuteReaderAsync(conn, "SELECT * FROM Items WHERE ItemID=@ItemID",
-                MapItem,
-                new[] { new SqliteParameter("@ItemID", itemID) }, cancellationToken);
-            return list.FirstOrDefault();
-        }
+        public Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default)
+            => _repository.GetByIdAsync(itemID, cancellationToken);
 
         public IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default)
             => _repository.GetPageAsync(new ItemFilter(null, sortField, sortDirection, isRentalItem), page, cancellationToken);
