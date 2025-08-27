@@ -6,6 +6,9 @@ using InventoryManagementApp.Models.Domain;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Windows;
+using MediaBrush = System.Windows.Media.Brush;
+using MediaBrushes = System.Windows.Media.Brushes;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -60,6 +63,8 @@ namespace InventoryManagementApp.ViewModels
         void RemoveImage()
         {
             EditingUser.UserPhotoPath = string.Empty;
+            var brush = Application.Current?.TryFindResource("ForegroundBrush") as MediaBrush;
+            EditingUser.InitialsBrush = brush ?? MediaBrushes.Black;
         }
     }
 }

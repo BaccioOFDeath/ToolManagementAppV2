@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
+using System.Windows.Media;
 using Xunit;
 
 namespace InventoryManagementApp.Tests
@@ -68,6 +69,18 @@ namespace InventoryManagementApp.Tests
             vm.RemoveImageCommand.Execute(null);
 
             Assert.Equal(string.Empty, user.UserPhotoPath);
+        }
+
+        [Fact]
+        public void RemoveImageCommand_SetsInitialsBrushToVisibleBrush()
+        {
+            var user = new User { UserPhotoPath = "test.png", InitialsBrush = Brushes.Transparent };
+            var dialog = new DummyFileDialogService();
+            var vm = new UsersEditViewModel(user, dialog, onSave: () => Task.CompletedTask, onCancel: () => { });
+
+            vm.RemoveImageCommand.Execute(null);
+
+            Assert.Equal(Brushes.Black, user.InitialsBrush);
         }
     }
 }
