@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.Data.Sqlite;
 using System.Data;
+using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
@@ -95,27 +96,28 @@ namespace InventoryManagementApp.Services.Users
         }
 
 
-        public async Task<List<User>> GetAllUsersAsync()
+        public async Task<List<User>> GetAllUsersAsync(CancellationToken cancellationToken = default)
         {
             using var conn = _dbService.CreateConnection();
             const string sql = "SELECT UserID, UserName, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired FROM Users";
-            return await SqliteHelper.ExecuteReaderAsync(conn, sql, MapUser);
+            return await SqliteHelper.ExecuteReaderAsync(conn, sql, MapUser, cancellationToken: cancellationToken);
         }
 
-        public async Task<int> CountUsersAsync()
+        public async Task<int> CountUsersAsync(CancellationToken cancellationToken = default)
         {
             using var conn = _dbService.CreateConnection();
             const string sql = "SELECT COUNT(*) FROM Users";
-            var result = await SqliteHelper.ExecuteScalarAsync(conn, sql);
+            var result = await SqliteHelper.ExecuteScalarAsync(conn, sql, cancellationToken: cancellationToken);
             return Convert.ToInt32(result);
         }
 
-        public async Task<User?> GetUserByIDAsync(int userID)
+        public async Task<User?> GetUserByIDAsync(int userID, CancellationToken cancellationToken = default)
         {
             using var conn = _dbService.CreateConnection();
             var list = await SqliteHelper.ExecuteReaderAsync(conn, "SELECT * FROM Users WHERE UserID=@ID",
                 MapUser,
-                new[] { new SqliteParameter("@ID", userID) });
+                new[] { new SqliteParameter("@ID", userID) },
+                cancellationToken: cancellationToken);
             return list.FirstOrDefault();
         }
 
@@ -172,13 +174,13 @@ namespace InventoryManagementApp.Services.Users
         public async Task<User?> GetCurrentUserAsync()
         {
             if (_context.CurrentUser is User u)
-                return await GetUserByIDAsync(u.UserID);
+                return await GetUserByIDAsync(u.UserID, CancellationToken.None);
             return null;
         }
 
         public async Task AddUserAsync(User user)
         {
-            var existingUsers = await GetAllUsersAsync();
+            var existingUsers = await GetAllUsersAsync(CancellationToken.None);
             if (existingUsers.Count == 0)
             {
                 // Seed first user as an administrator regardless of input flag
@@ -262,7 +264,7 @@ namespace InventoryManagementApp.Services.Users
 
             if (string.IsNullOrWhiteSpace(user.PasswordHash) || string.IsNullOrWhiteSpace(user.PasswordSalt))
             {
-                var existing = await GetUserByIDAsync(user.UserID);
+                var existing = await GetUserByIDAsync(user.UserID, CancellationToken.None);
                 if (existing != null)
                 {
                     if (string.IsNullOrWhiteSpace(user.PasswordHash))
@@ -341,7 +343,7 @@ namespace InventoryManagementApp.Services.Users
         public async Task<bool> TryDeleteUserAsync(int userID)
         {
             _auth.EnsureAdmin();
-            var user = await GetUserByIDAsync(userID);
+            var user = await GetUserByIDAsync(userID, CancellationToken.None);
             if (user == null) return false;
             if (user.IsAdmin)
             {

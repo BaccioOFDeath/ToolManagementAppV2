@@ -339,14 +339,15 @@ namespace InventoryManagementApp.Tests
 
         private sealed class DummyUserService : IUserService
         {
-            public Task<List<User>> GetAllUsersAsync() => Task.FromResult(new List<User>());
-            public Task<int> CountUsersAsync() => Task.FromResult(0);
-            public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult<User?>(null);
+            public Task<List<User>> GetAllUsersAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<User>());
+            public Task<int> CountUsersAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);
+            public Task<User?> GetUserByIDAsync(int userID, CancellationToken cancellationToken = default) => Task.FromResult<User?>(null);
             public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => Task.FromResult((AuthenticationResult.Failure, (User?)null));
             public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
             public Task AddUserAsync(User user) => Task.CompletedTask;
             public Task UpdateUserAsync(User user) => Task.CompletedTask;
             public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
+            public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => Task.FromResult(false);
         }
 
         private sealed class AuthStubUserService : IUserService
@@ -354,9 +355,9 @@ namespace InventoryManagementApp.Tests
             private readonly User _user;
             public AuthStubUserService(User user) => _user = user;
 
-            public Task<List<User>> GetAllUsersAsync() => Task.FromResult(new List<User> { _user });
-            public Task<int> CountUsersAsync() => Task.FromResult(1);
-            public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult(userID == _user.UserID ? _user : null);
+            public Task<List<User>> GetAllUsersAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<User> { _user });
+            public Task<int> CountUsersAsync(CancellationToken cancellationToken = default) => Task.FromResult(1);
+            public Task<User?> GetUserByIDAsync(int userID, CancellationToken cancellationToken = default) => Task.FromResult(userID == _user.UserID ? _user : null);
             public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password)
                 => Task.FromResult<(AuthenticationResult, User?)>((AuthenticationResult.Success, new User
                 {

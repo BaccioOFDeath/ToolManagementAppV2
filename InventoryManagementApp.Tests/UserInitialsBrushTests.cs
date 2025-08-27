@@ -106,9 +106,9 @@ namespace InventoryManagementApp.Tests
         {
             private readonly List<User> _users;
             public StubUserService(List<User> users) => _users = users;
-            public Task<List<User>> GetAllUsersAsync() => Task.FromResult(_users);
-            public Task<int> CountUsersAsync() => throw new NotImplementedException();
-            public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult(_users.FirstOrDefault(u => u.UserID == userID));
+            public Task<List<User>> GetAllUsersAsync(CancellationToken cancellationToken = default) => Task.FromResult(_users);
+            public Task<int> CountUsersAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<User?> GetUserByIDAsync(int userID, CancellationToken cancellationToken = default) => Task.FromResult(_users.FirstOrDefault(u => u.UserID == userID));
             public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => throw new NotImplementedException();
             public Task<User?> GetCurrentUserAsync() => throw new NotImplementedException();
             public Task AddUserAsync(User user) => throw new NotImplementedException();

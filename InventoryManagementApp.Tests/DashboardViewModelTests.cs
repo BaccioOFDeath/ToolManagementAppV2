@@ -114,19 +114,19 @@ public class DashboardViewModelTests
         public int CountCalls { get; private set; }
         public int GetCalls { get; private set; }
 
-        public Task<int> CountUsersAsync()
+        public Task<int> CountUsersAsync(CancellationToken cancellationToken = default)
         {
             CountCalls++;
             return Task.FromResult(5);
         }
 
-        public Task<List<User>> GetAllUsersAsync()
+        public Task<List<User>> GetAllUsersAsync(CancellationToken cancellationToken = default)
         {
             GetCalls++;
             return Task.FromResult(new List<User>());
         }
 
-        public Task<User?> GetUserByIDAsync(int userID) => throw new NotImplementedException();
+        public Task<User?> GetUserByIDAsync(int userID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => throw new NotImplementedException();
         public Task<User?> GetCurrentUserAsync() => throw new NotImplementedException();
         public Task AddUserAsync(User user) => throw new NotImplementedException();
