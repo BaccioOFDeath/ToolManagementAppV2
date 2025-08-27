@@ -334,6 +334,10 @@ namespace InventoryManagementApp.ViewModels
                 }
             }
 
+            credential.InitialsBrush = user.InitialsBrush
+                ?? Application.Current?.TryFindResource("ForegroundBrush") as MediaBrush
+                ?? MediaBrushes.Transparent;
+
             _userContext.CurrentUser = credential;
             if (credential.PasswordExpired && !await PromptChangePasswordAsync(credential))
             {

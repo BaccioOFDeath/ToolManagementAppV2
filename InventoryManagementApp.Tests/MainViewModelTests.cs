@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Windows;
+using System.Windows.Media;
 using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Interfaces;
@@ -234,6 +236,67 @@ namespace InventoryManagementApp.Tests
             });
         }
 
+        [Fact]
+        public async Task CurrentUserInitialsBrush_IsNotTransparent_WhenNoPhoto()
+        {
+            await RunOnStaThread(async () =>
+            {
+                var app = new Application();
+                app.Resources.MergedDictionaries.Add(new ResourceDictionary
+                {
+                    Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.xaml", UriKind.Absolute)
+                });
+
+                try
+                {
+                    var user = new User
+                    {
+                        UserID = 1,
+                        UserName = "John Doe",
+                        PasswordHash = "hash",
+                        PasswordSalt = "salt",
+                        UserPhotoPath = string.Empty
+                    };
+
+                    var userContext = new DummyUserContext();
+                    var userService = new AuthStubUserService(user);
+                    var settingsService = new DummySettingsService();
+                    var dialogService = new DummyDialogService();
+
+                    var loginVm = new LoginViewModel(userService, settingsService, dialogService, userContext);
+                    loginVm.PromptForPasswordAsync = (u, ct) => Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("pwd", false));
+
+                    await loginVm.LoadUsersCommand.ExecuteAsync(null);
+                    await loginVm.SelectUserCommand.ExecuteAsync(loginVm.Users[0]);
+
+                    using var db = new DatabaseService(":memory:");
+                    using var vm = new MainViewModel(
+                        new DummyItemService(),
+                        userService,
+                        userContext,
+                        new DummyCustomerService(),
+                        new DummyRentalService(),
+                        new DummyFileDialogService(),
+                        new ActivityLogService(db),
+                        new DummySettingsService(),
+                        db,
+                        dialogService,
+                        NullLogger<MainViewModel>.Instance,
+                        () => Task.FromResult(true),
+                        new DummyDispatcherTimer(),
+                        new DummyScannerService(),
+                        new DummyDispatcherTimer());
+
+                    Assert.NotNull(vm.CurrentUserInitialsBrush);
+                    Assert.NotEqual(Brushes.Transparent, vm.CurrentUserInitialsBrush);
+                }
+                finally
+                {
+                    app.Shutdown();
+                }
+            });
+        }
+
         static Task RunOnStaThread(Func<Task> action)
         {
             var tcs = new TaskCompletionSource<object?>();
@@ -284,6 +347,40 @@ namespace InventoryManagementApp.Tests
             public Task AddUserAsync(User user) => Task.CompletedTask;
             public Task UpdateUserAsync(User user) => Task.CompletedTask;
             public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(false);
+        }
+
+        private sealed class AuthStubUserService : IUserService
+        {
+            private readonly User _user;
+            public AuthStubUserService(User user) => _user = user;
+
+            public Task<List<User>> GetAllUsersAsync() => Task.FromResult(new List<User> { _user });
+            public Task<int> CountUsersAsync() => Task.FromResult(1);
+            public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult(userID == _user.UserID ? _user : null);
+            public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password)
+                => Task.FromResult<(AuthenticationResult, User?)>((AuthenticationResult.Success, new User
+                {
+                    UserID = _user.UserID,
+                    UserName = _user.UserName,
+                    PasswordHash = _user.PasswordHash,
+                    PasswordSalt = _user.PasswordSalt,
+                    UserPhotoPath = _user.UserPhotoPath,
+                    IsAdmin = _user.IsAdmin,
+                    Email = _user.Email,
+                    Phone = _user.Phone,
+                    Mobile = _user.Mobile,
+                    Address = _user.Address,
+                    Role = _user.Role,
+                    IsActive = _user.IsActive,
+                    CreatedAt = _user.CreatedAt,
+                    PasswordExpired = _user.PasswordExpired,
+                    InitialsBrush = Brushes.Transparent
+                }));
+            public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
+            public Task AddUserAsync(User user) => Task.CompletedTask;
+            public Task UpdateUserAsync(User user) => Task.CompletedTask;
+            public Task<bool> TryDeleteUserAsync(int userID) => Task.FromResult(true);
+            public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => Task.FromResult(true);
         }
 
         private sealed class DummyUserContext : IUserContext
