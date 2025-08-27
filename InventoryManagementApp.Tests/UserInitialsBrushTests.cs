@@ -35,7 +35,8 @@ namespace InventoryManagementApp.Tests
                     var vm = new UserManagementViewModel(svc, new DummyFileDialogService(), new DummyDialogService());
                     vm.LoadUsersAsync().GetAwaiter().GetResult();
                     Assert.NotEqual(vm.Users[0].InitialsBrush, vm.Users[1].InitialsBrush);
-                    Assert.Equal(Brushes.Transparent, vm.Users[2].InitialsBrush);
+                    var defaultBrush = Application.Current.TryFindResource("ForegroundBrush") as Brush;
+                    Assert.Equal(defaultBrush, vm.Users[2].InitialsBrush);
                 }
                 catch (Exception ex)
                 {
