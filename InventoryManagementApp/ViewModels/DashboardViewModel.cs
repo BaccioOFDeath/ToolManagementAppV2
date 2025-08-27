@@ -95,7 +95,7 @@ namespace InventoryManagementApp.ViewModels
                 var itemCountTask = _itemService.CountItemsAsync(new ItemFilter(null), cancellationToken);
                 var rentalCountTask = _rentalService.CountActiveRentalsAsync();
                 var customerCountTask = _customerService.CountCustomersAsync(cancellationToken);
-                var userCountTask = _userService.CountUsersAsync();
+                var userCountTask = _userService.CountUsersAsync(cancellationToken);
 
                 await Task.WhenAll(itemCountTask, rentalCountTask, customerCountTask, userCountTask).ConfigureAwait(false);
 

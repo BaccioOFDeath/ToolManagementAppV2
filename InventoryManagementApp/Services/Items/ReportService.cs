@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Documents;
 using System.Windows.Media;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Models;
@@ -80,7 +80,7 @@ namespace InventoryManagementApp.Services.Items
 
         public async Task<FlowDocument> GenerateUserReport()
         {
-            var users = await _userService.GetAllUsersAsync().ConfigureAwait(false);
+            var users = await _userService.GetAllUsersAsync(CancellationToken.None).ConfigureAwait(false);
             var lines = users.Select(u =>
                 $"UserID: {u.UserID} | UserName: {u.UserName} | IsAdmin: {u.IsAdmin}");
             return BuildReport("User Report", lines);
@@ -92,7 +92,7 @@ namespace InventoryManagementApp.Services.Items
             var totalRentalsTask = _rentalService.GetAllRentalsAsync();
             var totalActiveRentalsTask = _rentalService.GetActiveRentalsAsync();
             var totalCustomersTask = _customerService.GetAllCustomersAsync();
-            var totalUsersTask = _userService.GetAllUsersAsync();
+            var totalUsersTask = _userService.GetAllUsersAsync(CancellationToken.None);
 
             await Task.WhenAll(
                 totalItemsTask,

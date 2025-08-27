@@ -179,7 +179,7 @@ namespace InventoryManagementApp.ViewModels
 
         async Task LoadUsersAsync()
         {
-            var users = await _userService.GetAllUsersAsync();
+            var users = await _userService.GetAllUsersAsync(CancellationToken.None);
             if (users.Count == 0)
             {
                 var admin = new User
@@ -191,7 +191,7 @@ namespace InventoryManagementApp.ViewModels
                 };
                 await _userService.AddUserAsync(admin);
                 _logger.LogInformation("Created admin user {UserName}", admin.UserName);
-                users = await _userService.GetAllUsersAsync();
+                users = await _userService.GetAllUsersAsync(CancellationToken.None);
             }
 
             AssignInitialsBrushes(users);
@@ -247,7 +247,7 @@ namespace InventoryManagementApp.ViewModels
         {
             if (user == null) return;
 
-            var dbUser = await _userService.GetUserByIDAsync(user.UserID);
+            var dbUser = await _userService.GetUserByIDAsync(user.UserID, cancellationToken);
             if (dbUser == null) return;
             user = dbUser;
 
@@ -262,7 +262,7 @@ namespace InventoryManagementApp.ViewModels
                     _logger.LogWarning(ex, "Failed to set default password for admin user {UserID}", user.UserID);
                 }
 
-                var refreshed = await _userService.GetUserByIDAsync(user.UserID);
+                var refreshed = await _userService.GetUserByIDAsync(user.UserID, cancellationToken);
                 if (refreshed != null)
                 {
                     user.PasswordHash = refreshed.PasswordHash;
@@ -306,7 +306,7 @@ namespace InventoryManagementApp.ViewModels
                 if (promptResult.IsPasswordResetRequested)
                 {
                     await _userService.ChangeUserPasswordAsync(user.UserID, "admin");
-                    var refreshed = await _userService.GetUserByIDAsync(user.UserID);
+                    var refreshed = await _userService.GetUserByIDAsync(user.UserID, cancellationToken);
                     if (refreshed != null)
                     {
                         user.PasswordHash = refreshed.PasswordHash;
@@ -371,7 +371,7 @@ namespace InventoryManagementApp.ViewModels
                 await _dialogService.ShowInfoAsync("Failed to update password.", "Error");
                 return false;
             }
-            var refreshed = await _userService.GetUserByIDAsync(user.UserID);
+            var refreshed = await _userService.GetUserByIDAsync(user.UserID, CancellationToken.None);
             if (refreshed != null)
             {
                 user.PasswordHash = refreshed.PasswordHash;

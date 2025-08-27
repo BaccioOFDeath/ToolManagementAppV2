@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using InventoryManagementApp.Interfaces;
@@ -104,7 +105,7 @@ namespace InventoryManagementApp.ViewModels
         {
             try
             {
-                _allUsers = await _userService.GetAllUsersAsync();
+                _allUsers = await _userService.GetAllUsersAsync(CancellationToken.None);
                 AssignInitialsBrushes(_allUsers);
                 Users.ReplaceRange(_allUsers);
             }
@@ -251,7 +252,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 existingNames = new HashSet<string>(
-                    (await _userService.GetAllUsersAsync()).Select(u => u.UserName),
+                    (await _userService.GetAllUsersAsync(CancellationToken.None)).Select(u => u.UserName),
                     StringComparer.OrdinalIgnoreCase);
             }
             catch (Exception ex)
@@ -356,7 +357,7 @@ namespace InventoryManagementApp.ViewModels
             UserModel source = user;
             try
             {
-                var loaded = await _userService.GetUserByIDAsync(user.UserID);
+                var loaded = await _userService.GetUserByIDAsync(user.UserID, CancellationToken.None);
                 if (loaded != null)
                     source = loaded;
             }
@@ -428,7 +429,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 await _userService.ChangeUserPasswordAsync(user.UserID, newPassword);
-                var refreshed = await _userService.GetUserByIDAsync(user.UserID);
+                var refreshed = await _userService.GetUserByIDAsync(user.UserID, CancellationToken.None);
                 if (refreshed != null)
                 {
                     refreshed.PasswordExpired = true;

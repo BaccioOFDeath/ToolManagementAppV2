@@ -152,9 +152,9 @@ namespace InventoryManagementApp.Tests
 
         private sealed class DummyUserService : IUserService
         {
-            public Task<List<User>> GetAllUsersAsync() => Task.FromResult(new List<User>());
-            public Task<int> CountUsersAsync() => Task.FromResult(0);
-            public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult<User?>(null);
+            public Task<List<User>> GetAllUsersAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<User>());
+            public Task<int> CountUsersAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);
+            public Task<User?> GetUserByIDAsync(int userID, CancellationToken cancellationToken = default) => Task.FromResult<User?>(null);
             public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => Task.FromResult((AuthenticationResult.Failure, (User?)null));
             public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
             public Task AddUserAsync(User user) => Task.CompletedTask;
