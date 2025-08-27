@@ -120,11 +120,9 @@
                                       </Style>
                                   </Image.Style>
                               </Image>
-                              <TextBlock Text="{Binding CurrentUserName, Converter={StaticResource NameToInitialsConverter}}"
-                                         HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="28"
-                                         Foreground="{StaticResource ForegroundBrush}">
-                                  <TextBlock.Style>
-                                      <Style TargetType="TextBlock">
+                              <Border Background="{Binding CurrentUserInitialsBrush}">
+                                  <Border.Style>
+                                      <Style TargetType="Border">
                                           <Setter Property="Visibility" Value="Collapsed"/>
                                           <Style.Triggers>
                                               <MultiDataTrigger>
@@ -136,8 +134,26 @@
                                               </MultiDataTrigger>
                                           </Style.Triggers>
                                       </Style>
-                                  </TextBlock.Style>
-                              </TextBlock>
+                                  </Border.Style>
+                                  <TextBlock Text="{Binding CurrentUserName, Converter={StaticResource NameToInitialsConverter}}"
+                                             HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="28"
+                                             Foreground="{StaticResource ForegroundBrush}">
+                                      <TextBlock.Style>
+                                          <Style TargetType="TextBlock">
+                                              <Setter Property="Visibility" Value="Collapsed"/>
+                                              <Style.Triggers>
+                                                  <MultiDataTrigger>
+                                                      <MultiDataTrigger.Conditions>
+                                                          <Condition Binding="{Binding HasCurrentUser}" Value="True"/>
+                                                          <Condition Binding="{Binding CurrentUserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="False"/>
+                                                      </MultiDataTrigger.Conditions>
+                                                      <Setter Property="Visibility" Value="Visible"/>
+                                                  </MultiDataTrigger>
+                                              </Style.Triggers>
+                                          </Style>
+                                      </TextBlock.Style>
+                                  </TextBlock>
+                              </Border>
                         </Grid>
                     </Border>
                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">

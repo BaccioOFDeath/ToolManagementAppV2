@@ -76,13 +76,9 @@
                                                     </Style>
                                                 </Image.Style>
                                             </Image>
-                                            <TextBlock Text="{Binding UserName, Converter={StaticResource NameToInitialsConverter}}"
-                                                       FontSize="48"
-                                                       Foreground="{StaticResource ForegroundBrush}"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
+                                            <Border Background="{Binding InitialsBrush}">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
                                                         <Setter Property="Visibility" Value="Collapsed"/>
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding UserPhotoPath}" Value="">
@@ -93,8 +89,27 @@
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
+                                                </Border.Style>
+                                                <TextBlock Text="{Binding UserName, Converter={StaticResource NameToInitialsConverter}}"
+                                                           FontSize="48"
+                                                           Foreground="{StaticResource ForegroundBrush}"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding UserPhotoPath}" Value="">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding UserPhotoPath}" Value="{x:Null}">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Border>
                                         </Grid>
                                     </Border>
                                     <TextBlock Grid.Row="1"

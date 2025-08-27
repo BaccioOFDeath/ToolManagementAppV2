@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Utilities.Extensions;
@@ -101,12 +102,46 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 _allUsers = await _userService.GetAllUsersAsync();
+                AssignInitialsBrushes(_allUsers);
                 Users.ReplaceRange(_allUsers);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load users");
                 await _dialogService.ShowInfoAsync($"Failed to load users: {ex.Message}", "Error");
+            }
+        }
+
+        static string GetInitials(string? name)
+        {
+            var n = name?.Trim();
+            if (string.IsNullOrEmpty(n)) return string.Empty;
+            var parts = n.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 0) return string.Empty;
+            if (parts.Length == 1) return parts[0][0].ToString().ToUpperInvariant();
+            return string.Concat(char.ToUpperInvariant(parts[0][0]), char.ToUpperInvariant(parts[^1][0]));
+        }
+
+        static void AssignInitialsBrushes(IList<UserModel> users)
+        {
+            var palette = (Application.Current?.TryFindResource("UserInitialsBrushes") as IEnumerable<Brush>)?.ToList()
+                          ?? new List<Brush>();
+            var groups = users.GroupBy(u => GetInitials(u.UserName));
+            foreach (var group in groups)
+            {
+                if (group.Count() <= 1)
+                {
+                    foreach (var user in group)
+                        user.InitialsBrush = Brushes.Transparent;
+                    continue;
+                }
+
+                var idx = 0;
+                foreach (var user in group)
+                {
+                    user.InitialsBrush = palette.Count > 0 ? palette[idx % palette.Count] : Brushes.Transparent;
+                    idx++;
+                }
             }
         }
 
