@@ -1,4 +1,5 @@
 using System;
+using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 #nullable enable
@@ -48,5 +49,8 @@ namespace InventoryManagementApp.Models.Domain
 
         private bool _passwordExpired;
         public bool PasswordExpired { get => _passwordExpired; set => SetProperty(ref _passwordExpired, value); }
+
+        private Brush _initialsBrush = Brushes.Transparent;
+        public Brush InitialsBrush { get => _initialsBrush; set => SetProperty(ref _initialsBrush, value); }
     }
 }

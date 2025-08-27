@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -190,7 +191,41 @@ namespace InventoryManagementApp.ViewModels
                 users = await _userService.GetAllUsersAsync();
             }
 
+            AssignInitialsBrushes(users);
             Users.ReplaceRange(users.Where(u => u.IsActive));
+        }
+
+        static string GetInitials(string? name)
+        {
+            var n = name?.Trim();
+            if (string.IsNullOrEmpty(n)) return string.Empty;
+            var parts = n.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 0) return string.Empty;
+            if (parts.Length == 1) return parts[0][0].ToString().ToUpperInvariant();
+            return string.Concat(char.ToUpperInvariant(parts[0][0]), char.ToUpperInvariant(parts[^1][0]));
+        }
+
+        static void AssignInitialsBrushes(IList<User> users)
+        {
+            var palette = (Application.Current?.TryFindResource("UserInitialsBrushes") as IEnumerable<Brush>)?.ToList()
+                          ?? new List<Brush>();
+            var groups = users.GroupBy(u => GetInitials(u.UserName));
+            foreach (var group in groups)
+            {
+                if (group.Count() <= 1)
+                {
+                    foreach (var user in group)
+                        user.InitialsBrush = Brushes.Transparent;
+                    continue;
+                }
+
+                var idx = 0;
+                foreach (var user in group)
+                {
+                    user.InitialsBrush = palette.Count > 0 ? palette[idx % palette.Count] : Brushes.Transparent;
+                    idx++;
+                }
+            }
         }
 
         /// <summary>

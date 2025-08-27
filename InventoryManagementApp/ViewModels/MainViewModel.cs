@@ -108,6 +108,8 @@ namespace InventoryManagementApp.ViewModels
 
         public bool HasCurrentUser => _userContext.CurrentUser != null;
 
+        public Brush? CurrentUserInitialsBrush => _userContext.CurrentUser?.InitialsBrush;
+
         private string _applicationName = string.Empty;
         public string ApplicationName
         {
@@ -154,6 +156,7 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(CurrentUserName));
             OnPropertyChanged(nameof(CurrentUserRole));
             OnPropertyChanged(nameof(CurrentUserPhotoPath));
+            OnPropertyChanged(nameof(CurrentUserInitialsBrush));
             OnPropertyChanged(nameof(HasCurrentUser));
         }
 

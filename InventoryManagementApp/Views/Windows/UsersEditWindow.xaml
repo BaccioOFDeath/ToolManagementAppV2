@@ -45,11 +45,9 @@
                             </Style>
                         </Image.Style>
                     </Image>
-                    <TextBlock Text="{Binding EditingUser.UserName, Converter={StaticResource NameToInitialsConverter}}"
-                               HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="48"
-                               Foreground="{StaticResource ForegroundBrush}">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
+                    <Border Background="{Binding EditingUser.InitialsBrush}">
+                        <Border.Style>
+                            <Style TargetType="Border">
                                 <Setter Property="Visibility" Value="Visible"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding EditingUser.UserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True">
@@ -57,8 +55,22 @@
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                        </Border.Style>
+                        <TextBlock Text="{Binding EditingUser.UserName, Converter={StaticResource NameToInitialsConverter}}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="48"
+                                   Foreground="{StaticResource ForegroundBrush}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding EditingUser.UserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Border>
                 </Grid>
             </Border>
 
