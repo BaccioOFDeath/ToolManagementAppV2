@@ -1,6 +1,7 @@
 ﻿// ViewModels/UsersEditViewModel.cs
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using System;
 using System.Threading.Tasks;
@@ -12,19 +13,36 @@ namespace InventoryManagementApp.ViewModels
         public string Title { get; }
         public User EditingUser { get; }
 
-        public IRelayCommand BrowseAvatarCommand { get; }
-        public IRelayCommand RemoveAvatarCommand { get; }
+        private readonly IFileDialogService _fileDialog;
+
+        public IRelayCommand BrowseImageCommand { get; }
+        public IRelayCommand RemoveImageCommand { get; }
         public IAsyncRelayCommand SaveCommand { get; }
         public IRelayCommand CancelCommand { get; }
 
-        public UsersEditViewModel(User user, Func<Task> onSave, Action onCancel, Action onBrowseAvatar, Action onRemoveAvatar)
+        public UsersEditViewModel(User user, IFileDialogService fileDialog, Func<Task> onSave, Action onCancel)
         {
             EditingUser = user ?? new User();
+            _fileDialog = fileDialog;
             Title = (EditingUser.UserID == 0) ? "Add User" : "Edit User";
-            BrowseAvatarCommand = new RelayCommand(onBrowseAvatar);
-            RemoveAvatarCommand = new RelayCommand(onRemoveAvatar);
+            BrowseImageCommand = new RelayCommand(BrowseImage);
+            RemoveImageCommand = new RelayCommand(RemoveImage);
             SaveCommand = new AsyncRelayCommand(onSave);
             CancelCommand = new RelayCommand(onCancel);
+        }
+
+        void BrowseImage()
+        {
+            var path = _fileDialog.OpenFile("Image Files|*.png;*.jpg;*.jpeg;*.bmp|All Files|*.*");
+            if (!string.IsNullOrEmpty(path))
+            {
+                EditingUser.UserPhotoPath = path;
+            }
+        }
+
+        void RemoveImage()
+        {
+            EditingUser.UserPhotoPath = string.Empty;
         }
     }
 }
