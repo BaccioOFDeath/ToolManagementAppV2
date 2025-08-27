@@ -174,8 +174,8 @@ public sealed class ItemRepository : IItemRepository
 
     public async Task<int> InsertAsync(Item item, CancellationToken ct)
     {
-        const string sql = @"INSERT INTO Items (ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, IsRentalItem, ImagePath, IsCheckedOut, IsPowered)
-                             VALUES (@ItemNumber,@Name,@Location,@Brand,@PartNumber,@Supplier,@PurchasedDate,@Notes,@Keywords,@QuantityOnHand,@RentedQuantity,@IsRentalItem,@ImagePath,0,@IsPowered);
+        const string sql = @"INSERT INTO Items (ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, IsPowered)
+                             VALUES (@ItemNumber,@Name,@Location,@Brand,@PartNumber,@Supplier,@PurchasedDate,@Notes,@Keywords,@QuantityOnHand,@RentedQuantity,@IsRentalItem,@Price,@ImagePath,0,@IsPowered);
                              SELECT last_insert_rowid();";
         await using var conn = (DbConnection)_factory.Create();
         var id = await conn.ExecuteScalarAsync<long>(new CommandDefinition(sql, new
@@ -192,6 +192,7 @@ public sealed class ItemRepository : IItemRepository
             QuantityOnHand = item.QuantityOnHand,
             item.RentedQuantity,
             IsRentalItem = item.IsRentalItem ? 1 : 0,
+            item.Price,
             item.ImagePath,
             IsPowered = item.IsPowered ? 1 : 0
         }, cancellationToken: ct));
