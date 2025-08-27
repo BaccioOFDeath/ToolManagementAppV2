@@ -55,7 +55,7 @@ public sealed class ItemRepository : IItemRepository
         parameters.Add("Take", page.Size);
         parameters.Add("Skip", (page.Number - 1) * page.Size);
         await using var conn = (DbConnection)_factory.Create();
-        var command = new CommandDefinition(sql, parameters, flags: CommandFlags.Pipelined, cancellationToken: ct);
+        var command = new CommandDefinition(sql, parameters, flags: CommandFlags.None, cancellationToken: ct);
         DbDataReader reader;
         try
         {
