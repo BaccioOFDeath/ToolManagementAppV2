@@ -28,6 +28,7 @@ namespace InventoryManagementApp.ViewModels
                 {
                     ((AsyncRelayCommand)UpdateCustomerCommand).NotifyCanExecuteChanged();
                     ((AsyncRelayCommand)DeleteCustomerCommand).NotifyCanExecuteChanged();
+                    ((AsyncRelayCommand)EditCustomerCommand).NotifyCanExecuteChanged();
 
                     if (value != null)
                     {
@@ -70,8 +71,8 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand UpdateCustomerCommand { get; }
         public IAsyncRelayCommand SearchCustomersCommand { get; }
         public IAsyncRelayCommand DeleteCustomerCommand { get; }
-        public IRelayCommand EditCustomerCommand { get; }
-        public IRelayCommand<CustomerModel> EditCustomerFromRowCommand { get; }
+        public IAsyncRelayCommand EditCustomerCommand { get; }
+        public IAsyncRelayCommand<CustomerModel> EditCustomerFromRowCommand { get; }
         public IAsyncRelayCommand<CustomerModel> DeleteCustomerFromRowCommand { get; }
         public IAsyncRelayCommand ClearCustomerSearchCommand { get; }
 
@@ -84,8 +85,8 @@ namespace InventoryManagementApp.ViewModels
             UpdateCustomerCommand = new AsyncRelayCommand(UpdateCustomerAsync, () => SelectedCustomer != null);
             SearchCustomersCommand = new AsyncRelayCommand(SearchCustomersAsync);
             DeleteCustomerCommand = new AsyncRelayCommand(() => DeleteCustomerAsync(), () => SelectedCustomer != null);
-            EditCustomerCommand = new RelayCommand(() => EditCustomer(SelectedCustomer), () => SelectedCustomer != null);
-            EditCustomerFromRowCommand = new RelayCommand<CustomerModel>(EditCustomer);
+            EditCustomerCommand = new AsyncRelayCommand(() => EditCustomerAsync(SelectedCustomer), () => SelectedCustomer != null);
+            EditCustomerFromRowCommand = new AsyncRelayCommand<CustomerModel>(EditCustomerAsync);
             DeleteCustomerFromRowCommand = new AsyncRelayCommand<CustomerModel>(c => DeleteCustomerAsync(c));
             ClearCustomerSearchCommand = new AsyncRelayCommand(ClearCustomerSearchAsync);
         }
@@ -191,7 +192,7 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        async void EditCustomer(CustomerModel? customer)
+        public async Task EditCustomerAsync(CustomerModel? customer)
         {
             if (customer == null || _dialogService == null || _customerService == null) return;
             var edited = _dialogService.ShowEditCustomerDialog(customer);

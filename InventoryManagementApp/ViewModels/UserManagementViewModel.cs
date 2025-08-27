@@ -51,7 +51,7 @@ namespace InventoryManagementApp.ViewModels
                 if (SetProperty(ref _selectedUser, value))
                 {
                     ((AsyncRelayCommand)UpdateUserCommand).NotifyCanExecuteChanged();
-                    ((RelayCommand)EditUserCommand).NotifyCanExecuteChanged();
+                    ((AsyncRelayCommand)EditUserCommand).NotifyCanExecuteChanged();
                 }
             }
         }
@@ -64,8 +64,8 @@ namespace InventoryManagementApp.ViewModels
         public IRelayCommand SearchUsersCommand { get; }
         public IRelayCommand ClearUserSearchCommand { get; }
 
-        public IRelayCommand EditUserCommand { get; }
-        public IRelayCommand EditUserFromRowCommand { get; }
+        public IAsyncRelayCommand EditUserCommand { get; }
+        public IAsyncRelayCommand<UserModel> EditUserFromRowCommand { get; }
         public IAsyncRelayCommand<UserModel> ResetPasswordFromRowCommand { get; }
         public IAsyncRelayCommand<UserModel> DeleteUserFromRowCommand { get; }
 
@@ -94,8 +94,8 @@ namespace InventoryManagementApp.ViewModels
             SearchUsersCommand = new RelayCommand(SearchUsers);
             ClearUserSearchCommand = new RelayCommand(ClearUserSearch);
 
-            EditUserCommand = new RelayCommand(() => EditUser(SelectedUser), () => SelectedUser != null);
-            EditUserFromRowCommand = new RelayCommand<UserModel>(EditUser);
+            EditUserCommand = new AsyncRelayCommand(() => EditUserAsync(SelectedUser), () => SelectedUser != null);
+            EditUserFromRowCommand = new AsyncRelayCommand<UserModel>(EditUserAsync);
             ResetPasswordFromRowCommand = new AsyncRelayCommand<UserModel>(ResetPasswordFor);
             DeleteUserFromRowCommand = new AsyncRelayCommand<UserModel>(DeleteUserAsync);
         }
@@ -349,7 +349,7 @@ namespace InventoryManagementApp.ViewModels
             Users.ReplaceRange(_allUsers);
         }
 
-        async void EditUser(UserModel? user)
+        public async Task EditUserAsync(UserModel? user)
         {
             if (user == null) return;
 

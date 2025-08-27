@@ -39,7 +39,7 @@ namespace InventoryManagementApp.Tests
             await vm.LoadCustomersAsync();
             vm.SelectedCustomer = vm.Customers.First();
 
-            vm.EditCustomerCommand.Execute(null);
+            await vm.EditCustomerCommand.ExecuteAsync(null);
 
             Assert.Equal("B", vm.Customers[0].Company);
         }
