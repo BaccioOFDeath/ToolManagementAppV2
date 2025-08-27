@@ -25,6 +25,7 @@ public class ItemServiceCsvImportTests
 
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
         await using var db = new DatabaseService(dbPath);
+        new MigrationRunner(db).Migrate();
         var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
         var service = new ItemService(db, repository);
         var map = new Dictionary<string, string> { ["ItemNumber"] = "ItemNumber" };
@@ -51,6 +52,7 @@ public class ItemServiceCsvImportTests
 
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
         await using var db = new DatabaseService(dbPath);
+        new MigrationRunner(db).Migrate();
         var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
         var service = new ItemService(db, repository);
 
@@ -81,6 +83,7 @@ public class ItemServiceCsvImportTests
 
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
         await using var db = new DatabaseService(dbPath);
+        new MigrationRunner(db).Migrate();
         var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
         var service = new ItemService(db, repository);
 

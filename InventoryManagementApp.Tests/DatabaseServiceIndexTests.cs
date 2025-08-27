@@ -13,6 +13,7 @@ public class DatabaseServiceIndexTests
         try
         {
             using var db = new DatabaseService(dbPath);
+            new MigrationRunner(db).Migrate();
             using var conn = db.CreateConnection();
             using var check = conn.CreateCommand();
             check.CommandText = "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='Items' ORDER BY name;";

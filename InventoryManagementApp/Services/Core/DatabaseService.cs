@@ -39,38 +39,6 @@ namespace InventoryManagementApp.Services.Core
             _logger = logger ?? NullLogger<DatabaseService>.Instance;
             ConfigureDatabase();
             InitializeDatabase();
-            EnsureColumn("Items", "ItemNumber", "TEXT");
-            EnsureColumn("Items", "NameDescription", "TEXT");
-            EnsureColumn("Items", "ImagePath", "TEXT");
-            EnsureColumn("Items", "CheckedOutBy", "TEXT");
-            EnsureColumn("Items", "CheckedOutTime", "DATETIME");
-            EnsureColumn("Items", "CheckedInBy", "TEXT");
-            EnsureColumn("Items", "CheckedInTime", "DATETIME");
-            EnsureColumn("Items", "Keywords", "TEXT");
-            EnsureColumn("Items", "IsPowered", "INTEGER", "0");
-            EnsureColumn("Items", "IsCheckedOut", "INTEGER", "0");
-            EnsureColumn("Items", "IsRentalItem", "INTEGER", "0");
-            EnsureColumn("Items", "Price", "NUMERIC", "0");
-            EnsureColumn("Items", "UpdatedAt", "DATETIME");
-            // Ensure indexes that depend on newly added columns
-            using (var conn = CreateConnection())
-            {
-                EnsureIndex(conn, "Items", "AvailableQuantity");
-                EnsureIndex(conn, "Items", "Keywords");
-                EnsureIndex(conn, "Items", "UpdatedAt");
-                EnsureIndex(conn, "Items", "IsRentalItem");
-            }
-            EnsureColumn("Users", "PasswordHash", "TEXT");
-            EnsureColumn("Users", "PasswordSalt", "TEXT");
-            EnsureColumn("Users", "Email", "TEXT");
-            EnsureColumn("Users", "Phone", "TEXT");
-            EnsureColumn("Users", "Mobile", "TEXT");
-            EnsureColumn("Users", "Address", "TEXT");
-            EnsureColumn("Users", "Role", "TEXT");
-            EnsureColumn("Users", "IsActive", "INTEGER", "1");
-            EnsureColumn("Users", "CreatedAt", "DATETIME");
-            // Security-related column for password expiry tracking
-            EnsureColumn("Users", "PasswordExpired", "INTEGER", "0");
         }
 
         public void Dispose()
@@ -215,7 +183,7 @@ namespace InventoryManagementApp.Services.Core
             }
         }
 
-        void EnsureColumn(string table, string column, string type, string? defaultValue = null)
+        internal void EnsureColumn(string table, string column, string type, string? defaultValue = null)
         {
             if (SqliteHelper.ColumnExists(ConnectionString, table, column)) return;
             try
@@ -244,10 +212,10 @@ namespace InventoryManagementApp.Services.Core
             }
         }
 
-        void EnsureIndex(SqliteConnection conn, string table, string column, bool unique = false)
+        internal void EnsureIndex(SqliteConnection conn, string table, string column, bool unique = false)
             => EnsureIndex(conn, table, new[] { column }, unique);
 
-        void EnsureIndex(SqliteConnection conn, string table, string[] columns, bool unique = false)
+        internal void EnsureIndex(SqliteConnection conn, string table, string[] columns, bool unique = false)
         {
             var indexName = $"idx_{table}_{string.Join("_", columns)}";
             if (SqliteHelper.IndexExists(conn, indexName)) return;

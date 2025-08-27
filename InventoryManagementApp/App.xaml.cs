@@ -85,6 +85,7 @@ namespace InventoryManagementApp
                 });
                 services.AddSingleton<IDatabaseService>(sp => sp.GetRequiredService<DatabaseService>());
                 services.AddSingleton<IDatabaseBackupService>(sp => sp.GetRequiredService<DatabaseService>());
+                services.AddSingleton<MigrationRunner>();
                 services.AddSingleton(sp =>
                 {
                     var config = sp.GetRequiredService<IConfiguration>();
@@ -140,7 +141,7 @@ namespace InventoryManagementApp
             await Host.StartAsync();
 
             // Ensure database initialization and migrations are executed at startup
-            Host.Services.GetRequiredService<DatabaseService>();
+            Host.Services.GetRequiredService<MigrationRunner>().Migrate();
 
             var loggerFactory = Host.Services.GetRequiredService<ILoggerFactory>();
             PathHelper.Configure(loggerFactory.CreateLogger("PathHelper"));
