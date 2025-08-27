@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -9,6 +10,7 @@ using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
+using InventoryManagementApp.Views.Windows;
 using Xunit;
 
 namespace InventoryManagementApp.Tests
@@ -53,17 +55,69 @@ namespace InventoryManagementApp.Tests
             if (threadEx != null) throw threadEx;
         }
 
+        [Fact]
+        public void EditUserRetainsInitialsBrush()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.xaml", UriKind.Absolute) });
+                    var users = new List<User>
+                    {
+                        new User { UserID = 1, UserName = "John Doe" }
+                    };
+                    var svc = new StubUserService(users);
+                    var vm = new UserManagementViewModel(svc, new DummyFileDialogService(), new DummyDialogService());
+                    vm.LoadUsersAsync().GetAwaiter().GetResult();
+                    vm.SelectedUser = vm.Users[0];
+                    var originalBrush = vm.SelectedUser.InitialsBrush;
+
+                    app.Dispatcher.InvokeAsync(async () =>
+                    {
+                        await Task.Delay(100);
+                        var win = app.Windows.OfType<UsersEditWindow>().First();
+                        var editVm = (UsersEditViewModel)win.DataContext;
+                        await editVm.SaveCommand.ExecuteAsync(null);
+                    });
+
+                    vm.EditUserCommand.Execute(null);
+
+                    Assert.Equal(originalBrush, vm.Users[0].InitialsBrush);
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+                finally
+                {
+                    Application.Current?.Shutdown();
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
         private sealed class StubUserService : IUserService
         {
             private readonly List<User> _users;
             public StubUserService(List<User> users) => _users = users;
             public Task<List<User>> GetAllUsersAsync() => Task.FromResult(_users);
             public Task<int> CountUsersAsync() => throw new NotImplementedException();
-            public Task<User?> GetUserByIDAsync(int userID) => throw new NotImplementedException();
+            public Task<User?> GetUserByIDAsync(int userID) => Task.FromResult(_users.FirstOrDefault(u => u.UserID == userID));
             public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => throw new NotImplementedException();
             public Task<User?> GetCurrentUserAsync() => throw new NotImplementedException();
             public Task AddUserAsync(User user) => throw new NotImplementedException();
-            public Task UpdateUserAsync(User user) => throw new NotImplementedException();
+            public Task UpdateUserAsync(User user)
+            {
+                var idx = _users.FindIndex(u => u.UserID == user.UserID);
+                if (idx >= 0) _users[idx] = user;
+                return Task.CompletedTask;
+            }
             public Task<bool> TryDeleteUserAsync(int userID) => throw new NotImplementedException();
             public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => throw new NotImplementedException();
         }
