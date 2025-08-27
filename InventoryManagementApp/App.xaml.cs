@@ -139,6 +139,9 @@ namespace InventoryManagementApp
 
             await Host.StartAsync();
 
+            // Ensure database initialization and migrations are executed at startup
+            Host.Services.GetRequiredService<DatabaseService>();
+
             var loggerFactory = Host.Services.GetRequiredService<ILoggerFactory>();
             PathHelper.Configure(loggerFactory.CreateLogger("PathHelper"));
             var settingsService = Host.Services.GetRequiredService<ISettingsService>();
