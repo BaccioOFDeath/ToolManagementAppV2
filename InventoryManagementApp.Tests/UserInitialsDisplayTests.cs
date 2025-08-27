@@ -103,6 +103,51 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void MainWindow_ShowsInitialsWhenPhotoPathMissing()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
+
+                    var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "MainWindow.xaml"));
+                    var xaml = File.ReadAllText(path);
+                    xaml = Regex.Replace(xaml, "x:Class=\\\"[^\\\"]*\\\"\\s*", string.Empty);
+                    var window = (Window)XamlReader.Parse(xaml);
+                    var missing = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".png");
+                    window.DataContext = new { CurrentUserName = "John Doe", CurrentUserPhotoPath = missing };
+                    window.Measure(new Size(100, 100));
+                    window.Arrange(new Rect(0, 0, 100, 100));
+                    window.UpdateLayout();
+                    var border = FindVisualChildren<Border>(window).First(b => b.Width == 60 && b.Height == 60);
+                    var grid = VisualTreeHelper.GetChild(border, 0) as Grid ?? throw new InvalidOperationException("Grid not found");
+                    var textBlock = grid.Children.OfType<TextBlock>().Single();
+                    var image = grid.Children.OfType<Image>().Single();
+                    Assert.Equal("JD", textBlock.Text);
+                    Assert.Equal(Visibility.Visible, textBlock.Visibility);
+                    Assert.Equal(Visibility.Collapsed, image.Visibility);
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+                finally
+                {
+                    Application.Current?.Shutdown();
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
+        [Fact]
         public void UsersEditWindow_ShowsInitialsWhenNoPhotoPath()
         {
             Exception? threadEx = null;
