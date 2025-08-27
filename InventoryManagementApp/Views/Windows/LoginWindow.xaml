@@ -4,6 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:av="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
         mc:Ignorable="av"
         x:Class="InventoryManagementApp.Views.Windows.LoginWindow"
         Title="{Binding WindowTitle}"
@@ -59,61 +60,10 @@
                                             BorderBrush="{StaticResource BorderBrushAlt}"
                                             BorderThickness="1"
                                             ClipToBounds="True">
-                                        <Grid>
-                                            <Image Stretch="Uniform"
-                                                   Source="{Binding UserPhotoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=user}">
-                                                <Image.Style>
-                                                    <Style TargetType="Image">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                        <Style.Triggers>
-                                                            <MultiDataTrigger>
-                                                                <MultiDataTrigger.Conditions>
-                                                                    <Condition Binding="{Binding UserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="False"/>
-                                                                    <Condition Binding="{Binding UserName, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True"/>
-                                                                </MultiDataTrigger.Conditions>
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </MultiDataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Image.Style>
-                                            </Image>
-                                            <Border Background="Transparent">
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                        <Style.Triggers>
-                                                            <MultiDataTrigger>
-                                                                <MultiDataTrigger.Conditions>
-                                                                    <Condition Binding="{Binding UserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="False"/>
-                                                                    <Condition Binding="{Binding UserName, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True"/>
-                                                                </MultiDataTrigger.Conditions>
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </MultiDataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Border.Style>
-                                                <TextBlock Text="{Binding UserName, Converter={StaticResource NameToInitialsConverter}}"
-                                                           FontSize="48"
-                                                           Foreground="{Binding InitialsBrush}"
-                                                           HorizontalAlignment="Center"
-                                                           VerticalAlignment="Center">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                            <Style.Triggers>
-                                                                <MultiDataTrigger>
-                                                                    <MultiDataTrigger.Conditions>
-                                                                        <Condition Binding="{Binding UserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="False"/>
-                                                                        <Condition Binding="{Binding UserName, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True"/>
-                                                                    </MultiDataTrigger.Conditions>
-                                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                                </MultiDataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                            </Border>
-                                        </Grid>
+                                        <controls:UserAvatar UserName="{Binding UserName}"
+                                                            UserPhotoPath="{Binding UserPhotoPath}"
+                                                            Foreground="{Binding InitialsBrush}"
+                                                            FontSize="48"/>
                                     </Border>
                                     <TextBlock Grid.Row="1"
                                                Text="{Binding UserName}"
