@@ -35,17 +35,13 @@ public sealed class SqliteConnectionFactory
 
         lock (_lock)
         {
-            using var cmd = connection.CreateCommand();
-            cmd.CommandText = "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;";
-            cmd.ExecuteNonQuery();
-
             if (PragmasExecutionCount == 0)
             {
-                cmd.CommandText = "SELECT 1 FROM sqlite_master WHERE type='table' AND name='Items';";
-                cmd.ExecuteScalar();
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;";
+                cmd.ExecuteNonQuery();
+                PragmasExecutionCount++;
             }
-
-            PragmasExecutionCount++;
         }
 
         return connection;
