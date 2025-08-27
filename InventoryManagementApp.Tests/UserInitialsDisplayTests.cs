@@ -59,6 +59,50 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void UsersPage_ShowsDefaultPhotoWhenNameBlank()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
+
+                    var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Pages", "UsersPage.xaml"));
+                    var xaml = File.ReadAllText(path);
+                    xaml = Regex.Replace(xaml, "x:Class=\\\"[^\\\"]*\\\"\\s*", string.Empty);
+                    var page = (Page)XamlReader.Parse(xaml);
+                    var dataGrid = FindVisualChild<DataGrid>(page) ?? throw new InvalidOperationException("DataGrid not found");
+                    var col = (DataGridTemplateColumn)dataGrid.Columns[0];
+                    var element = (FrameworkElement)col.CellTemplate.LoadContent();
+                    element.DataContext = new { UserName = string.Empty, UserPhotoPath = (string?)null };
+                    element.Measure(new Size(36, 36));
+                    element.Arrange(new Rect(0, 0, 36, 36));
+                    element.UpdateLayout();
+                    var textBlock = FindVisualChild<TextBlock>(element) ?? throw new InvalidOperationException("TextBlock not found");
+                    var image = FindVisualChild<Image>(element) ?? throw new InvalidOperationException("Image not found");
+                    Assert.Equal(Visibility.Collapsed, textBlock.Visibility);
+                    Assert.Equal(Visibility.Visible, image.Visibility);
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+                finally
+                {
+                    Application.Current?.Shutdown();
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
+        [Fact]
         public void MainWindow_ShowsInitialsWhenNoPhotoPath()
         {
             Exception? threadEx = null;

@@ -43,11 +43,15 @@
                                            Stretch="Uniform">
                                         <Image.Style>
                                             <Style TargetType="Image">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Setter Property="Visibility" Value="Visible"/>
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding UserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                    </DataTrigger>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding UserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="False"/>
+                                                            <Condition Binding="{Binding UserName, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True"/>
+                                                        </MultiDataTrigger.Conditions>
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </MultiDataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </Image.Style>
@@ -55,11 +59,15 @@
                                     <Border Background="Transparent">
                                         <Border.Style>
                                             <Style TargetType="Border">
-                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Setter Property="Visibility" Value="Collapsed"/>
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding UserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                    </DataTrigger>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding UserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="False"/>
+                                                            <Condition Binding="{Binding UserName, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True"/>
+                                                        </MultiDataTrigger.Conditions>
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </MultiDataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
@@ -69,11 +77,15 @@
                                                    Foreground="{Binding InitialsBrush}">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
-                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
                                                     <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding UserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True">
-                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                        </DataTrigger>
+                                                        <MultiDataTrigger>
+                                                            <MultiDataTrigger.Conditions>
+                                                                <Condition Binding="{Binding UserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="False"/>
+                                                                <Condition Binding="{Binding UserName, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True"/>
+                                                            </MultiDataTrigger.Conditions>
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </MultiDataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </TextBlock.Style>
