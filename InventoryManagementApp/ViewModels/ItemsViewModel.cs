@@ -246,9 +246,11 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        private void OnSteadyExceeded(object? sender, EventArgs e) => Items.TrimToWindow(PageSize * 3);
+        private void OnSteadyExceeded(object? sender, EventArgs e) =>
+            Application.Current.Dispatcher.Invoke(() => Items.TrimToWindow(PageSize * 3));
 
-        private void OnPeakExceeded(object? sender, EventArgs e) => Items.Reset();
+        private void OnPeakExceeded(object? sender, EventArgs e) =>
+            Application.Current.Dispatcher.Invoke(Items.Reset);
 
         partial void OnSelectedSortOptionChanged(SortOption value) => _ = ApplySortAsync(value);
 
@@ -264,7 +266,7 @@ namespace InventoryManagementApp.ViewModels
         private async Task ApplyPageSizeAsync(int value)
         {
             Items.PageSize = value;
-            Items.TrimToWindow(value * 3);
+            Application.Current.Dispatcher.Invoke(() => Items.TrimToWindow(value * 3));
             var firstPage = await LoadPageAsync(1, _loadCts.Token).ConfigureAwait(false);
             Items.ResetWith(firstPage);
             await _settingsService.SaveSettingAsync("PageSize", value.ToString()).ConfigureAwait(false);
@@ -385,7 +387,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 await _itemService.AddItemAsync(item, ct).ConfigureAwait(false);
-                Items.Reset();
+                Application.Current.Dispatcher.Invoke(Items.Reset);
                 await Items.LoadMoreAsync(ct).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
@@ -488,7 +490,7 @@ namespace InventoryManagementApp.ViewModels
             _memoryBudget.PeakExceeded -= OnPeakExceeded;
             foreach (var item in Items)
                 item.PropertyChanged -= Item_PropertyChanged;
-            Items.Reset();
+            Application.Current.Dispatcher.Invoke(Items.Reset);
             _filterCts.Cancel();
             _filterCts.Dispose();
             _loadCts.Cancel();
