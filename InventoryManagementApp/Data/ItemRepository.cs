@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
 using Item = InventoryManagementApp.Models.Domain.ItemModel;
+using Microsoft.Data.Sqlite;
 
 namespace InventoryManagementApp.Data;
 
@@ -169,5 +170,136 @@ public sealed class ItemRepository : IItemRepository
             }, tx);
         }
         tx.Commit();
+    }
+
+    public async Task<int> InsertAsync(Item item, CancellationToken ct)
+    {
+        const string sql = @"INSERT INTO Items (ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, IsRentalItem, ImagePath, IsCheckedOut, IsPowered)
+                             VALUES (@ItemNumber,@Name,@Location,@Brand,@PartNumber,@Supplier,@PurchasedDate,@Notes,@Keywords,@QuantityOnHand,@RentedQuantity,@IsRentalItem,@ImagePath,0,@IsPowered);
+                             SELECT last_insert_rowid();";
+        await using var conn = (DbConnection)_factory.Create();
+        var id = await conn.ExecuteScalarAsync<long>(new CommandDefinition(sql, new
+        {
+            item.ItemNumber,
+            Name = item.Name,
+            item.Location,
+            item.Brand,
+            PartNumber = item.PartNumber,
+            item.Supplier,
+            item.PurchasedDate,
+            item.Notes,
+            item.Keywords,
+            QuantityOnHand = item.QuantityOnHand,
+            item.RentedQuantity,
+            IsRentalItem = item.IsRentalItem ? 1 : 0,
+            item.ImagePath,
+            IsPowered = item.IsPowered ? 1 : 0
+        }, cancellationToken: ct));
+        return (int)id;
+    }
+
+    public async Task UpdateAsync(Item item, CancellationToken ct)
+    {
+        const string sql = @"UPDATE Items SET
+                  ItemNumber = @ItemNumber,
+                  NameDescription = @Name,
+                  Location = @Location,
+                  Brand = @Brand,
+                  PartNumber = @PartNumber,
+                  Supplier = @Supplier,
+                  PurchasedDate = @PurchasedDate,
+                  Notes = @Notes,
+                  Keywords = @Keywords,
+                  AvailableQuantity = @QuantityOnHand,
+                  RentedQuantity = @RentedQuantity,
+                  IsRentalItem = @IsRentalItem,
+                  IsPowered = @IsPowered,
+                  IsCheckedOut = @IsCheckedOut,
+                  CheckedOutBy = @CheckedOutBy,
+                  CheckedOutTime = @CheckedOutTime,
+                  CheckedInBy = @CheckedInBy,
+                  CheckedInTime = @CheckedInTime,
+                  ImagePath = @ImagePath
+                WHERE ItemID = @ItemID";
+        await using var conn = (DbConnection)_factory.Create();
+        var rows = await conn.ExecuteAsync(new CommandDefinition(sql, new
+        {
+            item.ItemNumber,
+            Name = item.Name,
+            item.Location,
+            item.Brand,
+            PartNumber = item.PartNumber,
+            item.Supplier,
+            item.PurchasedDate,
+            item.Notes,
+            item.Keywords,
+            QuantityOnHand = item.QuantityOnHand,
+            item.RentedQuantity,
+            IsRentalItem = item.IsRentalItem ? 1 : 0,
+            IsPowered = item.IsPowered ? 1 : 0,
+            IsCheckedOut = item.IsCheckedOut ? 1 : 0,
+            item.CheckedOutBy,
+            item.CheckedOutTime,
+            item.CheckedInBy,
+            item.CheckedInTime,
+            item.ImagePath,
+            item.ItemID
+        }, cancellationToken: ct));
+        if (rows == 0)
+            throw new InvalidOperationException($"Failed to update item {item.ItemID}.");
+    }
+
+    public async Task DeleteAsync(int itemID, CancellationToken ct)
+    {
+        await using var conn = (DbConnection)_factory.Create();
+        var rows = await conn.ExecuteAsync(new CommandDefinition("DELETE FROM Items WHERE ItemID=@ID", new { ID = itemID }, cancellationToken: ct));
+        if (rows == 0)
+            throw new InvalidOperationException($"Failed to delete item {itemID}.");
+    }
+
+    public async Task<bool> ToggleCheckOutStatusAsync(int itemID, string currentUser, bool isAdmin, CancellationToken ct)
+    {
+        await using var conn = (DbConnection)_factory.Create();
+        var record = await conn.QueryFirstOrDefaultAsync<(bool Rental, bool Out, int Qty, string? By)>(new CommandDefinition(
+            "SELECT IsRentalItem as Rental, IsCheckedOut as Out, AvailableQuantity as Qty, CheckedOutBy as By FROM Items WHERE ItemID=@ID",
+            new { ID = itemID }, cancellationToken: ct));
+
+        if (record.Equals(default((bool, bool, int, string?))))
+            throw new InvalidOperationException($"Item {itemID} not found.");
+
+        if (record.Rental)
+            return false;
+
+        if (!record.Out)
+        {
+            if (record.Qty <= 0)
+                return false;
+        }
+        else if (!isAdmin && !string.Equals(record.By, currentUser, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var newStatus = record.Out ? 0 : 1;
+        var outTime = record.Out ? (DateTime?)null : DateTime.UtcNow;
+        var outBy = record.Out ? null : currentUser;
+        var inTime = record.Out ? DateTime.UtcNow : (DateTime?)null;
+        var inBy = record.Out ? currentUser : null;
+        var qtyChange = record.Out ? 1 : -1;
+
+        var rows = await conn.ExecuteAsync(new CommandDefinition(@"UPDATE Items SET
+                  IsCheckedOut = @Out,
+                  CheckedOutBy = @By,
+                  CheckedOutTime = @Time,
+                  CheckedInBy = @InBy,
+                  CheckedInTime = @InTime,
+                  AvailableQuantity = AvailableQuantity + @Q
+                WHERE ItemID = @ID",
+            new { Out = newStatus, By = outBy, Time = outTime, InBy = inBy, InTime = inTime, Q = qtyChange, ID = itemID }, cancellationToken: ct));
+
+        if (rows == 0)
+            throw new InvalidOperationException("Check-out status update failed.");
+
+        return true;
     }
 }

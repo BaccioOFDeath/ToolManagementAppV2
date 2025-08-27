@@ -13,13 +13,6 @@ using Xunit;
 
 public class ItemServiceCsvImportTests
 {
-    private sealed class DummyItemRepository : IItemRepository
-    {
-        public IAsyncEnumerable<ItemModel> GetPageAsync(ItemFilter filter, ItemPage page, CancellationToken ct) => AsyncEnumerable.Empty<ItemModel>();
-        public Task<int> CountAsync(ItemFilter filter, CancellationToken ct) => Task.FromResult(0);
-        public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct) => Task.CompletedTask;
-    }
-
     [Fact]
     public async Task ImportItemsFromCsv_UsesBoundedMemoryForLargeFiles()
     {
@@ -32,7 +25,8 @@ public class ItemServiceCsvImportTests
 
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
         await using var db = new DatabaseService(dbPath);
-        var service = new ItemService(db, new DummyItemRepository());
+        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+        var service = new ItemService(db, repository);
         var map = new Dictionary<string, string> { ["ItemNumber"] = "ItemNumber" };
 
         GC.Collect();
@@ -57,7 +51,8 @@ public class ItemServiceCsvImportTests
 
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
         await using var db = new DatabaseService(dbPath);
-        var service = new ItemService(db, new DummyItemRepository());
+        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+        var service = new ItemService(db, repository);
 
         var map = new Dictionary<string, string>
         {
@@ -86,7 +81,8 @@ public class ItemServiceCsvImportTests
 
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
         await using var db = new DatabaseService(dbPath);
-        var service = new ItemService(db, new DummyItemRepository());
+        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+        var service = new ItemService(db, repository);
 
         var map = new Dictionary<string, string>
         {
