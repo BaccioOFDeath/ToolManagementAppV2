@@ -149,7 +149,7 @@ public sealed class ItemRepository : IItemRepository
         if (conditions.Count > 0)
             sql += " WHERE " + string.Join(" AND ", conditions);
         await using var conn = (DbConnection)_factory.Create();
-        return await conn.ExecuteScalarAsync<int>(new CommandDefinition(sql, parameters, flags: CommandFlags.Pipelined, cancellationToken: ct));
+        return await conn.ExecuteScalarAsync<int>(new CommandDefinition(sql, parameters, cancellationToken: ct));
     }
 
     public async Task SaveChangesAsync(IEnumerable<Item> changes, CancellationToken ct)
