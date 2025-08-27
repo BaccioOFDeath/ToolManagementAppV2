@@ -17,8 +17,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Application = System.Windows.Application;
-using Brush = System.Drawing.Brush;
-using Brushes = System.Drawing.Brushes;
 
 namespace InventoryManagementApp.ViewModels
 {

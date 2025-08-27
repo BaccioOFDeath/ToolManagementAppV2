@@ -27,7 +27,6 @@ using InventoryManagementApp.Models.ImportExport;
 using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Helpers;
 using Application = System.Windows.Application;
-using Brush = System.Drawing.Brush;
 
 namespace InventoryManagementApp.ViewModels
 {

@@ -1,8 +1,5 @@
 using System;
-using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Brush = System.Drawing.Brush;
-using Brushes = System.Drawing.Brushes;
 
 #nullable enable
 
