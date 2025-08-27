@@ -33,6 +33,11 @@ public class DashboardViewModelTests
 
         public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct)
             => Task.CompletedTask;
+
+        public Task<int> InsertAsync(ItemModel item, CancellationToken ct) => Task.FromResult(0);
+        public Task UpdateAsync(ItemModel item, CancellationToken ct) => Task.CompletedTask;
+        public Task DeleteAsync(int itemID, CancellationToken ct) => Task.CompletedTask;
+        public Task<bool> ToggleCheckOutStatusAsync(int itemID, string currentUser, bool isAdmin, CancellationToken ct) => Task.FromResult(false);
     }
 
     private sealed class StubRentalService : IRentalService
@@ -192,6 +197,11 @@ public class DashboardViewModelTests
 
         public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct)
             => Task.CompletedTask;
+
+        public Task<int> InsertAsync(ItemModel item, CancellationToken ct) => Task.FromResult(0);
+        public Task UpdateAsync(ItemModel item, CancellationToken ct) => Task.CompletedTask;
+        public Task DeleteAsync(int itemID, CancellationToken ct) => Task.CompletedTask;
+        public Task<bool> ToggleCheckOutStatusAsync(int itemID, string currentUser, bool isAdmin, CancellationToken ct) => Task.FromResult(false);
     }
 
     private sealed class CancellableActivityLogService : ActivityLogService

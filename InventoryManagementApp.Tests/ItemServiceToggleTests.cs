@@ -13,12 +13,6 @@ using Xunit;
 
 public class ItemServiceToggleTests
 {
-    private sealed class DummyItemRepository : IItemRepository
-    {
-        public IAsyncEnumerable<ItemModel> GetPageAsync(ItemFilter filter, ItemPage page, CancellationToken ct) => AsyncEnumerable.Empty<ItemModel>();
-        public Task<int> CountAsync(ItemFilter filter, CancellationToken ct) => Task.FromResult(0);
-        public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct) => Task.CompletedTask;
-    }
 
     private sealed class DummyUserContext : IUserContext
     {
@@ -81,7 +75,8 @@ public class ItemServiceToggleTests
         await using var db = new DatabaseService(dbPath);
         await InitializeAsync(db);
         var userContext = new DummyUserContext { CurrentUser = new User { UserID = 1, UserName = "user1", IsAdmin = false } };
-        var service = new ItemService(db, new DummyItemRepository(), new NonAdminAuthorizationService(), userContext: userContext);
+        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+        var service = new ItemService(db, repository, new NonAdminAuthorizationService(), userContext: userContext);
 
         var checkout = await service.ToggleItemCheckOutStatusAsync(1, CancellationToken.None);
         Assert.True(checkout);
@@ -120,12 +115,13 @@ public class ItemServiceToggleTests
         await using var db = new DatabaseService(dbPath);
         await InitializeAsync(db);
         var userContext1 = new DummyUserContext { CurrentUser = new User { UserID = 1, UserName = "user1", IsAdmin = false } };
-        var service1 = new ItemService(db, new DummyItemRepository(), new NonAdminAuthorizationService(), userContext: userContext1);
+        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+        var service1 = new ItemService(db, repository, new NonAdminAuthorizationService(), userContext: userContext1);
         var checkout = await service1.ToggleItemCheckOutStatusAsync(1, CancellationToken.None);
         Assert.True(checkout);
 
         var userContext2 = new DummyUserContext { CurrentUser = new User { UserID = 2, UserName = "user2", IsAdmin = false } };
-        var service2 = new ItemService(db, new DummyItemRepository(), new NonAdminAuthorizationService(), userContext: userContext2);
+        var service2 = new ItemService(db, repository, new NonAdminAuthorizationService(), userContext: userContext2);
         var attempt = await service2.ToggleItemCheckOutStatusAsync(1, CancellationToken.None);
         Assert.False(attempt);
 
@@ -139,12 +135,13 @@ public class ItemServiceToggleTests
         await using var db = new DatabaseService(dbPath);
         await InitializeAsync(db);
         var userContext1 = new DummyUserContext { CurrentUser = new User { UserID = 1, UserName = "user1", IsAdmin = false } };
-        var service1 = new ItemService(db, new DummyItemRepository(), new NonAdminAuthorizationService(), userContext: userContext1);
+        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+        var service1 = new ItemService(db, repository, new NonAdminAuthorizationService(), userContext: userContext1);
         var checkout = await service1.ToggleItemCheckOutStatusAsync(1, CancellationToken.None);
         Assert.True(checkout);
 
         var adminContext = new DummyUserContext { CurrentUser = new User { UserID = 3, UserName = "admin", IsAdmin = true } };
-        var adminService = new ItemService(db, new DummyItemRepository(), new AdminAuthorizationService(), userContext: adminContext);
+        var adminService = new ItemService(db, repository, new AdminAuthorizationService(), userContext: adminContext);
         var checkin = await adminService.ToggleItemCheckOutStatusAsync(1, CancellationToken.None);
         Assert.True(checkin);
 
@@ -168,7 +165,8 @@ public class ItemServiceToggleTests
         await using var db = new DatabaseService(dbPath);
         await InitializeAsync(db);
         var userContext = new DummyUserContext { CurrentUser = new User { UserID = 1, UserName = "user1", IsAdmin = false } };
-        var service = new ItemService(db, new DummyItemRepository(), new NonAdminAuthorizationService(), userContext: userContext);
+        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+        var service = new ItemService(db, repository, new NonAdminAuthorizationService(), userContext: userContext);
 
         var result = await service.ToggleItemCheckOutStatusAsync(2, CancellationToken.None);
         Assert.False(result);
@@ -189,7 +187,8 @@ public class ItemServiceToggleTests
         await using var db = new DatabaseService(dbPath);
         await InitializeAsync(db);
         var userContext = new DummyUserContext { CurrentUser = new User { UserID = 1, UserName = "user1", IsAdmin = false } };
-        var service = new ItemService(db, new DummyItemRepository(), new NonAdminAuthorizationService(), userContext: userContext);
+        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+        var service = new ItemService(db, repository, new NonAdminAuthorizationService(), userContext: userContext);
 
         await service.ToggleItemCheckOutStatusAsync(1, CancellationToken.None);
 
