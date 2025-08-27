@@ -97,8 +97,7 @@ namespace InventoryManagementApp
                         Cache = SqliteCacheMode.Shared,
                         Mode = SqliteOpenMode.ReadWriteCreate
                     };
-                    var logger = sp.GetRequiredService<ILogger<SqliteConnectionFactory>>();
-                    return new SqliteConnectionFactory(builder.ToString(), logger);
+                    return new SqliteConnectionFactory(builder.ToString());
                 });
                 services.AddSingleton<IItemRepository, ItemRepository>();
                 services.AddSingleton<IUserContext, ApplicationUserContext>();

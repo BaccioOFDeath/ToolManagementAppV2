@@ -55,7 +55,9 @@ namespace InventoryManagementApp.Services.Core
             // Ensure indexes that depend on newly added columns
             using (var conn = CreateConnection())
             {
+                EnsureIndex(conn, "Items", "AvailableQuantity");
                 EnsureIndex(conn, "Items", "Keywords");
+                EnsureIndex(conn, "Items", "UpdatedAt");
                 EnsureIndex(conn, "Items", "IsRentalItem");
             }
             EnsureColumn("Users", "PasswordHash", "TEXT");
