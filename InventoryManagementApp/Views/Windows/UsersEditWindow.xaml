@@ -45,7 +45,7 @@
                             </Style>
                         </Image.Style>
                     </Image>
-                    <Border Background="{Binding EditingUser.InitialsBrush}">
+                    <Border Background="Transparent">
                         <Border.Style>
                             <Style TargetType="Border">
                                 <Setter Property="Visibility" Value="Visible"/>
@@ -58,7 +58,7 @@
                         </Border.Style>
                         <TextBlock Text="{Binding EditingUser.UserName, Converter={StaticResource NameToInitialsConverter}}"
                                    HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="48"
-                                   Foreground="{StaticResource ForegroundBrush}">
+                                   Foreground="{Binding EditingUser.InitialsBrush}">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Visibility" Value="Visible"/>

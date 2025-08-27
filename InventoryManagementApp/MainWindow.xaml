@@ -120,7 +120,7 @@
                                       </Style>
                                   </Image.Style>
                               </Image>
-                              <Border Background="{Binding CurrentUserInitialsBrush}">
+                              <Border Background="Transparent">
                                   <Border.Style>
                                       <Style TargetType="Border">
                                           <Setter Property="Visibility" Value="Collapsed"/>
@@ -137,7 +137,7 @@
                                   </Border.Style>
                                   <TextBlock Text="{Binding CurrentUserName, Converter={StaticResource NameToInitialsConverter}}"
                                              HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="28"
-                                             Foreground="{StaticResource ForegroundBrush}">
+                                             Foreground="{Binding CurrentUserInitialsBrush}">
                                       <TextBlock.Style>
                                           <Style TargetType="TextBlock">
                                               <Setter Property="Visibility" Value="Collapsed"/>

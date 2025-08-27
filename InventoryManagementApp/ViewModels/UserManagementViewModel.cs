@@ -129,13 +129,15 @@ namespace InventoryManagementApp.ViewModels
         {
             var palette = (Application.Current?.TryFindResource("UserInitialsBrushes") as IEnumerable<MediaBrush>)?.ToList()
                           ?? new List<MediaBrush>();
+            var defaultBrush = Application.Current?.TryFindResource("ForegroundBrush") as MediaBrush
+                               ?? MediaBrushes.Transparent;
             var groups = users.GroupBy(u => GetInitials(u.UserName));
             foreach (var group in groups)
             {
                 if (group.Count() <= 1)
                 {
                     foreach (var user in group)
-                        user.InitialsBrush = MediaBrushes.Transparent;
+                        user.InitialsBrush = defaultBrush;
                     continue;
                 }
 

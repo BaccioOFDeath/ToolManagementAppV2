@@ -52,7 +52,7 @@
                                             </Style>
                                         </Image.Style>
                                     </Image>
-                                    <Border Background="{Binding InitialsBrush}">
+                                    <Border Background="Transparent">
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Setter Property="Visibility" Value="Visible"/>
@@ -66,7 +66,7 @@
                                         <TextBlock Text="{Binding UserName, Converter={StaticResource NameToInitialsConverter}}"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center"
                                                    FontWeight="Bold" FontSize="20"
-                                                   Foreground="{StaticResource ForegroundBrush}">
+                                                   Foreground="{Binding InitialsBrush}">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="Visibility" Value="Visible"/>
