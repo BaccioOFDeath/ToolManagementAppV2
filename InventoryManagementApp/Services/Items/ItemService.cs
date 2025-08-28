@@ -350,6 +350,8 @@ namespace InventoryManagementApp.Services.Items
             if (parser.EndOfData)
                 return invalidRows;
             var headers = parser.ReadFields();
+            if (headers == null || headers.Length == 0)
+                throw new InvalidDataException("CSV header row is missing or empty.");
 
             using var conn = _dbService.CreateConnection();
             var existingNumbers = new HashSet<string>(
@@ -366,6 +368,11 @@ namespace InventoryManagementApp.Services.Items
                     cancellationToken.ThrowIfCancellationRequested();
                     row++;
                     var cols = parser.ReadFields();
+                    if (cols == null || cols.Length == 0 || headers == null)
+                    {
+                        invalidRows.Add(row);
+                        continue;
+                    }
                     var itemNumber = GetMapped(cols, headers, map, "ItemNumber");
                     if (string.IsNullOrWhiteSpace(itemNumber) || existingNumbers.Contains(itemNumber))
                     {
@@ -376,14 +383,14 @@ namespace InventoryManagementApp.Services.Items
                     var item = new ItemModel
                     {
                         ItemNumber = itemNumber,
-                        Name = GetMapped(cols, headers, map, nameof(ItemImportDto.Name)),
-                        Location = GetMapped(cols, headers, map, "Location"),
-                        Brand = GetMapped(cols, headers, map, "Brand"),
-                        PartNumber = GetMapped(cols, headers, map, "PartNumber"),
-                        Supplier = GetMapped(cols, headers, map, "Supplier"),
+                        Name = GetMapped(cols, headers, map, nameof(ItemImportDto.Name)) ?? string.Empty,
+                        Location = GetMapped(cols, headers, map, "Location") ?? string.Empty,
+                        Brand = GetMapped(cols, headers, map, "Brand") ?? string.Empty,
+                        PartNumber = GetMapped(cols, headers, map, "PartNumber") ?? string.Empty,
+                        Supplier = GetMapped(cols, headers, map, "Supplier") ?? string.Empty,
                         PurchasedDate = TryParseDate(GetMapped(cols, headers, map, "PurchasedDate")),
-                        Notes = GetMapped(cols, headers, map, "Notes"),
-                        Keywords = GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords)),
+                        Notes = GetMapped(cols, headers, map, "Notes") ?? string.Empty,
+                        Keywords = GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords)) ?? string.Empty,
                         QuantityOnHand = TryParseInt(GetMapped(cols, headers, map, "AvailableQuantity")),
                         IsPowered = TryParseBool(GetMapped(cols, headers, map, "IsPowered")),
                         IsRentalItem = TryParseBool(GetMapped(cols, headers, map, "IsRentalItem"))
