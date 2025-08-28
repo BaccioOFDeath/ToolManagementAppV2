@@ -74,8 +74,8 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        private RentalModel _selectedRental;
-        public RentalModel SelectedRental
+        private RentalModel? _selectedRental;
+        public RentalModel? SelectedRental
         {
             get => _selectedRental;
             set
