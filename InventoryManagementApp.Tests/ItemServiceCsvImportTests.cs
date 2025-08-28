@@ -137,4 +137,35 @@ public class ItemServiceCsvImportTests
         File.Delete(csvPath);
         File.Delete(dbPath);
     }
+
+    [Fact]
+    public async Task ImportItemsFromCsv_SkipsRowsWithMissingMappedFields()
+    {
+        var csvPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
+        await File.WriteAllTextAsync(csvPath, "ItemNumber\nNUM1");
+
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        await using var db = new DatabaseService(dbPath);
+        new MigrationRunner(db).Migrate();
+        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+        var service = new ItemService(db, repository);
+
+        var map = new Dictionary<string, string>
+        {
+            ["ItemNumber"] = "ItemNumber",
+            [nameof(ItemImportDto.Name)] = "NameDescription"
+        };
+
+        var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
+        Assert.Contains(2, invalid);
+
+        using var conn = db.CreateConnection();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT COUNT(*) FROM Items";
+        var count = Convert.ToInt32(cmd.ExecuteScalar());
+        Assert.Equal(0, count);
+
+        File.Delete(csvPath);
+        File.Delete(dbPath);
+    }
 }

@@ -243,7 +243,7 @@ namespace InventoryManagementApp.Utilities.IO
             File.WriteAllLines(filePath, lines);
         }
 
-        private static string? GetMapped(string[] row, string[] headers, IDictionary<string, string> map, string key)
+        public static string? GetMapped(string[] row, string[] headers, IDictionary<string, string> map, string key)
         {
             ArgumentNullException.ThrowIfNull(row);
             ArgumentNullException.ThrowIfNull(headers);
