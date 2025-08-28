@@ -56,6 +56,51 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ShowsInitialsWhenPhotoPathMissing()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
+
+                    var avatar = new Controls.UserAvatar
+                    {
+                        UserName = "John Doe",
+                        UserPhotoPath = "nonexistent.png",
+                        Foreground = Brushes.Black,
+                        FontSize = 20
+                    };
+                    avatar.Measure(new Size(36, 36));
+                    avatar.Arrange(new Rect(0, 0, 36, 36));
+                    avatar.UpdateLayout();
+
+                    var textBlock = FindVisualChild<TextBlock>(avatar) ?? throw new InvalidOperationException("TextBlock not found");
+                    var image = FindVisualChild<Image>(avatar) ?? throw new InvalidOperationException("Image not found");
+                    Assert.Equal("JD", textBlock.Text);
+                    Assert.Equal(Visibility.Visible, textBlock.Visibility);
+                    Assert.Equal(Visibility.Collapsed, image.Visibility);
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+                finally
+                {
+                    Application.Current?.Shutdown();
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
+        [Fact]
         public void LeavesAvatarBlankWhenNameAndPhotoMissing()
         {
             Exception? threadEx = null;
