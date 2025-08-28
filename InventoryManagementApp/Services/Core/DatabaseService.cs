@@ -77,7 +77,7 @@ namespace InventoryManagementApp.Services.Core
             using var conn = CreateConnection();
 
             // Legacy migration: rename old legacy item table to Items
-            MigrateLegacyToolsTable(conn);
+            MigrateLegacyItemsTable(conn);
 
             var sql = @"
                 CREATE TABLE IF NOT EXISTS Items (
@@ -166,7 +166,7 @@ namespace InventoryManagementApp.Services.Core
             EnsureIndex(conn, "Rentals", new[] { "ItemID", "CustomerID" });
         }
 
-        void MigrateLegacyToolsTable(SqliteConnection conn)
+        void MigrateLegacyItemsTable(SqliteConnection conn)
         {
             // Legacy migration: rename old legacy item table to "Items"
             const string legacyTable = "To" + "ols";
