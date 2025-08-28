@@ -82,16 +82,16 @@ namespace InventoryManagementApp.Services.Rentals
                     RentalDate = ParseDateOrDefault(r["RentalDate"], "RentalDate"),
                     DueDate = ParseDateOrDefault(r["DueDate"], "DueDate"),
                     ReturnDate = r["ReturnDate"] is DBNull ? null : ParseNullableDate(r["ReturnDate"], "ReturnDate"),
-                    Status = r["Status"].ToString(),
-                    ItemNumber = r["ItemNumber"].ToString(),
-                    CustomerName = r["Company"].ToString(),
-                    CustomerContact = r["Contact"].ToString(),
-                    CustomerEmail = r["Email"].ToString(),
-                    CustomerPhone = r["Phone"].ToString(),
-                    CustomerMobile = r["Mobile"].ToString(),
-                    CustomerAddress = r["Address"].ToString(),
-                    ImagePath = r["ImagePath"].ToString(),
-                    ItemLocation = r["ItemLocation"].ToString()
+                    Status = ValidateString(r["Status"], "Status"),
+                    ItemNumber = ValidateString(r["ItemNumber"], "ItemNumber"),
+                    CustomerName = ValidateString(r["Company"], "Company"),
+                    CustomerContact = ValidateString(r["Contact"], "Contact"),
+                    CustomerEmail = ValidateString(r["Email"], "Email"),
+                    CustomerPhone = ValidateString(r["Phone"], "Phone"),
+                    CustomerMobile = ValidateString(r["Mobile"], "Mobile"),
+                    CustomerAddress = ValidateString(r["Address"], "Address"),
+                    ImagePath = ValidateString(r["ImagePath"], "ImagePath"),
+                    ItemLocation = ValidateString(r["ItemLocation"], "ItemLocation")
                 };
             }
             catch (FormatException ex)
@@ -119,6 +119,17 @@ namespace InventoryManagementApp.Services.Rentals
                 return DateTime.SpecifyKind(dt, DateTimeKind.Utc).ToLocalTime();
             _logger.LogError("Failed to parse {Field}: {Value}", field, text);
             return null;
+        }
+
+        string ValidateString(object? value, string field)
+        {
+            var text = value?.ToString();
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                _logger.LogWarning("{Field} was null or empty while mapping rental", field);
+                return string.Empty;
+            }
+            return text;
         }
 
         public async Task RentItemAsync(int itemID, int customerID, DateTime rentalDate, DateTime dueDate)
