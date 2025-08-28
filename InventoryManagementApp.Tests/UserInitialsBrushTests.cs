@@ -105,6 +105,57 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void EditUserNameReassignsBrushes()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.xaml", UriKind.Absolute) });
+                    var users = new List<User>
+                    {
+                        new User { UserID = 1, UserName = "John Doe" },
+                        new User { UserID = 2, UserName = "Jane Doe" }
+                    };
+                    var svc = new StubUserService(users);
+                    var vm = new UserManagementViewModel(svc, new DummyFileDialogService(), new DummyDialogService());
+                    vm.LoadUsersAsync().GetAwaiter().GetResult();
+                    vm.SelectedUser = vm.Users[0];
+                    var defaultBrush = Application.Current.TryFindResource("ForegroundBrush") as Brush;
+                    Assert.NotEqual(defaultBrush, vm.Users[1].InitialsBrush);
+
+                    app.Dispatcher.InvokeAsync(async () =>
+                    {
+                        await Task.Delay(100);
+                        var win = app.Windows.OfType<UsersEditWindow>().First();
+                        var editVm = (UsersEditViewModel)win.DataContext;
+                        editVm.EditingUser.UserName = "Alice Smith";
+                        await editVm.SaveCommand.ExecuteAsync(null);
+                    });
+
+                    vm.EditUserCommand.Execute(null);
+
+                    Assert.Equal(defaultBrush, vm.Users[0].InitialsBrush);
+                    Assert.Equal(defaultBrush, vm.Users[1].InitialsBrush);
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+                finally
+                {
+                    Application.Current?.Shutdown();
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
+        [Fact]
         public void LoginRetainsInitialsBrush()
         {
             Exception? threadEx = null;
