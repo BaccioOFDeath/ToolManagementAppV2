@@ -374,8 +374,60 @@ namespace InventoryManagementApp.Services.Items
                         invalidRows.Add(row);
                         continue;
                     }
-                    var itemNumber = GetMapped(cols, headers, map, "ItemNumber");
-                    if (string.IsNullOrWhiteSpace(itemNumber) || existingNumbers.Contains(itemNumber))
+                    var itemNumber = CsvHelperUtil.GetMapped(cols, headers, map, "ItemNumber");
+                    var name = CsvHelperUtil.GetMapped(cols, headers, map, nameof(ItemImportDto.Name));
+                    var location = CsvHelperUtil.GetMapped(cols, headers, map, "Location");
+                    var brand = CsvHelperUtil.GetMapped(cols, headers, map, "Brand");
+                    var partNumber = CsvHelperUtil.GetMapped(cols, headers, map, "PartNumber");
+                    var supplier = CsvHelperUtil.GetMapped(cols, headers, map, "Supplier");
+                    var purchased = CsvHelperUtil.GetMapped(cols, headers, map, "PurchasedDate");
+                    var notes = CsvHelperUtil.GetMapped(cols, headers, map, "Notes");
+                    var keywords = CsvHelperUtil.GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords));
+                    var quantity = CsvHelperUtil.GetMapped(cols, headers, map, "AvailableQuantity");
+                    var powered = CsvHelperUtil.GetMapped(cols, headers, map, "IsPowered");
+                    var rental = CsvHelperUtil.GetMapped(cols, headers, map, "IsRentalItem");
+
+                    bool skip = false;
+                    if (string.IsNullOrWhiteSpace(itemNumber))
+                    {
+                        _logger.LogWarning("Skipping row {Row}: ItemNumber is missing.", row);
+                        skip = true;
+                    }
+                    else if (existingNumbers.Contains(itemNumber))
+                    {
+                        _logger.LogWarning("Skipping row {Row}: duplicate ItemNumber {ItemNumber}.", row, itemNumber);
+                        skip = true;
+                    }
+
+                    if (!skip)
+                    {
+                        var requiredChecks = new List<(string Key, string? Value)>
+                        {
+                            (nameof(ItemImportDto.Name), name),
+                            ("Location", location),
+                            ("Brand", brand),
+                            ("PartNumber", partNumber),
+                            ("Supplier", supplier),
+                            ("PurchasedDate", purchased),
+                            ("Notes", notes),
+                            (nameof(ItemImportDto.Keywords), keywords),
+                            ("AvailableQuantity", quantity),
+                            ("IsPowered", powered),
+                            ("IsRentalItem", rental)
+                        };
+
+                        foreach (var (key, value) in requiredChecks)
+                        {
+                            if (map.ContainsKey(key) && value == null)
+                            {
+                                _logger.LogWarning("Skipping row {Row}: field {Field} is missing.", row, key);
+                                skip = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (skip)
                     {
                         invalidRows.Add(row);
                         continue;
@@ -383,22 +435,22 @@ namespace InventoryManagementApp.Services.Items
 
                     var item = new ItemModel
                     {
-                        ItemNumber = itemNumber,
-                        Name = GetMapped(cols, headers, map, nameof(ItemImportDto.Name)) ?? string.Empty,
-                        Location = GetMapped(cols, headers, map, "Location") ?? string.Empty,
-                        Brand = GetMapped(cols, headers, map, "Brand") ?? string.Empty,
-                        PartNumber = GetMapped(cols, headers, map, "PartNumber") ?? string.Empty,
-                        Supplier = GetMapped(cols, headers, map, "Supplier") ?? string.Empty,
-                        PurchasedDate = TryParseDate(GetMapped(cols, headers, map, "PurchasedDate")),
-                        Notes = GetMapped(cols, headers, map, "Notes") ?? string.Empty,
-                        Keywords = GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords)) ?? string.Empty,
-                        QuantityOnHand = TryParseInt(GetMapped(cols, headers, map, "AvailableQuantity")),
-                        IsPowered = TryParseBool(GetMapped(cols, headers, map, "IsPowered")),
-                        IsRentalItem = TryParseBool(GetMapped(cols, headers, map, "IsRentalItem"))
+                        ItemNumber = itemNumber!,
+                        Name = name ?? string.Empty,
+                        Location = location ?? string.Empty,
+                        Brand = brand ?? string.Empty,
+                        PartNumber = partNumber ?? string.Empty,
+                        Supplier = supplier ?? string.Empty,
+                        PurchasedDate = TryParseDate(purchased),
+                        Notes = notes ?? string.Empty,
+                        Keywords = keywords ?? string.Empty,
+                        QuantityOnHand = TryParseInt(quantity),
+                        IsPowered = TryParseBool(powered),
+                        IsRentalItem = TryParseBool(rental)
                     };
 
                     await _repository.InsertAsync(item, cancellationToken);
-                    existingNumbers.Add(itemNumber);
+                    existingNumbers.Add(itemNumber!);
                 }
 
                 return invalidRows;
@@ -407,14 +459,6 @@ namespace InventoryManagementApp.Services.Items
             {
                 _logger.LogError(ex, "Failed to import items from CSV");
                 throw;
-            }
-
-            static string? GetMapped(string[] row, string[] headers, IDictionary<string, string> map, string key)
-            {
-                if (!map.TryGetValue(key, out var column))
-                    return null;
-                var index = Array.FindIndex(headers, h => string.Equals(h, column, StringComparison.OrdinalIgnoreCase));
-                return index >= 0 && index < row.Length ? row[index].Trim() : null;
             }
 
             static int TryParseInt(string? input) => int.TryParse(input, out var result) ? result : 0;
