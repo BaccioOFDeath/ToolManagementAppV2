@@ -11,8 +11,8 @@ namespace InventoryManagementApp.Utilities.Converters
 {
     public class NullToDefaultImageConverter : IValueConverter
     {
-        private static BitmapImage _defaultItem;
-        private static BitmapImage _defaultLogo;
+        private static BitmapImage? _defaultItem;
+        private static BitmapImage? _defaultLogo;
         private const int MaxCacheEntries = 100;
         private static readonly MemoryCache _imageCache = new(new MemoryCacheOptions { SizeLimit = MaxCacheEntries });
         private static readonly ConcurrentDictionary<string, byte> _invalidPaths =
@@ -91,14 +91,12 @@ namespace InventoryManagementApp.Utilities.Converters
             switch (type)
             {
                 case "item":
-                    if (_defaultItem == null)
-                        _defaultItem = LoadFromResource("DefaultItemImage.png");
-                    return _defaultItem;
+                    _defaultItem ??= LoadFromResource("DefaultItemImage.png");
+                    return _defaultItem ?? new BitmapImage();
 
                 case "logo":
-                    if (_defaultLogo == null)
-                        _defaultLogo = LoadFromResource("DefaultLogo.png");
-                    return _defaultLogo;
+                    _defaultLogo ??= LoadFromResource("DefaultLogo.png");
+                    return _defaultLogo ?? new BitmapImage();
 
                 default:
                     return new BitmapImage();
