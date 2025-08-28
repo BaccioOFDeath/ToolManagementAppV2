@@ -394,13 +394,11 @@ namespace InventoryManagementApp.ViewModels
                     try
                     {
                         await _userService.UpdateUserAsync(clone);
-                        var nameChanged = !string.Equals(user.UserName, clone.UserName, StringComparison.Ordinal);
                         var idx = Users.IndexOf(user);
                         if (idx >= 0) Users[idx] = clone;
                         var idxAll = _allUsers.IndexOf(user);
                         if (idxAll >= 0) _allUsers[idxAll] = clone;
-                        if (nameChanged)
-                            AssignInitialsBrushes(_allUsers);
+                        AssignInitialsBrushes(_allUsers);
                         if (ReferenceEquals(SelectedUser, user)) SelectedUser = clone;
                         if (_userContext?.CurrentUser?.UserID == clone.UserID)
                             _userContext.CurrentUser = clone;
