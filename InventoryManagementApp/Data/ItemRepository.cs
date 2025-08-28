@@ -16,9 +16,9 @@ public sealed class ItemRepository : IItemRepository
     public ItemRepository(SqliteConnectionFactory factory)
         => _factory = factory;
 
-    public async IAsyncEnumerable<Item> GetPageAsync(ItemFilter filter, ItemPage page, [EnumeratorCancellation] CancellationToken ct)
+    public async IAsyncEnumerable<Item> GetPageAsync(ItemFilter filter, ItemPage page, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        ct.ThrowIfCancellationRequested();
+        cancellationToken.ThrowIfCancellationRequested();
         var sql = "SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, CheckedInBy, CheckedInTime, IsPowered, UpdatedAt FROM Items";
         var (whereClause, parameters) = BuildFilter(filter);
         sql += whereClause;
@@ -35,10 +35,10 @@ public sealed class ItemRepository : IItemRepository
         parameters.Add("Take", page.Size);
         parameters.Add("Skip", (page.Number - 1) * page.Size);
         await using var conn = (DbConnection)_factory.Create();
-        var command = new CommandDefinition(sql, parameters, flags: CommandFlags.None, cancellationToken: ct);
+        var command = new CommandDefinition(sql, parameters, flags: CommandFlags.None, cancellationToken: cancellationToken);
         await using var reader = await conn.ExecuteReaderAsync(command).ConfigureAwait(false);
         var parser = reader.GetRowParser<Item>();
-        while (await reader.ReadAsync(ct).ConfigureAwait(false))
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
         {
             yield return parser(reader);
         }

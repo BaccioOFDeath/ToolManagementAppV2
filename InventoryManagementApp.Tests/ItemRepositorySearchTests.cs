@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using Dapper;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Models.Domain;
@@ -58,7 +59,8 @@ public class ItemRepositorySearchTests
         await SeedAsync(factory);
         var repo = new ItemRepository(factory);
         var result = new List<ItemModel>();
-        await foreach (var item in repo.GetPageAsync(new ItemFilter("abc"), new ItemPage(1, 10), CancellationToken.None))
+        await foreach (var item in repo.GetPageAsync(new ItemFilter("abc"), new ItemPage(1, 10), CancellationToken.None)
+            .WithCancellation(CancellationToken.None))
             result.Add(item);
         Assert.Single(result);
         Assert.Equal("ABC123", result[0].ItemNumber);
@@ -71,7 +73,8 @@ public class ItemRepositorySearchTests
         await SeedAsync(factory);
         var repo = new ItemRepository(factory);
         var result = new List<ItemModel>();
-        await foreach (var item in repo.GetPageAsync(new ItemFilter("saw"), new ItemPage(1, 10), CancellationToken.None))
+        await foreach (var item in repo.GetPageAsync(new ItemFilter("saw"), new ItemPage(1, 10), CancellationToken.None)
+            .WithCancellation(CancellationToken.None))
             result.Add(item);
         Assert.Single(result);
         Assert.Equal("Hand Saw", result[0].Name);
@@ -84,7 +87,8 @@ public class ItemRepositorySearchTests
         await SeedAsync(factory);
         var repo = new ItemRepository(factory);
         var result = new List<ItemModel>();
-        await foreach (var item in repo.GetPageAsync(new ItemFilter("cafe"), new ItemPage(1, 10), CancellationToken.None))
+        await foreach (var item in repo.GetPageAsync(new ItemFilter("cafe"), new ItemPage(1, 10), CancellationToken.None)
+            .WithCancellation(CancellationToken.None))
             result.Add(item);
         Assert.Contains(result, i => i.Name == "Café Table");
     }
@@ -96,7 +100,8 @@ public class ItemRepositorySearchTests
         await SeedAsync(factory);
         var repo = new ItemRepository(factory);
         var result = new List<ItemModel>();
-        await foreach (var item in repo.GetPageAsync(new ItemFilter("cafe"), new ItemPage(1, 10), CancellationToken.None))
+        await foreach (var item in repo.GetPageAsync(new ItemFilter("cafe"), new ItemPage(1, 10), CancellationToken.None)
+            .WithCancellation(CancellationToken.None))
             result.Add(item);
         Assert.Contains(result, i => i.ItemNumber == "CAFÉ1");
     }
@@ -108,7 +113,8 @@ public class ItemRepositorySearchTests
         await SeedAsync(factory);
         var repo = new ItemRepository(factory);
         var result = new List<ItemModel>();
-        await foreach (var item in repo.GetPageAsync(new ItemFilter("SHARP"), new ItemPage(1, 10), CancellationToken.None))
+        await foreach (var item in repo.GetPageAsync(new ItemFilter("SHARP"), new ItemPage(1, 10), CancellationToken.None)
+            .WithCancellation(CancellationToken.None))
             result.Add(item);
         Assert.Single(result);
         Assert.Equal("Hand Saw", result[0].Name);
@@ -121,7 +127,8 @@ public class ItemRepositorySearchTests
         await SeedAsync(factory);
         var repo = new ItemRepository(factory);
         var result = new List<ItemModel>();
-        await foreach (var item in repo.GetPageAsync(new ItemFilter("ITEM"), new ItemPage(1, 10), CancellationToken.None))
+        await foreach (var item in repo.GetPageAsync(new ItemFilter("ITEM"), new ItemPage(1, 10), CancellationToken.None)
+            .WithCancellation(CancellationToken.None))
             result.Add(item);
         Assert.Single(result);
         Assert.Equal("Hand Saw", result[0].Name);
@@ -134,7 +141,8 @@ public class ItemRepositorySearchTests
         await SeedAsync(factory);
         var repo = new ItemRepository(factory);
         var result = new List<ItemModel>();
-        await foreach (var item in repo.GetPageAsync(new ItemFilter(null, IsRentalItem: true), new ItemPage(1, 10), CancellationToken.None))
+        await foreach (var item in repo.GetPageAsync(new ItemFilter(null, IsRentalItem: true), new ItemPage(1, 10), CancellationToken.None)
+            .WithCancellation(CancellationToken.None))
             result.Add(item);
         Assert.Single(result);
         Assert.True(result[0].IsRentalItem);
@@ -148,7 +156,8 @@ public class ItemRepositorySearchTests
         await SeedAsync(factory);
         var repo = new ItemRepository(factory);
         var result = new List<ItemModel>();
-        await foreach (var item in repo.GetPageAsync(new ItemFilter(null, IsRentalItem: false), new ItemPage(1, 10), CancellationToken.None))
+        await foreach (var item in repo.GetPageAsync(new ItemFilter(null, IsRentalItem: false), new ItemPage(1, 10), CancellationToken.None)
+            .WithCancellation(CancellationToken.None))
             result.Add(item);
         Assert.Single(result);
         Assert.False(result[0].IsRentalItem);
@@ -162,10 +171,12 @@ public class ItemRepositorySearchTests
         await SeedAsync(factory);
         var repo = new ItemRepository(factory);
         var first = new List<ItemModel>();
-        await foreach (var item in repo.GetPageAsync(new ItemFilter("red drill"), new ItemPage(1, 10), CancellationToken.None))
+        await foreach (var item in repo.GetPageAsync(new ItemFilter("red drill"), new ItemPage(1, 10), CancellationToken.None)
+            .WithCancellation(CancellationToken.None))
             first.Add(item);
         var second = new List<ItemModel>();
-        await foreach (var item in repo.GetPageAsync(new ItemFilter("drill red"), new ItemPage(1, 10), CancellationToken.None))
+        await foreach (var item in repo.GetPageAsync(new ItemFilter("drill red"), new ItemPage(1, 10), CancellationToken.None)
+            .WithCancellation(CancellationToken.None))
             second.Add(item);
         Assert.Equal(first.Count, second.Count);
         Assert.Equal(first[0].ItemID, second[0].ItemID);

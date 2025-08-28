@@ -5,6 +5,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Utilities.IO;
@@ -143,7 +144,8 @@ namespace InventoryManagementApp.Services.Items
 
             cancellationToken.ThrowIfCancellationRequested();
             var items = new List<ItemModel>();
-            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken))
+            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken)
+                .WithCancellation(cancellationToken))
                 items.Add(item);
             var groups = new Dictionary<string, List<ItemModel>>(StringComparer.OrdinalIgnoreCase);
             foreach (var item in items)
@@ -308,11 +310,27 @@ namespace InventoryManagementApp.Services.Items
         public Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default)
             => _repository.GetByIdAsync(itemID, cancellationToken);
 
-        public IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default)
-            => _repository.GetPageAsync(new ItemFilter(null, sortField, sortDirection, isRentalItem), page, cancellationToken);
+        public async IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            await foreach (var item in _repository
+                .GetPageAsync(new ItemFilter(null, sortField, sortDirection, isRentalItem), page, cancellationToken)
+                .WithCancellation(cancellationToken)
+                .ConfigureAwait(false))
+            {
+                yield return item;
+            }
+        }
 
-        public IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default)
-            => _repository.GetPageAsync(new ItemFilter(searchText, sortField, sortDirection, isRentalItem), page, cancellationToken);
+        public async IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            await foreach (var item in _repository
+                .GetPageAsync(new ItemFilter(searchText, sortField, sortDirection, isRentalItem), page, cancellationToken)
+                .WithCancellation(cancellationToken)
+                .ConfigureAwait(false))
+            {
+                yield return item;
+            }
+        }
 
         public Task<int> CountItemsAsync(ItemFilter filter, CancellationToken ct)
             => _repository.CountAsync(filter, ct);
@@ -401,7 +419,8 @@ namespace InventoryManagementApp.Services.Items
         private async Task ExportItemsToCsvInternalAsync(string filePath, CancellationToken cancellationToken)
         {
             var items = new List<ItemModel>();
-            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken))
+            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken)
+                .WithCancellation(cancellationToken))
                 items.Add(item);
             await CsvHelperUtil.ExportItemsToCsvAsync(filePath, items);
         }

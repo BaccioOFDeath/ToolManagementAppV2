@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using Dapper;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Models.Domain;
@@ -56,7 +57,8 @@ public class ItemRepositoryPaginationTests
         var repo = new ItemRepository(factory);
         var page = new ItemPage(2, 2);
         var result = new List<ItemModel>();
-        await foreach (var item in repo.GetPageAsync(new ItemFilter(null), page, CancellationToken.None))
+        await foreach (var item in repo.GetPageAsync(new ItemFilter(null), page, CancellationToken.None)
+            .WithCancellation(CancellationToken.None))
             result.Add(item);
         Assert.Collection(result,
             i => Assert.Equal("Item 3", i.Name),
