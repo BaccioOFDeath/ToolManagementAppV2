@@ -286,7 +286,8 @@ namespace InventoryManagementApp.Services.Items
     
         private async Task AddItemInternalAsync(ItemModel item, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(item?.ItemNumber))
+            ArgumentNullException.ThrowIfNull(item);
+            if (string.IsNullOrWhiteSpace(item.ItemNumber))
                 item.ItemNumber = await GenerateNextItemNumberAsync(cancellationToken);
             if (await ItemExistsAsync(itemNumber: item.ItemNumber, exceptId: null, cancellationToken: cancellationToken))
                 throw new InvalidOperationException($"ItemModel {item.ItemNumber} already exists.");
