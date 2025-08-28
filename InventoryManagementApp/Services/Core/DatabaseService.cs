@@ -76,7 +76,7 @@ namespace InventoryManagementApp.Services.Core
         {
             using var conn = CreateConnection();
 
-            // Legacy migration: rename old Tools table to Items
+            // Legacy migration: rename old legacy item table to Items
             MigrateLegacyToolsTable(conn);
 
             var sql = @"
@@ -168,7 +168,7 @@ namespace InventoryManagementApp.Services.Core
 
         void MigrateLegacyToolsTable(SqliteConnection conn)
         {
-            // Legacy migration: rename old "Tools" table to "Items"
+            // Legacy migration: rename old legacy item table to "Items"
             using var check = new SqliteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='Tools';", conn);
             var legacyToolsTableExists = check.ExecuteScalar();
             if (legacyToolsTableExists != null)
