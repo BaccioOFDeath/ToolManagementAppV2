@@ -113,7 +113,7 @@ namespace InventoryManagementApp.ViewModels
                 new SortOption(SortField.UpdatedAt, SortDirection.Ascending, "Updated Asc"),
                 new SortOption(SortField.UpdatedAt, SortDirection.Descending, "Updated Desc")
             });
-            selectedSortOption = SortOptions[0];
+            SelectedSortOption = SortOptions[0];
             VisibleFields = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => true);
             _memoryBudget.SteadyExceeded += OnSteadyExceeded;
             _memoryBudget.PeakExceeded += OnPeakExceeded;
@@ -133,13 +133,13 @@ namespace InventoryManagementApp.ViewModels
                 var psSetting = await _settingsService.GetSettingAsync("PageSize", ct).ConfigureAwait(false);
                 if (int.TryParse(psSetting, out var ps) && ps > 0)
                 {
-                    pageSize = ps;
+                    PageSize = ps;
                     Items.PageSize = ps;
                 }
 
                 var filterSetting = await _settingsService.GetSettingAsync("LastFilter", ct).ConfigureAwait(false);
                 if (!string.IsNullOrEmpty(filterSetting))
-                    filter = filterSetting;
+                    Filter = filterSetting;
 
                 var sortSetting = await _settingsService.GetSettingAsync("LastSort", ct).ConfigureAwait(false);
                 if (!string.IsNullOrEmpty(sortSetting))
@@ -149,7 +149,7 @@ namespace InventoryManagementApp.ViewModels
                     {
                         var opt = SortOptions.FirstOrDefault(o => o.Field == sf && o.Direction == sd);
                         if (opt != default)
-                            selectedSortOption = opt;
+                            SelectedSortOption = opt;
                     }
                 }
 
