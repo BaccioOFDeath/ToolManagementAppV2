@@ -32,7 +32,7 @@ namespace InventoryManagementApp.Services.Core
             return cmd.ExecuteNonQuery();
         }
 
-        public static object ExecuteScalar(string connStr, string sql, SqliteParameter[]? parameters = null)
+        public static object? ExecuteScalar(string connStr, string sql, SqliteParameter[]? parameters = null)
         {
             using var conn = new SqliteConnection(connStr);
             conn.Open();
@@ -41,7 +41,7 @@ namespace InventoryManagementApp.Services.Core
             return cmd.ExecuteScalar();
         }
 
-        public static object ExecuteScalar(SqliteConnection conn, string sql, SqliteParameter[]? parameters = null)
+        public static object? ExecuteScalar(SqliteConnection conn, string sql, SqliteParameter[]? parameters = null)
         {
             using var cmd = new SqliteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
@@ -122,7 +122,7 @@ namespace InventoryManagementApp.Services.Core
             return await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        public static async Task<object> ExecuteScalarAsync(string connStr, string sql, SqliteParameter[]? parameters = null, CancellationToken cancellationToken = default)
+        public static async Task<object?> ExecuteScalarAsync(string connStr, string sql, SqliteParameter[]? parameters = null, CancellationToken cancellationToken = default)
         {
             using var conn = new SqliteConnection(connStr);
             await conn.OpenAsync(cancellationToken);
@@ -131,7 +131,7 @@ namespace InventoryManagementApp.Services.Core
             return await cmd.ExecuteScalarAsync(cancellationToken);
         }
 
-        public static async Task<object> ExecuteScalarAsync(SqliteConnection conn, string sql, SqliteParameter[]? parameters = null, CancellationToken cancellationToken = default)
+        public static async Task<object?> ExecuteScalarAsync(SqliteConnection conn, string sql, SqliteParameter[]? parameters = null, CancellationToken cancellationToken = default)
         {
             using var cmd = new SqliteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);

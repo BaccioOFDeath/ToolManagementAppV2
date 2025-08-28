@@ -278,7 +278,7 @@ namespace InventoryManagementApp.Services.Items
             }
 
             using var conn = _dbService.CreateConnection();
-            var count = Convert.ToInt32(await SqliteHelper.ExecuteScalarAsync(conn, sql, parameters.ToArray(), cancellationToken));
+            var count = Convert.ToInt32(await SqliteHelper.ExecuteScalarAsync(conn, sql, parameters.ToArray(), cancellationToken) ?? 0);
             return count > 0;
         }
     
