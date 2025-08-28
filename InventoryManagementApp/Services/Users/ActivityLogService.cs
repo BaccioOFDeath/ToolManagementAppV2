@@ -141,8 +141,8 @@ namespace InventoryManagementApp.Services.Users
             var log = new ActivityLog
             {
                 LogID = Convert.ToInt32(r["LogID"]),
-                UserName = r["UserName"].ToString(),
-                Action = r["Action"].ToString(),
+                UserName = r["UserName"]?.ToString() ?? string.Empty,
+                Action   = r["Action"]?.ToString() ?? string.Empty,
                 Timestamp = timestamp
             };
 
