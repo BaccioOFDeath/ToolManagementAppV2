@@ -15,15 +15,15 @@ namespace InventoryManagementApp.Utilities.Converters
         public DateTimeMinToEmptyStringConverter(ILogger<DateTimeMinToEmptyStringConverter>? logger = null)
             => _logger = logger ?? NullLogger<DateTimeMinToEmptyStringConverter>.Instance;
 
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             try
             {
                 if (value is DateTime ndt)
-                    return ndt == DateTime.MinValue ? null : ndt;
+                    return ndt == DateTime.MinValue ? string.Empty : ndt;
 
                 if (value == null)
-                    return null;
+                    return string.Empty;
             }
             catch (Exception ex)
             {
@@ -33,7 +33,7 @@ namespace InventoryManagementApp.Utilities.Converters
             return System.Windows.Data.Binding.DoNothing;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             try
             {
