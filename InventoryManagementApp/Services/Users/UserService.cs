@@ -108,7 +108,7 @@ namespace InventoryManagementApp.Services.Users
             using var conn = _dbService.CreateConnection();
             const string sql = "SELECT COUNT(*) FROM Users";
             var result = await SqliteHelper.ExecuteScalarAsync(conn, sql, cancellationToken: cancellationToken);
-            return Convert.ToInt32(result);
+            return Convert.ToInt32(result ?? 0);
         }
 
         public async Task<User?> GetUserByIDAsync(int userID, CancellationToken cancellationToken = default)
@@ -349,7 +349,7 @@ namespace InventoryManagementApp.Services.Users
             {
                 const string sql = "SELECT COUNT(*) FROM Users WHERE IsAdmin = 1";
                 using var conn = _dbService.CreateConnection();
-                var adminCount = Convert.ToInt32(await SqliteHelper.ExecuteScalarAsync(conn, sql));
+                var adminCount = Convert.ToInt32(await SqliteHelper.ExecuteScalarAsync(conn, sql) ?? 0);
                 if (adminCount <= 1) return false;
             }
             await DeleteUserInternalAsync(userID);

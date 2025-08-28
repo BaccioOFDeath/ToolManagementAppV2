@@ -249,7 +249,7 @@ namespace InventoryManagementApp.Services.Rentals
         {
             using var conn = _dbService.CreateConnection();
             const string sql = "SELECT COUNT(*) FROM Rentals WHERE Status='Rented'";
-            return Convert.ToInt32(await SqliteHelper.ExecuteScalarAsync(conn, sql).ConfigureAwait(false));
+            return Convert.ToInt32(await SqliteHelper.ExecuteScalarAsync(conn, sql).ConfigureAwait(false) ?? 0);
         }
 
         public async Task<List<Rental>> GetActiveRentalsAsync()

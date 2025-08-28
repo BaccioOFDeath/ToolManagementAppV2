@@ -167,7 +167,7 @@ namespace InventoryManagementApp.Services.Customers
             try
             {
                 var result = await SqliteHelper.ExecuteScalarAsync(conn, sql, null, cancellationToken);
-                return Convert.ToInt32(result);
+                return Convert.ToInt32(result ?? 0);
             }
             catch (Exception ex)
             {
@@ -287,7 +287,7 @@ namespace InventoryManagementApp.Services.Customers
                     new SqliteParameter("@Contact", contact),
                     new SqliteParameter("@Phone", phone ?? string.Empty),
                     new SqliteParameter("@Mobile", mobile ?? string.Empty)
-                }, cancellationToken));
+                }, cancellationToken) ?? 0);
                 return count > 0;
             }
             catch (Exception ex)
