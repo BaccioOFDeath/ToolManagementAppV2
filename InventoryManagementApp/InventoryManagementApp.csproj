@@ -51,7 +51,6 @@
   <ItemGroup>
     <None Remove="Resources\DefaultLogo.png" />
     <None Remove="Resources\DefaultItemImage.png" />
-    <None Remove="Resources\DefaultUserPhoto.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -89,9 +88,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\DefaultItemImage.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\DefaultUserPhoto.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\Colors.xaml">

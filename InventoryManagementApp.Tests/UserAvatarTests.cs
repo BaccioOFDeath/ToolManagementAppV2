@@ -56,7 +56,7 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void ShowsDefaultImageWhenNameBlank()
+        public void LeavesAvatarBlankWhenNameAndPhotoMissing()
         {
             Exception? threadEx = null;
             var thread = new Thread(() =>
@@ -80,7 +80,7 @@ namespace InventoryManagementApp.Tests
                     var textBlock = FindVisualChild<TextBlock>(avatar) ?? throw new InvalidOperationException("TextBlock not found");
                     var image = FindVisualChild<Image>(avatar) ?? throw new InvalidOperationException("Image not found");
                     Assert.Equal(Visibility.Collapsed, textBlock.Visibility);
-                    Assert.Equal(Visibility.Visible, image.Visibility);
+                    Assert.Equal(Visibility.Collapsed, image.Visibility);
                 }
                 catch (Exception ex)
                 {
