@@ -97,8 +97,8 @@ namespace InventoryManagementApp.Tests
                 Customers.RemoveAll(c => c.CustomerID == customerID);
                 return Task.CompletedTask;
             }
-            public Task<CustomerModel> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default)
-                => Task.FromResult(Customers.First(c => c.CustomerID == customerID));
+            public Task<CustomerModel?> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default)
+                => Task.FromResult<CustomerModel?>(Customers.First(c => c.CustomerID == customerID));
             public Task<List<CustomerModel>> GetAllCustomersAsync(CancellationToken cancellationToken = default)
                 => Task.FromResult(Customers.ToList());
             public Task<int> CountCustomersAsync(CancellationToken cancellationToken = default)

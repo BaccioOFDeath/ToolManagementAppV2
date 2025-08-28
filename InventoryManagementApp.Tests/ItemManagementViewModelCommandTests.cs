@@ -91,7 +91,7 @@ namespace InventoryManagementApp.Tests
             public Task AddCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task UpdateCustomerAsync(Customer customer, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task DeleteCustomerAsync(int customerID, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task<Customer> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default) => Task.FromResult(new Customer());
+            public Task<Customer?> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default) => Task.FromResult<Customer?>(new Customer());
             public Task<List<Customer>> GetAllCustomersAsync(CancellationToken cancellationToken = default)
             {
                 GetAllCalled = true;

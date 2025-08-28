@@ -40,7 +40,7 @@ namespace InventoryManagementApp.Tests
             }
             public Task UpdateCustomerAsync(CustomerModel customer, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task DeleteCustomerAsync(int customerID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<CustomerModel> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<CustomerModel?> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<List<CustomerModel>> GetAllCustomersAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<int> CountCustomersAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<List<CustomerModel>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default) => throw new NotImplementedException();
