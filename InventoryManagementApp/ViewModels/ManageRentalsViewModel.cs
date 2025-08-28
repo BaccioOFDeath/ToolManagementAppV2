@@ -316,10 +316,11 @@ namespace InventoryManagementApp.ViewModels
         {
             if (SelectedRental == null)
                 return;
+
+            var rentalToDelete = SelectedRental;
             try
             {
                 IsLoading = true;
-                var rentalToDelete = SelectedRental;
                 await _rentalService.DeleteRentalAsync(rentalToDelete.RentalID);
                 _allRentals.Remove(rentalToDelete);
                 Rentals.Remove(rentalToDelete);
@@ -331,7 +332,7 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to delete rental {RentalID}", SelectedRental.RentalID);
+                _logger.LogError(ex, "Failed to delete rental {RentalID}", rentalToDelete?.RentalID);
                 await _dialogService.ShowInfoAsync($"Failed to delete rental: {ex.Message}", "Error");
             }
             finally
