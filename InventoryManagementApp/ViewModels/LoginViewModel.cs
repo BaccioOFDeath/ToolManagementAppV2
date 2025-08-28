@@ -249,6 +249,11 @@ namespace InventoryManagementApp.ViewModels
 
             var dbUser = await _userService.GetUserByIDAsync(user.UserID, cancellationToken);
             if (dbUser == null) return;
+
+            dbUser.InitialsBrush = user.InitialsBrush;
+            if (dbUser.InitialsBrush == null)
+                AssignInitialsBrushes(new[] { dbUser });
+
             user = dbUser;
 
             if (user.IsAdmin && string.IsNullOrWhiteSpace(user.PasswordHash))
@@ -293,8 +298,8 @@ namespace InventoryManagementApp.ViewModels
                 return;
             }
 
-            User? credential = null;
-            while (credential == null)
+            bool authenticated = false;
+            while (!authenticated)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -329,17 +334,20 @@ namespace InventoryManagementApp.ViewModels
                         await _dialogService.ShowInfoAsync("User is inactive. Please contact an administrator.", "Login Failed");
                         return;
                     case AuthenticationResult.Success:
-                        credential = authResult.User;
+                        if (authResult.User != null)
+                        {
+                            authResult.User.InitialsBrush = user.InitialsBrush;
+                            if (authResult.User.InitialsBrush == null)
+                                AssignInitialsBrushes(new[] { authResult.User });
+                            user = authResult.User;
+                        }
+                        authenticated = true;
                         break;
                 }
             }
 
-            credential.InitialsBrush = user.InitialsBrush
-                ?? Application.Current?.TryFindResource("ForegroundBrush") as MediaBrush
-                ?? MediaBrushes.Transparent;
-
-            _userContext.CurrentUser = credential;
-            if (credential.PasswordExpired && !await PromptChangePasswordAsync(credential))
+            _userContext.CurrentUser = user;
+            if (user.PasswordExpired && !await PromptChangePasswordAsync(user))
             {
                 _userContext.CurrentUser = null;
                 return;
