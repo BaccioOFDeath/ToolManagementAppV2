@@ -17,7 +17,9 @@ namespace InventoryManagementApp.Utilities.IO
             using var parser = new TextFieldParser(filePath);
             parser.SetDelimiters(",");
             parser.HasFieldsEnclosedInQuotes = true;
-            return parser.EndOfData ? Array.Empty<string>() : parser.ReadFields().Select(h => h.Trim());
+            if (parser.EndOfData) return Array.Empty<string>();
+            var headers = parser.ReadFields() ?? Array.Empty<string>();
+            return headers.Select(h => h.Trim());
         }
 
         public static async Task<IEnumerable<string>> ReadHeadersAsync(string filePath)
@@ -27,7 +29,9 @@ namespace InventoryManagementApp.Utilities.IO
             parser.HasFieldsEnclosedInQuotes = true;
             return await Task.Run(() =>
             {
-                return parser.EndOfData ? Array.Empty<string>() : parser.ReadFields().Select(h => h.Trim());
+                if (parser.EndOfData) return Array.Empty<string>();
+                var headers = parser.ReadFields() ?? Array.Empty<string>();
+                return headers.Select(h => h.Trim());
             }).ConfigureAwait(false);
         }
 
@@ -42,13 +46,14 @@ namespace InventoryManagementApp.Utilities.IO
             parser.HasFieldsEnclosedInQuotes = true;
 
             if (parser.EndOfData) return list;
-            var headers = parser.ReadFields();
+            var headers = parser.ReadFields() ?? Array.Empty<string>();
 
             var row = 1; // header already read
             while (!parser.EndOfData)
             {
                 row++;
                 var cols = parser.ReadFields();
+                if (cols == null) continue;
                 var itemNumber = GetMapped(cols, headers, map, "ItemNumber");
                 if (string.IsNullOrWhiteSpace(itemNumber))
                 {
@@ -59,14 +64,14 @@ namespace InventoryManagementApp.Utilities.IO
                 list.Add(new ItemModel
                 {
                     ItemNumber = itemNumber,
-                    Name = GetMapped(cols, headers, map, nameof(ItemImportDto.Name)),
-                    Location = GetMapped(cols, headers, map, "Location"),
-                    Brand = GetMapped(cols, headers, map, "Brand"),
-                    PartNumber = GetMapped(cols, headers, map, "PartNumber"),
-                    Supplier = GetMapped(cols, headers, map, "Supplier"),
+                    Name = GetMapped(cols, headers, map, nameof(ItemImportDto.Name)) ?? string.Empty,
+                    Location = GetMapped(cols, headers, map, "Location") ?? string.Empty,
+                    Brand = GetMapped(cols, headers, map, "Brand") ?? string.Empty,
+                    PartNumber = GetMapped(cols, headers, map, "PartNumber") ?? string.Empty,
+                    Supplier = GetMapped(cols, headers, map, "Supplier") ?? string.Empty,
                     PurchasedDate = TryParseDate(GetMapped(cols, headers, map, "PurchasedDate")),
-                    Notes = GetMapped(cols, headers, map, "Notes"),
-                    Keywords = GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords)),
+                    Notes = GetMapped(cols, headers, map, "Notes") ?? string.Empty,
+                    Keywords = GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords)) ?? string.Empty,
                     QuantityOnHand = TryParseInt(GetMapped(cols, headers, map, "AvailableQuantity")),
                     IsPowered = TryParseBool(GetMapped(cols, headers, map, "IsPowered")),
                     IsRentalItem = TryParseBool(GetMapped(cols, headers, map, nameof(ItemImportDto.IsRentalItem)))
@@ -89,13 +94,14 @@ namespace InventoryManagementApp.Utilities.IO
                 parser.HasFieldsEnclosedInQuotes = true;
 
                 if (parser.EndOfData) return (list, invalidRows);
-                var headers = parser.ReadFields();
+                var headers = parser.ReadFields() ?? Array.Empty<string>();
 
                 var row = 1; // header already read
                 while (!parser.EndOfData)
                 {
                     row++;
                     var cols = parser.ReadFields();
+                    if (cols == null) continue;
                     var itemNumber = GetMapped(cols, headers, map, "ItemNumber");
                     if (string.IsNullOrWhiteSpace(itemNumber))
                     {
@@ -106,18 +112,18 @@ namespace InventoryManagementApp.Utilities.IO
                     list.Add(new ItemModel
                     {
                         ItemNumber = itemNumber,
-                        Name = GetMapped(cols, headers, map, nameof(ItemImportDto.Name)),
-                        Location = GetMapped(cols, headers, map, "Location"),
-                        Brand = GetMapped(cols, headers, map, "Brand"),
-                        PartNumber = GetMapped(cols, headers, map, "PartNumber"),
-                        Supplier = GetMapped(cols, headers, map, "Supplier"),
+                        Name = GetMapped(cols, headers, map, nameof(ItemImportDto.Name)) ?? string.Empty,
+                        Location = GetMapped(cols, headers, map, "Location") ?? string.Empty,
+                        Brand = GetMapped(cols, headers, map, "Brand") ?? string.Empty,
+                        PartNumber = GetMapped(cols, headers, map, "PartNumber") ?? string.Empty,
+                        Supplier = GetMapped(cols, headers, map, "Supplier") ?? string.Empty,
                         PurchasedDate = TryParseDate(GetMapped(cols, headers, map, "PurchasedDate")),
-                        Notes = GetMapped(cols, headers, map, "Notes"),
-                    Keywords = GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords)),
-                    QuantityOnHand = TryParseInt(GetMapped(cols, headers, map, "AvailableQuantity")),
-                    IsPowered = TryParseBool(GetMapped(cols, headers, map, "IsPowered")),
-                    IsRentalItem = TryParseBool(GetMapped(cols, headers, map, nameof(ItemImportDto.IsRentalItem)))
-                });
+                        Notes = GetMapped(cols, headers, map, "Notes") ?? string.Empty,
+                        Keywords = GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords)) ?? string.Empty,
+                        QuantityOnHand = TryParseInt(GetMapped(cols, headers, map, "AvailableQuantity")),
+                        IsPowered = TryParseBool(GetMapped(cols, headers, map, "IsPowered")),
+                        IsRentalItem = TryParseBool(GetMapped(cols, headers, map, nameof(ItemImportDto.IsRentalItem)))
+                    });
                 }
 
                 return (list, invalidRows);
@@ -176,19 +182,20 @@ namespace InventoryManagementApp.Utilities.IO
             parser.HasFieldsEnclosedInQuotes = true;
 
             if (parser.EndOfData) return list;
-            var headers = parser.ReadFields();
+            var headers = parser.ReadFields() ?? Array.Empty<string>();
 
             while (!parser.EndOfData)
             {
                 var cols = parser.ReadFields();
+                if (cols == null) continue;
                 list.Add(new CustomerModel
                 {
-                    Company = GetMapped(cols, headers, map, "Company"),
-                    Email = GetMapped(cols, headers, map, "Email"),
-                    Contact = GetMapped(cols, headers, map, "Contact"),
-                    Phone = GetMapped(cols, headers, map, "Phone"),
-                    Mobile = GetMapped(cols, headers, map, "Mobile"),
-                    Address = GetMapped(cols, headers, map, "Address")
+                    Company = GetMapped(cols, headers, map, "Company") ?? string.Empty,
+                    Email = GetMapped(cols, headers, map, "Email") ?? string.Empty,
+                    Contact = GetMapped(cols, headers, map, "Contact") ?? string.Empty,
+                    Phone = GetMapped(cols, headers, map, "Phone") ?? string.Empty,
+                    Mobile = GetMapped(cols, headers, map, "Mobile") ?? string.Empty,
+                    Address = GetMapped(cols, headers, map, "Address") ?? string.Empty
                 });
             }
 
