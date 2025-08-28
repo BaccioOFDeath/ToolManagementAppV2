@@ -102,51 +102,51 @@ namespace InventoryManagementApp.Services.Core
         public static async Task<int> ExecuteNonQueryAsync(string connStr, string sql, SqliteParameter[]? parameters = null, CancellationToken cancellationToken = default)
         {
             using var conn = new SqliteConnection(connStr);
-            await conn.OpenAsync(cancellationToken);
+            await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
             using var cmd = new SqliteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
-            return await cmd.ExecuteNonQueryAsync(cancellationToken);
+            return await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<int> ExecuteNonQueryAsync(SqliteConnection conn, SqliteTransaction tx, string sql, SqliteParameter[]? parameters = null, CancellationToken cancellationToken = default)
         {
             using var cmd = new SqliteCommand(sql, conn, tx);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
-            return await cmd.ExecuteNonQueryAsync(cancellationToken);
+            return await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<int> ExecuteNonQueryAsync(SqliteConnection conn, string sql, SqliteParameter[]? parameters = null, CancellationToken cancellationToken = default)
         {
             using var cmd = new SqliteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
-            return await cmd.ExecuteNonQueryAsync(cancellationToken);
+            return await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<object?> ExecuteScalarAsync(string connStr, string sql, SqliteParameter[]? parameters = null, CancellationToken cancellationToken = default)
         {
             using var conn = new SqliteConnection(connStr);
-            await conn.OpenAsync(cancellationToken);
+            await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
             using var cmd = new SqliteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
-            return await cmd.ExecuteScalarAsync(cancellationToken);
+            return await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<object?> ExecuteScalarAsync(SqliteConnection conn, string sql, SqliteParameter[]? parameters = null, CancellationToken cancellationToken = default)
         {
             using var cmd = new SqliteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
-            return await cmd.ExecuteScalarAsync(cancellationToken);
+            return await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<List<T>> ExecuteReaderAsync<T>(string connStr, string sql, Func<IDataRecord, T> map, SqliteParameter[]? parameters = null, CancellationToken cancellationToken = default)
         {
             var list = new List<T>();
             using var conn = new SqliteConnection(connStr);
-            await conn.OpenAsync(cancellationToken);
+            await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
             using var cmd = new SqliteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
-            using var rdr = await cmd.ExecuteReaderAsync(cancellationToken);
-            while (await rdr.ReadAsync(cancellationToken))
+            using var rdr = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await rdr.ReadAsync(cancellationToken).ConfigureAwait(false))
                 list.Add(map(rdr));
             return list;
         }
@@ -156,8 +156,8 @@ namespace InventoryManagementApp.Services.Core
             var list = new List<T>();
             using var cmd = new SqliteCommand(sql, conn);
             if (parameters != null) cmd.Parameters.AddRange(parameters);
-            using var rdr = await cmd.ExecuteReaderAsync(cancellationToken);
-            while (await rdr.ReadAsync(cancellationToken))
+            using var rdr = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await rdr.ReadAsync(cancellationToken).ConfigureAwait(false))
                 list.Add(map(rdr));
             return list;
         }
