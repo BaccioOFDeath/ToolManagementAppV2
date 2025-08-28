@@ -5,7 +5,6 @@ using System.Windows;
 using System.Windows.Media.Imaging;
 using InventoryManagementApp.Utilities.Converters;
 using InventoryManagementApp.Utilities.Helpers;
-using System.Collections.Concurrent;
 using System.Reflection;
 using System.IO;
 using Microsoft.Extensions.Caching.Memory;
@@ -53,12 +52,12 @@ namespace InventoryManagementApp.Tests
                 {
                     var converter = new NullToDefaultImageConverter();
                     var field = typeof(NullToDefaultImageConverter).GetField("_invalidPaths", BindingFlags.NonPublic | BindingFlags.Static);
-                    var cache = (ConcurrentDictionary<string, byte>)field!.GetValue(null)!;
-                    cache.Clear();
+                    var cache = (MemoryCache)field!.GetValue(null)!;
+                    cache.Compact(1.0);
                     var path = "../nonexistent.png";
                     Assert.Null(PathHelper.GetAbsolutePath(path, false));
                     converter.Convert(path, typeof(BitmapImage), "user", CultureInfo.InvariantCulture);
-                    Assert.True(cache.ContainsKey(path));
+                    Assert.True(cache.TryGetValue(path, out _));
                 }
                 catch (Exception ex)
                 {
@@ -112,6 +111,47 @@ namespace InventoryManagementApp.Tests
                 finally
                 {
                     try { Directory.Delete(tempDir, true); } catch { }
+                    Application.Current?.Shutdown();
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
+        [Fact]
+        public void Convert_InvalidPathCacheEvictsLeastRecentlyUsed()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var converter = new NullToDefaultImageConverter();
+                    var cacheField = typeof(NullToDefaultImageConverter).GetField("_invalidPaths", BindingFlags.NonPublic | BindingFlags.Static);
+                    var cache = (MemoryCache)cacheField!.GetValue(null)!;
+                    cache.Compact(1.0);
+
+                    var firstPath = "../nonexistent0.png";
+                    Assert.Null(PathHelper.GetAbsolutePath(firstPath, false));
+                    converter.Convert(firstPath, typeof(BitmapImage), "user", CultureInfo.InvariantCulture);
+
+                    for (int i = 1; i <= 100; i++)
+                    {
+                        var path = $"../nonexistent{i}.png";
+                        Assert.Null(PathHelper.GetAbsolutePath(path, false));
+                        converter.Convert(path, typeof(BitmapImage), "user", CultureInfo.InvariantCulture);
+                    }
+
+                    Assert.False(cache.TryGetValue(firstPath, out _));
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+                finally
+                {
                     Application.Current?.Shutdown();
                 }
             });

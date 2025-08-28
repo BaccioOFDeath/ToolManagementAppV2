@@ -2,7 +2,6 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
-using System.Collections.Concurrent;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -15,8 +14,7 @@ namespace InventoryManagementApp.Utilities.Converters
         private static BitmapImage? _defaultLogo;
         private const int MaxCacheEntries = 100;
         private static readonly MemoryCache _imageCache = new(new MemoryCacheOptions { SizeLimit = MaxCacheEntries });
-        private static readonly ConcurrentDictionary<string, byte> _invalidPaths =
-            new ConcurrentDictionary<string, byte>(StringComparer.OrdinalIgnoreCase);
+        private static readonly MemoryCache _invalidPaths = new(new MemoryCacheOptions { SizeLimit = MaxCacheEntries });
         private readonly ILogger<NullToDefaultImageConverter> _logger;
 
         public NullToDefaultImageConverter() : this(null) { }
@@ -43,13 +41,17 @@ namespace InventoryManagementApp.Utilities.Converters
                     }
                     else
                     {
-                        if (_invalidPaths.ContainsKey(path))
+                        if (_invalidPaths.TryGetValue(path, out _))
                             return GetDefaultImage(parameter);
 
                         absPath = Helpers.PathHelper.GetAbsolutePath(path, false);
                         if (absPath == null)
                         {
-                            _invalidPaths.TryAdd(path, 0);
+                            _invalidPaths.Set(path, (byte)0, new MemoryCacheEntryOptions
+                            {
+                                Size = 1,
+                                Priority = CacheItemPriority.Low
+                            });
                             return GetDefaultImage(parameter);
                         }
                     }
@@ -77,7 +79,11 @@ namespace InventoryManagementApp.Utilities.Converters
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to load image from {Path}", path);
-                    _invalidPaths.TryAdd(path, 0);
+                    _invalidPaths.Set(path, (byte)0, new MemoryCacheEntryOptions
+                    {
+                        Size = 1,
+                        Priority = CacheItemPriority.Low
+                    });
                     // fall-through to default
                 }
             }
