@@ -36,7 +36,7 @@ namespace InventoryManagementApp.Utilities.Converters
             {
                 try
                 {
-                    string absPath;
+                    string? absPath;
                     if (Uri.IsWellFormedUriString(path, UriKind.Absolute))
                     {
                         absPath = path;
@@ -47,14 +47,14 @@ namespace InventoryManagementApp.Utilities.Converters
                             return GetDefaultImage(parameter);
 
                         absPath = Helpers.PathHelper.GetAbsolutePath(path, false);
-                        if (string.IsNullOrEmpty(absPath))
+                        if (absPath == null)
                         {
                             _invalidPaths.TryAdd(path, 0);
                             return GetDefaultImage(parameter);
                         }
                     }
 
-                    if (_imageCache.TryGetValue(absPath, out BitmapImage cached))
+                    if (_imageCache.TryGetValue(absPath!, out BitmapImage? cached) && cached != null)
                         return cached;
 
                     var image = new BitmapImage();
@@ -122,7 +122,7 @@ namespace InventoryManagementApp.Utilities.Converters
             try
             {
                 if (value is BitmapImage bmp)
-                    return bmp.UriSource?.OriginalString;
+                    return bmp.UriSource?.OriginalString ?? string.Empty;
 
                 if (value is string path)
                     return path;
