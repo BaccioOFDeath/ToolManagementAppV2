@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Runtime.CompilerServices;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.ImportExport;
@@ -16,8 +15,8 @@ namespace InventoryManagementApp.Interfaces
         Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default);
         Task DeleteItemAsync(int itemID, CancellationToken cancellationToken = default);
         Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default);
-        IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, [EnumeratorCancellation] CancellationToken cancellationToken = default);
-        IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, [EnumeratorCancellation] CancellationToken cancellationToken = default);
+        IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default);
+        IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default);
         Task<int> CountItemsAsync(ItemFilter filter, CancellationToken ct);
         Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct);
         Task<bool> ToggleItemCheckOutStatusAsync(int itemID, CancellationToken cancellationToken = default);
