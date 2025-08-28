@@ -47,15 +47,15 @@ namespace InventoryManagementApp.ViewModels
 
         public ObservableCollection<User> Users { get; } = new();
 
-        User _selectedUser;
-        public User SelectedUser
+        User? _selectedUser;
+        public User? SelectedUser
         {
             get => _selectedUser;
             set => SetProperty(ref _selectedUser, value);
         }
 
-        BitmapImage _companyLogo;
-        public BitmapImage CompanyLogo
+        BitmapImage? _companyLogo;
+        public BitmapImage? CompanyLogo
         {
             get => _companyLogo;
             private set => SetProperty(ref _companyLogo, value);
@@ -73,7 +73,7 @@ namespace InventoryManagementApp.ViewModels
         /// <see cref="OnUserSelected"/> to perform authentication, including prompting
         /// for passwords and handling resets.
         /// </summary>
-        public IAsyncRelayCommand<User> SelectUserCommand { get; }
+        public IAsyncRelayCommand<User?> SelectUserCommand { get; }
 
         public IAsyncRelayCommand LoadUsersCommand { get; }
 
@@ -101,7 +101,7 @@ namespace InventoryManagementApp.ViewModels
             _logger = logger ?? NullLogger<LoginViewModel>.Instance;
             _serviceProvider = serviceProvider;
 
-            SelectUserCommand = new AsyncRelayCommand<User>(OnUserSelected);
+            SelectUserCommand = new AsyncRelayCommand<User?>(OnUserSelected);
 
             PromptForPasswordAsync = (u, ct) =>
             {
@@ -243,7 +243,7 @@ namespace InventoryManagementApp.ViewModels
         /// </summary>
         /// <param name="user">The account to authenticate.</param>
         /// <param name="cancellationToken">Token used to cancel the authentication loop.</param>
-        async Task OnUserSelected(User user, CancellationToken cancellationToken)
+        async Task OnUserSelected(User? user, CancellationToken cancellationToken)
         {
             if (user == null) return;
 

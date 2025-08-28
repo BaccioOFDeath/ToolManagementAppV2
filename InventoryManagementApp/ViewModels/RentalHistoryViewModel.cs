@@ -32,8 +32,8 @@ namespace InventoryManagementApp.ViewModels.Rental
             set => SetProperty(ref _searchText, value);
         }
 
-        private RentalModel _selectedEntry;
-        public RentalModel SelectedEntry
+        private RentalModel? _selectedEntry;
+        public RentalModel? SelectedEntry
         {
             get => _selectedEntry;
             set => SetProperty(ref _selectedEntry, value);

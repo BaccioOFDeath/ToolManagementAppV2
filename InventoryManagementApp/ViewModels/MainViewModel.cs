@@ -64,8 +64,8 @@ namespace InventoryManagementApp.ViewModels
         public ReportsViewModel Reports { get; }
         public SettingsViewModel Settings { get; }
 
-        private Page _currentPage;
-        public Page CurrentPage
+        private Page? _currentPage;
+        public Page? CurrentPage
         {
             get => _currentPage;
             set
