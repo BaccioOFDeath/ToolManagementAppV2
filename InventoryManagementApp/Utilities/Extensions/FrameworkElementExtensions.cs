@@ -22,7 +22,7 @@ namespace InventoryManagementApp.Utilities.Extensions
             if (element is Window window)
                 window.Closed += OnUnloaded;
             else
-                element.Unloaded += OnUnloaded;
+                element.Unloaded += OnUnloadedHandler;
         }
 
         static void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -31,7 +31,9 @@ namespace InventoryManagementApp.Utilities.Extensions
                 disposable.Dispose();
         }
 
-        static void OnUnloaded(object sender, EventArgs e)
+        static readonly RoutedEventHandler OnUnloadedHandler = OnUnloaded;
+
+        static void OnUnloaded(object? sender, EventArgs e)
         {
             if (sender is FrameworkElement fe)
             {
@@ -43,7 +45,7 @@ namespace InventoryManagementApp.Utilities.Extensions
                 if (sender is Window window)
                     window.Closed -= OnUnloaded;
                 else
-                    fe.Unloaded -= OnUnloaded;
+                    fe.Unloaded -= OnUnloadedHandler;
             }
         }
     }
