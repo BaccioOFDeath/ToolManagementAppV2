@@ -93,7 +93,7 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand SearchCommand { get; }
         public IAsyncRelayCommand NewItemCommand { get; }
         public IAsyncRelayCommand EditItemCommand { get; }
-        public IAsyncRelayCommand<IList> DeleteItemsCommand { get; }
+        public IAsyncRelayCommand<IList?> DeleteItemsCommand { get; }
         public IAsyncRelayCommand OpenRentalsCommand { get; }
         public IRelayCommand ViewDetailsCommand { get; }
         public IAsyncRelayCommand OpenRentalHistoryCommand { get; }
@@ -143,7 +143,7 @@ namespace InventoryManagementApp.ViewModels
             _searchDebounceTimer.Tick += OnSearchDebounceTimerTick;
             NewItemCommand = new AsyncRelayCommand(ct => AddItemAsync(ct));
             EditItemCommand = new AsyncRelayCommand(ct => EditItemAsync(ct), () => SelectedItem != null);
-            DeleteItemsCommand = new AsyncRelayCommand<IList>(DeleteItemsAsync);
+            DeleteItemsCommand = new AsyncRelayCommand<IList?>(DeleteItemsAsync);
             OpenRentalsCommand = new AsyncRelayCommand(ct => OpenRentalsAsync(ct), () => SelectedItem != null);
             ViewDetailsCommand = new RelayCommand(ViewDetails, () => SelectedItem != null);
             OpenRentalHistoryCommand = new AsyncRelayCommand(OpenRentalHistoryAsync, () => SelectedItem != null);
