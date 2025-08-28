@@ -38,7 +38,7 @@
                             <Style TargetType="Image">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding EditingUser.UserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True">
+                                    <DataTrigger Binding="{Binding EditingUser.UserPhotoPath, Converter={StaticResource ExistingFilePathToBoolConverter}}" Value="True">
                                         <Setter Property="Visibility" Value="Visible"/>
                                     </DataTrigger>
                                 </Style.Triggers>
@@ -50,7 +50,7 @@
                             <Style TargetType="Border">
                                 <Setter Property="Visibility" Value="Visible"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding EditingUser.UserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True">
+                                    <DataTrigger Binding="{Binding EditingUser.UserPhotoPath, Converter={StaticResource ExistingFilePathToBoolConverter}}" Value="True">
                                         <Setter Property="Visibility" Value="Collapsed"/>
                                     </DataTrigger>
                                 </Style.Triggers>
@@ -63,7 +63,7 @@
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Visibility" Value="Visible"/>
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding EditingUser.UserPhotoPath, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True">
+                                        <DataTrigger Binding="{Binding EditingUser.UserPhotoPath, Converter={StaticResource ExistingFilePathToBoolConverter}}" Value="True">
                                             <Setter Property="Visibility" Value="Collapsed"/>
                                         </DataTrigger>
                                     </Style.Triggers>

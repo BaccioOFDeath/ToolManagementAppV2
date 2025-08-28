@@ -9,7 +9,7 @@
                 <Style TargetType="Image">
                     <Setter Property="Visibility" Value="Visible"/>
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding UserPhotoPath, ElementName=Root, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="False">
+                        <DataTrigger Binding="{Binding UserPhotoPath, ElementName=Root, Converter={StaticResource ExistingFilePathToBoolConverter}}" Value="False">
                             <Setter Property="Visibility" Value="Collapsed"/>
                         </DataTrigger>
                     </Style.Triggers>
@@ -23,8 +23,8 @@
                     <Style.Triggers>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding UserPhotoPath, ElementName=Root, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="False"/>
-                                <Condition Binding="{Binding UserName, ElementName=Root, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True"/>
+                                <Condition Binding="{Binding UserPhotoPath, ElementName=Root, Converter={StaticResource ExistingFilePathToBoolConverter}}" Value="False"/>
+                                <Condition Binding="{Binding UserName, ElementName=Root, Converter={StaticResource StringNotEmptyConverter}}" Value="True"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Visibility" Value="Visible"/>
                         </MultiDataTrigger>
@@ -42,8 +42,8 @@
                         <Style.Triggers>
                             <MultiDataTrigger>
                                 <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding UserPhotoPath, ElementName=Root, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="False"/>
-                                    <Condition Binding="{Binding UserName, ElementName=Root, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True"/>
+                                    <Condition Binding="{Binding UserPhotoPath, ElementName=Root, Converter={StaticResource ExistingFilePathToBoolConverter}}" Value="False"/>
+                                    <Condition Binding="{Binding UserName, ElementName=Root, Converter={StaticResource StringNotEmptyConverter}}" Value="True"/>
                                 </MultiDataTrigger.Conditions>
                                 <Setter Property="Visibility" Value="Visible"/>
                             </MultiDataTrigger>
