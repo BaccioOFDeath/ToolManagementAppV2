@@ -105,4 +105,36 @@ public class ItemServiceCsvImportTests
         File.Delete(csvPath);
         File.Delete(dbPath);
     }
+
+    [Fact]
+    public async Task ImportItemsFromCsv_DefaultsMissingColumns()
+    {
+        var csvPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
+        await File.WriteAllTextAsync(csvPath, "ItemNumber\nNUM1");
+
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        await using var db = new DatabaseService(dbPath);
+        new MigrationRunner(db).Migrate();
+        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+        var service = new ItemService(db, repository);
+
+        var map = new Dictionary<string, string>
+        {
+            ["ItemNumber"] = "ItemNumber"
+        };
+
+        var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
+        Assert.Empty(invalid);
+
+        using var conn = db.CreateConnection();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT NameDescription, Location FROM Items WHERE ItemNumber='NUM1'";
+        using var reader = cmd.ExecuteReader();
+        Assert.True(reader.Read());
+        Assert.Equal(string.Empty, reader.GetString(0));
+        Assert.Equal(string.Empty, reader.GetString(1));
+
+        File.Delete(csvPath);
+        File.Delete(dbPath);
+    }
 }
