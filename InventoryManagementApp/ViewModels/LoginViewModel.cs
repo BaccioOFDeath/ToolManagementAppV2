@@ -336,7 +336,9 @@ namespace InventoryManagementApp.ViewModels
                     case AuthenticationResult.Success:
                         if (authResult.User != null)
                         {
-                            authResult.User.InitialsBrush = user.InitialsBrush;
+                            var defaultBrush = Application.Current?.TryFindResource("ForegroundBrush") as MediaBrush
+                                               ?? MediaBrushes.Transparent;
+                            authResult.User.InitialsBrush = user.InitialsBrush ?? defaultBrush;
                             if (authResult.User.InitialsBrush == null)
                                 AssignInitialsBrushes(new[] { authResult.User });
                             user = authResult.User;

@@ -206,6 +206,58 @@ namespace InventoryManagementApp.Tests
             if (threadEx != null) throw threadEx;
         }
 
+        [Fact]
+        public void LoginAssignsDefaultBrushWhenInitialsBrushNull()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.xaml", UriKind.Absolute) });
+
+                    var hash = SecurityHelper.HashPassword("pass", out var salt);
+                    var users = new List<User>
+                    {
+                        new User { UserID = 1, UserName = "John Doe", PasswordHash = hash, PasswordSalt = salt, IsActive = true }
+                    };
+                    var svc = new StubUserService(users);
+                    var settings = new DummySettingsService();
+                    var dialog = new DummyDialogService();
+                    var context = new ApplicationUserContext();
+
+                    var vm = new LoginViewModel(svc, settings, dialog, context);
+                    vm.LoadUsersCommand.ExecuteAsync(null).GetAwaiter().GetResult();
+                    var loginUser = vm.Users[0];
+                    loginUser.InitialsBrush = null!;
+
+                    bool eventFired = false;
+                    context.UserChanged += (_, __) => eventFired = true;
+
+                    vm.PromptForPasswordAsync = (_, __) => Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("pass", false));
+                    vm.SelectUserCommand.ExecuteAsync(loginUser).GetAwaiter().GetResult();
+
+                    var defaultBrush = Application.Current.TryFindResource("ForegroundBrush") as Brush;
+                    Assert.True(eventFired);
+                    Assert.NotNull(context.CurrentUser);
+                    Assert.Equal(defaultBrush, context.CurrentUser!.InitialsBrush);
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+                finally
+                {
+                    Application.Current?.Shutdown();
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
         private sealed class StubUserService : IUserService
         {
             private readonly List<User> _users;
