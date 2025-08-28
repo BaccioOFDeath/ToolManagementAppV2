@@ -3,19 +3,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Name="Root">
     <Grid>
-        <Image Source="{Binding UserPhotoPath, ElementName=Root, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=user}"
+        <Image Source="{Binding UserPhotoPath, ElementName=Root}"
                Stretch="Uniform">
             <Image.Style>
                 <Style TargetType="Image">
                     <Setter Property="Visibility" Value="Visible"/>
                     <Style.Triggers>
-                        <MultiDataTrigger>
-                            <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding UserPhotoPath, ElementName=Root, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="False"/>
-                                <Condition Binding="{Binding UserName, ElementName=Root, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="True"/>
-                            </MultiDataTrigger.Conditions>
+                        <DataTrigger Binding="{Binding UserPhotoPath, ElementName=Root, Converter={StaticResource NonEmptyStringToBoolConverter}}" Value="False">
                             <Setter Property="Visibility" Value="Collapsed"/>
-                        </MultiDataTrigger>
+                        </DataTrigger>
                     </Style.Triggers>
                 </Style>
             </Image.Style>

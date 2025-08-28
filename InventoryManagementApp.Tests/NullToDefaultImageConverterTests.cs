@@ -16,7 +16,7 @@ namespace InventoryManagementApp.Tests
     public class NullToDefaultImageConverterTests
     {
         [Fact]
-        public void Convert_InvalidPath_UsesDefaultImage()
+        public void Convert_InvalidPath_ReturnsEmptyImage()
         {
             Exception? threadEx = null;
             var thread = new Thread(() =>
@@ -25,9 +25,8 @@ namespace InventoryManagementApp.Tests
                 {
                     var converter = new NullToDefaultImageConverter();
                     Assert.Null(PathHelper.GetAbsolutePath("../nonexistent.png", false));
-                    var defaultImage = Assert.IsType<BitmapImage>(converter.Convert(null, typeof(BitmapImage), "user", CultureInfo.InvariantCulture));
                     var result = Assert.IsType<BitmapImage>(converter.Convert("../nonexistent.png", typeof(BitmapImage), "user", CultureInfo.InvariantCulture));
-                    Assert.Same(defaultImage, result);
+                    Assert.Null(result.UriSource);
                 }
                 catch (Exception ex)
                 {

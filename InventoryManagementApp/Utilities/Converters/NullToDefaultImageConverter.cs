@@ -2,7 +2,6 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
-using System.IO;
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -12,7 +11,6 @@ namespace InventoryManagementApp.Utilities.Converters
 {
     public class NullToDefaultImageConverter : IValueConverter
     {
-        private static BitmapImage _defaultUser;
         private static BitmapImage _defaultItem;
         private static BitmapImage _defaultLogo;
         private const int MaxCacheEntries = 100;
@@ -103,9 +101,7 @@ namespace InventoryManagementApp.Utilities.Converters
                     return _defaultLogo;
 
                 default:
-                    if (_defaultUser == null)
-                        _defaultUser = LoadFromResource("DefaultUserPhoto.png");
-                    return _defaultUser;
+                    return new BitmapImage();
             }
         }
 
