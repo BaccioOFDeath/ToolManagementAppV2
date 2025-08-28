@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using Microsoft.VisualBasic.FileIO;
 using System.Linq;
 using InventoryManagementApp.Models.Domain;
@@ -81,53 +82,71 @@ namespace InventoryManagementApp.Utilities.IO
             return list;
         }
 
+        public static async IAsyncEnumerable<ItemModel> StreamItemsFromCsvAsync(
+            string filePath,
+            IDictionary<string, string> map,
+            List<int>? invalidRows = null,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            ValidateRequired(map, "ItemNumber");
+            invalidRows ??= new List<int>();
+            using var parser = new TextFieldParser(filePath);
+            parser.SetDelimiters(",");
+            parser.HasFieldsEnclosedInQuotes = true;
+
+            if (parser.EndOfData) yield break;
+            var headers = parser.ReadFields() ?? Array.Empty<string>();
+
+            var row = 1; // header already read
+            while (!parser.EndOfData)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                row++;
+                var cols = parser.ReadFields();
+                if (cols == null)
+                {
+                    invalidRows.Add(row);
+                    continue;
+                }
+                var itemNumber = GetMapped(cols, headers, map, "ItemNumber");
+                if (string.IsNullOrWhiteSpace(itemNumber))
+                {
+                    invalidRows.Add(row);
+                    continue;
+                }
+
+                yield return new ItemModel
+                {
+                    ItemNumber = itemNumber,
+                    Name = GetMapped(cols, headers, map, nameof(ItemImportDto.Name)) ?? string.Empty,
+                    Location = GetMapped(cols, headers, map, "Location") ?? string.Empty,
+                    Brand = GetMapped(cols, headers, map, "Brand") ?? string.Empty,
+                    PartNumber = GetMapped(cols, headers, map, "PartNumber") ?? string.Empty,
+                    Supplier = GetMapped(cols, headers, map, "Supplier") ?? string.Empty,
+                    PurchasedDate = TryParseDate(GetMapped(cols, headers, map, "PurchasedDate")),
+                    Notes = GetMapped(cols, headers, map, "Notes") ?? string.Empty,
+                    Keywords = GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords)) ?? string.Empty,
+                    QuantityOnHand = TryParseInt(GetMapped(cols, headers, map, "AvailableQuantity")),
+                    IsPowered = TryParseBool(GetMapped(cols, headers, map, "IsPowered")),
+                    IsRentalItem = TryParseBool(GetMapped(cols, headers, map, nameof(ItemImportDto.IsRentalItem)))
+                };
+
+                await Task.Yield();
+            }
+        }
+
         public static async Task<(List<ItemModel> Items, List<int> InvalidRows)> LoadItemsFromCsvAsync(
             string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default)
         {
-            return await Task.Run(() =>
+            var items = new List<ItemModel>();
+            var invalidRows = new List<int>();
+            await foreach (var item in StreamItemsFromCsvAsync(filePath, map, invalidRows, cancellationToken)
+                .WithCancellation(cancellationToken))
             {
-                ValidateRequired(map, "ItemNumber");
-                var list = new List<ItemModel>();
-                var invalidRows = new List<int>();
-                using var parser = new TextFieldParser(filePath);
-                parser.SetDelimiters(",");
-                parser.HasFieldsEnclosedInQuotes = true;
+                items.Add(item);
+            }
 
-                if (parser.EndOfData) return (list, invalidRows);
-                var headers = parser.ReadFields() ?? Array.Empty<string>();
-
-                var row = 1; // header already read
-                while (!parser.EndOfData)
-                {
-                    row++;
-                    var cols = parser.ReadFields();
-                    if (cols == null) continue;
-                    var itemNumber = GetMapped(cols, headers, map, "ItemNumber");
-                    if (string.IsNullOrWhiteSpace(itemNumber))
-                    {
-                        invalidRows.Add(row);
-                        continue;
-                    }
-
-                    list.Add(new ItemModel
-                    {
-                        ItemNumber = itemNumber,
-                        Name = GetMapped(cols, headers, map, nameof(ItemImportDto.Name)) ?? string.Empty,
-                        Location = GetMapped(cols, headers, map, "Location") ?? string.Empty,
-                        Brand = GetMapped(cols, headers, map, "Brand") ?? string.Empty,
-                        PartNumber = GetMapped(cols, headers, map, "PartNumber") ?? string.Empty,
-                        Supplier = GetMapped(cols, headers, map, "Supplier") ?? string.Empty,
-                        PurchasedDate = TryParseDate(GetMapped(cols, headers, map, "PurchasedDate")),
-                        Notes = GetMapped(cols, headers, map, "Notes") ?? string.Empty,
-                        Keywords = GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords)) ?? string.Empty,
-                        QuantityOnHand = TryParseInt(GetMapped(cols, headers, map, "AvailableQuantity")),
-                        IsPowered = TryParseBool(GetMapped(cols, headers, map, "IsPowered")),
-                        IsRentalItem = TryParseBool(GetMapped(cols, headers, map, nameof(ItemImportDto.IsRentalItem)))
-                    });
-                }
-
-                return (list, invalidRows);
-            }, cancellationToken).ConfigureAwait(false);
+            return (items, invalidRows);
         }
 
         public static void ExportItemsToCsv(string filePath, List<ItemModel> items)
