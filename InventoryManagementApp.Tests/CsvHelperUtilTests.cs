@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Models.ImportExport;
 using InventoryManagementApp.Utilities.IO;
@@ -43,7 +44,7 @@ public class CsvHelperUtilTests
     }
 
     [Fact]
-    public async Task LoadItemsFromCsvAsync_PopulatesName()
+    public async Task StreamItemsFromCsvAsync_PopulatesName()
     {
         var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
         await File.WriteAllTextAsync(path, "ItemNumber,NameDescription\nNUM1,ItemName");
@@ -52,7 +53,11 @@ public class CsvHelperUtilTests
             ["ItemNumber"] = "ItemNumber",
             [nameof(ItemImportDto.Name)] = "NameDescription"
         };
-        var (items, invalid) = await CsvHelperUtil.LoadItemsFromCsvAsync(path, map);
+        var invalid = new List<int>();
+        var items = new List<InventoryManagementApp.Models.Domain.ItemModel>();
+        await foreach (var item in CsvHelperUtil.StreamItemsFromCsvAsync(path, map, invalid)
+            .WithCancellation(CancellationToken.None))
+            items.Add(item);
         Assert.Single(items);
         Assert.Equal("ItemName", items[0].Name);
         Assert.Empty(invalid);
@@ -60,7 +65,7 @@ public class CsvHelperUtilTests
     }
 
     [Fact]
-    public async Task LoadItemsFromCsvAsync_PopulatesKeywords()
+    public async Task StreamItemsFromCsvAsync_PopulatesKeywords()
     {
         var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
         await File.WriteAllTextAsync(path, "ItemNumber,Keywords\nNUM1,tag1 tag2");
@@ -69,7 +74,11 @@ public class CsvHelperUtilTests
             ["ItemNumber"] = "ItemNumber",
             [nameof(ItemImportDto.Keywords)] = "Keywords"
         };
-        var (items, invalid) = await CsvHelperUtil.LoadItemsFromCsvAsync(path, map);
+        var invalid = new List<int>();
+        var items = new List<InventoryManagementApp.Models.Domain.ItemModel>();
+        await foreach (var item in CsvHelperUtil.StreamItemsFromCsvAsync(path, map, invalid)
+            .WithCancellation(CancellationToken.None))
+            items.Add(item);
         Assert.Single(items);
         Assert.Equal("tag1 tag2", items[0].Keywords);
         Assert.Empty(invalid);
