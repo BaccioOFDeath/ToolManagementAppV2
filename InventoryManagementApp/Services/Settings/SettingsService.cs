@@ -106,7 +106,12 @@ namespace InventoryManagementApp.Services.Settings
                 using var cmd = new SqliteCommand(sql, conn);
                 using var rdr = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await rdr.ReadAsync(cancellationToken).ConfigureAwait(false))
-                    dict[rdr["Key"].ToString()] = rdr["Value"].ToString();
+                {
+                    var key = rdr["Key"]?.ToString();
+                    var value = rdr["Value"]?.ToString();
+                    if (key != null && value != null)
+                        dict[key] = value;
+                }
                 return dict;
             }
             catch (OperationCanceledException ex)
