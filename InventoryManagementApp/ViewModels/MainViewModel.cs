@@ -259,6 +259,56 @@ namespace InventoryManagementApp.ViewModels
             _autoLogoutTimer.Tick += OnAutoLogoutTimerTick;
             Settings.PropertyChanged += Settings_PropertyChanged;
             UpdateAutoLogoutTimer();
+            OpenManageItemsCommand = new AsyncRelayCommand(async () =>
+            {
+                var plural = LabelProvider.Instance.ItemLabelPlural;
+                var page = new ManageItemsPage { Title = $"Manage {plural}" };
+                var vm = (ItemsViewModel)page.DataContext;
+                try
+                {
+                    await vm.InitializeAsync();
+                    await vm.LoadMoreAsync();
+                    CurrentPage = page;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open manage items page");
+                    _dialogService.ShowInfo($"Failed to open manage {plural} page: {ex.Message}", $"Manage {plural}");
+                    throw;
+                }
+            });
+
+            OpenRentalsCommand = new AsyncRelayCommand(async () =>
+            {
+                try
+                {
+                    await ManageRentals.LoadRentalsAsync();
+                    var page = new ManageRentalsPage { DataContext = ManageRentals, Title = "Manage Rentals" };
+                    CurrentPage = page;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open rentals page");
+                    _dialogService.ShowInfo($"Failed to open rentals page: {ex.Message}", "Manage Rentals");
+                    throw;
+                }
+            });
+
+            OpenImportExportCommand = new AsyncRelayCommand(async () =>
+            {
+                try
+                {
+                    var page = new ImportExportPage { DataContext = ImportExport, Title = "Import / Export" };
+                    CurrentPage = page;
+                    await Task.CompletedTask;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open import/export page");
+                    _dialogService.ShowInfo($"Failed to open import/export page: {ex.Message}", "Import / Export");
+                    throw;
+                }
+            });
 
             OpenDashboardCommand = new AsyncRelayCommand(async () =>
             {
@@ -291,41 +341,6 @@ namespace InventoryManagementApp.ViewModels
                 {
                     _logger.LogError(ex, "Failed to open search items page");
                     _dialogService.ShowInfo($"Failed to open search {plural} page: {ex.Message}", $"Search {plural}");
-                    throw;
-                }
-            });
-
-            OpenManageItemsCommand = new AsyncRelayCommand(async () =>
-            {
-                var plural = LabelProvider.Instance.ItemLabelPlural;
-                var page = new ManageItemsPage { Title = $"Manage {plural}" };
-                var vm = (ItemsViewModel)page.DataContext;
-                try
-                {
-                    await vm.InitializeAsync();
-                    await vm.LoadMoreAsync();
-                    CurrentPage = page;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to open manage items page");
-                    _dialogService.ShowInfo($"Failed to open manage {plural} page: {ex.Message}", $"Manage {plural}");
-                    throw;
-                }
-            });
-
-            OpenRentalsCommand = new AsyncRelayCommand(async () =>
-            {
-                try
-                {
-                    await ManageRentals.LoadRentalsAsync();
-                    var page = new ManageRentalsPage { DataContext = ManageRentals, Title = "Manage Rentals" };
-                    CurrentPage = page;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to open rentals page");
-                    _dialogService.ShowInfo($"Failed to open rentals page: {ex.Message}", "Manage Rentals");
                     throw;
                 }
             });
@@ -378,22 +393,6 @@ namespace InventoryManagementApp.ViewModels
                 {
                     _logger.LogError(ex, "Failed to open settings page");
                     _dialogService.ShowInfo($"Failed to open settings page: {ex.Message}", "Settings");
-                    throw;
-                }
-            });
-
-            OpenImportExportCommand = new AsyncRelayCommand(async () =>
-            {
-                try
-                {
-                    var page = new ImportExportPage { DataContext = ImportExport, Title = "Import / Export" };
-                    CurrentPage = page;
-                    await Task.CompletedTask;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to open import/export page");
-                    _dialogService.ShowInfo($"Failed to open import/export page: {ex.Message}", "Import / Export");
                     throw;
                 }
             });
