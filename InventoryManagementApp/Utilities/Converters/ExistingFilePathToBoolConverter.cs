@@ -5,6 +5,7 @@ using System.IO;
 using System.Windows.Data;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using InventoryManagementApp.Utilities.Helpers;
 using Binding = System.Windows.Data.Binding;
 
 namespace InventoryManagementApp.Utilities.Converters
@@ -27,7 +28,11 @@ namespace InventoryManagementApp.Utilities.Converters
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             var path = value as string;
-            return !string.IsNullOrWhiteSpace(path) && File.Exists(path);
+            if (string.IsNullOrWhiteSpace(path))
+                return false;
+
+            var absPath = Helpers.PathHelper.GetAbsolutePath(path, false);
+            return !string.IsNullOrWhiteSpace(absPath) && File.Exists(absPath);
         }
 
         /// <summary>

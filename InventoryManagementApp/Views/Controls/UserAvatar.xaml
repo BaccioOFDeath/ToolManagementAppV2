@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Name="Root">
     <Grid>
-        <Image Source="{Binding UserPhotoPath, ElementName=Root}"
+        <Image Source="{Binding UserPhotoPath, ElementName=Root, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=user}"
                Stretch="Uniform">
             <Image.Style>
                 <Style TargetType="Image">
