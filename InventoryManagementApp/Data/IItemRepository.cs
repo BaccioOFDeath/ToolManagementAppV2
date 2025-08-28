@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Item = InventoryManagementApp.Models.Domain.ItemModel;
@@ -11,7 +10,7 @@ public interface IItemRepository
     /// <summary>
     /// Streams a page of items that match the supplied filter.
     /// </summary>
-    IAsyncEnumerable<Item> GetPageAsync(ItemFilter filter, ItemPage page, [EnumeratorCancellation] CancellationToken cancellationToken);
+    IAsyncEnumerable<Item> GetPageAsync(ItemFilter filter, ItemPage page, CancellationToken cancellationToken);
     Task<int> CountAsync(ItemFilter filter, CancellationToken cancellationToken);
     Task<Item?> GetByIdAsync(int id, CancellationToken cancellationToken);
     Task SaveChangesAsync(IEnumerable<Item> changes, CancellationToken cancellationToken);
