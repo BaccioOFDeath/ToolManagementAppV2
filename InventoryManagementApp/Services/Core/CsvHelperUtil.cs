@@ -133,13 +133,13 @@ namespace InventoryManagementApp.Utilities.IO
             lines.AddRange(items.Select(t =>
                 string.Join(",",
                     Quote(t.ItemNumber),
-                    Quote(t.Name),
-                    Quote(t.Location),
-                    Quote(t.Brand),
-                    Quote(t.PartNumber),
-                    Quote(t.Supplier),
-                    Quote(t.PurchasedDate?.ToString("yyyy-MM-dd")),
-                    Quote(t.Notes),
+                    Quote(t.Name ?? string.Empty),
+                    Quote(t.Location ?? string.Empty),
+                    Quote(t.Brand ?? string.Empty),
+                    Quote(t.PartNumber ?? string.Empty),
+                    Quote(t.Supplier ?? string.Empty),
+                    Quote(t.PurchasedDate?.ToString("yyyy-MM-dd") ?? string.Empty),
+                    Quote(t.Notes ?? string.Empty),
                     Quote(t.QuantityOnHand.ToString()),
                     Quote(t.IsPowered ? "1" : "0"),
                     Quote(t.IsRentalItem ? "1" : "0"))));
@@ -155,13 +155,13 @@ namespace InventoryManagementApp.Utilities.IO
             lines.AddRange(items.Select(t =>
                 string.Join(",",
                     Quote(t.ItemNumber),
-                    Quote(t.Name),
-                    Quote(t.Location),
-                    Quote(t.Brand),
-                    Quote(t.PartNumber),
-                    Quote(t.Supplier),
-                    Quote(t.PurchasedDate?.ToString("yyyy-MM-dd")),
-                    Quote(t.Notes),
+                    Quote(t.Name ?? string.Empty),
+                    Quote(t.Location ?? string.Empty),
+                    Quote(t.Brand ?? string.Empty),
+                    Quote(t.PartNumber ?? string.Empty),
+                    Quote(t.Supplier ?? string.Empty),
+                    Quote(t.PurchasedDate?.ToString("yyyy-MM-dd") ?? string.Empty),
+                    Quote(t.Notes ?? string.Empty),
                     Quote(t.QuantityOnHand.ToString()),
                     Quote(t.IsPowered ? "1" : "0"),
                     Quote(t.IsRentalItem ? "1" : "0"))));
@@ -208,17 +208,20 @@ namespace InventoryManagementApp.Utilities.IO
             };
             lines.AddRange(customers.Select(c =>
                 string.Join(",",
-                    Quote(c.Company),
-                    Quote(c.Email),
-                    Quote(c.Contact),
-                    Quote(c.Phone),
-                    Quote(c.Mobile),
-                    Quote(c.Address))));
+                    Quote(c.Company ?? string.Empty),
+                    Quote(c.Email ?? string.Empty),
+                    Quote(c.Contact ?? string.Empty),
+                    Quote(c.Phone ?? string.Empty),
+                    Quote(c.Mobile ?? string.Empty),
+                    Quote(c.Address ?? string.Empty))));
             File.WriteAllLines(filePath, lines);
         }
 
-        private static string GetMapped(string[] row, string[] headers, IDictionary<string, string> map, string key)
+        private static string? GetMapped(string[] row, string[] headers, IDictionary<string, string> map, string key)
         {
+            ArgumentNullException.ThrowIfNull(row);
+            ArgumentNullException.ThrowIfNull(headers);
+
             if (!map.TryGetValue(key, out var column)) return null;
             var index = Array.FindIndex(headers,
                 h => string.Equals(h, column, StringComparison.OrdinalIgnoreCase));
@@ -232,18 +235,19 @@ namespace InventoryManagementApp.Utilities.IO
                     throw new ArgumentException($"Mapping for required field '{key}' is missing.", nameof(map));
         }
 
-        private static int TryParseInt(string input) =>
+        private static int TryParseInt(string? input) =>
             int.TryParse(input, out var result) ? result : 0;
 
-        private static bool TryParseBool(string input) =>
+        private static bool TryParseBool(string? input) =>
             input != null && (input.Equals("1") || bool.TryParse(input, out var b) && b);
 
-        private static DateTime? TryParseDate(string input) =>
+        private static DateTime? TryParseDate(string? input) =>
             DateTime.TryParse(input, out var result) ? result : null;
-    
+
 
         private static string Quote(string value)
         {
+            ArgumentNullException.ThrowIfNull(value);
             if (string.IsNullOrEmpty(value)) return string.Empty;
             if (value.Contains(",") || value.Contains("\"") || value.Contains("\n"))
                 return $"\"{value.Replace("\"", "\"\"")}\"";
