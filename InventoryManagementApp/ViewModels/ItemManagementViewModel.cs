@@ -403,13 +403,13 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        async Task DeleteItemsAsync(IList items, CancellationToken cancellationToken)
+        async Task DeleteItemsAsync(IList? items, CancellationToken cancellationToken)
         {
             if (items == null || items.Count == 0) return;
-            string message = items.Count == 1
-                ? $"Delete {LabelProvider.Instance.ItemLabelSingular.ToLower()} '{((ItemModel)items[0]).Name}'?"
+            var message = items.Count == 1 && items[0] is ItemModel { Name: { } name }
+                ? $"Delete {LabelProvider.Instance.ItemLabelSingular.ToLower()} '{name}'?"
                 : $"Delete {items.Count} {LabelProvider.Instance.ItemLabelPlural.ToLower()}?";
-            var confirm = await _dialogService.ShowConfirmationAsync(message, "Confirm Delete");
+            var confirm = await _dialogService.ShowConfirmationAsync(message, "Confirm Delete").ConfigureAwait(false);
             if (!confirm)
                 return;
 
