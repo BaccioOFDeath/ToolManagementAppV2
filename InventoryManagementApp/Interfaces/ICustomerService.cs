@@ -12,7 +12,7 @@ namespace InventoryManagementApp.Interfaces
         Task AddCustomerAsync(Customer customer, CancellationToken cancellationToken = default);
         Task UpdateCustomerAsync(Customer customer, CancellationToken cancellationToken = default);
         Task DeleteCustomerAsync(int customerID, CancellationToken cancellationToken = default);
-        Task<Customer> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default);
+        Task<CustomerModel?> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default);
         Task<List<Customer>> GetAllCustomersAsync(CancellationToken cancellationToken = default);
         Task<int> CountCustomersAsync(CancellationToken cancellationToken = default);
         Task<List<Customer>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default);

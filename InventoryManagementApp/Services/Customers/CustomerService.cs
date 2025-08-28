@@ -48,7 +48,7 @@ namespace InventoryManagementApp.Services.Customers
             return DeleteCustomerInternalAsync(customerID, cancellationToken);
         }
 
-        public Task<CustomerModel> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default) =>
+        public Task<CustomerModel?> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default) =>
             GetCustomerByIDInternalAsync(customerID, cancellationToken);
 
         public Task<List<CustomerModel>> GetAllCustomersAsync(CancellationToken cancellationToken = default) =>
@@ -128,7 +128,7 @@ namespace InventoryManagementApp.Services.Customers
             }
         }
 
-        async Task<CustomerModel> GetCustomerByIDInternalAsync(int customerID, CancellationToken cancellationToken)
+        async Task<CustomerModel?> GetCustomerByIDInternalAsync(int customerID, CancellationToken cancellationToken)
         {
             const string sql = "SELECT * FROM Customers WHERE CustomerID = @id";
             var p = new[] { new SqliteParameter("@id", customerID) };
@@ -136,6 +136,10 @@ namespace InventoryManagementApp.Services.Customers
             try
             {
                 var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapCustomer, p, cancellationToken);
+                if (list.Count == 0)
+                {
+                    throw new KeyNotFoundException($"Customer {customerID} not found.");
+                }
                 return list.FirstOrDefault();
             }
             catch (Exception ex)
