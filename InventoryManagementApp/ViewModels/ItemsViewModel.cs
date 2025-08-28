@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Data;
@@ -187,7 +188,7 @@ namespace InventoryManagementApp.ViewModels
                 var source = string.IsNullOrWhiteSpace(Filter)
                     ? _itemService.GetItemsAsync(pageInfo, SelectedSortOption.Field, SelectedSortOption.Direction, isRentalItem: false, cancellationToken: ct)
                     : _itemService.SearchItemsAsync(Filter, pageInfo, SelectedSortOption.Field, SelectedSortOption.Direction, isRentalItem: false, cancellationToken: ct);
-                await foreach (var item in source.ConfigureAwait(false))
+                await foreach (var item in source.WithCancellation(ct).ConfigureAwait(false))
                 {
                     item.PropertyChanged += Item_PropertyChanged;
                     result.Add(item);
