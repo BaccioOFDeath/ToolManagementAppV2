@@ -10,7 +10,7 @@ namespace InventoryManagementApp.Interfaces
     {
         event EventHandler<IDictionary<ItemDetailField, bool>>? ItemDetailVisibilityChanged;
         Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default);
-        Task<string?> GetSettingAsync(string key, CancellationToken cancellationToken = default);
+        Task<string?> GetSettingAsync(string? key, CancellationToken cancellationToken = default);
         Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default);
         Task UpdateSettingsAsync(Dictionary<string, string> settings, CancellationToken cancellationToken = default);
         Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default);

@@ -66,8 +66,11 @@ namespace InventoryManagementApp.Services.Settings
             }
         }
 
-        public async Task<string?> GetSettingAsync(string key, CancellationToken cancellationToken = default)
+        public async Task<string?> GetSettingAsync(string? key, CancellationToken cancellationToken = default)
         {
+            if (key is null)
+                return null;
+
             try
             {
                 const string sql = "SELECT Value FROM Settings WHERE Key = @Key";

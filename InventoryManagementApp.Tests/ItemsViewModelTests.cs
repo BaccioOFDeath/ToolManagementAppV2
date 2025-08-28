@@ -890,8 +890,8 @@ namespace InventoryManagementApp.Tests
                 _settings[key] = value;
                 return Task.CompletedTask;
             }
-            public Task<string?> GetSettingAsync(string key, CancellationToken cancellationToken = default)
-                => Task.FromResult(_settings.TryGetValue(key, out var v) ? v : null);
+            public Task<string?> GetSettingAsync(string? key, CancellationToken cancellationToken = default)
+                => Task.FromResult(key != null && _settings.TryGetValue(key, out var v) ? v : null);
             public Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default)
                 => Task.FromResult(new Dictionary<string, string>(_settings));
             public Task UpdateSettingsAsync(Dictionary<string, string> settings, CancellationToken cancellationToken = default)
