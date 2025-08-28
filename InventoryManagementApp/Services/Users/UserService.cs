@@ -80,9 +80,7 @@ namespace InventoryManagementApp.Services.Users
             {
                 if (!HasColumn(columnName)) return string.Empty;
                 var value = rdr[columnName];
-                if (value == DBNull.Value) return string.Empty;
-                var text = value?.ToString();
-                return text ?? string.Empty;
+                return value is DBNull ? string.Empty : value?.ToString() ?? string.Empty;
             }
 
             return new User
