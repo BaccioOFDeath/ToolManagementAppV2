@@ -76,19 +76,28 @@ namespace InventoryManagementApp.Services.Users
             if (createdAt.HasValue && createdAt.Value.Kind != DateTimeKind.Local)
                 createdAt = createdAt.Value.ToLocalTime();
 
+            string GetString(string columnName)
+            {
+                if (!HasColumn(columnName)) return string.Empty;
+                var value = rdr[columnName];
+                if (value == DBNull.Value) return string.Empty;
+                var text = value?.ToString();
+                return text ?? string.Empty;
+            }
+
             return new User
             {
                 UserID = HasColumn("UserID") && rdr["UserID"] != DBNull.Value ? Convert.ToInt32(rdr["UserID"]) : 0,
-                UserName = HasColumn("UserName") ? rdr["UserName"]?.ToString() : null,
-                PasswordHash = HasColumn("PasswordHash") && rdr["PasswordHash"] != DBNull.Value ? rdr["PasswordHash"].ToString() : null,
-                PasswordSalt = HasColumn("PasswordSalt") && rdr["PasswordSalt"] != DBNull.Value ? rdr["PasswordSalt"].ToString() : null,
-                UserPhotoPath = HasColumn("UserPhotoPath") ? rdr["UserPhotoPath"]?.ToString() : null,
+                UserName = GetString("UserName"),
+                PasswordHash = GetString("PasswordHash"),
+                PasswordSalt = GetString("PasswordSalt"),
+                UserPhotoPath = GetString("UserPhotoPath"),
                 IsAdmin = HasColumn("IsAdmin") && rdr["IsAdmin"] != DBNull.Value && Convert.ToInt32(rdr["IsAdmin"]) == 1,
-                Email = HasColumn("Email") ? rdr["Email"]?.ToString() : null,
-                Phone = HasColumn("Phone") ? rdr["Phone"]?.ToString() : null,
-                Mobile = HasColumn("Mobile") ? rdr["Mobile"]?.ToString() : null,
-                Address = HasColumn("Address") ? rdr["Address"]?.ToString() : null,
-                Role = HasColumn("Role") ? rdr["Role"]?.ToString() : null,
+                Email = GetString("Email"),
+                Phone = GetString("Phone"),
+                Mobile = GetString("Mobile"),
+                Address = GetString("Address"),
+                Role = GetString("Role"),
                 IsActive = HasColumn("IsActive") && rdr["IsActive"] != DBNull.Value && Convert.ToInt32(rdr["IsActive"]) == 1,
                 CreatedAt = createdAt,
                 PasswordExpired = HasColumn("PasswordExpired") && rdr["PasswordExpired"] != DBNull.Value && Convert.ToInt32(rdr["PasswordExpired"]) == 1
