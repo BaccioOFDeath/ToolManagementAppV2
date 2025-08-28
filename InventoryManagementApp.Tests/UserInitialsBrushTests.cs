@@ -11,6 +11,8 @@ using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Views.Windows;
+using InventoryManagementApp.Services.Users;
+using InventoryManagementApp.Utilities.Helpers;
 using Xunit;
 
 namespace InventoryManagementApp.Tests
@@ -102,24 +104,121 @@ namespace InventoryManagementApp.Tests
             if (threadEx != null) throw threadEx;
         }
 
+        [Fact]
+        public void LoginRetainsInitialsBrush()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.xaml", UriKind.Absolute) });
+
+                    var hash = SecurityHelper.HashPassword("pass", out var salt);
+                    var users = new List<User>
+                    {
+                        new User { UserID = 1, UserName = "John Doe", PasswordHash = hash, PasswordSalt = salt, IsActive = true }
+                    };
+                    var svc = new StubUserService(users);
+                    var settings = new DummySettingsService();
+                    var dialog = new DummyDialogService();
+                    var context = new ApplicationUserContext();
+
+                    var vm = new LoginViewModel(svc, settings, dialog, context);
+                    vm.LoadUsersCommand.ExecuteAsync(null).GetAwaiter().GetResult();
+                    var loginUser = vm.Users[0];
+                    var originalBrush = loginUser.InitialsBrush;
+
+                    bool eventFired = false;
+                    context.UserChanged += (_, __) => eventFired = true;
+
+                    vm.PromptForPasswordAsync = (_, __) => Task.FromResult<PasswordPromptResult?>(new PasswordPromptResult("pass", false));
+                    vm.SelectUserCommand.ExecuteAsync(loginUser).GetAwaiter().GetResult();
+
+                    Assert.True(eventFired);
+                    Assert.NotNull(context.CurrentUser);
+                    Assert.Equal(originalBrush, context.CurrentUser!.InitialsBrush);
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+                finally
+                {
+                    Application.Current?.Shutdown();
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
         private sealed class StubUserService : IUserService
         {
             private readonly List<User> _users;
             public StubUserService(List<User> users) => _users = users;
             public Task<List<User>> GetAllUsersAsync(CancellationToken cancellationToken = default) => Task.FromResult(_users);
-            public Task<int> CountUsersAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException();
-            public Task<User?> GetUserByIDAsync(int userID, CancellationToken cancellationToken = default) => Task.FromResult(_users.FirstOrDefault(u => u.UserID == userID));
-            public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => throw new NotImplementedException();
-            public Task<User?> GetCurrentUserAsync() => throw new NotImplementedException();
-            public Task AddUserAsync(User user) => throw new NotImplementedException();
+            public Task<int> CountUsersAsync(CancellationToken cancellationToken = default) => Task.FromResult(_users.Count);
+            public Task<User?> GetUserByIDAsync(int userID, CancellationToken cancellationToken = default)
+            {
+                var u = _users.FirstOrDefault(u => u.UserID == userID);
+                if (u == null) return Task.FromResult<User?>(null);
+                return Task.FromResult<User?>(new User
+                {
+                    UserID = u.UserID,
+                    UserName = u.UserName,
+                    PasswordHash = u.PasswordHash,
+                    PasswordSalt = u.PasswordSalt,
+                    IsAdmin = u.IsAdmin,
+                    IsActive = u.IsActive,
+                    PasswordExpired = u.PasswordExpired
+                });
+            }
+            public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password)
+            {
+                var u = _users.FirstOrDefault(u => u.UserName == userName);
+                User? copy = null;
+                if (u != null)
+                {
+                    copy = new User
+                    {
+                        UserID = u.UserID,
+                        UserName = u.UserName,
+                        PasswordHash = u.PasswordHash,
+                        PasswordSalt = u.PasswordSalt,
+                        IsAdmin = u.IsAdmin,
+                        IsActive = u.IsActive,
+                        PasswordExpired = u.PasswordExpired
+                    };
+                }
+                return Task.FromResult<(AuthenticationResult, User?)>((AuthenticationResult.Success, copy));
+            }
+            public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
+            public Task AddUserAsync(User user)
+            {
+                _users.Add(user);
+                return Task.CompletedTask;
+            }
             public Task UpdateUserAsync(User user)
             {
                 var idx = _users.FindIndex(u => u.UserID == user.UserID);
                 if (idx >= 0) _users[idx] = user;
                 return Task.CompletedTask;
             }
-            public Task<bool> TryDeleteUserAsync(int userID) => throw new NotImplementedException();
-            public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => throw new NotImplementedException();
+            public Task<bool> TryDeleteUserAsync(int userID)
+            {
+                var removed = _users.RemoveAll(u => u.UserID == userID) > 0;
+                return Task.FromResult(removed);
+            }
+            public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword)
+            {
+                var u = _users.FirstOrDefault(u => u.UserID == userID);
+                if (u == null) return Task.FromResult(false);
+                u.PasswordHash = newPassword;
+                return Task.FromResult(true);
+            }
         }
 
         private sealed class DummyFileDialogService : IFileDialogService
@@ -143,6 +242,32 @@ namespace InventoryManagementApp.Tests
             public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(FlowDocument document, string title, string description) { }
             public void ShowPrintLabelDialog() { }
+        }
+
+        private sealed class DummySettingsService : ISettingsService
+        {
+            public event EventHandler<IDictionary<ItemDetailField, bool>>? ItemDetailVisibilityChanged;
+            public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<string?> GetSettingAsync(string key, CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
+            public Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new Dictionary<string, string>());
+            public Task UpdateSettingsAsync(Dictionary<string, string> settings, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
+            public Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
+            public Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);
+            public Task SavePasswordIterationsAsync(int iterations, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<int> GetAutoLogoutMinutesAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);
+            public Task SaveAutoLogoutMinutesAsync(int minutes, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<string> GetItemLabelSingularAsync(CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
+            public Task SaveItemLabelSingularAsync(string label, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<string> GetItemLabelPluralAsync(CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
+            public Task SaveItemLabelPluralAsync(string label, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<IDictionary<ItemDetailField, bool>> GetItemDetailVisibilityAsync(CancellationToken cancellationToken = default) => Task.FromResult<IDictionary<ItemDetailField, bool>>(new Dictionary<ItemDetailField, bool>());
+            public Task SaveItemDetailVisibilityAsync(IDictionary<ItemDetailField, bool> visibility, CancellationToken cancellationToken = default)
+            {
+                ItemDetailVisibilityChanged?.Invoke(this, visibility);
+                return Task.CompletedTask;
+            }
         }
     }
 }
