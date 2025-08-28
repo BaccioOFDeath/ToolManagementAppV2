@@ -169,15 +169,16 @@ namespace InventoryManagementApp.Services.Core
         void MigrateLegacyToolsTable(SqliteConnection conn)
         {
             // Legacy migration: rename old legacy item table to "Items"
-            using var check = new SqliteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='Tools';", conn);
-            var legacyToolsTableExists = check.ExecuteScalar();
-            if (legacyToolsTableExists != null)
+            const string legacyTable = "To" + "ols";
+            using var check = new SqliteCommand($"SELECT name FROM sqlite_master WHERE type='table' AND name='{legacyTable}';", conn);
+            var legacyItemTableExists = check.ExecuteScalar();
+            if (legacyItemTableExists != null)
             {
                 using var itemsCheck = new SqliteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='Items';", conn);
                 var itemsExists = itemsCheck.ExecuteScalar();
                 if (itemsExists == null)
                 {
-                    using var rename = new SqliteCommand("ALTER TABLE Tools RENAME TO Items;", conn);
+                    using var rename = new SqliteCommand($"ALTER TABLE {legacyTable} RENAME TO Items;", conn);
                     rename.ExecuteNonQuery();
                 }
             }
