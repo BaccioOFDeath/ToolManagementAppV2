@@ -356,7 +356,7 @@ namespace InventoryManagementApp.Tests
             private readonly List<ItemModel> _items = new()
             {
                 new ItemModel { ItemID = 1, Name = "Hammer", Brand = "Hardware" },
-                new ItemModel { ItemID = 2, Name = "Screwdriver", Brand = "Equipment" },
+                new ItemModel { ItemID = 2, Name = "Screwdriver", Brand = "Items" },
                 new ItemModel { ItemID = 3, Name = "Paint", Brand = "Paints" }
             };
 
