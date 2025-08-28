@@ -309,12 +309,12 @@ namespace InventoryManagementApp.Services.Customers
         CustomerModel MapCustomer(IDataRecord r) => new()
         {
             CustomerID = Convert.ToInt32(r["CustomerID"]),
-            Company = r["Company"].ToString(),
-            Email = r["Email"].ToString(),
-            Contact = r["Contact"].ToString(),
-            Phone = r["Phone"].ToString(),
-            Mobile = r["Mobile"].ToString(),
-            Address = r["Address"].ToString()
+            Company = r["Company"]?.ToString() ?? string.Empty,
+            Email = r["Email"]?.ToString() ?? string.Empty,
+            Contact = r["Contact"]?.ToString() ?? string.Empty,
+            Phone = r["Phone"]?.ToString() ?? string.Empty,
+            Mobile = r["Mobile"]?.ToString() ?? string.Empty,
+            Address = r["Address"]?.ToString() ?? string.Empty
         };
     }
 }
