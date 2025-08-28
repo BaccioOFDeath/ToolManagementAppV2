@@ -42,7 +42,7 @@ public class ItemRepositorySearchTests
         cmd.ExecuteNonQuery();
         await conn.ExecuteAsync(
             "INSERT INTO Items (ItemNumber, NameDescription, Notes, Keywords, AvailableQuantity, RentedQuantity, IsRentalItem, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,@Notes,@Keywords,0,0,0,0,0,@UpdatedAt)",
-            new { ItemNumber = "ABC123", Name = "Hand Saw", Notes = "A sharp saw", Keywords = "equipment,cutting", UpdatedAt = System.DateTime.UtcNow });
+            new { ItemNumber = "ABC123", Name = "Hand Saw", Notes = "A sharp saw", Keywords = "item,cutting", UpdatedAt = System.DateTime.UtcNow });
         await conn.ExecuteAsync(
             "INSERT INTO Items (ItemNumber, NameDescription, Notes, Keywords, AvailableQuantity, RentedQuantity, IsRentalItem, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,@Notes,@Keywords,0,0,1,0,0,@UpdatedAt)",
             new { ItemNumber = "CAFÉ1", Name = "Café Table", Notes = "Sturdy café furniture", Keywords = "table,café", UpdatedAt = System.DateTime.UtcNow });
@@ -121,7 +121,7 @@ public class ItemRepositorySearchTests
         await SeedAsync(factory);
         var repo = new ItemRepository(factory);
         var result = new List<ItemModel>();
-        await foreach (var item in repo.GetPageAsync(new ItemFilter("EQUIPMENT"), new ItemPage(1, 10), CancellationToken.None))
+        await foreach (var item in repo.GetPageAsync(new ItemFilter("ITEM"), new ItemPage(1, 10), CancellationToken.None))
             result.Add(item);
         Assert.Single(result);
         Assert.Equal("Hand Saw", result[0].Name);
