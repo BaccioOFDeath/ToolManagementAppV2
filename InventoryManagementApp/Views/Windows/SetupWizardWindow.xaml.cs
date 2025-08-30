@@ -33,7 +33,14 @@ namespace InventoryManagementApp.Views.Windows
 
         public Task<SetupWizardResult?> RunAsync()
         {
-            var result = ShowDialog() == true ? new SetupWizardResult(_viewModel.NewPassword, _viewModel.IsRandom) : null;
+            var result = ShowDialog() == true
+                ? new SetupWizardResult(
+                    _viewModel.NewPassword,
+                    _viewModel.IsRandom,
+                    _viewModel.ApplicationName,
+                    _viewModel.ItemLabelSingular,
+                    _viewModel.ItemLabelPlural)
+                : null;
             return Task.FromResult(result);
         }
 

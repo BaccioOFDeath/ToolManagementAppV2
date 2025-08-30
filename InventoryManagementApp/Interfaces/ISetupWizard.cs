@@ -7,5 +7,10 @@ namespace InventoryManagementApp.Interfaces
         Task<SetupWizardResult?> RunAsync();
     }
 
-    public record SetupWizardResult(string Password, bool IsRandom);
+    public record SetupWizardResult(
+        string Password,
+        bool IsRandom,
+        string ApplicationName,
+        string ItemLabelSingular,
+        string ItemLabelPlural);
 }
