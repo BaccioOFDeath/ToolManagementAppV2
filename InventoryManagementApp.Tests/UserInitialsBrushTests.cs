@@ -28,7 +28,7 @@ namespace InventoryManagementApp.Tests
                 try
                 {
                     var app = new Application();
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
                     var users = new List<User>
                     {
                         new User { UserID = 1, UserName = "John Doe" },
@@ -66,7 +66,7 @@ namespace InventoryManagementApp.Tests
                 try
                 {
                     var app = new Application();
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
                     var users = new List<User>
                     {
                         new User { UserID = 1, UserName = "John Doe" }
@@ -113,7 +113,7 @@ namespace InventoryManagementApp.Tests
                 try
                 {
                     var app = new Application();
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
                     var users = new List<User>
                     {
                         new User { UserID = 1, UserName = "John Doe" },
@@ -164,7 +164,7 @@ namespace InventoryManagementApp.Tests
                 try
                 {
                     var app = new Application();
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
 
                     var hash = SecurityHelper.HashPassword("pass", out var salt);
                     var users = new List<User>
@@ -215,7 +215,7 @@ namespace InventoryManagementApp.Tests
                 try
                 {
                     var app = new Application();
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
 
                     var hash = SecurityHelper.HashPassword("pass", out var salt);
                     var users = new List<User>

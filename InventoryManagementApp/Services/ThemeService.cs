@@ -6,16 +6,25 @@ namespace InventoryManagementApp.Services
 {
     public class ThemeService : IThemeService
     {
+        readonly ResourceDictionary _light = new() { Source = new Uri("Resources/Colors.Light.xaml", UriKind.Relative) };
+        readonly ResourceDictionary _dark = new() { Source = new Uri("Resources/Colors.Dark.xaml", UriKind.Relative) };
+
         public void ApplyTheme(string? theme)
         {
-            var path = string.Equals(theme, "Light", StringComparison.OrdinalIgnoreCase)
-                ? "Resources/Colors.Light.xaml"
-                : "Resources/Colors.xaml";
-            var dict = new ResourceDictionary { Source = new Uri(path, UriKind.Relative) };
             var app = Application.Current;
-            if (app != null && app.Resources.MergedDictionaries.Count > 0)
+            if (app == null) return;
+
+            var dictionaries = app.Resources.MergedDictionaries;
+            var dict = string.Equals(theme, "Light", StringComparison.OrdinalIgnoreCase) ? _light : _dark;
+            var other = dict == _light ? _dark : _light;
+
+            if (!dictionaries.Contains(dict))
             {
-                app.Resources.MergedDictionaries[0] = dict;
+                dictionaries.Insert(0, dict);
+            }
+            if (dictionaries.Contains(other))
+            {
+                dictionaries.Remove(other);
             }
         }
     }
