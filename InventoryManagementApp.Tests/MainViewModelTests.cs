@@ -249,7 +249,7 @@ namespace InventoryManagementApp.Tests
                 var app = new Application();
                 app.Resources.MergedDictionaries.Add(new ResourceDictionary
                 {
-                    Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.xaml", UriKind.Absolute)
+                    Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute)
                 });
 
                 try

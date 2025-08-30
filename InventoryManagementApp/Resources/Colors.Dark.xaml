@@ -1,4 +1,4 @@
-<!-- Resources/Colors.xaml -->
+<!-- Resources/Colors.Dark.xaml -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Color x:Key="Col.Background">#0F141A</Color>
