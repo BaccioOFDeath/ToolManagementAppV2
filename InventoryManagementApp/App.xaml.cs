@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -26,6 +27,7 @@ using InventoryManagementApp.Services.Devices;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Utilities;
 using Microsoft.Data.Sqlite;
+using InventoryManagementApp.Models.Domain;
 
 namespace InventoryManagementApp
 {
@@ -148,6 +150,36 @@ namespace InventoryManagementApp
             var settingsService = Host.Services.GetRequiredService<ISettingsService>();
             SecurityHelper.SettingsService = settingsService;
             await SecurityHelper.GetIterationsAsync().ConfigureAwait(false);
+            var setupDone = await settingsService.GetSettingAsync("SetupComplete").ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(setupDone))
+            {
+                var wizard = Host.Services.GetRequiredService<ISetupWizard>();
+                var result = await wizard.RunAsync().ConfigureAwait(false);
+                if (result == null)
+                {
+                    Shutdown();
+                    return;
+                }
+                var userService = Host.Services.GetRequiredService<IUserService>();
+                var users = await userService.GetAllUsersAsync(System.Threading.CancellationToken.None).ConfigureAwait(false);
+                var admin = users.FirstOrDefault(u => u.IsAdmin);
+                if (admin == null)
+                {
+                    admin = new User
+                    {
+                        UserName = "admin",
+                        PasswordHash = "admin",
+                        IsAdmin = true,
+                        PasswordExpired = true
+                    };
+                    await userService.AddUserAsync(admin).ConfigureAwait(false);
+                }
+                await userService.ChangeUserPasswordAsync(admin.UserID, result.Password).ConfigureAwait(false);
+                await settingsService.SaveSettingAsync("ApplicationName", result.ApplicationName).ConfigureAwait(false);
+                await settingsService.SaveItemLabelSingularAsync(result.ItemLabelSingular).ConfigureAwait(false);
+                await settingsService.SaveItemLabelPluralAsync(result.ItemLabelPlural).ConfigureAwait(false);
+                await settingsService.SaveSettingAsync("SetupComplete", "true").ConfigureAwait(false);
+            }
             await LabelProvider.Instance.InitializeAsync(settingsService).ConfigureAwait(false);
 
             var main = (Window)Host.Services.GetRequiredService<IMainWindow>();
