@@ -25,15 +25,17 @@ namespace InventoryManagementApp.ViewModels
         readonly IFileDialogService _fileDialog;
         readonly ISettingsService _settingsService;
         readonly IDialogService _dialogService;
+        readonly IThemeService _themeService;
         readonly ILogger<SettingsViewModel> _logger;
         public ObservableCollection<ItemDetailOption> ItemDetailOptions { get; } = new();
         bool _bulkUpdating;
 
-        public SettingsViewModel(IFileDialogService fileDialog, ISettingsService settingsService, IDialogService dialogService, ILogger<SettingsViewModel>? logger = null)
+        public SettingsViewModel(IFileDialogService fileDialog, ISettingsService settingsService, IDialogService dialogService, IThemeService themeService, ILogger<SettingsViewModel>? logger = null)
         {
             _fileDialog = fileDialog;
             _settingsService = settingsService;
             _dialogService = dialogService;
+            _themeService = themeService;
             _logger = logger ?? NullLogger<SettingsViewModel>.Instance;
 
             ThemeOptions = new ObservableCollection<string> { "Light", "Dark" };
@@ -80,6 +82,10 @@ namespace InventoryManagementApp.ViewModels
             var appName = await _settingsService.GetSettingAsync("ApplicationName").ConfigureAwait(false);
             if (!string.IsNullOrWhiteSpace(appName))
                 _applicationName = appName;
+            var theme = await _settingsService.GetThemeAsync().ConfigureAwait(false);
+            if (!string.IsNullOrWhiteSpace(theme) && ThemeOptions.Contains(theme))
+                _theme = theme;
+            _themeService.ApplyTheme(_theme);
             _passwordIterations = await _settingsService.GetPasswordIterationsAsync().ConfigureAwait(false);
             _autoLogoutMinutes = await _settingsService.GetAutoLogoutMinutesAsync().ConfigureAwait(false);
             var vis = await _settingsService.GetItemDetailVisibilityAsync().ConfigureAwait(false);
@@ -91,6 +97,7 @@ namespace InventoryManagementApp.ViewModels
             }
             OnPropertyChanged(nameof(CompanyLogoPath));
             OnPropertyChanged(nameof(ApplicationName));
+            OnPropertyChanged(nameof(Theme));
             OnPropertyChanged(nameof(PasswordIterations));
             OnPropertyChanged(nameof(AutoLogoutMinutes));
             _initialized = true;
@@ -215,7 +222,35 @@ namespace InventoryManagementApp.ViewModels
         public string Theme
         {
             get => _theme;
-            set => SetProperty(ref _theme, value);
+            set
+            {
+                if (SetProperty(ref _theme, value))
+                {
+                    _ = SetThemeAsync(value);
+                }
+            }
+        }
+
+        async Task SetThemeAsync(string value, CancellationToken token = default)
+        {
+            try
+            {
+                await _settingsService.SaveThemeAsync(value, token).ConfigureAwait(false);
+                _themeService.ApplyTheme(value);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Unauthorized to change settings.");
+                _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+            }
+            catch (OperationCanceledException ex)
+            {
+                _logger.LogInformation(ex, "Saving theme was canceled.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save theme.");
+            }
         }
 
         private int _passwordIterations;

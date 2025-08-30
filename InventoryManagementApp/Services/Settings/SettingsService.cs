@@ -22,7 +22,7 @@ namespace InventoryManagementApp.Services.Settings
         readonly IAuthorizationService _auth;
         public event EventHandler<IDictionary<ItemDetailField, bool>>? ItemDetailVisibilityChanged;
         const string UpsertSql = @"
-            INSERT INTO Settings (Key, Value) 
+            INSERT INTO Settings (Key, Value)
             VALUES (@Key, @Value)
             ON CONFLICT(Key) DO UPDATE SET Value = @Value";
 
@@ -220,6 +220,7 @@ namespace InventoryManagementApp.Services.Settings
         const string ScannerIpKey = "ScannerIpAddresses";
         const string PasswordIterationsKey = "PasswordIterations";
         const string AutoLogoutMinutesKey = "AutoLogoutMinutes";
+        const string ThemeKey = "Theme";
         const string ItemLabelSingularKey = "ItemLabelSingular";
         const string ItemLabelPluralKey = "ItemLabelPlural";
         const string ItemDetailVisibilityKey = "ItemDetailVisibility";
@@ -274,6 +275,13 @@ namespace InventoryManagementApp.Services.Settings
 
             return invalid;
         }
+
+        // Theme configuration
+        public Task<string?> GetThemeAsync(CancellationToken cancellationToken = default)
+            => GetSettingAsync(ThemeKey, cancellationToken);
+
+        public Task SaveThemeAsync(string theme, CancellationToken cancellationToken = default)
+            => SaveSettingAsync(ThemeKey, theme, cancellationToken);
 
         // Password hashing configuration
         public async Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default)

@@ -55,6 +55,7 @@
 
   <ItemGroup>
     <Page Remove="Resources\Colors.xaml" />
+    <Page Remove="Resources\Colors.Light.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -91,6 +92,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\Colors.xaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Generator>MSBuild:Compile</Generator>
+    </Resource>
+    <Resource Include="Resources\Colors.Light.xaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Generator>MSBuild:Compile</Generator>
     </Resource>

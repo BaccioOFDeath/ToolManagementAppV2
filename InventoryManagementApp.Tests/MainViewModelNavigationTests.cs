@@ -60,6 +60,7 @@ namespace InventoryManagementApp.Tests
                     new DummyFileDialogService(),
                     activityLog,
                     new DummySettingsService(),
+                    new DummyThemeService(),
                     db,
                     new DummyDialogService(),
                     NullLogger<MainViewModel>.Instance,
@@ -97,6 +98,7 @@ namespace InventoryManagementApp.Tests
                 new DummyFileDialogService(),
                 activityLog,
                 new DummySettingsService(),
+                new DummyThemeService(),
                 db,
                 dialogService,
                 NullLogger<MainViewModel>.Instance,
@@ -206,6 +208,8 @@ namespace InventoryManagementApp.Tests
             public Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
             public Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
+            public Task<string?> GetThemeAsync(CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
+            public Task SaveThemeAsync(string theme, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);
             public Task SavePasswordIterationsAsync(int iterations, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<int> GetAutoLogoutMinutesAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);
@@ -221,6 +225,11 @@ namespace InventoryManagementApp.Tests
                 ItemDetailVisibilityChanged?.Invoke(this, visibility);
                 return Task.CompletedTask;
             }
+        }
+
+        private sealed class DummyThemeService : IThemeService
+        {
+            public void ApplyTheme(string? theme) { }
         }
 
         private sealed class DummyDialogService : IDialogService

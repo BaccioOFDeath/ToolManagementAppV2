@@ -18,4 +18,17 @@ public class SettingsServiceTests
 
         Assert.Null(value);
     }
+
+    [Fact]
+    public async Task SaveAndGetThemeAsync_RoundTrip()
+    {
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        await using var db = new DatabaseService(dbPath);
+        var service = new SettingsService(db);
+
+        await service.SaveThemeAsync("Dark");
+        var value = await service.GetThemeAsync();
+
+        Assert.Equal("Dark", value);
+    }
 }

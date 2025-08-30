@@ -17,6 +17,10 @@ namespace InventoryManagementApp.Interfaces
         Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default);
         Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default);
 
+        // Theme configuration
+        Task<string?> GetThemeAsync(CancellationToken cancellationToken = default);
+        Task SaveThemeAsync(string theme, CancellationToken cancellationToken = default);
+
         // Password hashing configuration
         Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default);
         Task SavePasswordIterationsAsync(int iterations, CancellationToken cancellationToken = default);

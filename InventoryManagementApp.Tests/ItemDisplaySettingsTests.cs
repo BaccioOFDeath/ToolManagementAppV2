@@ -51,6 +51,11 @@ public class ItemDisplaySettingsTests
         public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, Microsoft.Data.Sqlite.SqliteConnection? conn = null, Microsoft.Data.Sqlite.SqliteTransaction? tx = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 
+    private sealed class DummyThemeService : IThemeService
+    {
+        public void ApplyTheme(string? theme) { }
+    }
+
     private sealed class TrackingItemService : IItemService
     {
         public int CallCount { get; private set; }
@@ -141,6 +146,8 @@ public class ItemDisplaySettingsTests
         public Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
         public Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
+        public Task<string?> GetThemeAsync(CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
+        public Task SaveThemeAsync(string theme, CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);
         public Task SavePasswordIterationsAsync(int iterations, CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task<int> GetAutoLogoutMinutesAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);
@@ -266,7 +273,7 @@ public class ItemDisplaySettingsTests
         itemService.OnGetItems = () => searchTcs.TrySetResult(true);
         var itemVm = new ItemManagementViewModel(itemService, new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
         await itemVm.InitializeAsync();
-        var settingsVm = new SettingsViewModel(new DummyFileDialogService(), settings, new DummyDialogService());
+        var settingsVm = new SettingsViewModel(new DummyFileDialogService(), settings, new DummyDialogService(), new DummyThemeService());
         await settingsVm.InitializeAsync();
         var tcs = new TaskCompletionSource<bool>();
         itemVm.PropertyChanged += (s, e) =>
@@ -310,7 +317,7 @@ public class ItemDisplaySettingsTests
         itemService.OnGetItems = () => searchTcs.TrySetResult(true);
         var itemVm = new ItemManagementViewModel(itemService, new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
         await itemVm.InitializeAsync();
-        var settingsVm = new SettingsViewModel(new DummyFileDialogService(), settings, new DummyDialogService());
+        var settingsVm = new SettingsViewModel(new DummyFileDialogService(), settings, new DummyDialogService(), new DummyThemeService());
         await settingsVm.InitializeAsync();
         settingsVm.ItemLabelSingular = "Widget";
         await searchTcs.Task.WaitAsync(TimeSpan.FromSeconds(1));
@@ -326,7 +333,7 @@ public class ItemDisplaySettingsTests
         var vis = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => false);
         vis[ItemDetailField.Name] = true;
         await settings.SaveItemDetailVisibilityAsync(vis);
-        var vm = new SettingsViewModel(new DummyFileDialogService(), settings, new DummyDialogService());
+        var vm = new SettingsViewModel(new DummyFileDialogService(), settings, new DummyDialogService(), new DummyThemeService());
         await vm.InitializeAsync();
         Assert.Equal("TestApp", vm.ApplicationName);
         Assert.True(vm.ItemDetailOptions.Single(o => o.Field == ItemDetailField.Name).IsVisible);
@@ -340,7 +347,7 @@ public class ItemDisplaySettingsTests
         var settings = new SettingsService(db);
         var vis = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => true);
         settings.SaveItemDetailVisibilityAsync(vis).GetAwaiter().GetResult();
-        var vm = new SettingsViewModel(new DummyFileDialogService(), settings, new DummyDialogService());
+        var vm = new SettingsViewModel(new DummyFileDialogService(), settings, new DummyDialogService(), new DummyThemeService());
         var thread = new Thread(() =>
         {
             SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());

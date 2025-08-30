@@ -43,6 +43,7 @@ namespace InventoryManagementApp.ViewModels
         readonly IFileDialogService _fileDialogService;
         readonly IDialogService _dialogService;
         readonly IScannerService _scannerService;
+        readonly IThemeService _themeService;
         readonly ILogger<MainViewModel> _logger;
         readonly Func<Task<bool>> _showLoginWindow;
         readonly IDispatcherTimer _autoLogoutTimer;
@@ -198,6 +199,7 @@ namespace InventoryManagementApp.ViewModels
                              IFileDialogService fileDialogService,
                              ActivityLogService activityLogService,
                              ISettingsService settingsService,
+                             IThemeService themeService,
                              IDatabaseBackupService databaseService,
                              IDialogService dialogService,
                              ILogger<MainViewModel>? logger = null,
@@ -213,6 +215,7 @@ namespace InventoryManagementApp.ViewModels
             _rentalService = rentalService;
             _activityLogService = activityLogService;
             _settingsService = settingsService;
+            _themeService = themeService;
             _dialogService = dialogService;
             _scannerService = scannerService ?? new DummyScannerService();
             _fileDialogService = fileDialogService;
@@ -246,7 +249,7 @@ namespace InventoryManagementApp.ViewModels
             ImportExport = new ImportExportViewModel(itemService, customerService, fileDialogService, databaseService, _dialogService, OpenImageImportMappingWindowCommand, _userContext);
             Reports = new ReportsViewModel(new ReportService(itemService, rentalService, activityLogService, customerService, userService));
             ActivityLogs = new ActivityLogsViewModel(activityLogService);
-            Settings = new SettingsViewModel(_fileDialogService, _settingsService, _dialogService);
+            Settings = new SettingsViewModel(_fileDialogService, _settingsService, _dialogService, _themeService);
             var logoPath = _settingsService.GetSettingAsync("CompanyLogoPath").GetAwaiter().GetResult();
             if (!string.IsNullOrWhiteSpace(logoPath))
                 CompanyLogoPath = logoPath;
