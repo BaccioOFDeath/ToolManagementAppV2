@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using Forms = System.Windows.Forms;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Services;
@@ -188,7 +187,6 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand GlobalSearchCommand { get; }
         public IAsyncRelayCommand SwitchUserCommand { get; }
 
-        public IAsyncRelayCommand OpenPrintPreviewWindowCommand { get; }
         public IAsyncRelayCommand OpenPrintLabelWindowCommand { get; }
         public IAsyncRelayCommand OpenScannerStatusPageCommand { get; }
 
@@ -491,21 +489,6 @@ namespace InventoryManagementApp.ViewModels
                     {
                         _logger.LogError(shutdownEx, "Secondary shutdown attempt failed");
                     }
-                }
-            });
-
-            OpenPrintPreviewWindowCommand = new AsyncRelayCommand(async () =>
-            {
-                try
-                {
-                    var doc = new FlowDocument(new Paragraph(new Run("Preview document")));
-                    _dialogService.ShowPrintPreview(doc, "Print Preview", string.Empty);
-                    await Task.CompletedTask;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to open print preview window");
-                    throw;
                 }
             });
 

@@ -54,7 +54,6 @@
                         <Separator/>
 
                         <TextBlock Text="Printing" Style="{StaticResource CaptionTextBlock}" Margin="6,8,6,2"/>
-                        <Button Style="{StaticResource NavButton}" Content="Print Preview" Command="{Binding OpenPrintPreviewWindowCommand}"/>
                         <Button Style="{StaticResource NavButton}" Content="Print Labels" Command="{Binding OpenPrintLabelWindowCommand}"/>
 
                         <Separator/>
