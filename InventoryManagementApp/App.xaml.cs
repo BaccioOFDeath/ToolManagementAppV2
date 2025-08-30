@@ -112,6 +112,7 @@ namespace InventoryManagementApp
                 services.AddSingleton<ActivityLogService>();
                 services.AddSingleton<IFileDialogService, FileDialogService>();
                 services.AddSingleton<ISettingsService, SettingsService>();
+                services.AddSingleton<IThemeService, ThemeService>();
                 services.AddSingleton<IDialogService, DialogService>();
                 services.AddSingleton<IScannerService, ScannerService>();
                 services.AddSingleton<MemoryBudget>();
@@ -148,8 +149,11 @@ namespace InventoryManagementApp
             var loggerFactory = Host.Services.GetRequiredService<ILoggerFactory>();
             PathHelper.Configure(loggerFactory.CreateLogger("PathHelper"));
             var settingsService = Host.Services.GetRequiredService<ISettingsService>();
+            var themeService = Host.Services.GetRequiredService<IThemeService>();
             SecurityHelper.SettingsService = settingsService;
             await SecurityHelper.GetIterationsAsync().ConfigureAwait(false);
+            var theme = await settingsService.GetThemeAsync().ConfigureAwait(false);
+            themeService.ApplyTheme(theme);
             var setupDone = await settingsService.GetSettingAsync("SetupComplete").ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(setupDone))
             {
