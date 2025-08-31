@@ -16,11 +16,7 @@ namespace InventoryManagementApp.Views.Windows
         public SetupWizardWindow()
         {
             InitializeComponent();
-            _viewModel = new SetupWizardViewModel(() => DialogResult = true, () => DialogResult = false, pwd =>
-            {
-                NewPasswordBox.Password = pwd;
-                ConfirmPasswordBox.Password = pwd;
-            });
+            _viewModel = new SetupWizardViewModel(() => DialogResult = true, () => DialogResult = false);
             DataContext = _viewModel;
             this.DisposeDataContextOnUnload();
         }
@@ -36,7 +32,6 @@ namespace InventoryManagementApp.Views.Windows
             var result = ShowDialog() == true
                 ? new SetupWizardResult(
                     _viewModel.NewPassword,
-                    _viewModel.IsRandom,
                     _viewModel.ApplicationName,
                     _viewModel.ItemLabelSingular,
                     _viewModel.ItemLabelPlural)

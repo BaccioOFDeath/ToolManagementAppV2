@@ -9,7 +9,6 @@ namespace InventoryManagementApp.Interfaces
 
     public record SetupWizardResult(
         string Password,
-        bool IsRandom,
         string ApplicationName,
         string ItemLabelSingular,
         string ItemLabelPlural);

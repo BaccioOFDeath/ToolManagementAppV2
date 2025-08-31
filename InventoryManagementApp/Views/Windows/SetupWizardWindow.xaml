@@ -20,7 +20,6 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <TextBlock Grid.Row="0" Text="Application Name" HorizontalAlignment="Center" Style="{StaticResource SubheadingTextBlock}"/>
         <TextBox Grid.Row="1" Width="200" Text="{Binding ApplicationName}" HorizontalAlignment="Center"/>
@@ -33,8 +32,7 @@
         <TextBlock Grid.Row="8" Text="Confirm Password" Margin="0,10,0,0" HorizontalAlignment="Center" Style="{StaticResource SubheadingTextBlock}"/>
         <PasswordBox Grid.Row="9" x:Name="ConfirmPasswordBox" PasswordChanged="ConfirmPasswordBox_PasswordChanged" Width="140" HorizontalAlignment="Center"/>
         <TextBlock Grid.Row="10" Text="{Binding ValidationMessage}" Margin="0,10,0,0" Style="{StaticResource ErrorTextBlock}" HorizontalAlignment="Center"/>
-        <Button Grid.Row="11" Content="Generate Random" Style="{StaticResource PrimaryButton}" Margin="0,10,0,0" Command="{Binding GenerateCommand}" HorizontalAlignment="Center"/>
-        <controls:DialogButtonBar Grid.Row="12"
+        <controls:DialogButtonBar Grid.Row="11"
                                   LeftButtonText="Cancel"
                                   LeftCommand="{Binding CancelCommand}"
                                   RightButtonText="OK"
