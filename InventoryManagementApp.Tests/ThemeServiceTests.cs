@@ -37,6 +37,22 @@ namespace InventoryManagementApp.Tests
             });
         }
 
+        [Fact]
+        public async Task ApplyTheme_ReplacesExistingDictionary()
+        {
+            await RunOnStaThread(async () =>
+            {
+                var app = new Application();
+                app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("Resources/Colors.Dark.xaml", UriKind.Relative) });
+                var service = new ThemeService();
+                service.ApplyTheme("Light");
+                Assert.DoesNotContain(app.Resources.MergedDictionaries, d => d.Source?.OriginalString.Contains("Colors.Dark.xaml") == true);
+                Assert.Contains("Colors.Light.xaml", app.Resources.MergedDictionaries[0].Source.OriginalString);
+                app.Shutdown();
+                await Task.CompletedTask;
+            });
+        }
+
         static Task RunOnStaThread(Func<Task> action)
         {
             var tcs = new TaskCompletionSource();

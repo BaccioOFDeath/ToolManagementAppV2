@@ -17,16 +17,18 @@ namespace InventoryManagementApp.Services
 
             var dictionaries = app.Resources.MergedDictionaries;
             var dict = string.Equals(theme, "Light", StringComparison.OrdinalIgnoreCase) ? _light : _dark;
-            var other = dict == _light ? _dark : _light;
 
-            if (!dictionaries.Contains(dict))
+            // Remove any existing theme dictionaries
+            for (int i = dictionaries.Count - 1; i >= 0; i--)
             {
-                dictionaries.Insert(0, dict);
+                var source = dictionaries[i].Source?.OriginalString;
+                if (source == _light.Source.OriginalString || source == _dark.Source.OriginalString)
+                {
+                    dictionaries.RemoveAt(i);
+                }
             }
-            if (dictionaries.Contains(other))
-            {
-                dictionaries.Remove(other);
-            }
+
+            dictionaries.Insert(0, dict);
         }
     }
 }
