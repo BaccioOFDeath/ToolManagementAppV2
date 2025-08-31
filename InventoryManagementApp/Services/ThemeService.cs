@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using InventoryManagementApp.Interfaces;
+using Application = System.Windows.Application;
 
 namespace InventoryManagementApp.Services
 {
