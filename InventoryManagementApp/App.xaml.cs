@@ -155,8 +155,8 @@ namespace InventoryManagementApp
             PathHelper.Configure(loggerFactory.CreateLogger("PathHelper"));
             var settingsService = Host.Services.GetRequiredService<ISettingsService>();
             SecurityHelper.SettingsService = settingsService;
-            await SecurityHelper.GetIterationsAsync().ConfigureAwait(false);
-            var setupDone = await settingsService.GetSettingAsync("SetupComplete").ConfigureAwait(false);
+            await SecurityHelper.GetIterationsAsync();
+            var setupDone = await settingsService.GetSettingAsync("SetupComplete");
             if (string.IsNullOrWhiteSpace(setupDone))
             {
                 // Bypass authorization during initial setup
@@ -174,14 +174,14 @@ namespace InventoryManagementApp
                     Host.Services.GetService<ILogger<SettingsService>>());
 
                 var wizard = Host.Services.GetRequiredService<ISetupWizard>();
-                var result = await wizard.RunAsync().ConfigureAwait(false);
+                var result = await wizard.RunAsync();
                 if (result == null)
                 {
                     Shutdown();
                     return;
                 }
 
-                var users = await bypassUsers.GetAllUsersAsync(System.Threading.CancellationToken.None).ConfigureAwait(false);
+                var users = await bypassUsers.GetAllUsersAsync(System.Threading.CancellationToken.None);
                 var admin = users.FirstOrDefault(u => u.IsAdmin);
                 if (admin == null)
                 {
@@ -192,18 +192,18 @@ namespace InventoryManagementApp
                         IsAdmin = true,
                         PasswordExpired = true
                     };
-                    await bypassUsers.AddUserAsync(admin).ConfigureAwait(false);
+                    await bypassUsers.AddUserAsync(admin);
                 }
-                await bypassUsers.ChangeUserPasswordAsync(admin.UserID, result.Password).ConfigureAwait(false);
-                await bypassSettings.SaveSettingAsync("ApplicationName", result.ApplicationName).ConfigureAwait(false);
-                await bypassSettings.SaveItemLabelSingularAsync(result.ItemLabelSingular).ConfigureAwait(false);
-                await bypassSettings.SaveItemLabelPluralAsync(result.ItemLabelPlural).ConfigureAwait(false);
-                await bypassSettings.SaveSettingAsync("SetupComplete", "true").ConfigureAwait(false);
+                await bypassUsers.ChangeUserPasswordAsync(admin.UserID, result.Password);
+                await bypassSettings.SaveSettingAsync("ApplicationName", result.ApplicationName);
+                await bypassSettings.SaveItemLabelSingularAsync(result.ItemLabelSingular);
+                await bypassSettings.SaveItemLabelPluralAsync(result.ItemLabelPlural);
+                await bypassSettings.SaveSettingAsync("SetupComplete", "true");
 
                 // Refresh settings service for normal operations
                 settingsService = Host.Services.GetRequiredService<ISettingsService>();
             }
-            await LabelProvider.Instance.InitializeAsync(settingsService).ConfigureAwait(false);
+            await LabelProvider.Instance.InitializeAsync(settingsService);
 
             var main = (Window)Host.Services.GetRequiredService<IMainWindow>();
             Current.MainWindow = main;
