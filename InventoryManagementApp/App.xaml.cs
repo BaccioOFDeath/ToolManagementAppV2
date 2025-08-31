@@ -209,6 +209,9 @@ namespace InventoryManagementApp
             Current.MainWindow = main;
             main.Show();
 
+            // Defer login sequence until the main window is fully shown
+            await main.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+
             var login = Host.Services.GetRequiredService<ILoginWindow>();
             login.Owner = main;
             login.WindowStartupLocation = WindowStartupLocation.CenterOwner;
