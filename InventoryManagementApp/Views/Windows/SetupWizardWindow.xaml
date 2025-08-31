@@ -20,6 +20,8 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <TextBlock Grid.Row="0" Text="Application Name" HorizontalAlignment="Center" Style="{StaticResource SubheadingTextBlock}"/>
         <TextBox Grid.Row="1" Width="200" Text="{Binding ApplicationName}" HorizontalAlignment="Center"/>
@@ -27,12 +29,20 @@
         <TextBox Grid.Row="3" Width="200" Text="{Binding ItemLabelSingular}" HorizontalAlignment="Center"/>
         <TextBlock Grid.Row="4" Text="Item Label Plural" Margin="0,10,0,0" HorizontalAlignment="Center" Style="{StaticResource SubheadingTextBlock}"/>
         <TextBox Grid.Row="5" Width="200" Text="{Binding ItemLabelPlural}" HorizontalAlignment="Center"/>
-        <TextBlock Grid.Row="6" Text="Admin Password" Margin="0,10,0,0" HorizontalAlignment="Center" Style="{StaticResource SubheadingTextBlock}"/>
-        <PasswordBox Grid.Row="7" x:Name="NewPasswordBox" PasswordChanged="NewPasswordBox_PasswordChanged" Width="140" HorizontalAlignment="Center"/>
-        <TextBlock Grid.Row="8" Text="Confirm Password" Margin="0,10,0,0" HorizontalAlignment="Center" Style="{StaticResource SubheadingTextBlock}"/>
-        <PasswordBox Grid.Row="9" x:Name="ConfirmPasswordBox" PasswordChanged="ConfirmPasswordBox_PasswordChanged" Width="140" HorizontalAlignment="Center"/>
-        <TextBlock Grid.Row="10" Text="{Binding ValidationMessage}" Margin="0,10,0,0" Style="{StaticResource ErrorTextBlock}" HorizontalAlignment="Center"/>
-        <controls:DialogButtonBar Grid.Row="11"
+        <TextBlock Grid.Row="6" Text="Company Logo" Margin="0,10,0,0" HorizontalAlignment="Center" Style="{StaticResource SubheadingTextBlock}"/>
+        <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Border Width="64" Height="64" CornerRadius="6" Background="{StaticResource SurfaceAltBrush}" Margin="0,0,8,0">
+                <Image Width="64" Height="64" Source="{Binding CompanyLogoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=logo}" Stretch="UniformToFill" ClipToBounds="True"/>
+            </Border>
+            <TextBlock Text="{Binding CompanyLogoPath}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Width="140" Margin="0,0,8,0"/>
+            <Button Content="Browse" Command="{Binding BrowseCompanyLogoCommand}" Style="{StaticResource PrimaryButton}"/>
+        </StackPanel>
+        <TextBlock Grid.Row="8" Text="Admin Password" Margin="0,10,0,0" HorizontalAlignment="Center" Style="{StaticResource SubheadingTextBlock}"/>
+        <PasswordBox Grid.Row="9" x:Name="NewPasswordBox" PasswordChanged="NewPasswordBox_PasswordChanged" Width="140" HorizontalAlignment="Center"/>
+        <TextBlock Grid.Row="10" Text="Confirm Password" Margin="0,10,0,0" HorizontalAlignment="Center" Style="{StaticResource SubheadingTextBlock}"/>
+        <PasswordBox Grid.Row="11" x:Name="ConfirmPasswordBox" PasswordChanged="ConfirmPasswordBox_PasswordChanged" Width="140" HorizontalAlignment="Center"/>
+        <TextBlock Grid.Row="12" Text="{Binding ValidationMessage}" Margin="0,10,0,0" Style="{StaticResource ErrorTextBlock}" HorizontalAlignment="Center"/>
+        <controls:DialogButtonBar Grid.Row="13"
                                   LeftButtonText="Cancel"
                                   LeftCommand="{Binding CancelCommand}"
                                   RightButtonText="OK"

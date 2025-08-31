@@ -198,6 +198,38 @@ namespace InventoryManagementApp
                 await bypassSettings.SaveSettingAsync("ApplicationName", result.ApplicationName);
                 await bypassSettings.SaveItemLabelSingularAsync(result.ItemLabelSingular);
                 await bypassSettings.SaveItemLabelPluralAsync(result.ItemLabelPlural);
+
+                if (!string.IsNullOrWhiteSpace(result.CompanyLogoPath))
+                {
+                    try
+                    {
+                        var baseDir = Path.GetFullPath(AppDomain.CurrentDomain.BaseDirectory);
+                        var fullInputPath = Path.GetFullPath(result.CompanyLogoPath);
+                        if (File.Exists(fullInputPath))
+                        {
+                            string relativePath;
+                            if (!fullInputPath.StartsWith(baseDir, StringComparison.OrdinalIgnoreCase))
+                            {
+                                var assetsDir = Path.Combine(baseDir, "Assets", "CompanyLogo");
+                                Directory.CreateDirectory(assetsDir);
+                                var destPath = Path.Combine(assetsDir, Path.GetFileName(fullInputPath));
+                                File.Copy(fullInputPath, destPath, true);
+                                relativePath = Path.GetRelativePath(baseDir, destPath);
+                            }
+                            else
+                            {
+                                relativePath = Path.GetRelativePath(baseDir, fullInputPath);
+                            }
+
+                            await bypassSettings.SaveSettingAsync("CompanyLogoPath", relativePath);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to save company logo path.");
+                    }
+                }
+
                 await bypassSettings.SaveSettingAsync("SetupComplete", "true");
 
                 // Refresh settings service for normal operations
