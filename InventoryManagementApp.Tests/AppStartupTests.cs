@@ -85,6 +85,70 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void FirstRun_SavesCompanyLogoPath()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".db");
+                    var host = Host.CreateDefaultBuilder()
+                        .ConfigureAppConfiguration(builder =>
+                        {
+                            builder.AddInMemoryCollection(new Dictionary<string, string>
+                            {
+                                ["Database:Path"] = dbPath
+                            });
+                        })
+                        .ConfigureServices(services =>
+                        {
+                            services.AddSingleton<DatabaseService>(sp => new DatabaseService(dbPath, NullLogger<DatabaseService>.Instance));
+                            services.AddSingleton<IDatabaseService>(sp => sp.GetRequiredService<DatabaseService>());
+                            services.AddSingleton<MigrationRunner>();
+                            services.AddSingleton<IUserContext, ApplicationUserContext>();
+                            services.AddSingleton<IAuthorizationService, FailingAuthorizationService>();
+                            services.AddSingleton<IUserService, UserService>();
+                            services.AddSingleton<ISettingsService, SettingsService>();
+                            services.AddSingleton<IThemeService, StubThemeService>();
+                            services.AddSingleton<IDialogService, StubDialogService>();
+                            services.AddSingleton<StubMainWindow>();
+                            services.AddSingleton<IMainWindow>(sp => sp.GetRequiredService<StubMainWindow>());
+                            services.AddSingleton<StubLoginWindow>();
+                            services.AddSingleton<ILoginWindow>(sp => sp.GetRequiredService<StubLoginWindow>());
+                            services.AddSingleton<ISetupWizard, StubSetupWizard>();
+                            services.AddSingleton<ILogger<App>>(sp => NullLogger<App>.Instance);
+                            services.AddSingleton<ILogger<DatabaseService>>(sp => NullLogger<DatabaseService>.Instance);
+                            services.AddSingleton<ILogger<UserService>>(sp => NullLogger<UserService>.Instance);
+                            services.AddSingleton<ILogger<SettingsService>>(sp => NullLogger<SettingsService>.Instance);
+                            services.AddSingleton<ILogger<MigrationRunner>>(sp => NullLogger<MigrationRunner>.Instance);
+                        })
+                        .Build();
+
+                    var app = new App(host);
+                    app.StartAsync().GetAwaiter().GetResult();
+
+                    var settings = host.Services.GetRequiredService<ISettingsService>();
+                    var saved = settings.GetSettingAsync("CompanyLogoPath").GetAwaiter().GetResult();
+                    var stub = (StubSetupWizard)host.Services.GetRequiredService<ISetupWizard>();
+                    var expected = Path.Combine("Assets", "CompanyLogo", Path.GetFileName(stub.LogoPath));
+                    Assert.Equal(expected, saved);
+                    Assert.True(File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, saved)));
+
+                    app.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
+        [Fact]
         public void StartAsync_AssignsOwnerAfterMainWindowShown()
         {
             Exception? threadEx = null;
@@ -225,8 +289,10 @@ namespace InventoryManagementApp.Tests
 
         private sealed class StubSetupWizard : ISetupWizard
         {
+            public string LogoPath { get; } = Path.GetTempFileName();
+
             public Task<SetupWizardResult?> RunAsync() =>
-                Task.FromResult<SetupWizardResult?>(new SetupWizardResult("password", false, "App", "Item", "Items"));
+                Task.FromResult<SetupWizardResult?>(new SetupWizardResult("password", "App", "Item", "Items", LogoPath));
         }
     }
 }

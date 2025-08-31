@@ -13,10 +13,10 @@ namespace InventoryManagementApp.Views.Windows
         bool _disposed;
         readonly SetupWizardViewModel _viewModel;
 
-        public SetupWizardWindow()
+        public SetupWizardWindow(IFileDialogService fileDialogService)
         {
             InitializeComponent();
-            _viewModel = new SetupWizardViewModel(() => DialogResult = true, () => DialogResult = false);
+            _viewModel = new SetupWizardViewModel(fileDialogService, () => DialogResult = true, () => DialogResult = false);
             DataContext = _viewModel;
             this.DisposeDataContextOnUnload();
         }
@@ -34,7 +34,8 @@ namespace InventoryManagementApp.Views.Windows
                     _viewModel.NewPassword,
                     _viewModel.ApplicationName,
                     _viewModel.ItemLabelSingular,
-                    _viewModel.ItemLabelPlural)
+                    _viewModel.ItemLabelPlural,
+                    _viewModel.CompanyLogoPath)
                 : null;
             return Task.FromResult(result);
         }

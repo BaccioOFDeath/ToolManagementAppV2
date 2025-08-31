@@ -11,5 +11,6 @@ namespace InventoryManagementApp.Interfaces
         string Password,
         string ApplicationName,
         string ItemLabelSingular,
-        string ItemLabelPlural);
+        string ItemLabelPlural,
+        string CompanyLogoPath);
 }
