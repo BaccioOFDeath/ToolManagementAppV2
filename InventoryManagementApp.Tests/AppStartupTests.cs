@@ -51,10 +51,11 @@ namespace InventoryManagementApp.Tests
                             services.AddSingleton<ISettingsService, SettingsService>();
                             services.AddSingleton<IThemeService, StubThemeService>();
                             services.AddSingleton<IDialogService, StubDialogService>();
-                            services.AddSingleton<ILoginViewModel, StubLoginViewModel>();
-                            services.AddTransient<IMainWindow, StubMainWindow>();
-                            services.AddTransient<ILoginWindow, StubLoginWindow>();
-                            services.AddTransient<ISetupWizard, StubSetupWizard>();
+                            services.AddSingleton<StubMainWindow>();
+                            services.AddSingleton<IMainWindow>(sp => sp.GetRequiredService<StubMainWindow>());
+                            services.AddSingleton<StubLoginWindow>();
+                            services.AddSingleton<ILoginWindow>(sp => sp.GetRequiredService<StubLoginWindow>());
+                            services.AddSingleton<ISetupWizard, StubSetupWizard>();
                             services.AddSingleton<ILogger<App>>(sp => NullLogger<App>.Instance);
                             services.AddSingleton<ILogger<DatabaseService>>(sp => NullLogger<DatabaseService>.Instance);
                             services.AddSingleton<ILogger<UserService>>(sp => NullLogger<UserService>.Instance);
@@ -69,6 +70,69 @@ namespace InventoryManagementApp.Tests
                     var settings = host.Services.GetRequiredService<ISettingsService>();
                     var setup = settings.GetSettingAsync("SetupComplete").GetAwaiter().GetResult();
                     Assert.Equal("true", setup);
+
+                    app.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
+        [Fact]
+        public void StartAsync_AssignsOwnerAfterMainWindowShown()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".db");
+                    var host = Host.CreateDefaultBuilder()
+                        .ConfigureAppConfiguration(builder =>
+                        {
+                            builder.AddInMemoryCollection(new Dictionary<string, string>
+                            {
+                                ["Database:Path"] = dbPath
+                            });
+                        })
+                        .ConfigureServices(services =>
+                        {
+                            services.AddSingleton<DatabaseService>(sp => new DatabaseService(dbPath, NullLogger<DatabaseService>.Instance));
+                            services.AddSingleton<IDatabaseService>(sp => sp.GetRequiredService<DatabaseService>());
+                            services.AddSingleton<MigrationRunner>();
+                            services.AddSingleton<IUserContext, ApplicationUserContext>();
+                            services.AddSingleton<IAuthorizationService, FailingAuthorizationService>();
+                            services.AddSingleton<IUserService, UserService>();
+                            services.AddSingleton<ISettingsService, SettingsService>();
+                            services.AddSingleton<IThemeService, StubThemeService>();
+                            services.AddSingleton<IDialogService, StubDialogService>();
+                            services.AddSingleton<StubMainWindow>();
+                            services.AddSingleton<IMainWindow>(sp => sp.GetRequiredService<StubMainWindow>());
+                            services.AddSingleton<StubLoginWindow>();
+                            services.AddSingleton<ILoginWindow>(sp => sp.GetRequiredService<StubLoginWindow>());
+                            services.AddSingleton<ISetupWizard, StubSetupWizard>();
+                            services.AddSingleton<ILogger<App>>(sp => NullLogger<App>.Instance);
+                            services.AddSingleton<ILogger<DatabaseService>>(sp => NullLogger<DatabaseService>.Instance);
+                            services.AddSingleton<ILogger<UserService>>(sp => NullLogger<UserService>.Instance);
+                            services.AddSingleton<ILogger<SettingsService>>(sp => NullLogger<SettingsService>.Instance);
+                            services.AddSingleton<ILogger<MigrationRunner>>(sp => NullLogger<MigrationRunner>.Instance);
+                        })
+                        .Build();
+
+                    var app = new App(host);
+                    app.StartAsync().GetAwaiter().GetResult();
+
+                    var main = host.Services.GetRequiredService<StubMainWindow>();
+                    var login = host.Services.GetRequiredService<StubLoginWindow>();
+                    Assert.True(main.IsShown);
+                    Assert.Same(main, login.Owner);
+                    Assert.True(login.OwnerAssignedAfterMainShown);
 
                     app.Shutdown();
                 }
@@ -121,16 +185,40 @@ namespace InventoryManagementApp.Tests
             }
         }
 
-        private sealed class StubMainWindow : Window, IMainWindow { }
+        private sealed class StubMainWindow : Window, IMainWindow
+        {
+            public bool IsShown { get; private set; }
+
+            public new void Show()
+            {
+                IsShown = true;
+                base.Show();
+            }
+        }
 
         private sealed class StubLoginWindow : Window, ILoginWindow
         {
-            public StubLoginWindow()
+            private readonly StubMainWindow _main;
+
+            public StubLoginWindow(StubMainWindow main)
             {
+                _main = main;
                 ViewModel = new StubLoginViewModel();
             }
 
+            public bool OwnerAssignedAfterMainShown { get; private set; }
+
             public ILoginViewModel ViewModel { get; }
+
+            public new Window Owner
+            {
+                get => base.Owner;
+                set
+                {
+                    OwnerAssignedAfterMainShown = _main.IsShown;
+                    base.Owner = value;
+                }
+            }
 
             public new bool? ShowDialog() => true;
         }
