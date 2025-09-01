@@ -107,7 +107,7 @@
                             <Border Width="64" Height="64" CornerRadius="6" Background="{DynamicResource SurfaceAltBrush}" Margin="8,0,8,0">
                                 <Image Width="64" Height="64"
                                        Source="{Binding CompanyLogoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=logo}"
-                                       Stretch="UniformToFill" ClipToBounds="True"/>
+                                       Stretch="Uniform" ClipToBounds="True"/>
                             </Border>
                             <TextBlock Text="{Binding CompanyLogoPath}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         </StackPanel>
