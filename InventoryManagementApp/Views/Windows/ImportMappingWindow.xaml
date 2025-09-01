@@ -6,9 +6,9 @@
         Title="Import Mapping"
         Width="1200" Height="700"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{DynamicResource BackgroundBrush}">
     <DockPanel Margin="10">
-        <Border DockPanel.Dock="Top" Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1" Padding="10" CornerRadius="8">
+        <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="10" CornerRadius="8">
             <TextBlock Text="Map CSV Columns to Fields" Style="{StaticResource HeadingTextBlock}"/>
         </Border>
 

@@ -4,7 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:InventoryManagementApp.Views.Controls"
         Title="Edit User" Width="520" Height="520" WindowStartupLocation="CenterOwner"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{DynamicResource BackgroundBrush}">
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -29,7 +29,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Border Grid.RowSpan="7" Width="96" Height="96" CornerRadius="8" VerticalAlignment="top" Background="{StaticResource SurfaceAltBrush}" Margin="0,0,12,0">
+            <Border Grid.RowSpan="7" Width="96" Height="96" CornerRadius="8" VerticalAlignment="top" Background="{DynamicResource SurfaceAltBrush}" Margin="0,0,12,0">
                 <Grid>
                     <Image Width="96" Height="96"
                            Source="{Binding EditingUser.UserPhotoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=user}"
