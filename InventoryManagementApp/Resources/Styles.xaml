@@ -235,18 +235,17 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="#243142"/>
-                            <Setter Property="BorderBrush" Value="#3A4B5E"/>
-                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="Background" Value="{DynamicResource NavButtonHoverBrush}"/>
+                            <Setter Property="BorderBrush" Value="{DynamicResource NavButtonHoverBorderBrush}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter Property="Background" Value="#1E2936"/>
-                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="Background" Value="{DynamicResource NavButtonPressedBrush}"/>
+                            <Setter Property="BorderBrush" Value="{DynamicResource NavButtonPressedBorderBrush}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Foreground" Value="#6C7A86"/>
-                            <Setter Property="Background" Value="#17202A"/>
-                            <Setter Property="BorderBrush" Value="#232E3A"/>
+                            <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}"/>
+                            <Setter Property="Background" Value="{DynamicResource NavButtonDisabledBrush}"/>
+                            <Setter Property="BorderBrush" Value="{DynamicResource NavButtonDisabledBorderBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
