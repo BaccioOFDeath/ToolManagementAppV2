@@ -6,7 +6,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Control">
-                    <Rectangle Margin="2" StrokeThickness="2" StrokeDashArray="1 1" Stroke="#5FA8FF" SnapsToDevicePixels="True"/>
+                    <Rectangle Margin="2" StrokeThickness="2" StrokeDashArray="1 1" Stroke="{DynamicResource FocusVisualStrokeBrush}" SnapsToDevicePixels="True"/>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -94,11 +94,11 @@
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="#2D3C4E"/>
+                <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
                 <Setter Property="Foreground" Value="White"/>
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="#1E90FF"/>
+                <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>
                 <Setter Property="Foreground" Value="White"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
             </Trigger>
@@ -111,11 +111,11 @@
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="#2D3C4E"/>
+                <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
                 <Setter Property="Foreground" Value="White"/>
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="#1E90FF"/>
+                <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>
                 <Setter Property="Foreground" Value="White"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
             </Trigger>
@@ -193,8 +193,8 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="ToggleButton" Property="Foreground" Value="#6C7A86"/>
-                            <Setter TargetName="ToggleButton" Property="Background" Value="#1A1A1A"/>
+                            <Setter TargetName="ToggleButton" Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}"/>
+                            <Setter TargetName="ToggleButton" Property="Background" Value="{DynamicResource DisabledBackgroundBrush}"/>
                             <Setter TargetName="ToggleButton" Property="BorderBrush" Value="#333"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -295,8 +295,8 @@
     </Style>
     <Style TargetType="DataGrid">
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-        <Setter Property="RowBackground" Value="#121a22"/>
-        <Setter Property="AlternatingRowBackground" Value="#141f28"/>
+        <Setter Property="RowBackground" Value="{DynamicResource DataGridRowBackgroundBrush}"/>
+        <Setter Property="AlternatingRowBackground" Value="{DynamicResource DataGridAlternatingRowBackgroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="GridLinesVisibility" Value="Horizontal"/>
@@ -314,11 +314,11 @@
         <Setter Property="Background" Value="Transparent"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="#2D3C4E"/>
+                <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
                 <Setter Property="Foreground" Value="White"/>
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="#1E90FF"/>
+                <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>
                 <Setter Property="Foreground" Value="White"/>
             </Trigger>
         </Style.Triggers>
@@ -332,7 +332,7 @@
     <Style TargetType="ProgressBar">
         <Setter Property="Height" Value="8"/>
         <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
-        <Setter Property="Background" Value="#1b2430"/>
+        <Setter Property="Background" Value="{DynamicResource ProgressBarBackgroundBrush}"/>
     </Style>
     <Style TargetType="DataGridColumnHeader">
         <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
@@ -355,11 +355,11 @@
         <Setter Property="Padding" Value="8,4"/>
         <Style.Triggers>
             <Trigger Property="IsHighlighted" Value="True">
-                <Setter Property="Background" Value="#2D3C4E"/>
+                <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
                 <Setter Property="Foreground" Value="White"/>
             </Trigger>
             <Trigger Property="IsChecked" Value="True">
-                <Setter Property="Background" Value="#1E90FF"/>
+                <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>
                 <Setter Property="Foreground" Value="White"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
             </Trigger>
