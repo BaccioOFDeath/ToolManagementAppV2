@@ -144,7 +144,7 @@ namespace InventoryManagementApp
 
         public async Task StartAsync()
         {
-            ShutdownMode = ShutdownMode.OnMainWindowClose;
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
             await Host.StartAsync();
 
@@ -239,6 +239,7 @@ namespace InventoryManagementApp
 
             var main = (Window)Host.Services.GetRequiredService<IMainWindow>();
             Current.MainWindow = main;
+            ShutdownMode = ShutdownMode.OnMainWindowClose;
             main.Show();
 
             // Defer login sequence until the main window is fully shown
