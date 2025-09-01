@@ -23,6 +23,7 @@
     <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Col.Accent}"/>
     <Color x:Key="Col.CardBackground">#FFFFFF</Color>
     <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource Col.CardBackground}"/>
+    <SolidColorBrush x:Key="TextBoxBackgroundBrush" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="OverlayBrush" Color="#80000000"/>
     <x:Array x:Key="UserInitialsBrushes" Type="SolidColorBrush">
         <SolidColorBrush Color="#FF1ABC9C"/>

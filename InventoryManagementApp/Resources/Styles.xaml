@@ -76,7 +76,7 @@
         <Setter Property="FontWeight" Value="SemiBold"/>
     </Style>
     <Style TargetType="TextBox">
-        <Setter Property="Background" Value="#141C24"/>
+        <Setter Property="Background" Value="{DynamicResource TextBoxBackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="1"/>
@@ -130,7 +130,7 @@
     </Style>
 
     <Style TargetType="ComboBox">
-        <Setter Property="Background" Value="#141C24"/>
+        <Setter Property="Background" Value="{DynamicResource TextBoxBackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="1"/>
@@ -204,7 +204,7 @@
     </Style>
 
     <Style TargetType="PasswordBox">
-        <Setter Property="Background" Value="#141C24"/>
+        <Setter Property="Background" Value="{DynamicResource TextBoxBackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="1"/>
