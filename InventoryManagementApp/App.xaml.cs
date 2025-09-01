@@ -45,11 +45,6 @@ namespace InventoryManagementApp
             _logger = Host.Services.GetRequiredService<ILogger<App>>();
             _dialogService = Host.Services.GetRequiredService<IDialogService>();
 
-            var settingsService = Host.Services.GetRequiredService<ISettingsService>();
-            var themeService = Host.Services.GetRequiredService<IThemeService>();
-            var theme = settingsService.GetThemeAsync().GetAwaiter().GetResult();
-            themeService.ApplyTheme(theme);
-
             DispatcherUnhandledException += (s, e) => HandleDispatcherException(e.Exception, e);
             AppDomain.CurrentDomain.UnhandledException += (s, e) =>
                 HandleDomainException(e.ExceptionObject as Exception ?? new Exception("Unknown"), e);
@@ -154,6 +149,10 @@ namespace InventoryManagementApp
             var loggerFactory = Host.Services.GetRequiredService<ILoggerFactory>();
             PathHelper.Configure(loggerFactory.CreateLogger("PathHelper"));
             var settingsService = Host.Services.GetRequiredService<ISettingsService>();
+            var themeService = Host.Services.GetRequiredService<IThemeService>();
+            var theme = await settingsService.GetThemeAsync();
+            themeService.ApplyTheme(theme);
+
             SecurityHelper.SettingsService = settingsService;
             await SecurityHelper.GetIterationsAsync();
             var setupDone = await settingsService.GetSettingAsync("SetupComplete");
