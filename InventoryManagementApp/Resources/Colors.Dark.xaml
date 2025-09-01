@@ -24,6 +24,12 @@
     <Color x:Key="Col.CardBackground">#1F1F1F</Color>
     <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource Col.CardBackground}"/>
     <SolidColorBrush x:Key="OverlayBrush" Color="#80000000"/>
+    <SolidColorBrush x:Key="NavButtonHoverBrush" Color="#243142"/>
+    <SolidColorBrush x:Key="NavButtonHoverBorderBrush" Color="#3A4B5E"/>
+    <SolidColorBrush x:Key="NavButtonPressedBrush" Color="#1E2936"/>
+    <SolidColorBrush x:Key="NavButtonPressedBorderBrush" Color="#3A4B5E"/>
+    <SolidColorBrush x:Key="NavButtonDisabledBrush" Color="#17202A"/>
+    <SolidColorBrush x:Key="NavButtonDisabledBorderBrush" Color="#232E3A"/>
     <x:Array x:Key="UserInitialsBrushes" Type="SolidColorBrush">
         <SolidColorBrush Color="#FF1ABC9C"/>
         <SolidColorBrush Color="#FF3498DB"/>
