@@ -36,6 +36,14 @@
     <SolidColorBrush x:Key="BtnBgHover" Color="#353A45"/>
     <SolidColorBrush x:Key="BtnBorder" Color="#444A57"/>
     <SolidColorBrush x:Key="BtnFg" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="FocusVisualStrokeBrush" Color="#5FA8FF"/>
+    <SolidColorBrush x:Key="ItemHoverBrush" Color="#2D3C4E"/>
+    <SolidColorBrush x:Key="ItemSelectedBrush" Color="#1E90FF"/>
+    <SolidColorBrush x:Key="DisabledForegroundBrush" Color="#6C7A86"/>
+    <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="#1A1A1A"/>
+    <SolidColorBrush x:Key="DataGridRowBackgroundBrush" Color="#121A22"/>
+    <SolidColorBrush x:Key="DataGridAlternatingRowBackgroundBrush" Color="#141F28"/>
+    <SolidColorBrush x:Key="ProgressBarBackgroundBrush" Color="#1B2430"/>
     <x:Array x:Key="UserInitialsBrushes" Type="SolidColorBrush">
         <SolidColorBrush Color="#FF1ABC9C"/>
         <SolidColorBrush Color="#FF3498DB"/>
