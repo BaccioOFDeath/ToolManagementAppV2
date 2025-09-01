@@ -6,9 +6,9 @@
         Title="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Rent {0}'}"
         Width="800" Height="420"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{DynamicResource BackgroundBrush}">
     <DockPanel Margin="10">
-        <Border DockPanel.Dock="Top" Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1" Padding="10" CornerRadius="8">
+        <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="10" CornerRadius="8">
             <TextBlock Text="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Rent {0}'}" Style="{StaticResource HeadingTextBlock}"/>
         </Border>
 

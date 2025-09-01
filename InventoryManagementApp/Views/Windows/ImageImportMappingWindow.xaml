@@ -7,7 +7,7 @@
         Title="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Import {0} Pictures'}"
         Width="600" Height="220"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{DynamicResource BackgroundBrush}">
     <DockPanel Margin="10">
         <Border Style="{StaticResource Card}" DockPanel.Dock="Top">
             <StackPanel>

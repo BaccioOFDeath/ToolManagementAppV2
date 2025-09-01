@@ -5,7 +5,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
       xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
-      Background="{StaticResource BackgroundBrush}">
+      Background="{DynamicResource BackgroundBrush}">
     <Grid Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -50,8 +50,8 @@
                           IsReadOnly="False"
                           AutoGenerateColumns="False"
                           EnableColumnVirtualization="True"
-                          Background="{StaticResource SurfaceBrush}"
-                          BorderBrush="{StaticResource BorderBrushAlt}"
+                          Background="{DynamicResource SurfaceBrush}"
+                          BorderBrush="{DynamicResource BorderBrushAlt}"
                           Style="{StaticResource VirtualizedDataGridStyle}">
                     <DataGrid.Resources>
                         <helpers:BindingProxy x:Key="VmProxy" Data="{Binding}"/>

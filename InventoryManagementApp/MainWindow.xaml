@@ -5,9 +5,9 @@
         xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
         xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
         Title="{Binding WindowTitle}" Width="1280" Height="800" WindowStartupLocation="CenterScreen"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{DynamicResource BackgroundBrush}">
     <DockPanel LastChildFill="True">
-        <Border DockPanel.Dock="Left" Width="260" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrushBase}" BorderThickness="0,0,1,0">
+        <Border DockPanel.Dock="Left" Width="260" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrushBase}" BorderThickness="0,0,1,0">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -84,7 +84,7 @@
                 </ScrollViewer>
 
                 <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="12,8,12,16">
-                    <Ellipse Width="10" Height="10" Fill="{StaticResource SuccessBrush}" VerticalAlignment="Center"/>
+                    <Ellipse Width="10" Height="10" Fill="{DynamicResource SuccessBrush}" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding CurrentUserName}" Style="{StaticResource CaptionTextBlock}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding CurrentUserRole}" Style="{StaticResource CaptionTextBlock}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
@@ -97,7 +97,7 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Border Background="{StaticResource BackgroundBrush}" Padding="16,12" BorderBrush="{StaticResource BorderBrushBase}" BorderThickness="0,0,0,1">
+            <Border Background="{DynamicResource BackgroundBrush}" Padding="16,12" BorderBrush="{DynamicResource BorderBrushBase}" BorderThickness="0,0,0,1">
                 <DockPanel>
                     <TextBlock Text="{Binding CurrentPageTitle}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="10" Style="{StaticResource PageTitleTextBlock}"/>
                     <Border Width="60" Height="60" DockPanel.Dock="Right"  CornerRadius="16" ClipToBounds="True" Margin="0,0,8,0">
@@ -120,7 +120,7 @@
                    Name="MainFrame"
                    NavigationUIVisibility="Hidden"
                    JournalOwnership="OwnsJournal"
-                   Background="{StaticResource BackgroundBrush}"
+                   Background="{DynamicResource BackgroundBrush}"
                    Content="{Binding CurrentPage}"/>
         </Grid>
     </DockPanel>

@@ -8,7 +8,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       mc:Ignorable="av"
       x:Class="InventoryManagementApp.Views.Pages.ItemSearchPage"
-      Background="{StaticResource BackgroundBrush}"
+      Background="{DynamicResource BackgroundBrush}"
       Loaded="Page_Loaded"
       SizeChanged="Page_SizeChanged">
     <Grid Margin="8">
@@ -18,7 +18,7 @@
         </Grid.RowDefinitions>
 
         <ListBox x:Name="ItemsList" Grid.Row="1"
-                 Background="{StaticResource SurfaceBrush}"
+                 Background="{DynamicResource SurfaceBrush}"
                  ItemsSource="{Binding SearchResults}"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                  ScrollViewer.VerticalScrollBarVisibility="Auto"

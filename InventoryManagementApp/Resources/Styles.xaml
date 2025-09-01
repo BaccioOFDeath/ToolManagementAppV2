@@ -12,8 +12,8 @@
         </Setter>
     </Style>
     <Style TargetType="Window">
-        <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="FontFamily" Value="Segoe UI"/>
     </Style>
     <Style TargetType="ScrollViewer">
@@ -29,14 +29,14 @@
     </Style>
     <Style TargetType="ContentControl">
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
     </Style>
     <Style TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="TextWrapping" Value="Wrap"/>
     </Style>
     <Style x:Key="ErrorTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-        <Setter Property="Foreground" Value="{StaticResource ErrorBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}"/>
     </Style>
     <Style x:Key="SectionHeader" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
         <Setter Property="FontWeight" Value="SemiBold"/>
@@ -61,11 +61,11 @@
     </Style>
     <Style x:Key="CaptionTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
         <Setter Property="FontSize" Value="12"/>
-        <Setter Property="Foreground" Value="{StaticResource ForegroundMutedBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}"/>
     </Style>
     <Style x:Key="LabelTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
         <Setter Property="FontSize" Value="13"/>
-        <Setter Property="Foreground" Value="{StaticResource ForegroundMutedBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}"/>
     </Style>
     <Style x:Key="ListItemTitleTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
         <Setter Property="FontSize" Value="13"/>
@@ -77,8 +77,8 @@
     </Style>
     <Style TargetType="TextBox">
         <Setter Property="Background" Value="#141C24"/>
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrushAlt}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding" Value="10,6"/>
         <Setter Property="Height" Value="34"/>
@@ -86,7 +86,7 @@
     </Style>
     <Style x:Key="DropdownItemStyle" TargetType="ComboBoxItem">
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="Padding" Value="8,4"/>
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType=ComboBox}}"/>
@@ -106,7 +106,7 @@
     </Style>
 
     <Style TargetType="ListViewItem">
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
         <Style.Triggers>
@@ -125,14 +125,14 @@
     <Style x:Key="CardListView" TargetType="ListView">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="ItemContainerStyle" Value="{StaticResource {x:Type ListViewItem}}"/>
     </Style>
 
     <Style TargetType="ComboBox">
         <Setter Property="Background" Value="#141C24"/>
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrushAlt}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding" Value="8,4"/>
         <Setter Property="Height" Value="34"/>
@@ -180,7 +180,7 @@
                         PopupAnimation="Slide">
                             <Border 
                             Background="#1B2430" 
-                            BorderBrush="{StaticResource BorderBrushAlt}" 
+                            BorderBrush="{DynamicResource BorderBrushAlt}" 
                             BorderThickness="1"
                             CornerRadius="4">
                                 <ScrollViewer>
@@ -205,8 +205,8 @@
 
     <Style TargetType="PasswordBox">
         <Setter Property="Background" Value="#141C24"/>
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrushAlt}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding" Value="10,6"/>
         <Setter Property="Height" Value="34"/>
@@ -217,9 +217,9 @@
         <Setter Property="Height" Value="42"/>
         <Setter Property="HorizontalAlignment" Value="Stretch"/>
         <Setter Property="FontSize" Value="14"/>
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
-        <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrushAlt}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding" Value="14,8"/>
         <Setter Property="Cursor" Value="Hand"/>
@@ -264,7 +264,7 @@
         <Setter Property="Margin" Value="0,0,8,8"/>
     </Style>
     <Style x:Key="LinkButton" TargetType="Button">
-        <Setter Property="Foreground" Value="{StaticResource ForegroundMutedBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}"/>
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
@@ -282,24 +282,24 @@
         </Setter>
     </Style>
     <Style TargetType="Border" x:Key="Card">
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrushBase}"/>
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushBase}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius" Value="10"/>
         <Setter Property="Padding" Value="14"/>
         <Setter Property="Margin" Value="8"/>
     </Style>
     <Style TargetType="Separator">
-        <Setter Property="Background" Value="{StaticResource BorderBrushAlt}"/>
+        <Setter Property="Background" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="Height" Value="1"/>
         <Setter Property="Margin" Value="6,12"/>
     </Style>
     <Style TargetType="DataGrid">
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
         <Setter Property="RowBackground" Value="#121a22"/>
         <Setter Property="AlternatingRowBackground" Value="#141f28"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrushAlt}"/>
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="GridLinesVisibility" Value="Horizontal"/>
         <Setter Property="HeadersVisibility" Value="All"/>
         <Setter Property="RowHeight" Value="34"/>
@@ -311,7 +311,7 @@
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
     </Style>
     <Style TargetType="DataGridRow">
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="Background" Value="Transparent"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
@@ -332,27 +332,27 @@
     </Style>
     <Style TargetType="ProgressBar">
         <Setter Property="Height" Value="8"/>
-        <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
         <Setter Property="Background" Value="#1b2430"/>
     </Style>
     <Style TargetType="DataGridColumnHeader">
-        <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}"/>
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrushAlt}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="0,0,0,1"/>
         <Setter Property="Padding" Value="10,6"/>
         <Setter Property="Height" Value="36"/>
     </Style>
     <Style TargetType="ContextMenu">
-        <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrushAlt}"/>
+        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
     </Style>
     <Style TargetType="MenuItem">
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="Padding" Value="8,4"/>
         <Style.Triggers>
             <Trigger Property="IsHighlighted" Value="True">

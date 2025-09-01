@@ -5,7 +5,7 @@
         xmlns:controls="clr-namespace:InventoryManagementApp.Views.Controls"
         xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
         Title="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}" Width="520" Height="420" WindowStartupLocation="CenterOwner"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{DynamicResource BackgroundBrush}">
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>

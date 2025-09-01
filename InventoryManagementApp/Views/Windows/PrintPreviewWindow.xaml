@@ -5,11 +5,11 @@
         Title="Print Preview"
         Width="1200" Height="800"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{DynamicResource BackgroundBrush}">
     <DockPanel Margin="10">
         <Border DockPanel.Dock="Top"
-                Background="{StaticResource SurfaceAltBrush}"
-                BorderBrush="{StaticResource BorderBrushAlt}"
+                Background="{DynamicResource SurfaceAltBrush}"
+                BorderBrush="{DynamicResource BorderBrushAlt}"
                 BorderThickness="1"
                 Padding="10"
                 CornerRadius="8">

@@ -5,7 +5,7 @@
         Title="Filter Rentals"
         Width="420" Height="260"
         WindowStartupLocation="CenterOwner"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{DynamicResource BackgroundBrush}">
     <Grid Margin="14">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
