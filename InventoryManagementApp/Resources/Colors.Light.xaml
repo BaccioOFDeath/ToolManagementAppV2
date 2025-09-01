@@ -31,6 +31,10 @@
     <SolidColorBrush x:Key="NavButtonPressedBorderBrush" Color="#AAAAAA"/>
     <SolidColorBrush x:Key="NavButtonDisabledBrush" Color="#F4F4F4"/>
     <SolidColorBrush x:Key="NavButtonDisabledBorderBrush" Color="#DDDDDD"/>
+    <SolidColorBrush x:Key="BtnBg" Color="#E0E0E0"/>
+    <SolidColorBrush x:Key="BtnBgHover" Color="#D5D5D5"/>
+    <SolidColorBrush x:Key="BtnBorder" Color="#BBBBBB"/>
+    <SolidColorBrush x:Key="BtnFg" Color="#1A1A1A"/>
     <x:Array x:Key="UserInitialsBrushes" Type="SolidColorBrush">
         <SolidColorBrush Color="#FF1ABC9C"/>
         <SolidColorBrush Color="#FF3498DB"/>
