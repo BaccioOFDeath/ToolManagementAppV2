@@ -31,4 +31,16 @@ public class SettingsServiceTests
 
         Assert.Equal("Dark", value);
     }
+
+    [Fact]
+    public async Task GetAutoLogoutMinutesAsync_ReturnsDefaultOfOne()
+    {
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        await using var db = new DatabaseService(dbPath);
+        var service = new SettingsService(db);
+
+        var value = await service.GetAutoLogoutMinutesAsync();
+
+        Assert.Equal(1, value);
+    }
 }
