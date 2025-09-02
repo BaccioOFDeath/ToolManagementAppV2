@@ -514,7 +514,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 try
                 {
-                    var vm = new ScannerStatusViewModel(_scannerService, _dialogService);
+                    var vm = new ScannerStatusViewModel(_scannerService, _dialogService, _settingsService);
                     var page = new ScannerStatusPage { DataContext = vm, Title = "Scanner Status" };
                     CurrentPage = page;
                     await Task.CompletedTask;
