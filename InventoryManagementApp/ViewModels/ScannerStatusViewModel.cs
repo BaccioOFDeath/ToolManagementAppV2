@@ -197,7 +197,10 @@ namespace InventoryManagementApp.ViewModels
 
         async void Device_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(Device.GroupId) && sender is Device device)
+            if (sender is not Device device)
+                return;
+
+            if (e.PropertyName == nameof(Device.GroupId))
             {
                 try
                 {
@@ -206,6 +209,17 @@ namespace InventoryManagementApp.ViewModels
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to assign device {Ip} to group {Group}", device.Ip, device.GroupId);
+                }
+            }
+            else if (e.PropertyName == nameof(Device.Hostname))
+            {
+                try
+                {
+                    await _deviceService.AddOrUpdateDeviceAsync(device);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to update device {Ip}", device.Ip);
                 }
             }
         }
