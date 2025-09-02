@@ -280,10 +280,10 @@ namespace InventoryManagementApp
             _dialogService.ShowInfo("An unexpected error occurred. The application may need to close.", "Error");
         }
 
-        internal void HandleTaskException(AggregateException ex, UnobservedTaskExceptionEventArgs? e = null)
+        internal async void HandleTaskException(AggregateException ex, UnobservedTaskExceptionEventArgs? e = null)
         {
             _logger.LogError(ex, "Unobserved task exception");
-            _dialogService.ShowInfo("An unexpected background error occurred.", "Error");
+            await _dialogService.ShowInfoAsync("An unexpected background error occurred.", "Error");
             if (e != null) e.SetObserved();
         }
 
