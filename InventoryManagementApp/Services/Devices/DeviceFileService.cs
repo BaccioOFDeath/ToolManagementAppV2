@@ -53,9 +53,9 @@ namespace InventoryManagementApp.Services.Devices
         private async Task<IEnumerable<string>> ListSmbFilesAsync(Device device, string? extensionFilter, CancellationToken cancellationToken)
         {
             var results = new List<string>();
+            var client = new SMB2Client();
             try
             {
-                using var client = new SMB2Client();
                 var status = await Task.Run(() => client.Connect(device.Ip, SMBTransportType.DirectTCPTransport), cancellationToken);
                 if (status != NTStatus.STATUS_SUCCESS)
                     return results;
@@ -90,12 +90,15 @@ namespace InventoryManagementApp.Services.Devices
                         fileStore.Dispose();
                     }
                 }
-                client.Logoff();
-                client.Disconnect();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "SMB file listing failed for device {Ip}", device.Ip);
+            }
+            finally
+            {
+                try { client.Logoff(); } catch { }
+                try { client.Disconnect(); } catch { }
             }
             return results;
         }
