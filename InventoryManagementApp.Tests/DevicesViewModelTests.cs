@@ -26,6 +26,9 @@ public class DevicesViewModelTests
             LastExtensionFilter = extensionFilter;
             return Task.FromResult<IEnumerable<string>>(Files);
         }
+
+        public Task<int> DownloadUnseenFilesAsync(Device device, string basePath, CancellationToken cancellationToken = default)
+            => Task.FromResult(0);
     }
 
     private sealed class StubDialogService : IDialogService

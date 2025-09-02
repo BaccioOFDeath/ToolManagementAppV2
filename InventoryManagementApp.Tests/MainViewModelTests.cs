@@ -51,7 +51,6 @@ namespace InventoryManagementApp.Tests
                     new DummyScannerService(),
                     null,
                     new DummyDeviceGroupService(),
-                    new DummyScannerRuleService(),
                     debounceTimer);
 
                 var field = typeof(MainViewModel).GetField("<GlobalSearchCommand>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -96,7 +95,6 @@ namespace InventoryManagementApp.Tests
                 new DummyScannerService(),
                 null,
                 new DummyDeviceGroupService(),
-                    new DummyScannerRuleService(),
                     globalDebounceTimer);
 
                 var itemManagement = new ItemManagementViewModel(
@@ -162,7 +160,6 @@ namespace InventoryManagementApp.Tests
                 new DummyScannerService(),
                 null,
                 new DummyDeviceGroupService(),
-                    new DummyScannerRuleService(),
                     debounceTimer);
 
                 vm.Dispose();
@@ -200,7 +197,6 @@ namespace InventoryManagementApp.Tests
                 new DummyScannerService(),
                 null,
                 new DummyDeviceGroupService(),
-                    new DummyScannerRuleService(),
                     debounceTimer);
 
                 var openDashboardField = typeof(MainViewModel).GetField("<OpenDashboardCommand>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -240,7 +236,6 @@ namespace InventoryManagementApp.Tests
                 new DummyScannerService(),
                 null,
                 new DummyDeviceGroupService(),
-                    new DummyScannerRuleService(),
                     debounceTimer);
 
                 var openDashboardField = typeof(MainViewModel).GetField("<OpenDashboardCommand>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -308,7 +303,6 @@ namespace InventoryManagementApp.Tests
                     new DummyScannerService(),
                     null,
                     new DummyDeviceGroupService(),
-                        new DummyScannerRuleService(),
                         new DummyDispatcherTimer());
 
                     Assert.NotNull(vm.CurrentUserInitialsBrush);
@@ -521,13 +515,6 @@ namespace InventoryManagementApp.Tests
             public Task DeleteGroupAsync(int groupId, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task AssignDeviceToGroupAsync(string deviceIp, int? groupId, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<int?> GetDeviceGroupIdAsync(string deviceIp, CancellationToken cancellationToken = default) => Task.FromResult<int?>(null);
-        }
-
-        private sealed class DummyScannerRuleService : IScannerRuleService
-        {
-            public Task<int> AddRuleAsync(ScannerFileRule rule, CancellationToken cancellationToken = default) => Task.FromResult(0);
-            public Task<IEnumerable<ScannerFileRule>> GetRulesAsync(string deviceId, CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<ScannerFileRule>>(Array.Empty<ScannerFileRule>());
-            public Task DeleteRuleAsync(int ruleId, CancellationToken cancellationToken = default) => Task.CompletedTask;
         }
 
         private sealed class DummyDispatcherTimer : IDispatcherTimer

@@ -49,7 +49,6 @@ namespace InventoryManagementApp.ViewModels
         readonly IDeviceService _deviceService;
         readonly IDeviceGroupService _deviceGroupService;
         readonly IDeviceFileService _deviceFileService;
-        readonly IScannerRuleService _scannerRuleService;
         readonly IDeviceDiscoveryService _deviceDiscoveryService;
         readonly IThemeService _themeService;
         readonly ILogger<MainViewModel> _logger;
@@ -216,7 +215,6 @@ namespace InventoryManagementApp.ViewModels
                              IScannerService? scannerService = null,
                              IDeviceService? deviceService = null,
                              IDeviceGroupService? deviceGroupService = null,
-                             IScannerRuleService? scannerRuleService = null,
                              IDispatcherTimer? globalSearchDebounceTimer = null,
                              IDeviceFileService? deviceFileService = null,
                              IDeviceDiscoveryService? deviceDiscoveryService = null)
@@ -233,7 +231,6 @@ namespace InventoryManagementApp.ViewModels
             _scannerService = scannerService ?? new DummyScannerService();
             _deviceService = deviceService ?? new DummyDeviceService();
             _deviceGroupService = deviceGroupService ?? new DummyDeviceGroupService();
-            _scannerRuleService = scannerRuleService ?? new DummyScannerRuleService();
             _deviceFileService = deviceFileService ?? new DummyDeviceFileService();
             _deviceDiscoveryService = deviceDiscoveryService ?? new DeviceDiscoveryService(new ConfigurationBuilder().Build());
             _fileDialogService = fileDialogService;
@@ -710,17 +707,12 @@ namespace InventoryManagementApp.ViewModels
             public Task<int?> GetDeviceGroupIdAsync(string deviceIp, CancellationToken cancellationToken = default) => Task.FromResult<int?>(null);
         }
 
-        private sealed class DummyScannerRuleService : IScannerRuleService
-        {
-            public Task<int> AddRuleAsync(ScannerFileRule rule, CancellationToken cancellationToken = default) => Task.FromResult(0);
-            public Task<IEnumerable<ScannerFileRule>> GetRulesAsync(string deviceId, CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<ScannerFileRule>>(Array.Empty<ScannerFileRule>());
-            public Task DeleteRuleAsync(int ruleId, CancellationToken cancellationToken = default) => Task.CompletedTask;
-        }
-
         private sealed class DummyDeviceFileService : IDeviceFileService
         {
             public Task<IEnumerable<string>> ListFilesAsync(Device device, string? extensionFilter = null, CancellationToken cancellationToken = default)
                 => Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
+            public Task<int> DownloadUnseenFilesAsync(Device device, string basePath, CancellationToken cancellationToken = default)
+                => Task.FromResult(0);
         }
     }
 }
