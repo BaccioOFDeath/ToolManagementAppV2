@@ -117,7 +117,6 @@ namespace InventoryManagementApp.Services.Devices
             {
                 try { client.Logoff(); } catch { }
                 try { client.Disconnect(); } catch { }
-                client.Dispose();
             }
             return results;
         }
