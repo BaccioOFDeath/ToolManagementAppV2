@@ -67,8 +67,8 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageReference Include="FluentFTP" Version="53.3.2" />
-    <PackageReference Include="SMBLibrary" Version="0.9.6" />
+    <PackageReference Include="FluentFTP" Version="53.0.1" />
+    <PackageReference Include="SMBLibrary" Version="1.5.4.1" />
     <PackageReference Include="CsvHelper" Version="33.1.0" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.7.25104.5739" />
     <PackageReference Include="MaterialDesignThemes" Version="5.2.1" />
