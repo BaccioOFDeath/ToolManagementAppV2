@@ -31,6 +31,13 @@ namespace InventoryManagementApp.ViewModels
         public ObservableCollection<string> DeviceFiles { get; } = new();
         public ObservableCollection<ScannerFileRule> Rules { get; } = new();
 
+        private string _fileExtensionFilter = "*.*";
+        public string FileExtensionFilter
+        {
+            get => _fileExtensionFilter;
+            set => SetProperty(ref _fileExtensionFilter, value);
+        }
+
         bool _autoRefresh;
         public bool AutoRefresh
         {
@@ -162,7 +169,8 @@ namespace InventoryManagementApp.ViewModels
                 DeviceFiles.Clear();
                 if (SelectedDevice is null)
                     return;
-                var files = await _fileService.ListFilesAsync(SelectedDevice, null, cancellationToken);
+                var filter = FileExtensionFilter == "*.*" ? null : FileExtensionFilter;
+                var files = await _fileService.ListFilesAsync(SelectedDevice, filter, cancellationToken);
                 foreach (var f in files)
                     DeviceFiles.Add(f);
             }

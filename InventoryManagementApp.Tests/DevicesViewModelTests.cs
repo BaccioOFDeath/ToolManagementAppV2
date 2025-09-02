@@ -15,11 +15,17 @@ public class DevicesViewModelTests
             => Task.FromResult<IReadOnlyList<DiscoveredDevice>>(Devices);
     }
 
-    private sealed class StubDeviceFileService : IDeviceFileService
+    private sealed class RecordingDeviceFileService : IDeviceFileService
     {
         public List<string> Files { get; } = new();
+        public Device? LastDevice { get; private set; }
+        public string? LastExtensionFilter { get; private set; }
         public Task<IEnumerable<string>> ListFilesAsync(Device device, string? extensionFilter = null, CancellationToken cancellationToken = default)
-            => Task.FromResult<IEnumerable<string>>(Files);
+        {
+            LastDevice = device;
+            LastExtensionFilter = extensionFilter;
+            return Task.FromResult<IEnumerable<string>>(Files);
+        }
     }
 
     private sealed class StubDialogService : IDialogService
@@ -43,7 +49,7 @@ public class DevicesViewModelTests
     public async Task RefreshCommand_LoadsDevices()
     {
         var discovery = new StubDiscoveryService();
-        var fileService = new StubDeviceFileService();
+        var fileService = new RecordingDeviceFileService();
         var dialog = new StubDialogService();
         discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", Hostname = "test", IsOnline = true, Protocols = new List<DeviceProtocol> { DeviceProtocol.Ftp } });
         var vm = new DevicesViewModel(discovery, fileService, dialog);
@@ -59,7 +65,7 @@ public class DevicesViewModelTests
     public async Task PullAllReportsCommand_LoadsFiles()
     {
         var discovery = new StubDiscoveryService();
-        var fileService = new StubDeviceFileService();
+        var fileService = new RecordingDeviceFileService();
         var dialog = new StubDialogService();
         discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", Hostname = "test", IsOnline = true, Protocols = new List<DeviceProtocol>() });
         fileService.Files.AddRange(new[] { "a.txt", "b.txt" });
@@ -71,5 +77,24 @@ public class DevicesViewModelTests
 
         Assert.Equal(2, vm.DeviceFiles.Count);
         Assert.Contains("a.txt", vm.DeviceFiles);
+        Assert.Same(vm.SelectedDevice, fileService.LastDevice);
+        Assert.Null(fileService.LastExtensionFilter);
+    }
+
+    [Fact]
+    public async Task PullAllReportsCommand_UsesExtensionFilter()
+    {
+        var discovery = new StubDiscoveryService();
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new StubDialogService();
+        discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", Hostname = "test", IsOnline = true, Protocols = new List<DeviceProtocol>() });
+        var vm = new DevicesViewModel(discovery, fileService, dialog);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+        vm.SelectedDevice = vm.Devices[0];
+        vm.FileExtensionFilter = ".txt";
+        await vm.PullAllReportsCommand.ExecuteAsync(null);
+
+        Assert.Equal(".txt", fileService.LastExtensionFilter);
     }
 }
