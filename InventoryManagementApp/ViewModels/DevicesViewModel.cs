@@ -64,6 +64,12 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 var devices = await _discoveryService.DiscoverDevicesAsync();
+                if (devices.Count == 0 && !_discoveryService.HasConfiguredSubnets)
+                {
+                    await _dialogService.ShowInfoAsync("No subnets configured for device discovery.", "Devices");
+                    return;
+                }
+
                 Devices.Clear();
                 foreach (var d in devices)
                 {

@@ -11,6 +11,7 @@ public class DevicesViewModelTests
     private sealed class StubDiscoveryService : IDeviceDiscoveryService
     {
         public List<DiscoveredDevice> Devices { get; } = new();
+        public bool HasConfiguredSubnets { get; set; } = true;
         public Task<IReadOnlyList<DiscoveredDevice>> DiscoverDevicesAsync(CancellationToken cancellationToken = default)
             => Task.FromResult<IReadOnlyList<DiscoveredDevice>>(Devices);
     }
@@ -31,9 +32,15 @@ public class DevicesViewModelTests
             => Task.FromResult(0);
     }
 
-    private sealed class StubDialogService : IDialogService
+    private sealed class RecordingDialogService : IDialogService
     {
-        public void ShowInfo(string message, string title) { }
+        public string? LastInfoMessage { get; private set; }
+        public void ShowInfo(string message, string title) => LastInfoMessage = message;
+        public Task ShowInfoAsync(string message, string title)
+        {
+            LastInfoMessage = message;
+            return Task.CompletedTask;
+        }
         public bool ShowConfirmation(string message, string title) => false;
         public ItemModel? ShowEditItemDialog(ItemModel item) => null;
         public void ShowItemDetails(ItemModel item) { }
@@ -53,7 +60,7 @@ public class DevicesViewModelTests
     {
         var discovery = new StubDiscoveryService();
         var fileService = new RecordingDeviceFileService();
-        var dialog = new StubDialogService();
+        var dialog = new RecordingDialogService();
         discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", Hostname = "test", IsOnline = true, Protocols = new List<DeviceProtocol> { DeviceProtocol.Ftp } });
         var vm = new DevicesViewModel(discovery, fileService, dialog);
 
@@ -69,7 +76,7 @@ public class DevicesViewModelTests
     {
         var discovery = new StubDiscoveryService();
         var fileService = new RecordingDeviceFileService();
-        var dialog = new StubDialogService();
+        var dialog = new RecordingDialogService();
         discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", Hostname = "test", IsOnline = true, Protocols = new List<DeviceProtocol>() });
         fileService.Files.AddRange(new[] { "a.txt", "b.txt" });
         var vm = new DevicesViewModel(discovery, fileService, dialog);
@@ -89,7 +96,7 @@ public class DevicesViewModelTests
     {
         var discovery = new StubDiscoveryService();
         var fileService = new RecordingDeviceFileService();
-        var dialog = new StubDialogService();
+        var dialog = new RecordingDialogService();
         discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", Hostname = "test", IsOnline = true, Protocols = new List<DeviceProtocol>() });
         var vm = new DevicesViewModel(discovery, fileService, dialog);
 
@@ -99,5 +106,19 @@ public class DevicesViewModelTests
         await vm.PullAllReportsCommand.ExecuteAsync(null);
 
         Assert.Equal(".txt", fileService.LastExtensionFilter);
+    }
+
+    [Fact]
+    public async Task RefreshCommand_NoSubnets_ShowsWarning()
+    {
+        var discovery = new StubDiscoveryService { HasConfiguredSubnets = false };
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new RecordingDialogService();
+
+        var vm = new DevicesViewModel(discovery, fileService, dialog);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        Assert.Equal("No subnets configured for device discovery.", dialog.LastInfoMessage);
     }
 }

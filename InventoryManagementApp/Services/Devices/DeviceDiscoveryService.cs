@@ -21,6 +21,8 @@ namespace InventoryManagementApp.Services.Devices
         private readonly IList<string> _subnets;
         private readonly int _ftpPort;
 
+        public bool HasConfiguredSubnets => _subnets.Count > 0;
+
         public DeviceDiscoveryService(IConfiguration configuration,
             ILogger<DeviceDiscoveryService>? logger = null,
             Func<string, int, CancellationToken, Task<bool>>? portChecker = null)
@@ -28,11 +30,21 @@ namespace InventoryManagementApp.Services.Devices
             _logger = logger ?? NullLogger<DeviceDiscoveryService>.Instance;
             _portChecker = portChecker ?? DefaultPortChecker;
             _subnets = configuration.GetSection("DeviceDiscovery:Subnets").Get<IList<string>>() ?? new List<string>();
+            if (_subnets.Count == 0)
+            {
+                _logger.LogWarning("No subnets configured for device discovery.");
+            }
             _ftpPort = configuration.GetValue<int?>("DeviceDiscovery:FtpPort") ?? 21;
         }
 
         public async Task<IReadOnlyList<DiscoveredDevice>> DiscoverDevicesAsync(CancellationToken cancellationToken = default)
         {
+            if (_subnets.Count == 0)
+            {
+                _logger.LogWarning("Device discovery attempted with no configured subnets.");
+                return Array.Empty<DiscoveredDevice>();
+            }
+
             var devices = new ConcurrentBag<DiscoveredDevice>();
             var addresses = _subnets.SelectMany(GetAddresses).Distinct();
 

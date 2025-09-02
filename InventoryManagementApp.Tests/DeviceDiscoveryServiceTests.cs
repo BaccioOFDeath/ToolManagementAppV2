@@ -46,4 +46,16 @@ public class DeviceDiscoveryServiceTests
         Assert.False(offline.IsOnline);
         Assert.Empty(offline.Protocols);
     }
+
+    [Fact]
+    public async Task DiscoverDevices_NoSubnetsConfigured_ReturnsEmpty()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+        var service = new DeviceDiscoveryService(configuration);
+
+        Assert.False(service.HasConfiguredSubnets);
+        var devices = await service.DiscoverDevicesAsync();
+
+        Assert.Empty(devices);
+    }
 }
