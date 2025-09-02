@@ -26,17 +26,26 @@
             <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" Margin="0,8,0,0">
                 <DataGrid ItemsSource="{Binding Devices}"
                           AutoGenerateColumns="False"
-                          IsReadOnly="True"
+                          IsReadOnly="False"
                           Style="{StaticResource VirtualizedDataGridStyle}"
                           ColumnHeaderStyle="{StaticResource {x:Type DataGridColumnHeader}}">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Device" Binding="{Binding Hostname}" Width="*"/>
-                        <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="*"/>
-                        <DataGridTextColumn Header="IP" Binding="{Binding Ip}" Width="180"/>
-                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="160"/>
+                        <DataGridTextColumn Header="Device"
+                                            Binding="{Binding Hostname, UpdateSourceTrigger=PropertyChanged}"
+                                            Width="*"
+                                            IsReadOnly="False"/>
+                        <DataGridComboBoxColumn Header="Group"
+                                                ItemsSource="{Binding DataContext.Groups, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                DisplayMemberPath="Name"
+                                                SelectedValuePath="Id"
+                                                SelectedValueBinding="{Binding GroupId, UpdateSourceTrigger=PropertyChanged}"
+                                                Width="150"/>
+                        <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="*" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="IP" Binding="{Binding Ip}" Width="180" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="160" IsReadOnly="True"/>
                         <DataGridTextColumn Header="Last Seen"
                                             Binding="{Binding LastSeen, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
-                                            Width="220"/>
+                                            Width="220" IsReadOnly="True"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </Border>
