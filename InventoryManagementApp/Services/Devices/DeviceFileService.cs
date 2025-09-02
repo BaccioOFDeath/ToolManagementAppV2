@@ -76,19 +76,12 @@ namespace InventoryManagementApp.Services.Devices
                 status = client.ListShares(out var shares);
                 if (status != NTStatus.STATUS_SUCCESS) return results;
 
-                foreach (var shareObj in shares)
+                foreach (var share in shares)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    string shareName;
-                    if (shareObj is string sName)
-                    {
-                        shareName = sName;
-                    }
-                    else
-                    {
-                        dynamic d = shareObj;
-                        shareName = (string)d.ShareName;
-                    }
+                    string shareName = share is string sName
+                        ? sName
+                        : (string)((dynamic)share).ShareName;
 
                     if (string.Equals(shareName, "IPC$", StringComparison.OrdinalIgnoreCase)) continue;
 
