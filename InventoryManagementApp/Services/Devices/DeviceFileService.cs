@@ -93,11 +93,11 @@ namespace InventoryManagementApp.Services.Devices
         private async Task<IEnumerable<string>> ListFtpFilesAsync(Device device, string? extensionFilter, CancellationToken cancellationToken)
         {
             var results = new List<string>();
-            using var client = new FtpClient(device.Ip, device.Username, device.Password);
+            using var client = new AsyncFtpClient(device.Ip, device.Username, device.Password);
             try
             {
-                await client.ConnectAsync(cancellationToken);
-                var list = await client.GetNameListingAsync("/", cancellationToken);
+                await client.Connect(cancellationToken);
+                var list = await client.GetNameListing("/", cancellationToken);
                 foreach (var item in list)
                 {
                     var name = Path.GetFileName(item);
@@ -114,7 +114,7 @@ namespace InventoryManagementApp.Services.Devices
                 try
                 {
                     if (client.IsConnected)
-                        await client.DisconnectAsync(cancellationToken);
+                        await client.Disconnect(cancellationToken);
                 }
                 catch { }
             }
@@ -128,13 +128,13 @@ namespace InventoryManagementApp.Services.Devices
                 switch (device.Protocol)
                 {
                     case DeviceProtocol.Ftp:
-                        using (var client = new FtpClient(device.Ip, device.Username, device.Password))
+                        using (var client = new AsyncFtpClient(device.Ip, device.Username, device.Password))
                         {
-                            await client.ConnectAsync(cancellationToken);
+                            await client.Connect(cancellationToken);
                             using var ms = new MemoryStream();
-                            await client.DownloadStreamAsync(ms, file, token: cancellationToken);
+                            await client.DownloadStream(ms, file, token: cancellationToken);
                             if (client.IsConnected)
-                                await client.DisconnectAsync(cancellationToken);
+                                await client.Disconnect(cancellationToken);
                             return ms.ToArray();
                         }
                     case DeviceProtocol.Smb:
