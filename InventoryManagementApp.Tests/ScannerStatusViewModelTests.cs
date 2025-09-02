@@ -19,6 +19,13 @@ public class ScannerStatusViewModelTests
             => Task.FromResult<IEnumerable<ScannerDevice>>(Devices);
     }
 
+    private sealed class StubScannerFileService : IScannerFileService
+    {
+        public List<string> Files { get; } = new();
+        public Task<IEnumerable<string>> ListFilesAsync(string deviceIp, CancellationToken cancellationToken = default)
+            => Task.FromResult<IEnumerable<string>>(Files);
+    }
+
     private sealed class StubScannerGroupService : IScannerGroupService
     {
         public List<ScannerGroup> Groups { get; } = new();
@@ -114,7 +121,8 @@ public class ScannerStatusViewModelTests
         var dialogService = new StubDialogService();
         var settingsService = new StubSettingsService();
         var groupService = new StubScannerGroupService();
-        var vm = new ScannerStatusViewModel(scannerService, dialogService, settingsService, groupService);
+        var fileService = new StubScannerFileService();
+        var vm = new ScannerStatusViewModel(scannerService, dialogService, settingsService, groupService, fileService);
 
         var ip = "192.168.1.10";
         vm.PromptForIp = () => ip;
@@ -125,5 +133,26 @@ public class ScannerStatusViewModelTests
         Assert.Contains(ip, settingsService.IpAddresses);
         Assert.Single(vm.Devices);
         Assert.Equal(ip, vm.Devices[0].Ip);
+    }
+
+    [Fact]
+    public async Task SelectedDevice_LoadsFiles()
+    {
+        var scannerService = new StubScannerService();
+        var dialogService = new StubDialogService();
+        var settingsService = new StubSettingsService();
+        var groupService = new StubScannerGroupService();
+        var fileService = new StubScannerFileService();
+        fileService.Files.AddRange(new[] { "a.txt", "b.txt" });
+        var vm = new ScannerStatusViewModel(scannerService, dialogService, settingsService, groupService, fileService);
+
+        var device = new ScannerDevice { Name = "Test", Ip = "1.2.3.4", Status = "Online", LastSeen = DateTime.UtcNow };
+        vm.Devices.Add(device);
+        vm.SelectedDevice = device;
+
+        await vm.LoadFilesCommand.ExecuteAsync(null);
+
+        Assert.Equal(2, vm.DeviceFiles.Count);
+        Assert.Contains("a.txt", vm.DeviceFiles);
     }
 }

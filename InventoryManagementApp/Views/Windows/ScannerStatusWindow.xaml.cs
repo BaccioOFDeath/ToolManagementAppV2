@@ -11,15 +11,17 @@ namespace InventoryManagementApp.Views.Windows
         private readonly IDialogService _dialogService;
         private readonly ISettingsService _settingsService;
         private readonly IScannerGroupService _groupService;
+        private readonly IScannerFileService _fileService;
 
-        public ScannerStatusWindow(IScannerService scannerService, IDialogService dialogService, ISettingsService settingsService, IScannerGroupService groupService)
+        public ScannerStatusWindow(IScannerService scannerService, IDialogService dialogService, ISettingsService settingsService, IScannerGroupService groupService, IScannerFileService fileService)
         {
             InitializeComponent();
             _scannerService = scannerService;
             _dialogService = dialogService;
             _settingsService = settingsService;
             _groupService = groupService;
-            DataContext = new ScannerStatusViewModel(_scannerService, _dialogService, _settingsService, _groupService);
+            _fileService = fileService;
+            DataContext = new ScannerStatusViewModel(_scannerService, _dialogService, _settingsService, _groupService, _fileService);
             this.DisposeDataContextOnUnload();
         }
     }
