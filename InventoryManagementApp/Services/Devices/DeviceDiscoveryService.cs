@@ -172,20 +172,36 @@ namespace InventoryManagementApp.Services.Devices
 
         private static async Task<bool> DefaultPortChecker(string ip, int port, CancellationToken ct)
         {
+            TcpClient? client = null;
+            Task? connectTask = null;
             try
             {
-                using var client = new TcpClient();
-                var connectTask = client.ConnectAsync(ip, port);
-                var timeout = Task.Delay(1000, ct);
-                var completed = await Task.WhenAny(connectTask, timeout).ConfigureAwait(false);
-                if (completed == connectTask)
+                client = new TcpClient();
+                connectTask = client.ConnectAsync(ip, port, ct);
+                await connectTask.WaitAsync(TimeSpan.FromSeconds(1), ct).ConfigureAwait(false);
+                return client.Connected;
+            }
+            catch (TimeoutException)
+            {
+                if (connectTask != null)
                 {
-                    await connectTask.ConfigureAwait(false);
-                    return client.Connected;
+                    try
+                    {
+                        client?.Dispose();
+                        await connectTask.ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        // Swallow exceptions from the abandoned connect task
+                    }
                 }
             }
             catch
             {
+            }
+            finally
+            {
+                client?.Dispose();
             }
             return false;
         }
