@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SMBLibrary;
 using SMBLibrary.Client;
+using SMBLibrary.Client.Helpers;
 
 namespace InventoryManagementApp.Services.Devices
 {
@@ -50,57 +51,80 @@ namespace InventoryManagementApp.Services.Devices
             }
         }
 
+        private static bool MatchesExtension(string fileName, string? extensionFilter)
+        {
+            if (string.IsNullOrWhiteSpace(extensionFilter)) return true;
+            var ext = Path.GetExtension(fileName);
+            var f = extensionFilter.Trim();
+            if (f.StartsWith("*.", StringComparison.Ordinal)) f = f[1..];
+            if (!f.StartsWith(".", StringComparison.Ordinal)) f = "." + f;
+            return string.Equals(ext, f, StringComparison.OrdinalIgnoreCase);
+        }
+
         private async Task<IEnumerable<string>> ListSmbFilesAsync(Device device, string? extensionFilter, CancellationToken cancellationToken)
         {
             var results = new List<string>();
+            SMB2Client client = new SMB2Client();
             try
             {
-                using var client = new SMB2Client();
-                var connected = await Task.Run(() => client.Connect(device.Ip, SMBTransportType.DirectTCPTransport), cancellationToken);
-                if (!connected)
-                    return results;
+                bool connected = await Task.Run(() => client.Connect(device.Ip, SMBTransportType.DirectTCPTransport), cancellationToken);
+                if (!connected) return results;
 
-                NTStatus status = await Task.Run(() => client.Login(device.Domain, device.Username, device.Password), cancellationToken);
-                if (status != NTStatus.STATUS_SUCCESS)
-                    return results;
+                NTStatus status = await Task.Run(() => client.Login(device.Domain ?? string.Empty, device.Username ?? string.Empty, device.Password ?? string.Empty), cancellationToken);
+                if (status != NTStatus.STATUS_SUCCESS) return results;
 
                 status = client.ListShares(out var shares);
-                if (status != NTStatus.STATUS_SUCCESS)
-                    return results;
+                if (status != NTStatus.STATUS_SUCCESS || shares == null) return results;
 
-                foreach (var share in shares)
+                foreach (var shareObj in shares)
                 {
-                    string shareName = share is string s ? s : (string)((dynamic)share).ShareName;
-                    if (string.Equals(shareName, "IPC$", StringComparison.OrdinalIgnoreCase))
-                        continue;
+                    cancellationToken.ThrowIfCancellationRequested();
+                    string shareName;
+                    if (shareObj is string sName)
+                    {
+                        shareName = sName;
+                    }
+                    else
+                    {
+                        dynamic d = shareObj;
+                        shareName = (string)d.ShareName;
+                    }
+
+                    if (string.Equals(shareName, "IPC$", StringComparison.OrdinalIgnoreCase)) continue;
 
                     status = client.TreeConnect(shareName, out var fileStore);
-                    if (status != NTStatus.STATUS_SUCCESS)
-                        continue;
+                    if (status != NTStatus.STATUS_SUCCESS || fileStore == null) continue;
 
                     try
                     {
-                        var files = fileStore.ListFiles("\\") as IEnumerable<dynamic>;
-                        if (files == null) continue;
-                        foreach (var f in files)
+                        status = fileStore.ListFiles("\\", out var items);
+                        if (status != NTStatus.STATUS_SUCCESS || items == null) continue;
+
+                        foreach (var info in items)
                         {
-                            string name = f is string s2 ? s2 : (string)f.FileName;
-                            if (extensionFilter == null || Path.GetExtension(name).Equals(extensionFilter, StringComparison.OrdinalIgnoreCase))
-                                results.Add(name);
+                            cancellationToken.ThrowIfCancellationRequested();
+                            var name = info.FileName;
+                            if (string.IsNullOrEmpty(name)) continue;
+                            if (name is "." or "..") continue;
+                            if (MatchesExtension(name, extensionFilter)) results.Add(name);
                         }
                     }
                     finally
                     {
-                        fileStore.Disconnect();
-                        fileStore.Dispose();
+                        try { fileStore.Disconnect(); } catch { }
+                        try { fileStore.Dispose(); } catch { }
                     }
                 }
-                client.Logoff();
-                client.Disconnect();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "SMB file listing failed for device {Ip}", device.Ip);
+            }
+            finally
+            {
+                try { client.Logoff(); } catch { }
+                try { client.Disconnect(); } catch { }
+                client.Dispose();
             }
             return results;
         }
@@ -115,9 +139,9 @@ namespace InventoryManagementApp.Services.Devices
                 var list = await client.GetNameListing("/", cancellationToken);
                 foreach (var item in list)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     var name = Path.GetFileName(item);
-                    if (extensionFilter == null || Path.GetExtension(name).Equals(extensionFilter, StringComparison.OrdinalIgnoreCase))
-                        results.Add(name);
+                    if (MatchesExtension(name, extensionFilter)) results.Add(name);
                 }
             }
             catch (Exception ex)
@@ -186,7 +210,7 @@ namespace InventoryManagementApp.Services.Devices
                 cmd.Parameters.AddWithValue("$ip", device.Ip);
                 cmd.Parameters.AddWithValue("$hash", hash);
                 var inserted = cmd.ExecuteNonQuery();
-                if (inserted == 0) continue; // duplicate
+                if (inserted == 0) continue;
                 var dest = Path.Combine(deviceDir, Path.GetFileName(f));
                 await File.WriteAllBytesAsync(dest, data, cancellationToken);
                 count++;
