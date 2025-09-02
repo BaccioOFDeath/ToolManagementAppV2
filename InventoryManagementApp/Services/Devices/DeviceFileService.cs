@@ -55,28 +55,38 @@ namespace InventoryManagementApp.Services.Devices
             var results = new List<string>();
             try
             {
-                using var client = new SmbClient();
-                await Task.Run(() => client.Connect(device.Ip, SMBTransportType.DirectTCPTransport), cancellationToken);
-                await Task.Run(() => client.Login(device.Domain, device.Username, device.Password), cancellationToken);
-                var shares = client.ListShares() as IEnumerable<string> ?? Array.Empty<string>();
+                using var client = new SMB2Client();
+                var status = await Task.Run(() => client.Connect(device.Ip, SMBTransportType.DirectTCPTransport), cancellationToken);
+                if (status != NTStatus.STATUS_SUCCESS)
+                    return results;
+                status = await Task.Run(() => client.Login(device.Domain, device.Username, device.Password), cancellationToken);
+                if (status != NTStatus.STATUS_SUCCESS)
+                    return results;
+                status = client.ListShares(out var shares);
+                if (status != NTStatus.STATUS_SUCCESS)
+                    return results;
                 foreach (var share in shares)
                 {
-                    if (string.Equals(share, "IPC$", StringComparison.OrdinalIgnoreCase))
+                    string shareName = share is string s ? s : (string)((dynamic)share).ShareName;
+                    if (string.Equals(shareName, "IPC$", StringComparison.OrdinalIgnoreCase))
                         continue;
-                    dynamic fileStore = client.TreeConnect(share);
+                    status = client.TreeConnect(shareName, out var fileStore);
+                    if (status != NTStatus.STATUS_SUCCESS)
+                        continue;
                     try
                     {
                         var files = fileStore.ListFiles("\\") as IEnumerable<dynamic>;
                         if (files == null) continue;
                         foreach (var f in files)
                         {
-                            string name = f is string s ? s : (string)f.FileName;
+                            string name = f is string s2 ? s2 : (string)f.FileName;
                             if (extensionFilter == null || Path.GetExtension(name).Equals(extensionFilter, StringComparison.OrdinalIgnoreCase))
                                 results.Add(name);
                         }
                     }
                     finally
                     {
+                        fileStore.Disconnect();
                         fileStore.Dispose();
                     }
                 }
