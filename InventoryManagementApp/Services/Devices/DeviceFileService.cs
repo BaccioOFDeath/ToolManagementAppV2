@@ -70,7 +70,8 @@ namespace InventoryManagementApp.Services.Devices
                 NTStatus status = await Task.Run(() => client.Login(device.Domain ?? string.Empty, device.Username ?? string.Empty, device.Password ?? string.Empty), cancellationToken);
                 if (status != NTStatus.STATUS_SUCCESS) return results;
 
-                status = client.ListShares(out var shares);
+                dynamic shares;
+                status = client.ListShares(out shares);
                 if (status != NTStatus.STATUS_SUCCESS) return results;
 
                 foreach (var share in shares)
@@ -82,7 +83,8 @@ namespace InventoryManagementApp.Services.Devices
 
                     if (string.Equals(shareName, "IPC$", StringComparison.OrdinalIgnoreCase)) continue;
 
-                    status = client.TreeConnect(shareName, out var fileStore);
+                    dynamic fileStore;
+                    status = client.TreeConnect(shareName, out fileStore);
                     if (status != NTStatus.STATUS_SUCCESS) continue;
 
                     try
@@ -175,7 +177,8 @@ namespace InventoryManagementApp.Services.Devices
                             NTStatus status = await Task.Run(() => client.Login(device.Domain ?? string.Empty, device.Username ?? string.Empty, device.Password ?? string.Empty), cancellationToken);
                             if (status != NTStatus.STATUS_SUCCESS) return null;
 
-                            status = client.ListShares(out var shares);
+                            dynamic shares;
+                            status = client.ListShares(out shares);
                             if (status != NTStatus.STATUS_SUCCESS) return null;
 
                             foreach (var share in shares)
@@ -184,7 +187,8 @@ namespace InventoryManagementApp.Services.Devices
                                 string shareName = share is string sName ? sName : (string)((dynamic)share).ShareName;
                                 if (string.Equals(shareName, "IPC$", StringComparison.OrdinalIgnoreCase)) continue;
 
-                                status = client.TreeConnect(shareName, out var fileStore);
+                                dynamic fileStore;
+                                status = client.TreeConnect(shareName, out fileStore);
                                 if (status != NTStatus.STATUS_SUCCESS) continue;
                                 try
                                 {
