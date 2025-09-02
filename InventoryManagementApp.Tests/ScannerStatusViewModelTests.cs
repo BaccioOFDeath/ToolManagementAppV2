@@ -39,12 +39,18 @@ public class ScannerStatusViewModelTests
     {
         public List<DeviceGroup> Groups { get; } = new();
         public TaskCompletionSource<(string ip, int? groupId)> AssignTcs { get; } = new();
+        public TaskCompletionSource<DeviceGroup> UpdateTcs { get; } = new();
+        public DeviceGroup? UpdatedGroup { get; private set; }
         public Task<IEnumerable<DeviceGroup>> GetGroupsAsync(CancellationToken cancellationToken = default)
             => Task.FromResult<IEnumerable<DeviceGroup>>(Groups);
         public Task<int> CreateGroupAsync(string name, CancellationToken cancellationToken = default)
             => Task.FromResult(0);
         public Task UpdateGroupAsync(DeviceGroup group, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
+        {
+            UpdatedGroup = group;
+            UpdateTcs.TrySetResult(group);
+            return Task.CompletedTask;
+        }
         public Task DeleteGroupAsync(int groupId, CancellationToken cancellationToken = default)
             => Task.CompletedTask;
         public Task AssignDeviceToGroupAsync(string deviceIp, int? groupId, CancellationToken cancellationToken = default)
@@ -117,5 +123,26 @@ public class ScannerStatusViewModelTests
 
         Assert.Equal("1.2.3.4", assignment.ip);
         Assert.Equal(1, assignment.groupId);
+    }
+
+    [Fact]
+    public async Task RenamingGroup_UpdatesService()
+    {
+        var scanner = new StubScannerService();
+        var dialog = new StubDialogService();
+        var deviceService = new RecordingDeviceService();
+        var groupService = new RecordingDeviceGroupService();
+        groupService.Groups.Add(new DeviceGroup { Id = 1, Name = "Old" });
+        var fileService = new StubDeviceFileService();
+        var vm = new ScannerStatusViewModel(scanner, dialog, deviceService, groupService, fileService);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+        vm.SelectedGroup = vm.Groups[0];
+        vm.GroupName = "New";
+        await vm.RenameGroupCommand.ExecuteAsync(null);
+        var updated = await groupService.UpdateTcs.Task;
+
+        Assert.Equal(1, updated.Id);
+        Assert.Equal("New", updated.Name);
     }
 }

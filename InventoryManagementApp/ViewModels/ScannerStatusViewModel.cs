@@ -30,6 +30,26 @@ namespace InventoryManagementApp.ViewModels
         public ObservableCollection<DeviceGroup> Groups { get; } = new();
         public ObservableCollection<string> DeviceFiles { get; } = new();
 
+        DeviceGroup? _selectedGroup;
+        public DeviceGroup? SelectedGroup
+        {
+            get => _selectedGroup;
+            set
+            {
+                if (SetProperty(ref _selectedGroup, value))
+                {
+                    GroupName = value?.Name ?? string.Empty;
+                }
+            }
+        }
+
+        string _groupName = string.Empty;
+        public string GroupName
+        {
+            get => _groupName;
+            set => SetProperty(ref _groupName, value);
+        }
+
         private string _fileExtensionFilter = "*.*";
         public string FileExtensionFilter
         {
@@ -54,6 +74,7 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand RefreshCommand { get; }
         public IAsyncRelayCommand AddDeviceCommand { get; }
         public IAsyncRelayCommand AddGroupCommand { get; }
+        public IAsyncRelayCommand RenameGroupCommand { get; }
         public IAsyncRelayCommand LoadFilesCommand { get; }
 
         public Func<string?> PromptForIp { get; set; } = () =>
@@ -88,6 +109,7 @@ namespace InventoryManagementApp.ViewModels
             RefreshCommand = new AsyncRelayCommand(RefreshAsync);
             AddDeviceCommand = new AsyncRelayCommand(AddDeviceAsync);
             AddGroupCommand = new AsyncRelayCommand(AddGroupAsync);
+            RenameGroupCommand = new AsyncRelayCommand(RenameGroupAsync);
             LoadFilesCommand = new AsyncRelayCommand(LoadFilesAsync);
             _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
             _timer.Tick += OnTimerTick;
@@ -192,6 +214,24 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to add scanner group");
                 await _dialogService.ShowInfoAsync($"Failed to add group: {ex.Message}", "Error");
+            }
+        }
+
+        async Task RenameGroupAsync()
+        {
+            if (SelectedGroup is null || string.IsNullOrWhiteSpace(GroupName))
+                return;
+
+            try
+            {
+                SelectedGroup.Name = GroupName;
+                await _groupService.UpdateGroupAsync(SelectedGroup);
+                await RefreshAsync(CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to rename group {GroupId}", SelectedGroup.Id);
+                await _dialogService.ShowInfoAsync($"Failed to rename group: {ex.Message}", "Error");
             }
         }
 

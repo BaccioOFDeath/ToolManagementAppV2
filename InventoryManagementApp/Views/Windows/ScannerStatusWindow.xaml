@@ -20,6 +20,15 @@
                 <StackPanel Orientation="Horizontal">
                     <Button Style="{StaticResource PrimaryButton}" Content="Refresh" Command="{Binding RefreshCommand}"/>
                     <CheckBox Content="Auto Refresh" IsChecked="{Binding AutoRefresh}" Margin="12,6,0,0"/>
+                    <ComboBox ItemsSource="{Binding Groups}"
+                              SelectedItem="{Binding SelectedGroup}"
+                              DisplayMemberPath="Name"
+                              Width="150"
+                              Margin="12,0,0,0"/>
+                    <TextBox Text="{Binding GroupName, UpdateSourceTrigger=PropertyChanged}"
+                             Width="150"
+                             Margin="12,0,0,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Rename" Command="{Binding RenameGroupCommand}" Margin="12,0,0,0"/>
                 </StackPanel>
             </Border>
 
