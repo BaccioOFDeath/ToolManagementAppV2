@@ -68,31 +68,24 @@ namespace InventoryManagementApp.Services.Devices
                 if (status != NTStatus.STATUS_SUCCESS) return results;
 
                 status = client.ListShares(out var shares);
-                if (status != NTStatus.STATUS_SUCCESS || shares == null) return results;
+                if (status != NTStatus.STATUS_SUCCESS) return results;
 
-                foreach (var shareObj in shares)
+                foreach (var share in shares)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    string shareName;
-                    if (shareObj is string sName)
-                    {
-                        shareName = sName;
-                    }
-                    else
-                    {
-                        dynamic d = shareObj;
-                        shareName = (string)d.ShareName;
-                    }
+                    string shareName = share is string sName
+                        ? sName
+                        : (string)((dynamic)share).ShareName;
 
                     if (string.Equals(shareName, "IPC$", StringComparison.OrdinalIgnoreCase)) continue;
 
                     status = client.TreeConnect(shareName, out var fileStore);
-                    if (status != NTStatus.STATUS_SUCCESS || fileStore == null) continue;
+                    if (status != NTStatus.STATUS_SUCCESS) continue;
 
                     try
                     {
                         status = fileStore.ListFiles("\\", out var items);
-                        if (status != NTStatus.STATUS_SUCCESS || items == null) continue;
+                        if (status != NTStatus.STATUS_SUCCESS) continue;
 
                         foreach (var info in items)
                         {
