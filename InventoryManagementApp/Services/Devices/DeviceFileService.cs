@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Threading;
-using System.Threading.Tasks;
 using FluentFTP;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
@@ -13,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SMBLibrary;
 using SMBLibrary.Client;
-using SMBLibrary.Client.Helpers;
 
 namespace InventoryManagementApp.Services.Devices
 {
