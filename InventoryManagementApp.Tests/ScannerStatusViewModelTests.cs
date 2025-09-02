@@ -26,6 +26,24 @@ public class ScannerStatusViewModelTests
             => Task.FromResult<IEnumerable<string>>(Files);
     }
 
+    private sealed class StubScannerRuleService : IScannerRuleService
+    {
+        public List<ScannerFileRule> Rules { get; } = new();
+        public Task<int> AddRuleAsync(ScannerFileRule rule, CancellationToken cancellationToken = default)
+        {
+            rule.Id = Rules.Count + 1;
+            Rules.Add(rule);
+            return Task.FromResult(rule.Id);
+        }
+        public Task<IEnumerable<ScannerFileRule>> GetRulesAsync(string deviceId, CancellationToken cancellationToken = default)
+            => Task.FromResult<IEnumerable<ScannerFileRule>>(Rules.Where(r => r.DeviceId == deviceId).ToList());
+        public Task DeleteRuleAsync(int ruleId, CancellationToken cancellationToken = default)
+        {
+            Rules.RemoveAll(r => r.Id == ruleId);
+            return Task.CompletedTask;
+        }
+    }
+
     private sealed class StubScannerGroupService : IScannerGroupService
     {
         public List<ScannerGroup> Groups { get; } = new();
@@ -122,7 +140,8 @@ public class ScannerStatusViewModelTests
         var settingsService = new StubSettingsService();
         var groupService = new StubScannerGroupService();
         var fileService = new StubScannerFileService();
-        var vm = new ScannerStatusViewModel(scannerService, dialogService, settingsService, groupService, fileService);
+        var ruleService = new StubScannerRuleService();
+        var vm = new ScannerStatusViewModel(scannerService, dialogService, settingsService, groupService, fileService, ruleService);
 
         var ip = "192.168.1.10";
         vm.PromptForIp = () => ip;
@@ -143,8 +162,9 @@ public class ScannerStatusViewModelTests
         var settingsService = new StubSettingsService();
         var groupService = new StubScannerGroupService();
         var fileService = new StubScannerFileService();
+        var ruleService = new StubScannerRuleService();
         fileService.Files.AddRange(new[] { "a.txt", "b.txt" });
-        var vm = new ScannerStatusViewModel(scannerService, dialogService, settingsService, groupService, fileService);
+        var vm = new ScannerStatusViewModel(scannerService, dialogService, settingsService, groupService, fileService, ruleService);
 
         var device = new ScannerDevice { Name = "Test", Ip = "1.2.3.4", Status = "Online", LastSeen = DateTime.UtcNow };
         vm.Devices.Add(device);

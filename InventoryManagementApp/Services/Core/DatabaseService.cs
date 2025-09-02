@@ -158,6 +158,13 @@ namespace InventoryManagementApp.Services.Core
                     DeviceIp TEXT PRIMARY KEY,
                     GroupId INTEGER,
                     FOREIGN KEY (GroupId) REFERENCES ScannerGroups(GroupId)
+                );
+                CREATE TABLE IF NOT EXISTS ScannerFileRules (
+                    RuleId INTEGER PRIMARY KEY AUTOINCREMENT,
+                    DeviceId TEXT NOT NULL,
+                    SourcePath TEXT NOT NULL,
+                    DestinationPath TEXT NOT NULL,
+                    Pattern TEXT NOT NULL
                 );";
             using var cmd = new SqliteCommand(sql, conn);
             cmd.ExecuteNonQuery();
@@ -173,6 +180,7 @@ namespace InventoryManagementApp.Services.Core
             EnsureIndex(conn, "Users", "UserName", true);
             EnsureIndex(conn, "Customers", "Contact");
             EnsureIndex(conn, "Rentals", new[] { "ItemID", "CustomerID" });
+            EnsureIndex(conn, "ScannerFileRules", "DeviceId");
         }
 
         void MigrateLegacyItemsTable(SqliteConnection conn)

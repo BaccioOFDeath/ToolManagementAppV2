@@ -50,7 +50,33 @@
                                             Width="220"/>
                         </DataGrid.Columns>
                     </DataGrid>
-                    <ListBox Grid.Column="1" ItemsSource="{Binding DeviceFiles}" Margin="8,0,0,0"/>
+                    <Grid Grid.Column="1" Margin="8,0,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="2*"/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0" Style="{StaticResource PrimaryButton}" Content="Add Rule" Command="{Binding AddRuleCommand}"/>
+                        <ListBox Grid.Row="1" ItemsSource="{Binding DeviceFiles}" Margin="0,4,0,4"/>
+                        <DataGrid Grid.Row="2"
+                                  ItemsSource="{Binding Rules}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  Style="{StaticResource VirtualizedDataGridStyle}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Source" Binding="{Binding SourcePath}" Width="*"/>
+                                <DataGridTextColumn Header="Destination" Binding="{Binding DestinationPath}" Width="*"/>
+                                <DataGridTextColumn Header="Pattern" Binding="{Binding Pattern}" Width="*"/>
+                                <DataGridTemplateColumn Width="80">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="Delete" Command="{Binding DataContext.DeleteRuleCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding Id}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
                 </Grid>
             </Border>
         </Grid>

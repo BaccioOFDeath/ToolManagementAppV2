@@ -22,12 +22,14 @@ namespace InventoryManagementApp.ViewModels
         readonly ISettingsService _settingsService;
         readonly IScannerGroupService _groupService;
         readonly IScannerFileService _fileService;
+        readonly IScannerRuleService _ruleService;
         readonly ILogger<ScannerStatusViewModel> _logger;
         readonly DispatcherTimer _timer;
 
         public ObservableCollection<ScannerDevice> Devices { get; } = new();
         public ObservableCollection<ScannerGroup> Groups { get; } = new();
         public ObservableCollection<string> DeviceFiles { get; } = new();
+        public ObservableCollection<ScannerFileRule> Rules { get; } = new();
 
         bool _autoRefresh;
         public bool AutoRefresh
@@ -47,6 +49,9 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand AddDeviceCommand { get; }
         public IAsyncRelayCommand AddGroupCommand { get; }
         public IAsyncRelayCommand LoadFilesCommand { get; }
+        public IAsyncRelayCommand LoadRulesCommand { get; }
+        public IAsyncRelayCommand AddRuleCommand { get; }
+        public IAsyncRelayCommand<int> DeleteRuleCommand { get; }
 
         public Func<string?> PromptForIp { get; set; } = () =>
             Interaction.InputBox("Enter scanner IP:", "Add Device", string.Empty);
@@ -65,22 +70,27 @@ namespace InventoryManagementApp.ViewModels
                 if (SetProperty(ref _selectedDevice, value))
                 {
                     LoadFilesCommand.Execute(null);
+                    LoadRulesCommand.Execute(null);
                 }
             }
         }
 
-        public ScannerStatusViewModel(IScannerService service, IDialogService dialogService, ISettingsService settingsService, IScannerGroupService groupService, IScannerFileService fileService, ILogger<ScannerStatusViewModel>? logger = null)
+        public ScannerStatusViewModel(IScannerService service, IDialogService dialogService, ISettingsService settingsService, IScannerGroupService groupService, IScannerFileService fileService, IScannerRuleService ruleService, ILogger<ScannerStatusViewModel>? logger = null)
         {
             _service = service;
             _dialogService = dialogService;
             _settingsService = settingsService;
             _groupService = groupService;
             _fileService = fileService;
+            _ruleService = ruleService;
             _logger = logger ?? NullLogger<ScannerStatusViewModel>.Instance;
             RefreshCommand = new AsyncRelayCommand(RefreshAsync);
             AddDeviceCommand = new AsyncRelayCommand(AddDeviceAsync);
             AddGroupCommand = new AsyncRelayCommand(AddGroupAsync);
             LoadFilesCommand = new AsyncRelayCommand(LoadFilesAsync);
+            LoadRulesCommand = new AsyncRelayCommand(LoadRulesAsync);
+            AddRuleCommand = new AsyncRelayCommand(AddRuleAsync);
+            DeleteRuleCommand = new AsyncRelayCommand<int>(DeleteRuleAsync);
             _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
             _timer.Tick += OnTimerTick;
         }
@@ -164,6 +174,67 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load files for device {Ip}", SelectedDevice?.Ip);
+            }
+        }
+
+        async Task LoadRulesAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                Rules.Clear();
+                if (SelectedDevice is null)
+                    return;
+                var rules = await _ruleService.GetRulesAsync(SelectedDevice.Ip, cancellationToken);
+                foreach (var r in rules)
+                    Rules.Add(r);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load rules for device {Ip}", SelectedDevice?.Ip);
+            }
+        }
+
+        async Task AddRuleAsync()
+        {
+            try
+            {
+                if (SelectedDevice is null)
+                    return;
+                var source = Interaction.InputBox("Enter source folder:", "Add Rule", string.Empty);
+                if (string.IsNullOrWhiteSpace(source)) return;
+                var dest = Interaction.InputBox("Enter destination folder:", "Add Rule", string.Empty);
+                if (string.IsNullOrWhiteSpace(dest)) return;
+                var pattern = Interaction.InputBox("Enter file pattern:", "Add Rule", "*.*");
+                if (string.IsNullOrWhiteSpace(pattern)) return;
+                var rule = new ScannerFileRule
+                {
+                    DeviceId = SelectedDevice.Ip,
+                    SourcePath = source,
+                    DestinationPath = dest,
+                    Pattern = pattern
+                };
+                await _ruleService.AddRuleAsync(rule);
+                await LoadRulesAsync(CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to add rule");
+                await _dialogService.ShowInfoAsync($"Failed to add rule: {ex.Message}", "Error");
+            }
+        }
+
+        async Task DeleteRuleAsync(int ruleId)
+        {
+            try
+            {
+                await _ruleService.DeleteRuleAsync(ruleId);
+                var existing = Rules.FirstOrDefault(r => r.Id == ruleId);
+                if (existing != null)
+                    Rules.Remove(existing);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete rule {RuleId}", ruleId);
             }
         }
 
