@@ -14,9 +14,9 @@ public class ScannerStatusViewModelTests
 {
     private sealed class StubScannerService : IScannerService
     {
-        public List<ScannerDevice> Devices { get; } = new();
-        public Task<IEnumerable<ScannerDevice>> GetScannerDevicesAsync(CancellationToken cancellationToken)
-            => Task.FromResult<IEnumerable<ScannerDevice>>(Devices);
+        public List<Device> Devices { get; } = new();
+        public Task<IEnumerable<Device>> GetDevicesAsync(CancellationToken cancellationToken)
+            => Task.FromResult<IEnumerable<Device>>(Devices);
     }
 
     private sealed class StubScannerFileService : IScannerFileService
@@ -44,19 +44,19 @@ public class ScannerStatusViewModelTests
         }
     }
 
-    private sealed class StubScannerGroupService : IScannerGroupService
+    private sealed class StubDeviceGroupService : IDeviceGroupService
     {
-        public List<ScannerGroup> Groups { get; } = new();
+        public List<DeviceGroup> Groups { get; } = new();
         public Dictionary<string, int?> DeviceGroups { get; } = new();
         public Task<int> CreateGroupAsync(string name, CancellationToken cancellationToken = default)
         {
             var id = Groups.Count + 1;
-            Groups.Add(new ScannerGroup { Id = id, Name = name });
+            Groups.Add(new DeviceGroup { Id = id, Name = name });
             return Task.FromResult(id);
         }
-        public Task<IEnumerable<ScannerGroup>> GetGroupsAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult<IEnumerable<ScannerGroup>>(Groups);
-        public Task UpdateGroupAsync(ScannerGroup group, CancellationToken cancellationToken = default)
+        public Task<IEnumerable<DeviceGroup>> GetGroupsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult<IEnumerable<DeviceGroup>>(Groups);
+        public Task UpdateGroupAsync(DeviceGroup group, CancellationToken cancellationToken = default)
         {
             var existing = Groups.FirstOrDefault(g => g.Id == group.Id);
             if (existing != null) existing.Name = group.Name;
@@ -138,14 +138,14 @@ public class ScannerStatusViewModelTests
         var scannerService = new StubScannerService();
         var dialogService = new StubDialogService();
         var settingsService = new StubSettingsService();
-        var groupService = new StubScannerGroupService();
+        var groupService = new StubDeviceGroupService();
         var fileService = new StubScannerFileService();
         var ruleService = new StubScannerRuleService();
         var vm = new ScannerStatusViewModel(scannerService, dialogService, settingsService, groupService, fileService, ruleService);
 
         var ip = "192.168.1.10";
         vm.PromptForIp = () => ip;
-        scannerService.Devices.Add(new ScannerDevice { Name = "Test", Ip = ip, Status = "Online", LastSeen = DateTime.UtcNow });
+        scannerService.Devices.Add(new Device { Hostname = "Test", Ip = ip, Status = "Online", LastSeen = DateTime.UtcNow });
 
         await vm.AddDeviceCommand.ExecuteAsync(null);
 
@@ -160,13 +160,13 @@ public class ScannerStatusViewModelTests
         var scannerService = new StubScannerService();
         var dialogService = new StubDialogService();
         var settingsService = new StubSettingsService();
-        var groupService = new StubScannerGroupService();
+        var groupService = new StubDeviceGroupService();
         var fileService = new StubScannerFileService();
         var ruleService = new StubScannerRuleService();
         fileService.Files.AddRange(new[] { "a.txt", "b.txt" });
         var vm = new ScannerStatusViewModel(scannerService, dialogService, settingsService, groupService, fileService, ruleService);
 
-        var device = new ScannerDevice { Name = "Test", Ip = "1.2.3.4", Status = "Online", LastSeen = DateTime.UtcNow };
+        var device = new Device { Hostname = "Test", Ip = "1.2.3.4", Status = "Online", LastSeen = DateTime.UtcNow };
         vm.Devices.Add(device);
         vm.SelectedDevice = device;
 

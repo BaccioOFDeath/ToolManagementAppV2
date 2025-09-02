@@ -150,14 +150,14 @@ namespace InventoryManagementApp.Services.Core
                     Key TEXT PRIMARY KEY,
                     Value TEXT
                 );
-                CREATE TABLE IF NOT EXISTS ScannerGroups (
+                CREATE TABLE IF NOT EXISTS DeviceGroups (
                     GroupId INTEGER PRIMARY KEY AUTOINCREMENT,
                     Name TEXT NOT NULL
                 );
-                CREATE TABLE IF NOT EXISTS ScannerDeviceGroups (
+                CREATE TABLE IF NOT EXISTS DeviceGroupAssignments (
                     DeviceIp TEXT PRIMARY KEY,
                     GroupId INTEGER,
-                    FOREIGN KEY (GroupId) REFERENCES ScannerGroups(GroupId)
+                    FOREIGN KEY (GroupId) REFERENCES DeviceGroups(GroupId)
                 );
                 CREATE TABLE IF NOT EXISTS ScannerFileRules (
                     RuleId INTEGER PRIMARY KEY AUTOINCREMENT,

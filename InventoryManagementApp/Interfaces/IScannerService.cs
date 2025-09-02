@@ -7,6 +7,6 @@ namespace InventoryManagementApp.Interfaces
 {
     public interface IScannerService
     {
-        Task<IEnumerable<ScannerDevice>> GetScannerDevicesAsync(CancellationToken cancellationToken);
+        Task<IEnumerable<Device>> GetDevicesAsync(CancellationToken cancellationToken);
     }
 }

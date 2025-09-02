@@ -44,8 +44,9 @@ namespace InventoryManagementApp.ViewModels
         readonly IFileDialogService _fileDialogService;
         readonly IDialogService _dialogService;
         readonly IScannerService _scannerService;
-        readonly IScannerGroupService _scannerGroupService;
+        readonly IDeviceGroupService _deviceGroupService;
         readonly IScannerFileService _scannerFileService;
+        readonly IScannerRuleService _scannerRuleService;
         readonly IThemeService _themeService;
         readonly ILogger<MainViewModel> _logger;
         readonly Func<Task<bool>> _showLoginWindow;
@@ -209,7 +210,8 @@ namespace InventoryManagementApp.ViewModels
                              Func<Task<bool>>? showLoginWindow = null,
                              IDispatcherTimer? autoLogoutTimer = null,
                              IScannerService? scannerService = null,
-                             IScannerGroupService? scannerGroupService = null,
+                             IDeviceGroupService? deviceGroupService = null,
+                             IScannerRuleService? scannerRuleService = null,
                              IDispatcherTimer? globalSearchDebounceTimer = null,
                              IScannerFileService? scannerFileService = null)
         {
@@ -223,7 +225,8 @@ namespace InventoryManagementApp.ViewModels
             _themeService = themeService;
             _dialogService = dialogService;
             _scannerService = scannerService ?? new DummyScannerService();
-            _scannerGroupService = scannerGroupService ?? new DummyScannerGroupService();
+            _deviceGroupService = deviceGroupService ?? new DummyDeviceGroupService();
+            _scannerRuleService = scannerRuleService ?? new DummyScannerRuleService();
             _scannerFileService = scannerFileService ?? new DummyScannerFileService();
             _fileDialogService = fileDialogService;
             _logger = logger ?? NullLogger<MainViewModel>.Instance;
@@ -521,7 +524,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 try
                 {
-                    var vm = new ScannerStatusViewModel(_scannerService, _dialogService, _settingsService, _scannerGroupService, _scannerFileService);
+                    var vm = new ScannerStatusViewModel(_scannerService, _dialogService, _settingsService, _deviceGroupService, _scannerFileService, _scannerRuleService);
                     var page = new ScannerStatusPage { DataContext = vm, Title = "Scanner Status" };
                     CurrentPage = page;
                     await Task.CompletedTask;
@@ -673,18 +676,25 @@ namespace InventoryManagementApp.ViewModels
 
         private sealed class DummyScannerService : IScannerService
         {
-            public Task<IEnumerable<Models.ScannerDevice>> GetScannerDevicesAsync(CancellationToken cancellationToken)
-                => Task.FromResult<IEnumerable<Models.ScannerDevice>>(Array.Empty<Models.ScannerDevice>());
+            public Task<IEnumerable<Models.Device>> GetDevicesAsync(CancellationToken cancellationToken)
+                => Task.FromResult<IEnumerable<Models.Device>>(Array.Empty<Models.Device>());
         }
 
-        private sealed class DummyScannerGroupService : IScannerGroupService
+        private sealed class DummyDeviceGroupService : IDeviceGroupService
         {
             public Task<int> CreateGroupAsync(string name, CancellationToken cancellationToken = default) => Task.FromResult(0);
-            public Task<IEnumerable<ScannerGroup>> GetGroupsAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<ScannerGroup>>(Array.Empty<ScannerGroup>());
-            public Task UpdateGroupAsync(ScannerGroup group, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<IEnumerable<DeviceGroup>> GetGroupsAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<DeviceGroup>>(Array.Empty<DeviceGroup>());
+            public Task UpdateGroupAsync(DeviceGroup group, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task DeleteGroupAsync(int groupId, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task AssignDeviceToGroupAsync(string deviceIp, int? groupId, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<int?> GetDeviceGroupIdAsync(string deviceIp, CancellationToken cancellationToken = default) => Task.FromResult<int?>(null);
+        }
+
+        private sealed class DummyScannerRuleService : IScannerRuleService
+        {
+            public Task<int> AddRuleAsync(ScannerFileRule rule, CancellationToken cancellationToken = default) => Task.FromResult(0);
+            public Task<IEnumerable<ScannerFileRule>> GetRulesAsync(string deviceId, CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<ScannerFileRule>>(Array.Empty<ScannerFileRule>());
+            public Task DeleteRuleAsync(int ruleId, CancellationToken cancellationToken = default) => Task.CompletedTask;
         }
 
         private sealed class DummyScannerFileService : IScannerFileService

@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace InventoryManagementApp.Models
 {
-    public class ScannerGroup : ObservableObject
+    public class DeviceGroup : ObservableObject
     {
         int _id;
         string _name = string.Empty;

@@ -20,14 +20,14 @@ namespace InventoryManagementApp.ViewModels
         readonly IScannerService _service;
         readonly IDialogService _dialogService;
         readonly ISettingsService _settingsService;
-        readonly IScannerGroupService _groupService;
+        readonly IDeviceGroupService _groupService;
         readonly IScannerFileService _fileService;
         readonly IScannerRuleService _ruleService;
         readonly ILogger<ScannerStatusViewModel> _logger;
         readonly DispatcherTimer _timer;
 
-        public ObservableCollection<ScannerDevice> Devices { get; } = new();
-        public ObservableCollection<ScannerGroup> Groups { get; } = new();
+        public ObservableCollection<Device> Devices { get; } = new();
+        public ObservableCollection<DeviceGroup> Groups { get; } = new();
         public ObservableCollection<string> DeviceFiles { get; } = new();
         public ObservableCollection<ScannerFileRule> Rules { get; } = new();
 
@@ -61,8 +61,8 @@ namespace InventoryManagementApp.ViewModels
 
         internal bool IsTimerRunning => _timer.IsEnabled;
 
-        ScannerDevice? _selectedDevice;
-        public ScannerDevice? SelectedDevice
+        Device? _selectedDevice;
+        public Device? SelectedDevice
         {
             get => _selectedDevice;
             set
@@ -75,7 +75,7 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        public ScannerStatusViewModel(IScannerService service, IDialogService dialogService, ISettingsService settingsService, IScannerGroupService groupService, IScannerFileService fileService, IScannerRuleService ruleService, ILogger<ScannerStatusViewModel>? logger = null)
+        public ScannerStatusViewModel(IScannerService service, IDialogService dialogService, ISettingsService settingsService, IDeviceGroupService groupService, IScannerFileService fileService, IScannerRuleService ruleService, ILogger<ScannerStatusViewModel>? logger = null)
         {
             _service = service;
             _dialogService = dialogService;
@@ -109,7 +109,7 @@ namespace InventoryManagementApp.ViewModels
                 foreach (var g in groups)
                     Groups.Add(g);
 
-                var devices = await _service.GetScannerDevicesAsync(cancellationToken);
+                var devices = await _service.GetDevicesAsync(cancellationToken);
                 foreach (var d in Devices)
                     d.PropertyChanged -= Device_PropertyChanged;
                 Devices.Clear();
@@ -127,8 +127,8 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to refresh scanner devices");
-                await _dialogService.ShowInfoAsync($"Failed to refresh scanner devices: {ex.Message}", "Error");
+                _logger.LogError(ex, "Failed to refresh devices");
+                await _dialogService.ShowInfoAsync($"Failed to refresh devices: {ex.Message}", "Error");
             }
         }
 
@@ -258,7 +258,7 @@ namespace InventoryManagementApp.ViewModels
 
         async void Device_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(ScannerDevice.GroupId) && sender is ScannerDevice device)
+            if (e.PropertyName == nameof(Device.GroupId) && sender is Device device)
             {
                 try
                 {

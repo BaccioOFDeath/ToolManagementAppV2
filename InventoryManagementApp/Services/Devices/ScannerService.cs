@@ -22,7 +22,7 @@ namespace InventoryManagementApp.Services.Devices
             _logger = logger ?? NullLogger<ScannerService>.Instance;
         }
 
-        public async Task<IEnumerable<ScannerDevice>> GetScannerDevicesAsync(CancellationToken cancellationToken)
+        public async Task<IEnumerable<Device>> GetDevicesAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -35,9 +35,9 @@ namespace InventoryManagementApp.Services.Devices
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var device = new ScannerDevice
+                    var device = new Device
                     {
-                        Name = $"Scanner {ip}",
+                        Hostname = $"Device {ip}",
                         Ip = ip,
                         LastSeen = DateTime.UtcNow.ToLocalTime()
                     };
