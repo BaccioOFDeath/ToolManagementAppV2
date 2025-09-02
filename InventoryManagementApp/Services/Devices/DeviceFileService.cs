@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SMBLibrary;
 using SMBLibrary.Client;
+using SMBFileAttributes = SMBLibrary.FileAttributes;
 
 namespace InventoryManagementApp.Services.Devices
 {
@@ -194,7 +195,7 @@ namespace InventoryManagementApp.Services.Devices
                                 {
                                     cancellationToken.ThrowIfCancellationRequested();
                                     object fileInfo;
-                                    status = fileStore.CreateFile(out object handle, file, AccessMask.GENERIC_READ, FileAttributes.Normal, ShareAccess.Read, CreateDisposition.FILE_OPEN, CreateOptions.FILE_NON_DIRECTORY_FILE, out fileInfo);
+                                    status = fileStore.CreateFile(out object handle, file, AccessMask.GENERIC_READ, SMBFileAttributes.Normal, ShareAccess.Read, CreateDisposition.FILE_OPEN, CreateOptions.FILE_NON_DIRECTORY_FILE, out fileInfo);
                                     if (status != NTStatus.STATUS_SUCCESS) continue;
                                     try
                                     {
