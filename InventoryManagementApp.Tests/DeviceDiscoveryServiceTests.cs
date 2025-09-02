@@ -48,10 +48,33 @@ public class DeviceDiscoveryServiceTests
     }
 
     [Fact]
-    public async Task DiscoverDevices_NoSubnetsConfigured_ReturnsEmpty()
+    public async Task DiscoverDevices_UsesAutoDetectedSubnets()
     {
         var configuration = new ConfigurationBuilder().Build();
-        var service = new DeviceDiscoveryService(configuration);
+
+        IList<string> detected = new List<string> { "192.168.0.0/29" };
+
+        Task<bool> PortChecker(string ip, int port, CancellationToken _)
+        {
+            if (ip == "192.168.0.1" && port == 445) return Task.FromResult(true);
+            if (ip == "192.168.0.2" && port == 21) return Task.FromResult(true);
+            return Task.FromResult(false);
+        }
+
+        var service = new DeviceDiscoveryService(configuration, null, PortChecker, () => detected);
+
+        Assert.True(service.HasConfiguredSubnets);
+        var devices = await service.DiscoverDevicesAsync();
+
+        Assert.Equal(6, devices.Count);
+        Assert.Contains(devices, d => d.Ip == "192.168.0.1" && d.Protocols.Contains(DeviceProtocol.Smb));
+    }
+
+    [Fact]
+    public async Task DiscoverDevices_NoConfigOrDetectedSubnets_ReturnsEmpty()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+        var service = new DeviceDiscoveryService(configuration, null, null, () => new List<string>());
 
         Assert.False(service.HasConfiguredSubnets);
         var devices = await service.DiscoverDevicesAsync();
