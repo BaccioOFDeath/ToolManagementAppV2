@@ -29,6 +29,8 @@ using InventoryManagementApp.Utilities.Helpers;
 using Application = System.Windows.Application;
 using MediaBrush = System.Windows.Media.Brush;
 using MediaBrushes = System.Windows.Media.Brushes;
+using InventoryManagementApp.Services.Devices;
+using Microsoft.Extensions.Configuration;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -48,6 +50,7 @@ namespace InventoryManagementApp.ViewModels
         readonly IDeviceGroupService _deviceGroupService;
         readonly IScannerFileService _scannerFileService;
         readonly IScannerRuleService _scannerRuleService;
+        readonly IDeviceDiscoveryService _deviceDiscoveryService;
         readonly IThemeService _themeService;
         readonly ILogger<MainViewModel> _logger;
         readonly Func<Task<bool>> _showLoginWindow;
@@ -194,7 +197,7 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand SwitchUserCommand { get; }
 
         public IAsyncRelayCommand OpenPrintLabelWindowCommand { get; }
-        public IAsyncRelayCommand OpenScannerStatusPageCommand { get; }
+        public IAsyncRelayCommand OpenDevicesPageCommand { get; }
 
         public MainViewModel(IItemService itemService,
                              IUserService userService,
@@ -215,7 +218,8 @@ namespace InventoryManagementApp.ViewModels
                              IDeviceGroupService? deviceGroupService = null,
                              IScannerRuleService? scannerRuleService = null,
                              IDispatcherTimer? globalSearchDebounceTimer = null,
-                             IScannerFileService? scannerFileService = null)
+                             IScannerFileService? scannerFileService = null,
+                             IDeviceDiscoveryService? deviceDiscoveryService = null)
         {
             _itemService = itemService;
             _userService = userService;
@@ -231,6 +235,7 @@ namespace InventoryManagementApp.ViewModels
             _deviceGroupService = deviceGroupService ?? new DummyDeviceGroupService();
             _scannerRuleService = scannerRuleService ?? new DummyScannerRuleService();
             _scannerFileService = scannerFileService ?? new DummyScannerFileService();
+            _deviceDiscoveryService = deviceDiscoveryService ?? new DeviceDiscoveryService(new ConfigurationBuilder().Build());
             _fileDialogService = fileDialogService;
             _logger = logger ?? NullLogger<MainViewModel>.Instance;
             _showLoginWindow = showLoginWindow ?? new Func<Task<bool>>(async () =>
@@ -523,19 +528,19 @@ namespace InventoryManagementApp.ViewModels
                 }
             });
 
-            OpenScannerStatusPageCommand = new AsyncRelayCommand(async () =>
+            OpenDevicesPageCommand = new AsyncRelayCommand(async () =>
             {
                 try
                 {
-                    var vm = new ScannerStatusViewModel(_scannerService, _dialogService, _deviceService, _deviceGroupService, _scannerFileService, _scannerRuleService);
-                    var page = new ScannerStatusPage { DataContext = vm, Title = "Scanner Status" };
+                    var vm = new DevicesViewModel(_deviceDiscoveryService, _scannerFileService, _dialogService);
+                    var page = new DevicesPage { DataContext = vm, Title = "Devices" };
                     CurrentPage = page;
                     await Task.CompletedTask;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to open scanner status page");
-                    _dialogService.ShowInfo($"Failed to open scanner status page: {ex.Message}", "Scanner Status");
+                    _logger.LogError(ex, "Failed to open devices page");
+                    _dialogService.ShowInfo($"Failed to open devices page: {ex.Message}", "Devices");
                     throw;
                 }
             });
