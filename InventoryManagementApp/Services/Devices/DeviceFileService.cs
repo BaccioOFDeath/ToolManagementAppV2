@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Security.Cryptography;
 using FluentFTP;
@@ -15,11 +16,13 @@ namespace InventoryManagementApp.Services.Devices
     {
         private readonly DatabaseService _db;
         private readonly ILogger<DeviceFileService> _logger;
+        private readonly Func<object> _smbClientFactory;
 
-        public DeviceFileService(DatabaseService db, ILogger<DeviceFileService>? logger = null)
+        public DeviceFileService(DatabaseService db, ILogger<DeviceFileService>? logger = null, Func<object>? smbClientFactory = null)
         {
             _db = db;
             _logger = logger ?? NullLogger<DeviceFileService>.Instance;
+            _smbClientFactory = smbClientFactory ?? (() => new SMB2Client());
         }
 
         public virtual async Task<IEnumerable<string>> ListFilesAsync(Device device, string? extensionFilter = null, CancellationToken cancellationToken = default)
@@ -58,7 +61,7 @@ namespace InventoryManagementApp.Services.Devices
         private async Task<IEnumerable<string>> ListSmbFilesAsync(Device device, string? extensionFilter, CancellationToken cancellationToken)
         {
             var results = new List<string>();
-            SMB2Client client = new SMB2Client();
+            dynamic client = _smbClientFactory();
             try
             {
                 bool connected = await Task.Run(() => client.Connect(device.Ip, SMBTransportType.DirectTCPTransport), cancellationToken);
@@ -163,7 +166,55 @@ namespace InventoryManagementApp.Services.Devices
                             return ms.ToArray();
                         }
                     case DeviceProtocol.Smb:
-                        _logger.LogWarning("SMB download not implemented for device {Ip}", device.Ip);
+                        dynamic client = _smbClientFactory();
+                        try
+                        {
+                            bool connected = await Task.Run(() => client.Connect(device.Ip, SMBTransportType.DirectTCPTransport), cancellationToken);
+                            if (!connected) return null;
+
+                            NTStatus status = await Task.Run(() => client.Login(device.Domain ?? string.Empty, device.Username ?? string.Empty, device.Password ?? string.Empty), cancellationToken);
+                            if (status != NTStatus.STATUS_SUCCESS) return null;
+
+                            status = client.ListShares(out var shares);
+                            if (status != NTStatus.STATUS_SUCCESS) return null;
+
+                            foreach (var share in shares)
+                            {
+                                cancellationToken.ThrowIfCancellationRequested();
+                                string shareName = share is string sName ? sName : (string)((dynamic)share).ShareName;
+                                if (string.Equals(shareName, "IPC$", StringComparison.OrdinalIgnoreCase)) continue;
+
+                                status = client.TreeConnect(shareName, out var fileStore);
+                                if (status != NTStatus.STATUS_SUCCESS) continue;
+                                try
+                                {
+                                    cancellationToken.ThrowIfCancellationRequested();
+                                    object fileInfo;
+                                    status = fileStore.CreateFile(out object handle, file, AccessMask.GENERIC_READ, FileAttributes.Normal, ShareAccess.Read, CreateDisposition.FILE_OPEN, CreateOptions.FILE_NON_DIRECTORY_FILE, out fileInfo);
+                                    if (status != NTStatus.STATUS_SUCCESS) continue;
+                                    try
+                                    {
+                                        status = fileStore.ReadFile(out byte[] data, handle, 0, int.MaxValue);
+                                        if (status == NTStatus.STATUS_SUCCESS)
+                                            return data;
+                                    }
+                                    finally
+                                    {
+                                        try { fileStore.CloseFile(handle); } catch { }
+                                    }
+                                }
+                                finally
+                                {
+                                    try { fileStore.Disconnect(); } catch { }
+                                    try { fileStore.Dispose(); } catch { }
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            try { client.Logoff(); } catch { }
+                            try { client.Disconnect(); } catch { }
+                        }
                         return null;
                     default:
                         _logger.LogWarning("Unsupported protocol {Protocol} for device {Ip}", device.Protocol, device.Ip);
