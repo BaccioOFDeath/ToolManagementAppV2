@@ -90,10 +90,10 @@ namespace InventoryManagementApp.Services.Devices
 
                     try
                     {
-                        status = fileStore.ListFiles("\\", out var items);
-                        if (status != NTStatus.STATUS_SUCCESS) continue;
+                        status = fileStore.ListFiles("\\", out List<dynamic>? items);
+                        if (status != NTStatus.STATUS_SUCCESS || items == null) continue;
 
-                        foreach (var info in items)
+                        foreach (dynamic info in items)
                         {
                             cancellationToken.ThrowIfCancellationRequested();
                             var name = info.FileName;
