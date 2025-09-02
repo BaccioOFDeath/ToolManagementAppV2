@@ -14,9 +14,6 @@ namespace InventoryManagementApp.Interfaces
         Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default);
         Task UpdateSettingsAsync(Dictionary<string, string> settings, CancellationToken cancellationToken = default);
         Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default);
-        Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default);
-        Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default);
-
         // Theme configuration
         Task<string?> GetThemeAsync(CancellationToken cancellationToken = default);
         Task SaveThemeAsync(string theme, CancellationToken cancellationToken = default);

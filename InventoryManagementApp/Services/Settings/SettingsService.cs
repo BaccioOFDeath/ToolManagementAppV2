@@ -1,6 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
 using System;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text.Json;
@@ -217,64 +216,12 @@ namespace InventoryManagementApp.Services.Settings
             }
         }
 
-        const string ScannerIpKey = "ScannerIpAddresses";
         const string PasswordIterationsKey = "PasswordIterations";
         const string AutoLogoutMinutesKey = "AutoLogoutMinutes";
         const string ThemeKey = "Theme";
         const string ItemLabelSingularKey = "ItemLabelSingular";
         const string ItemLabelPluralKey = "ItemLabelPlural";
         const string ItemDetailVisibilityKey = "ItemDetailVisibility";
-
-        public async Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default)
-        {
-            var value = await GetSettingAsync(ScannerIpKey, cancellationToken).ConfigureAwait(false);
-            if (string.IsNullOrWhiteSpace(value))
-                return Array.Empty<string>();
-
-            var valid = new List<string>();
-            foreach (var ip in value.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-            {
-                if (IPAddress.TryParse(ip, out _))
-                    valid.Add(ip);
-            }
-
-            return valid;
-        }
-
-        public async Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default)
-        {
-            _auth.EnsureAdmin();
-            if (ipAddresses == null)
-            {
-                await DeleteSettingAsync(ScannerIpKey, cancellationToken).ConfigureAwait(false);
-                return Array.Empty<string>();
-            }
-
-            var valid = new List<string>();
-            var invalid = new List<string>();
-            foreach (var ip in ipAddresses)
-            {
-                if (IPAddress.TryParse(ip, out _))
-                    valid.Add(ip);
-                else
-                    invalid.Add(ip);
-            }
-
-            if (invalid.Count > 0)
-                _logger.LogWarning("Ignoring invalid IP addresses: {InvalidIps}", string.Join(", ", invalid));
-
-            if (valid.Count > 0)
-            {
-                var value = string.Join(';', valid);
-                await SaveSettingAsync(ScannerIpKey, value, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                await DeleteSettingAsync(ScannerIpKey, cancellationToken).ConfigureAwait(false);
-            }
-
-            return invalid;
-        }
 
         // Theme configuration
         public Task<string?> GetThemeAsync(CancellationToken cancellationToken = default)

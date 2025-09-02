@@ -49,6 +49,7 @@ namespace InventoryManagementApp.Tests
                     () => Task.FromResult(true),
                     new DummyDispatcherTimer(),
                     new DummyScannerService(),
+                    null,
                     new DummyDeviceGroupService(),
                     new DummyScannerRuleService(),
                     debounceTimer);
@@ -91,9 +92,10 @@ namespace InventoryManagementApp.Tests
                     new DummyDialogService(),
                     NullLogger<MainViewModel>.Instance,
                     () => Task.FromResult(true),
-                    new DummyDispatcherTimer(),
-                    new DummyScannerService(),
-                    new DummyDeviceGroupService(),
+                new DummyDispatcherTimer(),
+                new DummyScannerService(),
+                null,
+                new DummyDeviceGroupService(),
                     new DummyScannerRuleService(),
                     globalDebounceTimer);
 
@@ -156,9 +158,10 @@ namespace InventoryManagementApp.Tests
                     new DummyDialogService(),
                     NullLogger<MainViewModel>.Instance,
                     () => Task.FromResult(true),
-                    new DummyDispatcherTimer(),
-                    new DummyScannerService(),
-                    new DummyDeviceGroupService(),
+                new DummyDispatcherTimer(),
+                new DummyScannerService(),
+                null,
+                new DummyDeviceGroupService(),
                     new DummyScannerRuleService(),
                     debounceTimer);
 
@@ -193,9 +196,10 @@ namespace InventoryManagementApp.Tests
                     new DummyDialogService(),
                     NullLogger<MainViewModel>.Instance,
                     () => Task.FromResult(true),
-                    new DummyDispatcherTimer(),
-                    new DummyScannerService(),
-                    new DummyDeviceGroupService(),
+                new DummyDispatcherTimer(),
+                new DummyScannerService(),
+                null,
+                new DummyDeviceGroupService(),
                     new DummyScannerRuleService(),
                     debounceTimer);
 
@@ -232,9 +236,10 @@ namespace InventoryManagementApp.Tests
                     new DummyDialogService(),
                     NullLogger<MainViewModel>.Instance,
                     () => Task.FromResult(true),
-                    new DummyDispatcherTimer(),
-                    new DummyScannerService(),
-                    new DummyDeviceGroupService(),
+                new DummyDispatcherTimer(),
+                new DummyScannerService(),
+                null,
+                new DummyDeviceGroupService(),
                     new DummyScannerRuleService(),
                     debounceTimer);
 
@@ -299,9 +304,10 @@ namespace InventoryManagementApp.Tests
                         dialogService,
                         NullLogger<MainViewModel>.Instance,
                         () => Task.FromResult(true),
-                        new DummyDispatcherTimer(),
-                        new DummyScannerService(),
-                        new DummyDeviceGroupService(),
+                    new DummyDispatcherTimer(),
+                    new DummyScannerService(),
+                    null,
+                    new DummyDeviceGroupService(),
                         new DummyScannerRuleService(),
                         new DummyDispatcherTimer());
 
@@ -461,8 +467,6 @@ namespace InventoryManagementApp.Tests
             public Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new Dictionary<string, string>());
             public Task UpdateSettingsAsync(Dictionary<string, string> settings, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
-            public Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
             public Task<string?> GetThemeAsync(CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
             public Task SaveThemeAsync(string theme, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);

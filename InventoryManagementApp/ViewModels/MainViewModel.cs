@@ -44,6 +44,7 @@ namespace InventoryManagementApp.ViewModels
         readonly IFileDialogService _fileDialogService;
         readonly IDialogService _dialogService;
         readonly IScannerService _scannerService;
+        readonly IDeviceService _deviceService;
         readonly IDeviceGroupService _deviceGroupService;
         readonly IScannerFileService _scannerFileService;
         readonly IScannerRuleService _scannerRuleService;
@@ -210,6 +211,7 @@ namespace InventoryManagementApp.ViewModels
                              Func<Task<bool>>? showLoginWindow = null,
                              IDispatcherTimer? autoLogoutTimer = null,
                              IScannerService? scannerService = null,
+                             IDeviceService? deviceService = null,
                              IDeviceGroupService? deviceGroupService = null,
                              IScannerRuleService? scannerRuleService = null,
                              IDispatcherTimer? globalSearchDebounceTimer = null,
@@ -225,6 +227,7 @@ namespace InventoryManagementApp.ViewModels
             _themeService = themeService;
             _dialogService = dialogService;
             _scannerService = scannerService ?? new DummyScannerService();
+            _deviceService = deviceService ?? new DummyDeviceService();
             _deviceGroupService = deviceGroupService ?? new DummyDeviceGroupService();
             _scannerRuleService = scannerRuleService ?? new DummyScannerRuleService();
             _scannerFileService = scannerFileService ?? new DummyScannerFileService();
@@ -524,7 +527,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 try
                 {
-                    var vm = new ScannerStatusViewModel(_scannerService, _dialogService, _settingsService, _deviceGroupService, _scannerFileService, _scannerRuleService);
+                    var vm = new ScannerStatusViewModel(_scannerService, _dialogService, _deviceService, _deviceGroupService, _scannerFileService, _scannerRuleService);
                     var page = new ScannerStatusPage { DataContext = vm, Title = "Scanner Status" };
                     CurrentPage = page;
                     await Task.CompletedTask;
@@ -678,6 +681,18 @@ namespace InventoryManagementApp.ViewModels
         {
             public Task<IEnumerable<Models.Device>> GetDevicesAsync(CancellationToken cancellationToken)
                 => Task.FromResult<IEnumerable<Models.Device>>(Array.Empty<Models.Device>());
+        }
+
+        private sealed class DummyDeviceService : IDeviceService
+        {
+            public Task<IEnumerable<Device>> GetDevicesAsync(CancellationToken cancellationToken = default)
+                => Task.FromResult<IEnumerable<Device>>(Array.Empty<Device>());
+            public Task<Device?> GetDeviceAsync(string ip, CancellationToken cancellationToken = default)
+                => Task.FromResult<Device?>(null);
+            public Task AddOrUpdateDeviceAsync(Device device, CancellationToken cancellationToken = default)
+                => Task.CompletedTask;
+            public Task DeleteDeviceAsync(string ip, CancellationToken cancellationToken = default)
+                => Task.CompletedTask;
         }
 
         private sealed class DummyDeviceGroupService : IDeviceGroupService

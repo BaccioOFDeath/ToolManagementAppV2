@@ -150,6 +150,16 @@ namespace InventoryManagementApp.Services.Core
                     Key TEXT PRIMARY KEY,
                     Value TEXT
                 );
+                CREATE TABLE IF NOT EXISTS Devices (
+                    Ip TEXT PRIMARY KEY,
+                    Hostname TEXT,
+                    Protocol TEXT,
+                    Username TEXT,
+                    Password TEXT,
+                    Domain TEXT,
+                    ItemId INTEGER,
+                    FOREIGN KEY (ItemId) REFERENCES Items(ItemID)
+                );
                 CREATE TABLE IF NOT EXISTS DeviceGroups (
                     GroupId INTEGER PRIMARY KEY AUTOINCREMENT,
                     Name TEXT NOT NULL
@@ -180,6 +190,7 @@ namespace InventoryManagementApp.Services.Core
             EnsureIndex(conn, "Users", "UserName", true);
             EnsureIndex(conn, "Customers", "Contact");
             EnsureIndex(conn, "Rentals", new[] { "ItemID", "CustomerID" });
+            EnsureIndex(conn, "Devices", "ItemId");
             EnsureIndex(conn, "ScannerFileRules", "DeviceId");
         }
 

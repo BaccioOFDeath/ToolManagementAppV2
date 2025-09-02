@@ -21,6 +21,7 @@ namespace InventoryManagementApp.Models
         string _password = string.Empty;
         string _domain = string.Empty;
         int? _groupId;
+        int? _itemId;
 
         public string Ip
         {
@@ -74,6 +75,12 @@ namespace InventoryManagementApp.Models
         {
             get => _groupId;
             set => SetProperty(ref _groupId, value);
+        }
+
+        public int? ItemId
+        {
+            get => _itemId;
+            set => SetProperty(ref _itemId, value);
         }
     }
 }
