@@ -1,0 +1,120 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using FluentFTP;
+using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Models;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using SMBLibrary;
+using SMBLibrary.Client;
+
+namespace InventoryManagementApp.Services.Devices
+{
+    public class DeviceFileService : IDeviceFileService
+    {
+        private readonly ILogger<DeviceFileService> _logger;
+
+        public DeviceFileService(ILogger<DeviceFileService>? logger = null)
+        {
+            _logger = logger ?? NullLogger<DeviceFileService>.Instance;
+        }
+
+        public async Task<IEnumerable<string>> ListFilesAsync(Device device, string? extensionFilter = null, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                switch (device.Protocol)
+                {
+                    case DeviceProtocol.Smb:
+                        return await ListSmbFilesAsync(device, extensionFilter, cancellationToken);
+                    case DeviceProtocol.Ftp:
+                        return await ListFtpFilesAsync(device, extensionFilter, cancellationToken);
+                    default:
+                        _logger.LogWarning("Unsupported protocol {Protocol} for device {Ip}", device.Protocol, device.Ip);
+                        return Array.Empty<string>();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to list files for device {Ip}", device.Ip);
+                return Array.Empty<string>();
+            }
+        }
+
+        private async Task<IEnumerable<string>> ListSmbFilesAsync(Device device, string? extensionFilter, CancellationToken cancellationToken)
+        {
+            var results = new List<string>();
+            try
+            {
+                using var client = new SmbClient();
+                await Task.Run(() => client.Connect(device.Ip, SMBTransportType.DirectTCPTransport), cancellationToken);
+                await Task.Run(() => client.Login(device.Domain, device.Username, device.Password), cancellationToken);
+                var shares = client.ListShares() as IEnumerable<string> ?? Array.Empty<string>();
+                foreach (var share in shares)
+                {
+                    if (string.Equals(share, "IPC$", StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    dynamic fileStore = client.TreeConnect(share);
+                    try
+                    {
+                        var files = fileStore.ListFiles("\\") as IEnumerable<dynamic>;
+                        if (files == null) continue;
+                        foreach (var f in files)
+                        {
+                            string name = f is string s ? s : (string)f.FileName;
+                            if (extensionFilter == null || Path.GetExtension(name).Equals(extensionFilter, StringComparison.OrdinalIgnoreCase))
+                                results.Add(name);
+                        }
+                    }
+                    finally
+                    {
+                        fileStore.Dispose();
+                    }
+                }
+                client.Logoff();
+                client.Disconnect();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "SMB file listing failed for device {Ip}", device.Ip);
+            }
+            return results;
+        }
+
+        private async Task<IEnumerable<string>> ListFtpFilesAsync(Device device, string? extensionFilter, CancellationToken cancellationToken)
+        {
+            var results = new List<string>();
+            using var client = new FtpClient(device.Ip, device.Username, device.Password);
+            try
+            {
+                await client.ConnectAsync(cancellationToken);
+                var list = await client.GetNameListingAsync("/", cancellationToken);
+                foreach (var item in list)
+                {
+                    var name = Path.GetFileName(item);
+                    if (extensionFilter == null || Path.GetExtension(name).Equals(extensionFilter, StringComparison.OrdinalIgnoreCase))
+                        results.Add(name);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "FTP file listing failed for device {Ip}", device.Ip);
+            }
+            finally
+            {
+                try
+                {
+                    if (client.IsConnected)
+                        await client.DisconnectAsync(cancellationToken);
+                }
+                catch { }
+            }
+            return results;
+        }
+    }
+}

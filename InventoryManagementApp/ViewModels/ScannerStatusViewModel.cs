@@ -21,7 +21,7 @@ namespace InventoryManagementApp.ViewModels
         readonly IDialogService _dialogService;
         readonly IDeviceService _deviceService;
         readonly IDeviceGroupService _groupService;
-        readonly IScannerFileService _fileService;
+        readonly IDeviceFileService _fileService;
         readonly IScannerRuleService _ruleService;
         readonly ILogger<ScannerStatusViewModel> _logger;
         readonly DispatcherTimer _timer;
@@ -75,7 +75,7 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        public ScannerStatusViewModel(IScannerService service, IDialogService dialogService, IDeviceService deviceService, IDeviceGroupService groupService, IScannerFileService fileService, IScannerRuleService ruleService, ILogger<ScannerStatusViewModel>? logger = null)
+        public ScannerStatusViewModel(IScannerService service, IDialogService dialogService, IDeviceService deviceService, IDeviceGroupService groupService, IDeviceFileService fileService, IScannerRuleService ruleService, ILogger<ScannerStatusViewModel>? logger = null)
         {
             _service = service;
             _dialogService = dialogService;
@@ -162,7 +162,7 @@ namespace InventoryManagementApp.ViewModels
                 DeviceFiles.Clear();
                 if (SelectedDevice is null)
                     return;
-                var files = await _fileService.ListFilesAsync(SelectedDevice.Ip, cancellationToken);
+                var files = await _fileService.ListFilesAsync(SelectedDevice, null, cancellationToken);
                 foreach (var f in files)
                     DeviceFiles.Add(f);
             }

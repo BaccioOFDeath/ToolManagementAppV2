@@ -15,7 +15,7 @@ namespace InventoryManagementApp.ViewModels
     public class DevicesViewModel : ObservableObject
     {
         private readonly IDeviceDiscoveryService _discoveryService;
-        private readonly IScannerFileService _fileService;
+        private readonly IDeviceFileService _fileService;
         private readonly IDialogService _dialogService;
         private readonly ILogger<DevicesViewModel> _logger;
 
@@ -39,7 +39,7 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand PullAllReportsCommand { get; }
 
         public DevicesViewModel(IDeviceDiscoveryService discoveryService,
-                                 IScannerFileService fileService,
+                                 IDeviceFileService fileService,
                                  IDialogService dialogService,
                                  ILogger<DevicesViewModel>? logger = null)
         {
@@ -84,7 +84,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 DeviceFiles.Clear();
-                var files = await _fileService.ListFilesAsync(SelectedDevice.Ip, CancellationToken.None);
+                var files = await _fileService.ListFilesAsync(SelectedDevice, null, CancellationToken.None);
                 foreach (var f in files)
                     DeviceFiles.Add(f);
             }

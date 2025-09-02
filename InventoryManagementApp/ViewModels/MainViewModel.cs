@@ -48,7 +48,7 @@ namespace InventoryManagementApp.ViewModels
         readonly IScannerService _scannerService;
         readonly IDeviceService _deviceService;
         readonly IDeviceGroupService _deviceGroupService;
-        readonly IScannerFileService _scannerFileService;
+        readonly IDeviceFileService _deviceFileService;
         readonly IScannerRuleService _scannerRuleService;
         readonly IDeviceDiscoveryService _deviceDiscoveryService;
         readonly IThemeService _themeService;
@@ -218,7 +218,7 @@ namespace InventoryManagementApp.ViewModels
                              IDeviceGroupService? deviceGroupService = null,
                              IScannerRuleService? scannerRuleService = null,
                              IDispatcherTimer? globalSearchDebounceTimer = null,
-                             IScannerFileService? scannerFileService = null,
+                             IDeviceFileService? deviceFileService = null,
                              IDeviceDiscoveryService? deviceDiscoveryService = null)
         {
             _itemService = itemService;
@@ -234,7 +234,7 @@ namespace InventoryManagementApp.ViewModels
             _deviceService = deviceService ?? new DummyDeviceService();
             _deviceGroupService = deviceGroupService ?? new DummyDeviceGroupService();
             _scannerRuleService = scannerRuleService ?? new DummyScannerRuleService();
-            _scannerFileService = scannerFileService ?? new DummyScannerFileService();
+            _deviceFileService = deviceFileService ?? new DummyDeviceFileService();
             _deviceDiscoveryService = deviceDiscoveryService ?? new DeviceDiscoveryService(new ConfigurationBuilder().Build());
             _fileDialogService = fileDialogService;
             _logger = logger ?? NullLogger<MainViewModel>.Instance;
@@ -532,7 +532,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 try
                 {
-                    var vm = new DevicesViewModel(_deviceDiscoveryService, _scannerFileService, _dialogService);
+                    var vm = new DevicesViewModel(_deviceDiscoveryService, _deviceFileService, _dialogService);
                     var page = new DevicesPage { DataContext = vm, Title = "Devices" };
                     CurrentPage = page;
                     await Task.CompletedTask;
@@ -717,9 +717,9 @@ namespace InventoryManagementApp.ViewModels
             public Task DeleteRuleAsync(int ruleId, CancellationToken cancellationToken = default) => Task.CompletedTask;
         }
 
-        private sealed class DummyScannerFileService : IScannerFileService
+        private sealed class DummyDeviceFileService : IDeviceFileService
         {
-            public Task<IEnumerable<string>> ListFilesAsync(string deviceIp, CancellationToken cancellationToken = default)
+            public Task<IEnumerable<string>> ListFilesAsync(Device device, string? extensionFilter = null, CancellationToken cancellationToken = default)
                 => Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
         }
     }
