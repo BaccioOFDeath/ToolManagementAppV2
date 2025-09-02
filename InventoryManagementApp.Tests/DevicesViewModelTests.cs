@@ -98,6 +98,7 @@ public class DevicesViewModelTests
         var fileService = new RecordingDeviceFileService();
         var dialog = new RecordingDialogService();
         discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", Hostname = "test", IsOnline = true, Protocols = new List<DeviceProtocol>() });
+        fileService.Files.AddRange(new[] { "a.txt", "b.txt" });
         var vm = new DevicesViewModel(discovery, fileService, dialog);
 
         await vm.RefreshCommand.ExecuteAsync(null);
@@ -106,6 +107,8 @@ public class DevicesViewModelTests
         await vm.PullAllReportsCommand.ExecuteAsync(null);
 
         Assert.Equal(".txt", fileService.LastExtensionFilter);
+        Assert.Equal(2, vm.DeviceFiles.Count);
+        Assert.Contains("a.txt", vm.DeviceFiles);
     }
 
     [Fact]
