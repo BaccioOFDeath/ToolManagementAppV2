@@ -1,9 +1,12 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
+using InventoryManagementApp.Services.Devices;
 using InventoryManagementApp.ViewModels;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
 public class DevicesViewModelTests
@@ -123,5 +126,39 @@ public class DevicesViewModelTests
         await vm.RefreshCommand.ExecuteAsync(null);
 
         Assert.Equal("No subnets configured for device discovery.", dialog.LastInfoMessage);
+    }
+
+    [Fact]
+    public async Task RefreshCommand_UnreachableHosts_NoUnobservedExceptions()
+    {
+        bool unobserved = false;
+        void Handler(object? sender, UnobservedTaskExceptionEventArgs e) => unobserved = true;
+        TaskScheduler.UnobservedTaskException += Handler;
+        try
+        {
+            var config = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["DeviceDiscovery:Subnets:0"] = "203.0.113.0/30"
+                })
+                .Build();
+
+            var discovery = new DeviceDiscoveryService(config);
+            var fileService = new RecordingDeviceFileService();
+            var dialog = new RecordingDialogService();
+            var vm = new DevicesViewModel(discovery, fileService, dialog);
+
+            await vm.RefreshCommand.ExecuteAsync(null);
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
+            Assert.False(unobserved);
+        }
+        finally
+        {
+            TaskScheduler.UnobservedTaskException -= Handler;
+        }
     }
 }
