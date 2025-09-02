@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentFTP;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
+using InventoryManagementApp.Services.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SMBLibrary;
@@ -16,14 +18,16 @@ namespace InventoryManagementApp.Services.Devices
 {
     public class DeviceFileService : IDeviceFileService
     {
+        private readonly DatabaseService _db;
         private readonly ILogger<DeviceFileService> _logger;
 
-        public DeviceFileService(ILogger<DeviceFileService>? logger = null)
+        public DeviceFileService(DatabaseService db, ILogger<DeviceFileService>? logger = null)
         {
+            _db = db;
             _logger = logger ?? NullLogger<DeviceFileService>.Instance;
         }
 
-        public async Task<IEnumerable<string>> ListFilesAsync(Device device, string? extensionFilter = null, CancellationToken cancellationToken = default)
+        public virtual async Task<IEnumerable<string>> ListFilesAsync(Device device, string? extensionFilter = null, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -115,6 +119,64 @@ namespace InventoryManagementApp.Services.Devices
                 catch { }
             }
             return results;
+        }
+
+        protected virtual async Task<byte[]?> DownloadFileAsync(Device device, string file, CancellationToken cancellationToken)
+        {
+            try
+            {
+                switch (device.Protocol)
+                {
+                    case DeviceProtocol.Ftp:
+                        using (var client = new FtpClient(device.Ip, device.Username, device.Password))
+                        {
+                            await client.ConnectAsync(cancellationToken);
+                            using var ms = new MemoryStream();
+                            await client.DownloadStreamAsync(ms, file, token: cancellationToken);
+                            if (client.IsConnected)
+                                await client.DisconnectAsync(cancellationToken);
+                            return ms.ToArray();
+                        }
+                    case DeviceProtocol.Smb:
+                        _logger.LogWarning("SMB download not implemented for device {Ip}", device.Ip);
+                        return null;
+                    default:
+                        _logger.LogWarning("Unsupported protocol {Protocol} for device {Ip}", device.Protocol, device.Ip);
+                        return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to download {File} from device {Ip}", file, device.Ip);
+                return null;
+            }
+        }
+
+        public async Task<int> DownloadUnseenFilesAsync(Device device, string basePath, CancellationToken cancellationToken = default)
+        {
+            var deviceDirName = string.IsNullOrWhiteSpace(device.Hostname) ? device.Ip : device.Hostname;
+            var deviceDir = Path.Combine(basePath, "Devices", deviceDirName);
+            Directory.CreateDirectory(deviceDir);
+            var files = await ListFilesAsync(device, null, cancellationToken);
+            var count = 0;
+            using var conn = _db.CreateConnection();
+            foreach (var f in files)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var data = await DownloadFileAsync(device, f, cancellationToken);
+                if (data == null) continue;
+                var hash = Convert.ToHexString(SHA256.HashData(data));
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "INSERT OR IGNORE INTO PulledDeviceFiles (DeviceIp, Hash) VALUES ($ip,$hash)";
+                cmd.Parameters.AddWithValue("$ip", device.Ip);
+                cmd.Parameters.AddWithValue("$hash", hash);
+                var inserted = cmd.ExecuteNonQuery();
+                if (inserted == 0) continue; // duplicate
+                var dest = Path.Combine(deviceDir, Path.GetFileName(f));
+                await File.WriteAllBytesAsync(dest, data, cancellationToken);
+                count++;
+            }
+            return count;
         }
     }
 }

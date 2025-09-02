@@ -69,7 +69,7 @@ namespace InventoryManagementApp.Tests
                     new DummyScannerService(),
                     null,
                     new DummyDeviceGroupService(),
-                    new DummyScannerRuleService());
+                    );
 
                 var um = vm.UserManagement;
                 um.Users.Add(currentUser);
@@ -110,7 +110,7 @@ namespace InventoryManagementApp.Tests
                 new DummyScannerService(),
                 null,
                 new DummyDeviceGroupService(),
-                new DummyScannerRuleService());
+                );
         }
 
         static Task RunOnStaThread(Func<Task> action)
@@ -300,11 +300,6 @@ namespace InventoryManagementApp.Tests
             public Task<int?> GetDeviceGroupIdAsync(string deviceIp, CancellationToken cancellationToken = default) => Task.FromResult<int?>(null);
         }
 
-        private sealed class DummyScannerRuleService : IScannerRuleService
-        {
-            public Task<int> AddRuleAsync(ScannerFileRule rule, CancellationToken cancellationToken = default) => Task.FromResult(0);
-            public Task<IEnumerable<ScannerFileRule>> GetRulesAsync(string deviceId, CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<ScannerFileRule>>(Array.Empty<ScannerFileRule>());
-            public Task DeleteRuleAsync(int ruleId, CancellationToken cancellationToken = default) => Task.CompletedTask;
-        }
+        
     }
 }
