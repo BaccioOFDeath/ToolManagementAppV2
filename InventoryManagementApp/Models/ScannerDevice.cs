@@ -9,6 +9,7 @@ namespace InventoryManagementApp.Models
         string _ip = string.Empty;
         string _status = string.Empty;
         DateTime _lastSeen;
+        int? _groupId;
 
         public string Name
         {
@@ -32,6 +33,12 @@ namespace InventoryManagementApp.Models
         {
             get => _lastSeen;
             set => SetProperty(ref _lastSeen, value);
+        }
+
+        public int? GroupId
+        {
+            get => _groupId;
+            set => SetProperty(ref _groupId, value);
         }
     }
 }

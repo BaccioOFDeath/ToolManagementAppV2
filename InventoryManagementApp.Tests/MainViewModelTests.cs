@@ -49,6 +49,7 @@ namespace InventoryManagementApp.Tests
                     () => Task.FromResult(true),
                     new DummyDispatcherTimer(),
                     new DummyScannerService(),
+                    new DummyScannerGroupService(),
                     debounceTimer);
 
                 var field = typeof(MainViewModel).GetField("<GlobalSearchCommand>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -91,6 +92,7 @@ namespace InventoryManagementApp.Tests
                     () => Task.FromResult(true),
                     new DummyDispatcherTimer(),
                     new DummyScannerService(),
+                    new DummyScannerGroupService(),
                     globalDebounceTimer);
 
                 var itemManagement = new ItemManagementViewModel(
@@ -154,6 +156,7 @@ namespace InventoryManagementApp.Tests
                     () => Task.FromResult(true),
                     new DummyDispatcherTimer(),
                     new DummyScannerService(),
+                    new DummyScannerGroupService(),
                     debounceTimer);
 
                 vm.Dispose();
@@ -189,6 +192,7 @@ namespace InventoryManagementApp.Tests
                     () => Task.FromResult(true),
                     new DummyDispatcherTimer(),
                     new DummyScannerService(),
+                    new DummyScannerGroupService(),
                     debounceTimer);
 
                 var openDashboardField = typeof(MainViewModel).GetField("<OpenDashboardCommand>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -226,6 +230,7 @@ namespace InventoryManagementApp.Tests
                     () => Task.FromResult(true),
                     new DummyDispatcherTimer(),
                     new DummyScannerService(),
+                    new DummyScannerGroupService(),
                     debounceTimer);
 
                 var openDashboardField = typeof(MainViewModel).GetField("<OpenDashboardCommand>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -291,6 +296,7 @@ namespace InventoryManagementApp.Tests
                         () => Task.FromResult(true),
                         new DummyDispatcherTimer(),
                         new DummyScannerService(),
+                        new DummyScannerGroupService(),
                         new DummyDispatcherTimer());
 
                     Assert.NotNull(vm.CurrentUserInitialsBrush);
@@ -495,6 +501,16 @@ namespace InventoryManagementApp.Tests
         private sealed class DummyScannerService : IScannerService
         {
             public Task<IEnumerable<ScannerDevice>> GetScannerDevicesAsync(CancellationToken cancellationToken) => Task.FromResult<IEnumerable<ScannerDevice>>(Array.Empty<ScannerDevice>());
+        }
+
+        private sealed class DummyScannerGroupService : IScannerGroupService
+        {
+            public Task<int> CreateGroupAsync(string name, CancellationToken cancellationToken = default) => Task.FromResult(0);
+            public Task<IEnumerable<ScannerGroup>> GetGroupsAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<ScannerGroup>>(Array.Empty<ScannerGroup>());
+            public Task UpdateGroupAsync(ScannerGroup group, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task DeleteGroupAsync(int groupId, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task AssignDeviceToGroupAsync(string deviceIp, int? groupId, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<int?> GetDeviceGroupIdAsync(string deviceIp, CancellationToken cancellationToken = default) => Task.FromResult<int?>(null);
         }
 
         private sealed class DummyDispatcherTimer : IDispatcherTimer
