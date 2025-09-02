@@ -15,10 +15,10 @@ public class DevicesViewModelTests
             => Task.FromResult<IReadOnlyList<DiscoveredDevice>>(Devices);
     }
 
-    private sealed class StubScannerFileService : IScannerFileService
+    private sealed class StubDeviceFileService : IDeviceFileService
     {
         public List<string> Files { get; } = new();
-        public Task<IEnumerable<string>> ListFilesAsync(string deviceIp, CancellationToken cancellationToken = default)
+        public Task<IEnumerable<string>> ListFilesAsync(Device device, string? extensionFilter = null, CancellationToken cancellationToken = default)
             => Task.FromResult<IEnumerable<string>>(Files);
     }
 
@@ -43,7 +43,7 @@ public class DevicesViewModelTests
     public async Task RefreshCommand_LoadsDevices()
     {
         var discovery = new StubDiscoveryService();
-        var fileService = new StubScannerFileService();
+        var fileService = new StubDeviceFileService();
         var dialog = new StubDialogService();
         discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", Hostname = "test", IsOnline = true, Protocols = new List<DeviceProtocol> { DeviceProtocol.Ftp } });
         var vm = new DevicesViewModel(discovery, fileService, dialog);
@@ -59,7 +59,7 @@ public class DevicesViewModelTests
     public async Task PullAllReportsCommand_LoadsFiles()
     {
         var discovery = new StubDiscoveryService();
-        var fileService = new StubScannerFileService();
+        var fileService = new StubDeviceFileService();
         var dialog = new StubDialogService();
         discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", Hostname = "test", IsOnline = true, Protocols = new List<DeviceProtocol>() });
         fileService.Files.AddRange(new[] { "a.txt", "b.txt" });

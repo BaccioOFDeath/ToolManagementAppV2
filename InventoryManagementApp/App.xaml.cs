@@ -118,7 +118,7 @@ namespace InventoryManagementApp
                 services.AddSingleton<IScannerService, ScannerService>();
                 services.AddSingleton<IDeviceDiscoveryService, DeviceDiscoveryService>();
                 services.AddSingleton<IDeviceGroupService, DeviceGroupService>();
-                services.AddSingleton<IScannerFileService, ScannerFileService>();
+                services.AddSingleton<IDeviceFileService, DeviceFileService>();
                 services.AddSingleton<IScannerRuleService, ScannerRuleService>();
                 services.AddSingleton<MemoryBudget>();
                 services.AddTransient<ItemsViewModel>();

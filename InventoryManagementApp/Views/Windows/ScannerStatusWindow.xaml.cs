@@ -11,10 +11,10 @@ namespace InventoryManagementApp.Views.Windows
         private readonly IDialogService _dialogService;
         private readonly IDeviceService _deviceService;
         private readonly IDeviceGroupService _groupService;
-        private readonly IScannerFileService _fileService;
+        private readonly IDeviceFileService _fileService;
         private readonly IScannerRuleService _ruleService;
 
-        public ScannerStatusWindow(IScannerService scannerService, IDialogService dialogService, IDeviceService deviceService, IDeviceGroupService groupService, IScannerFileService fileService, IScannerRuleService ruleService)
+        public ScannerStatusWindow(IScannerService scannerService, IDialogService dialogService, IDeviceService deviceService, IDeviceGroupService groupService, IDeviceFileService fileService, IScannerRuleService ruleService)
         {
             InitializeComponent();
             _scannerService = scannerService;
