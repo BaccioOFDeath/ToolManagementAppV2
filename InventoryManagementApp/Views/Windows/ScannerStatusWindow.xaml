@@ -30,7 +30,8 @@
                           Style="{StaticResource VirtualizedDataGridStyle}"
                           ColumnHeaderStyle="{StaticResource {x:Type DataGridColumnHeader}}">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                        <DataGridTextColumn Header="Device" Binding="{Binding Hostname}" Width="*"/>
+                        <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="*"/>
                         <DataGridTextColumn Header="IP" Binding="{Binding Ip}" Width="180"/>
                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="160"/>
                         <DataGridTextColumn Header="Last Seen"

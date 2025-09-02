@@ -12,11 +12,11 @@ namespace InventoryManagementApp.Views.Windows
     {
         private readonly IFileDialogService _fileDialogService;
 
-        public ItemEditWindow(ItemModel item, Action onSave, Action onCancel, IFileDialogService fileDialogService)
+        public ItemEditWindow(ItemModel item, Action onSave, Action onCancel, IFileDialogService fileDialogService, IDeviceService deviceService)
         {
             InitializeComponent();
             _fileDialogService = fileDialogService;
-            DataContext = new ItemEditViewModel(item, onSave, onCancel, _fileDialogService);
+            DataContext = new ItemEditViewModel(item, onSave, onCancel, _fileDialogService, deviceService);
             this.DisposeDataContextOnUnload();
         }
     }

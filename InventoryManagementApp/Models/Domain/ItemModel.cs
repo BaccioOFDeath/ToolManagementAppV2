@@ -163,6 +163,13 @@ namespace InventoryManagementApp.Models.Domain
             set => SetProperty(ref _imagePath, value);
         }
 
+        private string? _deviceId;
+        public string? DeviceId
+        {
+            get => _deviceId;
+            set => SetProperty(ref _deviceId, value);
+        }
+
         private DateTime _updatedAt;
         public DateTime UpdatedAt
         {
