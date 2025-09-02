@@ -16,6 +16,7 @@
             <Border Style="{StaticResource Card}">
                 <StackPanel Orientation="Horizontal">
                     <Button Style="{StaticResource PrimaryButton}" Content="Refresh" Command="{Binding RefreshCommand}"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Add Device" Command="{Binding AddDeviceCommand}" Margin="8,0,0,0"/>
                     <CheckBox Content="Auto Refresh" IsChecked="{Binding AutoRefresh}" Margin="12,6,0,0"/>
                 </StackPanel>
             </Border>

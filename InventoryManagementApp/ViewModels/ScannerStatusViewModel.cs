@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
@@ -9,6 +10,7 @@ using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.VisualBasic;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -16,6 +18,7 @@ namespace InventoryManagementApp.ViewModels
     {
         readonly IScannerService _service;
         readonly IDialogService _dialogService;
+        readonly ISettingsService _settingsService;
         readonly ILogger<ScannerStatusViewModel> _logger;
         readonly DispatcherTimer _timer;
 
@@ -36,15 +39,21 @@ namespace InventoryManagementApp.ViewModels
         }
 
         public IAsyncRelayCommand RefreshCommand { get; }
+        public IAsyncRelayCommand AddDeviceCommand { get; }
+
+        public Func<string?> PromptForIp { get; set; } = () =>
+            Interaction.InputBox("Enter scanner IP:", "Add Device", string.Empty);
 
         internal bool IsTimerRunning => _timer.IsEnabled;
 
-        public ScannerStatusViewModel(IScannerService service, IDialogService dialogService, ILogger<ScannerStatusViewModel>? logger = null)
+        public ScannerStatusViewModel(IScannerService service, IDialogService dialogService, ISettingsService settingsService, ILogger<ScannerStatusViewModel>? logger = null)
         {
             _service = service;
             _dialogService = dialogService;
+            _settingsService = settingsService;
             _logger = logger ?? NullLogger<ScannerStatusViewModel>.Instance;
             RefreshCommand = new AsyncRelayCommand(RefreshAsync);
+            AddDeviceCommand = new AsyncRelayCommand(AddDeviceAsync);
             _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
             _timer.Tick += OnTimerTick;
         }
@@ -74,6 +83,34 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to refresh scanner devices");
                 await _dialogService.ShowInfoAsync($"Failed to refresh scanner devices: {ex.Message}", "Error");
+            }
+        }
+
+        async Task AddDeviceAsync()
+        {
+            try
+            {
+                var ip = PromptForIp?.Invoke();
+                if (string.IsNullOrWhiteSpace(ip))
+                    return;
+
+                var ips = (await _settingsService.GetScannerIpAddressesAsync()).ToList();
+                if (!ips.Contains(ip))
+                    ips.Add(ip);
+
+                var invalid = await _settingsService.SaveScannerIpAddressesAsync(ips);
+                if (invalid.Any())
+                {
+                    await _dialogService.ShowInfoAsync($"Invalid IP address: {string.Join(", ", invalid)}", "Invalid IP");
+                    return;
+                }
+
+                await RefreshAsync(CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to add scanner IP");
+                await _dialogService.ShowInfoAsync($"Failed to add device: {ex.Message}", "Error");
             }
         }
 
