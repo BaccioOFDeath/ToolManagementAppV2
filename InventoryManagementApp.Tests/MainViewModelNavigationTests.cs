@@ -67,7 +67,8 @@ namespace InventoryManagementApp.Tests
                     () => Task.FromResult(true),
                     new DummyDispatcherTimer(),
                     new DummyScannerService(),
-                    new DummyScannerGroupService());
+                    new DummyDeviceGroupService(),
+                    new DummyScannerRuleService());
 
                 var um = vm.UserManagement;
                 um.Users.Add(currentUser);
@@ -106,7 +107,8 @@ namespace InventoryManagementApp.Tests
                 () => Task.FromResult(true),
                 new DummyDispatcherTimer(),
                 new DummyScannerService(),
-                new DummyScannerGroupService());
+                new DummyDeviceGroupService(),
+                new DummyScannerRuleService());
         }
 
         static Task RunOnStaThread(Func<Task> action)
@@ -285,17 +287,24 @@ namespace InventoryManagementApp.Tests
 
         private sealed class DummyScannerService : IScannerService
         {
-            public Task<IEnumerable<ScannerDevice>> GetScannerDevicesAsync(CancellationToken cancellationToken) => Task.FromResult<IEnumerable<ScannerDevice>>(Array.Empty<ScannerDevice>());
+            public Task<IEnumerable<Device>> GetDevicesAsync(CancellationToken cancellationToken) => Task.FromResult<IEnumerable<Device>>(Array.Empty<Device>());
         }
 
-        private sealed class DummyScannerGroupService : IScannerGroupService
+        private sealed class DummyDeviceGroupService : IDeviceGroupService
         {
             public Task<int> CreateGroupAsync(string name, CancellationToken cancellationToken = default) => Task.FromResult(0);
-            public Task<IEnumerable<ScannerGroup>> GetGroupsAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<ScannerGroup>>(Array.Empty<ScannerGroup>());
-            public Task UpdateGroupAsync(ScannerGroup group, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<IEnumerable<DeviceGroup>> GetGroupsAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<DeviceGroup>>(Array.Empty<DeviceGroup>());
+            public Task UpdateGroupAsync(DeviceGroup group, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task DeleteGroupAsync(int groupId, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task AssignDeviceToGroupAsync(string deviceIp, int? groupId, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<int?> GetDeviceGroupIdAsync(string deviceIp, CancellationToken cancellationToken = default) => Task.FromResult<int?>(null);
+        }
+
+        private sealed class DummyScannerRuleService : IScannerRuleService
+        {
+            public Task<int> AddRuleAsync(ScannerFileRule rule, CancellationToken cancellationToken = default) => Task.FromResult(0);
+            public Task<IEnumerable<ScannerFileRule>> GetRulesAsync(string deviceId, CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<ScannerFileRule>>(Array.Empty<ScannerFileRule>());
+            public Task DeleteRuleAsync(int ruleId, CancellationToken cancellationToken = default) => Task.CompletedTask;
         }
     }
 }

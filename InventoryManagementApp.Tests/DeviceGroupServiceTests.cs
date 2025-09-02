@@ -4,13 +4,13 @@ using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Services.Devices;
 using Xunit;
 
-public class ScannerGroupServiceTests
+public class DeviceGroupServiceTests
 {
     [Fact]
     public async Task CreateGroupAndAssignDevice()
     {
         using var db = new DatabaseService(":memory:");
-        var service = new ScannerGroupService(db);
+        var service = new DeviceGroupService(db);
 
         var groupId = await service.CreateGroupAsync("Test Group");
         var groups = await service.GetGroupsAsync();

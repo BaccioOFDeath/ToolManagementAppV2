@@ -10,10 +10,11 @@ namespace InventoryManagementApp.Views.Windows
         private readonly IScannerService _scannerService;
         private readonly IDialogService _dialogService;
         private readonly ISettingsService _settingsService;
-        private readonly IScannerGroupService _groupService;
+        private readonly IDeviceGroupService _groupService;
         private readonly IScannerFileService _fileService;
+        private readonly IScannerRuleService _ruleService;
 
-        public ScannerStatusWindow(IScannerService scannerService, IDialogService dialogService, ISettingsService settingsService, IScannerGroupService groupService, IScannerFileService fileService)
+        public ScannerStatusWindow(IScannerService scannerService, IDialogService dialogService, ISettingsService settingsService, IDeviceGroupService groupService, IScannerFileService fileService, IScannerRuleService ruleService)
         {
             InitializeComponent();
             _scannerService = scannerService;
@@ -21,7 +22,8 @@ namespace InventoryManagementApp.Views.Windows
             _settingsService = settingsService;
             _groupService = groupService;
             _fileService = fileService;
-            DataContext = new ScannerStatusViewModel(_scannerService, _dialogService, _settingsService, _groupService, _fileService);
+            _ruleService = ruleService;
+            DataContext = new ScannerStatusViewModel(_scannerService, _dialogService, _settingsService, _groupService, _fileService, _ruleService);
             this.DisposeDataContextOnUnload();
         }
     }
