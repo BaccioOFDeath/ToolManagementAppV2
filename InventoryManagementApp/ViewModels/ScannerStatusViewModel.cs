@@ -21,11 +21,13 @@ namespace InventoryManagementApp.ViewModels
         readonly IDialogService _dialogService;
         readonly ISettingsService _settingsService;
         readonly IScannerGroupService _groupService;
+        readonly IScannerFileService _fileService;
         readonly ILogger<ScannerStatusViewModel> _logger;
         readonly DispatcherTimer _timer;
 
         public ObservableCollection<ScannerDevice> Devices { get; } = new();
         public ObservableCollection<ScannerGroup> Groups { get; } = new();
+        public ObservableCollection<string> DeviceFiles { get; } = new();
 
         bool _autoRefresh;
         public bool AutoRefresh
@@ -44,6 +46,7 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand RefreshCommand { get; }
         public IAsyncRelayCommand AddDeviceCommand { get; }
         public IAsyncRelayCommand AddGroupCommand { get; }
+        public IAsyncRelayCommand LoadFilesCommand { get; }
 
         public Func<string?> PromptForIp { get; set; } = () =>
             Interaction.InputBox("Enter scanner IP:", "Add Device", string.Empty);
@@ -53,16 +56,31 @@ namespace InventoryManagementApp.ViewModels
 
         internal bool IsTimerRunning => _timer.IsEnabled;
 
-        public ScannerStatusViewModel(IScannerService service, IDialogService dialogService, ISettingsService settingsService, IScannerGroupService groupService, ILogger<ScannerStatusViewModel>? logger = null)
+        ScannerDevice? _selectedDevice;
+        public ScannerDevice? SelectedDevice
+        {
+            get => _selectedDevice;
+            set
+            {
+                if (SetProperty(ref _selectedDevice, value))
+                {
+                    LoadFilesCommand.Execute(null);
+                }
+            }
+        }
+
+        public ScannerStatusViewModel(IScannerService service, IDialogService dialogService, ISettingsService settingsService, IScannerGroupService groupService, IScannerFileService fileService, ILogger<ScannerStatusViewModel>? logger = null)
         {
             _service = service;
             _dialogService = dialogService;
             _settingsService = settingsService;
             _groupService = groupService;
+            _fileService = fileService;
             _logger = logger ?? NullLogger<ScannerStatusViewModel>.Instance;
             RefreshCommand = new AsyncRelayCommand(RefreshAsync);
             AddDeviceCommand = new AsyncRelayCommand(AddDeviceAsync);
             AddGroupCommand = new AsyncRelayCommand(AddGroupAsync);
+            LoadFilesCommand = new AsyncRelayCommand(LoadFilesAsync);
             _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
             _timer.Tick += OnTimerTick;
         }
@@ -129,6 +147,23 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to add scanner IP");
                 await _dialogService.ShowInfoAsync($"Failed to add device: {ex.Message}", "Error");
+            }
+        }
+
+        async Task LoadFilesAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                DeviceFiles.Clear();
+                if (SelectedDevice is null)
+                    return;
+                var files = await _fileService.ListFilesAsync(SelectedDevice.Ip, cancellationToken);
+                foreach (var f in files)
+                    DeviceFiles.Add(f);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load files for device {Ip}", SelectedDevice?.Ip);
             }
         }
 
