@@ -14,11 +14,11 @@ namespace InventoryManagementApp.Services.Devices
     public class ScannerService : IScannerService
     {
         private readonly ILogger<ScannerService> _logger;
-        private readonly ISettingsService _settingsService;
+        private readonly IDeviceService _deviceService;
 
-        public ScannerService(ISettingsService settingsService, ILogger<ScannerService>? logger = null)
+        public ScannerService(IDeviceService deviceService, ILogger<ScannerService>? logger = null)
         {
-            _settingsService = settingsService;
+            _deviceService = deviceService;
             _logger = logger ?? NullLogger<ScannerService>.Instance;
         }
 
@@ -27,29 +27,33 @@ namespace InventoryManagementApp.Services.Devices
             cancellationToken.ThrowIfCancellationRequested();
 
             using var semaphore = new SemaphoreSlim(5);
-            var ips = (await _settingsService.GetScannerIpAddressesAsync(cancellationToken).ConfigureAwait(false)).Distinct();
-            var tasks = ips.Select(async ip =>
+            var stored = (await _deviceService.GetDevicesAsync(cancellationToken).ConfigureAwait(false)).ToList();
+            var tasks = stored.Select(async d =>
             {
                 await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
                 try
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-
                     var device = new Device
                     {
-                        Hostname = $"Device {ip}",
-                        Ip = ip,
+                        Hostname = string.IsNullOrWhiteSpace(d.Hostname) ? $"Device {d.Ip}" : d.Hostname,
+                        Ip = d.Ip,
+                        Protocol = d.Protocol,
+                        Username = d.Username,
+                        Password = d.Password,
+                        Domain = d.Domain,
+                        ItemId = d.ItemId,
                         LastSeen = DateTime.UtcNow.ToLocalTime()
                     };
                     try
                     {
                         using var ping = new Ping();
-                        var reply = await ping.SendPingAsync(ip, 1000).ConfigureAwait(false);
+                        var reply = await ping.SendPingAsync(d.Ip, 1000).ConfigureAwait(false);
                         device.Status = reply.Status == IPStatus.Success ? "Online" : "Offline";
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Failed to ping scanner {Ip}", ip);
+                        _logger.LogError(ex, "Failed to ping scanner {Ip}", d.Ip);
                         device.Status = "Error";
                     }
                     return device;

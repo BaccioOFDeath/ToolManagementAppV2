@@ -905,8 +905,6 @@ namespace InventoryManagementApp.Tests
                 _settings.Remove(key);
                 return Task.CompletedTask;
             }
-            public Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
-            public Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
             public Task<string?> GetThemeAsync(CancellationToken cancellationToken = default)
                 => Task.FromResult(_settings.TryGetValue("Theme", out var v) ? v : null);
             public Task SaveThemeAsync(string theme, CancellationToken cancellationToken = default)

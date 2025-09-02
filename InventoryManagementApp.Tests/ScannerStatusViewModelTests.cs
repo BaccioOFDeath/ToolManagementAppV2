@@ -80,37 +80,22 @@ public class ScannerStatusViewModelTests
         }
     }
 
-    private sealed class StubSettingsService : ISettingsService
+    private sealed class StubDeviceService : IDeviceService
     {
-        public List<string> IpAddresses { get; private set; } = new();
-        public event EventHandler<IDictionary<ItemDetailField, bool>>? ItemDetailVisibilityChanged;
-        public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task<string?> GetSettingAsync(string? key, CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
-        public Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new Dictionary<string, string>());
-        public Task UpdateSettingsAsync(Dictionary<string, string> settings, CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task<IEnumerable<string>> GetScannerIpAddressesAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult<IEnumerable<string>>(IpAddresses);
-        public Task<IEnumerable<string>> SaveScannerIpAddressesAsync(IEnumerable<string>? ipAddresses, CancellationToken cancellationToken = default)
+        public List<Device> Devices { get; } = new();
+        public Task<IEnumerable<Device>> GetDevicesAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult<IEnumerable<Device>>(Devices);
+        public Task<Device?> GetDeviceAsync(string ip, CancellationToken cancellationToken = default)
+            => Task.FromResult<Device?>(Devices.FirstOrDefault(d => d.Ip == ip));
+        public Task AddOrUpdateDeviceAsync(Device device, CancellationToken cancellationToken = default)
         {
-            IpAddresses = ipAddresses?.ToList() ?? new List<string>();
-            return Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
+            Devices.RemoveAll(d => d.Ip == device.Ip);
+            Devices.Add(device);
+            return Task.CompletedTask;
         }
-        public Task<string?> GetThemeAsync(CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
-        public Task SaveThemeAsync(string theme, CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);
-        public Task SavePasswordIterationsAsync(int iterations, CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task<int> GetAutoLogoutMinutesAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);
-        public Task SaveAutoLogoutMinutesAsync(int minutes, CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task<string> GetItemLabelSingularAsync(CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
-        public Task SaveItemLabelSingularAsync(string label, CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task<string> GetItemLabelPluralAsync(CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
-        public Task SaveItemLabelPluralAsync(string label, CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task<IDictionary<ItemDetailField, bool>> GetItemDetailVisibilityAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult<IDictionary<ItemDetailField, bool>>(new Dictionary<ItemDetailField, bool>());
-        public Task SaveItemDetailVisibilityAsync(IDictionary<ItemDetailField, bool> visibility, CancellationToken cancellationToken = default)
+        public Task DeleteDeviceAsync(string ip, CancellationToken cancellationToken = default)
         {
-            ItemDetailVisibilityChanged?.Invoke(this, visibility);
+            Devices.RemoveAll(d => d.Ip == ip);
             return Task.CompletedTask;
         }
     }
@@ -137,11 +122,11 @@ public class ScannerStatusViewModelTests
     {
         var scannerService = new StubScannerService();
         var dialogService = new StubDialogService();
-        var settingsService = new StubSettingsService();
+        var deviceService = new StubDeviceService();
         var groupService = new StubDeviceGroupService();
         var fileService = new StubScannerFileService();
         var ruleService = new StubScannerRuleService();
-        var vm = new ScannerStatusViewModel(scannerService, dialogService, settingsService, groupService, fileService, ruleService);
+        var vm = new ScannerStatusViewModel(scannerService, dialogService, deviceService, groupService, fileService, ruleService);
 
         var ip = "192.168.1.10";
         vm.PromptForIp = () => ip;
@@ -149,7 +134,7 @@ public class ScannerStatusViewModelTests
 
         await vm.AddDeviceCommand.ExecuteAsync(null);
 
-        Assert.Contains(ip, settingsService.IpAddresses);
+        Assert.Contains(deviceService.Devices, d => d.Ip == ip);
         Assert.Single(vm.Devices);
         Assert.Equal(ip, vm.Devices[0].Ip);
     }
@@ -159,12 +144,12 @@ public class ScannerStatusViewModelTests
     {
         var scannerService = new StubScannerService();
         var dialogService = new StubDialogService();
-        var settingsService = new StubSettingsService();
+        var deviceService = new StubDeviceService();
         var groupService = new StubDeviceGroupService();
         var fileService = new StubScannerFileService();
         var ruleService = new StubScannerRuleService();
         fileService.Files.AddRange(new[] { "a.txt", "b.txt" });
-        var vm = new ScannerStatusViewModel(scannerService, dialogService, settingsService, groupService, fileService, ruleService);
+        var vm = new ScannerStatusViewModel(scannerService, dialogService, deviceService, groupService, fileService, ruleService);
 
         var device = new Device { Hostname = "Test", Ip = "1.2.3.4", Status = "Online", LastSeen = DateTime.UtcNow };
         vm.Devices.Add(device);

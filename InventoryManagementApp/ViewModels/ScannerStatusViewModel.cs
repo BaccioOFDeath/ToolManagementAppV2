@@ -19,7 +19,7 @@ namespace InventoryManagementApp.ViewModels
     {
         readonly IScannerService _service;
         readonly IDialogService _dialogService;
-        readonly ISettingsService _settingsService;
+        readonly IDeviceService _deviceService;
         readonly IDeviceGroupService _groupService;
         readonly IScannerFileService _fileService;
         readonly IScannerRuleService _ruleService;
@@ -75,11 +75,11 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        public ScannerStatusViewModel(IScannerService service, IDialogService dialogService, ISettingsService settingsService, IDeviceGroupService groupService, IScannerFileService fileService, IScannerRuleService ruleService, ILogger<ScannerStatusViewModel>? logger = null)
+        public ScannerStatusViewModel(IScannerService service, IDialogService dialogService, IDeviceService deviceService, IDeviceGroupService groupService, IScannerFileService fileService, IScannerRuleService ruleService, ILogger<ScannerStatusViewModel>? logger = null)
         {
             _service = service;
             _dialogService = dialogService;
-            _settingsService = settingsService;
+            _deviceService = deviceService;
             _groupService = groupService;
             _fileService = fileService;
             _ruleService = ruleService;
@@ -140,15 +140,10 @@ namespace InventoryManagementApp.ViewModels
                 if (string.IsNullOrWhiteSpace(ip))
                     return;
 
-                var ips = (await _settingsService.GetScannerIpAddressesAsync()).ToList();
-                if (!ips.Contains(ip))
-                    ips.Add(ip);
-
-                var invalid = await _settingsService.SaveScannerIpAddressesAsync(ips);
-                if (invalid.Any())
+                var existing = await _deviceService.GetDeviceAsync(ip);
+                if (existing == null)
                 {
-                    await _dialogService.ShowInfoAsync($"Invalid IP address: {string.Join(", ", invalid)}", "Invalid IP");
-                    return;
+                    await _deviceService.AddOrUpdateDeviceAsync(new Device { Ip = ip });
                 }
 
                 await RefreshAsync(CancellationToken.None);

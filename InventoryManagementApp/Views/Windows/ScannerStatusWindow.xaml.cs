@@ -9,21 +9,21 @@ namespace InventoryManagementApp.Views.Windows
     {
         private readonly IScannerService _scannerService;
         private readonly IDialogService _dialogService;
-        private readonly ISettingsService _settingsService;
+        private readonly IDeviceService _deviceService;
         private readonly IDeviceGroupService _groupService;
         private readonly IScannerFileService _fileService;
         private readonly IScannerRuleService _ruleService;
 
-        public ScannerStatusWindow(IScannerService scannerService, IDialogService dialogService, ISettingsService settingsService, IDeviceGroupService groupService, IScannerFileService fileService, IScannerRuleService ruleService)
+        public ScannerStatusWindow(IScannerService scannerService, IDialogService dialogService, IDeviceService deviceService, IDeviceGroupService groupService, IScannerFileService fileService, IScannerRuleService ruleService)
         {
             InitializeComponent();
             _scannerService = scannerService;
             _dialogService = dialogService;
-            _settingsService = settingsService;
+            _deviceService = deviceService;
             _groupService = groupService;
             _fileService = fileService;
             _ruleService = ruleService;
-            DataContext = new ScannerStatusViewModel(_scannerService, _dialogService, _settingsService, _groupService, _fileService, _ruleService);
+            DataContext = new ScannerStatusViewModel(_scannerService, _dialogService, _deviceService, _groupService, _fileService, _ruleService);
             this.DisposeDataContextOnUnload();
         }
     }
