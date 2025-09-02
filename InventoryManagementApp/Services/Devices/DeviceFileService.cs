@@ -56,23 +56,28 @@ namespace InventoryManagementApp.Services.Devices
             try
             {
                 using var client = new SMB2Client();
-                var status = await Task.Run(() => client.Connect(device.Ip, SMBTransportType.DirectTCPTransport), cancellationToken);
+                var connected = await Task.Run(() => client.Connect(device.Ip, SMBTransportType.DirectTCPTransport), cancellationToken);
+                if (!connected)
+                    return results;
+
+                NTStatus status = await Task.Run(() => client.Login(device.Domain, device.Username, device.Password), cancellationToken);
                 if (status != NTStatus.STATUS_SUCCESS)
                     return results;
-                status = await Task.Run(() => client.Login(device.Domain, device.Username, device.Password), cancellationToken);
-                if (status != NTStatus.STATUS_SUCCESS)
-                    return results;
+
                 status = client.ListShares(out var shares);
                 if (status != NTStatus.STATUS_SUCCESS)
                     return results;
+
                 foreach (var share in shares)
                 {
                     string shareName = share is string s ? s : (string)((dynamic)share).ShareName;
                     if (string.Equals(shareName, "IPC$", StringComparison.OrdinalIgnoreCase))
                         continue;
+
                     status = client.TreeConnect(shareName, out var fileStore);
                     if (status != NTStatus.STATUS_SUCCESS)
                         continue;
+
                     try
                     {
                         var files = fileStore.ListFiles("\\") as IEnumerable<dynamic>;
