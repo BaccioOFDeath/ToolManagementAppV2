@@ -178,7 +178,7 @@ namespace InventoryManagementApp.Services.Core
                 );";
             using var cmd = new SqliteCommand(sql, conn);
             cmd.ExecuteNonQuery();
-            EnsureColumn(conn, "Items", "DeviceId", "TEXT");
+            EnsureColumn("Items", "DeviceId", "TEXT");
 
             EnsureIndex(conn, "Items", "ItemNumber", true);
             EnsureIndex(conn, "Items", "NameDescription");
