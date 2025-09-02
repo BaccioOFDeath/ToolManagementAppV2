@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
@@ -25,14 +26,24 @@ namespace InventoryManagementApp.Services.Devices
 
         public DeviceDiscoveryService(IConfiguration configuration,
             ILogger<DeviceDiscoveryService>? logger = null,
-            Func<string, int, CancellationToken, Task<bool>>? portChecker = null)
+            Func<string, int, CancellationToken, Task<bool>>? portChecker = null,
+            Func<IList<string>>? subnetResolver = null)
         {
             _logger = logger ?? NullLogger<DeviceDiscoveryService>.Instance;
             _portChecker = portChecker ?? DefaultPortChecker;
+            subnetResolver ??= GetLocalSubnets;
             _subnets = configuration.GetSection("DeviceDiscovery:Subnets").Get<IList<string>>() ?? new List<string>();
             if (_subnets.Count == 0)
             {
-                _logger.LogWarning("No subnets configured for device discovery.");
+                _subnets = subnetResolver() ?? new List<string>();
+                if (_subnets.Count == 0)
+                {
+                    _logger.LogWarning("No subnets configured or detected for device discovery.");
+                }
+                else
+                {
+                    _logger.LogInformation("Using auto-detected subnets: {Subnets}", string.Join(", ", _subnets));
+                }
             }
             _ftpPort = configuration.GetValue<int?>("DeviceDiscovery:FtpPort") ?? 21;
         }
@@ -130,6 +141,33 @@ namespace InventoryManagementApp.Services.Devices
                     Array.Reverse(bytes);
                 yield return new IPAddress(bytes).ToString();
             }
+        }
+
+        private static IList<string> GetLocalSubnets()
+        {
+            var subnets = new List<string>();
+            foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (ni.OperationalStatus != OperationalStatus.Up || ni.NetworkInterfaceType == NetworkInterfaceType.Loopback)
+                    continue;
+                var ipProps = ni.GetIPProperties();
+                foreach (var ua in ipProps.UnicastAddresses)
+                {
+                    if (ua.Address.AddressFamily != AddressFamily.InterNetwork || ua.IPv4Mask == null)
+                        continue;
+                    var ipBytes = ua.Address.GetAddressBytes();
+                    var maskBytes = ua.IPv4Mask.GetAddressBytes();
+                    var networkBytes = new byte[4];
+                    for (int i = 0; i < 4; i++)
+                        networkBytes[i] = (byte)(ipBytes[i] & maskBytes[i]);
+                    var network = new IPAddress(networkBytes);
+                    int prefix = maskBytes.Sum(b => Convert.ToString(b, 2).Count(c => c == '1'));
+                    var cidr = $"{network}/{prefix}";
+                    if (!subnets.Contains(cidr))
+                        subnets.Add(cidr);
+                }
+            }
+            return subnets;
         }
 
         private static async Task<bool> DefaultPortChecker(string ip, int port, CancellationToken ct)
