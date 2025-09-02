@@ -50,7 +50,6 @@
                             <TextBlock Text="Domain:" Width="70" VerticalAlignment="Center"/>
                             <TextBox Text="{Binding SelectedDevice.Domain, UpdateSourceTrigger=PropertyChanged}" Width="150"/>
                         </StackPanel>
-                        <Button Style="{StaticResource PrimaryButton}" Content="Pull All Reports" Command="{Binding PullAllReportsCommand}" Margin="0,8,0,0"/>
                     </StackPanel>
                     <ListBox Grid.Column="1" ItemsSource="{Binding DeviceFiles}" Margin="8"/>
                 </Grid>
