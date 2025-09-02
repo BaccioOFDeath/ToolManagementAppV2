@@ -158,27 +158,27 @@ namespace InventoryManagementApp.Services.Devices
                 switch (device.Protocol)
                 {
                     case DeviceProtocol.Ftp:
-                        using (var client = new AsyncFtpClient(device.Ip, device.Username, device.Password))
+                        using (var ftpClient = new AsyncFtpClient(device.Ip, device.Username, device.Password))
                         {
-                            await client.Connect(cancellationToken);
+                            await ftpClient.Connect(cancellationToken);
                             using var ms = new MemoryStream();
-                            await client.DownloadStream(ms, file, token: cancellationToken);
-                            if (client.IsConnected)
-                                await client.Disconnect(cancellationToken);
+                            await ftpClient.DownloadStream(ms, file, token: cancellationToken);
+                            if (ftpClient.IsConnected)
+                                await ftpClient.Disconnect(cancellationToken);
                             return ms.ToArray();
                         }
                     case DeviceProtocol.Smb:
-                        dynamic client = _smbClientFactory();
+                        dynamic smbClient = _smbClientFactory();
                         try
                         {
-                            bool connected = await Task.Run(() => client.Connect(device.Ip, SMBTransportType.DirectTCPTransport), cancellationToken);
+                            bool connected = await Task.Run(() => smbClient.Connect(device.Ip, SMBTransportType.DirectTCPTransport), cancellationToken);
                             if (!connected) return null;
 
-                            NTStatus status = await Task.Run(() => client.Login(device.Domain ?? string.Empty, device.Username ?? string.Empty, device.Password ?? string.Empty), cancellationToken);
+                            NTStatus status = await Task.Run(() => smbClient.Login(device.Domain ?? string.Empty, device.Username ?? string.Empty, device.Password ?? string.Empty), cancellationToken);
                             if (status != NTStatus.STATUS_SUCCESS) return null;
 
                             dynamic shares;
-                            status = client.ListShares(out shares);
+                            status = smbClient.ListShares(out shares);
                             if (status != NTStatus.STATUS_SUCCESS) return null;
 
                             foreach (var share in shares)
@@ -188,7 +188,7 @@ namespace InventoryManagementApp.Services.Devices
                                 if (string.Equals(shareName, "IPC$", StringComparison.OrdinalIgnoreCase)) continue;
 
                                 dynamic fileStore;
-                                status = client.TreeConnect(shareName, out fileStore);
+                                status = smbClient.TreeConnect(shareName, out fileStore);
                                 if (status != NTStatus.STATUS_SUCCESS) continue;
                                 try
                                 {
@@ -216,8 +216,8 @@ namespace InventoryManagementApp.Services.Devices
                         }
                         finally
                         {
-                            try { client.Logoff(); } catch { }
-                            try { client.Disconnect(); } catch { }
+                            try { smbClient.Logoff(); } catch { }
+                            try { smbClient.Disconnect(); } catch { }
                         }
                         return null;
                     default:
