@@ -12,6 +12,40 @@ These options enable using the app for tracking AV gear, sports equipment, or an
 ## Configuration
 The application reads configuration from `appsettings.json`. By default, the SQLite database is stored in `inventory.db` within the application's base directory. This path can be changed by updating the `Database:Path` setting.
 
+## Device File Service
+`IDeviceFileService` connects to network devices over SMB or FTP to list and download files.
+
+### Configuring Credentials
+Each `Device` record stores connection details:
+
+- `Protocol`: `Smb` or `Ftp`
+- `Ip`: device address
+- `Username` and `Password`: authentication for the share
+- `Domain`: optional, used for `Smb` connections
+
+Credentials can be entered through the application's device management features or seeded directly in the database.
+
+### Using an Extension Filter
+`ListFilesAsync` accepts an optional `extensionFilter` argument to limit results to files with a specific extension. The filter should include the leading dot (e.g., `.jpg`). Passing `null` lists all files.
+
+```csharp
+var device = new Device
+{
+    Ip = "192.168.1.10",
+    Protocol = DeviceProtocol.Ftp,
+    Username = "demo",
+    Password = "pass"
+};
+
+var files = await _deviceFileService.ListFilesAsync(device, ".jpg", CancellationToken.None);
+```
+
+To download and persist new files, call:
+
+```csharp
+int count = await _deviceFileService.DownloadUnseenFilesAsync(device, "/var/data", CancellationToken.None);
+```
+
 ## Prerequisites
 - **.NET 8 SDK**
 
