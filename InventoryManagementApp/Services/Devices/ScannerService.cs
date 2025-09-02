@@ -43,6 +43,7 @@ namespace InventoryManagementApp.Services.Devices
                         Password = d.Password,
                         Domain = d.Domain,
                         ItemId = d.ItemId,
+                        ItemName = d.ItemName,
                         LastSeen = DateTime.UtcNow.ToLocalTime()
                     };
                     try

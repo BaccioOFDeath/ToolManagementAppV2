@@ -100,7 +100,9 @@ namespace InventoryManagementApp.Services.Core
                     CheckedOutTime DATETIME,
                     CheckedInBy TEXT,
                     CheckedInTime DATETIME,
-                    UpdatedAt DATETIME
+                    UpdatedAt DATETIME,
+                    DeviceId TEXT,
+                    FOREIGN KEY (DeviceId) REFERENCES Devices(Ip)
                 );
                 CREATE TABLE IF NOT EXISTS Users (
                     UserID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -178,6 +180,7 @@ namespace InventoryManagementApp.Services.Core
                 );";
             using var cmd = new SqliteCommand(sql, conn);
             cmd.ExecuteNonQuery();
+            EnsureColumn(conn, "Items", "DeviceId", "TEXT");
 
             EnsureIndex(conn, "Items", "ItemNumber", true);
             EnsureIndex(conn, "Items", "NameDescription");
@@ -186,6 +189,7 @@ namespace InventoryManagementApp.Services.Core
             EnsureIndex(conn, "Items", "Supplier");
             EnsureIndex(conn, "Items", "Location");
             EnsureIndex(conn, "Items", "Notes");
+            EnsureIndex(conn, "Items", "DeviceId");
             // Ensure each user has a unique username
             EnsureIndex(conn, "Users", "UserName", true);
             EnsureIndex(conn, "Customers", "Contact");

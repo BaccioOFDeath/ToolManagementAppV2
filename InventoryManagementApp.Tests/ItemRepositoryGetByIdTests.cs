@@ -36,7 +36,8 @@ public class ItemRepositoryGetByIdTests
             CheckedInBy TEXT,
             CheckedInTime TEXT,
             IsPowered INTEGER,
-            UpdatedAt TEXT
+            UpdatedAt TEXT,
+            DeviceId TEXT
         );";
         cmd.ExecuteNonQuery();
         await conn.ExecuteAsync(

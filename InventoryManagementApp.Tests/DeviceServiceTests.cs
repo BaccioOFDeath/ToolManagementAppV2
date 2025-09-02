@@ -5,6 +5,10 @@ using InventoryManagementApp.Models;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Services.Devices;
 using Xunit;
+using System.Threading;
+using InventoryManagementApp.Data;
+using InventoryManagementApp.Models.Domain;
+using System.Linq;
 
 public class DeviceServiceTests
 {
@@ -23,5 +27,20 @@ public class DeviceServiceTests
         Assert.Single(all);
         await service.DeleteDeviceAsync("1.2.3.4");
         Assert.Empty(await service.GetDevicesAsync());
+    }
+
+    [Fact]
+    public async Task GetDevices_ReturnsItemNameWhenLinked()
+    {
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        await using var db = new DatabaseService(dbPath);
+        var deviceService = new DeviceService(db);
+        var repo = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+        var item = new ItemModel { ItemNumber = "I1", Name = "Hammer", DeviceId = "9.9.9.9" };
+        await repo.InsertAsync(item, CancellationToken.None);
+        await deviceService.AddOrUpdateDeviceAsync(new Device { Ip = "9.9.9.9" });
+        var devices = (await deviceService.GetDevicesAsync()).ToList();
+        Assert.Single(devices);
+        Assert.Equal("Hammer", devices[0].ItemName);
     }
 }

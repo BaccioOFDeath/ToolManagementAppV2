@@ -38,7 +38,8 @@ public class ItemRepositoryPaginationTests
             CheckedInBy TEXT,
             CheckedInTime TEXT,
             IsPowered INTEGER,
-            UpdatedAt TEXT
+            UpdatedAt TEXT,
+            DeviceId TEXT
         );";
         cmd.ExecuteNonQuery();
         for (int i = 1; i <= 5; i++)

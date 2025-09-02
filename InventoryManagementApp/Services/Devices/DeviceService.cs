@@ -22,7 +22,8 @@ namespace InventoryManagementApp.Services.Devices
         {
             using var conn = _db.CreateConnection();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "SELECT Ip, Hostname, Protocol, Username, Password, Domain, ItemId FROM Devices ORDER BY Ip";
+            cmd.CommandText = @"SELECT d.Ip, d.Hostname, d.Protocol, d.Username, d.Password, d.Domain, d.ItemId, i.NameDescription
+                               FROM Devices d LEFT JOIN Items i ON i.DeviceId = d.Ip ORDER BY d.Ip";
             using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             var devices = new List<Device>();
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -35,7 +36,8 @@ namespace InventoryManagementApp.Services.Devices
                     Username = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
                     Password = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
                     Domain = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
-                    ItemId = reader.IsDBNull(6) ? null : reader.GetInt32(6)
+                    ItemId = reader.IsDBNull(6) ? null : reader.GetInt32(6),
+                    ItemName = reader.IsDBNull(7) ? string.Empty : reader.GetString(7)
                 });
             }
             return devices;
@@ -45,7 +47,8 @@ namespace InventoryManagementApp.Services.Devices
         {
             using var conn = _db.CreateConnection();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "SELECT Ip, Hostname, Protocol, Username, Password, Domain, ItemId FROM Devices WHERE Ip=$ip";
+            cmd.CommandText = @"SELECT d.Ip, d.Hostname, d.Protocol, d.Username, d.Password, d.Domain, d.ItemId, i.NameDescription
+                               FROM Devices d LEFT JOIN Items i ON i.DeviceId = d.Ip WHERE d.Ip=$ip";
             cmd.Parameters.AddWithValue("$ip", ip);
             using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -58,7 +61,8 @@ namespace InventoryManagementApp.Services.Devices
                     Username = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
                     Password = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
                     Domain = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
-                    ItemId = reader.IsDBNull(6) ? null : reader.GetInt32(6)
+                    ItemId = reader.IsDBNull(6) ? null : reader.GetInt32(6),
+                    ItemName = reader.IsDBNull(7) ? string.Empty : reader.GetString(7)
                 };
             }
             return null;
