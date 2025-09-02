@@ -19,6 +19,42 @@ public class ScannerStatusViewModelTests
             => Task.FromResult<IEnumerable<ScannerDevice>>(Devices);
     }
 
+    private sealed class StubScannerGroupService : IScannerGroupService
+    {
+        public List<ScannerGroup> Groups { get; } = new();
+        public Dictionary<string, int?> DeviceGroups { get; } = new();
+        public Task<int> CreateGroupAsync(string name, CancellationToken cancellationToken = default)
+        {
+            var id = Groups.Count + 1;
+            Groups.Add(new ScannerGroup { Id = id, Name = name });
+            return Task.FromResult(id);
+        }
+        public Task<IEnumerable<ScannerGroup>> GetGroupsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult<IEnumerable<ScannerGroup>>(Groups);
+        public Task UpdateGroupAsync(ScannerGroup group, CancellationToken cancellationToken = default)
+        {
+            var existing = Groups.FirstOrDefault(g => g.Id == group.Id);
+            if (existing != null) existing.Name = group.Name;
+            return Task.CompletedTask;
+        }
+        public Task DeleteGroupAsync(int groupId, CancellationToken cancellationToken = default)
+        {
+            Groups.RemoveAll(g => g.Id == groupId);
+            return Task.CompletedTask;
+        }
+        public Task AssignDeviceToGroupAsync(string deviceIp, int? groupId, CancellationToken cancellationToken = default)
+        {
+            if (groupId == null) DeviceGroups.Remove(deviceIp);
+            else DeviceGroups[deviceIp] = groupId;
+            return Task.CompletedTask;
+        }
+        public Task<int?> GetDeviceGroupIdAsync(string deviceIp, CancellationToken cancellationToken = default)
+        {
+            DeviceGroups.TryGetValue(deviceIp, out var gid);
+            return Task.FromResult<int?>(gid);
+        }
+    }
+
     private sealed class StubSettingsService : ISettingsService
     {
         public List<string> IpAddresses { get; private set; } = new();
@@ -77,7 +113,8 @@ public class ScannerStatusViewModelTests
         var scannerService = new StubScannerService();
         var dialogService = new StubDialogService();
         var settingsService = new StubSettingsService();
-        var vm = new ScannerStatusViewModel(scannerService, dialogService, settingsService);
+        var groupService = new StubScannerGroupService();
+        var vm = new ScannerStatusViewModel(scannerService, dialogService, settingsService, groupService);
 
         var ip = "192.168.1.10";
         vm.PromptForIp = () => ip;

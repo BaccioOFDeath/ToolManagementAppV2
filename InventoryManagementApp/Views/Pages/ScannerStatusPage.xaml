@@ -17,6 +17,7 @@
                 <StackPanel Orientation="Horizontal">
                     <Button Style="{StaticResource PrimaryButton}" Content="Refresh" Command="{Binding RefreshCommand}"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Add Device" Command="{Binding AddDeviceCommand}" Margin="8,0,0,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Add Group" Command="{Binding AddGroupCommand}" Margin="8,0,0,0"/>
                     <CheckBox Content="Auto Refresh" IsChecked="{Binding AutoRefresh}" Margin="12,6,0,0"/>
                 </StackPanel>
             </Border>
@@ -31,6 +32,12 @@
                         <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
                         <DataGridTextColumn Header="IP" Binding="{Binding Ip}" Width="180"/>
                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="160"/>
+                        <DataGridComboBoxColumn Header="Group"
+                                               SelectedValueBinding="{Binding GroupId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                               SelectedValuePath="Id"
+                                               DisplayMemberPath="Name"
+                                               ItemsSource="{Binding DataContext.Groups, RelativeSource={RelativeSource AncestorType=Page}}"
+                                               Width="200"/>
                         <DataGridTextColumn Header="Last Seen"
                                             Binding="{Binding LastSeen, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat='{}{0:yyyy-MM-dd HH:mm}', TargetNullValue=''}"
                                             Width="220"/>

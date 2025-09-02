@@ -149,6 +149,15 @@ namespace InventoryManagementApp.Services.Core
                 CREATE TABLE IF NOT EXISTS Settings (
                     Key TEXT PRIMARY KEY,
                     Value TEXT
+                );
+                CREATE TABLE IF NOT EXISTS ScannerGroups (
+                    GroupId INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Name TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS ScannerDeviceGroups (
+                    DeviceIp TEXT PRIMARY KEY,
+                    GroupId INTEGER,
+                    FOREIGN KEY (GroupId) REFERENCES ScannerGroups(GroupId)
                 );";
             using var cmd = new SqliteCommand(sql, conn);
             cmd.ExecuteNonQuery();
