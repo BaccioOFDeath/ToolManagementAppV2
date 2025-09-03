@@ -164,6 +164,44 @@ namespace InventoryManagementApp.Tests
             Assert.Equal("aa-bb", cellText);
         }
 
+        [Fact]
+        public void DevicesPage_HasSettingsButton()
+        {
+            Exception? threadEx = null;
+            Button? settingsButton = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary
+                    {
+                        Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute)
+                    });
+
+                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService(), new DummyDeviceGroupService());
+                    var page = new DevicesPage { DataContext = vm };
+                    page.ApplyTemplate();
+                    settingsButton = (Button)page.FindName("DeviceSettingsButton");
+
+                    Application.Current?.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadEx != null) throw threadEx;
+            Assert.NotNull(settingsButton);
+            Assert.Equal("Device Settings", settingsButton!.Content);
+        }
+
         private sealed class BindingErrorTraceListener : TraceListener
         {
             private readonly List<string> _errors;

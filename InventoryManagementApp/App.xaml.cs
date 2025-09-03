@@ -120,7 +120,13 @@ namespace InventoryManagementApp
                 services.AddSingleton<IDialogService, DialogService>();
                 services.AddSingleton<IDeviceService, DeviceService>();
                 services.AddSingleton<IScannerService, ScannerService>();
-                services.AddSingleton<IDeviceDiscoveryService, DeviceDiscoveryService>();
+                services.AddSingleton<IDeviceDiscoveryService>(sp =>
+                    new DeviceDiscoveryService(
+                        sp.GetRequiredService<IConfiguration>(),
+                        sp.GetRequiredService<ILogger<DeviceDiscoveryService>>(),
+                        null,
+                        null,
+                        sp.GetRequiredService<ISettingsService>()));
                 services.AddSingleton<IDeviceGroupService, DeviceGroupService>();
                 services.AddSingleton<IDeviceFileService, DeviceFileService>();
                 services.AddSingleton<MemoryBudget>();

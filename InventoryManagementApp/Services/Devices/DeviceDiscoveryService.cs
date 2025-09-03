@@ -43,13 +43,20 @@ namespace InventoryManagementApp.Services.Devices
         public DeviceDiscoveryService(IConfiguration configuration,
             ILogger<DeviceDiscoveryService>? logger = null,
             Func<string, int, CancellationToken, Task<bool>>? portChecker = null,
-            Func<IList<string>>? subnetResolver = null)
+            Func<IList<string>>? subnetResolver = null,
+            ISettingsService? settingsService = null)
         {
             _logger = logger ?? NullLogger<DeviceDiscoveryService>.Instance;
             _portChecker = portChecker ?? DefaultPortChecker;
             subnetResolver ??= GetLocalSubnets;
 
             _subnets = configuration.GetSection("DeviceDiscovery:Subnets").Get<IList<string>>() ?? new List<string>();
+            if (settingsService != null)
+            {
+                var subnetsOverride = settingsService.GetSettingAsync("DeviceDiscovery_Subnets").GetAwaiter().GetResult();
+                if (!string.IsNullOrWhiteSpace(subnetsOverride))
+                    _subnets = subnetsOverride.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
+            }
             if (_subnets.Count == 0)
             {
                 _subnets = subnetResolver() ?? new List<string>();
@@ -64,10 +71,50 @@ namespace InventoryManagementApp.Services.Devices
             }
 
             _ftpPorts = configuration.GetSection("DeviceDiscovery:FtpPorts").Get<int[]>() ?? new[] { 21, 3721 };
+            if (settingsService != null)
+            {
+                var ftpOverride = settingsService.GetSettingAsync("DeviceDiscovery_FtpPorts").GetAwaiter().GetResult();
+                if (!string.IsNullOrWhiteSpace(ftpOverride))
+                    _ftpPorts = ftpOverride.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(p => int.TryParse(p, out var v) ? v : 0).Where(v => v > 0).ToArray();
+            }
             _additionalPorts = configuration.GetSection("DeviceDiscovery:AdditionalPorts").Get<Dictionary<int, DeviceProtocol>>() ?? new Dictionary<int, DeviceProtocol>();
+            if (settingsService != null)
+            {
+                var addOverride = settingsService.GetSettingAsync("DeviceDiscovery_AdditionalPorts").GetAwaiter().GetResult();
+                if (!string.IsNullOrWhiteSpace(addOverride))
+                {
+                    _additionalPorts = new Dictionary<int, DeviceProtocol>();
+                    foreach (var part in addOverride.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        var kv = part.Split(':');
+                        if (kv.Length == 2 && int.TryParse(kv[0], out var port)
+                            && Enum.TryParse<DeviceProtocol>(kv[1], true, out var proto))
+                            _additionalPorts[port] = proto;
+                    }
+                }
+            }
             _maxConcurrentScans = configuration.GetValue<int?>("DeviceDiscovery:MaxConcurrentScans") ?? 128;
+            if (settingsService != null)
+            {
+                var val = settingsService.GetSettingAsync("DeviceDiscovery_MaxConcurrentScans").GetAwaiter().GetResult();
+                if (int.TryParse(val, out var mcs))
+                    _maxConcurrentScans = mcs;
+            }
             _livenessTimeoutMs = configuration.GetValue<int?>("DeviceDiscovery:LivenessTimeoutMs") ?? 400;
+            if (settingsService != null)
+            {
+                var val = settingsService.GetSettingAsync("DeviceDiscovery_LivenessTimeoutMs").GetAwaiter().GetResult();
+                if (int.TryParse(val, out var lt))
+                    _livenessTimeoutMs = lt;
+            }
             _portProbeTimeoutMs = configuration.GetValue<int?>("DeviceDiscovery:PortProbeTimeoutMs") ?? 700;
+            if (settingsService != null)
+            {
+                var val = settingsService.GetSettingAsync("DeviceDiscovery_PortProbeTimeoutMs").GetAwaiter().GetResult();
+                if (int.TryParse(val, out var pt))
+                    _portProbeTimeoutMs = pt;
+            }
         }
 
         public async Task<IReadOnlyList<DiscoveredDevice>> DiscoverDevicesAsync(CancellationToken cancellationToken = default)
