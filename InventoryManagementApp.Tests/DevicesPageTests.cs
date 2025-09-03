@@ -42,7 +42,7 @@ namespace InventoryManagementApp.Tests
                     PresentationTraceSources.DataBindingSource.Listeners.Add(listener);
                     PresentationTraceSources.DataBindingSource.Switch.Level = SourceLevels.Error;
 
-                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService())
+                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService())
                     {
                         SelectedDevice = new Device()
                     };
@@ -82,7 +82,7 @@ namespace InventoryManagementApp.Tests
                         Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute)
                     });
 
-                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService());
+                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService());
                     vm.Devices.Add(new Device { Ip = "1.2.3.4", Hostname = "test", ProtocolsDisplay = "Smb, Http" });
 
                     var page = new DevicesPage { DataContext = vm };
@@ -131,7 +131,7 @@ namespace InventoryManagementApp.Tests
                         Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute)
                     });
 
-                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService());
+                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService());
                     vm.Devices.Add(new Device { Ip = "1.2.3.4", Hostname = "test", MacAddress = "aa-bb", ProtocolsDisplay = "Smb" });
 
                     var page = new DevicesPage { DataContext = vm };
@@ -204,6 +204,18 @@ namespace InventoryManagementApp.Tests
             public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(FlowDocument document, string title, string description) { }
             public void ShowPrintLabelDialog() { }
+        }
+
+        private sealed class DummyDeviceService : IDeviceService
+        {
+            public Task<IEnumerable<Device>> GetDevicesAsync(CancellationToken cancellationToken = default)
+                => Task.FromResult<IEnumerable<Device>>(Array.Empty<Device>());
+            public Task<Device?> GetDeviceAsync(string ip, int? port, CancellationToken cancellationToken = default)
+                => Task.FromResult<Device?>(null);
+            public Task AddOrUpdateDeviceAsync(Device device, CancellationToken cancellationToken = default)
+                => Task.CompletedTask;
+            public Task DeleteDeviceAsync(string ip, int? port, CancellationToken cancellationToken = default)
+                => Task.CompletedTask;
         }
 
         private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
