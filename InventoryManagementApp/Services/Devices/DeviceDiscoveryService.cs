@@ -339,12 +339,17 @@ namespace InventoryManagementApp.Services.Devices
             try
             {
                 using var ping = new Ping();
-                var reply = await ping.SendPingAsync(ip, timeoutMs, Array.Empty<byte>(), new PingOptions(), ct).ConfigureAwait(false);
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                var pingTask = ping.SendPingAsync(ip, timeoutMs, Array.Empty<byte>(), new PingOptions(64, true));
+                var completed = await Task.WhenAny(pingTask, Task.Delay(Timeout.InfiniteTimeSpan, cts.Token)).ConfigureAwait(false);
+                if (completed != pingTask) return false;
+                var reply = await pingTask.ConfigureAwait(false);
                 return reply.Status == IPStatus.Success;
             }
             catch (OperationCanceledException) { return false; }
             catch { return false; }
         }
+
 
         private static async Task<bool> SafeTcpProbeAsync(string ip, int port, int timeoutMs, CancellationToken ct)
         {
