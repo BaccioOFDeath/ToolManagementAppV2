@@ -1,0 +1,109 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Documents;
+using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Models;
+using InventoryManagementApp.Models.Domain;
+using ItemModel = InventoryManagementApp.Models.Domain.ItemModel;
+using CustomerModel = InventoryManagementApp.Models.Domain.Customer;
+using RentalModel = InventoryManagementApp.Models.Domain.Rental;
+using InventoryManagementApp.ViewModels;
+using InventoryManagementApp.Views.Pages;
+using Xunit;
+
+namespace InventoryManagementApp.Tests
+{
+    public class DevicesPageTests
+    {
+        [Fact]
+        public void DevicesPage_LoadsWithoutBindingErrors()
+        {
+            Exception? threadEx = null;
+            var errors = new List<string>();
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary
+                    {
+                        Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute)
+                    });
+
+                    var listener = new BindingErrorTraceListener(errors);
+                    PresentationTraceSources.DataBindingSource.Listeners.Add(listener);
+                    PresentationTraceSources.DataBindingSource.Switch.Level = SourceLevels.Error;
+
+                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService())
+                    {
+                        SelectedDevice = new Device()
+                    };
+
+                    _ = new DevicesPage { DataContext = vm };
+
+                    PresentationTraceSources.DataBindingSource.Listeners.Remove(listener);
+                    Application.Current?.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadEx != null) throw threadEx;
+            Assert.Empty(errors);
+        }
+
+        private sealed class BindingErrorTraceListener : TraceListener
+        {
+            private readonly List<string> _errors;
+            public BindingErrorTraceListener(List<string> errors) => _errors = errors;
+            public override void Write(string? message) { }
+            public override void WriteLine(string? message) => _errors.Add(message ?? string.Empty);
+        }
+
+        private sealed class DummyDiscoveryService : IDeviceDiscoveryService
+        {
+            public bool HasConfiguredSubnets => true;
+            public Task<IReadOnlyList<DiscoveredDevice>> DiscoverDevicesAsync(CancellationToken cancellationToken = default)
+                => Task.FromResult<IReadOnlyList<DiscoveredDevice>>(Array.Empty<DiscoveredDevice>());
+            public IAsyncEnumerable<DiscoveredDevice> DiscoverDevicesAsync(IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+                => AsyncEnumerable.Empty<DiscoveredDevice>();
+        }
+
+        private sealed class DummyFileService : IDeviceFileService
+        {
+            public Task<IEnumerable<string>> ListFilesAsync(Device device, string? extensionFilter = null, CancellationToken cancellationToken = default)
+                => Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
+            public Task<int> DownloadUnseenFilesAsync(Device device, string basePath, CancellationToken cancellationToken = default)
+                => Task.FromResult(0);
+        }
+
+        private sealed class DummyDialogService : IDialogService
+        {
+            public void ShowInfo(string message, string title) { }
+            public bool ShowConfirmation(string message, string title) => true;
+            public ItemModel? ShowEditItemDialog(ItemModel item) => null;
+            public void ShowItemDetails(ItemModel item) { }
+            public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;
+            public CustomerModel? ShowAddCustomerDialog() => null;
+            public CustomerModel? ShowEditCustomerDialog(CustomerModel customer) => null;
+            public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
+            public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history) { }
+            public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties, IEnumerable<string>? requiredPropertyNames = null) => null;
+            public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
+            public void ShowPrintPreview(FlowDocument document, string title, string description) { }
+            public void ShowPrintLabelDialog() { }
+        }
+    }
+}

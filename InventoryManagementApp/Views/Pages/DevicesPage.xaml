@@ -31,7 +31,7 @@
                 <ProgressBar Margin="0,8,0,0"
                              Height="20"
                              Minimum="0" Maximum="1"
-                             Value="{Binding DiscoveryProgress}"
+                             Value="{Binding DiscoveryProgress, Mode=OneWay}"
                              Visibility="{Binding IsDiscovering, Converter={StaticResource BoolToVis}}"/>
             </StackPanel>
             <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" Margin="0,8,0,0">
