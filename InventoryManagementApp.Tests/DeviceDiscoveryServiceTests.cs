@@ -336,4 +336,28 @@ public class DeviceDiscoveryServiceTests
         Assert.Contains(DeviceProtocol.Ftp, device.Protocols);
         Assert.True(secondCancelled);
     }
+
+    [Fact]
+    public async Task ResolveName_ReturnsImmediatelyWhenDnsSucceeds()
+    {
+        var method = typeof(DeviceDiscoveryService).GetMethod("ResolveName", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var tcs = new TaskCompletionSource<bool>();
+        var task = (Task<string>)method.Invoke(null, new object[] { "127.0.0.1", tcs.Task, CancellationToken.None })!;
+        var result = await task.ConfigureAwait(false);
+        Assert.False(string.IsNullOrEmpty(result));
+        Assert.False(tcs.Task.IsCompleted);
+    }
+
+    [Fact]
+    public async Task ResolveName_WaitsForSmbDetectionWhenDnsFails()
+    {
+        var method = typeof(DeviceDiscoveryService).GetMethod("ResolveName", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var tcs = new TaskCompletionSource<bool>();
+        var task = (Task<string>)method.Invoke(null, new object[] { "192.0.2.1", tcs.Task, CancellationToken.None })!;
+        await Task.Delay(100).ConfigureAwait(false);
+        Assert.False(task.IsCompleted);
+        tcs.SetResult(false);
+        var result = await task.ConfigureAwait(false);
+        Assert.Equal(string.Empty, result);
+    }
 }

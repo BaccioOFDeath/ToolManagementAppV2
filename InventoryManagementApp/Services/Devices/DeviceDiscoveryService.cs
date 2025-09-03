@@ -119,14 +119,24 @@ namespace InventoryManagementApp.Services.Devices
             var alive = await IsAlive(ip, ct).ConfigureAwait(false);
             var protocols = new List<DeviceProtocol>();
 
+            Task<string> nameTask = Task.FromResult(string.Empty);
+            TaskCompletionSource<bool>? smbTcs = null;
+
             if (alive)
             {
+                smbTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                nameTask = ResolveName(ip, smbTcs.Task, ct);
+
                 async Task<DeviceProtocol?> CheckPortAsync(int port, DeviceProtocol protocol, CancellationToken token)
                 {
                     try
                     {
                         if (await _portChecker(ip, port, token).ConfigureAwait(false))
+                        {
+                            if (protocol == DeviceProtocol.Smb)
+                                smbTcs.TrySetResult(true);
                             return protocol;
+                        }
                     }
                     catch (OperationCanceledException)
                     {
@@ -166,8 +176,12 @@ namespace InventoryManagementApp.Services.Devices
                         protocols.Add(proto.Value);
                         if (proto.Value == DeviceProtocol.Ftp)
                             ftpCts.Cancel();
+                        if (proto.Value == DeviceProtocol.Smb)
+                            smbTcs.TrySetResult(true);
                     }
                 }
+
+                smbTcs.TrySetResult(false);
             }
 
             if (alive && protocols.Count == 0)
@@ -175,7 +189,7 @@ namespace InventoryManagementApp.Services.Devices
                 protocols.Add(DeviceProtocol.Unknown);
             }
 
-            var hostname = await ResolveName(ip, ct).ConfigureAwait(false);
+            var hostname = await nameTask.ConfigureAwait(false);
 
             return new DiscoveredDevice
             {
@@ -235,7 +249,7 @@ namespace InventoryManagementApp.Services.Devices
             catch { return false; }
         }
 
-        private static async Task<string> ResolveName(string ip, CancellationToken ct)
+        private static async Task<string> ResolveName(string ip, Task<bool> smbDetectedTask, CancellationToken ct)
         {
             try
             {
@@ -244,24 +258,27 @@ namespace InventoryManagementApp.Services.Devices
             }
             catch { /* ignore */ }
 
-            try
+            if (await smbDetectedTask.ConfigureAwait(false))
             {
-                var psi = new ProcessStartInfo
+                try
                 {
-                    FileName = "nbtstat",
-                    Arguments = $"-A {ip}",
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-                using var p = Process.Start(psi);
-                if (p == null) return "";
-                var read = await p.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-                await p.WaitForExitAsync(ct).ConfigureAwait(false);
-                var m = Regex.Match(read, @"^\s*([A-Z0-9\-\._]+)\s+<00>\s+UNIQUE", RegexOptions.Multiline | RegexOptions.IgnoreCase);
-                if (m.Success) return m.Groups[1].Value.Trim();
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = "nbtstat",
+                        Arguments = $"-A {ip}",
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+                    using var p = Process.Start(psi);
+                    if (p == null) return "";
+                    var read = await p.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+                    await p.WaitForExitAsync(ct).ConfigureAwait(false);
+                    var m = Regex.Match(read, @"^\s*([A-Z0-9\-\._]+)\s+<00>\s+UNIQUE", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+                    if (m.Success) return m.Groups[1].Value.Trim();
+                }
+                catch { /* ignore */ }
             }
-            catch { /* ignore */ }
 
             return "";
         }
