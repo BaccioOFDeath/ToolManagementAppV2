@@ -241,6 +241,10 @@ namespace InventoryManagementApp.ViewModels
         private async Task DownloadUnseenFilesAsync()
         {
             if (SelectedDevice == null) return;
+            var confirm = _dialogService.ShowConfirmation(
+                $"Download unseen files from '{SourceFolder}' to '{DestinationFolder}'?",
+                "Confirm Download");
+            if (!confirm) return;
             try
             {
                 await _fileService.DownloadUnseenFilesAsync(SelectedDevice, DestinationFolder, CancellationToken.None);

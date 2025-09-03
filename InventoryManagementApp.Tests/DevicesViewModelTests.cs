@@ -67,13 +67,19 @@ public class DevicesViewModelTests
     private sealed class RecordingDialogService : IDialogService
     {
         public string? LastInfoMessage { get; private set; }
+        public bool ConfirmationResult { get; set; } = true;
+        public int ConfirmationCallCount { get; private set; }
         public void ShowInfo(string message, string title) => LastInfoMessage = message;
         public Task ShowInfoAsync(string message, string title)
         {
             LastInfoMessage = message;
             return Task.CompletedTask;
         }
-        public bool ShowConfirmation(string message, string title) => false;
+        public bool ShowConfirmation(string message, string title)
+        {
+            ConfirmationCallCount++;
+            return ConfirmationResult;
+        }
         public ItemModel? ShowEditItemDialog(ItemModel item) => null;
         public void ShowItemDetails(ItemModel item) { }
         public (CustomerModel customer, System.DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;
@@ -533,6 +539,29 @@ public class DevicesViewModelTests
 
         Assert.Equal("C:/dest", fileService.LastBasePath);
         Assert.Equal(vm.SelectedDevice, fileService.LastDevice);
+        Assert.Equal(1, dialog.ConfirmationCallCount);
+        Assert.Equal(1, fileService.DownloadCallCount);
+    }
+
+    [Fact]
+    public async Task DownloadUnseenFilesCommand_CancelledByUser_AbortsDownload()
+    {
+        var discovery = new StubDiscoveryService();
+        discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", IsOnline = true, Protocols = new List<DeviceProtocol>() });
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new RecordingDialogService { ConfirmationResult = false };
+        var groupService = new RecordingDeviceGroupService();
+        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), groupService);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+        vm.SourceFolder = "C:/src";
+        vm.DestinationFolder = "C:/dest";
+        vm.SelectedDevice = vm.Devices[0];
+
+        await vm.DownloadUnseenFilesCommand.ExecuteAsync(null);
+
+        Assert.Equal(1, dialog.ConfirmationCallCount);
+        Assert.Equal(0, fileService.DownloadCallCount);
     }
 
     [Fact]
