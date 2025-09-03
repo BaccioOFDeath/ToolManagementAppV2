@@ -9,6 +9,7 @@ using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.VisualBasic;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -17,6 +18,7 @@ namespace InventoryManagementApp.ViewModels
         private readonly IDeviceDiscoveryService _discoveryService;
         private readonly IDeviceFileService _fileService;
         private readonly IDialogService _dialogService;
+        private readonly IDeviceService _deviceService;
         private readonly ILogger<DevicesViewModel> _logger;
 
         public ObservableCollection<Device> Devices { get; } = new();
@@ -45,6 +47,7 @@ namespace InventoryManagementApp.ViewModels
 
         public IAsyncRelayCommand RefreshCommand { get; }
         public IAsyncRelayCommand PullAllReportsCommand { get; }
+        public IAsyncRelayCommand AddDeviceCommand { get; }
 
         private double _discoveryProgress;
         public double DiscoveryProgress
@@ -66,18 +69,24 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
+        public Func<string?> PromptForIpPort { get; set; } = () =>
+            Interaction.InputBox("Enter device IP:port:", "Add Device", string.Empty);
+
         public DevicesViewModel(IDeviceDiscoveryService discoveryService,
                                  IDeviceFileService fileService,
                                  IDialogService dialogService,
+                                 IDeviceService deviceService,
                                  ILogger<DevicesViewModel>? logger = null)
         {
             _discoveryService = discoveryService;
             _fileService = fileService;
             _dialogService = dialogService;
+            _deviceService = deviceService;
             _logger = logger ?? NullLogger<DevicesViewModel>.Instance;
 
             RefreshCommand = new AsyncRelayCommand(RefreshAsync, () => !IsDiscovering);
             PullAllReportsCommand = new AsyncRelayCommand(PullAllReportsAsync, CanPullAllReports);
+            AddDeviceCommand = new AsyncRelayCommand(AddDeviceAsync);
         }
 
         private async Task RefreshAsync()
@@ -139,6 +148,31 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to load files for {Ip}", SelectedDevice.Ip);
                 await _dialogService.ShowInfoAsync($"Failed to pull reports: {ex.Message}", "Devices");
+            }
+        }
+
+        private async Task AddDeviceAsync()
+        {
+            try
+            {
+                var input = PromptForIpPort?.Invoke();
+                if (string.IsNullOrWhiteSpace(input))
+                    return;
+
+                string ip;
+                int? port = null;
+                var parts = input.Split(':');
+                ip = parts[0];
+                if (parts.Length > 1 && int.TryParse(parts[1], out var parsedPort))
+                    port = parsedPort;
+
+                await _deviceService.AddOrUpdateDeviceAsync(new Device { Ip = ip, Port = port });
+                await RefreshAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to add device");
+                await _dialogService.ShowInfoAsync($"Failed to add device: {ex.Message}", "Devices");
             }
         }
     }

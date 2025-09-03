@@ -20,6 +20,10 @@
                                 Content="Refresh"
                                 Command="{Binding RefreshCommand}"
                                 Margin="0,0,8,0"/>
+                        <Button Style="{StaticResource PrimaryButton}"
+                                Content="Add Device"
+                                Command="{Binding AddDeviceCommand}"
+                                Margin="0,0,8,0"/>
                         <TextBox Text="{Binding FileExtensionFilter, UpdateSourceTrigger=PropertyChanged}"
                                  Width="120"
                                  Margin="0,0,8,0"/>
