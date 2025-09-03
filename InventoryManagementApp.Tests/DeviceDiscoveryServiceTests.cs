@@ -388,4 +388,27 @@ public class DeviceDiscoveryServiceTests
 
         Assert.Equal("aa-bb-cc-dd-ee-ff", device.MacAddress);
     }
+
+    [Theory]
+    [InlineData("  192.168.0.1        00-11-22-33-44-55   dynamic", "192.168.0.1", "00-11-22-33-44-55")]
+    [InlineData("? (192.168.0.2) at 00:11:22:33:44:55 [ether] on eth0", "192.168.0.2", "00:11:22:33:44:55")]
+    [InlineData("192.168.0.3    0x1    0x2    00:11:22:33:44:55     *    eth0", "192.168.0.3", "00:11:22:33:44:55")]
+    public void TryParseArpLine_ParsesVariousFormats(string line, string ip, string mac)
+    {
+        var method = typeof(DeviceDiscoveryService).GetMethod("TryParseArpLine", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var parameters = new object?[] { line, null, null };
+        var result = (bool)method.Invoke(null, parameters)!;
+        Assert.True(result);
+        Assert.Equal(ip, parameters[1]);
+        Assert.Equal(mac, parameters[2]);
+    }
+
+    [Fact]
+    public void TryParseArpLine_Invalid_ReturnsFalse()
+    {
+        var method = typeof(DeviceDiscoveryService).GetMethod("TryParseArpLine", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var parameters = new object?[] { "not an arp line", null, null };
+        var result = (bool)method.Invoke(null, parameters)!;
+        Assert.False(result);
+    }
 }
