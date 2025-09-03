@@ -56,6 +56,7 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand AddDeviceCommand { get; }
         public IAsyncRelayCommand AddGroupCommand { get; }
         public IAsyncRelayCommand RenameGroupCommand { get; }
+        public IAsyncRelayCommand DeleteGroupCommand { get; }
 
         private double _discoveryProgress;
         public double DiscoveryProgress
@@ -123,6 +124,7 @@ namespace InventoryManagementApp.ViewModels
             AddDeviceCommand = new AsyncRelayCommand(AddDeviceAsync);
             AddGroupCommand = new AsyncRelayCommand(AddGroupAsync);
             RenameGroupCommand = new AsyncRelayCommand(RenameGroupAsync);
+            DeleteGroupCommand = new AsyncRelayCommand(DeleteGroupAsync);
         }
 
         private async Task RefreshAsync()
@@ -296,6 +298,26 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to rename group {GroupId}", SelectedGroup.Id);
                 await _dialogService.ShowInfoAsync($"Failed to rename group: {ex.Message}", "Devices");
+            }
+        }
+
+        private async Task DeleteGroupAsync()
+        {
+            if (SelectedGroup is null)
+                return;
+
+            var groupId = SelectedGroup.Id;
+
+            try
+            {
+                await _groupService.DeleteGroupAsync(groupId);
+                SelectedGroup = null;
+                await RefreshAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete group {GroupId}", groupId);
+                await _dialogService.ShowInfoAsync($"Failed to delete group: {ex.Message}", "Devices");
             }
         }
 

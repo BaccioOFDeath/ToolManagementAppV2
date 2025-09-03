@@ -241,6 +241,120 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void DevicesPage_HasAddGroupButton()
+        {
+            Exception? threadEx = null;
+            Button? addGroupButton = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary
+                    {
+                        Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute)
+                    });
+
+                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService(), new DummyDeviceGroupService());
+                    var page = new DevicesPage { DataContext = vm };
+                    page.ApplyTemplate();
+                    addGroupButton = (Button)page.FindName("AddGroupButton");
+
+                    Application.Current?.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadEx != null) throw threadEx;
+            Assert.NotNull(addGroupButton);
+            Assert.Equal("Add Group", addGroupButton!.Content);
+        }
+
+        [Fact]
+        public void DevicesPage_HasRenameGroupButton()
+        {
+            Exception? threadEx = null;
+            Button? renameGroupButton = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary
+                    {
+                        Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute)
+                    });
+
+                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService(), new DummyDeviceGroupService());
+                    var page = new DevicesPage { DataContext = vm };
+                    page.ApplyTemplate();
+                    renameGroupButton = (Button)page.FindName("RenameGroupButton");
+
+                    Application.Current?.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadEx != null) throw threadEx;
+            Assert.NotNull(renameGroupButton);
+            Assert.Equal("Rename Group", renameGroupButton!.Content);
+        }
+
+        [Fact]
+        public void DevicesPage_HasDeleteGroupButton()
+        {
+            Exception? threadEx = null;
+            Button? deleteGroupButton = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary
+                    {
+                        Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute)
+                    });
+
+                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService(), new DummyDeviceGroupService());
+                    var page = new DevicesPage { DataContext = vm };
+                    page.ApplyTemplate();
+                    deleteGroupButton = (Button)page.FindName("DeleteGroupButton");
+
+                    Application.Current?.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadEx != null) throw threadEx;
+            Assert.NotNull(deleteGroupButton);
+            Assert.Equal("Delete Group", deleteGroupButton!.Content);
+        }
+
+        [Fact]
         public void DevicesPage_HasPingButton()
         {
             Exception? threadEx = null;
