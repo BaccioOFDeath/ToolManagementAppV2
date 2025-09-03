@@ -176,7 +176,6 @@ namespace InventoryManagementApp.Services.Devices
             };
         }
 
-        // OPTIONAL: make IsAlive use SafeTcpProbeAsync too (prevents stray connect tasks during liveness checks)
         private static async Task<bool> IsAlive(string ip, CancellationToken ct)
         {
             if (await HasArpEntry(ip).ConfigureAwait(false)) return true;
@@ -189,10 +188,22 @@ namespace InventoryManagementApp.Services.Devices
             }
             catch { /* ignore */ }
 
-            if (await SafeTcpProbeAsync(ip, 445, 400, ct).ConfigureAwait(false)) return true;
-            if (await SafeTcpProbeAsync(ip, 80, 400, ct).ConfigureAwait(false)) return true;
-            if (await SafeTcpProbeAsync(ip, 21, 400, ct).ConfigureAwait(false)) return true;
-            if (await SafeTcpProbeAsync(ip, 3721, 400, ct).ConfigureAwait(false)) return true;
+            var ports = new[] { 445, 80, 21, 3721 };
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            var probes = ports
+                .Select(p => SafeTcpProbeAsync(ip, p, 400, cts.Token))
+                .ToList();
+
+            while (probes.Count > 0)
+            {
+                var completed = await Task.WhenAny(probes).ConfigureAwait(false);
+                if (await completed.ConfigureAwait(false))
+                {
+                    cts.Cancel();
+                    return true;
+                }
+                probes.Remove(completed);
+            }
 
             return false;
         }
