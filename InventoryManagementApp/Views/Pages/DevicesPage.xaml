@@ -44,7 +44,7 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="IP" Binding="{Binding Ip}" Width="150"/>
                         <DataGridTextColumn Header="Hostname" Binding="{Binding Hostname}" Width="*"/>
-                        <DataGridTextColumn Header="Protocol" Binding="{Binding Protocol}" Width="120"/>
+                        <DataGridTextColumn Header="Protocols" Binding="{Binding ProtocolsDisplay}" Width="150"/>
                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120"/>
                     </DataGrid.Columns>
                 </DataGrid>

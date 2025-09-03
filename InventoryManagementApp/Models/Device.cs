@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace InventoryManagementApp.Models
@@ -17,6 +18,8 @@ namespace InventoryManagementApp.Models
         string _ip = string.Empty;
         string _hostname = string.Empty;
         DeviceProtocol _protocol;
+        List<DeviceProtocol> _protocols = new();
+        string _protocolsDisplay = string.Empty;
         string _status = string.Empty;
         DateTime _lastSeen;
         string _username = string.Empty;
@@ -42,6 +45,18 @@ namespace InventoryManagementApp.Models
         {
             get => _protocol;
             set => SetProperty(ref _protocol, value);
+        }
+
+        public IList<DeviceProtocol> Protocols
+        {
+            get => _protocols;
+            set => SetProperty(ref _protocols, (List<DeviceProtocol>)value);
+        }
+
+        public string ProtocolsDisplay
+        {
+            get => _protocolsDisplay;
+            set => SetProperty(ref _protocolsDisplay, value);
         }
 
         public string Status
