@@ -190,29 +190,25 @@ namespace InventoryManagementApp.Services.Devices
         {
             if (await HasArpEntry(ip).ConfigureAwait(false)) return true;
 
-            try
-            {
-                using var ping = new Ping();
-                var reply = await ping.SendPingAsync(ip, _livenessTimeoutMs).ConfigureAwait(false);
-                if (reply.Status == IPStatus.Success) return true;
-            }
-            catch { /* ignore */ }
-
             var ports = new[] { 445, 80, 21, 3721 };
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+
             var probes = ports
                 .Select(p => SafeTcpProbeAsync(ip, p, _livenessTimeoutMs, cts.Token))
                 .ToList();
 
-            while (probes.Count > 0)
+            var pingTask = SafePingAsync(ip, _livenessTimeoutMs, cts.Token);
+            var tasks = new List<Task<bool>>(probes) { pingTask };
+
+            while (tasks.Count > 0)
             {
-                var completed = await Task.WhenAny(probes).ConfigureAwait(false);
+                var completed = await Task.WhenAny(tasks).ConfigureAwait(false);
                 if (await completed.ConfigureAwait(false))
                 {
                     cts.Cancel();
                     return true;
                 }
-                probes.Remove(completed);
+                tasks.Remove(completed);
             }
 
             return false;
@@ -336,6 +332,18 @@ namespace InventoryManagementApp.Services.Devices
                 }
             }
             return subnets;
+        }
+
+        private static async Task<bool> SafePingAsync(string ip, int timeoutMs, CancellationToken ct)
+        {
+            try
+            {
+                using var ping = new Ping();
+                var reply = await ping.SendPingAsync(ip, timeoutMs, Array.Empty<byte>(), new PingOptions(), ct).ConfigureAwait(false);
+                return reply.Status == IPStatus.Success;
+            }
+            catch (OperationCanceledException) { return false; }
+            catch { return false; }
         }
 
         private static async Task<bool> SafeTcpProbeAsync(string ip, int port, int timeoutMs, CancellationToken ct)
