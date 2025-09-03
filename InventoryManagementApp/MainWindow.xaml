@@ -61,6 +61,7 @@
                         <TextBlock Text="Diagnostics" Style="{StaticResource CaptionTextBlock}" Margin="6,8,6,2"/>
                         <Button Style="{StaticResource NavButton}" Content="Devices" Command="{Binding OpenDevicesPageCommand}"/>
                         <Button Style="{StaticResource NavButton}" Content="Device Settings" Command="{Binding OpenDeviceSettingsCommand}"/>
+                        <Button Style="{StaticResource NavButton}" Content="Scanner Status" Command="{Binding OpenScannerStatusCommand}"/>
 
                         <Separator/>
 
