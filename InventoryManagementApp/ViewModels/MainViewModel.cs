@@ -530,9 +530,9 @@ namespace InventoryManagementApp.ViewModels
                 try
                 {
                     var vm = new DevicesViewModel(_deviceDiscoveryService, _deviceFileService, _dialogService);
+                    await vm.RefreshCommand.ExecuteAsync(null);
                     var page = new DevicesPage { DataContext = vm, Title = "Devices" };
                     CurrentPage = page;
-                    await Task.CompletedTask;
                 }
                 catch (Exception ex)
                 {
