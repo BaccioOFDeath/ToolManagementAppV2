@@ -81,39 +81,47 @@ namespace InventoryManagementApp.Services.Devices
                 yield break;
             }
 
-            var addresses = _subnets.SelectMany(ExpandAddressPattern).Distinct().ToList();
-            var total = addresses.Count;
-            if (total == 0) yield break;
-
+            var ipSequence = _subnets.SelectMany(ExpandAddressPattern).Distinct();
             var arpTable = LoadArpTable();
 
             var channel = Channel.CreateUnbounded<DiscoveredDevice>();
-            int processed = 0;
+            long total = 0;
+            long processed = 0;
 
-            using var semaphore = new SemaphoreSlim(_maxConcurrentScans);
-            var tasks = addresses.Select(async ip =>
+            var scanTask = Task.Run(async () =>
             {
-                await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
                 try
                 {
-                    var d = await ScanIpAsync(ip, arpTable, cancellationToken).ConfigureAwait(false);
-                    if (d.IsOnline)
-                        await channel.Writer.WriteAsync(d, cancellationToken).ConfigureAwait(false);
+                    await Parallel.ForEachAsync(ipSequence, new ParallelOptions
+                    {
+                        MaxDegreeOfParallelism = _maxConcurrentScans,
+                        CancellationToken = cancellationToken
+                    }, async (ip, ct) =>
+                    {
+                        Interlocked.Increment(ref total);
+
+                        var d = await ScanIpAsync(ip, arpTable, ct).ConfigureAwait(false);
+                        if (d.IsOnline)
+                            await channel.Writer.WriteAsync(d, ct).ConfigureAwait(false);
+
+                        var done = Interlocked.Increment(ref processed);
+                        var currentTotal = Volatile.Read(ref total);
+                        if (currentTotal > 0)
+                            progress?.Report((double)done / currentTotal);
+                    }).ConfigureAwait(false);
                 }
                 finally
                 {
-                    var done = Interlocked.Increment(ref processed);
-                    progress?.Report((double)done / total);
-                    semaphore.Release();
+                    channel.Writer.Complete();
                 }
-            });
-
-            _ = Task.WhenAll(tasks).ContinueWith(_ => channel.Writer.Complete(), cancellationToken);
+            }, cancellationToken);
 
             await foreach (var device in channel.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
             {
                 yield return device;
             }
+
+            await scanTask.ConfigureAwait(false);
         }
 
         private async Task<DiscoveredDevice> ScanIpAsync(string ip, IDictionary<string, string> arpTable, CancellationToken ct)
