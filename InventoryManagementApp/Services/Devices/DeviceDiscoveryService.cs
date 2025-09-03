@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -300,6 +301,19 @@ namespace InventoryManagementApp.Services.Devices
             var table = new Dictionary<string, string>();
             try
             {
+                if (OperatingSystem.IsLinux() && TryLoadProcArp(table))
+                    return table;
+
+                return LoadArpViaCommand(table);
+            }
+            catch { }
+            return table;
+        }
+
+        private static IDictionary<string, string> LoadArpViaCommand(IDictionary<string, string> table)
+        {
+            try
+            {
                 var psi = new ProcessStartInfo
                 {
                     FileName = "arp",
@@ -312,14 +326,88 @@ namespace InventoryManagementApp.Services.Devices
                 if (p == null) return table;
                 var output = p.StandardOutput.ReadToEnd();
                 p.WaitForExit();
-                var regex = new Regex(@"\b(?<ip>\d+\.\d+\.\d+\.\d+)\b\s+(?<mac>(?:[0-9a-f]{2}[-:]){5}[0-9a-f]{2})", RegexOptions.IgnoreCase);
-                foreach (Match m in regex.Matches(output))
+
+                foreach (var line in output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
                 {
-                    table[m.Groups["ip"].Value] = m.Groups["mac"].Value;
+                    if (TryParseArpLine(line, out var ip, out var mac))
+                        table[ip] = mac;
                 }
             }
             catch { }
             return table;
+        }
+
+        private static bool TryLoadProcArp(IDictionary<string, string> table)
+        {
+            try
+            {
+                foreach (var line in File.ReadLines("/proc/net/arp"))
+                {
+                    if (TryParseArpLine(line, out var ip, out var mac))
+                        table[ip] = mac;
+                }
+                return table.Count > 0;
+            }
+            catch { }
+            return false;
+        }
+
+        private static bool TryParseArpLine(string line, out string ip, out string mac)
+        {
+            ip = string.Empty;
+            mac = string.Empty;
+            if (string.IsNullOrWhiteSpace(line)) return false;
+
+            var span = line.AsSpan();
+            int start = -1;
+            for (int i = 0; i <= span.Length; i++)
+            {
+                if (i == span.Length || char.IsWhiteSpace(span[i]))
+                {
+                    if (start >= 0)
+                    {
+                        var token = span[start..i];
+                        token = token.Trim('(', ')');
+                        if (ip.Length == 0 && IPAddress.TryParse(token.ToString(), out _))
+                        {
+                            ip = token.ToString();
+                        }
+                        else if (mac.Length == 0 && IsMac(token))
+                        {
+                            mac = token.ToString();
+                        }
+
+                        if (ip.Length > 0 && mac.Length > 0)
+                            return true;
+
+                        start = -1;
+                    }
+                }
+                else if (start < 0)
+                {
+                    start = i;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsMac(ReadOnlySpan<char> token)
+        {
+            if (token.Length != 17) return false;
+            for (int i = 0; i < token.Length; i++)
+            {
+                if ((i + 1) % 3 == 0)
+                {
+                    var sep = token[i];
+                    if (sep != ':' && sep != '-') return false;
+                }
+                else if (!Uri.IsHexDigit(token[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private static bool HasArpEntry(string ip, IDictionary<string, string> arpTable)
