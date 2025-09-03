@@ -48,7 +48,11 @@ namespace InventoryManagementApp
             DispatcherUnhandledException += (s, e) => HandleDispatcherException(e.Exception, e);
             AppDomain.CurrentDomain.UnhandledException += (s, e) =>
                 HandleDomainException(e.ExceptionObject as Exception ?? new Exception("Unknown"), e);
-            TaskScheduler.UnobservedTaskException += (s, e) => HandleTaskException(e.Exception, e);
+            TaskScheduler.UnobservedTaskException += (s, e) =>
+            {
+                try { Log.Error(e.Exception, "Unobserved task exception"); } catch { }
+                e.SetObserved();
+            };
         }
 
         private static IHost BuildHost() => Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
