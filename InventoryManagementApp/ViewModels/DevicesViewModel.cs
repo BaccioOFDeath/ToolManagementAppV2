@@ -303,7 +303,10 @@ namespace InventoryManagementApp.ViewModels
             if (sender is not Device device)
                 return;
 
-            if (e.PropertyName == nameof(Device.Hostname))
+            if (e.PropertyName == nameof(Device.Hostname)
+                || e.PropertyName == nameof(Device.Username)
+                || e.PropertyName == nameof(Device.Password)
+                || e.PropertyName == nameof(Device.Domain))
             {
                 try
                 {
