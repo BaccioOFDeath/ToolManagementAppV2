@@ -411,4 +411,31 @@ public class DeviceDiscoveryServiceTests
         var result = (bool)method.Invoke(null, parameters)!;
         Assert.False(result);
     }
+
+    [Fact]
+    public async Task DiscoverDevicesAsync_SkipsDuplicateIpAddresses()
+    {
+        var configDict = new Dictionary<string, string?>
+        {
+            ["DeviceDiscovery:Subnets:0"] = "127.0.0.1",
+            ["DeviceDiscovery:Subnets:1"] = "127.0.0.1",
+            ["DeviceDiscovery:FtpPorts:0"] = "21"
+        };
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configDict!)
+            .Build();
+
+        var callCount = 0;
+        Task<bool> PortChecker(string ip, int port, CancellationToken _)
+        {
+            Interlocked.Increment(ref callCount);
+            return Task.FromResult(false);
+        }
+
+        var service = new DeviceDiscoveryService(configuration, null, PortChecker);
+
+        await service.DiscoverDevicesAsync();
+
+        Assert.Equal(1, callCount);
+    }
 }
