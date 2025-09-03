@@ -15,8 +15,7 @@ public class DeviceDiscoveryServiceTests
         var configDict = new Dictionary<string, string?>
         {
             ["DeviceDiscovery:Subnets:0"] = "192.168.0.0/29",
-            ["DeviceDiscovery:FtpPorts:0"] = "21",
-            ["DeviceDiscovery:FtpPorts:1"] = "2121"
+            ["DeviceDiscovery:FtpPort"] = "2121"
         };
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(configDict!)
@@ -46,37 +45,6 @@ public class DeviceDiscoveryServiceTests
         var offline = devices.First(d => d.Ip == "192.168.0.3");
         Assert.False(offline.IsOnline);
         Assert.Empty(offline.Protocols);
-    }
-
-    [Fact]
-    public async Task DiscoverDevices_FindsFtpOnDifferentPorts()
-    {
-        var configDict = new Dictionary<string, string?>
-        {
-            ["DeviceDiscovery:Subnets:0"] = "192.168.0.0/29",
-            ["DeviceDiscovery:FtpPorts:0"] = "21",
-            ["DeviceDiscovery:FtpPorts:1"] = "2121"
-        };
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(configDict!)
-            .Build();
-
-        Task<bool> PortChecker(string ip, int port, CancellationToken _)
-        {
-            if (ip == "192.168.0.2" && port == 21) return Task.FromResult(true);
-            if (ip == "192.168.0.3" && port == 2121) return Task.FromResult(true);
-            return Task.FromResult(false);
-        }
-
-        var service = new DeviceDiscoveryService(configuration, null, PortChecker);
-
-        var devices = (await service.DiscoverDevicesAsync()).ToList();
-
-        var ftp1 = devices.First(d => d.Ip == "192.168.0.2");
-        Assert.Contains(DeviceProtocol.Ftp, ftp1.Protocols);
-
-        var ftp2 = devices.First(d => d.Ip == "192.168.0.3");
-        Assert.Contains(DeviceProtocol.Ftp, ftp2.Protocols);
     }
 
     [Fact]

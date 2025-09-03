@@ -23,7 +23,7 @@ namespace InventoryManagementApp.Services.Devices
         private readonly ILogger<DeviceDiscoveryService> _logger;
         private readonly Func<string, int, CancellationToken, Task<bool>> _portChecker;
         private readonly IList<string> _subnets;
-        private readonly IList<int> _ftpPorts;
+        private readonly int _ftpPort;
 
         public bool HasConfiguredSubnets => _subnets.Count > 0;
 
