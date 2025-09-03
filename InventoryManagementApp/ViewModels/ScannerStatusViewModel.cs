@@ -135,7 +135,7 @@ namespace InventoryManagementApp.ViewModels
                 Devices.Clear();
                 foreach (var d in devices)
                 {
-                    d.GroupId = await _groupService.GetDeviceGroupIdAsync(d.Ip, cancellationToken);
+                    d.GroupId = await _groupService.GetDeviceGroupIdAsync(d.Ip, d.Port, cancellationToken);
                     if (d.LastSeen.Kind != DateTimeKind.Local)
                     {
                         _logger.LogWarning("Device {Ip} reported LastSeen kind {Kind}; converting to local time", d.Ip, d.LastSeen.Kind);
@@ -160,7 +160,7 @@ namespace InventoryManagementApp.ViewModels
                 if (string.IsNullOrWhiteSpace(ip))
                     return;
 
-                var existing = await _deviceService.GetDeviceAsync(ip);
+                var existing = await _deviceService.GetDeviceAsync(ip, null);
                 if (existing == null)
                 {
                     await _deviceService.AddOrUpdateDeviceAsync(new Device { Ip = ip });
@@ -244,7 +244,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 try
                 {
-                    await _groupService.AssignDeviceToGroupAsync(device.Ip, device.GroupId);
+                    await _groupService.AssignDeviceToGroupAsync(device.Ip, device.Port, device.GroupId);
                 }
                 catch (Exception ex)
                 {

@@ -17,8 +17,8 @@ public class DeviceGroupServiceTests
         Assert.Single(groups);
         Assert.Equal("Test Group", groups.First().Name);
 
-        await service.AssignDeviceToGroupAsync("10.0.0.1", groupId);
-        var assigned = await service.GetDeviceGroupIdAsync("10.0.0.1");
+        await service.AssignDeviceToGroupAsync("10.0.0.1", 1234, groupId);
+        var assigned = await service.GetDeviceGroupIdAsync("10.0.0.1", 1234);
         Assert.Equal(groupId, assigned);
     }
 }

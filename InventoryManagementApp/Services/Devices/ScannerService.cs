@@ -38,6 +38,7 @@ namespace InventoryManagementApp.Services.Devices
                     {
                         Hostname = string.IsNullOrWhiteSpace(d.Hostname) ? $"Device {d.Ip}" : d.Hostname,
                         Ip = d.Ip,
+                        Port = d.Port,
                         Protocol = d.Protocol,
                         Username = d.Username,
                         Password = d.Password,
@@ -69,7 +70,7 @@ namespace InventoryManagementApp.Services.Devices
 
             // Merge statuses for any duplicate IPs
             return devices
-                .GroupBy(d => d.Ip)
+                .GroupBy(d => new { d.Ip, d.Port })
                 .Select(g =>
                 {
                     var device = g.First();

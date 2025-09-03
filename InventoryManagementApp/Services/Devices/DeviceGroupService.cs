@@ -64,30 +64,42 @@ namespace InventoryManagementApp.Services.Devices
             await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task AssignDeviceToGroupAsync(string deviceIp, int? groupId, CancellationToken cancellationToken = default)
+        public async Task AssignDeviceToGroupAsync(string deviceIp, int? devicePort, int? groupId, CancellationToken cancellationToken = default)
         {
             using var conn = _db.CreateConnection();
             using var cmd = conn.CreateCommand();
             if (groupId.HasValue)
             {
-                cmd.CommandText = "INSERT INTO DeviceGroupAssignments (DeviceIp, GroupId) VALUES ($ip, $gid) ON CONFLICT(DeviceIp) DO UPDATE SET GroupId=$gid";
+                cmd.CommandText = "INSERT INTO DeviceGroupAssignments (DeviceIp, DevicePort, GroupId) VALUES ($ip, $port, $gid) ON CONFLICT(DeviceIp, DevicePort) DO UPDATE SET GroupId=$gid";
                 cmd.Parameters.AddWithValue("$ip", deviceIp);
+                if (devicePort.HasValue)
+                    cmd.Parameters.AddWithValue("$port", devicePort.Value);
+                else
+                    cmd.Parameters.AddWithValue("$port", DBNull.Value);
                 cmd.Parameters.AddWithValue("$gid", groupId.Value);
             }
             else
             {
-                cmd.CommandText = "DELETE FROM DeviceGroupAssignments WHERE DeviceIp=$ip";
+                cmd.CommandText = "DELETE FROM DeviceGroupAssignments WHERE DeviceIp=$ip AND IFNULL(DevicePort,-1)=IFNULL($port,-1)";
                 cmd.Parameters.AddWithValue("$ip", deviceIp);
+                if (devicePort.HasValue)
+                    cmd.Parameters.AddWithValue("$port", devicePort.Value);
+                else
+                    cmd.Parameters.AddWithValue("$port", DBNull.Value);
             }
             await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<int?> GetDeviceGroupIdAsync(string deviceIp, CancellationToken cancellationToken = default)
+        public async Task<int?> GetDeviceGroupIdAsync(string deviceIp, int? devicePort, CancellationToken cancellationToken = default)
         {
             using var conn = _db.CreateConnection();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "SELECT GroupId FROM DeviceGroupAssignments WHERE DeviceIp=$ip";
+            cmd.CommandText = "SELECT GroupId FROM DeviceGroupAssignments WHERE DeviceIp=$ip AND IFNULL(DevicePort,-1)=IFNULL($port,-1)";
             cmd.Parameters.AddWithValue("$ip", deviceIp);
+            if (devicePort.HasValue)
+                cmd.Parameters.AddWithValue("$port", devicePort.Value);
+            else
+                cmd.Parameters.AddWithValue("$port", DBNull.Value);
             var result = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
             if (result == null || result == DBNull.Value)
                 return null;

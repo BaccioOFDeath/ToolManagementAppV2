@@ -153,13 +153,15 @@ namespace InventoryManagementApp.Services.Core
                     Value TEXT
                 );
                 CREATE TABLE IF NOT EXISTS Devices (
-                    Ip TEXT PRIMARY KEY,
+                    Ip TEXT NOT NULL,
+                    Port INTEGER,
                     Hostname TEXT,
                     Protocol TEXT,
                     Username TEXT,
                     Password TEXT,
                     Domain TEXT,
                     ItemId INTEGER,
+                    PRIMARY KEY (Ip, Port),
                     FOREIGN KEY (ItemId) REFERENCES Items(ItemID)
                 );
                 CREATE TABLE IF NOT EXISTS DeviceGroups (
@@ -167,8 +169,10 @@ namespace InventoryManagementApp.Services.Core
                     Name TEXT NOT NULL
                 );
                 CREATE TABLE IF NOT EXISTS DeviceGroupAssignments (
-                    DeviceIp TEXT PRIMARY KEY,
+                    DeviceIp TEXT NOT NULL,
+                    DevicePort INTEGER,
                     GroupId INTEGER,
+                    PRIMARY KEY (DeviceIp, DevicePort),
                     FOREIGN KEY (GroupId) REFERENCES DeviceGroups(GroupId)
                 );
                 CREATE TABLE IF NOT EXISTS PulledDeviceFiles (
@@ -179,6 +183,8 @@ namespace InventoryManagementApp.Services.Core
             using var cmd = new SqliteCommand(sql, conn);
             cmd.ExecuteNonQuery();
             EnsureColumn("Items", "DeviceId", "TEXT");
+            EnsureColumn("Devices", "Port", "INTEGER");
+            EnsureColumn("DeviceGroupAssignments", "DevicePort", "INTEGER");
 
             EnsureIndex(conn, "Items", "ItemNumber", true);
             EnsureIndex(conn, "Items", "NameDescription");
