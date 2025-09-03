@@ -17,6 +17,7 @@ namespace InventoryManagementApp.Models
     {
         string _ip = string.Empty;
         string _hostname = string.Empty;
+        string _macAddress = string.Empty;
         DeviceProtocol _protocol;
         List<DeviceProtocol> _protocols = new();
         string _protocolsDisplay = string.Empty;
@@ -39,6 +40,12 @@ namespace InventoryManagementApp.Models
         {
             get => _hostname;
             set => SetProperty(ref _hostname, value);
+        }
+
+        public string MacAddress
+        {
+            get => _macAddress;
+            set => SetProperty(ref _macAddress, value);
         }
 
         public DeviceProtocol Protocol

@@ -113,6 +113,28 @@ public class DevicesViewModelTests
     }
 
     [Fact]
+    public async Task RefreshCommand_CopiesMacAddress()
+    {
+        var discovery = new StubDiscoveryService();
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new RecordingDialogService();
+        discovery.Devices.Add(new DiscoveredDevice
+        {
+            Ip = "1.2.3.6",
+            Hostname = "mac",
+            MacAddress = "aa-bb-cc-dd-ee-ff",
+            IsOnline = true,
+            Protocols = new List<DeviceProtocol>()
+        });
+        var vm = new DevicesViewModel(discovery, fileService, dialog);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        Assert.Single(vm.Devices);
+        Assert.Equal("aa-bb-cc-dd-ee-ff", vm.Devices[0].MacAddress);
+    }
+
+    [Fact]
     public async Task RefreshCommand_ReportsProgressAndAddsDevicesIncrementally()
     {
         var discovery = new StubDiscoveryService();

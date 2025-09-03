@@ -373,4 +373,19 @@ public class DeviceDiscoveryServiceTests
         var result = await task.ConfigureAwait(false);
         Assert.Equal(string.Empty, result);
     }
+
+    [Fact]
+    public async Task ScanIpAsync_PopulatesMacAddressFromArpTable()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+        Task<bool> PortChecker(string _, int __, CancellationToken ___) => Task.FromResult(false);
+        var service = new DeviceDiscoveryService(configuration, null, PortChecker, () => new List<string>());
+
+        var method = typeof(DeviceDiscoveryService).GetMethod("ScanIpAsync", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        var arp = new Dictionary<string, string> { ["192.168.0.1"] = "aa-bb-cc-dd-ee-ff" };
+        var task = (Task<DiscoveredDevice>)method.Invoke(service, new object[] { "192.168.0.1", arp, CancellationToken.None })!;
+        var device = await task.ConfigureAwait(false);
+
+        Assert.Equal("aa-bb-cc-dd-ee-ff", device.MacAddress);
+    }
 }

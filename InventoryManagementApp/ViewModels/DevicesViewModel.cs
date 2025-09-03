@@ -96,6 +96,7 @@ namespace InventoryManagementApp.ViewModels
                     {
                         Ip = d.Ip,
                         Hostname = d.Hostname,
+                        MacAddress = d.MacAddress,
                         Protocol = d.Protocols.FirstOrDefault(DeviceProtocol.Unknown),
                         Protocols = d.Protocols.ToList(),
                         ProtocolsDisplay = d.Protocols.Count > 0
