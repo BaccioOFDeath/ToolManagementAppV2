@@ -115,47 +115,51 @@ namespace InventoryManagementApp.Services.Devices
 
             if (alive)
             {
-                try
+                async Task<DeviceProtocol?> CheckPortAsync(int port, DeviceProtocol protocol, CancellationToken token)
                 {
-                    if (await _portChecker(ip, 445, ct).ConfigureAwait(false))
-                        protocols.Add(DeviceProtocol.Smb);
+                    try
+                    {
+                        if (await _portChecker(ip, port, token).ConfigureAwait(false))
+                            return protocol;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // ignore cancellation
+                    }
+                    catch (Exception ex)
+                    {
+                        if (protocol == DeviceProtocol.Smb)
+                            _logger.LogDebug(ex, "Error checking SMB on {Ip}", ip);
+                        else if (protocol == DeviceProtocol.Ftp)
+                            _logger.LogDebug(ex, "Error checking FTP port {Port} on {Ip}", port, ip);
+                        else
+                            _logger.LogDebug(ex, "Error checking port {Port} on {Ip}", port, ip);
+                    }
+                    return null;
                 }
-                catch (Exception ex)
+
+                using var ftpCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                var tasks = new List<Task<DeviceProtocol?>>
                 {
-                    _logger.LogDebug(ex, "Error checking SMB on {Ip}", ip);
-                }
+                    CheckPortAsync(445, DeviceProtocol.Smb, ct)
+                };
 
                 foreach (var port in _ftpPorts)
-                {
-                    try
-                    {
-                        if (await _portChecker(ip, port, ct).ConfigureAwait(false))
-                        {
-                            protocols.Add(DeviceProtocol.Ftp);
-                            break;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogDebug(ex, "Error checking FTP port {Port} on {Ip}", port, ip);
-                    }
-                }
+                    tasks.Add(CheckPortAsync(port, DeviceProtocol.Ftp, ftpCts.Token));
 
                 foreach (var kvp in _additionalPorts)
-                {
-                    if (protocols.Contains(kvp.Value))
-                        continue;
+                    tasks.Add(CheckPortAsync(kvp.Key, kvp.Value, ct));
 
-                    try
+                while (tasks.Count > 0)
+                {
+                    var completed = await Task.WhenAny(tasks).ConfigureAwait(false);
+                    tasks.Remove(completed);
+                    var proto = await completed.ConfigureAwait(false);
+                    if (proto.HasValue && !protocols.Contains(proto.Value))
                     {
-                        if (await _portChecker(ip, kvp.Key, ct).ConfigureAwait(false))
-                        {
-                            protocols.Add(kvp.Value);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogDebug(ex, "Error checking port {Port} on {Ip}", kvp.Key, ip);
+                        protocols.Add(proto.Value);
+                        if (proto.Value == DeviceProtocol.Ftp)
+                            ftpCts.Cancel();
                     }
                 }
             }
