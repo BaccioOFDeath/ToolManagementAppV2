@@ -127,4 +127,26 @@ public class DeviceDiscoveryServiceTests
 
         Assert.Empty(devices);
     }
+
+    [Fact]
+    public async Task DiscoverDevices_PingResponsiveHostWithoutPorts_ReturnsUnknown()
+    {
+        var configDict = new Dictionary<string, string?>
+        {
+            ["DeviceDiscovery:Subnets:0"] = "127.0.0.1"
+        };
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configDict!)
+            .Build();
+
+        Task<bool> PortChecker(string ip, int port, CancellationToken _) => Task.FromResult(false);
+
+        var service = new DeviceDiscoveryService(configuration, null, PortChecker);
+
+        var devices = await service.DiscoverDevicesAsync();
+
+        var device = Assert.Single(devices);
+        Assert.True(device.IsOnline);
+        Assert.Contains(DeviceProtocol.Unknown, device.Protocols);
+    }
 }

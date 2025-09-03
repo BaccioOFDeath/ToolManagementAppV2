@@ -140,13 +140,18 @@ namespace InventoryManagementApp.Services.Devices
                 }
             }
 
+            if (alive && protocols.Count == 0)
+            {
+                protocols.Add(DeviceProtocol.Unknown);
+            }
+
             var hostname = await ResolveName(ip, ct).ConfigureAwait(false);
 
             return new DiscoveredDevice
             {
                 Ip = ip,
                 Hostname = string.IsNullOrWhiteSpace(hostname) ? ip : hostname,
-                IsOnline = alive && protocols.Count > 0,
+                IsOnline = alive,
                 Protocols = protocols
             };
         }
