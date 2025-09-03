@@ -37,6 +37,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _selectedDevice, value))
                 {
+                    DeviceFiles.Clear();
                     PullAllReportsCommand.NotifyCanExecuteChanged();
                 }
             }
