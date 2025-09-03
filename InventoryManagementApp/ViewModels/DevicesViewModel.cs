@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,10 +20,12 @@ namespace InventoryManagementApp.ViewModels
         private readonly IDeviceFileService _fileService;
         private readonly IDialogService _dialogService;
         private readonly IDeviceService _deviceService;
+        private readonly IDeviceGroupService _groupService;
         private readonly ILogger<DevicesViewModel> _logger;
 
         public ObservableCollection<Device> Devices { get; } = new();
         public ObservableCollection<string> DeviceFiles { get; } = new();
+        public ObservableCollection<DeviceGroup> Groups { get; } = new();
 
         private string _fileExtensionFilter = "*.*";
         public string FileExtensionFilter
@@ -48,6 +51,8 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand RefreshCommand { get; }
         public IAsyncRelayCommand PullAllReportsCommand { get; }
         public IAsyncRelayCommand AddDeviceCommand { get; }
+        public IAsyncRelayCommand AddGroupCommand { get; }
+        public IAsyncRelayCommand RenameGroupCommand { get; }
 
         private double _discoveryProgress;
         public double DiscoveryProgress
@@ -72,21 +77,48 @@ namespace InventoryManagementApp.ViewModels
         public Func<string?> PromptForIpPort { get; set; } = () =>
             Interaction.InputBox("Enter device IP:port:", "Add Device", string.Empty);
 
+        public Func<string?> PromptForGroupName { get; set; } = () =>
+            Interaction.InputBox("Enter group name:", "Add Group", string.Empty);
+
+        private DeviceGroup? _selectedGroup;
+        public DeviceGroup? SelectedGroup
+        {
+            get => _selectedGroup;
+            set
+            {
+                if (SetProperty(ref _selectedGroup, value))
+                {
+                    GroupName = value?.Name ?? string.Empty;
+                }
+            }
+        }
+
+        private string _groupName = string.Empty;
+        public string GroupName
+        {
+            get => _groupName;
+            set => SetProperty(ref _groupName, value);
+        }
+
         public DevicesViewModel(IDeviceDiscoveryService discoveryService,
                                  IDeviceFileService fileService,
                                  IDialogService dialogService,
                                  IDeviceService deviceService,
+                                 IDeviceGroupService groupService,
                                  ILogger<DevicesViewModel>? logger = null)
         {
             _discoveryService = discoveryService;
             _fileService = fileService;
             _dialogService = dialogService;
             _deviceService = deviceService;
+            _groupService = groupService;
             _logger = logger ?? NullLogger<DevicesViewModel>.Instance;
 
             RefreshCommand = new AsyncRelayCommand(RefreshAsync, () => !IsDiscovering);
             PullAllReportsCommand = new AsyncRelayCommand(PullAllReportsAsync, CanPullAllReports);
             AddDeviceCommand = new AsyncRelayCommand(AddDeviceAsync);
+            AddGroupCommand = new AsyncRelayCommand(AddGroupAsync);
+            RenameGroupCommand = new AsyncRelayCommand(RenameGroupAsync);
         }
 
         private async Task RefreshAsync()
@@ -95,13 +127,21 @@ namespace InventoryManagementApp.ViewModels
             {
                 IsDiscovering = true;
                 DiscoveryProgress = 0;
+
+                foreach (var d in Devices)
+                    d.PropertyChanged -= Device_PropertyChanged;
                 Devices.Clear();
+
+                var groups = await _groupService.GetGroupsAsync();
+                Groups.Clear();
+                foreach (var g in groups)
+                    Groups.Add(g);
 
                 var progress = new Progress<double>(p => DiscoveryProgress = p);
 
                 await foreach (var d in _discoveryService.DiscoverDevicesAsync(progress))
                 {
-                    Devices.Add(new Device
+                    var device = new Device
                     {
                         Ip = d.Ip,
                         Hostname = d.Hostname,
@@ -112,7 +152,17 @@ namespace InventoryManagementApp.ViewModels
                             ? string.Join(", ", d.Protocols)
                             : DeviceProtocol.Unknown.ToString(),
                         Status = d.IsOnline ? "Online" : "Offline"
-                    });
+                    };
+                    try
+                    {
+                        device.GroupId = await _groupService.GetDeviceGroupIdAsync(device.Ip, device.Port);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to get group for device {Ip}", device.Ip);
+                    }
+                    device.PropertyChanged += Device_PropertyChanged;
+                    Devices.Add(device);
                 }
 
                 if (Devices.Count == 0 && !_discoveryService.HasConfiguredSubnets)
@@ -173,6 +223,71 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to add device");
                 await _dialogService.ShowInfoAsync($"Failed to add device: {ex.Message}", "Devices");
+            }
+        }
+
+        private async Task AddGroupAsync()
+        {
+            try
+            {
+                var name = PromptForGroupName?.Invoke();
+                if (string.IsNullOrWhiteSpace(name))
+                    return;
+
+                await _groupService.CreateGroupAsync(name);
+                await RefreshAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to add device group");
+                await _dialogService.ShowInfoAsync($"Failed to add group: {ex.Message}", "Devices");
+            }
+        }
+
+        private async Task RenameGroupAsync()
+        {
+            if (SelectedGroup is null || string.IsNullOrWhiteSpace(GroupName))
+                return;
+
+            try
+            {
+                SelectedGroup.Name = GroupName;
+                await _groupService.UpdateGroupAsync(SelectedGroup);
+                await RefreshAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to rename group {GroupId}", SelectedGroup.Id);
+                await _dialogService.ShowInfoAsync($"Failed to rename group: {ex.Message}", "Devices");
+            }
+        }
+
+        async void Device_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (sender is not Device device)
+                return;
+
+            if (e.PropertyName == nameof(Device.Hostname))
+            {
+                try
+                {
+                    await _deviceService.AddOrUpdateDeviceAsync(device);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to update device {Ip}", device.Ip);
+                }
+            }
+            else if (e.PropertyName == nameof(Device.GroupId))
+            {
+                try
+                {
+                    await _groupService.AssignDeviceToGroupAsync(device.Ip, device.Port, device.GroupId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to assign device {Ip} to group {Group}", device.Ip, device.GroupId);
+                }
             }
         }
     }

@@ -44,4 +44,20 @@ public class DeviceFileServicePullTests
         var storedDir = Path.Combine(local, "Devices", device.Ip);
         Assert.True(File.Exists(Path.Combine(storedDir, "a.txt")));
     }
+
+    [Fact]
+    public async Task DownloadUnseenFiles_IncludesPortInFolderName()
+    {
+        var remote = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        Directory.CreateDirectory(remote);
+        await File.WriteAllTextAsync(Path.Combine(remote, "a.txt"), "hello");
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        using var db = new DatabaseService(dbPath);
+        var service = new TestDeviceFileService(db, remote);
+        var device = new Device { Ip = "dev1", Port = 1234 };
+        var local = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        await service.DownloadUnseenFilesAsync(device, local);
+        var storedDir = Path.Combine(local, "Devices", "dev1_1234");
+        Assert.True(Directory.Exists(storedDir));
+    }
 }
