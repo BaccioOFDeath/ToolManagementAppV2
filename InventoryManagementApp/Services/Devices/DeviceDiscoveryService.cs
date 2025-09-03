@@ -177,7 +177,7 @@ namespace InventoryManagementApp.Services.Devices
             try
             {
                 client = new TcpClient();
-                connectTask = client.ConnectAsync(ip, port, ct);
+                connectTask = client.ConnectAsync(ip, port, ct).AsTask();
                 await connectTask.WaitAsync(TimeSpan.FromSeconds(1), ct).ConfigureAwait(false);
                 return client.Connected;
             }
