@@ -82,7 +82,14 @@ public class DeviceDiscoveryServiceTests
     [Fact]
     public async Task DiscoverDevices_UsesAutoDetectedSubnets()
     {
-        var configuration = new ConfigurationBuilder().Build();
+        var configDict = new Dictionary<string, string?>
+        {
+            ["DeviceDiscovery:FtpPorts:0"] = "21",
+            ["DeviceDiscovery:FtpPorts:1"] = "2121"
+        };
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configDict!)
+            .Build();
 
         IList<string> detected = new List<string> { "192.168.0.0/29" };
 
@@ -105,7 +112,14 @@ public class DeviceDiscoveryServiceTests
     [Fact]
     public async Task DiscoverDevices_NoConfigOrDetectedSubnets_ReturnsEmpty()
     {
-        var configuration = new ConfigurationBuilder().Build();
+        var configDict = new Dictionary<string, string?>
+        {
+            ["DeviceDiscovery:FtpPorts:0"] = "21",
+            ["DeviceDiscovery:FtpPorts:1"] = "2121"
+        };
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configDict!)
+            .Build();
         var service = new DeviceDiscoveryService(configuration, null, null, () => new List<string>());
 
         Assert.False(service.HasConfiguredSubnets);
