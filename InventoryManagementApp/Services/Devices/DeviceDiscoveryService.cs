@@ -9,6 +9,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Numerics;
 using System.Text.RegularExpressions;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Channels;
@@ -32,6 +33,7 @@ namespace InventoryManagementApp.Services.Devices
         private readonly int _maxConcurrentScans;
         private readonly int _livenessTimeoutMs;
         private readonly int _portProbeTimeoutMs;
+        private readonly Func<CancellationToken, Task<ISet<string>>> _broadcastDiscoverer;
 
         private static readonly ObjectPool<Ping> _pingPool =
             new DefaultObjectPoolProvider().Create(new DefaultPooledObjectPolicy<Ping>());
@@ -46,11 +48,13 @@ namespace InventoryManagementApp.Services.Devices
             ILogger<DeviceDiscoveryService>? logger = null,
             Func<string, int, CancellationToken, Task<bool>>? portChecker = null,
             Func<IList<string>>? subnetResolver = null,
-            ISettingsService? settingsService = null)
+            ISettingsService? settingsService = null,
+            Func<CancellationToken, Task<ISet<string>>>? broadcastDiscoverer = null)
         {
             _logger = logger ?? NullLogger<DeviceDiscoveryService>.Instance;
             _portChecker = portChecker ?? DefaultPortChecker;
             subnetResolver ??= GetLocalSubnets;
+            _broadcastDiscoverer = broadcastDiscoverer ?? DiscoverViaBroadcastAsync;
 
             _subnets = configuration.GetSection("DeviceDiscovery:Subnets").Get<IList<string>>() ?? new List<string>();
             if (settingsService != null)
@@ -147,6 +151,25 @@ namespace InventoryManagementApp.Services.Devices
 
             var seenIps = new HashSet<string>();
             var seenLock = new object();
+
+            var broadcastIps = await _broadcastDiscoverer(cancellationToken).ConfigureAwait(false);
+            foreach (var ip in broadcastIps)
+            {
+                if (seenIps.Add(ip))
+                {
+                    var device = new DiscoveredDevice
+                    {
+                        Ip = ip,
+                        Hostname = ip,
+                        MacAddress = arpTable.TryGetValue(ip, out var mac) ? mac : string.Empty,
+                        IsOnline = true,
+                        Protocols = new List<DeviceProtocol> { DeviceProtocol.Unknown }
+                    };
+                    await channel.Writer.WriteAsync(device, cancellationToken).ConfigureAwait(false);
+                    Interlocked.Increment(ref total);
+                    Interlocked.Increment(ref processed);
+                }
+            }
 
             var scanTask = Task.Run(async () =>
             {
@@ -307,6 +330,75 @@ namespace InventoryManagementApp.Services.Devices
 
             return false;
         }
+
+        private async Task<ISet<string>> DiscoverViaBroadcastAsync(CancellationToken ct)
+        {
+            var results = new ConcurrentDictionary<string, byte>();
+
+            var tasks = new List<Task>
+            {
+                SendUdpDiscoveryAsync(
+                    new IPEndPoint(IPAddress.Parse("224.0.0.251"), 5353),
+                    MdnsQuery, results, joinMulticast: true, ct),
+                SendUdpDiscoveryAsync(
+                    new IPEndPoint(IPAddress.Parse("239.255.255.250"), 1900),
+                    SsdpQuery, results, joinMulticast: true, ct),
+                SendUdpDiscoveryAsync(
+                    new IPEndPoint(IPAddress.Broadcast, 137),
+                    NbnsQuery, results, broadcast: true, ct)
+            };
+
+            try { await Task.WhenAll(tasks).ConfigureAwait(false); } catch { }
+
+            return new HashSet<string>(results.Keys);
+        }
+
+        private static async Task SendUdpDiscoveryAsync(IPEndPoint endpoint, byte[] payload,
+            ConcurrentDictionary<string, byte> results, bool joinMulticast = false,
+            bool broadcast = false, CancellationToken ct = default)
+        {
+            try
+            {
+                using var client = new UdpClient(AddressFamily.InterNetwork);
+                if (broadcast)
+                    client.EnableBroadcast = true;
+                if (joinMulticast)
+                    client.JoinMulticastGroup(endpoint.Address);
+
+                await client.SendAsync(payload, payload.Length, endpoint).ConfigureAwait(false);
+
+                var stop = DateTime.UtcNow.AddMilliseconds(500);
+                while (DateTime.UtcNow < stop && !ct.IsCancellationRequested)
+                {
+                    while (client.Available > 0)
+                    {
+                        var res = await client.ReceiveAsync(ct).ConfigureAwait(false);
+                        results.TryAdd(res.RemoteEndPoint.Address.ToString(), 0);
+                    }
+                    await Task.Delay(50, ct).ConfigureAwait(false);
+                }
+            }
+            catch { }
+        }
+
+        private static readonly byte[] MdnsQuery = new byte[]
+        {
+            0,0, 0,0, 0,1, 0,0, 0,0, 0,0,
+            8,(byte)'_', (byte)'s',(byte)'e',(byte)'r',(byte)'v',(byte)'i',(byte)'c',(byte)'e',(byte)'s',
+            7,(byte)'_',(byte)'d',(byte)'n',(byte)'s',(byte)'-',(byte)'s',(byte)'d',
+            4,(byte)'_', (byte)'u',(byte)'d',(byte)'p',
+            5,(byte)'l',(byte)'o',(byte)'c',(byte)'a',(byte)'l',
+            0, 0,12, 0,1
+        };
+
+        private static readonly byte[] NbnsQuery = new byte[]
+        {
+            0,0, 0,0, 0,1, 0,0, 0,0, 0,0,
+            32, 0x43,0x4b,0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41,0, 0,0x21, 0,1
+        };
+
+        private static readonly byte[] SsdpQuery = Encoding.ASCII.GetBytes(
+            "M-SEARCH * HTTP/1.1\r\nHOST: 239.255.255.250:1900\r\nMAN: \"ssdp:discover\"\r\nMX: 1\r\nST: ssdp:all\r\n\r\n");
 
         private static IDictionary<string, string> LoadArpTable()
         {

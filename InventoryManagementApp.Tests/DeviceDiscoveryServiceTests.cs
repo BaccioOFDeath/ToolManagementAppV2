@@ -438,4 +438,34 @@ public class DeviceDiscoveryServiceTests
 
         Assert.Equal(1, callCount);
     }
+
+    [Fact]
+    public async Task DiscoverDevicesAsync_SkipsIpsFromBroadcast()
+    {
+        var configDict = new Dictionary<string, string?>
+        {
+            ["DeviceDiscovery:Subnets:0"] = "192.168.0.0/30"
+        };
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configDict!)
+            .Build();
+
+        var checkedIps = new List<string>();
+        Task<bool> PortChecker(string ip, int port, CancellationToken _)
+        {
+            lock (checkedIps) checkedIps.Add(ip);
+            return Task.FromResult(false);
+        }
+
+        Task<ISet<string>> Broadcast(CancellationToken _)
+            => Task.FromResult<ISet<string>>(new HashSet<string> { "192.168.0.2" });
+
+        var service = new DeviceDiscoveryService(configuration, null, PortChecker, null, null, Broadcast);
+
+        var devices = (await service.DiscoverDevicesAsync()).ToList();
+
+        Assert.Contains(devices, d => d.Ip == "192.168.0.2");
+        Assert.DoesNotContain("192.168.0.2", checkedIps);
+        Assert.Contains("192.168.0.1", checkedIps);
+    }
 }
