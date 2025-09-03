@@ -98,8 +98,12 @@ public class DevicesViewModelTests
             UpdateTcs.TrySetResult(group);
             return Task.CompletedTask;
         }
+        public int? DeletedGroupId { get; private set; }
         public Task DeleteGroupAsync(int groupId, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
+        {
+            DeletedGroupId = groupId;
+            return Task.CompletedTask;
+        }
         public Task AssignDeviceToGroupAsync(string deviceIp, int? devicePort, int? groupId, CancellationToken cancellationToken = default)
         {
             AssignTcs.TrySetResult((deviceIp, devicePort, groupId));
@@ -485,5 +489,21 @@ public class DevicesViewModelTests
 
         Assert.Equal(1, updated.Id);
         Assert.Equal("New", updated.Name);
+    }
+
+    [Fact]
+    public async Task DeleteGroupCommand_DeletesGroupAndRefreshes()
+    {
+        var discovery = new StubDiscoveryService();
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new RecordingDialogService();
+        var groupService = new RecordingDeviceGroupService();
+        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), groupService);
+        vm.SelectedGroup = new DeviceGroup { Id = 1, Name = "Old" };
+
+        await vm.DeleteGroupCommand.ExecuteAsync(null);
+
+        Assert.Equal(1, groupService.DeletedGroupId);
+        Assert.Equal(1, discovery.DiscoverCallCount);
     }
 }
