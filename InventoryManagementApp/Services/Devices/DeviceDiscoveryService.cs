@@ -270,7 +270,7 @@ namespace InventoryManagementApp.Services.Devices
             return "";
         }
 
-        private static IEnumerable<string> ExpandAddressPattern(string pattern)
+        private IEnumerable<string> ExpandAddressPattern(string pattern)
         {
             if (string.IsNullOrWhiteSpace(pattern)) yield break;
 
@@ -284,6 +284,12 @@ namespace InventoryManagementApp.Services.Devices
             var parts = pattern.Split('/');
             if (parts.Length == 2 && IPAddress.TryParse(parts[0], out var baseAddress) && int.TryParse(parts[1], out var prefix))
             {
+                if (prefix < 0 || prefix > 32)
+                {
+                    _logger.LogWarning("Subnet {Subnet} has invalid prefix {Prefix}; skipping.", pattern, prefix);
+                    yield break;
+                }
+
                 var baseBytes = baseAddress.GetAddressBytes();
                 if (baseBytes.Length != 4) yield break;
                 if (BitConverter.IsLittleEndian) Array.Reverse(baseBytes);

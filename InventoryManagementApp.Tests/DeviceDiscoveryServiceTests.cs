@@ -6,10 +6,57 @@ using System.Threading.Tasks;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Services.Devices;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
 public class DeviceDiscoveryServiceTests
 {
+    private sealed class ListLogger<T> : ILogger<T>
+    {
+        public List<(LogLevel Level, string Message)> Logs { get; } = new();
+
+        public IDisposable BeginScope<TState>(TState state) => NullScope.Instance;
+        public bool IsEnabled(LogLevel logLevel) => true;
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+            => Logs.Add((logLevel, formatter(state, exception)));
+
+        private sealed class NullScope : IDisposable
+        {
+            public static readonly NullScope Instance = new();
+            public void Dispose() { }
+        }
+    }
+
+    [Fact]
+    public void ExpandAddressPattern_ValidPrefix_ExpandsCorrectly()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+        var logger = new ListLogger<DeviceDiscoveryService>();
+        var service = new DeviceDiscoveryService(configuration, logger, null, () => new List<string>());
+
+        var method = typeof(DeviceDiscoveryService).GetMethod("ExpandAddressPattern", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        var result = ((IEnumerable<string>)method.Invoke(service, new object[] { "192.168.1.0/30" })).ToList();
+
+        Assert.Equal(new[] { "192.168.1.1", "192.168.1.2" }, result);
+        Assert.Empty(logger.Logs);
+    }
+
+    [Theory]
+    [InlineData("192.168.1.0/33")]
+    [InlineData("192.168.1.0/-1")]
+    public void ExpandAddressPattern_InvalidPrefix_SkipsAndLogs(string subnet)
+    {
+        var configuration = new ConfigurationBuilder().Build();
+        var logger = new ListLogger<DeviceDiscoveryService>();
+        var service = new DeviceDiscoveryService(configuration, logger, null, () => new List<string>());
+
+        var method = typeof(DeviceDiscoveryService).GetMethod("ExpandAddressPattern", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        var result = ((IEnumerable<string>)method.Invoke(service, new object[] { subnet })).ToList();
+
+        Assert.Empty(result);
+        Assert.Contains(logger.Logs, l => l.Level == LogLevel.Warning);
+    }
+
     [Fact]
     public void Constructor_UsesConfiguredMaxConcurrentScans()
     {
