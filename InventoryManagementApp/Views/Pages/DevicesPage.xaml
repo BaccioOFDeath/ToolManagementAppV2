@@ -73,6 +73,7 @@
                         <Button x:Name="DownloadButton"
                                 Style="{StaticResource PrimaryButton}"
                                 Content="Download Files"
+                                ToolTip="Downloads unseen files from the configured source to the configured destination."
                                 Command="{Binding DownloadUnseenFilesCommand}"/>
                     </StackPanel>
                 </Border>
