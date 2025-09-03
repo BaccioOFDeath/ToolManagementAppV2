@@ -112,6 +112,7 @@ public class DevicesViewModelTests
     private sealed class RecordingDeviceService : IDeviceService
     {
         public Device? LastDevice { get; private set; }
+        public TaskCompletionSource<Device> Tcs { get; } = new();
         public Task<IEnumerable<Device>> GetDevicesAsync(CancellationToken cancellationToken = default)
             => Task.FromResult<IEnumerable<Device>>(Array.Empty<Device>());
         public Task<Device?> GetDeviceAsync(string ip, int? port, CancellationToken cancellationToken = default)
@@ -119,6 +120,7 @@ public class DevicesViewModelTests
         public Task AddOrUpdateDeviceAsync(Device device, CancellationToken cancellationToken = default)
         {
             LastDevice = device;
+            Tcs.TrySetResult(device);
             return Task.CompletedTask;
         }
         public Task DeleteDeviceAsync(string ip, int? port, CancellationToken cancellationToken = default)
@@ -372,6 +374,60 @@ public class DevicesViewModelTests
         await deviceService.Tcs.Task;
 
         Assert.Equal("new", deviceService.LastDevice?.Hostname);
+    }
+
+    [Fact]
+    public async Task ChangingUsername_PersistsDevice()
+    {
+        var discovery = new StubDiscoveryService();
+        discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", IsOnline = true, Protocols = new List<DeviceProtocol>() });
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new RecordingDialogService();
+        var deviceService = new RecordingDeviceService();
+        var groupService = new RecordingDeviceGroupService();
+        var vm = new DevicesViewModel(discovery, fileService, dialog, deviceService, groupService);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+        vm.Devices[0].Username = "user";
+        await deviceService.Tcs.Task;
+
+        Assert.Equal("user", deviceService.LastDevice?.Username);
+    }
+
+    [Fact]
+    public async Task ChangingPassword_PersistsDevice()
+    {
+        var discovery = new StubDiscoveryService();
+        discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", IsOnline = true, Protocols = new List<DeviceProtocol>() });
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new RecordingDialogService();
+        var deviceService = new RecordingDeviceService();
+        var groupService = new RecordingDeviceGroupService();
+        var vm = new DevicesViewModel(discovery, fileService, dialog, deviceService, groupService);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+        vm.Devices[0].Password = "pass";
+        await deviceService.Tcs.Task;
+
+        Assert.Equal("pass", deviceService.LastDevice?.Password);
+    }
+
+    [Fact]
+    public async Task ChangingDomain_PersistsDevice()
+    {
+        var discovery = new StubDiscoveryService();
+        discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", IsOnline = true, Protocols = new List<DeviceProtocol>() });
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new RecordingDialogService();
+        var deviceService = new RecordingDeviceService();
+        var groupService = new RecordingDeviceGroupService();
+        var vm = new DevicesViewModel(discovery, fileService, dialog, deviceService, groupService);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+        vm.Devices[0].Domain = "domain";
+        await deviceService.Tcs.Task;
+
+        Assert.Equal("domain", deviceService.LastDevice?.Domain);
     }
 
     [Fact]
