@@ -80,6 +80,42 @@ public class DeviceDiscoveryServiceTests
     }
 
     [Fact]
+    public async Task DiscoverDevices_FindsAdditionalPorts()
+    {
+        var configDict = new Dictionary<string, string?>
+        {
+            ["DeviceDiscovery:Subnets:0"] = "192.168.0.0/29",
+            ["DeviceDiscovery:AdditionalPorts:5555"] = "Adb",
+            ["DeviceDiscovery:AdditionalPorts:80"] = "Http",
+            ["DeviceDiscovery:AdditionalPorts:8080"] = "Http"
+        };
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configDict!)
+            .Build();
+
+        Task<bool> PortChecker(string ip, int port, CancellationToken _)
+        {
+            if (ip == "192.168.0.2" && port == 5555) return Task.FromResult(true);
+            if (ip == "192.168.0.3" && port == 80) return Task.FromResult(true);
+            if (ip == "192.168.0.4" && port == 8080) return Task.FromResult(true);
+            return Task.FromResult(false);
+        }
+
+        var service = new DeviceDiscoveryService(configuration, null, PortChecker);
+
+        var devices = (await service.DiscoverDevicesAsync()).ToList();
+
+        var adb = devices.First(d => d.Ip == "192.168.0.2");
+        Assert.Contains(DeviceProtocol.Adb, adb.Protocols);
+
+        var http1 = devices.First(d => d.Ip == "192.168.0.3");
+        Assert.Contains(DeviceProtocol.Http, http1.Protocols);
+
+        var http2 = devices.First(d => d.Ip == "192.168.0.4");
+        Assert.Contains(DeviceProtocol.Http, http2.Protocols);
+    }
+
+    [Fact]
     public async Task DiscoverDevices_UsesAutoDetectedSubnets()
     {
         var configDict = new Dictionary<string, string?>

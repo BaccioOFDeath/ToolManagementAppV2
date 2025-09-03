@@ -7,7 +7,9 @@ namespace InventoryManagementApp.Models
     {
         Unknown,
         Smb,
-        Ftp
+        Ftp,
+        Adb,
+        Http
     }
 
     public class Device : ObservableObject
