@@ -200,11 +200,13 @@ namespace InventoryManagementApp.Services.Devices
             }
 
             var hostname = await nameTask.ConfigureAwait(false);
+            var macAddress = arpTable.TryGetValue(ip, out var mac) ? mac : string.Empty;
 
             return new DiscoveredDevice
             {
                 Ip = ip,
                 Hostname = string.IsNullOrWhiteSpace(hostname) ? ip : hostname,
+                MacAddress = macAddress,
                 IsOnline = alive,
                 Protocols = protocols
             };

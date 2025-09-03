@@ -43,6 +43,7 @@
                           ColumnHeaderStyle="{StaticResource {x:Type DataGridColumnHeader}}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="IP" Binding="{Binding Ip}" Width="150"/>
+                        <DataGridTextColumn Header="MAC" Binding="{Binding MacAddress}" Width="150"/>
                         <DataGridTextColumn Header="Hostname" Binding="{Binding Hostname}" Width="*"/>
                         <DataGridTextColumn Header="Protocols" Binding="{Binding ProtocolsDisplay}" Width="150"/>
                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120"/>

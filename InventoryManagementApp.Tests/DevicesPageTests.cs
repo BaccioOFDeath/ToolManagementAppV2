@@ -95,7 +95,7 @@ namespace InventoryManagementApp.Tests
                         grid.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
                         grid.Arrange(new Rect(0, 0, grid.DesiredSize.Width, grid.DesiredSize.Height));
                         grid.UpdateLayout();
-                        var textBlock = grid.Columns[2].GetCellContent(grid.Items[0]) as TextBlock;
+                        var textBlock = grid.Columns[3].GetCellContent(grid.Items[0]) as TextBlock;
                         cellText = textBlock?.Text;
                     }
 
@@ -113,6 +113,55 @@ namespace InventoryManagementApp.Tests
 
             if (threadEx != null) throw threadEx;
             Assert.Equal("Smb, Http", cellText);
+        }
+
+        [Fact]
+        public void DevicesPage_DisplaysMacAddress()
+        {
+            Exception? threadEx = null;
+            string? cellText = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary
+                    {
+                        Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute)
+                    });
+
+                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService());
+                    vm.Devices.Add(new Device { Ip = "1.2.3.4", Hostname = "test", MacAddress = "aa-bb", ProtocolsDisplay = "Smb" });
+
+                    var page = new DevicesPage { DataContext = vm };
+                    page.ApplyTemplate();
+                    var grid = FindVisualChild<DataGrid>(page);
+                    grid?.ApplyTemplate();
+                    grid?.UpdateLayout();
+                    if (grid != null)
+                    {
+                        grid.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                        grid.Arrange(new Rect(0, 0, grid.DesiredSize.Width, grid.DesiredSize.Height));
+                        grid.UpdateLayout();
+                        var textBlock = grid.Columns[1].GetCellContent(grid.Items[0]) as TextBlock;
+                        cellText = textBlock?.Text;
+                    }
+
+                    Application.Current?.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadEx != null) throw threadEx;
+            Assert.Equal("aa-bb", cellText);
         }
 
         private sealed class BindingErrorTraceListener : TraceListener
