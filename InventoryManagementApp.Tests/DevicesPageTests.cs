@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Documents;
+using System.Windows.Controls;
+using System.Windows.Media;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
@@ -64,6 +66,55 @@ namespace InventoryManagementApp.Tests
             Assert.Empty(errors);
         }
 
+        [Fact]
+        public void DevicesPage_DisplaysProtocols()
+        {
+            Exception? threadEx = null;
+            string? cellText = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary
+                    {
+                        Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute)
+                    });
+
+                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService());
+                    vm.Devices.Add(new Device { Ip = "1.2.3.4", Hostname = "test", ProtocolsDisplay = "Smb, Http" });
+
+                    var page = new DevicesPage { DataContext = vm };
+                    page.ApplyTemplate();
+                    var grid = FindVisualChild<DataGrid>(page);
+                    grid?.ApplyTemplate();
+                    grid?.UpdateLayout();
+                    if (grid != null)
+                    {
+                        grid.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                        grid.Arrange(new Rect(0, 0, grid.DesiredSize.Width, grid.DesiredSize.Height));
+                        grid.UpdateLayout();
+                        var textBlock = grid.Columns[2].GetCellContent(grid.Items[0]) as TextBlock;
+                        cellText = textBlock?.Text;
+                    }
+
+                    Application.Current?.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadEx != null) throw threadEx;
+            Assert.Equal("Smb, Http", cellText);
+        }
+
         private sealed class BindingErrorTraceListener : TraceListener
         {
             private readonly List<string> _errors;
@@ -104,6 +155,21 @@ namespace InventoryManagementApp.Tests
             public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(FlowDocument document, string title, string description) { }
             public void ShowPrintLabelDialog() { }
+        }
+
+        private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            int count = VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < count; i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T typedChild)
+                    return typedChild;
+                var result = FindVisualChild<T>(child);
+                if (result != null)
+                    return result;
+            }
+            return null;
         }
     }
 }

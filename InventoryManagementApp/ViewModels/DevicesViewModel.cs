@@ -97,6 +97,10 @@ namespace InventoryManagementApp.ViewModels
                         Ip = d.Ip,
                         Hostname = d.Hostname,
                         Protocol = d.Protocols.FirstOrDefault(DeviceProtocol.Unknown),
+                        Protocols = d.Protocols.ToList(),
+                        ProtocolsDisplay = d.Protocols.Count > 0
+                            ? string.Join(", ", d.Protocols)
+                            : DeviceProtocol.Unknown.ToString(),
                         Status = d.IsOnline ? "Online" : "Offline"
                     });
                 }

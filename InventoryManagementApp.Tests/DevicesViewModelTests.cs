@@ -88,6 +88,28 @@ public class DevicesViewModelTests
         Assert.Single(vm.Devices);
         Assert.Equal("1.2.3.4", vm.Devices[0].Ip);
         Assert.Equal("Online", vm.Devices[0].Status);
+        Assert.Equal("Ftp", vm.Devices[0].ProtocolsDisplay);
+    }
+
+    [Fact]
+    public async Task RefreshCommand_AggregatesMultipleProtocols()
+    {
+        var discovery = new StubDiscoveryService();
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new RecordingDialogService();
+        discovery.Devices.Add(new DiscoveredDevice
+        {
+            Ip = "1.2.3.5",
+            Hostname = "multi",
+            IsOnline = true,
+            Protocols = new List<DeviceProtocol> { DeviceProtocol.Smb, DeviceProtocol.Http }
+        });
+        var vm = new DevicesViewModel(discovery, fileService, dialog);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        Assert.Single(vm.Devices);
+        Assert.Equal("Smb, Http", vm.Devices[0].ProtocolsDisplay);
     }
 
     [Fact]
