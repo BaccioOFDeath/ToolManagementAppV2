@@ -338,6 +338,19 @@ public class DeviceDiscoveryServiceTests
     }
 
     [Fact]
+    public async Task IsAlive_ReturnsTrue_WhenArpEntryExists()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+        var service = new DeviceDiscoveryService(configuration, null, null, () => new List<string>());
+
+        var method = typeof(DeviceDiscoveryService).GetMethod("IsAlive", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        var arp = new Dictionary<string, string> { ["192.168.0.5"] = "00-11-22-33-44-55" };
+
+        var result = await (Task<bool>)method.Invoke(service, new object[] { "192.168.0.5", arp, CancellationToken.None })!;
+        Assert.True(result);
+    }
+
+    [Fact]
     public async Task ResolveName_ReturnsImmediatelyWhenDnsSucceeds()
     {
         var method = typeof(DeviceDiscoveryService).GetMethod("ResolveName", BindingFlags.NonPublic | BindingFlags.Static)!;
