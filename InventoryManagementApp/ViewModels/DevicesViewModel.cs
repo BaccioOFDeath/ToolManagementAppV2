@@ -45,6 +45,20 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand RefreshCommand { get; }
         public IAsyncRelayCommand PullAllReportsCommand { get; }
 
+        private double _discoveryProgress;
+        public double DiscoveryProgress
+        {
+            get => _discoveryProgress;
+            private set => SetProperty(ref _discoveryProgress, value);
+        }
+
+        private bool _isDiscovering;
+        public bool IsDiscovering
+        {
+            get => _isDiscovering;
+            private set => SetProperty(ref _isDiscovering, value);
+        }
+
         public DevicesViewModel(IDeviceDiscoveryService discoveryService,
                                  IDeviceFileService fileService,
                                  IDialogService dialogService,
@@ -63,15 +77,13 @@ namespace InventoryManagementApp.ViewModels
         {
             try
             {
-                var devices = await _discoveryService.DiscoverDevicesAsync();
-                if (devices.Count == 0 && !_discoveryService.HasConfiguredSubnets)
-                {
-                    await _dialogService.ShowInfoAsync("No subnets configured for device discovery.", "Devices");
-                    return;
-                }
-
+                IsDiscovering = true;
+                DiscoveryProgress = 0;
                 Devices.Clear();
-                foreach (var d in devices)
+
+                var progress = new Progress<double>(p => DiscoveryProgress = p);
+
+                await foreach (var d in _discoveryService.DiscoverDevicesAsync(progress))
                 {
                     Devices.Add(new Device
                     {
@@ -81,11 +93,20 @@ namespace InventoryManagementApp.ViewModels
                         Status = d.IsOnline ? "Online" : "Offline"
                     });
                 }
+
+                if (Devices.Count == 0 && !_discoveryService.HasConfiguredSubnets)
+                {
+                    await _dialogService.ShowInfoAsync("No subnets configured for device discovery.", "Devices");
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to discover devices");
                 await _dialogService.ShowInfoAsync($"Failed to discover devices: {ex.Message}", "Devices");
+            }
+            finally
+            {
+                IsDiscovering = false;
             }
         }
 
