@@ -198,6 +198,7 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand OpenPrintLabelWindowCommand { get; }
         public IAsyncRelayCommand OpenDevicesPageCommand { get; }
         public IAsyncRelayCommand OpenDeviceSettingsCommand { get; }
+        public IAsyncRelayCommand OpenScannerStatusCommand { get; }
 
         public MainViewModel(IItemService itemService,
                              IUserService userService,
@@ -559,6 +560,22 @@ namespace InventoryManagementApp.ViewModels
                 {
                     _logger.LogError(ex, "Failed to open device settings page");
                     _dialogService.ShowInfo($"Failed to open device settings page: {ex.Message}", "Device Settings");
+                    throw;
+                }
+            });
+
+            OpenScannerStatusCommand = new AsyncRelayCommand(async () =>
+            {
+                try
+                {
+                    var window = new ScannerStatusWindow(_scannerService, _dialogService, _deviceService, _deviceGroupService, _deviceFileService);
+                    window.Show();
+                    await Task.CompletedTask;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open scanner status window");
+                    _dialogService.ShowInfo($"Failed to open scanner status window: {ex.Message}", "Scanner Status");
                     throw;
                 }
             });
