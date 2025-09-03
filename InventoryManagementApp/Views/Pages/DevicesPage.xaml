@@ -24,6 +24,11 @@
                                 Content="Add Device"
                                 Command="{Binding AddDeviceCommand}"
                                 Margin="0,0,8,0"/>
+                        <Button x:Name="DeviceSettingsButton"
+                                Style="{StaticResource PrimaryButton}"
+                                Content="Device Settings"
+                                Command="{Binding DataContext.OpenDeviceSettingsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                Margin="0,0,8,0"/>
                         <TextBox Text="{Binding FileExtensionFilter, UpdateSourceTrigger=PropertyChanged}"
                                  Width="120"
                                  Margin="0,0,8,0"/>

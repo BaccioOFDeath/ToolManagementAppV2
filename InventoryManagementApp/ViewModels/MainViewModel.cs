@@ -197,6 +197,7 @@ namespace InventoryManagementApp.ViewModels
 
         public IAsyncRelayCommand OpenPrintLabelWindowCommand { get; }
         public IAsyncRelayCommand OpenDevicesPageCommand { get; }
+        public IAsyncRelayCommand OpenDeviceSettingsCommand { get; }
 
         public MainViewModel(IItemService itemService,
                              IUserService userService,
@@ -232,7 +233,8 @@ namespace InventoryManagementApp.ViewModels
             _deviceService = deviceService ?? new DummyDeviceService();
             _deviceGroupService = deviceGroupService ?? new DummyDeviceGroupService();
             _deviceFileService = deviceFileService ?? new DummyDeviceFileService();
-            _deviceDiscoveryService = deviceDiscoveryService ?? new DeviceDiscoveryService(new ConfigurationBuilder().Build());
+            var defaultConfig = new ConfigurationBuilder().AddJsonFile("appsettings.json", optional: true).Build();
+            _deviceDiscoveryService = deviceDiscoveryService ?? new DeviceDiscoveryService(defaultConfig, null, null, null, _settingsService);
             _fileDialogService = fileDialogService;
             _logger = logger ?? NullLogger<MainViewModel>.Instance;
             _showLoginWindow = showLoginWindow ?? new Func<Task<bool>>(async () =>
@@ -538,6 +540,25 @@ namespace InventoryManagementApp.ViewModels
                 {
                     _logger.LogError(ex, "Failed to open devices page");
                     _dialogService.ShowInfo($"Failed to open devices page: {ex.Message}", "Devices");
+                    throw;
+                }
+            });
+
+            OpenDeviceSettingsCommand = new AsyncRelayCommand(async () =>
+            {
+                try
+                {
+                    var config = new ConfigurationBuilder().AddJsonFile("appsettings.json", optional: true).Build();
+                    var vm = new DeviceSettingsViewModel(_settingsService, config, _dialogService);
+                    await vm.InitializeAsync().ConfigureAwait(false);
+                    var page = new DeviceSettingsPage { DataContext = vm, Title = "Device Settings" };
+                    CurrentPage = page;
+                    await Task.CompletedTask;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open device settings page");
+                    _dialogService.ShowInfo($"Failed to open device settings page: {ex.Message}", "Device Settings");
                     throw;
                 }
             });
