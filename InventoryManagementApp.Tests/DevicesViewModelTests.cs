@@ -46,6 +46,8 @@ public class DevicesViewModelTests
         public List<string> Files { get; } = new();
         public Device? LastDevice { get; private set; }
         public string? LastExtensionFilter { get; private set; }
+        public string? LastBasePath { get; private set; }
+        public int DownloadCallCount { get; private set; }
         public Task<IEnumerable<string>> ListFilesAsync(Device device, string? extensionFilter = null, CancellationToken cancellationToken = default)
         {
             LastDevice = device;
@@ -54,7 +56,12 @@ public class DevicesViewModelTests
         }
 
         public Task<int> DownloadUnseenFilesAsync(Device device, string basePath, CancellationToken cancellationToken = default)
-            => Task.FromResult(0);
+        {
+            LastDevice = device;
+            LastBasePath = basePath;
+            DownloadCallCount++;
+            return Task.FromResult(0);
+        }
     }
 
     private sealed class RecordingDialogService : IDialogService
@@ -505,5 +512,46 @@ public class DevicesViewModelTests
 
         Assert.Equal(1, groupService.DeletedGroupId);
         Assert.Equal(1, discovery.DiscoverCallCount);
+    }
+
+    [Fact]
+    public async Task DownloadUnseenFilesCommand_UsesConfiguredPaths()
+    {
+        var discovery = new StubDiscoveryService();
+        discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", IsOnline = true, Protocols = new List<DeviceProtocol>() });
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new RecordingDialogService();
+        var groupService = new RecordingDeviceGroupService();
+        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), groupService);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+        vm.SourceFolder = "C:/src";
+        vm.DestinationFolder = "C:/dest";
+        vm.SelectedDevice = vm.Devices[0];
+
+        await vm.DownloadUnseenFilesCommand.ExecuteAsync(null);
+
+        Assert.Equal("C:/dest", fileService.LastBasePath);
+        Assert.Equal(vm.SelectedDevice, fileService.LastDevice);
+    }
+
+    [Fact]
+    public async Task DownloadUnseenFilesCommand_DoesNotRunIfSetupIncomplete()
+    {
+        var discovery = new StubDiscoveryService();
+        discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", IsOnline = true, Protocols = new List<DeviceProtocol>() });
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new RecordingDialogService();
+        var groupService = new RecordingDeviceGroupService();
+        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), groupService);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+        vm.SelectedDevice = vm.Devices[0];
+        vm.SourceFolder = string.Empty;
+        vm.DestinationFolder = "C:/dest";
+
+        await vm.DownloadUnseenFilesCommand.ExecuteAsync(null);
+
+        Assert.Equal(0, fileService.DownloadCallCount);
     }
 }
