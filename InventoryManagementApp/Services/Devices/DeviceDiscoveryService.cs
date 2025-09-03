@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -508,7 +509,7 @@ namespace InventoryManagementApp.Services.Devices
                     for (int i = 0; i < 4; i++)
                         networkBytes[i] = (byte)(ipBytes[i] & maskBytes[i]);
                     var network = new IPAddress(networkBytes);
-                    int prefix = maskBytes.Sum(b => Convert.ToString(b, 2).Count(c => c == '1'));
+                    int prefix = maskBytes.Sum(b => BitOperations.PopCount((uint)b));
                     var cidr = $"{network}/{prefix}";
                     if (!subnets.Contains(cidr))
                         subnets.Add(cidr);
