@@ -85,6 +85,8 @@ namespace InventoryManagementApp.Services.Devices
             var total = addresses.Count;
             if (total == 0) yield break;
 
+            var arpTable = LoadArpTable();
+
             var channel = Channel.CreateUnbounded<DiscoveredDevice>();
             int processed = 0;
 
@@ -94,7 +96,7 @@ namespace InventoryManagementApp.Services.Devices
                 await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
                 try
                 {
-                    var d = await ScanIpAsync(ip, cancellationToken).ConfigureAwait(false);
+                    var d = await ScanIpAsync(ip, arpTable, cancellationToken).ConfigureAwait(false);
                     if (d.IsOnline)
                         await channel.Writer.WriteAsync(d, cancellationToken).ConfigureAwait(false);
                 }
@@ -114,9 +116,9 @@ namespace InventoryManagementApp.Services.Devices
             }
         }
 
-        private async Task<DiscoveredDevice> ScanIpAsync(string ip, CancellationToken ct)
+        private async Task<DiscoveredDevice> ScanIpAsync(string ip, IDictionary<string, string> arpTable, CancellationToken ct)
         {
-            var alive = await IsAlive(ip, ct).ConfigureAwait(false);
+            var alive = await IsAlive(ip, arpTable, ct).ConfigureAwait(false);
             var protocols = new List<DeviceProtocol>();
 
             Task<string> nameTask = Task.FromResult(string.Empty);
@@ -200,9 +202,9 @@ namespace InventoryManagementApp.Services.Devices
             };
         }
 
-        private async Task<bool> IsAlive(string ip, CancellationToken ct)
+        private async Task<bool> IsAlive(string ip, IDictionary<string, string> arpTable, CancellationToken ct)
         {
-            if (await HasArpEntry(ip).ConfigureAwait(false)) return true;
+            if (HasArpEntry(ip, arpTable)) return true;
 
             var ports = new[] { 445, 80, 21, 3721 };
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -228,25 +230,36 @@ namespace InventoryManagementApp.Services.Devices
             return false;
         }
 
-        private static async Task<bool> HasArpEntry(string ip)
+        private static IDictionary<string, string> LoadArpTable()
         {
+            var table = new Dictionary<string, string>();
             try
             {
                 var psi = new ProcessStartInfo
                 {
                     FileName = "arp",
-                    Arguments = $"-a {ip}",
+                    Arguments = "-a",
                     RedirectStandardOutput = true,
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
                 using var p = Process.Start(psi);
-                if (p == null) return false;
-                var output = await p.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-                await p.WaitForExitAsync().ConfigureAwait(false);
-                return Regex.IsMatch(output, @$"\b{Regex.Escape(ip)}\b\s+([0-9a-f]{{2}}-){5}[0-9a-f]{{2}}", RegexOptions.IgnoreCase);
+                if (p == null) return table;
+                var output = p.StandardOutput.ReadToEnd();
+                p.WaitForExit();
+                var regex = new Regex(@"\b(?<ip>\d+\.\d+\.\d+\.\d+)\b\s+(?<mac>(?:[0-9a-f]{2}[-:]){5}[0-9a-f]{2})", RegexOptions.IgnoreCase);
+                foreach (Match m in regex.Matches(output))
+                {
+                    table[m.Groups["ip"].Value] = m.Groups["mac"].Value;
+                }
             }
-            catch { return false; }
+            catch { }
+            return table;
+        }
+
+        private static bool HasArpEntry(string ip, IDictionary<string, string> arpTable)
+        {
+            return arpTable.ContainsKey(ip);
         }
 
         private static async Task<string> ResolveName(string ip, Task<bool> smbDetectedTask, CancellationToken ct)
