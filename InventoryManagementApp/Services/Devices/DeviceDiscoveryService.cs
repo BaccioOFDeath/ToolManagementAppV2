@@ -25,6 +25,7 @@ namespace InventoryManagementApp.Services.Devices
         private readonly Func<string, int, CancellationToken, Task<bool>> _portChecker;
         private readonly IList<string> _subnets;
         private readonly int[] _ftpPorts;
+        private readonly IDictionary<int, DeviceProtocol> _additionalPorts;
 
         public bool HasConfiguredSubnets => _subnets.Count > 0;
 
@@ -52,6 +53,7 @@ namespace InventoryManagementApp.Services.Devices
             }
 
             _ftpPorts = configuration.GetSection("DeviceDiscovery:FtpPorts").Get<int[]>() ?? new[] { 21, 3721 };
+            _additionalPorts = configuration.GetSection("DeviceDiscovery:AdditionalPorts").Get<Dictionary<int, DeviceProtocol>>() ?? new Dictionary<int, DeviceProtocol>();
         }
 
         public async Task<IReadOnlyList<DiscoveredDevice>> DiscoverDevicesAsync(CancellationToken cancellationToken = default)
@@ -136,6 +138,24 @@ namespace InventoryManagementApp.Services.Devices
                     catch (Exception ex)
                     {
                         _logger.LogDebug(ex, "Error checking FTP port {Port} on {Ip}", port, ip);
+                    }
+                }
+
+                foreach (var kvp in _additionalPorts)
+                {
+                    if (protocols.Contains(kvp.Value))
+                        continue;
+
+                    try
+                    {
+                        if (await _portChecker(ip, kvp.Key, ct).ConfigureAwait(false))
+                        {
+                            protocols.Add(kvp.Value);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(ex, "Error checking port {Port} on {Ip}", kvp.Key, ip);
                     }
                 }
             }

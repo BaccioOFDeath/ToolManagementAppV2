@@ -12,6 +12,30 @@ These options enable using the app for tracking AV gear, sports equipment, or an
 ## Configuration
 The application reads configuration from `appsettings.json`. By default, the SQLite database is stored in `inventory.db` within the application's base directory. This path can be changed by updating the `Database:Path` setting.
 
+### Device Discovery
+`DeviceDiscovery` settings control how the network scanner looks for devices. Besides `Subnets` and `FtpPorts`, you can add an
+`AdditionalPorts` section mapping TCP ports to protocols. When any of these ports respond, the corresponding `DeviceProtocol`
+is added to the discovered device.
+
+Example:
+
+```json
+{
+  "DeviceDiscovery": {
+    "Subnets": [ "192.168.1.0/24" ],
+    "FtpPorts": [21, 3721],
+    "AdditionalPorts": {
+      "5555": "Adb",
+      "80": "Http",
+      "8080": "Http"
+    }
+  }
+}
+```
+
+This configuration detects Android Debug Bridge on port `5555` and HTTP services on ports `80` or `8080`.
+
+
 ## Device File Service
 `IDeviceFileService` connects to network devices over SMB or FTP to list and download files.
 
