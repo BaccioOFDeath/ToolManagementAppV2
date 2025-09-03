@@ -23,7 +23,7 @@ namespace InventoryManagementApp.Services.Devices
         private readonly ILogger<DeviceDiscoveryService> _logger;
         private readonly Func<string, int, CancellationToken, Task<bool>> _portChecker;
         private readonly IList<string> _subnets;
-        private readonly int[] _ftpPorts;
+        private readonly IList<int> _ftpPorts;
 
         public bool HasConfiguredSubnets => _subnets.Count > 0;
 
@@ -44,11 +44,9 @@ namespace InventoryManagementApp.Services.Devices
                     _logger.LogWarning("No subnets configured or detected for device discovery.");
                 else
                     _logger.LogInformation("Using auto-detected subnets: {Subnets}", string.Join(", ", _subnets));
+                }
             }
-
-            // Support multiple FTP ports (21 default + 3721 for Launch/ImmoPad)
-            var cfgPorts = configuration.GetSection("DeviceDiscovery:FtpPorts").Get<int[]>();
-            _ftpPorts = (cfgPorts is { Length: > 0 } ? cfgPorts : new[] { 21, 3721 }).Distinct().ToArray();
+            _ftpPort = configuration.GetValue<int?>("DeviceDiscovery:FtpPort") ?? 21;
         }
 
         public async Task<IReadOnlyList<DiscoveredDevice>> DiscoverDevicesAsync(CancellationToken cancellationToken = default)
@@ -91,22 +89,10 @@ namespace InventoryManagementApp.Services.Devices
                 // SMB first (persistent file access)
                 if (await _portChecker(ip, 445, ct).ConfigureAwait(false))
                     protocols.Add(DeviceProtocol.Smb);
-
-                // FTP variants
-                foreach (var p in _ftpPorts)
-                {
-                    if (await _portChecker(ip, p, ct).ConfigureAwait(false))
-                    {
-                        if (!protocols.Contains(DeviceProtocol.Ftp))
-                            protocols.Add(DeviceProtocol.Ftp);
-                        break;
-                    }
-                }
+                if (await _portChecker(ip, _ftpPort, ct).ConfigureAwait(false))
+                    protocols.Add(DeviceProtocol.Ftp);
             }
-
-            var hostname = alive ? await ResolveName(ip, ct).ConfigureAwait(false) : ip;
-
-            return new DiscoveredDevice
+            catch (Exception ex)
             {
                 Ip = ip,
                 Hostname = string.IsNullOrWhiteSpace(hostname) ? ip : hostname,
