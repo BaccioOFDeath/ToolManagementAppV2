@@ -26,6 +26,7 @@ namespace InventoryManagementApp.Services.Devices
         private readonly IList<string> _subnets;
         private readonly int[] _ftpPorts;
         private readonly IDictionary<int, DeviceProtocol> _additionalPorts;
+        private readonly int _maxConcurrentScans;
 
         public bool HasConfiguredSubnets => _subnets.Count > 0;
 
@@ -54,6 +55,7 @@ namespace InventoryManagementApp.Services.Devices
 
             _ftpPorts = configuration.GetSection("DeviceDiscovery:FtpPorts").Get<int[]>() ?? new[] { 21, 3721 };
             _additionalPorts = configuration.GetSection("DeviceDiscovery:AdditionalPorts").Get<Dictionary<int, DeviceProtocol>>() ?? new Dictionary<int, DeviceProtocol>();
+            _maxConcurrentScans = configuration.GetValue<int?>("DeviceDiscovery:MaxConcurrentScans") ?? 128;
         }
 
         public async Task<IReadOnlyList<DiscoveredDevice>> DiscoverDevicesAsync(CancellationToken cancellationToken = default)
@@ -82,7 +84,7 @@ namespace InventoryManagementApp.Services.Devices
             var channel = Channel.CreateUnbounded<DiscoveredDevice>();
             int processed = 0;
 
-            using var semaphore = new SemaphoreSlim(128);
+            using var semaphore = new SemaphoreSlim(_maxConcurrentScans);
             var tasks = addresses.Select(async ip =>
             {
                 await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
