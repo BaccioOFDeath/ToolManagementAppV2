@@ -16,6 +16,7 @@ using InventoryManagementApp.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.ObjectPool;
 
 namespace InventoryManagementApp.Services.Devices
 {
@@ -29,6 +30,13 @@ namespace InventoryManagementApp.Services.Devices
         private readonly int _maxConcurrentScans;
         private readonly int _livenessTimeoutMs;
         private readonly int _portProbeTimeoutMs;
+
+        private static readonly ObjectPool<Ping> _pingPool =
+            new DefaultObjectPoolProvider().Create(new DefaultPooledObjectPolicy<Ping>());
+        private static readonly ObjectPool<Socket> _socketPool =
+            new DefaultObjectPool<Socket>(new SocketPooledObjectPolicy());
+        private static readonly ObjectPool<SocketAsyncEventArgs> _saeaPool =
+            new DefaultObjectPool<SocketAsyncEventArgs>(new SocketAsyncEventArgsPooledObjectPolicy());
 
         public bool HasConfiguredSubnets => _subnets.Count > 0;
 
@@ -376,9 +384,9 @@ namespace InventoryManagementApp.Services.Devices
 
         private static async Task<bool> SafePingAsync(string ip, int timeoutMs, CancellationToken ct)
         {
+            var ping = _pingPool.Get();
             try
             {
-                using var ping = new Ping();
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
                 var pingTask = ping.SendPingAsync(ip, timeoutMs, Array.Empty<byte>(), new PingOptions(64, true));
                 var completed = await Task.WhenAny(pingTask, Task.Delay(Timeout.InfiniteTimeSpan, cts.Token)).ConfigureAwait(false);
@@ -388,36 +396,50 @@ namespace InventoryManagementApp.Services.Devices
             }
             catch (OperationCanceledException) { return false; }
             catch { return false; }
+            finally
+            {
+                _pingPool.Return(ping);
+            }
         }
 
 
         private static async Task<bool> SafeTcpProbeAsync(string ip, int port, int timeoutMs, CancellationToken ct)
         {
-            using var client = new TcpClient();
+            var socket = _socketPool.Get();
+            var args = _saeaPool.Get();
+            var tcs = new TaskCompletionSource<SocketError>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            EventHandler<SocketAsyncEventArgs>? handler = null;
+            handler = (s, e) => tcs.TrySetResult(e.SocketError);
+            args.RemoteEndPoint = new IPEndPoint(IPAddress.Parse(ip), port);
+            args.Completed += handler;
+
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             cts.CancelAfter(timeoutMs);
 
-            Task connectTask = client.ConnectAsync(ip, port);
-            _ = connectTask.ContinueWith(t => { var _ = t.Exception; }, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
-
             try
             {
-                var completed = await Task.WhenAny(connectTask, Task.Delay(Timeout.InfiniteTimeSpan, cts.Token)).ConfigureAwait(false);
-                if (completed != connectTask)
+                if (!socket.ConnectAsync(args))
                 {
-                    try { client.Close(); } catch { }
-                    return false;
+                    return args.SocketError == SocketError.Success && socket.Connected;
                 }
 
-                await connectTask.ConfigureAwait(false);
-                return client.Connected;
+                var completed = await Task.WhenAny(tcs.Task, Task.Delay(Timeout.InfiniteTimeSpan, cts.Token)).ConfigureAwait(false);
+                if (completed != tcs.Task)
+                    return false;
+
+                var error = await tcs.Task.ConfigureAwait(false);
+                return error == SocketError.Success && socket.Connected;
             }
             catch (OperationCanceledException) { return false; }
             catch (ObjectDisposedException) { return false; }
             catch (SocketException) { return false; }
-            catch (Exception)
+            catch { return false; }
+            finally
             {
-                return false;
+                args.Completed -= handler;
+                _saeaPool.Return(args);
+                _socketPool.Return(socket);
             }
         }
 
@@ -426,6 +448,45 @@ namespace InventoryManagementApp.Services.Devices
 
         private static Task<bool> QuickTcp(string ip, int port, int timeoutMs, CancellationToken ct)
             => SafeTcpProbeAsync(ip, port, timeoutMs, ct);
+
+        private sealed class SocketPooledObjectPolicy : PooledObjectPolicy<Socket>
+        {
+            public override Socket Create() => new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+            {
+                NoDelay = true
+            };
+
+            public override bool Return(Socket socket)
+            {
+                try
+                {
+                    if (socket.Connected)
+                    {
+                        try { socket.Shutdown(SocketShutdown.Both); } catch { }
+                        socket.Disconnect(reuseSocket: true);
+                    }
+                    return true;
+                }
+                catch
+                {
+                    try { socket.Dispose(); } catch { }
+                    return false;
+                }
+            }
+        }
+
+        private sealed class SocketAsyncEventArgsPooledObjectPolicy : PooledObjectPolicy<SocketAsyncEventArgs>
+        {
+            public override SocketAsyncEventArgs Create() => new SocketAsyncEventArgs();
+
+            public override bool Return(SocketAsyncEventArgs args)
+            {
+                args.AcceptSocket = null;
+                args.RemoteEndPoint = null;
+                args.UserToken = null;
+                return true;
+            }
+        }
 
         private sealed class IpComparer : IComparer<string>
         {
