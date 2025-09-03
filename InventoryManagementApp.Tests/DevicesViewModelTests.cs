@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Services.Devices;
@@ -15,8 +16,23 @@ public class DevicesViewModelTests
     {
         public List<DiscoveredDevice> Devices { get; } = new();
         public bool HasConfiguredSubnets { get; set; } = true;
+
         public Task<IReadOnlyList<DiscoveredDevice>> DiscoverDevicesAsync(CancellationToken cancellationToken = default)
             => Task.FromResult<IReadOnlyList<DiscoveredDevice>>(Devices);
+
+        public async IAsyncEnumerable<DiscoveredDevice> DiscoverDevicesAsync(IProgress<double>? progress = null,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            var total = Devices.Count;
+            int processed = 0;
+            foreach (var d in Devices)
+            {
+                await Task.Delay(10, cancellationToken);
+                processed++;
+                progress?.Report((double)processed / total);
+                yield return d;
+            }
+        }
     }
 
     private sealed class RecordingDeviceFileService : IDeviceFileService
@@ -72,6 +88,29 @@ public class DevicesViewModelTests
         Assert.Single(vm.Devices);
         Assert.Equal("1.2.3.4", vm.Devices[0].Ip);
         Assert.Equal("Online", vm.Devices[0].Status);
+    }
+
+    [Fact]
+    public async Task RefreshCommand_ReportsProgressAndAddsDevicesIncrementally()
+    {
+        var discovery = new StubDiscoveryService();
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new RecordingDialogService();
+        discovery.Devices.Add(new DiscoveredDevice { Ip = "1.1.1.1", Hostname = "a", IsOnline = true, Protocols = new List<DeviceProtocol>() });
+        discovery.Devices.Add(new DiscoveredDevice { Ip = "1.1.1.2", Hostname = "b", IsOnline = true, Protocols = new List<DeviceProtocol>() });
+        var vm = new DevicesViewModel(discovery, fileService, dialog);
+
+        var task = vm.RefreshCommand.ExecuteAsync(null);
+        await Task.Delay(15);
+
+        Assert.Equal(1, vm.Devices.Count);
+        Assert.InRange(vm.DiscoveryProgress, 0.45, 0.55);
+
+        await task;
+
+        Assert.Equal(2, vm.Devices.Count);
+        Assert.Equal(1.0, vm.DiscoveryProgress, 3);
+        Assert.False(vm.IsDiscovering);
     }
 
     [Fact]

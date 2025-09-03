@@ -9,6 +9,8 @@ using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Channels;
+using System.Runtime.CompilerServices;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
 using Microsoft.Extensions.Configuration;
@@ -54,14 +56,29 @@ namespace InventoryManagementApp.Services.Devices
 
         public async Task<IReadOnlyList<DiscoveredDevice>> DiscoverDevicesAsync(CancellationToken cancellationToken = default)
         {
+            var list = new List<DiscoveredDevice>();
+            await foreach (var device in DiscoverDevicesAsync(progress: null, cancellationToken).ConfigureAwait(false))
+            {
+                list.Add(device);
+            }
+            return list;
+        }
+
+        public async IAsyncEnumerable<DiscoveredDevice> DiscoverDevicesAsync(IProgress<double>? progress = null,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
             if (_subnets.Count == 0)
             {
                 _logger.LogWarning("Device discovery attempted with no configured subnets.");
-                return Array.Empty<DiscoveredDevice>();
+                yield break;
             }
 
-            var bag = new ConcurrentBag<DiscoveredDevice>();
-            var addresses = _subnets.SelectMany(ExpandAddressPattern).Distinct();
+            var addresses = _subnets.SelectMany(ExpandAddressPattern).Distinct().ToList();
+            var total = addresses.Count;
+            if (total == 0) yield break;
+
+            var channel = Channel.CreateUnbounded<DiscoveredDevice>();
+            int processed = 0;
 
             using var semaphore = new SemaphoreSlim(128);
             var tasks = addresses.Select(async ip =>
@@ -70,16 +87,23 @@ namespace InventoryManagementApp.Services.Devices
                 try
                 {
                     var d = await ScanIpAsync(ip, cancellationToken).ConfigureAwait(false);
-                    if (d.IsOnline) bag.Add(d);
+                    if (d.IsOnline)
+                        await channel.Writer.WriteAsync(d, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
+                    var done = Interlocked.Increment(ref processed);
+                    progress?.Report((double)done / total);
                     semaphore.Release();
                 }
             });
 
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-            return bag.OrderBy(d => d.Ip, IpComparer.Instance).ToList();
+            _ = Task.WhenAll(tasks).ContinueWith(_ => channel.Writer.Complete(), cancellationToken);
+
+            await foreach (var device in channel.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+            {
+                yield return device;
+            }
         }
 
         private async Task<DiscoveredDevice> ScanIpAsync(string ip, CancellationToken ct)
