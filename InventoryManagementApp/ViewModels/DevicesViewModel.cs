@@ -57,7 +57,13 @@ namespace InventoryManagementApp.ViewModels
         public bool IsDiscovering
         {
             get => _isDiscovering;
-            private set => SetProperty(ref _isDiscovering, value);
+            private set
+            {
+                if (SetProperty(ref _isDiscovering, value))
+                {
+                    RefreshCommand.NotifyCanExecuteChanged();
+                }
+            }
         }
 
         public DevicesViewModel(IDeviceDiscoveryService discoveryService,
@@ -70,7 +76,7 @@ namespace InventoryManagementApp.ViewModels
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<DevicesViewModel>.Instance;
 
-            RefreshCommand = new AsyncRelayCommand(RefreshAsync);
+            RefreshCommand = new AsyncRelayCommand(RefreshAsync, () => !IsDiscovering);
             PullAllReportsCommand = new AsyncRelayCommand(PullAllReportsAsync, CanPullAllReports);
         }
 
