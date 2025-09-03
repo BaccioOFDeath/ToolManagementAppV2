@@ -185,4 +185,40 @@ public class DeviceDiscoveryServiceTests
         Assert.True(device.IsOnline);
         Assert.Contains(DeviceProtocol.Unknown, device.Protocols);
     }
+
+    [Fact]
+    public async Task ScanIpAsync_CancelsRemainingFtpChecksAfterFirstSuccess()
+    {
+        var configDict = new Dictionary<string, string?>
+        {
+            ["DeviceDiscovery:Subnets:0"] = "192.168.0.1",
+            ["DeviceDiscovery:FtpPorts:0"] = "21",
+            ["DeviceDiscovery:FtpPorts:1"] = "2121"
+        };
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configDict!)
+            .Build();
+
+        var secondCancelled = false;
+        Task<bool> PortChecker(string ip, int port, CancellationToken token)
+        {
+            if (port == 21)
+                return Task.FromResult(true);
+            if (port == 2121)
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                token.Register(() => { secondCancelled = true; tcs.TrySetCanceled(token); });
+                return tcs.Task;
+            }
+            return Task.FromResult(false);
+        }
+
+        var service = new DeviceDiscoveryService(configuration, null, PortChecker);
+
+        var devices = await service.DiscoverDevicesAsync();
+
+        var device = Assert.Single(devices);
+        Assert.Contains(DeviceProtocol.Ftp, device.Protocols);
+        Assert.True(secondCancelled);
+    }
 }
