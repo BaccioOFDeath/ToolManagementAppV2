@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Models;
@@ -9,6 +10,36 @@ using Xunit;
 
 public class DeviceDiscoveryServiceTests
 {
+    [Fact]
+    public void Constructor_UsesConfiguredMaxConcurrentScans()
+    {
+        var configDict = new Dictionary<string, string?>
+        {
+            ["DeviceDiscovery:MaxConcurrentScans"] = "42"
+        };
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configDict!)
+            .Build();
+
+        var service = new DeviceDiscoveryService(configuration, null, null, () => new List<string>());
+
+        var field = typeof(DeviceDiscoveryService).GetField("_maxConcurrentScans", BindingFlags.NonPublic | BindingFlags.Instance);
+        var value = Assert.IsType<int>(field!.GetValue(service));
+        Assert.Equal(42, value);
+    }
+
+    [Fact]
+    public void Constructor_DefaultsMaxConcurrentScansTo128()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+
+        var service = new DeviceDiscoveryService(configuration, null, null, () => new List<string>());
+
+        var field = typeof(DeviceDiscoveryService).GetField("_maxConcurrentScans", BindingFlags.NonPublic | BindingFlags.Instance);
+        var value = Assert.IsType<int>(field!.GetValue(service));
+        Assert.Equal(128, value);
+    }
+
     [Fact]
     public async Task DiscoverDevices_FindsProtocolsAndMarksStatus()
     {
