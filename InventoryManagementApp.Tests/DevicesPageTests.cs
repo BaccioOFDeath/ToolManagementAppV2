@@ -202,6 +202,44 @@ namespace InventoryManagementApp.Tests
             Assert.Equal("Device Settings", settingsButton!.Content);
         }
 
+        [Fact]
+        public void DevicesPage_HasPingButton()
+        {
+            Exception? threadEx = null;
+            Button? pingButton = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary
+                    {
+                        Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute)
+                    });
+
+                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService(), new DummyDeviceGroupService());
+                    var page = new DevicesPage { DataContext = vm };
+                    page.ApplyTemplate();
+                    pingButton = (Button)page.FindName("PingButton");
+
+                    Application.Current?.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadEx != null) throw threadEx;
+            Assert.NotNull(pingButton);
+            Assert.Equal("Ping", pingButton!.Content);
+        }
+
         private sealed class BindingErrorTraceListener : TraceListener
         {
             private readonly List<string> _errors;
