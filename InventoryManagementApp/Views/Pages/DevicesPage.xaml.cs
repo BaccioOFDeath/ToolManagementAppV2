@@ -1,4 +1,7 @@
 using System.Windows.Controls;
+using System.Windows;
+using Forms = System.Windows.Forms;
+using InventoryManagementApp.ViewModels;
 
 namespace InventoryManagementApp.Views.Pages
 {
@@ -7,6 +10,20 @@ namespace InventoryManagementApp.Views.Pages
         public DevicesPage()
         {
             InitializeComponent();
+        }
+
+        void BrowseSourceFolder(object sender, RoutedEventArgs e)
+        {
+            using var dlg = new Forms.FolderBrowserDialog();
+            if (dlg.ShowDialog() == Forms.DialogResult.OK && DataContext is DevicesViewModel vm)
+                vm.SourceFolder = dlg.SelectedPath;
+        }
+
+        void BrowseDestinationFolder(object sender, RoutedEventArgs e)
+        {
+            using var dlg = new Forms.FolderBrowserDialog();
+            if (dlg.ShowDialog() == Forms.DialogResult.OK && DataContext is DevicesViewModel vm)
+                vm.DestinationFolder = dlg.SelectedPath;
         }
     }
 }

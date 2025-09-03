@@ -46,6 +46,7 @@ namespace InventoryManagementApp.ViewModels
                     DeviceFiles.Clear();
                     PullAllReportsCommand.NotifyCanExecuteChanged();
                     PingSelectedDeviceCommand.NotifyCanExecuteChanged();
+                    DownloadUnseenFilesCommand.NotifyCanExecuteChanged();
                 }
             }
         }
@@ -57,6 +58,29 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand AddGroupCommand { get; }
         public IAsyncRelayCommand RenameGroupCommand { get; }
         public IAsyncRelayCommand DeleteGroupCommand { get; }
+        public IAsyncRelayCommand DownloadUnseenFilesCommand { get; }
+
+        private string _sourceFolder = string.Empty;
+        public string SourceFolder
+        {
+            get => _sourceFolder;
+            set
+            {
+                if (SetProperty(ref _sourceFolder, value))
+                    DownloadUnseenFilesCommand.NotifyCanExecuteChanged();
+            }
+        }
+
+        private string _destinationFolder = string.Empty;
+        public string DestinationFolder
+        {
+            get => _destinationFolder;
+            set
+            {
+                if (SetProperty(ref _destinationFolder, value))
+                    DownloadUnseenFilesCommand.NotifyCanExecuteChanged();
+            }
+        }
 
         private double _discoveryProgress;
         public double DiscoveryProgress
@@ -125,6 +149,7 @@ namespace InventoryManagementApp.ViewModels
             AddGroupCommand = new AsyncRelayCommand(AddGroupAsync);
             RenameGroupCommand = new AsyncRelayCommand(RenameGroupAsync);
             DeleteGroupCommand = new AsyncRelayCommand(DeleteGroupAsync);
+            DownloadUnseenFilesCommand = new AsyncRelayCommand(DownloadUnseenFilesAsync, CanDownloadUnseenFiles);
         }
 
         private async Task RefreshAsync()
@@ -205,6 +230,25 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to load files for {Ip}", SelectedDevice.Ip);
                 await _dialogService.ShowInfoAsync($"Failed to pull reports: {ex.Message}", "Devices");
+            }
+        }
+
+        private bool CanDownloadUnseenFiles()
+            => SelectedDevice != null
+               && !string.IsNullOrWhiteSpace(SourceFolder)
+               && !string.IsNullOrWhiteSpace(DestinationFolder);
+
+        private async Task DownloadUnseenFilesAsync()
+        {
+            if (SelectedDevice == null) return;
+            try
+            {
+                await _fileService.DownloadUnseenFilesAsync(SelectedDevice, DestinationFolder, CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to download files for {Ip}", SelectedDevice.Ip);
+                await _dialogService.ShowInfoAsync($"Failed to download files: {ex.Message}", "Devices");
             }
         }
 

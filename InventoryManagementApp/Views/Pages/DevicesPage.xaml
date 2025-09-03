@@ -54,7 +54,26 @@
                                  Margin="0,0,8,0"/>
                         <Button Style="{StaticResource PrimaryButton}"
                                 Content="Pull Reports"
-                                Command="{Binding PullAllReportsCommand}"/>
+                                Command="{Binding PullAllReportsCommand}"
+                                Margin="0,0,8,0"/>
+                        <TextBox Text="{Binding SourceFolder, UpdateSourceTrigger=PropertyChanged}"
+                                 Width="120"
+                                 Margin="0,0,8,0"/>
+                        <Button Style="{StaticResource PrimaryButton}"
+                                Content="Browse Source"
+                                Click="BrowseSourceFolder"
+                                Margin="0,0,8,0"/>
+                        <TextBox Text="{Binding DestinationFolder, UpdateSourceTrigger=PropertyChanged}"
+                                 Width="120"
+                                 Margin="0,0,8,0"/>
+                        <Button Style="{StaticResource PrimaryButton}"
+                                Content="Browse Dest"
+                                Click="BrowseDestinationFolder"
+                                Margin="0,0,8,0"/>
+                        <Button x:Name="DownloadButton"
+                                Style="{StaticResource PrimaryButton}"
+                                Content="Download Files"
+                                Command="{Binding DownloadUnseenFilesCommand}"/>
                     </StackPanel>
                 </Border>
                 <ProgressBar Margin="0,8,0,0"
