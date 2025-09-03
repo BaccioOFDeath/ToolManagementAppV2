@@ -138,12 +138,15 @@ namespace InventoryManagementApp.Services.Devices
                 yield break;
             }
 
-            var ipSequence = _subnets.SelectMany(ExpandAddressPattern).Distinct();
+            var ipSequence = _subnets.SelectMany(ExpandAddressPattern);
             var arpTable = LoadArpTable();
 
             var channel = Channel.CreateUnbounded<DiscoveredDevice>();
             long total = 0;
             long processed = 0;
+
+            var seenIps = new HashSet<string>();
+            var seenLock = new object();
 
             var scanTask = Task.Run(async () =>
             {
@@ -155,6 +158,14 @@ namespace InventoryManagementApp.Services.Devices
                         CancellationToken = cancellationToken
                     }, async (ip, ct) =>
                     {
+                        bool isNew;
+                        lock (seenLock)
+                        {
+                            isNew = seenIps.Add(ip);
+                        }
+                        if (!isNew)
+                            return;
+
                         Interlocked.Increment(ref total);
 
                         var d = await ScanIpAsync(ip, arpTable, ct).ConfigureAwait(false);
