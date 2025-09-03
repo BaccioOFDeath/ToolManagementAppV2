@@ -7,7 +7,7 @@
             <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <!-- Theme dictionary added at runtime -->
-                <ResourceDictionary Source="Resources/Colors.Dark.xaml"/>
+                <ResourceDictionary Source="Resources/Colors.Light.xaml"/>
                 <ResourceDictionary Source="Resources/Styles.xaml"/>
                 <ResourceDictionary Source="Resources/Converters.xaml"/>
                 <ResourceDictionary Source="Resources/Templates.xaml"/>
