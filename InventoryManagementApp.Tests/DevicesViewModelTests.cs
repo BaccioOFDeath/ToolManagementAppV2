@@ -154,6 +154,27 @@ public class DevicesViewModelTests
     }
 
     [Fact]
+    public async Task SelectedDeviceChange_ClearsDeviceFiles()
+    {
+        var discovery = new StubDiscoveryService();
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new RecordingDialogService();
+        discovery.Devices.Add(new DiscoveredDevice { Ip = "1.1.1.1", Hostname = "a", IsOnline = true, Protocols = new List<DeviceProtocol>() });
+        discovery.Devices.Add(new DiscoveredDevice { Ip = "1.1.1.2", Hostname = "b", IsOnline = true, Protocols = new List<DeviceProtocol>() });
+        fileService.Files.Add("a.txt");
+        var vm = new DevicesViewModel(discovery, fileService, dialog);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+        vm.SelectedDevice = vm.Devices[0];
+        await vm.PullAllReportsCommand.ExecuteAsync(null);
+        Assert.Single(vm.DeviceFiles);
+
+        vm.SelectedDevice = vm.Devices[1];
+
+        Assert.Empty(vm.DeviceFiles);
+    }
+
+    [Fact]
     public async Task RefreshCommand_NoSubnets_ShowsWarning()
     {
         var discovery = new StubDiscoveryService { HasConfiguredSubnets = false };
