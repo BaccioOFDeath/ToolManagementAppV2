@@ -66,6 +66,7 @@
                                                  ItemsSource="{Binding Groups}" Width="150"/>
                         <DataGridTextColumn Header="Protocols" Binding="{Binding ProtocolsDisplay}" IsReadOnly="True" Width="150"/>
                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" IsReadOnly="True" Width="120"/>
+                        <DataGridTextColumn Header="Last Seen" Binding="{Binding LastSeen, StringFormat={}{0:G}}" IsReadOnly="True" Width="180"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </Border>

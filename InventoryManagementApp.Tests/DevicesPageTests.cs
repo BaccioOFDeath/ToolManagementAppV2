@@ -116,6 +116,44 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void DevicesPage_HasLastSeenColumn()
+        {
+            Exception? threadEx = null;
+            bool hasColumn = false;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary
+                    {
+                        Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute)
+                    });
+
+                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService(), new DummyDeviceGroupService());
+                    var page = new DevicesPage { DataContext = vm };
+                    page.ApplyTemplate();
+                    var grid = FindVisualChild<DataGrid>(page);
+                    hasColumn = grid?.Columns.Any(c => c.Header?.ToString() == "Last Seen") ?? false;
+
+                    Application.Current?.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadEx != null) throw threadEx;
+            Assert.True(hasColumn);
+        }
+
+        [Fact]
         public void DevicesPage_DisplaysMacAddress()
         {
             Exception? threadEx = null;
