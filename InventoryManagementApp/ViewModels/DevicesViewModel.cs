@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Net.NetworkInformation;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Interfaces;
@@ -44,12 +45,14 @@ namespace InventoryManagementApp.ViewModels
                 {
                     DeviceFiles.Clear();
                     PullAllReportsCommand.NotifyCanExecuteChanged();
+                    PingSelectedDeviceCommand.NotifyCanExecuteChanged();
                 }
             }
         }
 
         public IAsyncRelayCommand RefreshCommand { get; }
         public IAsyncRelayCommand PullAllReportsCommand { get; }
+        public IAsyncRelayCommand PingSelectedDeviceCommand { get; }
         public IAsyncRelayCommand AddDeviceCommand { get; }
         public IAsyncRelayCommand AddGroupCommand { get; }
         public IAsyncRelayCommand RenameGroupCommand { get; }
@@ -116,6 +119,7 @@ namespace InventoryManagementApp.ViewModels
 
             RefreshCommand = new AsyncRelayCommand(RefreshAsync, () => !IsDiscovering);
             PullAllReportsCommand = new AsyncRelayCommand(PullAllReportsAsync, CanPullAllReports);
+            PingSelectedDeviceCommand = new AsyncRelayCommand(PingSelectedDeviceAsync, () => SelectedDevice != null);
             AddDeviceCommand = new AsyncRelayCommand(AddDeviceAsync);
             AddGroupCommand = new AsyncRelayCommand(AddGroupAsync);
             RenameGroupCommand = new AsyncRelayCommand(RenameGroupAsync);
@@ -199,6 +203,38 @@ namespace InventoryManagementApp.ViewModels
                 _logger.LogError(ex, "Failed to load files for {Ip}", SelectedDevice.Ip);
                 await _dialogService.ShowInfoAsync($"Failed to pull reports: {ex.Message}", "Devices");
             }
+        }
+
+        private async Task PingSelectedDeviceAsync()
+        {
+            if (SelectedDevice == null) return;
+            try
+            {
+                var success = await SafePingAsync(SelectedDevice.Ip, 1000, CancellationToken.None);
+                SelectedDevice.Status = success ? "Online" : "Offline";
+                if (success)
+                    SelectedDevice.LastSeen = DateTime.UtcNow;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to ping device {Ip}", SelectedDevice.Ip);
+            }
+        }
+
+        private static async Task<bool> SafePingAsync(string ip, int timeoutMs, CancellationToken ct)
+        {
+            using var ping = new Ping();
+            try
+            {
+                var pingTask = ping.SendPingAsync(ip, timeoutMs);
+                var completed = await Task.WhenAny(pingTask, Task.Delay(Timeout.InfiniteTimeSpan, ct)).ConfigureAwait(false);
+                if (completed != pingTask)
+                    return false;
+                var reply = await pingTask.ConfigureAwait(false);
+                return reply.Status == IPStatus.Success;
+            }
+            catch (OperationCanceledException) { return false; }
+            catch { return false; }
         }
 
         private async Task AddDeviceAsync()
