@@ -114,6 +114,28 @@ public class DevicesViewModelTests
     }
 
     [Fact]
+    public async Task RefreshCommand_DisabledDuringDiscovery()
+    {
+        var discovery = new StubDiscoveryService();
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new RecordingDialogService();
+        discovery.Devices.Add(new DiscoveredDevice { Ip = "1.1.1.1", Hostname = "a", IsOnline = true, Protocols = new List<DeviceProtocol>() });
+        var vm = new DevicesViewModel(discovery, fileService, dialog);
+
+        Assert.True(vm.RefreshCommand.CanExecute(null));
+
+        var task = vm.RefreshCommand.ExecuteAsync(null);
+        while (!vm.IsDiscovering)
+            await Task.Delay(1);
+
+        Assert.False(vm.RefreshCommand.CanExecute(null));
+
+        await task;
+
+        Assert.True(vm.RefreshCommand.CanExecute(null));
+    }
+
+    [Fact]
     public async Task PullAllReportsCommand_LoadsFiles()
     {
         var discovery = new StubDiscoveryService();
