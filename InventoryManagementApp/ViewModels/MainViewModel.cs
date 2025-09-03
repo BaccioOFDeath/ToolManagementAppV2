@@ -689,11 +689,11 @@ namespace InventoryManagementApp.ViewModels
         {
             public Task<IEnumerable<Device>> GetDevicesAsync(CancellationToken cancellationToken = default)
                 => Task.FromResult<IEnumerable<Device>>(Array.Empty<Device>());
-            public Task<Device?> GetDeviceAsync(string ip, CancellationToken cancellationToken = default)
+            public Task<Device?> GetDeviceAsync(string ip, int? port, CancellationToken cancellationToken = default)
                 => Task.FromResult<Device?>(null);
             public Task AddOrUpdateDeviceAsync(Device device, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
-            public Task DeleteDeviceAsync(string ip, CancellationToken cancellationToken = default)
+            public Task DeleteDeviceAsync(string ip, int? port, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
         }
 
@@ -703,8 +703,8 @@ namespace InventoryManagementApp.ViewModels
             public Task<IEnumerable<DeviceGroup>> GetGroupsAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<DeviceGroup>>(Array.Empty<DeviceGroup>());
             public Task UpdateGroupAsync(DeviceGroup group, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task DeleteGroupAsync(int groupId, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task AssignDeviceToGroupAsync(string deviceIp, int? groupId, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task<int?> GetDeviceGroupIdAsync(string deviceIp, CancellationToken cancellationToken = default) => Task.FromResult<int?>(null);
+            public Task AssignDeviceToGroupAsync(string deviceIp, int? devicePort, int? groupId, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<int?> GetDeviceGroupIdAsync(string deviceIp, int? devicePort, CancellationToken cancellationToken = default) => Task.FromResult<int?>(null);
         }
 
         private sealed class DummyDeviceFileService : IDeviceFileService

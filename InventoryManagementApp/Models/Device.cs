@@ -16,6 +16,7 @@ namespace InventoryManagementApp.Models
     public class Device : ObservableObject
     {
         string _ip = string.Empty;
+        int? _port;
         string _hostname = string.Empty;
         string _macAddress = string.Empty;
         DeviceProtocol _protocol;
@@ -34,6 +35,12 @@ namespace InventoryManagementApp.Models
         {
             get => _ip;
             set => SetProperty(ref _ip, value);
+        }
+
+        public int? Port
+        {
+            get => _port;
+            set => SetProperty(ref _port, value);
         }
 
         public string Hostname

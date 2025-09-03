@@ -65,7 +65,12 @@ namespace InventoryManagementApp.Services.Devices
             dynamic client = _smbClientFactory();
             try
             {
-                bool connected = await Task.Run(() => client.Connect(device.Ip, SMBTransportType.DirectTCPTransport), cancellationToken);
+                bool connected = await Task.Run(() =>
+                {
+                    if (device.Port.HasValue)
+                        return client.Connect(device.Ip, device.Port.Value);
+                    return client.Connect(device.Ip, SMBTransportType.DirectTCPTransport);
+                }, cancellationToken);
                 if (!connected) return results;
 
                 NTStatus status = await Task.Run(() => client.Login(device.Domain ?? string.Empty, device.Username ?? string.Empty, device.Password ?? string.Empty), cancellationToken);
@@ -125,6 +130,7 @@ namespace InventoryManagementApp.Services.Devices
         {
             var results = new List<string>();
             using var client = new AsyncFtpClient(device.Ip, device.Username, device.Password);
+            if (device.Port.HasValue) client.Port = device.Port.Value;
             try
             {
                 await client.Connect(cancellationToken);
@@ -161,6 +167,7 @@ namespace InventoryManagementApp.Services.Devices
                     case DeviceProtocol.Ftp:
                         using (var ftpClient = new AsyncFtpClient(device.Ip, device.Username, device.Password))
                         {
+                            if (device.Port.HasValue) ftpClient.Port = device.Port.Value;
                             await ftpClient.Connect(cancellationToken);
                             using var ms = new MemoryStream();
                             await ftpClient.DownloadStream(ms, file, token: cancellationToken);
@@ -172,7 +179,12 @@ namespace InventoryManagementApp.Services.Devices
                         dynamic smbClient = _smbClientFactory();
                         try
                         {
-                            bool connected = await Task.Run(() => smbClient.Connect(device.Ip, SMBTransportType.DirectTCPTransport), cancellationToken);
+                            bool connected = await Task.Run(() =>
+                            {
+                                if (device.Port.HasValue)
+                                    return smbClient.Connect(device.Ip, device.Port.Value);
+                                return smbClient.Connect(device.Ip, SMBTransportType.DirectTCPTransport);
+                            }, cancellationToken);
                             if (!connected) return null;
 
                             NTStatus status = await Task.Run(() => smbClient.Login(device.Domain ?? string.Empty, device.Username ?? string.Empty, device.Password ?? string.Empty), cancellationToken);

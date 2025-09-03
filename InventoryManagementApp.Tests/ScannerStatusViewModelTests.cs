@@ -23,7 +23,7 @@ public class ScannerStatusViewModelTests
         public TaskCompletionSource<Device> Tcs { get; } = new();
         public Task<IEnumerable<Device>> GetDevicesAsync(CancellationToken cancellationToken = default)
             => Task.FromResult<IEnumerable<Device>>(Array.Empty<Device>());
-        public Task<Device?> GetDeviceAsync(string ip, CancellationToken cancellationToken = default)
+        public Task<Device?> GetDeviceAsync(string ip, int? port, CancellationToken cancellationToken = default)
             => Task.FromResult<Device?>(null);
         public Task AddOrUpdateDeviceAsync(Device device, CancellationToken cancellationToken = default)
         {
@@ -31,14 +31,14 @@ public class ScannerStatusViewModelTests
             Tcs.TrySetResult(device);
             return Task.CompletedTask;
         }
-        public Task DeleteDeviceAsync(string ip, CancellationToken cancellationToken = default)
+        public Task DeleteDeviceAsync(string ip, int? port, CancellationToken cancellationToken = default)
             => Task.CompletedTask;
     }
 
     private sealed class RecordingDeviceGroupService : IDeviceGroupService
     {
         public List<DeviceGroup> Groups { get; } = new();
-        public TaskCompletionSource<(string ip, int? groupId)> AssignTcs { get; } = new();
+        public TaskCompletionSource<(string ip, int? port, int? groupId)> AssignTcs { get; } = new();
         public TaskCompletionSource<DeviceGroup> UpdateTcs { get; } = new();
         public DeviceGroup? UpdatedGroup { get; private set; }
         public Task<IEnumerable<DeviceGroup>> GetGroupsAsync(CancellationToken cancellationToken = default)
@@ -53,12 +53,12 @@ public class ScannerStatusViewModelTests
         }
         public Task DeleteGroupAsync(int groupId, CancellationToken cancellationToken = default)
             => Task.CompletedTask;
-        public Task AssignDeviceToGroupAsync(string deviceIp, int? groupId, CancellationToken cancellationToken = default)
+        public Task AssignDeviceToGroupAsync(string deviceIp, int? devicePort, int? groupId, CancellationToken cancellationToken = default)
         {
-            AssignTcs.TrySetResult((deviceIp, groupId));
+            AssignTcs.TrySetResult((deviceIp, devicePort, groupId));
             return Task.CompletedTask;
         }
-        public Task<int?> GetDeviceGroupIdAsync(string deviceIp, CancellationToken cancellationToken = default)
+        public Task<int?> GetDeviceGroupIdAsync(string deviceIp, int? devicePort, CancellationToken cancellationToken = default)
             => Task.FromResult<int?>(null);
     }
 
@@ -122,6 +122,7 @@ public class ScannerStatusViewModelTests
         var assignment = await groupService.AssignTcs.Task;
 
         Assert.Equal("1.2.3.4", assignment.ip);
+        Assert.Null(assignment.port);
         Assert.Equal(1, assignment.groupId);
     }
 
