@@ -155,7 +155,8 @@ namespace InventoryManagementApp.ViewModels
                         ProtocolsDisplay = d.Protocols.Count > 0
                             ? string.Join(", ", d.Protocols)
                             : DeviceProtocol.Unknown.ToString(),
-                        Status = d.IsOnline ? "Online" : "Offline"
+                        Status = d.IsOnline ? "Online" : "Offline",
+                        LastSeen = d.IsOnline ? DateTime.UtcNow : default
                     };
                     try
                     {
