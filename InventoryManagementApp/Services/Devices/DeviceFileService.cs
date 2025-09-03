@@ -248,6 +248,8 @@ namespace InventoryManagementApp.Services.Devices
         public async Task<int> DownloadUnseenFilesAsync(Device device, string basePath, CancellationToken cancellationToken = default)
         {
             var deviceDirName = string.IsNullOrWhiteSpace(device.Hostname) ? device.Ip : device.Hostname;
+            if (device.Port.HasValue)
+                deviceDirName += $"_{device.Port.Value}";
             var deviceDir = Path.Combine(basePath, "Devices", deviceDirName);
             Directory.CreateDirectory(deviceDir);
             var files = await ListFilesAsync(device, null, cancellationToken);

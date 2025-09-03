@@ -80,6 +80,35 @@ public class DevicesViewModelTests
         public void ShowPrintLabelDialog() { }
     }
 
+    private sealed class RecordingDeviceGroupService : IDeviceGroupService
+    {
+        public List<DeviceGroup> Groups { get; } = new();
+        public TaskCompletionSource<(string ip, int? port, int? groupId)> AssignTcs { get; } = new();
+        public TaskCompletionSource<DeviceGroup> UpdateTcs { get; } = new();
+        public string? CreatedGroupName { get; private set; }
+        public Task<IEnumerable<DeviceGroup>> GetGroupsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult<IEnumerable<DeviceGroup>>(Groups);
+        public Task<int> CreateGroupAsync(string name, CancellationToken cancellationToken = default)
+        {
+            CreatedGroupName = name;
+            return Task.FromResult(0);
+        }
+        public Task UpdateGroupAsync(DeviceGroup group, CancellationToken cancellationToken = default)
+        {
+            UpdateTcs.TrySetResult(group);
+            return Task.CompletedTask;
+        }
+        public Task DeleteGroupAsync(int groupId, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+        public Task AssignDeviceToGroupAsync(string deviceIp, int? devicePort, int? groupId, CancellationToken cancellationToken = default)
+        {
+            AssignTcs.TrySetResult((deviceIp, devicePort, groupId));
+            return Task.CompletedTask;
+        }
+        public Task<int?> GetDeviceGroupIdAsync(string deviceIp, int? devicePort, CancellationToken cancellationToken = default)
+            => Task.FromResult<int?>(null);
+    }
+
     private sealed class RecordingDeviceService : IDeviceService
     {
         public Device? LastDevice { get; private set; }
@@ -103,7 +132,7 @@ public class DevicesViewModelTests
         var fileService = new RecordingDeviceFileService();
         var dialog = new RecordingDialogService();
         discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", Hostname = "test", IsOnline = true, Protocols = new List<DeviceProtocol> { DeviceProtocol.Ftp } });
-        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService());
+        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), new RecordingDeviceGroupService());
 
         await vm.RefreshCommand.ExecuteAsync(null);
 
@@ -126,7 +155,7 @@ public class DevicesViewModelTests
             IsOnline = true,
             Protocols = new List<DeviceProtocol> { DeviceProtocol.Smb, DeviceProtocol.Http }
         });
-        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService());
+        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), new RecordingDeviceGroupService());
 
         await vm.RefreshCommand.ExecuteAsync(null);
 
@@ -148,7 +177,7 @@ public class DevicesViewModelTests
             IsOnline = true,
             Protocols = new List<DeviceProtocol>()
         });
-        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService());
+        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), new RecordingDeviceGroupService());
 
         await vm.RefreshCommand.ExecuteAsync(null);
 
@@ -164,7 +193,7 @@ public class DevicesViewModelTests
         var dialog = new RecordingDialogService();
         discovery.Devices.Add(new DiscoveredDevice { Ip = "1.1.1.1", Hostname = "a", IsOnline = true, Protocols = new List<DeviceProtocol>() });
         discovery.Devices.Add(new DiscoveredDevice { Ip = "1.1.1.2", Hostname = "b", IsOnline = true, Protocols = new List<DeviceProtocol>() });
-        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService());
+        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), new RecordingDeviceGroupService());
 
         var task = vm.RefreshCommand.ExecuteAsync(null);
         await Task.Delay(15);
@@ -186,7 +215,7 @@ public class DevicesViewModelTests
         var fileService = new RecordingDeviceFileService();
         var dialog = new RecordingDialogService();
         discovery.Devices.Add(new DiscoveredDevice { Ip = "1.1.1.1", Hostname = "a", IsOnline = true, Protocols = new List<DeviceProtocol>() });
-        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService());
+        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), new RecordingDeviceGroupService());
 
         Assert.True(vm.RefreshCommand.CanExecute(null));
 
@@ -209,7 +238,7 @@ public class DevicesViewModelTests
         var dialog = new RecordingDialogService();
         discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", Hostname = "test", IsOnline = true, Protocols = new List<DeviceProtocol>() });
         fileService.Files.AddRange(new[] { "a.txt", "b.txt" });
-        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService());
+        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), new RecordingDeviceGroupService());
 
         await vm.RefreshCommand.ExecuteAsync(null);
         vm.SelectedDevice = vm.Devices[0];
@@ -229,7 +258,7 @@ public class DevicesViewModelTests
         var dialog = new RecordingDialogService();
         discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", Hostname = "test", IsOnline = true, Protocols = new List<DeviceProtocol>() });
         fileService.Files.AddRange(new[] { "a.txt", "b.txt" });
-        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService());
+        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), new RecordingDeviceGroupService());
 
         await vm.RefreshCommand.ExecuteAsync(null);
         vm.SelectedDevice = vm.Devices[0];
@@ -250,7 +279,7 @@ public class DevicesViewModelTests
         discovery.Devices.Add(new DiscoveredDevice { Ip = "1.1.1.1", Hostname = "a", IsOnline = true, Protocols = new List<DeviceProtocol>() });
         discovery.Devices.Add(new DiscoveredDevice { Ip = "1.1.1.2", Hostname = "b", IsOnline = true, Protocols = new List<DeviceProtocol>() });
         fileService.Files.Add("a.txt");
-        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService());
+        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), new RecordingDeviceGroupService());
 
         await vm.RefreshCommand.ExecuteAsync(null);
         vm.SelectedDevice = vm.Devices[0];
@@ -269,7 +298,7 @@ public class DevicesViewModelTests
         var fileService = new RecordingDeviceFileService();
         var dialog = new RecordingDialogService();
 
-        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService());
+        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), new RecordingDeviceGroupService());
 
         await vm.RefreshCommand.ExecuteAsync(null);
 
@@ -294,7 +323,7 @@ public class DevicesViewModelTests
             var discovery = new DeviceDiscoveryService(config);
             var fileService = new RecordingDeviceFileService();
             var dialog = new RecordingDialogService();
-            var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService());
+            var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), new RecordingDeviceGroupService());
 
             await vm.RefreshCommand.ExecuteAsync(null);
 
@@ -317,7 +346,7 @@ public class DevicesViewModelTests
         var fileService = new RecordingDeviceFileService();
         var dialog = new RecordingDialogService();
         var deviceService = new RecordingDeviceService();
-        var vm = new DevicesViewModel(discovery, fileService, dialog, deviceService);
+        var vm = new DevicesViewModel(discovery, fileService, dialog, deviceService, new RecordingDeviceGroupService());
         vm.PromptForIpPort = () => "1.2.3.4:1234";
 
         await vm.AddDeviceCommand.ExecuteAsync(null);
@@ -325,5 +354,80 @@ public class DevicesViewModelTests
         Assert.Equal("1.2.3.4", deviceService.LastDevice?.Ip);
         Assert.Equal(1234, deviceService.LastDevice?.Port);
         Assert.Equal(1, discovery.DiscoverCallCount);
+    }
+
+    [Fact]
+    public async Task ChangingHostname_PersistsDevice()
+    {
+        var discovery = new StubDiscoveryService();
+        discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", Hostname = "old", IsOnline = true, Protocols = new List<DeviceProtocol>() });
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new RecordingDialogService();
+        var deviceService = new RecordingDeviceService();
+        var groupService = new RecordingDeviceGroupService();
+        var vm = new DevicesViewModel(discovery, fileService, dialog, deviceService, groupService);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+        vm.Devices[0].Hostname = "new";
+        await deviceService.Tcs.Task;
+
+        Assert.Equal("new", deviceService.LastDevice?.Hostname);
+    }
+
+    [Fact]
+    public async Task ChangingGroup_AssignsDevice()
+    {
+        var discovery = new StubDiscoveryService();
+        discovery.Devices.Add(new DiscoveredDevice { Ip = "1.2.3.4", IsOnline = true, Protocols = new List<DeviceProtocol>() });
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new RecordingDialogService();
+        var deviceService = new RecordingDeviceService();
+        var groupService = new RecordingDeviceGroupService();
+        groupService.Groups.Add(new DeviceGroup { Id = 1, Name = "G1" });
+        var vm = new DevicesViewModel(discovery, fileService, dialog, deviceService, groupService);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+        vm.Devices[0].GroupId = 1;
+        var assignment = await groupService.AssignTcs.Task;
+
+        Assert.Equal("1.2.3.4", assignment.ip);
+        Assert.Null(assignment.port);
+        Assert.Equal(1, assignment.groupId);
+    }
+
+    [Fact]
+    public async Task AddGroupCommand_CreatesGroupAndRefreshes()
+    {
+        var discovery = new StubDiscoveryService();
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new RecordingDialogService();
+        var groupService = new RecordingDeviceGroupService();
+        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), groupService);
+        vm.PromptForGroupName = () => "NewGroup";
+
+        await vm.AddGroupCommand.ExecuteAsync(null);
+
+        Assert.Equal("NewGroup", groupService.CreatedGroupName);
+        Assert.Equal(1, discovery.DiscoverCallCount);
+    }
+
+    [Fact]
+    public async Task RenameGroupCommand_UpdatesService()
+    {
+        var discovery = new StubDiscoveryService();
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new RecordingDialogService();
+        var groupService = new RecordingDeviceGroupService();
+        groupService.Groups.Add(new DeviceGroup { Id = 1, Name = "Old" });
+        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), groupService);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+        vm.SelectedGroup = vm.Groups[0];
+        vm.GroupName = "New";
+        await vm.RenameGroupCommand.ExecuteAsync(null);
+        var updated = await groupService.UpdateTcs.Task;
+
+        Assert.Equal(1, updated.Id);
+        Assert.Equal("New", updated.Name);
     }
 }

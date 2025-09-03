@@ -42,7 +42,7 @@ namespace InventoryManagementApp.Tests
                     PresentationTraceSources.DataBindingSource.Listeners.Add(listener);
                     PresentationTraceSources.DataBindingSource.Switch.Level = SourceLevels.Error;
 
-                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService())
+                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService(), new DummyDeviceGroupService())
                     {
                         SelectedDevice = new Device()
                     };
@@ -82,7 +82,7 @@ namespace InventoryManagementApp.Tests
                         Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute)
                     });
 
-                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService());
+                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService(), new DummyDeviceGroupService());
                     vm.Devices.Add(new Device { Ip = "1.2.3.4", Hostname = "test", ProtocolsDisplay = "Smb, Http" });
 
                     var page = new DevicesPage { DataContext = vm };
@@ -95,7 +95,7 @@ namespace InventoryManagementApp.Tests
                         grid.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
                         grid.Arrange(new Rect(0, 0, grid.DesiredSize.Width, grid.DesiredSize.Height));
                         grid.UpdateLayout();
-                        var textBlock = grid.Columns[3].GetCellContent(grid.Items[0]) as TextBlock;
+                        var textBlock = grid.Columns[4].GetCellContent(grid.Items[0]) as TextBlock;
                         cellText = textBlock?.Text;
                     }
 
@@ -131,7 +131,7 @@ namespace InventoryManagementApp.Tests
                         Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute)
                     });
 
-                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService());
+                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService(), new DummyDeviceGroupService());
                     vm.Devices.Add(new Device { Ip = "1.2.3.4", Hostname = "test", MacAddress = "aa-bb", ProtocolsDisplay = "Smb" });
 
                     var page = new DevicesPage { DataContext = vm };
@@ -216,6 +216,22 @@ namespace InventoryManagementApp.Tests
                 => Task.CompletedTask;
             public Task DeleteDeviceAsync(string ip, int? port, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
+        }
+
+        private sealed class DummyDeviceGroupService : IDeviceGroupService
+        {
+            public Task<IEnumerable<DeviceGroup>> GetGroupsAsync(CancellationToken cancellationToken = default)
+                => Task.FromResult<IEnumerable<DeviceGroup>>(Array.Empty<DeviceGroup>());
+            public Task<int> CreateGroupAsync(string name, CancellationToken cancellationToken = default)
+                => Task.FromResult(0);
+            public Task UpdateGroupAsync(DeviceGroup group, CancellationToken cancellationToken = default)
+                => Task.CompletedTask;
+            public Task DeleteGroupAsync(int groupId, CancellationToken cancellationToken = default)
+                => Task.CompletedTask;
+            public Task AssignDeviceToGroupAsync(string deviceIp, int? devicePort, int? groupId, CancellationToken cancellationToken = default)
+                => Task.CompletedTask;
+            public Task<int?> GetDeviceGroupIdAsync(string deviceIp, int? devicePort, CancellationToken cancellationToken = default)
+                => Task.FromResult<int?>(null);
         }
 
         private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject

@@ -185,6 +185,8 @@ namespace InventoryManagementApp.ViewModels
                 var filter = FileExtensionFilter == "*.*" ? null : FileExtensionFilter;
                 await _fileService.DownloadUnseenFilesAsync(SelectedDevice, AppContext.BaseDirectory, cancellationToken);
                 var deviceDirName = string.IsNullOrWhiteSpace(SelectedDevice.Hostname) ? SelectedDevice.Ip : SelectedDevice.Hostname;
+                if (SelectedDevice.Port.HasValue)
+                    deviceDirName += $"_{SelectedDevice.Port.Value}";
                 var deviceDir = Path.Combine(AppContext.BaseDirectory, "Devices", deviceDirName);
                 if (Directory.Exists(deviceDir))
                 {

@@ -529,7 +529,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 try
                 {
-                    var vm = new DevicesViewModel(_deviceDiscoveryService, _deviceFileService, _dialogService, _deviceService);
+                    var vm = new DevicesViewModel(_deviceDiscoveryService, _deviceFileService, _dialogService, _deviceService, _deviceGroupService);
                     var page = new DevicesPage { DataContext = vm, Title = "Devices" };
                     CurrentPage = page;
                     await Task.CompletedTask;
