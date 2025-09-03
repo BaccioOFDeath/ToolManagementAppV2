@@ -1,4 +1,3 @@
-// Services/Devices/DeviceDiscoveryService.cs  (drop-in replacement)
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -23,7 +22,7 @@ namespace InventoryManagementApp.Services.Devices
         private readonly ILogger<DeviceDiscoveryService> _logger;
         private readonly Func<string, int, CancellationToken, Task<bool>> _portChecker;
         private readonly IList<string> _subnets;
-        private readonly IList<int> _ftpPorts;
+        private readonly int[] _ftpPorts;
 
         public bool HasConfiguredSubnets => _subnets.Count > 0;
 
@@ -41,12 +40,16 @@ namespace InventoryManagementApp.Services.Devices
             {
                 _subnets = subnetResolver() ?? new List<string>();
                 if (_subnets.Count == 0)
+                {
                     _logger.LogWarning("No subnets configured or detected for device discovery.");
+                }
                 else
+                {
                     _logger.LogInformation("Using auto-detected subnets: {Subnets}", string.Join(", ", _subnets));
                 }
             }
-            _ftpPort = configuration.GetValue<int?>("DeviceDiscovery:FtpPort") ?? 21;
+
+            _ftpPorts = configuration.GetSection("DeviceDiscovery:FtpPorts").Get<int[]>() ?? new[] { 21, 3721 };
         }
 
         public async Task<IReadOnlyList<DiscoveredDevice>> DiscoverDevicesAsync(CancellationToken cancellationToken = default)
@@ -67,7 +70,7 @@ namespace InventoryManagementApp.Services.Devices
                 try
                 {
                     var d = await ScanIpAsync(ip, cancellationToken).ConfigureAwait(false);
-                    if (d.IsOnline) bag.Add(d); // filter out pure offline noise
+                    if (d.IsOnline) bag.Add(d);
                 }
                 finally
                 {
@@ -86,13 +89,36 @@ namespace InventoryManagementApp.Services.Devices
 
             if (alive)
             {
-                // SMB first (persistent file access)
-                if (await _portChecker(ip, 445, ct).ConfigureAwait(false))
-                    protocols.Add(DeviceProtocol.Smb);
-                if (await _portChecker(ip, _ftpPort, ct).ConfigureAwait(false))
-                    protocols.Add(DeviceProtocol.Ftp);
+                try
+                {
+                    if (await _portChecker(ip, 445, ct).ConfigureAwait(false))
+                        protocols.Add(DeviceProtocol.Smb);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Error checking SMB on {Ip}", ip);
+                }
+
+                foreach (var port in _ftpPorts)
+                {
+                    try
+                    {
+                        if (await _portChecker(ip, port, ct).ConfigureAwait(false))
+                        {
+                            protocols.Add(DeviceProtocol.Ftp);
+                            break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(ex, "Error checking FTP port {Port} on {Ip}", port, ip);
+                    }
+                }
             }
-            catch (Exception ex)
+
+            var hostname = await ResolveName(ip, ct).ConfigureAwait(false);
+
+            return new DiscoveredDevice
             {
                 Ip = ip,
                 Hostname = string.IsNullOrWhiteSpace(hostname) ? ip : hostname,
@@ -122,7 +148,6 @@ namespace InventoryManagementApp.Services.Devices
             return false;
         }
 
-
         private static async Task<bool> HasArpEntry(string ip)
         {
             try
@@ -143,8 +168,6 @@ namespace InventoryManagementApp.Services.Devices
             }
             catch { return false; }
         }
-
-        
 
         private static async Task<string> ResolveName(string ip, CancellationToken ct)
         {
@@ -181,7 +204,6 @@ namespace InventoryManagementApp.Services.Devices
         {
             if (string.IsNullOrWhiteSpace(pattern)) yield break;
 
-            // Accept "192.168.1.*"
             if (pattern.EndsWith(".*", StringComparison.Ordinal))
             {
                 var baseStr = pattern[..^2];
@@ -189,7 +211,6 @@ namespace InventoryManagementApp.Services.Devices
                 yield break;
             }
 
-            // Accept CIDR "192.168.1.0/24"
             var parts = pattern.Split('/');
             if (parts.Length == 2 && IPAddress.TryParse(parts[0], out var baseAddress) && int.TryParse(parts[1], out var prefix))
             {
@@ -209,7 +230,6 @@ namespace InventoryManagementApp.Services.Devices
                 yield break;
             }
 
-            // Single IP
             if (IPAddress.TryParse(pattern, out _)) yield return pattern;
         }
 
@@ -242,9 +262,6 @@ namespace InventoryManagementApp.Services.Devices
             return subnets;
         }
 
-        // PATCH for InventoryManagementApp.Services.Devices.DeviceDiscoveryService
-        // Replace your DefaultPortChecker + QuickTcp with these SAFE probes (no unobserved Task exceptions).
-
         private static async Task<bool> SafeTcpProbeAsync(string ip, int port, int timeoutMs, CancellationToken ct)
         {
             using var client = new TcpClient();
@@ -252,8 +269,6 @@ namespace InventoryManagementApp.Services.Devices
             cts.CancelAfter(timeoutMs);
 
             Task connectTask = client.ConnectAsync(ip, port);
-
-            // Ensure exceptions are observed even if we "timeout" first
             _ = connectTask.ContinueWith(t => { var _ = t.Exception; }, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
 
             try
@@ -262,10 +277,9 @@ namespace InventoryManagementApp.Services.Devices
                 if (completed != connectTask)
                 {
                     try { client.Close(); } catch { }
-                    return false; // timeout/cancel
+                    return false;
                 }
 
-                // Observe completion (propagate or swallow expected socket failures)
                 await connectTask.ConfigureAwait(false);
                 return client.Connected;
             }
@@ -281,10 +295,8 @@ namespace InventoryManagementApp.Services.Devices
         private static Task<bool> DefaultPortChecker(string ip, int port, CancellationToken ct)
             => SafeTcpProbeAsync(ip, port, timeoutMs: 700, ct);
 
-        // If you have a QuickTcp helper, replace its body with:
         private static Task<bool> QuickTcp(string ip, int port, int timeoutMs, CancellationToken ct)
             => SafeTcpProbeAsync(ip, port, timeoutMs, ct);
-
 
         private sealed class IpComparer : IComparer<string>
         {
@@ -306,3 +318,4 @@ namespace InventoryManagementApp.Services.Devices
         }
     }
 }
+
