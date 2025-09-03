@@ -27,6 +27,8 @@ namespace InventoryManagementApp.Services.Devices
         private readonly int[] _ftpPorts;
         private readonly IDictionary<int, DeviceProtocol> _additionalPorts;
         private readonly int _maxConcurrentScans;
+        private readonly int _livenessTimeoutMs;
+        private readonly int _portProbeTimeoutMs;
 
         public bool HasConfiguredSubnets => _subnets.Count > 0;
 
@@ -56,6 +58,8 @@ namespace InventoryManagementApp.Services.Devices
             _ftpPorts = configuration.GetSection("DeviceDiscovery:FtpPorts").Get<int[]>() ?? new[] { 21, 3721 };
             _additionalPorts = configuration.GetSection("DeviceDiscovery:AdditionalPorts").Get<Dictionary<int, DeviceProtocol>>() ?? new Dictionary<int, DeviceProtocol>();
             _maxConcurrentScans = configuration.GetValue<int?>("DeviceDiscovery:MaxConcurrentScans") ?? 128;
+            _livenessTimeoutMs = configuration.GetValue<int?>("DeviceDiscovery:LivenessTimeoutMs") ?? 400;
+            _portProbeTimeoutMs = configuration.GetValue<int?>("DeviceDiscovery:PortProbeTimeoutMs") ?? 700;
         }
 
         public async Task<IReadOnlyList<DiscoveredDevice>> DiscoverDevicesAsync(CancellationToken cancellationToken = default)
@@ -182,14 +186,14 @@ namespace InventoryManagementApp.Services.Devices
             };
         }
 
-        private static async Task<bool> IsAlive(string ip, CancellationToken ct)
+        private async Task<bool> IsAlive(string ip, CancellationToken ct)
         {
             if (await HasArpEntry(ip).ConfigureAwait(false)) return true;
 
             try
             {
                 using var ping = new Ping();
-                var reply = await ping.SendPingAsync(ip, 400).ConfigureAwait(false);
+                var reply = await ping.SendPingAsync(ip, _livenessTimeoutMs).ConfigureAwait(false);
                 if (reply.Status == IPStatus.Success) return true;
             }
             catch { /* ignore */ }
@@ -197,7 +201,7 @@ namespace InventoryManagementApp.Services.Devices
             var ports = new[] { 445, 80, 21, 3721 };
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             var probes = ports
-                .Select(p => SafeTcpProbeAsync(ip, p, 400, cts.Token))
+                .Select(p => SafeTcpProbeAsync(ip, p, _livenessTimeoutMs, cts.Token))
                 .ToList();
 
             while (probes.Count > 0)
@@ -358,8 +362,8 @@ namespace InventoryManagementApp.Services.Devices
             }
         }
 
-        private static Task<bool> DefaultPortChecker(string ip, int port, CancellationToken ct)
-            => SafeTcpProbeAsync(ip, port, timeoutMs: 700, ct);
+        private Task<bool> DefaultPortChecker(string ip, int port, CancellationToken ct)
+            => SafeTcpProbeAsync(ip, port, _portProbeTimeoutMs, ct);
 
         private static Task<bool> QuickTcp(string ip, int port, int timeoutMs, CancellationToken ct)
             => SafeTcpProbeAsync(ip, port, timeoutMs, ct);

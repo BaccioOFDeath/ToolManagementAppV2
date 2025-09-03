@@ -41,6 +41,43 @@ public class DeviceDiscoveryServiceTests
     }
 
     [Fact]
+    public void Constructor_UsesConfiguredTimeouts()
+    {
+        var configDict = new Dictionary<string, string?>
+        {
+            ["DeviceDiscovery:LivenessTimeoutMs"] = "1234",
+            ["DeviceDiscovery:PortProbeTimeoutMs"] = "5678"
+        };
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configDict!)
+            .Build();
+
+        var service = new DeviceDiscoveryService(configuration, null, null, () => new List<string>());
+
+        var livenessField = typeof(DeviceDiscoveryService).GetField("_livenessTimeoutMs", BindingFlags.NonPublic | BindingFlags.Instance);
+        var portField = typeof(DeviceDiscoveryService).GetField("_portProbeTimeoutMs", BindingFlags.NonPublic | BindingFlags.Instance);
+        var livenessValue = Assert.IsType<int>(livenessField!.GetValue(service));
+        var portValue = Assert.IsType<int>(portField!.GetValue(service));
+        Assert.Equal(1234, livenessValue);
+        Assert.Equal(5678, portValue);
+    }
+
+    [Fact]
+    public void Constructor_DefaultsTimeouts()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+
+        var service = new DeviceDiscoveryService(configuration, null, null, () => new List<string>());
+
+        var livenessField = typeof(DeviceDiscoveryService).GetField("_livenessTimeoutMs", BindingFlags.NonPublic | BindingFlags.Instance);
+        var portField = typeof(DeviceDiscoveryService).GetField("_portProbeTimeoutMs", BindingFlags.NonPublic | BindingFlags.Instance);
+        var livenessValue = Assert.IsType<int>(livenessField!.GetValue(service));
+        var portValue = Assert.IsType<int>(portField!.GetValue(service));
+        Assert.Equal(400, livenessValue);
+        Assert.Equal(700, portValue);
+    }
+
+    [Fact]
     public async Task DiscoverDevices_FindsProtocolsAndMarksStatus()
     {
         var configDict = new Dictionary<string, string?>
