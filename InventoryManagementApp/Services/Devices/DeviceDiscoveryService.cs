@@ -20,7 +20,7 @@ namespace InventoryManagementApp.Services.Devices
         private readonly ILogger<DeviceDiscoveryService> _logger;
         private readonly Func<string, int, CancellationToken, Task<bool>> _portChecker;
         private readonly IList<string> _subnets;
-        private readonly int _ftpPort;
+        private readonly IList<int> _ftpPorts;
 
         public bool HasConfiguredSubnets => _subnets.Count > 0;
 
@@ -45,7 +45,9 @@ namespace InventoryManagementApp.Services.Devices
                     _logger.LogInformation("Using auto-detected subnets: {Subnets}", string.Join(", ", _subnets));
                 }
             }
-            _ftpPort = configuration.GetValue<int?>("DeviceDiscovery:FtpPort") ?? 21;
+            _ftpPorts = configuration.GetSection("DeviceDiscovery:FtpPorts").Get<IList<int>>() ?? new List<int> { 21 };
+            if (_ftpPorts.Count == 0)
+                _ftpPorts.Add(21);
         }
 
         public async Task<IReadOnlyList<DiscoveredDevice>> DiscoverDevicesAsync(CancellationToken cancellationToken = default)
@@ -86,8 +88,14 @@ namespace InventoryManagementApp.Services.Devices
             {
                 if (await _portChecker(ip, 445, ct).ConfigureAwait(false))
                     protocols.Add(DeviceProtocol.Smb);
-                if (await _portChecker(ip, _ftpPort, ct).ConfigureAwait(false))
-                    protocols.Add(DeviceProtocol.Ftp);
+                foreach (var ftpPort in _ftpPorts)
+                {
+                    if (await _portChecker(ip, ftpPort, ct).ConfigureAwait(false))
+                    {
+                        protocols.Add(DeviceProtocol.Ftp);
+                        break;
+                    }
+                }
             }
             catch (Exception ex)
             {
