@@ -261,7 +261,7 @@ namespace InventoryManagementApp.Tests
                     app.StartAsync().GetAwaiter().GetResult();
 
                     var themeSvc = (StubThemeService)host.Services.GetRequiredService<IThemeService>();
-                    Assert.Equal("Dark", themeSvc.AppliedTheme);
+                    Assert.Equal("Light", themeSvc.AppliedTheme);
 
                     app.Shutdown();
                 }

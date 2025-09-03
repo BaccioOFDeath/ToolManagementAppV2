@@ -16,7 +16,7 @@ namespace InventoryManagementApp.Services
             if (app == null) return;
 
             var dictionaries = app.Resources.MergedDictionaries;
-            var dict = string.Equals(theme, "Light", StringComparison.OrdinalIgnoreCase) ? _light : _dark;
+            var dict = string.Equals(theme, "Dark", StringComparison.OrdinalIgnoreCase) ? _dark : _light;
 
             // Remove any existing theme dictionaries
             for (int i = dictionaries.Count - 1; i >= 0; i--)

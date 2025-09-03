@@ -39,6 +39,20 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task ApplyTheme_DefaultsToLightWhenThemeIsNull()
+        {
+            await RunOnStaThread(async () =>
+            {
+                var app = new Application();
+                var service = new ThemeService();
+                service.ApplyTheme(null);
+                Assert.Contains("Colors.Light.xaml", app.Resources.MergedDictionaries[0].Source.OriginalString);
+                app.Shutdown();
+                await Task.CompletedTask;
+            });
+        }
+
+        [Fact]
         public async Task ApplyTheme_ReplacesExistingDictionary()
         {
             await RunOnStaThread(async () =>
