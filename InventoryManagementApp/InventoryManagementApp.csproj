@@ -133,7 +133,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../DeviceManagementApp/DeviceManagementApp.csproj" />
   </ItemGroup>
 
 </Project>
