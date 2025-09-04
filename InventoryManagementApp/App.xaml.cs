@@ -11,7 +11,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
-using DeviceManagementApp.Interfaces;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Services;
 using InventoryManagementApp.Services.Core;
@@ -24,7 +23,6 @@ using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Utilities.Helpers;
 using InventoryManagementApp.Views.Pages;
 using InventoryManagementApp.Views.Windows;
-using DeviceManagementApp.Services;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Utilities;
 using Microsoft.Data.Sqlite;
@@ -119,17 +117,6 @@ namespace InventoryManagementApp
                 services.AddSingleton<ISettingsService, SettingsService>();
                 services.AddSingleton<IThemeService, ThemeService>();
                 services.AddSingleton<IDialogService, DialogService>();
-                services.AddSingleton<IDeviceService, DeviceService>();
-                services.AddSingleton<IScannerService, ScannerService>();
-                services.AddSingleton<IDeviceDiscoveryService>(sp =>
-                    new DeviceDiscoveryService(
-                        sp.GetRequiredService<IConfiguration>(),
-                        sp.GetRequiredService<ILogger<DeviceDiscoveryService>>(),
-                        null,
-                        null,
-                        sp.GetRequiredService<ISettingsService>()));
-                services.AddSingleton<IDeviceGroupService, DeviceGroupService>();
-                services.AddSingleton<IDeviceFileService, DeviceFileService>();
                 services.AddSingleton<MemoryBudget>();
                 services.AddTransient<ItemsViewModel>();
                 services.AddSingleton<IMainViewModel, MainViewModel>();
