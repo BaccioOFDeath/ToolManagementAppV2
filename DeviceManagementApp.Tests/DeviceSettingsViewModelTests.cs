@@ -8,7 +8,7 @@ using DeviceManagementApp.Models;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 
-namespace InventoryManagementApp.Tests
+namespace DeviceManagementApp.Tests
 {
     public class DeviceSettingsViewModelTests
     {

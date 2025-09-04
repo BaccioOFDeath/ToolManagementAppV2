@@ -19,7 +19,7 @@ using DeviceManagementApp.ViewModels;
 using DeviceManagementApp.Views.Pages;
 using Xunit;
 
-namespace InventoryManagementApp.Tests
+namespace DeviceManagementApp.Tests
 {
     public class DevicesPageTests
     {

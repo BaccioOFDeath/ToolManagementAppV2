@@ -26,7 +26,7 @@ using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Views.Pages;
 using Xunit;
 
-namespace InventoryManagementApp.Tests
+namespace DeviceManagementApp.Tests
 {
     public class ItemSearchPageTests
     {
