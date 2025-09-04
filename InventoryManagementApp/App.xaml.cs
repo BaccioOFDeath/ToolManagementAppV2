@@ -24,7 +24,7 @@ using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Utilities.Helpers;
 using InventoryManagementApp.Views.Pages;
 using InventoryManagementApp.Views.Windows;
-using InventoryManagementApp.Services.Devices;
+using DeviceManagementApp.Services;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Utilities;
 using Microsoft.Data.Sqlite;

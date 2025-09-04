@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
-using InventoryManagementApp.Services.Core;
-using InventoryManagementApp.Services.Devices;
+using DeviceManagementApp.Services;
 using Xunit;
 
 public class DeviceGroupServiceTests

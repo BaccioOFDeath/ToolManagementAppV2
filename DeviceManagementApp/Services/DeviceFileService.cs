@@ -4,14 +4,14 @@ using System.Security.Cryptography;
 using FluentFTP;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.Models;
-using InventoryManagementApp.Services.Core;
+using DeviceManagementApp.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SMBLibrary;
 using SMBLibrary.Client;
 using SMBFileAttributes = SMBLibrary.FileAttributes;
 
-namespace InventoryManagementApp.Services.Devices
+namespace DeviceManagementApp.Services
 {
     public class DeviceFileService : IDeviceFileService
     {

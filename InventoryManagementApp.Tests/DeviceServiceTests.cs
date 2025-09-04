@@ -1,9 +1,8 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using InventoryManagementApp.Models;
-using InventoryManagementApp.Services.Core;
-using InventoryManagementApp.Services.Devices;
+using DeviceManagementApp.Models;
+using DeviceManagementApp.Services;
 using Xunit;
 using System.Threading;
 using InventoryManagementApp.Data;

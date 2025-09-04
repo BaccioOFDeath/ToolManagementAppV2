@@ -2,11 +2,14 @@ using System;
 using System.IO;
 using System.Text;
 using System.Windows;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
+using DeviceManagementApp.Services;
+using DeviceManagementApp.Interfaces;
 
 namespace DeviceManagementApp
 {
@@ -44,6 +47,24 @@ namespace DeviceManagementApp
 
                 logging.ClearProviders();
                 logging.AddSerilog(Log.Logger, dispose: true);
+            })
+            .ConfigureServices((context, services) =>
+            {
+                services.AddSingleton<DatabaseService>(sp =>
+                {
+                    var config = sp.GetRequiredService<IConfiguration>();
+                    var logger = sp.GetRequiredService<ILogger<DatabaseService>>();
+                    var dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                        config["Database:Path"] ?? "inventory.db");
+                    return new DatabaseService(dbPath, logger);
+                });
+                services.AddSingleton<IDatabaseService>(sp => sp.GetRequiredService<DatabaseService>());
+                services.AddSingleton<IDatabaseBackupService>(sp => sp.GetRequiredService<DatabaseService>());
+                services.AddSingleton<IDeviceService, DeviceService>();
+                services.AddSingleton<IDeviceFileService, DeviceFileService>();
+                services.AddSingleton<IDeviceGroupService, DeviceGroupService>();
+                services.AddSingleton<IDeviceDiscoveryService, DeviceDiscoveryService>();
+                services.AddSingleton<IScannerService, ScannerService>();
             })
             .Build();
 

@@ -6,11 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.Models;
-using InventoryManagementApp.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace InventoryManagementApp.Services.Devices
+namespace DeviceManagementApp.Services
 {
     public class ScannerService : IScannerService
     {
