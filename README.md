@@ -1,4 +1,13 @@
-# InventoryManagementApp
+# InventoryManagementApp & DeviceManagementApp
+
+This repository contains two WPF applications:
+
+- **InventoryManagementApp** – manage inventory items, customers, rentals, and users.
+- **DeviceManagementApp** – discover network devices and transfer files over SMB or FTP.
+
+InventoryManagementApp no longer handles device discovery or file transfers; those features now live in DeviceManagementApp.
+
+## InventoryManagementApp
 
 InventoryManagementApp is a WPF application following the MVVM pattern for managing inventory item rentals in a variety of contexts. It includes features for handling inventory items, customers, rentals, and users, with data stored in SQLite through the provided `DatabaseService`.
 
@@ -11,6 +20,18 @@ These options enable using the app for tracking AV gear, sports equipment, or an
 
 ## Configuration
 The application reads configuration from `appsettings.json`. By default, the SQLite database is stored in `inventory.db` within the application's base directory. This path can be changed by updating the `Database:Path` setting.
+
+## DeviceManagementApp
+
+DeviceManagementApp scans configured subnets to locate network devices and supports listing and downloading files over SMB or FTP.
+
+### Setup
+1. Ensure the .NET 8 SDK is installed.
+2. Update `DeviceManagementApp/appsettings.json` with database and device discovery settings.
+3. Run the application with:
+   ```bash
+   dotnet run --project DeviceManagementApp
+   ```
 
 ### Device Discovery
 `DeviceDiscovery` settings control how the network scanner looks for devices. Besides `Subnets` and `FtpPorts`, you can add an
@@ -36,10 +57,10 @@ Example:
 This configuration detects Android Debug Bridge on port `5555` and HTTP services on ports `80` or `8080`.
 
 
-## Device File Service
+### Device File Service
 `IDeviceFileService` connects to network devices over SMB or FTP to list and download files.
 
-### Configuring Credentials
+#### Configuring Credentials
 Each `Device` record stores connection details:
 
 - `Protocol`: `Smb` or `Ftp`
@@ -47,9 +68,9 @@ Each `Device` record stores connection details:
 - `Username` and `Password`: authentication for the share
 - `Domain`: optional, used for `Smb` connections
 
-Credentials can be entered through the application's device management features or seeded directly in the database.
+Credentials can be entered through DeviceManagementApp or seeded directly in the database.
 
-### Using an Extension Filter
+#### Using an Extension Filter
 `ListFilesAsync` accepts an optional `extensionFilter` argument to limit results to files with a specific extension. The filter should include the leading dot (e.g., `.jpg`). Passing `null` lists all files.
 
 ```csharp
