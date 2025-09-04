@@ -339,13 +339,13 @@ namespace InventoryManagementApp.Services.Devices
             {
                 SendUdpDiscoveryAsync(
                     new IPEndPoint(IPAddress.Parse("224.0.0.251"), 5353),
-                    MdnsQuery, results, joinMulticast: true, ct),
+                    MdnsQuery, results, joinMulticast: true, ct: ct),
                 SendUdpDiscoveryAsync(
                     new IPEndPoint(IPAddress.Parse("239.255.255.250"), 1900),
-                    SsdpQuery, results, joinMulticast: true, ct),
+                    SsdpQuery, results, joinMulticast: true, ct: ct),
                 SendUdpDiscoveryAsync(
                     new IPEndPoint(IPAddress.Broadcast, 137),
-                    NbnsQuery, results, broadcast: true, ct)
+                    NbnsQuery, results, broadcast: true, ct: ct)
             };
 
             try { await Task.WhenAll(tasks).ConfigureAwait(false); } catch { }
