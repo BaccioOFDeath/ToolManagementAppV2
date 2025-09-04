@@ -238,7 +238,7 @@ namespace InventoryManagementApp.ViewModels
             _deviceService = deviceService ?? new DummyDeviceService();
             _deviceGroupService = deviceGroupService ?? new DummyDeviceGroupService();
             _deviceFileService = deviceFileService ?? new DummyDeviceFileService();
-            var defaultConfig = new ConfigurationBuilder().AddJsonFile("appsettings.json", optional: true).Build();
+            var defaultConfig = new ConfigurationBuilder().Build();
             _deviceDiscoveryService = deviceDiscoveryService ?? new DeviceDiscoveryService(defaultConfig, null, null, null, _settingsService);
             _fileDialogService = fileDialogService;
             _logger = logger ?? NullLogger<MainViewModel>.Instance;
@@ -553,7 +553,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 try
                 {
-                    var config = new ConfigurationBuilder().AddJsonFile("appsettings.json", optional: true).Build();
+                    var config = new ConfigurationBuilder().Build();
                     var vm = new DeviceSettingsViewModel(_settingsService, config, (DeviceManagementApp.Interfaces.IDialogService)_dialogService);
                     await vm.InitializeAsync().ConfigureAwait(false);
                     var page = new DeviceManagementApp.Views.Pages.DeviceSettingsPage { DataContext = vm, Title = "Device Settings" };
