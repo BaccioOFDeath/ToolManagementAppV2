@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using InventoryManagementApp.Interfaces;
-using InventoryManagementApp.ViewModels;
+using DeviceManagementApp.Interfaces;
+using DeviceManagementApp.ViewModels;
+using DeviceManagementApp.Models;
 using Microsoft.Extensions.Configuration;
 using Xunit;
-using InventoryManagementApp.Models;
 
 namespace InventoryManagementApp.Tests
 {
@@ -46,17 +46,6 @@ namespace InventoryManagementApp.Tests
         {
             public void ShowInfo(string message, string title) { }
             public bool ShowConfirmation(string message, string title) => false;
-            public InventoryManagementApp.Models.ItemModel? ShowEditItemDialog(InventoryManagementApp.Models.ItemModel item) => null;
-            public void ShowItemDetails(InventoryManagementApp.Models.ItemModel item) { }
-            public (InventoryManagementApp.Models.CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(InventoryManagementApp.Models.ItemModel item, IEnumerable<InventoryManagementApp.Models.CustomerModel> customers) => null;
-            public InventoryManagementApp.Models.CustomerModel? ShowAddCustomerDialog() => null;
-            public InventoryManagementApp.Models.CustomerModel? ShowEditCustomerDialog(InventoryManagementApp.Models.CustomerModel customer) => null;
-            public void ShowRentalsFilter(InventoryManagementApp.ViewModels.ManageRentalsViewModel viewModel) { }
-            public void ShowRentalHistory(InventoryManagementApp.Models.ItemModel item, IEnumerable<InventoryManagementApp.Models.RentalModel> history) { }
-            public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties, IEnumerable<string>? requiredPropertyNames = null) => null;
-            public Func<InventoryManagementApp.Models.ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
-            public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
-            public void ShowPrintLabelDialog() { }
         }
 
         [Fact]

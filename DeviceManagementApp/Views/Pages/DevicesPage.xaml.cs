@@ -3,7 +3,7 @@ using System.Windows;
 using Forms = System.Windows.Forms;
 using DeviceManagementApp.ViewModels;
 
-namespace InventoryManagementApp.Views.Pages
+namespace DeviceManagementApp.Views.Pages
 {
     public partial class DevicesPage : Page
     {

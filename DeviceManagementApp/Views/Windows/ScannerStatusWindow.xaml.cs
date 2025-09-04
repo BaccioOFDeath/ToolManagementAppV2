@@ -1,9 +1,9 @@
 using System.Windows;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.ViewModels;
-using InventoryManagementApp.Utilities.Extensions;
+using DeviceManagementApp.Utilities.Extensions;
 
-namespace InventoryManagementApp.Views.Windows
+namespace DeviceManagementApp.Views.Windows
 {
     public partial class ScannerStatusWindow : Window
     {

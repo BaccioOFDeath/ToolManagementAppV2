@@ -5,9 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Documents;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.Models;
-using InventoryManagementApp.Interfaces;
-using InventoryManagementApp.Models;
-using InventoryManagementApp.ViewModels;
+using DeviceManagementApp.ViewModels;
 using Xunit;
 
 public class ScannerStatusViewModelTests
@@ -77,17 +75,6 @@ public class ScannerStatusViewModelTests
     {
         public void ShowInfo(string message, string title) { }
         public bool ShowConfirmation(string message, string title) => false;
-        public ItemModel? ShowEditItemDialog(ItemModel item) => null;
-        public void ShowItemDetails(ItemModel item) { }
-        public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;
-        public CustomerModel? ShowAddCustomerDialog() => null;
-        public CustomerModel? ShowEditCustomerDialog(CustomerModel customer) => null;
-        public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
-        public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history) { }
-        public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties, IEnumerable<string>? requiredPropertyNames = null) => null;
-        public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
-        public void ShowPrintPreview(FlowDocument document, string title, string description) { }
-        public void ShowPrintLabelDialog() { }
     }
 
     [Fact]

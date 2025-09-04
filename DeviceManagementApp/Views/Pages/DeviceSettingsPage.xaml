@@ -1,0 +1,25 @@
+<!-- Views/Pages/DeviceSettingsPage.xaml -->
+<Page x:Class="DeviceManagementApp.Views.Pages.DeviceSettingsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Device Settings"
+      Background="{DynamicResource BackgroundBrush}">
+    <ScrollViewer>
+        <StackPanel Margin="10">
+            <TextBlock Text="Device Discovery Settings" Style="{StaticResource HeadingTextBlock}" Margin="0,0,0,8"/>
+            <TextBlock Text="Subnets (comma-separated)"/>
+            <TextBox Text="{Binding Subnets, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+            <TextBlock Text="FTP Ports (comma-separated)"/>
+            <TextBox Text="{Binding FtpPorts, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+            <TextBlock Text="Additional Ports (port:Protocol, comma-separated)"/>
+            <TextBox Text="{Binding AdditionalPorts, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+            <TextBlock Text="Max Concurrent Scans"/>
+            <TextBox Text="{Binding MaxConcurrentScans, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+            <TextBlock Text="Liveness Timeout (ms)"/>
+            <TextBox Text="{Binding LivenessTimeoutMs, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+            <TextBlock Text="Port Probe Timeout (ms)"/>
+            <TextBox Text="{Binding PortProbeTimeoutMs, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+            <Button Content="Save" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}" Width="100"/>
+        </StackPanel>
+    </ScrollViewer>
+</Page>
