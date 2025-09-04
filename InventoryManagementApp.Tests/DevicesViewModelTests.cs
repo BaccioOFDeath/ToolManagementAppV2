@@ -99,12 +99,13 @@ public class DevicesViewModelTests
         public TaskCompletionSource<(string ip, int? port, int? groupId)> AssignTcs { get; } = new();
         public TaskCompletionSource<DeviceGroup> UpdateTcs { get; } = new();
         public string? CreatedGroupName { get; private set; }
+        public int NextGroupId { get; set; } = 1;
         public Task<IEnumerable<DeviceGroup>> GetGroupsAsync(CancellationToken cancellationToken = default)
             => Task.FromResult<IEnumerable<DeviceGroup>>(Groups);
         public Task<int> CreateGroupAsync(string name, CancellationToken cancellationToken = default)
         {
             CreatedGroupName = name;
-            return Task.FromResult(0);
+            return Task.FromResult(NextGroupId);
         }
         public Task UpdateGroupAsync(DeviceGroup group, CancellationToken cancellationToken = default)
         {
@@ -469,7 +470,7 @@ public class DevicesViewModelTests
     }
 
     [Fact]
-    public async Task AddGroupCommand_CreatesGroupAndRefreshes()
+    public async Task AddGroupCommand_AddsGroupToCollection()
     {
         var discovery = new StubDiscoveryService();
         var fileService = new RecordingDeviceFileService();
@@ -481,7 +482,10 @@ public class DevicesViewModelTests
         await vm.AddGroupCommand.ExecuteAsync(null);
 
         Assert.Equal("NewGroup", groupService.CreatedGroupName);
-        Assert.Equal(1, discovery.DiscoverCallCount);
+        Assert.Single(vm.Groups);
+        Assert.Equal("NewGroup", vm.Groups[0].Name);
+        Assert.Equal(1, vm.Groups[0].Id);
+        Assert.Same(vm.Groups[0], vm.SelectedGroup);
     }
 
     [Fact]
