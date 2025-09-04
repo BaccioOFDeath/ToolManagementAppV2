@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Models;
@@ -11,7 +10,7 @@ namespace InventoryManagementApp.Interfaces
         Task<IReadOnlyList<DiscoveredDevice>> DiscoverDevicesAsync(CancellationToken cancellationToken = default);
 
         IAsyncEnumerable<DiscoveredDevice> DiscoverDevicesAsync(IProgress<double>? progress = null,
-            [EnumeratorCancellation] CancellationToken cancellationToken = default);
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Indicates whether any subnets have been configured for device discovery.

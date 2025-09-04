@@ -13,7 +13,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Channels;
-using System.Runtime.CompilerServices;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
 using Microsoft.Extensions.Configuration;
@@ -134,7 +133,7 @@ namespace InventoryManagementApp.Services.Devices
         }
 
         public async IAsyncEnumerable<DiscoveredDevice> DiscoverDevicesAsync(IProgress<double>? progress = null,
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default)
         {
             if (_subnets.Count == 0)
             {
