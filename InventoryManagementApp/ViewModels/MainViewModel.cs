@@ -11,7 +11,9 @@ using System.Windows;
 using System.Windows.Controls;
 using Forms = System.Windows.Forms;
 using InventoryManagementApp.Models.Domain;
-using InventoryManagementApp.Models;
+using DeviceManagementApp.Interfaces;
+using DeviceManagementApp.Models;
+using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Services;
 using InventoryManagementApp.Services.Rentals;
 using InventoryManagementApp.Services.Items;
@@ -21,7 +23,6 @@ using InventoryManagementApp.Views.Windows;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Utilities.IO;
-using InventoryManagementApp.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using InventoryManagementApp.Models.ImportExport;
 using InventoryManagementApp.Utilities;
@@ -719,8 +720,8 @@ namespace InventoryManagementApp.ViewModels
 
         private sealed class DummyScannerService : IScannerService
         {
-            public Task<IEnumerable<Models.Device>> GetDevicesAsync(CancellationToken cancellationToken)
-                => Task.FromResult<IEnumerable<Models.Device>>(Array.Empty<Models.Device>());
+            public Task<IEnumerable<Device>> GetDevicesAsync(CancellationToken cancellationToken)
+                => Task.FromResult<IEnumerable<Device>>(Array.Empty<Device>());
         }
 
         private sealed class DummyDeviceService : IDeviceService

@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using InventoryManagementApp.Interfaces;
-using InventoryManagementApp.Models;
+using DeviceManagementApp.Interfaces;
+using DeviceManagementApp.Models;
 using InventoryManagementApp.Services.Core;
 using Microsoft.Data.Sqlite;
 

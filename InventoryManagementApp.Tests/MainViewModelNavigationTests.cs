@@ -4,6 +4,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
 using InventoryManagementApp.Data;
+using DeviceManagementApp.Interfaces;
+using DeviceManagementApp.Models;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Models;

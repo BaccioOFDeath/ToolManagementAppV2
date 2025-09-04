@@ -8,6 +8,8 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Controls;
 using System.Windows.Media;
+using DeviceManagementApp.Interfaces;
+using DeviceManagementApp.Models;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
