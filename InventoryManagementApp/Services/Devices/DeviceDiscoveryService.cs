@@ -471,7 +471,7 @@ namespace InventoryManagementApp.Services.Devices
                     if (start >= 0)
                     {
                         var token = span[start..i];
-                        token = token.Trim('(', ')');
+                        token = token.Trim('(').Trim(')');
                         if (ip.Length == 0 && IPAddress.TryParse(token.ToString(), out _))
                         {
                             ip = token.ToString();
