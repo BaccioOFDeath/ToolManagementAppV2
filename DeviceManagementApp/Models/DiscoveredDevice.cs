@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace InventoryManagementApp.Models
+namespace DeviceManagementApp.Models
 {
     public class DiscoveredDevice
     {

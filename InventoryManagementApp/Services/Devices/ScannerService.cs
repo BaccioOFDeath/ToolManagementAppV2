@@ -4,8 +4,9 @@ using System.Linq;
 using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
+using DeviceManagementApp.Interfaces;
+using DeviceManagementApp.Models;
 using InventoryManagementApp.Interfaces;
-using InventoryManagementApp.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 

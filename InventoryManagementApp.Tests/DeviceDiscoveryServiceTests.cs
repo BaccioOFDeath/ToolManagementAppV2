@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using InventoryManagementApp.Models;
+using DeviceManagementApp.Models;
 using InventoryManagementApp.Services.Devices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

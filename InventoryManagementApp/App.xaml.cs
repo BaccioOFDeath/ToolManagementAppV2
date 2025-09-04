@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
+using DeviceManagementApp.Interfaces;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Services;
 using InventoryManagementApp.Services.Core;

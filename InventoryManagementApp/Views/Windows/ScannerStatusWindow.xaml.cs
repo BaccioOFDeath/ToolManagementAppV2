@@ -1,4 +1,5 @@
 using System.Windows;
+using DeviceManagementApp.Interfaces;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Utilities.Extensions;

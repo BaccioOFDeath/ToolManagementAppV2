@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using InventoryManagementApp.Models;
+using DeviceManagementApp.Models;
 
-namespace InventoryManagementApp.Interfaces
+namespace DeviceManagementApp.Interfaces
 {
     public interface IDeviceGroupService
     {

@@ -3,6 +3,7 @@ using System;
 using System.Windows;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
+using DeviceManagementApp.Interfaces;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Utilities.Extensions;
 
