@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using DeviceManagementApp.Models;
-using InventoryManagementApp.Services.Devices;
+using DeviceManagementApp.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Xunit;

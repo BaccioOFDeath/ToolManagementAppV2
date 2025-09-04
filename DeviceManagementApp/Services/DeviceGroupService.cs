@@ -3,10 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.Models;
-using InventoryManagementApp.Services.Core;
+using DeviceManagementApp.Services;
 using Microsoft.Data.Sqlite;
 
-namespace InventoryManagementApp.Services.Devices
+namespace DeviceManagementApp.Services
 {
     public class DeviceGroupService : IDeviceGroupService
     {

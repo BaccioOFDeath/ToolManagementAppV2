@@ -15,13 +15,12 @@ using System.Threading.Tasks;
 using System.Threading.Channels;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.Models;
-using InventoryManagementApp.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.ObjectPool;
 
-namespace InventoryManagementApp.Services.Devices
+namespace DeviceManagementApp.Services
 {
     public class DeviceDiscoveryService : IDeviceDiscoveryService
     {

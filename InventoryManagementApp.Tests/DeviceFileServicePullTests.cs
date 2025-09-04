@@ -2,9 +2,8 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using InventoryManagementApp.Models;
-using InventoryManagementApp.Services.Core;
-using InventoryManagementApp.Services.Devices;
+using DeviceManagementApp.Models;
+using DeviceManagementApp.Services;
 using Xunit;
 
 public class DeviceFileServicePullTests

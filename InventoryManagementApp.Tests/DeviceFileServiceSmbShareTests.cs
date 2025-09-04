@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using InventoryManagementApp.Models;
-using InventoryManagementApp.Services.Core;
-using InventoryManagementApp.Services.Devices;
+using DeviceManagementApp.Models;
+using DeviceManagementApp.Services;
 using SMBLibrary;
 using Xunit;
 

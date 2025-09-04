@@ -30,7 +30,7 @@ using InventoryManagementApp.Utilities.Helpers;
 using Application = System.Windows.Application;
 using MediaBrush = System.Windows.Media.Brush;
 using MediaBrushes = System.Windows.Media.Brushes;
-using InventoryManagementApp.Services.Devices;
+using DeviceManagementApp.Services;
 using Microsoft.Extensions.Configuration;
 
 namespace InventoryManagementApp.ViewModels

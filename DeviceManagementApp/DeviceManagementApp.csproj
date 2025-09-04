@@ -15,6 +15,10 @@
     <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
     <PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="FluentFTP" Version="53.0.1" />
+    <PackageReference Include="SMBLibrary" Version="1.5.4.1" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.8" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Colors.Dark.xaml">
