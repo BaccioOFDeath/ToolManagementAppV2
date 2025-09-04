@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Xunit;
 
-namespace InventoryManagementApp.Tests
+namespace DeviceManagementApp.Tests
 {
     public class MainWindowSideMenuTests
     {

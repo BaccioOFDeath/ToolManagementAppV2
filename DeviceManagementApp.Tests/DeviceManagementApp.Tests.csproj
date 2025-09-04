@@ -10,6 +10,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="../DeviceManagementApp/DeviceManagementApp.csproj" />
     <ProjectReference Include="../InventoryManagementApp/InventoryManagementApp.csproj" />
   </ItemGroup>
 </Project>

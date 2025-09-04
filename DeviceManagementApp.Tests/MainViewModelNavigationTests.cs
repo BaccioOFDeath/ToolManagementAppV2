@@ -17,7 +17,7 @@ using InventoryManagementApp.ViewModels;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace InventoryManagementApp.Tests
+namespace DeviceManagementApp.Tests
 {
     public class MainViewModelNavigationTests
     {
