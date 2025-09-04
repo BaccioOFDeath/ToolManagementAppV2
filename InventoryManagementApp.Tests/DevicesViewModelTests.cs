@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.Models;
-using InventoryManagementApp.Interfaces;
 using DeviceManagementApp.Services;
-using InventoryManagementApp.ViewModels;
+using DeviceManagementApp.ViewModels;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 
@@ -81,17 +80,6 @@ public class DevicesViewModelTests
             ConfirmationCallCount++;
             return ConfirmationResult;
         }
-        public ItemModel? ShowEditItemDialog(ItemModel item) => null;
-        public void ShowItemDetails(ItemModel item) { }
-        public (CustomerModel customer, System.DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;
-        public CustomerModel? ShowAddCustomerDialog() => null;
-        public CustomerModel? ShowEditCustomerDialog(CustomerModel customer) => null;
-        public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
-        public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history) { }
-        public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties, IEnumerable<string>? requiredPropertyNames = null) => null;
-        public System.Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
-        public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
-        public void ShowPrintLabelDialog() { }
     }
 
     private sealed class RecordingDeviceGroupService : IDeviceGroupService

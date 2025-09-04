@@ -9,12 +9,11 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.Models;
-using InventoryManagementApp.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualBasic;
 
-namespace InventoryManagementApp.ViewModels
+namespace DeviceManagementApp.ViewModels
 {
     public class DevicesViewModel : ObservableObject
     {

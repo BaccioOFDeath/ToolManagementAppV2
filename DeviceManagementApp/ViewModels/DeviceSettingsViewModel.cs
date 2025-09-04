@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using InventoryManagementApp.Interfaces;
+using DeviceManagementApp.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -8,9 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using InventoryManagementApp.Models;
+using DeviceManagementApp.Models;
 
-namespace InventoryManagementApp.ViewModels
+namespace DeviceManagementApp.ViewModels
 {
     public class DeviceSettingsViewModel : ObservableObject
     {

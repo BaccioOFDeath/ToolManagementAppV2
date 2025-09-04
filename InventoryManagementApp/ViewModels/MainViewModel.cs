@@ -32,6 +32,9 @@ using MediaBrush = System.Windows.Media.Brush;
 using MediaBrushes = System.Windows.Media.Brushes;
 using DeviceManagementApp.Services;
 using Microsoft.Extensions.Configuration;
+using DeviceManagementApp.ViewModels;
+using DeviceManagementApp.Views.Pages;
+using DeviceManagementApp.Views.Windows;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -533,8 +536,8 @@ namespace InventoryManagementApp.ViewModels
             {
                 try
                 {
-                    var vm = new DevicesViewModel(_deviceDiscoveryService, _deviceFileService, _dialogService, _deviceService, _deviceGroupService);
-                    var page = new DevicesPage { DataContext = vm, Title = "Devices" };
+                    var vm = new DevicesViewModel(_deviceDiscoveryService, _deviceFileService, (DeviceManagementApp.Interfaces.IDialogService)_dialogService, _deviceService, _deviceGroupService);
+                    var page = new DeviceManagementApp.Views.Pages.DevicesPage { DataContext = vm, Title = "Devices" };
                     CurrentPage = page;
                     await Task.CompletedTask;
                 }
@@ -551,9 +554,9 @@ namespace InventoryManagementApp.ViewModels
                 try
                 {
                     var config = new ConfigurationBuilder().AddJsonFile("appsettings.json", optional: true).Build();
-                    var vm = new DeviceSettingsViewModel(_settingsService, config, _dialogService);
+                    var vm = new DeviceSettingsViewModel(_settingsService, config, (DeviceManagementApp.Interfaces.IDialogService)_dialogService);
                     await vm.InitializeAsync().ConfigureAwait(false);
-                    var page = new DeviceSettingsPage { DataContext = vm, Title = "Device Settings" };
+                    var page = new DeviceManagementApp.Views.Pages.DeviceSettingsPage { DataContext = vm, Title = "Device Settings" };
                     CurrentPage = page;
                     await Task.CompletedTask;
                 }
@@ -569,7 +572,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 try
                 {
-                    var window = new ScannerStatusWindow(_scannerService, _dialogService, _deviceService, _deviceGroupService, _deviceFileService);
+                    var window = new DeviceManagementApp.Views.Windows.ScannerStatusWindow(_scannerService, (DeviceManagementApp.Interfaces.IDialogService)_dialogService, _deviceService, _deviceGroupService, _deviceFileService);
                     window.Show();
                     await Task.CompletedTask;
                 }

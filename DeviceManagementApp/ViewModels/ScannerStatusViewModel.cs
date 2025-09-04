@@ -9,13 +9,12 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.Models;
-using InventoryManagementApp.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualBasic;
 using System.ComponentModel;
 
-namespace InventoryManagementApp.ViewModels
+namespace DeviceManagementApp.ViewModels
 {
     public class ScannerStatusViewModel : ObservableObject, IDisposable
     {
