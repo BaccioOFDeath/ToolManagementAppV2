@@ -2,13 +2,13 @@
 <Window x:Class="InventoryManagementApp.Views.Windows.ScannerStatusWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Scanner Status"
+        Title="Device Status"
         Width="900" Height="560"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource BackgroundBrush}">
     <DockPanel Margin="10">
         <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="10" CornerRadius="8">
-            <TextBlock Text="Scanner Status" Style="{StaticResource HeadingTextBlock}"/>
+            <TextBlock Text="Device Status" Style="{StaticResource HeadingTextBlock}"/>
         </Border>
         <Grid>
             <Grid.RowDefinitions>

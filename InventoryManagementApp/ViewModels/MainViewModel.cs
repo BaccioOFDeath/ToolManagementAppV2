@@ -198,7 +198,7 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand OpenPrintLabelWindowCommand { get; }
         public IAsyncRelayCommand OpenDevicesPageCommand { get; }
         public IAsyncRelayCommand OpenDeviceSettingsCommand { get; }
-        public IAsyncRelayCommand OpenScannerStatusCommand { get; }
+        public IAsyncRelayCommand OpenDeviceStatusCommand { get; }
 
         public MainViewModel(IItemService itemService,
                              IUserService userService,
@@ -564,7 +564,7 @@ namespace InventoryManagementApp.ViewModels
                 }
             });
 
-            OpenScannerStatusCommand = new AsyncRelayCommand(async () =>
+            OpenDeviceStatusCommand = new AsyncRelayCommand(async () =>
             {
                 try
                 {
@@ -574,8 +574,8 @@ namespace InventoryManagementApp.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to open scanner status window");
-                    _dialogService.ShowInfo($"Failed to open scanner status window: {ex.Message}", "Scanner Status");
+                    _logger.LogError(ex, "Failed to open device status window");
+                    _dialogService.ShowInfo($"Failed to open device status window: {ex.Message}", "Device Status");
                     throw;
                 }
             });

@@ -42,13 +42,13 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public async Task OpenScannerStatusCommand_IsNotNull()
+        public async Task OpenDeviceStatusCommand_IsNotNull()
         {
             await RunOnStaThread(() =>
             {
                 using var db = new DatabaseService(":memory:");
                 using var vm = CreateMainViewModel(db, new DummyItemService(), new DummyDialogService());
-                Assert.NotNull(vm.OpenScannerStatusCommand);
+                Assert.NotNull(vm.OpenDeviceStatusCommand);
                 return Task.CompletedTask;
             });
         }
