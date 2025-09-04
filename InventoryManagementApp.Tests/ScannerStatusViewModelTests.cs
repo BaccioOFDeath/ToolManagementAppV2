@@ -41,10 +41,11 @@ public class ScannerStatusViewModelTests
         public TaskCompletionSource<(string ip, int? port, int? groupId)> AssignTcs { get; } = new();
         public TaskCompletionSource<DeviceGroup> UpdateTcs { get; } = new();
         public DeviceGroup? UpdatedGroup { get; private set; }
+        public int NextGroupId { get; set; } = 1;
         public Task<IEnumerable<DeviceGroup>> GetGroupsAsync(CancellationToken cancellationToken = default)
             => Task.FromResult<IEnumerable<DeviceGroup>>(Groups);
         public Task<int> CreateGroupAsync(string name, CancellationToken cancellationToken = default)
-            => Task.FromResult(0);
+            => Task.FromResult(NextGroupId);
         public Task UpdateGroupAsync(DeviceGroup group, CancellationToken cancellationToken = default)
         {
             UpdatedGroup = group;
@@ -124,6 +125,25 @@ public class ScannerStatusViewModelTests
         Assert.Equal("1.2.3.4", assignment.ip);
         Assert.Null(assignment.port);
         Assert.Equal(1, assignment.groupId);
+    }
+
+    [Fact]
+    public async Task AddGroupCommand_AddsGroupToCollection()
+    {
+        var scanner = new StubScannerService();
+        var dialog = new StubDialogService();
+        var deviceService = new RecordingDeviceService();
+        var groupService = new RecordingDeviceGroupService();
+        var fileService = new StubDeviceFileService();
+        var vm = new ScannerStatusViewModel(scanner, dialog, deviceService, groupService, fileService);
+        vm.PromptForGroupName = () => "NewGroup";
+
+        await vm.AddGroupCommand.ExecuteAsync(null);
+
+        Assert.Single(vm.Groups);
+        Assert.Equal("NewGroup", vm.Groups[0].Name);
+        Assert.Equal(1, vm.Groups[0].Id);
+        Assert.Same(vm.Groups[0], vm.SelectedGroup);
     }
 
     [Fact]

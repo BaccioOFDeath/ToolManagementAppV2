@@ -209,8 +209,10 @@ namespace InventoryManagementApp.ViewModels
                 if (string.IsNullOrWhiteSpace(name))
                     return;
 
-                await _groupService.CreateGroupAsync(name);
-                await RefreshAsync(CancellationToken.None);
+                var id = await _groupService.CreateGroupAsync(name);
+                var group = new DeviceGroup { Id = id, Name = name };
+                Groups.Add(group);
+                SelectedGroup = group;
             }
             catch (Exception ex)
             {
