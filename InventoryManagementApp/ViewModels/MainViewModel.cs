@@ -11,8 +11,6 @@ using System.Windows;
 using System.Windows.Controls;
 using Forms = System.Windows.Forms;
 using InventoryManagementApp.Models.Domain;
-using DeviceManagementApp.Interfaces;
-using DeviceManagementApp.Models;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Services;
 using InventoryManagementApp.Services.Rentals;
@@ -30,9 +28,6 @@ using InventoryManagementApp.Utilities.Helpers;
 using Application = System.Windows.Application;
 using MediaBrush = System.Windows.Media.Brush;
 using MediaBrushes = System.Windows.Media.Brushes;
-using DeviceManagementApp.Services;
-using Microsoft.Extensions.Configuration;
-using DeviceManagementApp.Views.Windows;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -47,11 +42,6 @@ namespace InventoryManagementApp.ViewModels
         readonly ISettingsService _settingsService;
         readonly IFileDialogService _fileDialogService;
         readonly IDialogService _dialogService;
-        readonly IScannerService _scannerService;
-        readonly IDeviceService _deviceService;
-        readonly IDeviceGroupService _deviceGroupService;
-        readonly IDeviceFileService _deviceFileService;
-        readonly IDeviceDiscoveryService _deviceDiscoveryService;
         readonly IThemeService _themeService;
         readonly ILogger<MainViewModel> _logger;
         readonly Func<Task<bool>> _showLoginWindow;
@@ -198,7 +188,6 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand SwitchUserCommand { get; }
 
         public IAsyncRelayCommand OpenPrintLabelWindowCommand { get; }
-        public IAsyncRelayCommand OpenDeviceStatusCommand { get; }
 
         public MainViewModel(IItemService itemService,
                              IUserService userService,
@@ -213,13 +202,8 @@ namespace InventoryManagementApp.ViewModels
                              IDialogService dialogService,
                              ILogger<MainViewModel>? logger = null,
                              Func<Task<bool>>? showLoginWindow = null,
-                             IDispatcherTimer? autoLogoutTimer = null,
-                             IScannerService? scannerService = null,
-                             IDeviceService? deviceService = null,
-                             IDeviceGroupService? deviceGroupService = null,
-                             IDispatcherTimer? globalSearchDebounceTimer = null,
-                             IDeviceFileService? deviceFileService = null,
-                             IDeviceDiscoveryService? deviceDiscoveryService = null)
+                               IDispatcherTimer? autoLogoutTimer = null,
+                               IDispatcherTimer? globalSearchDebounceTimer = null)
         {
             _itemService = itemService;
             _userService = userService;
@@ -230,12 +214,6 @@ namespace InventoryManagementApp.ViewModels
             _settingsService = settingsService;
             _themeService = themeService;
             _dialogService = dialogService;
-            _scannerService = scannerService ?? new DummyScannerService();
-            _deviceService = deviceService ?? new DummyDeviceService();
-            _deviceGroupService = deviceGroupService ?? new DummyDeviceGroupService();
-            _deviceFileService = deviceFileService ?? new DummyDeviceFileService();
-            var defaultConfig = new ConfigurationBuilder().Build();
-            _deviceDiscoveryService = deviceDiscoveryService ?? new DeviceDiscoveryService(defaultConfig, null, null, null, _settingsService);
             _fileDialogService = fileDialogService;
             _logger = logger ?? NullLogger<MainViewModel>.Instance;
             _showLoginWindow = showLoginWindow ?? new Func<Task<bool>>(async () =>
@@ -528,22 +506,6 @@ namespace InventoryManagementApp.ViewModels
                 }
             });
 
-            OpenDeviceStatusCommand = new AsyncRelayCommand(async () =>
-            {
-                try
-                {
-                    var window = new DeviceManagementApp.Views.Windows.ScannerStatusWindow(_scannerService, (DeviceManagementApp.Interfaces.IDialogService)_dialogService, _deviceService, _deviceGroupService, _deviceFileService);
-                    window.Show();
-                    await Task.CompletedTask;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to open device status window");
-                    _dialogService.ShowInfo($"Failed to open device status window: {ex.Message}", "Device Status");
-                    throw;
-                }
-            });
-
             _ = OpenDashboardCommand.ExecuteAsync(null);
         }
 
@@ -681,40 +643,5 @@ namespace InventoryManagementApp.ViewModels
             ItemManagement.Dispose();
         }
 
-        private sealed class DummyScannerService : IScannerService
-        {
-            public Task<IEnumerable<Device>> GetDevicesAsync(CancellationToken cancellationToken)
-                => Task.FromResult<IEnumerable<Device>>(Array.Empty<Device>());
-        }
-
-        private sealed class DummyDeviceService : IDeviceService
-        {
-            public Task<IEnumerable<Device>> GetDevicesAsync(CancellationToken cancellationToken = default)
-                => Task.FromResult<IEnumerable<Device>>(Array.Empty<Device>());
-            public Task<Device?> GetDeviceAsync(string ip, int? port, CancellationToken cancellationToken = default)
-                => Task.FromResult<Device?>(null);
-            public Task AddOrUpdateDeviceAsync(Device device, CancellationToken cancellationToken = default)
-                => Task.CompletedTask;
-            public Task DeleteDeviceAsync(string ip, int? port, CancellationToken cancellationToken = default)
-                => Task.CompletedTask;
-        }
-
-        private sealed class DummyDeviceGroupService : IDeviceGroupService
-        {
-            public Task<int> CreateGroupAsync(string name, CancellationToken cancellationToken = default) => Task.FromResult(0);
-            public Task<IEnumerable<DeviceGroup>> GetGroupsAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<DeviceGroup>>(Array.Empty<DeviceGroup>());
-            public Task UpdateGroupAsync(DeviceGroup group, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task DeleteGroupAsync(int groupId, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task AssignDeviceToGroupAsync(string deviceIp, int? devicePort, int? groupId, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task<int?> GetDeviceGroupIdAsync(string deviceIp, int? devicePort, CancellationToken cancellationToken = default) => Task.FromResult<int?>(null);
-        }
-
-        private sealed class DummyDeviceFileService : IDeviceFileService
-        {
-            public Task<IEnumerable<string>> ListFilesAsync(Device device, string? extensionFilter = null, CancellationToken cancellationToken = default)
-                => Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
-            public Task<int> DownloadUnseenFilesAsync(Device device, string basePath, CancellationToken cancellationToken = default)
-                => Task.FromResult(0);
-        }
     }
 }
