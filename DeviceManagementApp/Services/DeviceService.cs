@@ -23,7 +23,7 @@ namespace DeviceManagementApp.Services
             using var conn = _db.CreateConnection();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"SELECT d.Ip, d.Port, d.Hostname, d.Protocol, d.Username, d.Password, d.Domain, d.ItemId, i.NameDescription
-                               FROM Devices d LEFT JOIN Items i ON i.DeviceId = d.Ip ORDER BY d.Ip, d.Port";
+                               FROM Devices d LEFT JOIN Items i ON i.ItemID = d.ItemId ORDER BY d.Ip, d.Port";
             using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             var devices = new List<Device>();
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -49,7 +49,7 @@ namespace DeviceManagementApp.Services
             using var conn = _db.CreateConnection();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"SELECT d.Ip, d.Port, d.Hostname, d.Protocol, d.Username, d.Password, d.Domain, d.ItemId, i.NameDescription
-                               FROM Devices d LEFT JOIN Items i ON i.DeviceId = d.Ip WHERE d.Ip=$ip AND IFNULL(d.Port,-1)=IFNULL($port,-1)";
+                               FROM Devices d LEFT JOIN Items i ON i.ItemID = d.ItemId WHERE d.Ip=$ip AND IFNULL(d.Port,-1)=IFNULL($port,-1)";
             cmd.Parameters.AddWithValue("$ip", ip);
             if (port.HasValue)
                 cmd.Parameters.AddWithValue("$port", port.Value);

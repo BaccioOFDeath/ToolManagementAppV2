@@ -100,9 +100,7 @@ namespace DeviceManagementApp.Services
                     CheckedOutTime DATETIME,
                     CheckedInBy TEXT,
                     CheckedInTime DATETIME,
-                    UpdatedAt DATETIME,
-                    DeviceId TEXT,
-                    FOREIGN KEY (DeviceId) REFERENCES Devices(Ip)
+                    UpdatedAt DATETIME
                 );
                 CREATE TABLE IF NOT EXISTS Users (
                     UserID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -182,7 +180,6 @@ namespace DeviceManagementApp.Services
                 );";
             using var cmd = new SqliteCommand(sql, conn);
             cmd.ExecuteNonQuery();
-            EnsureColumn("Items", "DeviceId", "TEXT");
             EnsureColumn("Devices", "Port", "INTEGER");
             EnsureColumn("DeviceGroupAssignments", "DevicePort", "INTEGER");
 
@@ -193,7 +190,6 @@ namespace DeviceManagementApp.Services
             EnsureIndex(conn, "Items", "Supplier");
             EnsureIndex(conn, "Items", "Location");
             EnsureIndex(conn, "Items", "Notes");
-            EnsureIndex(conn, "Items", "DeviceId");
             // Ensure each user has a unique username
             EnsureIndex(conn, "Users", "UserName", true);
             EnsureIndex(conn, "Customers", "Contact");

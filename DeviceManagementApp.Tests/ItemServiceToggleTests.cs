@@ -61,8 +61,7 @@ public class ItemServiceToggleTests
             CheckedInBy TEXT,
             CheckedInTime TEXT,
             IsPowered INTEGER,
-            UpdatedAt TEXT,
-            DeviceId TEXT
+            UpdatedAt TEXT
         );";
         cmd.ExecuteNonQuery();
         await conn.ExecuteAsync("INSERT INTO Items (ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsRentalItem, IsCheckedOut, IsPowered, UpdatedAt) VALUES (@ItemNumber,@Name,1,0,0,0,0,@UpdatedAt)", new { ItemNumber = "A1", Name = "Saw", UpdatedAt = DateTime.UtcNow });
