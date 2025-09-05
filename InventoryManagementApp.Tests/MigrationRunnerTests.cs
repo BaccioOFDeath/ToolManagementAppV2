@@ -21,22 +21,24 @@ public class MigrationRunnerTests
             {
                 cmd.CommandText = "SELECT IFNULL(MAX(Version),0) FROM SchemaInfo;";
                 var version = Convert.ToInt32(cmd.ExecuteScalar());
-                Assert.Equal(1, version);
+                Assert.Equal(2, version);
             }
 
             using (var pragma = new SqliteCommand("PRAGMA table_info(Items);", conn))
             using (var reader = pragma.ExecuteReader())
             {
-                var found = false;
+                var keywordsFound = false;
+                var deviceIdFound = false;
                 while (reader.Read())
                 {
-                    if (reader["name"].ToString() == "Keywords")
-                    {
-                        found = true;
-                        break;
-                    }
+                    var name = reader["name"].ToString();
+                    if (name == "Keywords")
+                        keywordsFound = true;
+                    if (name == "DeviceId")
+                        deviceIdFound = true;
                 }
-                Assert.True(found);
+                Assert.True(keywordsFound);
+                Assert.False(deviceIdFound);
             }
         }
         finally
