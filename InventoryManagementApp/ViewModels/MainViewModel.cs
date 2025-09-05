@@ -200,7 +200,6 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand SwitchUserCommand { get; }
 
         public IAsyncRelayCommand OpenPrintLabelWindowCommand { get; }
-        public IAsyncRelayCommand OpenDevicesPageCommand { get; }
         public IAsyncRelayCommand OpenDeviceSettingsCommand { get; }
         public IAsyncRelayCommand OpenDeviceStatusCommand { get; }
 
@@ -528,23 +527,6 @@ namespace InventoryManagementApp.ViewModels
                 {
                     _logger.LogError(ex, "Failed to open print label dialog");
                     _dialogService.ShowInfo($"Failed to open print label dialog: {ex.Message}", "Error");
-                    throw;
-                }
-            });
-
-            OpenDevicesPageCommand = new AsyncRelayCommand(async () =>
-            {
-                try
-                {
-                    var vm = new DevicesViewModel(_deviceDiscoveryService, _deviceFileService, (DeviceManagementApp.Interfaces.IDialogService)_dialogService, _deviceService, _deviceGroupService);
-                    var page = new DeviceManagementApp.Views.Pages.DevicesPage { DataContext = vm, Title = "Devices" };
-                    CurrentPage = page;
-                    await Task.CompletedTask;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to open devices page");
-                    _dialogService.ShowInfo($"Failed to open devices page: {ex.Message}", "Devices");
                     throw;
                 }
             });
