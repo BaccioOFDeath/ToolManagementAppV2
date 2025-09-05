@@ -4,8 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
 using InventoryManagementApp.Data;
-using DeviceManagementApp.Interfaces;
-using DeviceManagementApp.Models;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Models;
@@ -44,18 +42,6 @@ namespace DeviceManagementApp.Tests
         }
 
         [Fact]
-        public async Task OpenDeviceStatusCommand_IsNotNull()
-        {
-            await RunOnStaThread(() =>
-            {
-                using var db = new DatabaseService(":memory:");
-                using var vm = CreateMainViewModel(db, new DummyItemService(), new DummyDialogService());
-                Assert.NotNull(vm.OpenDeviceStatusCommand);
-                return Task.CompletedTask;
-            });
-        }
-
-        [Fact]
         public async Task UpdateUserAsync_UpdatesCurrentUserPhotoAndRaisesEvent()
         {
             await RunOnStaThread(async () =>
@@ -79,11 +65,7 @@ namespace DeviceManagementApp.Tests
                     new DummyDialogService(),
                     NullLogger<MainViewModel>.Instance,
                     () => Task.FromResult(true),
-                    new DummyDispatcherTimer(),
-                    new DummyScannerService(),
-                    null,
-                    new DummyDeviceGroupService(),
-                    );
+                    new DummyDispatcherTimer());
 
                 var um = vm.UserManagement;
                 um.Users.Add(currentUser);
@@ -120,11 +102,7 @@ namespace DeviceManagementApp.Tests
                 dialogService,
                 NullLogger<MainViewModel>.Instance,
                 () => Task.FromResult(true),
-                new DummyDispatcherTimer(),
-                new DummyScannerService(),
-                null,
-                new DummyDeviceGroupService(),
-                );
+                new DummyDispatcherTimer());
         }
 
         static Task RunOnStaThread(Func<Task> action)
@@ -299,21 +277,5 @@ namespace DeviceManagementApp.Tests
             public void Stop() => IsEnabled = false;
         }
 
-        private sealed class DummyScannerService : IScannerService
-        {
-            public Task<IEnumerable<Device>> GetDevicesAsync(CancellationToken cancellationToken) => Task.FromResult<IEnumerable<Device>>(Array.Empty<Device>());
-        }
-
-        private sealed class DummyDeviceGroupService : IDeviceGroupService
-        {
-            public Task<int> CreateGroupAsync(string name, CancellationToken cancellationToken = default) => Task.FromResult(0);
-            public Task<IEnumerable<DeviceGroup>> GetGroupsAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<DeviceGroup>>(Array.Empty<DeviceGroup>());
-            public Task UpdateGroupAsync(DeviceGroup group, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task DeleteGroupAsync(int groupId, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task AssignDeviceToGroupAsync(string deviceIp, int? devicePort, int? groupId, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task<int?> GetDeviceGroupIdAsync(string deviceIp, int? devicePort, CancellationToken cancellationToken = default) => Task.FromResult<int?>(null);
-        }
-
-        
     }
 }

@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -17,7 +16,6 @@ using InventoryManagementApp.Services.Rentals;
 using InventoryManagementApp.Services.Items;
 using InventoryManagementApp.Services.Users;
 using InventoryManagementApp.Views.Pages;
-using InventoryManagementApp.Views.Windows;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Utilities.IO;
@@ -27,7 +25,6 @@ using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Helpers;
 using Application = System.Windows.Application;
 using MediaBrush = System.Windows.Media.Brush;
-using MediaBrushes = System.Windows.Media.Brushes;
 
 namespace InventoryManagementApp.ViewModels
 {
