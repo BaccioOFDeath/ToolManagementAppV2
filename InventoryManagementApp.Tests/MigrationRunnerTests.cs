@@ -21,7 +21,7 @@ public class MigrationRunnerTests
             {
                 cmd.CommandText = "SELECT IFNULL(MAX(Version),0) FROM SchemaInfo;";
                 var version = Convert.ToInt32(cmd.ExecuteScalar());
-                Assert.Equal(1, version);
+                Assert.Equal(2, version);
             }
 
             using (var pragma = new SqliteCommand("PRAGMA table_info(Items);", conn))
@@ -37,6 +37,11 @@ public class MigrationRunnerTests
                     }
                 }
                 Assert.True(found);
+            }
+
+            using (var check = new SqliteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='Devices';", conn))
+            {
+                Assert.Null(check.ExecuteScalar());
             }
         }
         finally

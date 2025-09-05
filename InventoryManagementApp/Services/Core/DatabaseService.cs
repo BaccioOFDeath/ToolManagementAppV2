@@ -151,40 +151,10 @@ namespace InventoryManagementApp.Services.Core
                 CREATE TABLE IF NOT EXISTS Settings (
                     Key TEXT PRIMARY KEY,
                     Value TEXT
-                );
-                CREATE TABLE IF NOT EXISTS Devices (
-                    Ip TEXT NOT NULL,
-                    Port INTEGER,
-                    Hostname TEXT,
-                    Protocol TEXT,
-                    Username TEXT,
-                    Password TEXT,
-                    Domain TEXT,
-                    ItemId INTEGER,
-                    PRIMARY KEY (Ip, Port),
-                    FOREIGN KEY (ItemId) REFERENCES Items(ItemID)
-                );
-                CREATE TABLE IF NOT EXISTS DeviceGroups (
-                    GroupId INTEGER PRIMARY KEY AUTOINCREMENT,
-                    Name TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS DeviceGroupAssignments (
-                    DeviceIp TEXT NOT NULL,
-                    DevicePort INTEGER,
-                    GroupId INTEGER,
-                    PRIMARY KEY (DeviceIp, DevicePort),
-                    FOREIGN KEY (GroupId) REFERENCES DeviceGroups(GroupId)
-                );
-                CREATE TABLE IF NOT EXISTS PulledDeviceFiles (
-                    DeviceIp TEXT NOT NULL,
-                    Hash TEXT NOT NULL,
-                    PRIMARY KEY (DeviceIp, Hash)
                 );";
             using var cmd = new SqliteCommand(sql, conn);
             cmd.ExecuteNonQuery();
             EnsureColumn("Items", "DeviceId", "TEXT");
-            EnsureColumn("Devices", "Port", "INTEGER");
-            EnsureColumn("DeviceGroupAssignments", "DevicePort", "INTEGER");
 
             EnsureIndex(conn, "Items", "ItemNumber", true);
             EnsureIndex(conn, "Items", "NameDescription");
@@ -198,8 +168,6 @@ namespace InventoryManagementApp.Services.Core
             EnsureIndex(conn, "Users", "UserName", true);
             EnsureIndex(conn, "Customers", "Contact");
             EnsureIndex(conn, "Rentals", new[] { "ItemID", "CustomerID" });
-            EnsureIndex(conn, "Devices", "ItemId");
-            EnsureIndex(conn, "PulledDeviceFiles", "DeviceIp");
         }
 
         void MigrateLegacyItemsTable(SqliteConnection conn)
