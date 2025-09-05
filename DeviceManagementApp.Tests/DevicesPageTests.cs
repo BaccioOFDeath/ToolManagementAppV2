@@ -204,7 +204,7 @@ namespace DeviceManagementApp.Tests
         }
 
         [Fact]
-        public void DevicesPage_HasSettingsButton()
+        public void DevicesPage_DoesNotHaveSettingsButton()
         {
             Exception? threadEx = null;
             Button? settingsButton = null;
@@ -237,8 +237,7 @@ namespace DeviceManagementApp.Tests
             thread.Join();
 
             if (threadEx != null) throw threadEx;
-            Assert.NotNull(settingsButton);
-            Assert.Equal("Device Settings", settingsButton!.Content);
+            Assert.Null(settingsButton);
         }
 
         [Fact]

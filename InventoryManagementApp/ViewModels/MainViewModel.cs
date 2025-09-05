@@ -32,8 +32,6 @@ using MediaBrush = System.Windows.Media.Brush;
 using MediaBrushes = System.Windows.Media.Brushes;
 using DeviceManagementApp.Services;
 using Microsoft.Extensions.Configuration;
-using DeviceManagementApp.ViewModels;
-using DeviceManagementApp.Views.Pages;
 using DeviceManagementApp.Views.Windows;
 
 namespace InventoryManagementApp.ViewModels
@@ -200,7 +198,6 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand SwitchUserCommand { get; }
 
         public IAsyncRelayCommand OpenPrintLabelWindowCommand { get; }
-        public IAsyncRelayCommand OpenDeviceSettingsCommand { get; }
         public IAsyncRelayCommand OpenDeviceStatusCommand { get; }
 
         public MainViewModel(IItemService itemService,
@@ -527,25 +524,6 @@ namespace InventoryManagementApp.ViewModels
                 {
                     _logger.LogError(ex, "Failed to open print label dialog");
                     _dialogService.ShowInfo($"Failed to open print label dialog: {ex.Message}", "Error");
-                    throw;
-                }
-            });
-
-            OpenDeviceSettingsCommand = new AsyncRelayCommand(async () =>
-            {
-                try
-                {
-                    var config = new ConfigurationBuilder().Build();
-                    var vm = new DeviceSettingsViewModel(_settingsService, config, (DeviceManagementApp.Interfaces.IDialogService)_dialogService);
-                    await vm.InitializeAsync().ConfigureAwait(false);
-                    var page = new DeviceManagementApp.Views.Pages.DeviceSettingsPage { DataContext = vm, Title = "Device Settings" };
-                    CurrentPage = page;
-                    await Task.CompletedTask;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to open device settings page");
-                    _dialogService.ShowInfo($"Failed to open device settings page: {ex.Message}", "Device Settings");
                     throw;
                 }
             });
