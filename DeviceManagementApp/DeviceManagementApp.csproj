@@ -39,10 +39,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Generator>MSBuild:Compile</Generator>
     </Resource>
-    <Resource Include="Resources\Templates.xaml">
+    <Page Include="Resources\Templates.xaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Generator>MSBuild:Compile</Generator>
-    </Resource>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <None Update="appsettings.json">
