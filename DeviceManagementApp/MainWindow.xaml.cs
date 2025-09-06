@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.ViewModels;
 using DeviceManagementApp.Views.Pages;
+using Application = System.Windows.Application;
 
 namespace DeviceManagementApp
 {
