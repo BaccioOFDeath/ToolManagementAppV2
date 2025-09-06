@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS Devices;
+DROP TABLE IF EXISTS DeviceGroups;
+DROP TABLE IF EXISTS DeviceGroupAssignments;
+DROP TABLE IF EXISTS PulledDeviceFiles;
