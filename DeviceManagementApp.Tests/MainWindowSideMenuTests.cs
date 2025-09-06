@@ -16,12 +16,21 @@ namespace DeviceManagementApp.Tests
         }
 
         [Fact]
-        public void SideMenu_ContainsDeviceSettingsButton()
+        public void SideMenu_DoesNotContainDeviceSettingsButton()
         {
             var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "MainWindow.xaml"));
             var xaml = File.ReadAllText(path);
-            Assert.Contains("Content=\"Device Settings\"", xaml);
-            Assert.Contains("OpenDeviceSettingsCommand", xaml);
+            Assert.DoesNotContain("Content=\"Device Settings\"", xaml);
+            Assert.DoesNotContain("OpenDeviceSettingsCommand", xaml);
+        }
+
+        [Fact]
+        public void SideMenu_DoesNotContainDeviceStatusButton()
+        {
+            var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "MainWindow.xaml"));
+            var xaml = File.ReadAllText(path);
+            Assert.DoesNotContain("Content=\"Device Status\"", xaml);
+            Assert.DoesNotContain("OpenDeviceStatusCommand", xaml);
         }
     }
 }

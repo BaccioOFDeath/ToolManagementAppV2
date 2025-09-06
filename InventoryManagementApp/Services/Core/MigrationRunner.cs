@@ -41,8 +41,16 @@ namespace InventoryManagementApp.Services.Core
             if (currentVersion < 1)
             {
                 ApplyV1(conn);
-                using var insert = new SqliteCommand("INSERT INTO SchemaInfo (Version) VALUES (1);", conn);
-                insert.ExecuteNonQuery();
+                using var insert1 = new SqliteCommand("INSERT INTO SchemaInfo (Version) VALUES (1);", conn);
+                insert1.ExecuteNonQuery();
+                currentVersion = 1;
+            }
+
+            if (currentVersion < 2)
+            {
+                ApplyV2(conn);
+                using var insert2 = new SqliteCommand("INSERT INTO SchemaInfo (Version) VALUES (2);", conn);
+                insert2.ExecuteNonQuery();
             }
         }
 
@@ -80,6 +88,19 @@ namespace InventoryManagementApp.Services.Core
             _db.EnsureColumn("Users", "IsActive", "INTEGER", "1");
             _db.EnsureColumn("Users", "CreatedAt", "DATETIME");
             _db.EnsureColumn("Users", "PasswordExpired", "INTEGER", "0");
+        }
+
+        void ApplyV2(SqliteConnection conn)
+        {
+            using (var dropIndex = new SqliteCommand("DROP INDEX IF EXISTS idx_Items_DeviceId;", conn))
+            {
+                dropIndex.ExecuteNonQuery();
+            }
+
+            using (var drop = new SqliteCommand("ALTER TABLE Items DROP COLUMN DeviceId;", conn))
+            {
+                drop.ExecuteNonQuery();
+            }
         }
     }
 }

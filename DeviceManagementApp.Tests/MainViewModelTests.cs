@@ -9,8 +9,6 @@ using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Data;
-using DeviceManagementApp.Interfaces;
-using DeviceManagementApp.Models;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
@@ -50,9 +48,6 @@ namespace DeviceManagementApp.Tests
                     NullLogger<MainViewModel>.Instance,
                     () => Task.FromResult(true),
                     new DummyDispatcherTimer(),
-                    new DummyScannerService(),
-                    null,
-                    new DummyDeviceGroupService(),
                     debounceTimer);
 
                 var field = typeof(MainViewModel).GetField("<GlobalSearchCommand>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -93,10 +88,7 @@ namespace DeviceManagementApp.Tests
                     new DummyDialogService(),
                     NullLogger<MainViewModel>.Instance,
                     () => Task.FromResult(true),
-                new DummyDispatcherTimer(),
-                new DummyScannerService(),
-                null,
-                new DummyDeviceGroupService(),
+                    new DummyDispatcherTimer(),
                     globalDebounceTimer);
 
                 var itemManagement = new ItemManagementViewModel(
@@ -159,10 +151,7 @@ namespace DeviceManagementApp.Tests
                     NullLogger<MainViewModel>.Instance,
                     () => Task.FromResult(true),
                 new DummyDispatcherTimer(),
-                new DummyScannerService(),
-                null,
-                new DummyDeviceGroupService(),
-                    debounceTimer);
+                debounceTimer);
 
                 vm.Dispose();
 
@@ -196,10 +185,7 @@ namespace DeviceManagementApp.Tests
                     NullLogger<MainViewModel>.Instance,
                     () => Task.FromResult(true),
                 new DummyDispatcherTimer(),
-                new DummyScannerService(),
-                null,
-                new DummyDeviceGroupService(),
-                    debounceTimer);
+                debounceTimer);
 
                 var openDashboardField = typeof(MainViewModel).GetField("<OpenDashboardCommand>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
                 openDashboardField!.SetValue(vm, new AsyncRelayCommand(() => Task.CompletedTask));
@@ -235,10 +221,7 @@ namespace DeviceManagementApp.Tests
                     NullLogger<MainViewModel>.Instance,
                     () => Task.FromResult(true),
                 new DummyDispatcherTimer(),
-                new DummyScannerService(),
-                null,
-                new DummyDeviceGroupService(),
-                    debounceTimer);
+                debounceTimer);
 
                 var openDashboardField = typeof(MainViewModel).GetField("<OpenDashboardCommand>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
                 openDashboardField!.SetValue(vm, new AsyncRelayCommand(() => Task.CompletedTask));
@@ -302,9 +285,6 @@ namespace DeviceManagementApp.Tests
                         NullLogger<MainViewModel>.Instance,
                         () => Task.FromResult(true),
                     new DummyDispatcherTimer(),
-                    new DummyScannerService(),
-                    null,
-                    new DummyDeviceGroupService(),
                         new DummyDispatcherTimer());
 
                     Assert.NotNull(vm.CurrentUserInitialsBrush);
@@ -502,21 +482,6 @@ namespace DeviceManagementApp.Tests
             public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
             public void ShowPrintLabelDialog() { }
-        }
-
-        private sealed class DummyScannerService : IScannerService
-        {
-            public Task<IEnumerable<Device>> GetDevicesAsync(CancellationToken cancellationToken) => Task.FromResult<IEnumerable<Device>>(Array.Empty<Device>());
-        }
-
-        private sealed class DummyDeviceGroupService : IDeviceGroupService
-        {
-            public Task<int> CreateGroupAsync(string name, CancellationToken cancellationToken = default) => Task.FromResult(0);
-            public Task<IEnumerable<DeviceGroup>> GetGroupsAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<DeviceGroup>>(Array.Empty<DeviceGroup>());
-            public Task UpdateGroupAsync(DeviceGroup group, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task DeleteGroupAsync(int groupId, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task AssignDeviceToGroupAsync(string deviceIp, int? devicePort, int? groupId, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task<int?> GetDeviceGroupIdAsync(string deviceIp, int? devicePort, CancellationToken cancellationToken = default) => Task.FromResult<int?>(null);
         }
 
         private sealed class DummyDispatcherTimer : IDispatcherTimer

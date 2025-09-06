@@ -35,9 +35,9 @@ public class DeviceServiceTests
         await using var db = new DatabaseService(dbPath);
         var deviceService = new DeviceService(db);
         var repo = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
-        var item = new ItemModel { ItemNumber = "I1", Name = "Hammer", DeviceId = "9.9.9.9" };
-        await repo.InsertAsync(item, CancellationToken.None);
-        await deviceService.AddOrUpdateDeviceAsync(new Device { Ip = "9.9.9.9" });
+        var item = new ItemModel { ItemNumber = "I1", Name = "Hammer" };
+        var itemId = await repo.InsertAsync(item, CancellationToken.None);
+        await deviceService.AddOrUpdateDeviceAsync(new Device { Ip = "9.9.9.9", ItemId = itemId });
         var devices = (await deviceService.GetDevicesAsync()).ToList();
         Assert.Single(devices);
         Assert.Equal("Hammer", devices[0].ItemName);

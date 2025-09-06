@@ -31,8 +31,7 @@ public class ItemRepositoryInsertTests
             Price NUMERIC NOT NULL DEFAULT 0,
             ImagePath TEXT,
             IsCheckedOut INTEGER,
-            IsPowered INTEGER,
-            DeviceId TEXT
+            IsPowered INTEGER
         );";
         cmd.ExecuteNonQuery();
     }

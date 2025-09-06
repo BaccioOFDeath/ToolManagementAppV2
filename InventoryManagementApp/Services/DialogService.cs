@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace InventoryManagementApp.Services
 {
-    public class DialogService : InventoryManagementApp.Interfaces.IDialogService, DeviceManagementApp.Interfaces.IDialogService
+    public class DialogService : IDialogService
     {
         readonly IServiceProvider _serviceProvider;
         readonly ILogger<DialogService> _logger;
