@@ -11,7 +11,7 @@ using Serilog.Events;
 using DeviceManagementApp.Services;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.ViewModels;
-using Application = System.Windows.Application;
+using DeviceManagementApp.Views.Pages;
 
 namespace DeviceManagementApp
 {
@@ -68,13 +68,16 @@ namespace DeviceManagementApp
                 services.AddSingleton<IDeviceDiscoveryService, DeviceDiscoveryService>();
                 services.AddSingleton<INavigationService, NavigationService>();
                 services.AddSingleton<DevicesViewModel>();
+                services.AddSingleton<DevicesPage>(sp => new DevicesPage { DataContext = sp.GetRequiredService<DevicesViewModel>() });
+                services.AddSingleton<IMainViewModel, MainViewModel>();
+                services.AddSingleton<MainWindow>();
             })
             .Build();
 
         protected override async void OnStartup(StartupEventArgs e)
         {
             await Host.StartAsync();
-            var main = new MainWindow();
+            var main = Host.Services.GetRequiredService<MainWindow>();
             main.Show();
             base.OnStartup(e);
         }
