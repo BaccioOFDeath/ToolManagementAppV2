@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
-using System.Windows.Controls;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.Models;
 using DeviceManagementApp.Services;
 using DeviceManagementApp.ViewModels;
-using DeviceManagementApp.Views.Pages;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 
@@ -134,13 +132,6 @@ public class DevicesViewModelTests
         }
         public Task DeleteDeviceAsync(string ip, int? port, CancellationToken cancellationToken = default)
             => Task.CompletedTask;
-    }
-
-    private sealed class RecordingNavigationService : INavigationService
-    {
-        public Page? LastPage { get; private set; }
-        public void Navigate(Page page) => LastPage = page;
-    }
 
     [Fact]
     public async Task RefreshCommand_LoadsDevices()
@@ -586,20 +577,18 @@ public class DevicesViewModelTests
     }
 
     [Fact]
-    public void ViewDetailsCommand_NavigatesToDetailsPage()
+    public void ViewDetailsCommand_RaisesEvent()
     {
         var discovery = new StubDiscoveryService();
         var fileService = new RecordingDeviceFileService();
         var dialog = new RecordingDialogService();
-        var nav = new RecordingNavigationService();
-        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), new RecordingDeviceGroupService(), navigationService: nav);
+        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), new RecordingDeviceGroupService());
         var device = new Device { Ip = "1" };
         vm.Devices.Add(device);
         vm.SelectedDevice = device;
-        vm.InstalledSoftware.Add(new DeviceSoftware { Name = "App", Version = "1" });
-
+        Device? requested = null;
+        vm.ViewDetailsRequested += (s, d) => requested = d;
         vm.ViewDetailsCommand.Execute(null);
-
-        Assert.IsType<DeviceDetailsPage>(nav.LastPage);
+        Assert.Same(device, requested);
     }
 }

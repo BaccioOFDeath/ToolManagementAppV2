@@ -6,14 +6,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net.NetworkInformation;
-using System.Windows.Controls;
 using System.Windows.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.Models;
-using DeviceManagementApp.Views.Pages;
-using DeviceManagementApp.Views;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualBasic;
@@ -29,7 +26,6 @@ namespace DeviceManagementApp.ViewModels
         private readonly IDeviceGroupService _groupService;
         private readonly IDeviceAssignmentService _assignmentService;
         private readonly IDeviceSoftwareService _softwareService;
-        private readonly INavigationService _navigationService;
         private readonly ILogger<DevicesViewModel> _logger;
 
         public ObservableCollection<Device> Devices { get; } = new();
@@ -38,6 +34,8 @@ namespace DeviceManagementApp.ViewModels
         public ObservableCollection<DeviceSoftware> InstalledSoftware { get; } = new();
         public ObservableCollection<KeyValuePair<int?, string>> Departments { get; } = new() { new(null, "All Departments") };
         public ObservableCollection<KeyValuePair<int?, string>> Staff { get; } = new() { new(null, "All Staff") };
+
+        public event EventHandler<Device>? ViewDetailsRequested;
         public ICollectionView DevicesView { get; }
 
         private string _fileExtensionFilter = "*.*";
@@ -198,7 +196,6 @@ namespace DeviceManagementApp.ViewModels
                                  IDeviceGroupService groupService,
                                  IDeviceAssignmentService? assignmentService = null,
                                  IDeviceSoftwareService? softwareService = null,
-                                 INavigationService? navigationService = null,
                                  ILogger<DevicesViewModel>? logger = null)
         {
             _discoveryService = discoveryService;
@@ -208,7 +205,6 @@ namespace DeviceManagementApp.ViewModels
             _groupService = groupService;
             _assignmentService = assignmentService ?? NullDeviceAssignmentService.Instance;
             _softwareService = softwareService ?? NullDeviceSoftwareService.Instance;
-            _navigationService = navigationService ?? NullNavigationService.Instance;
             _logger = logger ?? NullLogger<DevicesViewModel>.Instance;
 
             DevicesView = CollectionViewSource.GetDefaultView(Devices);
@@ -224,7 +220,7 @@ namespace DeviceManagementApp.ViewModels
             DownloadUnseenFilesCommand = new AsyncRelayCommand(DownloadUnseenFilesAsync, CanDownloadUnseenFiles);
             AssignDeviceCommand = new AsyncRelayCommand(AssignDeviceAsync, () => SelectedDevice != null);
             ReturnDeviceCommand = new AsyncRelayCommand(ReturnDeviceAsync, () => SelectedDevice?.AssignedUserId != null);
-            ViewDetailsCommand = new RelayCommand(OpenDetails, () => SelectedDevice != null);
+            ViewDetailsCommand = new RelayCommand(OnViewDetails, () => SelectedDevice != null);
         }
 
         private async Task RefreshAsync()
@@ -566,12 +562,11 @@ namespace DeviceManagementApp.ViewModels
             }
         }
 
-        private void OpenDetails()
+        private void OnViewDetails()
         {
             if (SelectedDevice == null)
                 return;
-            var vm = new DeviceDetailsViewModel(SelectedDevice, InstalledSoftware);
-            _navigationService.Navigate(new DeviceDetailsPage { DataContext = vm });
+            ViewDetailsRequested?.Invoke(this, SelectedDevice);
         }
 
         private bool FilterDevice(object obj)
@@ -609,11 +604,5 @@ namespace DeviceManagementApp.ViewModels
                 => Task.CompletedTask;
         }
 
-        class NullNavigationService : INavigationService
-        {
-            public static readonly INavigationService Instance = new NullNavigationService();
-            NullNavigationService() { }
-            public void Navigate(Page page) { }
-        }
     }
 }

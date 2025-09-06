@@ -11,7 +11,6 @@ using Serilog.Events;
 using DeviceManagementApp.Services;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.ViewModels;
-using DeviceManagementApp.Views.Pages;
 
 namespace DeviceManagementApp
 {
@@ -68,7 +67,6 @@ namespace DeviceManagementApp
                 services.AddSingleton<IDeviceDiscoveryService, DeviceDiscoveryService>();
                 services.AddSingleton<INavigationService, NavigationService>();
                 services.AddSingleton<DevicesViewModel>();
-                services.AddSingleton<DevicesPage>(sp => new DevicesPage { DataContext = sp.GetRequiredService<DevicesViewModel>() });
                 services.AddSingleton<IMainViewModel, MainViewModel>();
                 services.AddSingleton<MainWindow>();
             })
