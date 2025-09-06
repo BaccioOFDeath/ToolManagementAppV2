@@ -1,7 +1,50 @@
 <Window x:Class="DeviceManagementApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="450" Width="800"
-        Icon="Assets/CompanyLogo/SDLogo.png">
-    <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden"/>
+        Title="{Binding WindowTitle}" Width="1280" Height="800" WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource BackgroundBrush}" Icon="Assets/CompanyLogo/SDLogo.png">
+    <DockPanel LastChildFill="True">
+        <Border DockPanel.Dock="Left" Width="260" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrushBase}" BorderThickness="0,0,1,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Orientation="Vertical" Margin="16,16,16,8">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="Assets/CompanyLogo/SDLogo.png" Width="36" Height="36" Margin="0,0,8,0"/>
+                        <TextBlock Text="{Binding WindowTitle}" Style="{StaticResource HeadingTextBlock}"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding CurrentPageTitle}" Style="{StaticResource CaptionTextBlock}" Margin="0,4,0,0"/>
+                </StackPanel>
+
+                <ScrollViewer Grid.Row="1">
+                    <StackPanel Orientation="Vertical" Margin="12,0,12,8">
+                        <TextBlock Text="Operations" Style="{StaticResource CaptionTextBlock}" Margin="6,8,6,2"/>
+                        <Button Style="{StaticResource NavButton}" Content="Devices" Command="{Binding OpenDevicesCommand}"/>
+                        <Separator/>
+                        <Button Style="{StaticResource NavButton}" Content="Exit" Command="{Binding ExitCommand}"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Border Background="{DynamicResource BackgroundBrush}" Padding="16,12" BorderBrush="{DynamicResource BorderBrushBase}" BorderThickness="0,0,0,1">
+                <TextBlock Text="{Binding CurrentPageTitle}" VerticalAlignment="Center" Margin="10" Style="{StaticResource PageTitleTextBlock}"/>
+            </Border>
+
+            <Frame Grid.Row="1" x:Name="MainFrame"
+                   NavigationUIVisibility="Hidden"
+                   JournalOwnership="OwnsJournal"
+                   Background="{DynamicResource BackgroundBrush}"
+                   Content="{Binding CurrentPage}"/>
+        </Grid>
+    </DockPanel>
 </Window>
