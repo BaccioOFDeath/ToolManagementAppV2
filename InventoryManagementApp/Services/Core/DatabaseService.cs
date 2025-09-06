@@ -79,6 +79,9 @@ namespace InventoryManagementApp.Services.Core
             // Legacy migration: rename old legacy item table to Items
             MigrateLegacyItemsTable(conn);
 
+            // Remove obsolete device-related tables from older databases
+            DropObsoleteDeviceTables(conn);
+
             var sql = @"
                 CREATE TABLE IF NOT EXISTS Items (
                     ItemID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -149,40 +152,9 @@ namespace InventoryManagementApp.Services.Core
                 CREATE TABLE IF NOT EXISTS Settings (
                     Key TEXT PRIMARY KEY,
                     Value TEXT
-                );
-                CREATE TABLE IF NOT EXISTS Devices (
-                    Ip TEXT NOT NULL,
-                    Port INTEGER,
-                    Hostname TEXT,
-                    Protocol TEXT,
-                    Username TEXT,
-                    Password TEXT,
-                    Domain TEXT,
-                    ItemId INTEGER,
-                    PRIMARY KEY (Ip, Port),
-                    FOREIGN KEY (ItemId) REFERENCES Items(ItemID)
-                );
-                CREATE TABLE IF NOT EXISTS DeviceGroups (
-                    GroupId INTEGER PRIMARY KEY AUTOINCREMENT,
-                    Name TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS DeviceGroupAssignments (
-                    DeviceIp TEXT NOT NULL,
-                    DevicePort INTEGER,
-                    GroupId INTEGER,
-                    PRIMARY KEY (DeviceIp, DevicePort),
-                    FOREIGN KEY (GroupId) REFERENCES DeviceGroups(GroupId)
-                );
-                CREATE TABLE IF NOT EXISTS PulledDeviceFiles (
-                    DeviceIp TEXT NOT NULL,
-                    Hash TEXT NOT NULL,
-                    PRIMARY KEY (DeviceIp, Hash)
                 );";
             using var cmd = new SqliteCommand(sql, conn);
             cmd.ExecuteNonQuery();
-            EnsureColumn("Devices", "Port", "INTEGER");
-            EnsureColumn("DeviceGroupAssignments", "DevicePort", "INTEGER");
-
             EnsureIndex(conn, "Items", "ItemNumber", true);
             EnsureIndex(conn, "Items", "NameDescription");
             EnsureIndex(conn, "Items", "Brand");
@@ -194,8 +166,6 @@ namespace InventoryManagementApp.Services.Core
             EnsureIndex(conn, "Users", "UserName", true);
             EnsureIndex(conn, "Customers", "Contact");
             EnsureIndex(conn, "Rentals", new[] { "ItemID", "CustomerID" });
-            EnsureIndex(conn, "Devices", "ItemId");
-            EnsureIndex(conn, "PulledDeviceFiles", "DeviceIp");
         }
 
         void MigrateLegacyItemsTable(SqliteConnection conn)
@@ -214,6 +184,18 @@ namespace InventoryManagementApp.Services.Core
                     rename.ExecuteNonQuery();
                 }
             }
+        }
+
+        void DropObsoleteDeviceTables(SqliteConnection conn)
+        {
+            var dropSql = @"
+                DROP TABLE IF EXISTS Devices;
+                DROP TABLE IF EXISTS DeviceGroups;
+                DROP TABLE IF EXISTS DeviceGroupAssignments;
+                DROP TABLE IF EXISTS PulledDeviceFiles;
+            ";
+            using var dropCmd = new SqliteCommand(dropSql, conn);
+            dropCmd.ExecuteNonQuery();
         }
 
         internal void EnsureColumn(string table, string column, string type, string? defaultValue = null)
