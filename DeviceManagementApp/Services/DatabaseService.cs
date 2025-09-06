@@ -159,8 +159,15 @@ namespace DeviceManagementApp.Services
                     Password TEXT,
                     Domain TEXT,
                     ItemId INTEGER,
+                    AssignedUserId INTEGER,
+                    DepartmentId INTEGER,
+                    Cpu TEXT,
+                    MemoryGb INTEGER,
+                    StorageGb INTEGER,
+                    OperatingSystem TEXT,
                     PRIMARY KEY (Ip, Port),
-                    FOREIGN KEY (ItemId) REFERENCES Items(ItemID)
+                    FOREIGN KEY (ItemId) REFERENCES Items(ItemID),
+                    FOREIGN KEY (AssignedUserId) REFERENCES Users(UserID)
                 );
                 CREATE TABLE IF NOT EXISTS DeviceGroups (
                     GroupId INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -182,6 +189,12 @@ namespace DeviceManagementApp.Services
             cmd.ExecuteNonQuery();
             EnsureColumn("Devices", "Port", "INTEGER");
             EnsureColumn("DeviceGroupAssignments", "DevicePort", "INTEGER");
+            EnsureColumn("Devices", "AssignedUserId", "INTEGER");
+            EnsureColumn("Devices", "DepartmentId", "INTEGER");
+            EnsureColumn("Devices", "Cpu", "TEXT");
+            EnsureColumn("Devices", "MemoryGb", "INTEGER");
+            EnsureColumn("Devices", "StorageGb", "INTEGER");
+            EnsureColumn("Devices", "OperatingSystem", "TEXT");
 
             EnsureIndex(conn, "Items", "ItemNumber", true);
             EnsureIndex(conn, "Items", "NameDescription");
@@ -195,6 +208,8 @@ namespace DeviceManagementApp.Services
             EnsureIndex(conn, "Customers", "Contact");
             EnsureIndex(conn, "Rentals", new[] { "ItemID", "CustomerID" });
             EnsureIndex(conn, "Devices", "ItemId");
+            EnsureIndex(conn, "Devices", "AssignedUserId");
+            EnsureIndex(conn, "Devices", "DepartmentId");
             EnsureIndex(conn, "PulledDeviceFiles", "DeviceIp");
         }
 

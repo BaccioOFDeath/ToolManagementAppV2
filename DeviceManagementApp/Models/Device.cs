@@ -30,6 +30,12 @@ namespace DeviceManagementApp.Models
         int? _groupId;
         int? _itemId;
         string _itemName = string.Empty;
+        int? _assignedUserId;
+        int? _departmentId;
+        string _cpu = string.Empty;
+        int? _memoryGb;
+        int? _storageGb;
+        string _operatingSystem = string.Empty;
 
         public string Ip
         {
@@ -119,6 +125,42 @@ namespace DeviceManagementApp.Models
         {
             get => _itemName;
             set => SetProperty(ref _itemName, value);
+        }
+
+        public int? AssignedUserId
+        {
+            get => _assignedUserId;
+            set => SetProperty(ref _assignedUserId, value);
+        }
+
+        public int? DepartmentId
+        {
+            get => _departmentId;
+            set => SetProperty(ref _departmentId, value);
+        }
+
+        public string Cpu
+        {
+            get => _cpu;
+            set => SetProperty(ref _cpu, value);
+        }
+
+        public int? MemoryGb
+        {
+            get => _memoryGb;
+            set => SetProperty(ref _memoryGb, value);
+        }
+
+        public int? StorageGb
+        {
+            get => _storageGb;
+            set => SetProperty(ref _storageGb, value);
+        }
+
+        public string OperatingSystem
+        {
+            get => _operatingSystem;
+            set => SetProperty(ref _operatingSystem, value);
         }
     }
 }

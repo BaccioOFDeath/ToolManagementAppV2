@@ -22,7 +22,8 @@ namespace DeviceManagementApp.Services
         {
             using var conn = _db.CreateConnection();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"SELECT d.Ip, d.Port, d.Hostname, d.Protocol, d.Username, d.Password, d.Domain, d.ItemId, i.NameDescription
+            cmd.CommandText = @"SELECT d.Ip, d.Port, d.Hostname, d.Protocol, d.Username, d.Password, d.Domain, d.ItemId, i.NameDescription,
+                                        d.AssignedUserId, d.DepartmentId, d.Cpu, d.MemoryGb, d.StorageGb, d.OperatingSystem
                                FROM Devices d LEFT JOIN Items i ON i.ItemID = d.ItemId ORDER BY d.Ip, d.Port";
             using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             var devices = new List<Device>();
@@ -38,7 +39,13 @@ namespace DeviceManagementApp.Services
                     Password = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
                     Domain = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
                     ItemId = reader.IsDBNull(7) ? null : reader.GetInt32(7),
-                    ItemName = reader.IsDBNull(8) ? string.Empty : reader.GetString(8)
+                    ItemName = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
+                    AssignedUserId = reader.IsDBNull(9) ? null : reader.GetInt32(9),
+                    DepartmentId = reader.IsDBNull(10) ? null : reader.GetInt32(10),
+                    Cpu = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
+                    MemoryGb = reader.IsDBNull(12) ? null : reader.GetInt32(12),
+                    StorageGb = reader.IsDBNull(13) ? null : reader.GetInt32(13),
+                    OperatingSystem = reader.IsDBNull(14) ? string.Empty : reader.GetString(14)
                 });
             }
             return devices;
@@ -48,7 +55,8 @@ namespace DeviceManagementApp.Services
         {
             using var conn = _db.CreateConnection();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"SELECT d.Ip, d.Port, d.Hostname, d.Protocol, d.Username, d.Password, d.Domain, d.ItemId, i.NameDescription
+            cmd.CommandText = @"SELECT d.Ip, d.Port, d.Hostname, d.Protocol, d.Username, d.Password, d.Domain, d.ItemId, i.NameDescription,
+                                        d.AssignedUserId, d.DepartmentId, d.Cpu, d.MemoryGb, d.StorageGb, d.OperatingSystem
                                FROM Devices d LEFT JOIN Items i ON i.ItemID = d.ItemId WHERE d.Ip=$ip AND IFNULL(d.Port,-1)=IFNULL($port,-1)";
             cmd.Parameters.AddWithValue("$ip", ip);
             if (port.HasValue)
@@ -68,7 +76,13 @@ namespace DeviceManagementApp.Services
                     Password = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
                     Domain = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
                     ItemId = reader.IsDBNull(7) ? null : reader.GetInt32(7),
-                    ItemName = reader.IsDBNull(8) ? string.Empty : reader.GetString(8)
+                    ItemName = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
+                    AssignedUserId = reader.IsDBNull(9) ? null : reader.GetInt32(9),
+                    DepartmentId = reader.IsDBNull(10) ? null : reader.GetInt32(10),
+                    Cpu = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
+                    MemoryGb = reader.IsDBNull(12) ? null : reader.GetInt32(12),
+                    StorageGb = reader.IsDBNull(13) ? null : reader.GetInt32(13),
+                    OperatingSystem = reader.IsDBNull(14) ? string.Empty : reader.GetString(14)
                 };
             }
             return null;
@@ -78,15 +92,21 @@ namespace DeviceManagementApp.Services
         {
             using var conn = _db.CreateConnection();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"INSERT INTO Devices (Ip, Port, Hostname, Protocol, Username, Password, Domain, ItemId)
-                                VALUES ($ip, $port, $hostname, $protocol, $username, $password, $domain, $itemId)
+            cmd.CommandText = @"INSERT INTO Devices (Ip, Port, Hostname, Protocol, Username, Password, Domain, ItemId, AssignedUserId, DepartmentId, Cpu, MemoryGb, StorageGb, OperatingSystem)
+                                VALUES ($ip, $port, $hostname, $protocol, $username, $password, $domain, $itemId, $assignedUserId, $departmentId, $cpu, $memoryGb, $storageGb, $operatingSystem)
                                 ON CONFLICT(Ip, Port) DO UPDATE SET
                                     Hostname=$hostname,
                                     Protocol=$protocol,
                                     Username=$username,
                                     Password=$password,
                                     Domain=$domain,
-                                    ItemId=$itemId";
+                                    ItemId=$itemId,
+                                    AssignedUserId=$assignedUserId,
+                                    DepartmentId=$departmentId,
+                                    Cpu=$cpu,
+                                    MemoryGb=$memoryGb,
+                                    StorageGb=$storageGb,
+                                    OperatingSystem=$operatingSystem";
             cmd.Parameters.AddWithValue("$ip", device.Ip);
             if (device.Port.HasValue)
                 cmd.Parameters.AddWithValue("$port", device.Port.Value);
@@ -101,6 +121,24 @@ namespace DeviceManagementApp.Services
                 cmd.Parameters.AddWithValue("$itemId", device.ItemId.Value);
             else
                 cmd.Parameters.AddWithValue("$itemId", DBNull.Value);
+            if (device.AssignedUserId.HasValue)
+                cmd.Parameters.AddWithValue("$assignedUserId", device.AssignedUserId.Value);
+            else
+                cmd.Parameters.AddWithValue("$assignedUserId", DBNull.Value);
+            if (device.DepartmentId.HasValue)
+                cmd.Parameters.AddWithValue("$departmentId", device.DepartmentId.Value);
+            else
+                cmd.Parameters.AddWithValue("$departmentId", DBNull.Value);
+            cmd.Parameters.AddWithValue("$cpu", (object?)device.Cpu ?? DBNull.Value);
+            if (device.MemoryGb.HasValue)
+                cmd.Parameters.AddWithValue("$memoryGb", device.MemoryGb.Value);
+            else
+                cmd.Parameters.AddWithValue("$memoryGb", DBNull.Value);
+            if (device.StorageGb.HasValue)
+                cmd.Parameters.AddWithValue("$storageGb", device.StorageGb.Value);
+            else
+                cmd.Parameters.AddWithValue("$storageGb", DBNull.Value);
+            cmd.Parameters.AddWithValue("$operatingSystem", (object?)device.OperatingSystem ?? DBNull.Value);
             await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
         }
 
