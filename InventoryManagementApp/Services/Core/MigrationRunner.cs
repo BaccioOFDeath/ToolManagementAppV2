@@ -92,15 +92,7 @@ namespace InventoryManagementApp.Services.Core
 
         void ApplyV2(SqliteConnection conn)
         {
-            using (var dropIndex = new SqliteCommand("DROP INDEX IF EXISTS idx_Items_DeviceId;", conn))
-            {
-                dropIndex.ExecuteNonQuery();
-            }
-
-            using (var drop = new SqliteCommand("ALTER TABLE Items DROP COLUMN DeviceId;", conn))
-            {
-                drop.ExecuteNonQuery();
-            }
+            
         }
     }
 }
