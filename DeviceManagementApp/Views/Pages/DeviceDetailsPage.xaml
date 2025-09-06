@@ -5,10 +5,17 @@
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <TextBlock Text="{Binding SelectedDevice.Ip}" FontWeight="Bold" Margin="0,0,0,8"/>
-        <ListBox Grid.Row="1" ItemsSource="{Binding InstalledSoftware}">
+        <TextBlock Text="{Binding Device.Ip}" FontWeight="Bold" Margin="0,0,0,8"/>
+        <StackPanel Grid.Row="1" Margin="0,0,0,8">
+            <TextBlock Text="{Binding Device.OperatingSystem}"/>
+            <TextBlock Text="{Binding Device.Cpu}"/>
+            <TextBlock Text="{Binding Device.MemoryGb, StringFormat={}{0} GB}"/>
+            <TextBlock Text="{Binding Device.StorageGb, StringFormat={}{0} GB}"/>
+        </StackPanel>
+        <ListBox Grid.Row="2" ItemsSource="{Binding InstalledSoftware}">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
