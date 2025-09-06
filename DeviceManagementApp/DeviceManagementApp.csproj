@@ -54,7 +54,4 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Services/Core/SqliteHelper.cs" />
-  </ItemGroup>
 </Project>
