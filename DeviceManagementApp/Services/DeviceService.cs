@@ -22,9 +22,9 @@ namespace DeviceManagementApp.Services
         {
             using var conn = _db.CreateConnection();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"SELECT d.Ip, d.Port, d.Hostname, d.Protocol, d.Username, d.Password, d.Domain, d.ItemId, i.NameDescription,
+            cmd.CommandText = @"SELECT d.Ip, d.Port, d.Hostname, d.Protocol, d.Username, d.Password, d.Domain,
                                         d.AssignedUserId, d.DepartmentId, d.Cpu, d.MemoryGb, d.StorageGb, d.OperatingSystem
-                               FROM Devices d LEFT JOIN Items i ON i.ItemID = d.ItemId ORDER BY d.Ip, d.Port";
+                               FROM Devices d ORDER BY d.Ip, d.Port";
             using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             var devices = new List<Device>();
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -38,14 +38,12 @@ namespace DeviceManagementApp.Services
                     Username = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
                     Password = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
                     Domain = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
-                    ItemId = reader.IsDBNull(7) ? null : reader.GetInt32(7),
-                    ItemName = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
-                    AssignedUserId = reader.IsDBNull(9) ? null : reader.GetInt32(9),
-                    DepartmentId = reader.IsDBNull(10) ? null : reader.GetInt32(10),
-                    Cpu = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
-                    MemoryGb = reader.IsDBNull(12) ? null : reader.GetInt32(12),
-                    StorageGb = reader.IsDBNull(13) ? null : reader.GetInt32(13),
-                    OperatingSystem = reader.IsDBNull(14) ? string.Empty : reader.GetString(14)
+                    AssignedUserId = reader.IsDBNull(7) ? null : reader.GetInt32(7),
+                    DepartmentId = reader.IsDBNull(8) ? null : reader.GetInt32(8),
+                    Cpu = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
+                    MemoryGb = reader.IsDBNull(10) ? null : reader.GetInt32(10),
+                    StorageGb = reader.IsDBNull(11) ? null : reader.GetInt32(11),
+                    OperatingSystem = reader.IsDBNull(12) ? string.Empty : reader.GetString(12)
                 });
             }
             return devices;
@@ -55,9 +53,9 @@ namespace DeviceManagementApp.Services
         {
             using var conn = _db.CreateConnection();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"SELECT d.Ip, d.Port, d.Hostname, d.Protocol, d.Username, d.Password, d.Domain, d.ItemId, i.NameDescription,
+            cmd.CommandText = @"SELECT d.Ip, d.Port, d.Hostname, d.Protocol, d.Username, d.Password, d.Domain,
                                         d.AssignedUserId, d.DepartmentId, d.Cpu, d.MemoryGb, d.StorageGb, d.OperatingSystem
-                               FROM Devices d LEFT JOIN Items i ON i.ItemID = d.ItemId WHERE d.Ip=$ip AND IFNULL(d.Port,-1)=IFNULL($port,-1)";
+                               FROM Devices d WHERE d.Ip=$ip AND IFNULL(d.Port,-1)=IFNULL($port,-1)";
             cmd.Parameters.AddWithValue("$ip", ip);
             if (port.HasValue)
                 cmd.Parameters.AddWithValue("$port", port.Value);
@@ -75,14 +73,12 @@ namespace DeviceManagementApp.Services
                     Username = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
                     Password = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
                     Domain = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
-                    ItemId = reader.IsDBNull(7) ? null : reader.GetInt32(7),
-                    ItemName = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
-                    AssignedUserId = reader.IsDBNull(9) ? null : reader.GetInt32(9),
-                    DepartmentId = reader.IsDBNull(10) ? null : reader.GetInt32(10),
-                    Cpu = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
-                    MemoryGb = reader.IsDBNull(12) ? null : reader.GetInt32(12),
-                    StorageGb = reader.IsDBNull(13) ? null : reader.GetInt32(13),
-                    OperatingSystem = reader.IsDBNull(14) ? string.Empty : reader.GetString(14)
+                    AssignedUserId = reader.IsDBNull(7) ? null : reader.GetInt32(7),
+                    DepartmentId = reader.IsDBNull(8) ? null : reader.GetInt32(8),
+                    Cpu = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
+                    MemoryGb = reader.IsDBNull(10) ? null : reader.GetInt32(10),
+                    StorageGb = reader.IsDBNull(11) ? null : reader.GetInt32(11),
+                    OperatingSystem = reader.IsDBNull(12) ? string.Empty : reader.GetString(12)
                 };
             }
             return null;
@@ -92,15 +88,14 @@ namespace DeviceManagementApp.Services
         {
             using var conn = _db.CreateConnection();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"INSERT INTO Devices (Ip, Port, Hostname, Protocol, Username, Password, Domain, ItemId, AssignedUserId, DepartmentId, Cpu, MemoryGb, StorageGb, OperatingSystem)
-                                VALUES ($ip, $port, $hostname, $protocol, $username, $password, $domain, $itemId, $assignedUserId, $departmentId, $cpu, $memoryGb, $storageGb, $operatingSystem)
+            cmd.CommandText = @"INSERT INTO Devices (Ip, Port, Hostname, Protocol, Username, Password, Domain, AssignedUserId, DepartmentId, Cpu, MemoryGb, StorageGb, OperatingSystem)
+                                VALUES ($ip, $port, $hostname, $protocol, $username, $password, $domain, $assignedUserId, $departmentId, $cpu, $memoryGb, $storageGb, $operatingSystem)
                                 ON CONFLICT(Ip, Port) DO UPDATE SET
                                     Hostname=$hostname,
                                     Protocol=$protocol,
                                     Username=$username,
                                     Password=$password,
                                     Domain=$domain,
-                                    ItemId=$itemId,
                                     AssignedUserId=$assignedUserId,
                                     DepartmentId=$departmentId,
                                     Cpu=$cpu,
@@ -117,10 +112,6 @@ namespace DeviceManagementApp.Services
             cmd.Parameters.AddWithValue("$username", (object?)device.Username ?? DBNull.Value);
             cmd.Parameters.AddWithValue("$password", (object?)device.Password ?? DBNull.Value);
             cmd.Parameters.AddWithValue("$domain", (object?)device.Domain ?? DBNull.Value);
-            if (device.ItemId.HasValue)
-                cmd.Parameters.AddWithValue("$itemId", device.ItemId.Value);
-            else
-                cmd.Parameters.AddWithValue("$itemId", DBNull.Value);
             if (device.AssignedUserId.HasValue)
                 cmd.Parameters.AddWithValue("$assignedUserId", device.AssignedUserId.Value);
             else
