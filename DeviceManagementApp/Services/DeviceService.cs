@@ -22,8 +22,12 @@ namespace DeviceManagementApp.Services
         {
             using var conn = _db.CreateConnection();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"SELECT d.Ip, d.Port, d.Hostname, d.Protocol, d.Username, d.Password, d.Domain, d.ItemId, i.NameDescription
-                               FROM Devices d LEFT JOIN Items i ON i.ItemID = d.ItemId ORDER BY d.Ip, d.Port";
+            cmd.CommandText = @"SELECT d.Ip, d.Port, d.Hostname, d.Protocol, d.Username, d.Password, d.Domain, d.ItemId, i.NameDescription, IFNULL(u.UserName, '')
+                               FROM Devices d 
+                               LEFT JOIN Items i ON i.ItemID = d.ItemId 
+                               LEFT JOIN DeviceAssignments da ON da.DeviceIp = d.Ip AND da.ReturnedDate IS NULL
+                               LEFT JOIN Users u ON u.UserID = da.UserId
+                               ORDER BY d.Ip, d.Port";
             using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             var devices = new List<Device>();
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -38,7 +42,8 @@ namespace DeviceManagementApp.Services
                     Password = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
                     Domain = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
                     ItemId = reader.IsDBNull(7) ? null : reader.GetInt32(7),
-                    ItemName = reader.IsDBNull(8) ? string.Empty : reader.GetString(8)
+                    ItemName = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
+                    AssignedTo = reader.IsDBNull(9) ? string.Empty : reader.GetString(9)
                 });
             }
             return devices;
@@ -48,8 +53,11 @@ namespace DeviceManagementApp.Services
         {
             using var conn = _db.CreateConnection();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"SELECT d.Ip, d.Port, d.Hostname, d.Protocol, d.Username, d.Password, d.Domain, d.ItemId, i.NameDescription
-                               FROM Devices d LEFT JOIN Items i ON i.ItemID = d.ItemId WHERE d.Ip=$ip AND IFNULL(d.Port,-1)=IFNULL($port,-1)";
+            cmd.CommandText = @"SELECT d.Ip, d.Port, d.Hostname, d.Protocol, d.Username, d.Password, d.Domain, d.ItemId, i.NameDescription, IFNULL(u.UserName,'')
+                               FROM Devices d LEFT JOIN Items i ON i.ItemID = d.ItemId
+                               LEFT JOIN DeviceAssignments da ON da.DeviceIp = d.Ip AND da.ReturnedDate IS NULL
+                               LEFT JOIN Users u ON u.UserID = da.UserId
+                               WHERE d.Ip=$ip AND IFNULL(d.Port,-1)=IFNULL($port,-1)";
             cmd.Parameters.AddWithValue("$ip", ip);
             if (port.HasValue)
                 cmd.Parameters.AddWithValue("$port", port.Value);
@@ -68,7 +76,8 @@ namespace DeviceManagementApp.Services
                     Password = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
                     Domain = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
                     ItemId = reader.IsDBNull(7) ? null : reader.GetInt32(7),
-                    ItemName = reader.IsDBNull(8) ? string.Empty : reader.GetString(8)
+                    ItemName = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
+                    AssignedTo = reader.IsDBNull(9) ? string.Empty : reader.GetString(9)
                 };
             }
             return null;

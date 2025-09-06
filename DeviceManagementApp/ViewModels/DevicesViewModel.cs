@@ -22,6 +22,7 @@ namespace DeviceManagementApp.ViewModels
         private readonly IDialogService _dialogService;
         private readonly IDeviceService _deviceService;
         private readonly IDeviceGroupService _groupService;
+        private readonly IDeviceAssignmentService _assignmentService;
         private readonly ILogger<DevicesViewModel> _logger;
 
         public ObservableCollection<Device> Devices { get; } = new();
@@ -47,6 +48,8 @@ namespace DeviceManagementApp.ViewModels
                     PullAllReportsCommand.NotifyCanExecuteChanged();
                     PingSelectedDeviceCommand.NotifyCanExecuteChanged();
                     DownloadUnseenFilesCommand.NotifyCanExecuteChanged();
+                    AssignDeviceCommand.NotifyCanExecuteChanged();
+                    ReturnDeviceCommand.NotifyCanExecuteChanged();
                 }
             }
         }
@@ -59,6 +62,8 @@ namespace DeviceManagementApp.ViewModels
         public IAsyncRelayCommand RenameGroupCommand { get; }
         public IAsyncRelayCommand DeleteGroupCommand { get; }
         public IAsyncRelayCommand DownloadUnseenFilesCommand { get; }
+        public IAsyncRelayCommand AssignDeviceCommand { get; }
+        public IAsyncRelayCommand ReturnDeviceCommand { get; }
 
         private string _sourceFolder = string.Empty;
         public string SourceFolder
@@ -133,6 +138,7 @@ namespace DeviceManagementApp.ViewModels
                                  IDialogService dialogService,
                                  IDeviceService deviceService,
                                  IDeviceGroupService groupService,
+                                 IDeviceAssignmentService assignmentService,
                                  ILogger<DevicesViewModel>? logger = null)
         {
             _discoveryService = discoveryService;
@@ -140,6 +146,7 @@ namespace DeviceManagementApp.ViewModels
             _dialogService = dialogService;
             _deviceService = deviceService;
             _groupService = groupService;
+            _assignmentService = assignmentService;
             _logger = logger ?? NullLogger<DevicesViewModel>.Instance;
 
             RefreshCommand = new AsyncRelayCommand(RefreshAsync, () => !IsDiscovering);
@@ -150,6 +157,42 @@ namespace DeviceManagementApp.ViewModels
             RenameGroupCommand = new AsyncRelayCommand(RenameGroupAsync);
             DeleteGroupCommand = new AsyncRelayCommand(DeleteGroupAsync);
             DownloadUnseenFilesCommand = new AsyncRelayCommand(DownloadUnseenFilesAsync, CanDownloadUnseenFiles);
+            AssignDeviceCommand = new AsyncRelayCommand(AssignDeviceAsync, () => SelectedDevice != null);
+            ReturnDeviceCommand = new AsyncRelayCommand(ReturnDeviceAsync, () => SelectedDevice != null);
+        }
+
+        public Func<DeviceAssignment?> PromptForAssignment { get; set; } = () =>
+        {
+            var dlg = new Views.AssignDeviceDialog();
+            if (dlg.ShowDialog() == true && dlg.DataContext is AssignDeviceDialogViewModel vm)
+            {
+                return new DeviceAssignment
+                {
+                    UserId = vm.UserId,
+                    DepartmentId = vm.DepartmentId,
+                    AssignedDate = DateTime.UtcNow
+                };
+            }
+            return null;
+        };
+
+        private async Task AssignDeviceAsync()
+        {
+            if (SelectedDevice == null) return;
+            var assignment = PromptForAssignment?.Invoke();
+            if (assignment == null) return;
+            assignment.DeviceIp = SelectedDevice.Ip;
+            await _assignmentService.AssignDeviceAsync(assignment);
+            var refreshed = await _deviceService.GetDeviceAsync(SelectedDevice.Ip, SelectedDevice.Port);
+            if (refreshed != null)
+                SelectedDevice.AssignedTo = refreshed.AssignedTo;
+        }
+
+        private async Task ReturnDeviceAsync()
+        {
+            if (SelectedDevice == null) return;
+            await _assignmentService.ReturnDeviceAsync(SelectedDevice.Ip);
+            SelectedDevice.AssignedTo = string.Empty;
         }
 
         private async Task RefreshAsync()

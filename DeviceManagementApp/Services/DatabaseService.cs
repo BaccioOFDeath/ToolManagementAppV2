@@ -173,6 +173,14 @@ namespace DeviceManagementApp.Services
                     PRIMARY KEY (DeviceIp, DevicePort),
                     FOREIGN KEY (GroupId) REFERENCES DeviceGroups(GroupId)
                 );
+                CREATE TABLE IF NOT EXISTS DeviceAssignments (
+                    AssignmentId INTEGER PRIMARY KEY AUTOINCREMENT,
+                    DeviceIp TEXT NOT NULL,
+                    UserId INTEGER NOT NULL,
+                    AssignedDate DATETIME NOT NULL,
+                    ReturnedDate DATETIME,
+                    DepartmentId INTEGER
+                );
                 CREATE TABLE IF NOT EXISTS PulledDeviceFiles (
                     DeviceIp TEXT NOT NULL,
                     Hash TEXT NOT NULL,
@@ -196,6 +204,7 @@ namespace DeviceManagementApp.Services
             EnsureIndex(conn, "Rentals", new[] { "ItemID", "CustomerID" });
             EnsureIndex(conn, "Devices", "ItemId");
             EnsureIndex(conn, "PulledDeviceFiles", "DeviceIp");
+            EnsureIndex(conn, "DeviceAssignments", "DeviceIp");
         }
 
         void MigrateLegacyItemsTable(SqliteConnection conn)

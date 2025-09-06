@@ -30,6 +30,7 @@ namespace DeviceManagementApp.Models
         int? _groupId;
         int? _itemId;
         string _itemName = string.Empty;
+        string _assignedTo = string.Empty;
 
         public string Ip
         {
@@ -119,6 +120,12 @@ namespace DeviceManagementApp.Models
         {
             get => _itemName;
             set => SetProperty(ref _itemName, value);
+        }
+
+        public string AssignedTo
+        {
+            get => _assignedTo;
+            set => SetProperty(ref _assignedTo, value);
         }
     }
 }

@@ -64,6 +64,7 @@ namespace DeviceManagementApp
                 services.AddSingleton<IDeviceService, DeviceService>();
                 services.AddSingleton<IDeviceFileService, DeviceFileService>();
                 services.AddSingleton<IDeviceGroupService, DeviceGroupService>();
+                services.AddSingleton<IDeviceAssignmentService, DeviceAssignmentService>();
                 services.AddSingleton<IDeviceDiscoveryService, DeviceDiscoveryService>();
             })
             .Build();

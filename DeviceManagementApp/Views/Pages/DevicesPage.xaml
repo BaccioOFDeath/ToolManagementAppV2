@@ -29,6 +29,14 @@
                                 Content="Add Device"
                                 Command="{Binding AddDeviceCommand}"
                                 Margin="0,0,8,0"/>
+                        <Button Style="{StaticResource PrimaryButton}"
+                                Content="Assign"
+                                Command="{Binding AssignDeviceCommand}"
+                                Margin="0,0,8,0"/>
+                        <Button Style="{StaticResource PrimaryButton}"
+                                Content="Return"
+                                Command="{Binding ReturnDeviceCommand}"
+                                Margin="0,0,8,0"/>
                         <Button x:Name="AddGroupButton"
                                 Style="{StaticResource PrimaryButton}"
                                 Content="Add Group"
@@ -94,6 +102,7 @@
                                                  SelectedValuePath="Id"
                                                  DisplayMemberPath="Name"
                                                  ItemsSource="{Binding Groups}" Width="150"/>
+                        <DataGridTextColumn Header="Assignee" Binding="{Binding AssignedTo}" IsReadOnly="True" Width="150"/>
                         <DataGridTextColumn Header="Protocols" Binding="{Binding ProtocolsDisplay}" IsReadOnly="True" Width="150"/>
                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" IsReadOnly="True" Width="120"/>
                         <DataGridTextColumn Header="Last Seen" Binding="{Binding LastSeen, StringFormat={}{0:G}}" IsReadOnly="True" Width="180"/>
