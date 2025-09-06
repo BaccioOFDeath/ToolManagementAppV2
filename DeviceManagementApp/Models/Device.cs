@@ -28,8 +28,6 @@ namespace DeviceManagementApp.Models
         string _password = string.Empty;
         string _domain = string.Empty;
         int? _groupId;
-        int? _itemId;
-        string _itemName = string.Empty;
 
         public string Ip
         {
@@ -109,16 +107,5 @@ namespace DeviceManagementApp.Models
             set => SetProperty(ref _groupId, value);
         }
 
-        public int? ItemId
-        {
-            get => _itemId;
-            set => SetProperty(ref _itemId, value);
-        }
-
-        public string ItemName
-        {
-            get => _itemName;
-            set => SetProperty(ref _itemName, value);
-        }
     }
 }
