@@ -177,6 +177,13 @@ namespace DeviceManagementApp.Services
                     DeviceIp TEXT NOT NULL,
                     Hash TEXT NOT NULL,
                     PRIMARY KEY (DeviceIp, Hash)
+                );
+                CREATE TABLE IF NOT EXISTS DeviceSoftware (
+                    DeviceIp TEXT NOT NULL,
+                    DevicePort INTEGER,
+                    Name TEXT NOT NULL,
+                    Version TEXT,
+                    PRIMARY KEY (DeviceIp, DevicePort, Name)
                 );";
             using var cmd = new SqliteCommand(sql, conn);
             cmd.ExecuteNonQuery();

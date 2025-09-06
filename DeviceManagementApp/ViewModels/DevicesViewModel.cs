@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading;
@@ -22,11 +23,13 @@ namespace DeviceManagementApp.ViewModels
         private readonly IDialogService _dialogService;
         private readonly IDeviceService _deviceService;
         private readonly IDeviceGroupService _groupService;
+        private readonly IDeviceSoftwareService _softwareService;
         private readonly ILogger<DevicesViewModel> _logger;
 
         public ObservableCollection<Device> Devices { get; } = new();
         public ObservableCollection<string> DeviceFiles { get; } = new();
         public ObservableCollection<DeviceGroup> Groups { get; } = new();
+        public ObservableCollection<DeviceSoftware> InstalledSoftware { get; } = new();
 
         private string _fileExtensionFilter = "*.*";
         public string FileExtensionFilter
@@ -44,6 +47,9 @@ namespace DeviceManagementApp.ViewModels
                 if (SetProperty(ref _selectedDevice, value))
                 {
                     DeviceFiles.Clear();
+                    InstalledSoftware.Clear();
+                    if (value != null)
+                        _ = LoadInstalledSoftwareAsync(value);
                     PullAllReportsCommand.NotifyCanExecuteChanged();
                     PingSelectedDeviceCommand.NotifyCanExecuteChanged();
                     DownloadUnseenFilesCommand.NotifyCanExecuteChanged();
@@ -133,6 +139,7 @@ namespace DeviceManagementApp.ViewModels
                                  IDialogService dialogService,
                                  IDeviceService deviceService,
                                  IDeviceGroupService groupService,
+                                 IDeviceSoftwareService? softwareService = null,
                                  ILogger<DevicesViewModel>? logger = null)
         {
             _discoveryService = discoveryService;
@@ -140,6 +147,7 @@ namespace DeviceManagementApp.ViewModels
             _dialogService = dialogService;
             _deviceService = deviceService;
             _groupService = groupService;
+            _softwareService = softwareService ?? NullDeviceSoftwareService.Instance;
             _logger = logger ?? NullLogger<DevicesViewModel>.Instance;
 
             RefreshCommand = new AsyncRelayCommand(RefreshAsync, () => !IsDiscovering);
@@ -371,6 +379,20 @@ namespace DeviceManagementApp.ViewModels
             }
         }
 
+        async Task LoadInstalledSoftwareAsync(Device device)
+        {
+            try
+            {
+                var software = await _softwareService.GetSoftwareAsync(device.Ip, device.Port).ConfigureAwait(false);
+                foreach (var s in software)
+                    InstalledSoftware.Add(s);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load software for {Ip}", device.Ip);
+            }
+        }
+
         async void Device_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (sender is not Device device)
@@ -401,6 +423,18 @@ namespace DeviceManagementApp.ViewModels
                     _logger.LogError(ex, "Failed to assign device {Ip} to group {Group}", device.Ip, device.GroupId);
                 }
             }
+        }
+
+        class NullDeviceSoftwareService : IDeviceSoftwareService
+        {
+            public static readonly IDeviceSoftwareService Instance = new NullDeviceSoftwareService();
+            NullDeviceSoftwareService() { }
+            public Task<IEnumerable<DeviceSoftware>> GetSoftwareAsync(string deviceIp, int? devicePort, CancellationToken cancellationToken = default)
+                => Task.FromResult<IEnumerable<DeviceSoftware>>(Array.Empty<DeviceSoftware>());
+            public Task AddOrUpdateAsync(DeviceSoftware software, CancellationToken cancellationToken = default)
+                => Task.CompletedTask;
+            public Task DeleteAsync(string deviceIp, int? devicePort, string name, CancellationToken cancellationToken = default)
+                => Task.CompletedTask;
         }
     }
 }
