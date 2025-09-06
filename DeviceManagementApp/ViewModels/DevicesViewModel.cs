@@ -6,10 +6,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net.NetworkInformation;
+using System.Windows.Controls;
+using System.Windows.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.Models;
+using DeviceManagementApp.Views.Pages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualBasic;
@@ -24,12 +27,16 @@ namespace DeviceManagementApp.ViewModels
         private readonly IDeviceService _deviceService;
         private readonly IDeviceGroupService _groupService;
         private readonly IDeviceSoftwareService _softwareService;
+        private readonly INavigationService _navigationService;
         private readonly ILogger<DevicesViewModel> _logger;
 
         public ObservableCollection<Device> Devices { get; } = new();
         public ObservableCollection<string> DeviceFiles { get; } = new();
         public ObservableCollection<DeviceGroup> Groups { get; } = new();
         public ObservableCollection<DeviceSoftware> InstalledSoftware { get; } = new();
+        public ObservableCollection<KeyValuePair<int?, string>> Departments { get; } = new() { new(null, "All Departments") };
+        public ObservableCollection<KeyValuePair<int?, string>> Staff { get; } = new() { new(null, "All Staff") };
+        public ICollectionView DevicesView { get; }
 
         private string _fileExtensionFilter = "*.*";
         public string FileExtensionFilter
@@ -53,6 +60,7 @@ namespace DeviceManagementApp.ViewModels
                     PullAllReportsCommand.NotifyCanExecuteChanged();
                     PingSelectedDeviceCommand.NotifyCanExecuteChanged();
                     DownloadUnseenFilesCommand.NotifyCanExecuteChanged();
+                    ViewDetailsCommand.NotifyCanExecuteChanged();
                 }
             }
         }
@@ -65,6 +73,7 @@ namespace DeviceManagementApp.ViewModels
         public IAsyncRelayCommand RenameGroupCommand { get; }
         public IAsyncRelayCommand DeleteGroupCommand { get; }
         public IAsyncRelayCommand DownloadUnseenFilesCommand { get; }
+        public IRelayCommand ViewDetailsCommand { get; }
 
         private string _sourceFolder = string.Empty;
         public string SourceFolder
@@ -134,12 +143,35 @@ namespace DeviceManagementApp.ViewModels
             set => SetProperty(ref _groupName, value);
         }
 
+        private int? _departmentFilter;
+        public int? DepartmentFilter
+        {
+            get => _departmentFilter;
+            set
+            {
+                if (SetProperty(ref _departmentFilter, value))
+                    DevicesView.Refresh();
+            }
+        }
+
+        private int? _assignedUserFilter;
+        public int? AssignedUserFilter
+        {
+            get => _assignedUserFilter;
+            set
+            {
+                if (SetProperty(ref _assignedUserFilter, value))
+                    DevicesView.Refresh();
+            }
+        }
+
         public DevicesViewModel(IDeviceDiscoveryService discoveryService,
                                  IDeviceFileService fileService,
                                  IDialogService dialogService,
                                  IDeviceService deviceService,
                                  IDeviceGroupService groupService,
                                  IDeviceSoftwareService? softwareService = null,
+                                 INavigationService? navigationService = null,
                                  ILogger<DevicesViewModel>? logger = null)
         {
             _discoveryService = discoveryService;
@@ -148,7 +180,11 @@ namespace DeviceManagementApp.ViewModels
             _deviceService = deviceService;
             _groupService = groupService;
             _softwareService = softwareService ?? NullDeviceSoftwareService.Instance;
+            _navigationService = navigationService ?? NullNavigationService.Instance;
             _logger = logger ?? NullLogger<DevicesViewModel>.Instance;
+
+            DevicesView = CollectionViewSource.GetDefaultView(Devices);
+            DevicesView.Filter = FilterDevice;
 
             RefreshCommand = new AsyncRelayCommand(RefreshAsync, () => !IsDiscovering);
             PullAllReportsCommand = new AsyncRelayCommand(PullAllReportsAsync, CanPullAllReports);
@@ -158,6 +194,7 @@ namespace DeviceManagementApp.ViewModels
             RenameGroupCommand = new AsyncRelayCommand(RenameGroupAsync);
             DeleteGroupCommand = new AsyncRelayCommand(DeleteGroupAsync);
             DownloadUnseenFilesCommand = new AsyncRelayCommand(DownloadUnseenFilesAsync, CanDownloadUnseenFiles);
+            ViewDetailsCommand = new RelayCommand(OpenDetails, () => SelectedDevice != null);
         }
 
         private async Task RefreshAsync()
@@ -170,6 +207,10 @@ namespace DeviceManagementApp.ViewModels
                 foreach (var d in Devices)
                     d.PropertyChanged -= Device_PropertyChanged;
                 Devices.Clear();
+                Departments.Clear();
+                Departments.Add(new(null, "All Departments"));
+                Staff.Clear();
+                Staff.Add(new(null, "All Staff"));
 
                 var groups = await _groupService.GetGroupsAsync();
                 Groups.Clear();
@@ -203,12 +244,17 @@ namespace DeviceManagementApp.ViewModels
                     }
                     device.PropertyChanged += Device_PropertyChanged;
                     Devices.Add(device);
+                    if (device.DepartmentId.HasValue && !Departments.Any(dp => dp.Key == device.DepartmentId))
+                        Departments.Add(new(device.DepartmentId.Value, device.DepartmentId.Value.ToString()));
+                    if (device.AssignedUserId.HasValue && !Staff.Any(s => s.Key == device.AssignedUserId))
+                        Staff.Add(new(device.AssignedUserId.Value, device.AssignedUserId.Value.ToString()));
                 }
 
                 if (Devices.Count == 0 && !_discoveryService.HasConfiguredSubnets)
                 {
                     await _dialogService.ShowInfoAsync("No subnets configured for device discovery.", "Devices");
                 }
+                DevicesView.Refresh();
             }
             catch (Exception ex)
             {
@@ -425,6 +471,25 @@ namespace DeviceManagementApp.ViewModels
             }
         }
 
+        private void OpenDetails()
+        {
+            if (SelectedDevice == null)
+                return;
+            var vm = new DeviceDetailsViewModel(SelectedDevice, InstalledSoftware);
+            _navigationService.Navigate(new DeviceDetailsPage { DataContext = vm });
+        }
+
+        private bool FilterDevice(object obj)
+        {
+            if (obj is not Device d)
+                return false;
+            if (DepartmentFilter.HasValue && d.DepartmentId != DepartmentFilter)
+                return false;
+            if (AssignedUserFilter.HasValue && d.AssignedUserId != AssignedUserFilter)
+                return false;
+            return true;
+        }
+
         class NullDeviceSoftwareService : IDeviceSoftwareService
         {
             public static readonly IDeviceSoftwareService Instance = new NullDeviceSoftwareService();
@@ -435,6 +500,13 @@ namespace DeviceManagementApp.ViewModels
                 => Task.CompletedTask;
             public Task DeleteAsync(string deviceIp, int? devicePort, string name, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
+        }
+
+        class NullNavigationService : INavigationService
+        {
+            public static readonly INavigationService Instance = new NullNavigationService();
+            NullNavigationService() { }
+            public void Navigate(Page page) { }
         }
     }
 }

@@ -10,6 +10,7 @@ using Serilog;
 using Serilog.Events;
 using DeviceManagementApp.Services;
 using DeviceManagementApp.Interfaces;
+using DeviceManagementApp.ViewModels;
 using Application = System.Windows.Application;
 
 namespace DeviceManagementApp
@@ -65,6 +66,8 @@ namespace DeviceManagementApp
                 services.AddSingleton<IDeviceFileService, DeviceFileService>();
                 services.AddSingleton<IDeviceGroupService, DeviceGroupService>();
                 services.AddSingleton<IDeviceDiscoveryService, DeviceDiscoveryService>();
+                services.AddSingleton<INavigationService, NavigationService>();
+                services.AddSingleton<DevicesViewModel>();
             })
             .Build();
 

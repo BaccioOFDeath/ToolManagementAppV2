@@ -199,6 +199,51 @@ namespace DeviceManagementApp.Tests
         }
 
         [Fact]
+        public void DevicesPage_FiltersByDepartmentAndStaff()
+        {
+            Exception? threadEx = null;
+            int rowCount = 0;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary
+                    {
+                        Source = new Uri("pack://application:,,,/DeviceManagementApp;component/Resources/Styles.xaml", UriKind.Absolute)
+                    });
+
+                    var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService(), new DummyDeviceGroupService());
+                    vm.Devices.Add(new Device { Ip = "1", DepartmentId = 1, AssignedUserId = 1, ProtocolsDisplay = "" });
+                    vm.Devices.Add(new Device { Ip = "2", DepartmentId = 2, AssignedUserId = 1, ProtocolsDisplay = "" });
+                    vm.Devices.Add(new Device { Ip = "3", DepartmentId = 1, AssignedUserId = 2, ProtocolsDisplay = "" });
+
+                    var page = new DevicesPage { DataContext = vm };
+                    page.ApplyTemplate();
+                    var grid = FindVisualChild<DataGrid>(page);
+                    vm.DepartmentFilter = 1;
+                    vm.AssignedUserFilter = 1;
+                    grid?.Items.Refresh();
+                    rowCount = grid?.Items.Count ?? 0;
+
+                    Application.Current?.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadEx != null) throw threadEx;
+            Assert.Equal(1, rowCount);
+        }
+
+        [Fact]
         public void DevicesPage_DoesNotHaveSettingsButton()
         {
             Exception? threadEx = null;
