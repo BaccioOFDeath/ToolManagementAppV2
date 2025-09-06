@@ -1,0 +1,22 @@
+<Page x:Class="DeviceManagementApp.Views.Pages.DeviceDetailsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Device Details">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="{Binding SelectedDevice.Ip}" FontWeight="Bold" Margin="0,0,0,8"/>
+        <ListBox Grid.Row="1" ItemsSource="{Binding InstalledSoftware}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Name}" Width="150"/>
+                        <TextBlock Text="{Binding Version}" Margin="8,0,0,0"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</Page>
