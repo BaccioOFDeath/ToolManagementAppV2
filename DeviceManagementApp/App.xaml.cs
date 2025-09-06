@@ -10,6 +10,7 @@ using Serilog;
 using Serilog.Events;
 using DeviceManagementApp.Services;
 using DeviceManagementApp.Interfaces;
+using Application = System.Windows.Application;
 
 namespace DeviceManagementApp
 {
