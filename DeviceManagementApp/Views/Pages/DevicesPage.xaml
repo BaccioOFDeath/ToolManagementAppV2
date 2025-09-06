@@ -48,6 +48,14 @@
                                 Content="Delete Group"
                                 Command="{Binding DeleteGroupCommand}"
                                 Margin="0,0,8,0"/>
+                        <Button Style="{StaticResource PrimaryButton}"
+                                Content="Assign"
+                                Command="{Binding AssignDeviceCommand}"
+                                Margin="0,0,8,0"/>
+                        <Button Style="{StaticResource PrimaryButton}"
+                                Content="Return"
+                                Command="{Binding ReturnDeviceCommand}"
+                                Margin="0,0,8,0"/>
                         <ComboBox Width="120"
                                   ItemsSource="{Binding Departments}"
                                   SelectedValue="{Binding DepartmentFilter}"
@@ -113,6 +121,7 @@
                         <DataGridTextColumn Header="Protocols" Binding="{Binding ProtocolsDisplay}" IsReadOnly="True" Width="150"/>
                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" IsReadOnly="True" Width="120"/>
                         <DataGridTextColumn Header="Last Seen" Binding="{Binding LastSeen, StringFormat={}{0:G}}" IsReadOnly="True" Width="180"/>
+                        <DataGridTextColumn Header="Assigned To" Binding="{Binding AssignedUserId}" IsReadOnly="True" Width="120"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </Border>

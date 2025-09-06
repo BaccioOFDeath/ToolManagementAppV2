@@ -13,6 +13,7 @@ using CommunityToolkit.Mvvm.Input;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.Models;
 using DeviceManagementApp.Views.Pages;
+using DeviceManagementApp.Views;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualBasic;
@@ -26,6 +27,7 @@ namespace DeviceManagementApp.ViewModels
         private readonly IDialogService _dialogService;
         private readonly IDeviceService _deviceService;
         private readonly IDeviceGroupService _groupService;
+        private readonly IDeviceAssignmentService _assignmentService;
         private readonly IDeviceSoftwareService _softwareService;
         private readonly INavigationService _navigationService;
         private readonly ILogger<DevicesViewModel> _logger;
@@ -61,6 +63,8 @@ namespace DeviceManagementApp.ViewModels
                     PingSelectedDeviceCommand.NotifyCanExecuteChanged();
                     DownloadUnseenFilesCommand.NotifyCanExecuteChanged();
                     ViewDetailsCommand.NotifyCanExecuteChanged();
+                    AssignDeviceCommand.NotifyCanExecuteChanged();
+                    ReturnDeviceCommand.NotifyCanExecuteChanged();
                 }
             }
         }
@@ -73,6 +77,8 @@ namespace DeviceManagementApp.ViewModels
         public IAsyncRelayCommand RenameGroupCommand { get; }
         public IAsyncRelayCommand DeleteGroupCommand { get; }
         public IAsyncRelayCommand DownloadUnseenFilesCommand { get; }
+        public IAsyncRelayCommand AssignDeviceCommand { get; }
+        public IAsyncRelayCommand ReturnDeviceCommand { get; }
         public IRelayCommand ViewDetailsCommand { get; }
 
         private string _sourceFolder = string.Empty;
@@ -123,6 +129,26 @@ namespace DeviceManagementApp.ViewModels
         public Func<string?> PromptForGroupName { get; set; } = () =>
             Interaction.InputBox("Enter group name:", "Add Group", string.Empty);
 
+        public Func<Device, DeviceAssignment?> PromptForAssignment { get; set; } = device =>
+        {
+            var dialog = new AssignDeviceDialog();
+            AssignDeviceViewModel vm = null!;
+            dialog.DataContext = vm = new AssignDeviceViewModel(r => dialog.DialogResult = r)
+            {
+                UserId = device.AssignedUserId ?? 0,
+                DepartmentId = device.DepartmentId
+            };
+            return dialog.ShowDialog() == true
+                ? new DeviceAssignment
+                {
+                    DeviceIp = device.Ip,
+                    UserId = vm.UserId,
+                    DepartmentId = vm.DepartmentId,
+                    AssignedDate = DateTime.UtcNow
+                }
+                : null;
+        };
+
         private DeviceGroup? _selectedGroup;
         public DeviceGroup? SelectedGroup
         {
@@ -170,6 +196,7 @@ namespace DeviceManagementApp.ViewModels
                                  IDialogService dialogService,
                                  IDeviceService deviceService,
                                  IDeviceGroupService groupService,
+                                 IDeviceAssignmentService? assignmentService = null,
                                  IDeviceSoftwareService? softwareService = null,
                                  INavigationService? navigationService = null,
                                  ILogger<DevicesViewModel>? logger = null)
@@ -179,6 +206,7 @@ namespace DeviceManagementApp.ViewModels
             _dialogService = dialogService;
             _deviceService = deviceService;
             _groupService = groupService;
+            _assignmentService = assignmentService ?? NullDeviceAssignmentService.Instance;
             _softwareService = softwareService ?? NullDeviceSoftwareService.Instance;
             _navigationService = navigationService ?? NullNavigationService.Instance;
             _logger = logger ?? NullLogger<DevicesViewModel>.Instance;
@@ -194,6 +222,8 @@ namespace DeviceManagementApp.ViewModels
             RenameGroupCommand = new AsyncRelayCommand(RenameGroupAsync);
             DeleteGroupCommand = new AsyncRelayCommand(DeleteGroupAsync);
             DownloadUnseenFilesCommand = new AsyncRelayCommand(DownloadUnseenFilesAsync, CanDownloadUnseenFiles);
+            AssignDeviceCommand = new AsyncRelayCommand(AssignDeviceAsync, () => SelectedDevice != null);
+            ReturnDeviceCommand = new AsyncRelayCommand(ReturnDeviceAsync, () => SelectedDevice?.AssignedUserId != null);
             ViewDetailsCommand = new RelayCommand(OpenDetails, () => SelectedDevice != null);
         }
 
@@ -241,6 +271,19 @@ namespace DeviceManagementApp.ViewModels
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Failed to get group for device {Ip}", device.Ip);
+                    }
+                    try
+                    {
+                        var assignment = await _assignmentService.GetCurrentAssignmentAsync(device.Ip).ConfigureAwait(false);
+                        if (assignment != null)
+                        {
+                            device.AssignedUserId = assignment.UserId;
+                            device.DepartmentId = assignment.DepartmentId;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to get assignment for device {Ip}", device.Ip);
                     }
                     device.PropertyChanged += Device_PropertyChanged;
                     Devices.Add(device);
@@ -425,6 +468,58 @@ namespace DeviceManagementApp.ViewModels
             }
         }
 
+        private async Task AssignDeviceAsync()
+        {
+            if (SelectedDevice is null)
+                return;
+
+            var assignment = PromptForAssignment?.Invoke(SelectedDevice);
+            if (assignment == null)
+                return;
+
+            try
+            {
+                await _assignmentService.AssignAsync(assignment);
+                SelectedDevice.AssignedUserId = assignment.UserId;
+                SelectedDevice.DepartmentId = assignment.DepartmentId;
+                if (!Staff.Any(s => s.Key == assignment.UserId))
+                    Staff.Add(new(assignment.UserId, assignment.UserId.ToString()));
+                if (assignment.DepartmentId.HasValue && !Departments.Any(d => d.Key == assignment.DepartmentId))
+                    Departments.Add(new(assignment.DepartmentId.Value, assignment.DepartmentId.Value.ToString()));
+                DevicesView.Refresh();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to assign device {Ip}", assignment.DeviceIp);
+                await _dialogService.ShowInfoAsync($"Failed to assign device: {ex.Message}", "Devices");
+            }
+
+            ReturnDeviceCommand.NotifyCanExecuteChanged();
+            AssignDeviceCommand.NotifyCanExecuteChanged();
+        }
+
+        private async Task ReturnDeviceAsync()
+        {
+            if (SelectedDevice is null)
+                return;
+
+            try
+            {
+                await _assignmentService.ReturnAsync(SelectedDevice.Ip);
+                SelectedDevice.AssignedUserId = null;
+                SelectedDevice.DepartmentId = null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to return device {Ip}", SelectedDevice.Ip);
+                await _dialogService.ShowInfoAsync($"Failed to return device: {ex.Message}", "Devices");
+            }
+
+            ReturnDeviceCommand.NotifyCanExecuteChanged();
+            AssignDeviceCommand.NotifyCanExecuteChanged();
+            DevicesView.Refresh();
+        }
+
         async Task LoadInstalledSoftwareAsync(Device device)
         {
             try
@@ -488,6 +583,18 @@ namespace DeviceManagementApp.ViewModels
             if (AssignedUserFilter.HasValue && d.AssignedUserId != AssignedUserFilter)
                 return false;
             return true;
+        }
+
+        class NullDeviceAssignmentService : IDeviceAssignmentService
+        {
+            public static readonly IDeviceAssignmentService Instance = new NullDeviceAssignmentService();
+            NullDeviceAssignmentService() { }
+            public Task<DeviceAssignment?> GetCurrentAssignmentAsync(string deviceIp, CancellationToken cancellationToken = default)
+                => Task.FromResult<DeviceAssignment?>(null);
+            public Task AssignAsync(DeviceAssignment assignment, CancellationToken cancellationToken = default)
+                => Task.CompletedTask;
+            public Task ReturnAsync(string deviceIp, CancellationToken cancellationToken = default)
+                => Task.CompletedTask;
         }
 
         class NullDeviceSoftwareService : IDeviceSoftwareService
