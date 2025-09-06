@@ -11,6 +11,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../DeviceManagementApp/DeviceManagementApp.csproj" />
-    <ProjectReference Include="../InventoryManagementApp/InventoryManagementApp.csproj" />
   </ItemGroup>
 </Project>
