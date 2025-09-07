@@ -11,6 +11,7 @@ using Serilog.Events;
 using DeviceManagementApp.Services;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.ViewModels;
+using DeviceManagementApp.Views.Windows;
 
 namespace DeviceManagementApp
 {
@@ -65,6 +66,8 @@ namespace DeviceManagementApp
                 services.AddSingleton<IDeviceFileService, DeviceFileService>();
                 services.AddSingleton<IDeviceGroupService, DeviceGroupService>();
                 services.AddSingleton<IDeviceDiscoveryService, DeviceDiscoveryService>();
+                services.AddTransient<Func<string, InfoDialogWindow>>(sp => message => new InfoDialogWindow(message));
+                services.AddTransient<Func<string, ConfirmDialogWindow>>(sp => message => new ConfirmDialogWindow(message));
                 services.AddSingleton<IDialogService, DialogService>();
                 services.AddSingleton<ISettingsService, SettingsService>();
                 services.AddSingleton<INavigationService, NavigationService>();
