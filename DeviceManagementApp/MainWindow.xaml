@@ -22,7 +22,9 @@
                 <ScrollViewer Grid.Row="1">
                     <StackPanel Orientation="Vertical" Margin="12,0,12,8">
                         <TextBlock Text="Operations" Style="{StaticResource CaptionTextBlock}" Margin="6,8,6,2"/>
+                        <Button Style="{StaticResource NavButton}" Content="Dashboard" Command="{Binding OpenDashboardCommand}"/>
                         <Button Style="{StaticResource NavButton}" Content="Devices" Command="{Binding OpenDevicesCommand}"/>
+                        <Button Style="{StaticResource NavButton}" Content="Settings" Command="{Binding OpenSettingsCommand}"/>
                         <Separator/>
                         <Button Style="{StaticResource NavButton}" Content="Exit" Command="{Binding ExitCommand}"/>
                     </StackPanel>

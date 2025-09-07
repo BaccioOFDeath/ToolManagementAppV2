@@ -65,8 +65,12 @@ namespace DeviceManagementApp
                 services.AddSingleton<IDeviceFileService, DeviceFileService>();
                 services.AddSingleton<IDeviceGroupService, DeviceGroupService>();
                 services.AddSingleton<IDeviceDiscoveryService, DeviceDiscoveryService>();
+                services.AddSingleton<IDialogService, DialogService>();
+                services.AddSingleton<ISettingsService, SettingsService>();
                 services.AddSingleton<INavigationService, NavigationService>();
                 services.AddSingleton<DevicesViewModel>();
+                services.AddSingleton<DashboardViewModel>();
+                services.AddSingleton<SettingsViewModel>();
                 services.AddSingleton<IMainViewModel, MainViewModel>();
                 services.AddSingleton<MainWindow>();
             })
