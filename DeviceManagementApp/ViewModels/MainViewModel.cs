@@ -17,19 +17,22 @@ namespace DeviceManagementApp.ViewModels
         private readonly DevicesViewModel _devicesViewModel;
         private readonly DashboardViewModel _dashboardViewModel;
         private readonly SettingsViewModel _settingsViewModel;
+        private readonly StaffManagementViewModel _staffManagementViewModel;
 
-        public MainViewModel(INavigationService navigationService, DevicesViewModel devicesViewModel, DashboardViewModel dashboardViewModel, SettingsViewModel settingsViewModel)
+        public MainViewModel(INavigationService navigationService, DevicesViewModel devicesViewModel, DashboardViewModel dashboardViewModel, SettingsViewModel settingsViewModel, StaffManagementViewModel staffManagementViewModel)
         {
             _navigationService = navigationService;
             _devicesViewModel = devicesViewModel;
             _dashboardViewModel = dashboardViewModel;
             _settingsViewModel = settingsViewModel;
+            _staffManagementViewModel = staffManagementViewModel;
             _devicesViewModel.ViewDetailsRequested += DevicesViewModel_ViewDetailsRequested;
 
             WindowTitle = "Device Management";
             OpenDevicesCommand = new RelayCommand(OpenDevices);
             OpenDashboardCommand = new RelayCommand(OpenDashboard);
             OpenSettingsCommand = new RelayCommand(OpenSettings);
+            OpenStaffCommand = new RelayCommand(OpenStaff);
             ExitCommand = new RelayCommand(() => Application.Current.Shutdown());
 
             OpenDashboard();
@@ -54,6 +57,7 @@ namespace DeviceManagementApp.ViewModels
         public IRelayCommand OpenDevicesCommand { get; }
         public IRelayCommand OpenDashboardCommand { get; }
         public IRelayCommand OpenSettingsCommand { get; }
+        public IRelayCommand OpenStaffCommand { get; }
         public IRelayCommand ExitCommand { get; }
 
         private void OpenDevices()
@@ -77,6 +81,14 @@ namespace DeviceManagementApp.ViewModels
             var page = new SettingsPage { DataContext = _settingsViewModel };
             CurrentPage = page;
             CurrentPageTitle = "Settings";
+        }
+
+        private async void OpenStaff()
+        {
+            await _staffManagementViewModel.LoadStaffAsync();
+            var page = new StaffPage { DataContext = _staffManagementViewModel };
+            CurrentPage = page;
+            CurrentPageTitle = "Staff";
         }
 
         private void DevicesViewModel_ViewDetailsRequested(object? sender, Device device)
