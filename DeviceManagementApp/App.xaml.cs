@@ -12,6 +12,7 @@ using DeviceManagementApp.Services;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.ViewModels;
 using DeviceManagementApp.Views.Windows;
+using Application = System.Windows.Application;
 
 namespace DeviceManagementApp
 {
