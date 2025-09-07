@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -8,6 +10,8 @@ namespace DeviceManagementApp.ViewModels
     {
         int _userId;
         int? _departmentId;
+
+        public ObservableCollection<KeyValuePair<int, string>> Staff { get; } = new();
 
         public int UserId
         {

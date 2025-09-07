@@ -82,6 +82,13 @@ public class DevicesViewModelTests
         }
     }
 
+    private sealed class StubStaffService : IStaffService
+    {
+        public List<KeyValuePair<int, string>> Staff { get; } = new();
+        public Task<IEnumerable<KeyValuePair<int, string>>> GetStaffAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult<IEnumerable<KeyValuePair<int, string>>>(Staff);
+    }
+
     private sealed class RecordingDeviceGroupService : IDeviceGroupService
     {
         public List<DeviceGroup> Groups { get; } = new();
@@ -148,6 +155,23 @@ public class DevicesViewModelTests
         Assert.Equal("1.2.3.4", vm.Devices[0].Ip);
         Assert.Equal("Online", vm.Devices[0].Status);
         Assert.Equal("Ftp", vm.Devices[0].ProtocolsDisplay);
+    }
+
+    [Fact]
+    public async Task RefreshCommand_LoadsStaffFromService()
+    {
+        var discovery = new StubDiscoveryService();
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new RecordingDialogService();
+        var staffService = new StubStaffService();
+        staffService.Staff.Add(new(1, "Alice"));
+        staffService.Staff.Add(new(2, "Bob"));
+        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), new RecordingDeviceGroupService(), staffService: staffService);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        Assert.Contains(vm.Staff, s => s.Key == 1 && s.Value == "Alice");
+        Assert.Contains(vm.Staff, s => s.Key == 2 && s.Value == "Bob");
     }
 
     [Fact]

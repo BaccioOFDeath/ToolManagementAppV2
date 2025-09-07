@@ -5,8 +5,12 @@
         SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner">
     <StackPanel Margin="10">
         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-            <TextBlock Text="User ID:" Width="80" VerticalAlignment="Center"/>
-            <TextBox Width="150" Text="{Binding UserId, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock Text="Staff:" Width="80" VerticalAlignment="Center"/>
+            <ComboBox Width="150"
+                      ItemsSource="{Binding Staff}"
+                      SelectedValue="{Binding UserId, UpdateSourceTrigger=PropertyChanged}"
+                      DisplayMemberPath="Value"
+                      SelectedValuePath="Key"/>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
             <TextBlock Text="Department:" Width="80" VerticalAlignment="Center"/>

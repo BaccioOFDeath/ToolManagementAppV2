@@ -27,6 +27,7 @@ namespace DeviceManagementApp.ViewModels
         private readonly IDeviceGroupService _groupService;
         private readonly IDeviceAssignmentService _assignmentService;
         private readonly IDeviceSoftwareService _softwareService;
+        private readonly IStaffService _staffService;
         private readonly ILogger<DevicesViewModel> _logger;
 
         public ObservableCollection<Device> Devices { get; } = new();
@@ -128,25 +129,7 @@ namespace DeviceManagementApp.ViewModels
         public Func<string?> PromptForGroupName { get; set; } = () =>
             Interaction.InputBox("Enter group name:", "Add Group", string.Empty);
 
-        public Func<Device, DeviceAssignment?> PromptForAssignment { get; set; } = device =>
-        {
-            var dialog = new AssignDeviceDialog();
-            AssignDeviceViewModel vm = null!;
-            dialog.DataContext = vm = new AssignDeviceViewModel(r => dialog.DialogResult = r)
-            {
-                UserId = device.AssignedUserId ?? 0,
-                DepartmentId = device.DepartmentId
-            };
-            return dialog.ShowDialog() == true
-                ? new DeviceAssignment
-                {
-                    DeviceIp = device.Ip,
-                    UserId = vm.UserId,
-                    DepartmentId = vm.DepartmentId,
-                    AssignedDate = DateTime.UtcNow
-                }
-                : null;
-        };
+        public Func<Device, DeviceAssignment?> PromptForAssignment { get; set; }
 
         private DeviceGroup? _selectedGroup;
         public DeviceGroup? SelectedGroup
@@ -197,6 +180,7 @@ namespace DeviceManagementApp.ViewModels
                                  IDeviceGroupService groupService,
                                  IDeviceAssignmentService? assignmentService = null,
                                  IDeviceSoftwareService? softwareService = null,
+                                 IStaffService? staffService = null,
                                  ILogger<DevicesViewModel>? logger = null)
         {
             _discoveryService = discoveryService;
@@ -206,6 +190,7 @@ namespace DeviceManagementApp.ViewModels
             _groupService = groupService;
             _assignmentService = assignmentService ?? NullDeviceAssignmentService.Instance;
             _softwareService = softwareService ?? NullDeviceSoftwareService.Instance;
+            _staffService = staffService ?? NullStaffService.Instance;
             _logger = logger ?? NullLogger<DevicesViewModel>.Instance;
 
             DevicesView = CollectionViewSource.GetDefaultView(Devices);
@@ -222,6 +207,29 @@ namespace DeviceManagementApp.ViewModels
             AssignDeviceCommand = new AsyncRelayCommand(AssignDeviceAsync, () => SelectedDevice != null);
             ReturnDeviceCommand = new AsyncRelayCommand(ReturnDeviceAsync, () => SelectedDevice?.AssignedUserId != null);
             ViewDetailsCommand = new RelayCommand(OnViewDetails, () => SelectedDevice != null);
+
+            PromptForAssignment = device =>
+            {
+                var dialog = new AssignDeviceDialog();
+                AssignDeviceViewModel vm = null!;
+                dialog.DataContext = vm = new AssignDeviceViewModel(r => dialog.DialogResult = r)
+                {
+                    UserId = device.AssignedUserId ?? 0,
+                    DepartmentId = device.DepartmentId
+                };
+                vm.Staff.Clear();
+                foreach (var s in Staff.Where(s => s.Key.HasValue))
+                    vm.Staff.Add(new KeyValuePair<int, string>(s.Key!.Value, s.Value));
+                return dialog.ShowDialog() == true
+                    ? new DeviceAssignment
+                    {
+                        DeviceIp = device.Ip,
+                        UserId = vm.UserId,
+                        DepartmentId = vm.DepartmentId,
+                        AssignedDate = DateTime.UtcNow
+                    }
+                    : null;
+            };
         }
 
         private async Task RefreshAsync()
@@ -238,6 +246,9 @@ namespace DeviceManagementApp.ViewModels
                 Departments.Add(new(null, "All Departments"));
                 Staff.Clear();
                 Staff.Add(new(null, "All Staff"));
+                var staffList = (await _staffService.GetStaffAsync()).ToList();
+                foreach (var s in staffList)
+                    Staff.Add(new(s.Key, s.Value));
 
                 var groups = await _groupService.GetGroupsAsync();
                 Groups.Clear();
@@ -287,7 +298,11 @@ namespace DeviceManagementApp.ViewModels
                     if (device.DepartmentId.HasValue && !Departments.Any(dp => dp.Key == device.DepartmentId))
                         Departments.Add(new(device.DepartmentId.Value, device.DepartmentId.Value.ToString()));
                     if (device.AssignedUserId.HasValue && !Staff.Any(s => s.Key == device.AssignedUserId))
-                        Staff.Add(new(device.AssignedUserId.Value, device.AssignedUserId.Value.ToString()));
+                    {
+                        var name = staffList.FirstOrDefault(s => s.Key == device.AssignedUserId.Value).Value
+                                   ?? device.AssignedUserId.Value.ToString();
+                        Staff.Add(new(device.AssignedUserId.Value, name));
+                    }
                 }
 
                 if (Devices.Count == 0 && !_discoveryService.HasConfiguredSubnets)
@@ -479,8 +494,9 @@ namespace DeviceManagementApp.ViewModels
                 await _assignmentService.AssignAsync(assignment);
                 SelectedDevice.AssignedUserId = assignment.UserId;
                 SelectedDevice.DepartmentId = assignment.DepartmentId;
+                var staffName = Staff.FirstOrDefault(s => s.Key == assignment.UserId).Value ?? assignment.UserId.ToString();
                 if (!Staff.Any(s => s.Key == assignment.UserId))
-                    Staff.Add(new(assignment.UserId, assignment.UserId.ToString()));
+                    Staff.Add(new(assignment.UserId, staffName));
                 if (assignment.DepartmentId.HasValue && !Departments.Any(d => d.Key == assignment.DepartmentId))
                     Departments.Add(new(assignment.DepartmentId.Value, assignment.DepartmentId.Value.ToString()));
                 DevicesView.Refresh();
@@ -603,6 +619,14 @@ namespace DeviceManagementApp.ViewModels
                 => Task.CompletedTask;
             public Task DeleteAsync(string deviceIp, int? devicePort, string name, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
+        }
+
+        class NullStaffService : IStaffService
+        {
+            public static readonly IStaffService Instance = new NullStaffService();
+            NullStaffService() { }
+            public Task<IEnumerable<KeyValuePair<int, string>>> GetStaffAsync(CancellationToken cancellationToken = default)
+                => Task.FromResult<IEnumerable<KeyValuePair<int, string>>>(Array.Empty<KeyValuePair<int, string>>());
         }
 
     }
