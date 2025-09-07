@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.Models;
 using DeviceManagementApp.Views.Pages;
+using Application = System.Windows.Application;
 
 namespace DeviceManagementApp.ViewModels
 {

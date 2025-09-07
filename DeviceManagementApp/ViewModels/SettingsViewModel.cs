@@ -10,6 +10,7 @@ using CommunityToolkit.Mvvm.Input;
 using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.Models;
 using DeviceManagementApp.Resources;
+using DeviceManagementApp.Services;
 
 namespace DeviceManagementApp.ViewModels
 {

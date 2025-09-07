@@ -14,6 +14,7 @@ using DeviceManagementApp.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualBasic;
+using DeviceManagementApp.Views;
 
 namespace DeviceManagementApp.ViewModels
 {

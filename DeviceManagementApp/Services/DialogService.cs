@@ -4,6 +4,7 @@ using DeviceManagementApp.Interfaces;
 using DeviceManagementApp.Views.Windows;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Application = System.Windows.Application;
 
 namespace DeviceManagementApp.Services
 {
