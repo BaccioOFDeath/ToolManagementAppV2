@@ -66,6 +66,7 @@ namespace DeviceManagementApp
                 services.AddSingleton<IDeviceService, DeviceService>();
                 services.AddSingleton<IDeviceFileService, DeviceFileService>();
                 services.AddSingleton<IDeviceGroupService, DeviceGroupService>();
+                services.AddSingleton<IStaffService, StaffService>();
                 services.AddSingleton<IDeviceDiscoveryService, DeviceDiscoveryService>();
                 services.AddTransient<Func<string, InfoDialogWindow>>(sp => message => new InfoDialogWindow(message));
                 services.AddTransient<Func<string, ConfirmDialogWindow>>(sp => message => new ConfirmDialogWindow(message));
@@ -75,6 +76,7 @@ namespace DeviceManagementApp
                 services.AddSingleton<DevicesViewModel>();
                 services.AddSingleton<DashboardViewModel>();
                 services.AddSingleton<SettingsViewModel>();
+                services.AddSingleton<StaffManagementViewModel>();
                 services.AddSingleton<IMainViewModel, MainViewModel>();
                 services.AddSingleton<MainWindow>();
             })

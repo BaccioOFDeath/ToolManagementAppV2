@@ -118,6 +118,13 @@ namespace DeviceManagementApp.Services
                     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     PasswordExpired INTEGER NOT NULL DEFAULT 0
                 );
+                CREATE TABLE IF NOT EXISTS Staff (
+                    StaffId INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Name TEXT NOT NULL,
+                    Role TEXT,
+                    Email TEXT,
+                    Phone TEXT
+                );
                 CREATE TABLE IF NOT EXISTS Customers (
                     CustomerID INTEGER PRIMARY KEY AUTOINCREMENT,
                     Company TEXT NOT NULL,
