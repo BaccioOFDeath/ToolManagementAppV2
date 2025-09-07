@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -13,16 +14,21 @@ namespace DeviceManagementApp.ViewModels
     {
         private readonly INavigationService _navigationService;
         private readonly DevicesViewModel _devicesViewModel;
+        private readonly DashboardViewModel _dashboardViewModel;
+        private readonly SettingsViewModel _settingsViewModel;
 
-        public MainViewModel(INavigationService navigationService, DevicesViewModel devicesViewModel)
+        public MainViewModel(INavigationService navigationService, DevicesViewModel devicesViewModel, DashboardViewModel dashboardViewModel, SettingsViewModel settingsViewModel)
         {
             _navigationService = navigationService;
             _devicesViewModel = devicesViewModel;
+            _dashboardViewModel = dashboardViewModel;
+            _settingsViewModel = settingsViewModel;
             _devicesViewModel.ViewDetailsRequested += DevicesViewModel_ViewDetailsRequested;
 
             WindowTitle = "Device Management";
             OpenDevicesCommand = new RelayCommand(OpenDevices);
             OpenDashboardCommand = new RelayCommand(OpenDashboard);
+            OpenSettingsCommand = new RelayCommand(OpenSettings);
             ExitCommand = new RelayCommand(() => Application.Current.Shutdown());
 
             OpenDashboard();
@@ -46,6 +52,7 @@ namespace DeviceManagementApp.ViewModels
 
         public IRelayCommand OpenDevicesCommand { get; }
         public IRelayCommand OpenDashboardCommand { get; }
+        public IRelayCommand OpenSettingsCommand { get; }
         public IRelayCommand ExitCommand { get; }
 
         private void OpenDevices()
@@ -55,11 +62,20 @@ namespace DeviceManagementApp.ViewModels
             CurrentPageTitle = "Devices";
         }
 
-        private void OpenDashboard()
+        private async void OpenDashboard()
         {
-            var page = new Page { Title = "Dashboard", Content = new TextBlock { Text = "Dashboard" } };
+            var page = new DashboardPage { DataContext = _dashboardViewModel };
             CurrentPage = page;
             CurrentPageTitle = "Dashboard";
+            await _dashboardViewModel.LoadAsync(CancellationToken.None);
+        }
+
+        private async void OpenSettings()
+        {
+            await _settingsViewModel.InitializeAsync();
+            var page = new SettingsPage { DataContext = _settingsViewModel };
+            CurrentPage = page;
+            CurrentPageTitle = "Settings";
         }
 
         private void DevicesViewModel_ViewDetailsRequested(object? sender, Device device)

@@ -27,7 +27,9 @@ namespace DeviceManagementApp.Tests
                     var app = new Application();
                     var nav = new TestNavigationService();
                     var devicesVm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService(), new DummyDeviceGroupService());
-                    var vm = new MainViewModel(nav, devicesVm);
+                    var dashboardVm = new DashboardViewModel(new DummyDeviceService(), nav, devicesVm);
+                    var settingsVm = new SettingsViewModel(new DummySettingsService(), new DummyDialogService());
+                    var vm = new MainViewModel(nav, devicesVm, dashboardVm, settingsVm);
                     vm.OpenDevicesCommand.Execute(null);
                     currentPage = vm.CurrentPage;
                     currentTitle = vm.CurrentPageTitle;
@@ -63,7 +65,9 @@ namespace DeviceManagementApp.Tests
                     {
                         SelectedDevice = new Device()
                     };
-                    var vm = new MainViewModel(nav, devicesVm);
+                    var dashboardVm = new DashboardViewModel(new DummyDeviceService(), nav, devicesVm);
+                    var settingsVm = new SettingsViewModel(new DummySettingsService(), new DummyDialogService());
+                    var vm = new MainViewModel(nav, devicesVm, dashboardVm, settingsVm);
                     devicesVm.ViewDetailsCommand.Execute(null);
                     Application.Current?.Shutdown();
                 }
@@ -78,6 +82,64 @@ namespace DeviceManagementApp.Tests
 
             if (threadEx != null) throw threadEx;
             Assert.True(navigated);
+        }
+
+        [Fact]
+        public void OpenDashboardCommand_NavigatesToDashboardPage()
+        {
+            Exception? threadEx = null;
+            Page? currentPage = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    var nav = new TestNavigationService();
+                    var devicesVm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService(), new DummyDeviceGroupService());
+                    var dashboardVm = new DashboardViewModel(new DummyDeviceService(), nav, devicesVm);
+                    var settingsVm = new SettingsViewModel(new DummySettingsService(), new DummyDialogService());
+                    var vm = new MainViewModel(nav, devicesVm, dashboardVm, settingsVm);
+                    vm.OpenDashboardCommand.Execute(null);
+                    currentPage = vm.CurrentPage;
+                    Application.Current?.Shutdown();
+                }
+                catch (Exception ex) { threadEx = ex; }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+            Assert.IsType<DeviceManagementApp.Views.Pages.DashboardPage>(currentPage);
+        }
+
+        [Fact]
+        public void OpenSettingsCommand_NavigatesToSettingsPage()
+        {
+            Exception? threadEx = null;
+            Page? currentPage = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    var nav = new TestNavigationService();
+                    var devicesVm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService(), new DummyDeviceGroupService());
+                    var dashboardVm = new DashboardViewModel(new DummyDeviceService(), nav, devicesVm);
+                    var settingsVm = new SettingsViewModel(new DummySettingsService(), new DummyDialogService());
+                    var vm = new MainViewModel(nav, devicesVm, dashboardVm, settingsVm);
+                    vm.OpenSettingsCommand.Execute(null);
+                    currentPage = vm.CurrentPage;
+                    Application.Current?.Shutdown();
+                }
+                catch (Exception ex) { threadEx = ex; }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+            Assert.IsType<DeviceManagementApp.Views.Pages.SettingsPage>(currentPage);
         }
 
         private sealed class TestNavigationService : INavigationService
@@ -132,6 +194,28 @@ namespace DeviceManagementApp.Tests
                 => Task.CompletedTask;
             public Task<int?> GetDeviceGroupIdAsync(string deviceIp, int? devicePort, CancellationToken cancellationToken = default)
                 => Task.FromResult<int?>(null);
+        }
+
+        private sealed class DummySettingsService : ISettingsService
+        {
+            public event EventHandler<IDictionary<ItemDetailField, bool>>? ItemDetailVisibilityChanged;
+            public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<string?> GetSettingAsync(string? key, CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
+            public Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new Dictionary<string, string>());
+            public Task UpdateSettingsAsync(Dictionary<string, string> settings, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<string?> GetThemeAsync(CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
+            public Task SaveThemeAsync(string theme, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);
+            public Task SavePasswordIterationsAsync(int iterations, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<int> GetAutoLogoutMinutesAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);
+            public Task SaveAutoLogoutMinutesAsync(int minutes, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<string> GetItemLabelSingularAsync(CancellationToken cancellationToken = default) => Task.FromResult("Device");
+            public Task SaveItemLabelSingularAsync(string label, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<string> GetItemLabelPluralAsync(CancellationToken cancellationToken = default) => Task.FromResult("Devices");
+            public Task SaveItemLabelPluralAsync(string label, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<IDictionary<ItemDetailField, bool>> GetItemDetailVisibilityAsync(CancellationToken cancellationToken = default) => Task.FromResult<IDictionary<ItemDetailField, bool>>(new Dictionary<ItemDetailField, bool>());
+            public Task SaveItemDetailVisibilityAsync(IDictionary<ItemDetailField, bool> visibility, CancellationToken cancellationToken = default) => Task.CompletedTask;
         }
     }
 }

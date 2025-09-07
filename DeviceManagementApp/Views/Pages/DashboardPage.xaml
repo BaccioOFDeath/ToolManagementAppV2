@@ -1,0 +1,119 @@
+<!-- Views/DashboardPage.xaml -->
+<Page x:Class="DeviceManagementApp.Views.Pages.DashboardPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="{DynamicResource BackgroundBrush}">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="Overview" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
+        <ItemsControl Grid.Row="1" ItemsSource="{Binding StatCards}" ItemTemplate="{StaticResource StatCardTemplate}" ItemsPanel="{StaticResource WrapPanelItems}"/>
+        <Grid Grid.Row="2" Margin="0,16,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Grid.Column="0">
+                <StackPanel>
+                    <TextBlock Text="Recent Activity" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
+                    <ListView ItemsSource="{Binding RecentActivity}"
+                              ItemTemplate="{StaticResource ActivityLogItemTemplate}"
+                              VirtualizingPanel.IsVirtualizing="True"
+                              VirtualizingPanel.VirtualizationMode="Recycling"
+                              Style="{StaticResource CardListView}">
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel/>
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                    </ListView>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Grid.Column="1">
+                <StackPanel>
+                    <TextBlock Text="Quick Actions" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
+                    <WrapPanel>
+                        <Button Style="{StaticResource PrimaryButton}"
+                                Content="New Device"
+                                Command="{Binding NewDeviceCommand}"
+                                Margin="0,0,8,8"/>
+                        <Button Style="{StaticResource PrimaryButton}"
+                                Content="Assign Device"
+                                Command="{Binding AssignDeviceCommand}"
+                                Margin="0,0,8,8"/>
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Grid.Column="2">
+                <StackPanel>
+                    <TextBlock Text="Assigned Devices" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
+                    <ListView ItemsSource="{Binding AssignedDevices}"
+                              Style="{StaticResource CardListView}"
+                              VirtualizingPanel.IsVirtualizing="True"
+                              VirtualizingPanel.VirtualizationMode="Recycling">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <StackPanel.ToolTip>
+                                        <Image Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                               MaxWidth="150"
+                                               MaxHeight="150"
+                                               Stretch="Uniform"/>
+                                    </StackPanel.ToolTip>
+                                    <TextBlock Text="{Binding DeviceId}" Margin="0,0,8,0"/>
+                                    <TextBlock Text="{Binding AssignedTo}" Margin="0,0,8,0"/>
+                                    <Button Content="Return"
+                                            Command="{Binding DataContext.ReturnDeviceCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="0,0,0,0"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel/>
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                    </ListView>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Grid.Column="3">
+                <StackPanel>
+                    <TextBlock Text="Unassigned Devices" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
+                    <ListView ItemsSource="{Binding UnassignedDevices}"
+                              Style="{StaticResource CardListView}"
+                              VirtualizingPanel.IsVirtualizing="True"
+                              VirtualizingPanel.VirtualizationMode="Recycling">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <StackPanel.ToolTip>
+                                        <Image Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                               MaxWidth="150"
+                                               MaxHeight="150"
+                                               Stretch="Uniform"/>
+                                    </StackPanel.ToolTip>
+                                    <TextBlock Text="{Binding DeviceId}" Margin="0,0,8,0"/>
+                                    <Button Content="Assign"
+                                            Command="{Binding DataContext.AssignDeviceInListCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="0,0,0,0"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel/>
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                    </ListView>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Page>
