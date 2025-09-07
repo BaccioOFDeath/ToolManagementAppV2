@@ -94,11 +94,11 @@
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
+                <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
                 <Setter Property="Foreground" Value="{DynamicResource OnAccentForegroundBrush}"/>
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>
+                <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
                 <Setter Property="Foreground" Value="{DynamicResource OnAccentForegroundBrush}"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
             </Trigger>
@@ -111,11 +111,11 @@
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
+                <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
                 <Setter Property="Foreground" Value="{DynamicResource OnAccentForegroundBrush}"/>
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>
+                <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
                 <Setter Property="Foreground" Value="{DynamicResource OnAccentForegroundBrush}"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
             </Trigger>
@@ -314,11 +314,11 @@
         <Setter Property="Background" Value="Transparent"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
+                <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
                 <Setter Property="Foreground" Value="{DynamicResource OnAccentForegroundBrush}"/>
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>
+                <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
                 <Setter Property="Foreground" Value="{DynamicResource OnAccentForegroundBrush}"/>
             </Trigger>
         </Style.Triggers>
@@ -355,11 +355,11 @@
         <Setter Property="Padding" Value="8,4"/>
         <Style.Triggers>
             <Trigger Property="IsHighlighted" Value="True">
-                <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
+                <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
                 <Setter Property="Foreground" Value="{DynamicResource OnAccentForegroundBrush}"/>
             </Trigger>
             <Trigger Property="IsChecked" Value="True">
-                <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>
+                <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
                 <Setter Property="Foreground" Value="{DynamicResource OnAccentForegroundBrush}"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
             </Trigger>

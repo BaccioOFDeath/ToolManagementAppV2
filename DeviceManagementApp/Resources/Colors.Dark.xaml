@@ -19,28 +19,32 @@
     <SolidColorBrush x:Key="ForegroundMutedBrush" Color="{StaticResource Col.FgMuted}"/>
     <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Col.Success}"/>
     <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource Col.Error}"/>
-    <Color x:Key="Col.Accent">#FF7043</Color>
+    <Color x:Key="Col.Accent">#64B5F6</Color>
     <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Col.Accent}"/>
-    <Color x:Key="Col.OnAccent">#FFFFFF</Color>
+    <Color x:Key="Col.OnAccent">#000000</Color>
     <SolidColorBrush x:Key="OnAccentForegroundBrush" Color="{StaticResource Col.OnAccent}"/>
+    <Color x:Key="Col.AccentHover">#42A5F5</Color>
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource Col.AccentHover}"/>
+    <Color x:Key="Col.AccentBorder">#1E88E5</Color>
+    <SolidColorBrush x:Key="AccentBorderBrush" Color="{StaticResource Col.AccentBorder}"/>
+    <Color x:Key="Col.AccentSurface">#1A3B5D</Color>
+    <SolidColorBrush x:Key="AccentSurfaceBrush" Color="{StaticResource Col.AccentSurface}"/>
     <Color x:Key="Col.CardBackground">#1F1F1F</Color>
     <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource Col.CardBackground}"/>
     <SolidColorBrush x:Key="TextBoxBackgroundBrush" Color="#141C24"/>
     <SolidColorBrush x:Key="ComboBoxPopupBackgroundBrush" Color="{StaticResource Col.SurfaceAlt}"/>
     <SolidColorBrush x:Key="OverlayBrush" Color="#80000000"/>
-    <SolidColorBrush x:Key="NavButtonHoverBrush" Color="#243142"/>
-    <SolidColorBrush x:Key="NavButtonHoverBorderBrush" Color="#3A4B5E"/>
-    <SolidColorBrush x:Key="NavButtonPressedBrush" Color="#1E2936"/>
-    <SolidColorBrush x:Key="NavButtonPressedBorderBrush" Color="#3A4B5E"/>
+    <SolidColorBrush x:Key="NavButtonHoverBrush" Color="{StaticResource Col.AccentSurface}"/>
+    <SolidColorBrush x:Key="NavButtonHoverBorderBrush" Color="{StaticResource Col.AccentBorder}"/>
+    <SolidColorBrush x:Key="NavButtonPressedBrush" Color="{StaticResource Col.AccentHover}"/>
+    <SolidColorBrush x:Key="NavButtonPressedBorderBrush" Color="{StaticResource Col.AccentBorder}"/>
     <SolidColorBrush x:Key="NavButtonDisabledBrush" Color="#17202A"/>
     <SolidColorBrush x:Key="NavButtonDisabledBorderBrush" Color="#232E3A"/>
     <SolidColorBrush x:Key="BtnBg" Color="#2A2E37"/>
     <SolidColorBrush x:Key="BtnBgHover" Color="#353A45"/>
     <SolidColorBrush x:Key="BtnBorder" Color="#444A57"/>
     <SolidColorBrush x:Key="BtnFg" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="FocusVisualStrokeBrush" Color="{StaticResource Col.Accent}"/>
-    <SolidColorBrush x:Key="ItemHoverBrush" Color="#2D3C4E"/>
-    <SolidColorBrush x:Key="ItemSelectedBrush" Color="{StaticResource Col.Accent}"/>
+    <SolidColorBrush x:Key="FocusVisualStrokeBrush" Color="{StaticResource Col.AccentBorder}"/>
     <SolidColorBrush x:Key="DisabledForegroundBrush" Color="#6C7A86"/>
     <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="#1A1A1A"/>
     <SolidColorBrush x:Key="DataGridRowBackgroundBrush" Color="#121A22"/>
