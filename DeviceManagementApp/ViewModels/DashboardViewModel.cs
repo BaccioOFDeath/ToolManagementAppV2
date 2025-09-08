@@ -16,6 +16,7 @@ namespace DeviceManagementApp.ViewModels
         readonly IDeviceService _deviceService;
         readonly INavigationService _navigationService;
         readonly DevicesViewModel _devicesViewModel;
+        readonly IAssetService _assetService;
 
         public ObservableCollection<StatCard> StatCards { get; } = new();
         public ObservableCollection<Device> AssignedDevices { get; } = new();
@@ -25,11 +26,12 @@ namespace DeviceManagementApp.ViewModels
         public IRelayCommand AssignDeviceCommand { get; }
         public IRelayCommand AssignDeviceInListCommand { get; }
 
-        public DashboardViewModel(IDeviceService deviceService, INavigationService navigationService, DevicesViewModel devicesViewModel)
+        public DashboardViewModel(IDeviceService deviceService, INavigationService navigationService, DevicesViewModel devicesViewModel, IAssetService assetService)
         {
             _deviceService = deviceService;
             _navigationService = navigationService;
             _devicesViewModel = devicesViewModel;
+            _assetService = assetService;
             NewDeviceCommand = new RelayCommand(OpenDevices);
             AssignDeviceCommand = new RelayCommand(OpenDevices);
             AssignDeviceInListCommand = new RelayCommand<Device>(d =>
@@ -63,6 +65,14 @@ namespace DeviceManagementApp.ViewModels
             StatCards.Add(new StatCard { Title = "Total Devices", Value = list.Count.ToString() });
             StatCards.Add(new StatCard { Title = "Assigned Devices", Value = assigned.Count.ToString() });
             StatCards.Add(new StatCard { Title = "Unassigned Devices", Value = unassigned.Count.ToString() });
+
+            var assets = await _assetService.GetAssetsAsync(cancellationToken).ConfigureAwait(false);
+            var assetList = assets.ToList();
+            var assignedAssets = assetList.Where(a => a.AssignedUserId != null).ToList();
+            var unassignedAssets = assetList.Where(a => a.AssignedUserId == null).ToList();
+            StatCards.Add(new StatCard { Title = "Total Assets", Value = assetList.Count.ToString() });
+            StatCards.Add(new StatCard { Title = "Assigned Assets", Value = assignedAssets.Count.ToString() });
+            StatCards.Add(new StatCard { Title = "Unassigned Assets", Value = unassignedAssets.Count.ToString() });
         }
 
         public IRelayCommand ReturnDeviceCommand => new RelayCommand<Device>(d =>
