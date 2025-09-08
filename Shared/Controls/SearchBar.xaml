@@ -14,12 +14,11 @@
                 Content="{Binding SearchLabel, ElementName=Root}"
                 Command="{Binding SearchCommand, ElementName=Root}"
                 Margin="8,0,0,0"/>
-        <Button Style="{StaticResource PrimaryButton}"
-                Content="Clear"
+        <Button Content="Clear"
                 Command="{Binding ClearCommand, ElementName=Root}"
                 Margin="8,0,0,0">
             <Button.Style>
-                <Style TargetType="Button">
+                <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
                     <Setter Property="Visibility" Value="Visible"/>
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding ClearCommand, ElementName=Root}" Value="{x:Null}">
