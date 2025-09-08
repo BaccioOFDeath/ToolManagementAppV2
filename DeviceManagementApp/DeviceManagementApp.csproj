@@ -50,4 +50,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
+  <ItemGroup>
+    <Page Include="..\Shared\Controls\SearchBar.xaml" Link="Views\Controls\SearchBar.xaml" />
+    <Compile Include="..\Shared\Controls\SearchBar.xaml.cs" Link="Views\Controls\SearchBar.xaml.cs" />
+  </ItemGroup>
 </Project>

@@ -3,6 +3,7 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
+      xmlns:sharedControls="clr-namespace:ToolManagementApp.Controls"
       Background="{DynamicResource BackgroundBrush}">
 
     <Grid Margin="8">
@@ -18,11 +19,10 @@
                     <Button Style="{StaticResource PrimaryButton}" Content="Edit User" Command="{Binding EditUserCommand}" Margin="0,0,8,0"/>
                     
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
-                    <TextBox Width="260" Text="{Binding UserSearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Search" Command="{Binding SearchUsersCommand}" Margin="0,0,8,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Clear" Command="{Binding ClearUserSearchCommand}" Margin="0,0,8,0"/>
-                </StackPanel>
+                <sharedControls:SearchBar DockPanel.Dock="Right"
+                                           Text="{Binding UserSearchText}"
+                                           SearchCommand="{Binding SearchUsersCommand}"
+                                           ClearCommand="{Binding ClearUserSearchCommand}"/>
             </DockPanel>
         </Border>
 
