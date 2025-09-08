@@ -27,6 +27,7 @@ namespace DeviceManagementApp.ViewModels
         private readonly IDeviceGroupService _groupService;
         private readonly IDeviceAssignmentService _assignmentService;
         private readonly IDeviceSoftwareService _softwareService;
+        private readonly IStaffService _staffService;
         private readonly ILogger<DevicesViewModel> _logger;
 
         public ObservableCollection<Device> Devices { get; } = new();
@@ -35,6 +36,7 @@ namespace DeviceManagementApp.ViewModels
         public ObservableCollection<DeviceSoftware> InstalledSoftware { get; } = new();
         public ObservableCollection<KeyValuePair<int?, string>> Departments { get; } = new() { new(null, "All Departments") };
         public ObservableCollection<KeyValuePair<int?, string>> Staff { get; } = new() { new(null, "All Staff") };
+        public ObservableCollection<Staff> StaffMembers { get; } = new();
 
         public event EventHandler<Device>? ViewDetailsRequested;
         public ICollectionView DevicesView { get; }
@@ -132,16 +134,15 @@ namespace DeviceManagementApp.ViewModels
         {
             var dialog = new AssignDeviceDialog();
             AssignDeviceViewModel vm = null!;
-            dialog.DataContext = vm = new AssignDeviceViewModel(r => dialog.DialogResult = r)
+            dialog.DataContext = vm = new AssignDeviceViewModel(r => dialog.DialogResult = r, StaffMembers, device.AssignedUserId)
             {
-                UserId = device.AssignedUserId ?? 0,
                 DepartmentId = device.DepartmentId
             };
-            return dialog.ShowDialog() == true
+            return dialog.ShowDialog() == true && vm.SelectedStaff != null
                 ? new DeviceAssignment
                 {
                     DeviceIp = device.Ip,
-                    UserId = vm.UserId,
+                    UserId = vm.SelectedStaff.StaffId,
                     DepartmentId = vm.DepartmentId,
                     AssignedDate = DateTime.UtcNow
                 }
@@ -197,6 +198,7 @@ namespace DeviceManagementApp.ViewModels
                                  IDeviceGroupService groupService,
                                  IDeviceAssignmentService? assignmentService = null,
                                  IDeviceSoftwareService? softwareService = null,
+                                 IStaffService? staffService = null,
                                  ILogger<DevicesViewModel>? logger = null)
         {
             _discoveryService = discoveryService;
@@ -206,6 +208,7 @@ namespace DeviceManagementApp.ViewModels
             _groupService = groupService;
             _assignmentService = assignmentService ?? NullDeviceAssignmentService.Instance;
             _softwareService = softwareService ?? NullDeviceSoftwareService.Instance;
+            _staffService = staffService ?? NullStaffService.Instance;
             _logger = logger ?? NullLogger<DevicesViewModel>.Instance;
 
             DevicesView = CollectionViewSource.GetDefaultView(Devices);
@@ -238,6 +241,13 @@ namespace DeviceManagementApp.ViewModels
                 Departments.Add(new(null, "All Departments"));
                 Staff.Clear();
                 Staff.Add(new(null, "All Staff"));
+                StaffMembers.Clear();
+                var staff = await _staffService.GetStaffAsync().ConfigureAwait(false);
+                foreach (var s in staff)
+                {
+                    StaffMembers.Add(s);
+                    Staff.Add(new(s.StaffId, s.Name));
+                }
 
                 var groups = await _groupService.GetGroupsAsync();
                 Groups.Clear();
@@ -287,7 +297,11 @@ namespace DeviceManagementApp.ViewModels
                     if (device.DepartmentId.HasValue && !Departments.Any(dp => dp.Key == device.DepartmentId))
                         Departments.Add(new(device.DepartmentId.Value, device.DepartmentId.Value.ToString()));
                     if (device.AssignedUserId.HasValue && !Staff.Any(s => s.Key == device.AssignedUserId))
-                        Staff.Add(new(device.AssignedUserId.Value, device.AssignedUserId.Value.ToString()));
+                    {
+                        var name = StaffMembers.FirstOrDefault(s => s.StaffId == device.AssignedUserId)?.Name
+                                   ?? device.AssignedUserId.Value.ToString();
+                        Staff.Add(new(device.AssignedUserId.Value, name));
+                    }
                 }
 
                 if (Devices.Count == 0 && !_discoveryService.HasConfiguredSubnets)
@@ -479,8 +493,10 @@ namespace DeviceManagementApp.ViewModels
                 await _assignmentService.AssignAsync(assignment);
                 SelectedDevice.AssignedUserId = assignment.UserId;
                 SelectedDevice.DepartmentId = assignment.DepartmentId;
+                var name = StaffMembers.FirstOrDefault(s => s.StaffId == assignment.UserId)?.Name
+                           ?? assignment.UserId.ToString();
                 if (!Staff.Any(s => s.Key == assignment.UserId))
-                    Staff.Add(new(assignment.UserId, assignment.UserId.ToString()));
+                    Staff.Add(new(assignment.UserId, name));
                 if (assignment.DepartmentId.HasValue && !Departments.Any(d => d.Key == assignment.DepartmentId))
                     Departments.Add(new(assignment.DepartmentId.Value, assignment.DepartmentId.Value.ToString()));
                 DevicesView.Refresh();
@@ -602,6 +618,20 @@ namespace DeviceManagementApp.ViewModels
             public Task AddOrUpdateAsync(DeviceSoftware software, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
             public Task DeleteAsync(string deviceIp, int? devicePort, string name, CancellationToken cancellationToken = default)
+                => Task.CompletedTask;
+        }
+
+        class NullStaffService : IStaffService
+        {
+            public static readonly IStaffService Instance = new NullStaffService();
+            NullStaffService() { }
+            public Task<IReadOnlyList<Staff>> GetStaffAsync(CancellationToken cancellationToken = default)
+                => Task.FromResult<IReadOnlyList<Staff>>(Array.Empty<Staff>());
+            public Task<int> AddStaffAsync(Staff staff, CancellationToken cancellationToken = default)
+                => Task.FromResult(0);
+            public Task UpdateStaffAsync(Staff staff, CancellationToken cancellationToken = default)
+                => Task.CompletedTask;
+            public Task DeleteStaffAsync(int staffId, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
         }
 

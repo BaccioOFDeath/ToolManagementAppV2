@@ -1,18 +1,24 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DeviceManagementApp.Models;
 
 namespace DeviceManagementApp.ViewModels
 {
     public class AssignDeviceViewModel : ObservableObject
     {
-        int _userId;
+        Staff? _selectedStaff;
         int? _departmentId;
 
-        public int UserId
+        public ObservableCollection<Staff> Staff { get; } = new();
+
+        public Staff? SelectedStaff
         {
-            get => _userId;
-            set => SetProperty(ref _userId, value);
+            get => _selectedStaff;
+            set => SetProperty(ref _selectedStaff, value);
         }
 
         public int? DepartmentId
@@ -24,8 +30,12 @@ namespace DeviceManagementApp.ViewModels
         public IRelayCommand OkCommand { get; }
         public IRelayCommand CancelCommand { get; }
 
-        public AssignDeviceViewModel(Action<bool?> close)
+        public AssignDeviceViewModel(Action<bool?> close, IEnumerable<Staff> staff, int? selectedStaffId = null)
         {
+            foreach (var s in staff)
+                Staff.Add(s);
+            if (selectedStaffId.HasValue)
+                SelectedStaff = Staff.FirstOrDefault(s => s.StaffId == selectedStaffId.Value);
             OkCommand = new RelayCommand(() => close(true));
             CancelCommand = new RelayCommand(() => close(false));
         }

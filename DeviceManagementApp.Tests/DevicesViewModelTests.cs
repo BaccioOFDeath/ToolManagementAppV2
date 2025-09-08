@@ -591,4 +591,33 @@ public class DevicesViewModelTests
         vm.ViewDetailsCommand.Execute(null);
         Assert.Same(device, requested);
     }
+
+    [Fact]
+    public async Task AssignDeviceAsync_AddsStaffNameToFilter()
+    {
+        var discovery = new StubDiscoveryService();
+        var fileService = new RecordingDeviceFileService();
+        var dialog = new RecordingDialogService();
+        var groupService = new RecordingDeviceGroupService();
+        var staffService = new StubStaffService();
+        var vm = new DevicesViewModel(discovery, fileService, dialog, new RecordingDeviceService(), groupService, null, null, staffService);
+        vm.StaffMembers.Add(new Staff { StaffId = 1, Name = "Alice" });
+        vm.SelectedDevice = new Device { Ip = "1" };
+        vm.Devices.Add(vm.SelectedDevice);
+        vm.PromptForAssignment = _ => new DeviceAssignment { DeviceIp = "1", UserId = 1, AssignedDate = DateTime.UtcNow };
+        await vm.AssignDeviceCommand.ExecuteAsync(null);
+        Assert.Contains(vm.Staff, kv => kv.Key == 1 && kv.Value == "Alice");
+    }
+
+    private sealed class StubStaffService : IStaffService
+    {
+        public Task<IReadOnlyList<Staff>> GetStaffAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<Staff>>(Array.Empty<Staff>());
+        public Task<int> AddStaffAsync(Staff staff, CancellationToken cancellationToken = default)
+            => Task.FromResult(0);
+        public Task UpdateStaffAsync(Staff staff, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+        public Task DeleteStaffAsync(int staffId, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+    }
 }
