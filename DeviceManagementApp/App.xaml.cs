@@ -64,6 +64,8 @@ namespace DeviceManagementApp
                 services.AddSingleton<IDatabaseService>(sp => sp.GetRequiredService<DatabaseService>());
                 services.AddSingleton<IDatabaseBackupService>(sp => sp.GetRequiredService<DatabaseService>());
                 services.AddSingleton<IDeviceService, DeviceService>();
+                services.AddSingleton<IAssetService, AssetService>();
+                services.AddSingleton<IAssetAssignmentService, AssetAssignmentService>();
                 services.AddSingleton<IDeviceFileService, DeviceFileService>();
                 services.AddSingleton<IDeviceGroupService, DeviceGroupService>();
                 services.AddSingleton<IStaffService, StaffService>();
@@ -74,6 +76,7 @@ namespace DeviceManagementApp
                 services.AddSingleton<ISettingsService, SettingsService>();
                 services.AddSingleton<INavigationService, NavigationService>();
                 services.AddSingleton<DevicesViewModel>();
+                services.AddSingleton<AssetsViewModel>();
                 services.AddSingleton<DashboardViewModel>();
                 services.AddSingleton<SettingsViewModel>();
                 services.AddSingleton<StaffManagementViewModel>();

@@ -1,0 +1,22 @@
+<Page x:Class="DeviceManagementApp.Views.Pages.AssetsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Assets">
+    <DockPanel>
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="0,0,0,8">
+            <Button Content="Refresh" Command="{Binding RefreshCommand}" Margin="0,0,8,0"/>
+            <Button Content="Add" Command="{Binding AddAssetCommand}" Margin="0,0,8,0"/>
+            <Button Content="Delete" Command="{Binding DeleteAssetCommand}" Margin="0,0,8,0"/>
+            <Button Content="Assign" Command="{Binding AssignAssetCommand}" Margin="0,0,8,0"/>
+            <Button Content="Return" Command="{Binding ReturnAssetCommand}"/>
+        </StackPanel>
+        <DataGrid ItemsSource="{Binding AssetsView}" SelectedItem="{Binding SelectedAsset}" AutoGenerateColumns="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                <DataGridTextColumn Header="Serial" Binding="{Binding SerialNumber}" Width="*"/>
+                <DataGridTextColumn Header="Assigned User" Binding="{Binding AssignedUserId}" Width="*"/>
+                <DataGridTextColumn Header="Department" Binding="{Binding DepartmentId}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</Page>

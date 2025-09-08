@@ -207,7 +207,25 @@ namespace DeviceManagementApp.Services
                     Name TEXT NOT NULL,
                     Version TEXT,
                     PRIMARY KEY (DeviceIp, DevicePort, Name)
-                );";
+                );
+                CREATE TABLE IF NOT EXISTS Assets (
+                    AssetId INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Name TEXT NOT NULL,
+                    SerialNumber TEXT,
+                    AssignedUserId INTEGER,
+                    DepartmentId INTEGER,
+                    FOREIGN KEY (AssignedUserId) REFERENCES Users(UserID)
+                );
+                CREATE TABLE IF NOT EXISTS AssetAssignments (
+                    AssetId INTEGER NOT NULL,
+                    UserId INTEGER NOT NULL,
+                    AssignedDate DATETIME NOT NULL,
+                    ReturnedDate DATETIME,
+                    DepartmentId INTEGER,
+                    PRIMARY KEY (AssetId, AssignedDate),
+                    FOREIGN KEY (UserId) REFERENCES Users(UserID),
+                    FOREIGN KEY (AssetId) REFERENCES Assets(AssetId)
+                );"
             using var cmd = new SqliteCommand(sql, conn);
             cmd.ExecuteNonQuery();
             EnsureColumn("Devices", "Port", "INTEGER");
@@ -218,6 +236,11 @@ namespace DeviceManagementApp.Services
             EnsureColumn("Devices", "MemoryGb", "INTEGER");
             EnsureColumn("Devices", "StorageGb", "INTEGER");
             EnsureColumn("Devices", "OperatingSystem", "TEXT");
+            EnsureColumn("Assets", "SerialNumber", "TEXT");
+            EnsureColumn("Assets", "AssignedUserId", "INTEGER");
+            EnsureColumn("Assets", "DepartmentId", "INTEGER");
+            EnsureColumn("AssetAssignments", "ReturnedDate", "DATETIME");
+            EnsureColumn("AssetAssignments", "DepartmentId", "INTEGER");
             EnsureColumn("DeviceAssignments", "ReturnedDate", "DATETIME");
             EnsureColumn("DeviceAssignments", "DepartmentId", "INTEGER");
 
@@ -232,6 +255,9 @@ namespace DeviceManagementApp.Services
             EnsureIndex(conn, "Users", "UserName", true);
             EnsureIndex(conn, "Customers", "Contact");
             EnsureIndex(conn, "Rentals", new[] { "ItemID", "CustomerID" });
+            EnsureIndex(conn, "Assets", "Name");
+            EnsureIndex(conn, "Assets", "AssignedUserId");
+            EnsureIndex(conn, "AssetAssignments", "AssetId");
             EnsureIndex(conn, "Devices", "ItemId");
             EnsureIndex(conn, "Devices", "AssignedUserId");
             EnsureIndex(conn, "Devices", "DepartmentId");

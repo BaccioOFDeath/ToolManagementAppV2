@@ -18,14 +18,16 @@ namespace DeviceManagementApp.ViewModels
         private readonly DashboardViewModel _dashboardViewModel;
         private readonly SettingsViewModel _settingsViewModel;
         private readonly StaffManagementViewModel _staffManagementViewModel;
+        private readonly AssetsViewModel _assetsViewModel;
 
-        public MainViewModel(INavigationService navigationService, DevicesViewModel devicesViewModel, DashboardViewModel dashboardViewModel, SettingsViewModel settingsViewModel, StaffManagementViewModel staffManagementViewModel)
+        public MainViewModel(INavigationService navigationService, DevicesViewModel devicesViewModel, DashboardViewModel dashboardViewModel, SettingsViewModel settingsViewModel, StaffManagementViewModel staffManagementViewModel, AssetsViewModel assetsViewModel)
         {
             _navigationService = navigationService;
             _devicesViewModel = devicesViewModel;
             _dashboardViewModel = dashboardViewModel;
             _settingsViewModel = settingsViewModel;
             _staffManagementViewModel = staffManagementViewModel;
+            _assetsViewModel = assetsViewModel;
             _devicesViewModel.ViewDetailsRequested += DevicesViewModel_ViewDetailsRequested;
 
             WindowTitle = "Device Management";
@@ -55,10 +57,18 @@ namespace DeviceManagementApp.ViewModels
         public string WindowTitle { get; }
 
         public IRelayCommand OpenDevicesCommand { get; }
+        public IRelayCommand OpenAssetsCommand { get; }
         public IRelayCommand OpenDashboardCommand { get; }
         public IRelayCommand OpenSettingsCommand { get; }
         public IRelayCommand OpenStaffCommand { get; }
         public IRelayCommand ExitCommand { get; }
+
+        private void OpenAssets()
+        {
+            var page = new AssetsPage { DataContext = _assetsViewModel };
+            CurrentPage = page;
+            CurrentPageTitle = "Assets";
+        }
 
         private void OpenDevices()
         {
