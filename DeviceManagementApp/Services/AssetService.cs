@@ -86,7 +86,11 @@ namespace DeviceManagementApp.Services
                 cmd.Parameters.AddWithValue("$dept", DBNull.Value);
             await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             if (asset.AssetId == 0)
-                asset.AssetId = (int)conn.LastInsertRowId;
+            {
+                using var lastIdCmd = conn.CreateCommand();
+                lastIdCmd.CommandText = "SELECT last_insert_rowid()";
+                asset.AssetId = Convert.ToInt32(await lastIdCmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false));
+            }
         }
 
         public async Task DeleteAssetAsync(int assetId, CancellationToken cancellationToken = default)

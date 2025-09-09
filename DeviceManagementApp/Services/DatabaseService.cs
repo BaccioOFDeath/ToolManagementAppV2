@@ -225,7 +225,7 @@ namespace DeviceManagementApp.Services
                     PRIMARY KEY (AssetId, AssignedDate),
                     FOREIGN KEY (UserId) REFERENCES Users(UserID),
                     FOREIGN KEY (AssetId) REFERENCES Assets(AssetId)
-                );"
+                );";
             using var cmd = new SqliteCommand(sql, conn);
             cmd.ExecuteNonQuery();
             EnsureColumn("Devices", "Port", "INTEGER");
