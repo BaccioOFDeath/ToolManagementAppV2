@@ -67,7 +67,7 @@ namespace DeviceManagementApp.ViewModels
             ReturnAssetCommand = new AsyncRelayCommand(ReturnAssetAsync, () => SelectedAsset != null && SelectedAsset.AssignedUserId != null);
         }
 
-        async Task LoadAssetsAsync()
+        public async Task LoadAssetsAsync()
         {
             Assets.Clear();
             foreach (var d in await _assetService.GetAssetsAsync())

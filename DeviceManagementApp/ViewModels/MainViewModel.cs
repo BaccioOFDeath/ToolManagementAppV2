@@ -32,6 +32,7 @@ namespace DeviceManagementApp.ViewModels
 
             WindowTitle = "Device Management";
             OpenDevicesCommand = new RelayCommand(OpenDevices);
+            OpenAssetsCommand = new RelayCommand(OpenAssets);
             OpenDashboardCommand = new RelayCommand(OpenDashboard);
             OpenSettingsCommand = new RelayCommand(OpenSettings);
             OpenStaffCommand = new RelayCommand(OpenStaff);
@@ -63,11 +64,12 @@ namespace DeviceManagementApp.ViewModels
         public IRelayCommand OpenStaffCommand { get; }
         public IRelayCommand ExitCommand { get; }
 
-        private void OpenAssets()
+        private async void OpenAssets()
         {
             var page = new AssetsPage { DataContext = _assetsViewModel };
             CurrentPage = page;
             CurrentPageTitle = "Assets";
+            await _assetsViewModel.LoadAssetsAsync();
         }
 
         private void OpenDevices()
