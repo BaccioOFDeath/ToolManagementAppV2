@@ -344,13 +344,13 @@ namespace InventoryManagementApp.ViewModels
                 try
                 {
                     await CustomerManagement.LoadCustomersAsync();
-                    var page = new CustomersPage { DataContext = CustomerManagement, Title = "Customers" };
+                    var page = new CustomersPage { DataContext = CustomerManagement, Title = "Manage Customers" };
                     CurrentPage = page;
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to open customers page");
-                    _dialogService.ShowInfo($"Failed to open customers page: {ex.Message}", "Customers");
+                    _dialogService.ShowInfo($"Failed to open customers page: {ex.Message}", "Manage Customers");
                     throw;
                 }
             });
@@ -360,13 +360,13 @@ namespace InventoryManagementApp.ViewModels
                 try
                 {
                     await UserManagement.LoadUsersAsync();
-                    var page = new UsersPage(UserManagement) { Title = "Users" };
+                    var page = new UsersPage(UserManagement) { Title = "Manage Users" };
                     CurrentPage = page;
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to open users page");
-                    _dialogService.ShowInfo($"Failed to open users page: {ex.Message}", "Users");
+                    _dialogService.ShowInfo($"Failed to open users page: {ex.Message}", "Manage Users");
                     throw;
                 }
             });
