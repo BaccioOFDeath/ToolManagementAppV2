@@ -7,12 +7,15 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using InventoryManagementApp.Services.Categories;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace InventoryManagementApp.ViewModels
 {
     public sealed class CategoryManagementViewModel : INotifyPropertyChanged
     {
         private readonly CategoriesService _service;
+        private readonly ILogger<CategoryManagementViewModel> _logger;
         private int _selectedInventoryId;
         private CategoryItem? _selectedCategory;
         private string _categoryName = "";
@@ -28,7 +31,7 @@ namespace InventoryManagementApp.ViewModels
                 if (_selectedInventoryId == value) return;
                 _selectedInventoryId = value;
                 OnPropertyChanged();
-                _ = LoadAsync();
+                LoadCategoriesAsync();
             }
         }
 
@@ -77,13 +80,26 @@ namespace InventoryManagementApp.ViewModels
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public CategoryManagementViewModel(CategoriesService service)
+        public CategoryManagementViewModel(CategoriesService service, ILogger<CategoryManagementViewModel>? logger = null)
         {
             _service = service;
+            _logger = logger ?? NullLogger<CategoryManagementViewModel>.Instance;
             _addCommand = new AsyncCommand(AddAsync, () => !string.IsNullOrWhiteSpace(CategoryName) && SelectedInventoryId > 0);
             _saveCommand = new AsyncCommand(SaveAsync, () => SelectedCategory != null && !string.IsNullOrWhiteSpace(CategoryName));
             _deleteCommand = new AsyncCommand(DeleteAsync, () => SelectedCategory != null);
             _refreshCommand = new AsyncCommand(LoadAsync);
+        }
+
+        private async void LoadCategoriesAsync()
+        {
+            try
+            {
+                await LoadAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load categories");
+            }
         }
 
         public async Task InitializeAsync()
