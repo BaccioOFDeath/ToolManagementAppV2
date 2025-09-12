@@ -66,10 +66,10 @@ namespace DeviceManagementApp.ViewModels
 
         private async void OpenAssets()
         {
+            await _assetsViewModel.LoadAssetsAsync();
             var page = new AssetsPage { DataContext = _assetsViewModel };
             CurrentPage = page;
             CurrentPageTitle = "Assets";
-            await _assetsViewModel.LoadAssetsAsync();
         }
 
         private void OpenDevices()
