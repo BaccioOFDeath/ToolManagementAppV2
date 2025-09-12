@@ -66,8 +66,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Include="..\Shared\Controls\SearchBar.xaml" Link="Views\Controls\SearchBar.xaml" />
-    <Compile Include="..\Shared\Controls\SearchBar.xaml.cs" Link="Views\Controls\SearchBar.xaml.cs" />
+    <Page Include="Shared\Controls\SearchBar.xaml" Link="Views\Controls\SearchBar.xaml" />
+    <Compile Include="Shared\Controls\SearchBar.xaml.cs" Link="Views\Controls\SearchBar.xaml.cs" />
   </ItemGroup>
 
   <ItemGroup>
