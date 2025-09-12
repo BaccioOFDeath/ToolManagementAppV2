@@ -174,6 +174,7 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand OpenRentalsCommand { get; }
         public IAsyncRelayCommand OpenCustomersCommand { get; }
         public IAsyncRelayCommand OpenUsersCommand { get; }
+        public IAsyncRelayCommand OpenCategoriesCommand { get; }
         public IAsyncRelayCommand OpenSettingsCommand { get; }
         public IAsyncRelayCommand OpenImportExportCommand { get; }
         public IAsyncRelayCommand OpenActivityLogsCommand { get; }
@@ -367,6 +368,28 @@ namespace InventoryManagementApp.ViewModels
                 {
                     _logger.LogError(ex, "Failed to open users page");
                     _dialogService.ShowInfo($"Failed to open users page: {ex.Message}", "Manage Users");
+                    throw;
+                }
+            });
+
+            OpenCategoriesCommand = new AsyncRelayCommand(async () =>
+            {
+                try
+                {
+                    var idStr = await _settingsService.GetSettingAsync("DefaultInventoryId");
+                    var inventoryId = int.TryParse(idStr, out var i) ? i : 1;
+                    var page = new CategoriesPage(inventoryId) { Title = "Manage Categories" };
+                    if (page.DataContext is CategoryManagementViewModel vm)
+                    {
+                        vm.SelectedInventoryId = inventoryId;
+                        await vm.InitializeAsync();
+                    }
+                    CurrentPage = page;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open categories page");
+                    _dialogService.ShowInfo($"Failed to open categories page: {ex.Message}", "Manage Categories");
                     throw;
                 }
             });
