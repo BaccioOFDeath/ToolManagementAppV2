@@ -66,11 +66,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Include="Shared\Controls\SearchBar.xaml" Link="Views\Controls\SearchBar.xaml" />
-    <Compile Include="Shared\Controls\SearchBar.xaml.cs" Link="Views\Controls\SearchBar.xaml.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="FluentFTP" Version="53.0.1" />
     <PackageReference Include="SMBLibrary" Version="1.5.4.1" />
