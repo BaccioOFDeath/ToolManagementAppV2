@@ -381,8 +381,8 @@ namespace InventoryManagementApp.ViewModels
                     var page = new CategoriesPage(inventoryId) { Title = "Manage Categories" };
                     if (page.DataContext is CategoryManagementViewModel vm)
                     {
-                        vm.SelectedInventoryId = inventoryId;
                         await vm.InitializeAsync();
+                        vm.SelectedInventoryId = inventoryId;
                     }
                     CurrentPage = page;
                 }
