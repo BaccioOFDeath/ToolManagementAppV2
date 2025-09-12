@@ -1,0 +1,32 @@
+<UserControl x:Class="ToolManagementApp.Controls.SearchBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root">
+    <StackPanel Orientation="Horizontal">
+        <TextBox x:Name="SearchTextBox"
+                 Width="240"
+                 Text="{Binding Text, ElementName=Root, UpdateSourceTrigger=PropertyChanged}">
+            <TextBox.InputBindings>
+                <KeyBinding Key="Enter" Command="{Binding SearchCommand, ElementName=Root}"/>
+            </TextBox.InputBindings>
+        </TextBox>
+        <Button Style="{StaticResource PrimaryButton}"
+                Content="{Binding SearchLabel, ElementName=Root}"
+                Command="{Binding SearchCommand, ElementName=Root}"
+                Margin="8,0,0,0"/>
+        <Button Content="Clear"
+                Command="{Binding ClearCommand, ElementName=Root}"
+                Margin="8,0,0,0">
+            <Button.Style>
+                <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ClearCommand, ElementName=Root}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+        </Button>
+    </StackPanel>
+</UserControl>
