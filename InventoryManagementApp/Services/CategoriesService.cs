@@ -72,10 +72,14 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
         public async Task LinkCategoryToInventoryAsync(int categoryId, int inventoryId, CancellationToken ct = default)
         {
             await using var conn = _db.CreateConnection();
-            var rows = await conn.ExecuteAsync(
+            var exists = await conn.ExecuteScalarAsync<long>(
+                "SELECT InventoryID FROM Inventories WHERE InventoryID=@i",
+                new { i = inventoryId });
+            if (exists == 0)
+                throw new InvalidOperationException($"Inventory {inventoryId} not found");
+            await conn.ExecuteAsync(
                 "INSERT OR IGNORE INTO InventoryCategories(InventoryID,CategoryID) VALUES(@i,@c);",
                 new { i = inventoryId, c = categoryId });
-            if (rows == 0) return;
         }
 
         public async Task<List<CategoryDto>> GetCategoriesForInventoryAsync(int inventoryId, CancellationToken ct = default)

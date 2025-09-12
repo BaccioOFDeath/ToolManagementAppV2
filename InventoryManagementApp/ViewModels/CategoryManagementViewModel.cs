@@ -114,7 +114,14 @@ namespace InventoryManagementApp.ViewModels
         {
             if (SelectedInventoryId <= 0) return;
             var id = await _service.EnsureCategoryAsync(CategoryName.Trim());
-            await _service.LinkCategoryToInventoryAsync(id, SelectedInventoryId);
+            try
+            {
+                await _service.LinkCategoryToInventoryAsync(id, SelectedInventoryId);
+            }
+            catch (InvalidOperationException)
+            {
+                return;
+            }
             await LoadAsync();
             SelectedCategory = Categories.FirstOrDefault(x => x.CategoryID == id);
         }
