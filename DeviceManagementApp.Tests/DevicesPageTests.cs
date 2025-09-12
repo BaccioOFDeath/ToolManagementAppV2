@@ -451,6 +451,12 @@ namespace DeviceManagementApp.Tests
                     var vm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService(), new DummyDeviceGroupService());
                     var page = new DevicesPage { DataContext = vm };
                     page.ApplyTemplate();
+                    var tabControl = FindVisualChild<TabControl>(page);
+                    if (tabControl != null)
+                    {
+                        tabControl.SelectedIndex = 2;
+                        tabControl.UpdateLayout();
+                    }
                     downloadButton = (Button)page.FindName("DownloadButton");
 
                     Application.Current?.Shutdown();

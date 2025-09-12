@@ -15,86 +15,98 @@
             </Grid.RowDefinitions>
             <StackPanel>
                 <Border Style="{StaticResource Card}">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Style="{StaticResource PrimaryButton}"
-                                Content="Refresh"
-                                Command="{Binding RefreshCommand}"
-                                Margin="0,0,8,0"/>
-                        <Button x:Name="PingButton"
-                                Style="{StaticResource PrimaryButton}"
-                                Content="Ping"
-                                Command="{Binding PingSelectedDeviceCommand}"
-                                Margin="0,0,8,0"/>
-                        <Button Style="{StaticResource PrimaryButton}"
-                                Content="View Details"
-                                Command="{Binding ViewDetailsCommand}"
-                                Margin="0,0,8,0"/>
-                        <Button Style="{StaticResource PrimaryButton}"
-                                Content="Add Device"
-                                Command="{Binding AddDeviceCommand}"
-                                Margin="0,0,8,0"/>
-                        <Button x:Name="AddGroupButton"
-                                Style="{StaticResource PrimaryButton}"
-                                Content="Add Group"
-                                Command="{Binding AddGroupCommand}"
-                                Margin="0,0,8,0"/>
-                        <Button x:Name="RenameGroupButton"
-                                Style="{StaticResource PrimaryButton}"
-                                Content="Rename Group"
-                                Command="{Binding RenameGroupCommand}"
-                                Margin="0,0,8,0"/>
-                        <Button x:Name="DeleteGroupButton"
-                                Style="{StaticResource PrimaryButton}"
-                                Content="Delete Group"
-                                Command="{Binding DeleteGroupCommand}"
-                                Margin="0,0,8,0"/>
-                        <Button Style="{StaticResource PrimaryButton}"
-                                Content="Assign"
-                                Command="{Binding AssignDeviceCommand}"
-                                Margin="0,0,8,0"/>
-                        <Button Style="{StaticResource PrimaryButton}"
-                                Content="Return"
-                                Command="{Binding ReturnDeviceCommand}"
-                                Margin="0,0,8,0"/>
-                        <ComboBox Width="120"
-                                  ItemsSource="{Binding Departments}"
-                                  SelectedValue="{Binding DepartmentFilter}"
-                                  DisplayMemberPath="Value"
-                                  SelectedValuePath="Key"
-                                  Margin="0,0,8,0"/>
-                        <ComboBox Width="120"
-                                  ItemsSource="{Binding Staff}"
-                                  SelectedValue="{Binding AssignedUserFilter}"
-                                  DisplayMemberPath="Value"
-                                  SelectedValuePath="Key"
-                                  Margin="0,0,8,0"/>
-                        <TextBox Text="{Binding FileExtensionFilter, UpdateSourceTrigger=PropertyChanged}"
-                                 Width="120"
-                                 Margin="0,0,8,0"/>
-                        <Button Style="{StaticResource PrimaryButton}"
-                                Content="Pull Reports"
-                                Command="{Binding PullAllReportsCommand}"
-                                Margin="0,0,8,0"/>
-                        <TextBox Text="{Binding SourceFolder, UpdateSourceTrigger=PropertyChanged}"
-                                 Width="120"
-                                 Margin="0,0,8,0"/>
-                        <Button Style="{StaticResource PrimaryButton}"
-                                Content="Browse Source"
-                                Click="BrowseSourceFolder"
-                                Margin="0,0,8,0"/>
-                        <TextBox Text="{Binding DestinationFolder, UpdateSourceTrigger=PropertyChanged}"
-                                 Width="120"
-                                 Margin="0,0,8,0"/>
-                        <Button Style="{StaticResource PrimaryButton}"
-                                Content="Browse Dest"
-                                Click="BrowseDestinationFolder"
-                                Margin="0,0,8,0"/>
-                        <Button x:Name="DownloadButton"
-                                Style="{StaticResource PrimaryButton}"
-                                Content="Download Files"
-                                ToolTip="Downloads unseen files from the configured source to the configured destination."
-                                Command="{Binding DownloadUnseenFilesCommand}"/>
-                    </StackPanel>
+                    <TabControl>
+                        <TabItem Header="Actions">
+                            <ToolBar>
+                                <Button Style="{StaticResource PrimaryButton}"
+                                        Content="Refresh"
+                                        Command="{Binding RefreshCommand}"
+                                        Margin="0,0,8,0"/>
+                                <Button x:Name="PingButton"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Content="Ping"
+                                        Command="{Binding PingSelectedDeviceCommand}"
+                                        Margin="0,0,8,0"/>
+                                <Button Style="{StaticResource PrimaryButton}"
+                                        Content="View Details"
+                                        Command="{Binding ViewDetailsCommand}"
+                                        Margin="0,0,8,0"/>
+                                <Button Style="{StaticResource PrimaryButton}"
+                                        Content="Add Device"
+                                        Command="{Binding AddDeviceCommand}"
+                                        Margin="0,0,8,0"/>
+                                <Button x:Name="AddGroupButton"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Content="Add Group"
+                                        Command="{Binding AddGroupCommand}"
+                                        Margin="0,0,8,0"/>
+                                <Button x:Name="RenameGroupButton"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Content="Rename Group"
+                                        Command="{Binding RenameGroupCommand}"
+                                        Margin="0,0,8,0"/>
+                                <Button x:Name="DeleteGroupButton"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Content="Delete Group"
+                                        Command="{Binding DeleteGroupCommand}"
+                                        Margin="0,0,8,0"/>
+                                <Button Style="{StaticResource PrimaryButton}"
+                                        Content="Assign"
+                                        Command="{Binding AssignDeviceCommand}"
+                                        Margin="0,0,8,0"/>
+                                <Button Style="{StaticResource PrimaryButton}"
+                                        Content="Return"
+                                        Command="{Binding ReturnDeviceCommand}"
+                                        Margin="0,0,8,0"/>
+                            </ToolBar>
+                        </TabItem>
+                        <TabItem Header="Filters">
+                            <ToolBar>
+                                <ComboBox Width="120"
+                                          ItemsSource="{Binding Departments}"
+                                          SelectedValue="{Binding DepartmentFilter}"
+                                          DisplayMemberPath="Value"
+                                          SelectedValuePath="Key"
+                                          Margin="0,0,8,0"/>
+                                <ComboBox Width="120"
+                                          ItemsSource="{Binding Staff}"
+                                          SelectedValue="{Binding AssignedUserFilter}"
+                                          DisplayMemberPath="Value"
+                                          SelectedValuePath="Key"
+                                          Margin="0,0,8,0"/>
+                                <TextBox Text="{Binding FileExtensionFilter, UpdateSourceTrigger=PropertyChanged}"
+                                         Width="120"
+                                         Margin="0,0,8,0"/>
+                            </ToolBar>
+                        </TabItem>
+                        <TabItem Header="Files">
+                            <ToolBar>
+                                <Button Style="{StaticResource PrimaryButton}"
+                                        Content="Pull Reports"
+                                        Command="{Binding PullAllReportsCommand}"
+                                        Margin="0,0,8,0"/>
+                                <TextBox Text="{Binding SourceFolder, UpdateSourceTrigger=PropertyChanged}"
+                                         Width="120"
+                                         Margin="0,0,8,0"/>
+                                <Button Style="{StaticResource PrimaryButton}"
+                                        Content="Browse Source"
+                                        Click="BrowseSourceFolder"
+                                        Margin="0,0,8,0"/>
+                                <TextBox Text="{Binding DestinationFolder, UpdateSourceTrigger=PropertyChanged}"
+                                         Width="120"
+                                         Margin="0,0,8,0"/>
+                                <Button Style="{StaticResource PrimaryButton}"
+                                        Content="Browse Dest"
+                                        Click="BrowseDestinationFolder"
+                                        Margin="0,0,8,0"/>
+                                <Button x:Name="DownloadButton"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Content="Download Files"
+                                        ToolTip="Downloads unseen files from the configured source to the configured destination."
+                                        Command="{Binding DownloadUnseenFilesCommand}"/>
+                            </ToolBar>
+                        </TabItem>
+                    </TabControl>
                 </Border>
                 <ProgressBar Margin="0,8,0,0"
                              Height="20"
@@ -131,20 +143,22 @@
                         <ColumnDefinition Width="2*"/>
                         <ColumnDefinition Width="3*"/>
                     </Grid.ColumnDefinitions>
-                    <StackPanel Margin="8">
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                            <TextBlock Text="Username:" Width="70" VerticalAlignment="Center"/>
-                            <TextBox Text="{Binding SelectedDevice.Username, UpdateSourceTrigger=PropertyChanged}" Width="150"/>
+                    <Expander Margin="8" Header="Credentials">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="Username:" Width="70" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding SelectedDevice.Username, UpdateSourceTrigger=PropertyChanged}" Width="150"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="Password:" Width="70" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding SelectedDevice.Password, UpdateSourceTrigger=PropertyChanged}" Width="150"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="Domain:" Width="70" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding SelectedDevice.Domain, UpdateSourceTrigger=PropertyChanged}" Width="150"/>
+                            </StackPanel>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                            <TextBlock Text="Password:" Width="70" VerticalAlignment="Center"/>
-                            <TextBox Text="{Binding SelectedDevice.Password, UpdateSourceTrigger=PropertyChanged}" Width="150"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                            <TextBlock Text="Domain:" Width="70" VerticalAlignment="Center"/>
-                            <TextBox Text="{Binding SelectedDevice.Domain, UpdateSourceTrigger=PropertyChanged}" Width="150"/>
-                        </StackPanel>
-                    </StackPanel>
+                    </Expander>
                     <ListBox Grid.Column="1" ItemsSource="{Binding DeviceFiles}" Margin="8"/>
                 </Grid>
             </Border>
