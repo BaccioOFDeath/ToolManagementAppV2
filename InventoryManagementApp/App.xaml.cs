@@ -27,6 +27,7 @@ using InventoryManagementApp.Data;
 using InventoryManagementApp.Utilities;
 using Microsoft.Data.Sqlite;
 using InventoryManagementApp.Models.Domain;
+using InventoryManagementApp.Services.Categories;
 
 namespace InventoryManagementApp
 {
@@ -130,6 +131,8 @@ namespace InventoryManagementApp
                     new MainWindow(sp.GetRequiredService<IMainViewModel>()));
                 services.AddTransient<ILoginWindow>(sp =>
                     new LoginWindow(sp.GetRequiredService<ILoginViewModel>()));
+                services.AddSingleton<CategoriesService>();
+                services.AddTransient<CategoryManagementViewModel>();
             })
             .Build();
 
