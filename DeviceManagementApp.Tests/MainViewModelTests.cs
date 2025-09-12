@@ -29,7 +29,9 @@ namespace DeviceManagementApp.Tests
                     var devicesVm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService(), new DummyDeviceGroupService());
                     var dashboardVm = new DashboardViewModel(new DummyDeviceService(), nav, devicesVm);
                     var settingsVm = new SettingsViewModel(new DummySettingsService(), new DummyDialogService());
-                    var vm = new MainViewModel(nav, devicesVm, dashboardVm, settingsVm);
+                    var staffVm = new StaffManagementViewModel(new DummyStaffService(), new DummyDialogService());
+                    var assetsVm = new AssetsViewModel(new DummyAssetService(), new DummyAssetAssignmentService(), new DummyDialogService(), new DummyStaffService());
+                    var vm = new MainViewModel(nav, devicesVm, dashboardVm, settingsVm, staffVm, assetsVm);
                     vm.OpenDevicesCommand.Execute(null);
                     currentPage = vm.CurrentPage;
                     currentTitle = vm.CurrentPageTitle;
@@ -67,7 +69,9 @@ namespace DeviceManagementApp.Tests
                     };
                     var dashboardVm = new DashboardViewModel(new DummyDeviceService(), nav, devicesVm);
                     var settingsVm = new SettingsViewModel(new DummySettingsService(), new DummyDialogService());
-                    var vm = new MainViewModel(nav, devicesVm, dashboardVm, settingsVm);
+                    var staffVm = new StaffManagementViewModel(new DummyStaffService(), new DummyDialogService());
+                    var assetsVm = new AssetsViewModel(new DummyAssetService(), new DummyAssetAssignmentService(), new DummyDialogService(), new DummyStaffService());
+                    var vm = new MainViewModel(nav, devicesVm, dashboardVm, settingsVm, staffVm, assetsVm);
                     devicesVm.ViewDetailsCommand.Execute(null);
                     Application.Current?.Shutdown();
                 }
@@ -99,7 +103,9 @@ namespace DeviceManagementApp.Tests
                     var devicesVm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService(), new DummyDeviceGroupService());
                     var dashboardVm = new DashboardViewModel(new DummyDeviceService(), nav, devicesVm);
                     var settingsVm = new SettingsViewModel(new DummySettingsService(), new DummyDialogService());
-                    var vm = new MainViewModel(nav, devicesVm, dashboardVm, settingsVm);
+                    var staffVm = new StaffManagementViewModel(new DummyStaffService(), new DummyDialogService());
+                    var assetsVm = new AssetsViewModel(new DummyAssetService(), new DummyAssetAssignmentService(), new DummyDialogService(), new DummyStaffService());
+                    var vm = new MainViewModel(nav, devicesVm, dashboardVm, settingsVm, staffVm, assetsVm);
                     vm.OpenDashboardCommand.Execute(null);
                     currentPage = vm.CurrentPage;
                     Application.Current?.Shutdown();
@@ -128,7 +134,9 @@ namespace DeviceManagementApp.Tests
                     var devicesVm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService(), new DummyDeviceGroupService());
                     var dashboardVm = new DashboardViewModel(new DummyDeviceService(), nav, devicesVm);
                     var settingsVm = new SettingsViewModel(new DummySettingsService(), new DummyDialogService());
-                    var vm = new MainViewModel(nav, devicesVm, dashboardVm, settingsVm);
+                    var staffVm = new StaffManagementViewModel(new DummyStaffService(), new DummyDialogService());
+                    var assetsVm = new AssetsViewModel(new DummyAssetService(), new DummyAssetAssignmentService(), new DummyDialogService(), new DummyStaffService());
+                    var vm = new MainViewModel(nav, devicesVm, dashboardVm, settingsVm, staffVm, assetsVm);
                     vm.OpenSettingsCommand.Execute(null);
                     currentPage = vm.CurrentPage;
                     Application.Current?.Shutdown();
@@ -140,6 +148,52 @@ namespace DeviceManagementApp.Tests
             thread.Join();
             if (threadEx != null) throw threadEx;
             Assert.IsType<DeviceManagementApp.Views.Pages.SettingsPage>(currentPage);
+        }
+
+        [Fact]
+        public void OpenAssetsCommand_LoadsAssetsBeforeShowingPage()
+        {
+            Exception? threadEx = null;
+            Page? beforePage = null;
+            Page? afterPage = null;
+            int assetsCount = 0;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var app = new Application();
+                    var nav = new TestNavigationService();
+                    var tcs = new TaskCompletionSource<IEnumerable<Asset>>();
+                    var assetService = new TestAssetService(tcs.Task);
+                    var assetsVm = new AssetsViewModel(assetService, new DummyAssetAssignmentService(), new DummyDialogService(), new DummyStaffService());
+                    var staffVm = new StaffManagementViewModel(new DummyStaffService(), new DummyDialogService());
+                    var devicesVm = new DevicesViewModel(new DummyDiscoveryService(), new DummyFileService(), new DummyDialogService(), new DummyDeviceService(), new DummyDeviceGroupService());
+                    var dashboardVm = new DashboardViewModel(new DummyDeviceService(), nav, devicesVm);
+                    var settingsVm = new SettingsViewModel(new DummySettingsService(), new DummyDialogService());
+                    var vm = new MainViewModel(nav, devicesVm, dashboardVm, settingsVm, staffVm, assetsVm);
+
+                    vm.OpenAssetsCommand.Execute(null);
+                    beforePage = vm.CurrentPage;
+                    tcs.SetResult(new[] { new Asset { AssetId = 1, Name = "A" } });
+                    Thread.Sleep(50);
+                    afterPage = vm.CurrentPage;
+                    assetsCount = assetsVm.Assets.Count;
+                    Application.Current?.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadEx != null) throw threadEx;
+            Assert.Null(beforePage);
+            Assert.IsType<DeviceManagementApp.Views.Pages.AssetsPage>(afterPage);
+            Assert.Equal(1, assetsCount);
         }
 
         private sealed class TestNavigationService : INavigationService
@@ -216,6 +270,39 @@ namespace DeviceManagementApp.Tests
             public Task SaveItemLabelPluralAsync(string label, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<IDictionary<ItemDetailField, bool>> GetItemDetailVisibilityAsync(CancellationToken cancellationToken = default) => Task.FromResult<IDictionary<ItemDetailField, bool>>(new Dictionary<ItemDetailField, bool>());
             public Task SaveItemDetailVisibilityAsync(IDictionary<ItemDetailField, bool> visibility, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        }
+
+        private sealed class DummyAssetService : IAssetService
+        {
+            public Task<IEnumerable<Asset>> GetAssetsAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<Asset>>(Array.Empty<Asset>());
+            public Task<Asset?> GetAssetAsync(int assetId, CancellationToken cancellationToken = default) => Task.FromResult<Asset?>(null);
+            public Task AddOrUpdateAssetAsync(Asset asset, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task DeleteAssetAsync(int assetId, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        }
+
+        private sealed class DummyAssetAssignmentService : IAssetAssignmentService
+        {
+            public Task<AssetAssignment?> GetCurrentAssignmentAsync(int assetId, CancellationToken cancellationToken = default) => Task.FromResult<AssetAssignment?>(null);
+            public Task AssignAsync(AssetAssignment assignment, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task ReturnAsync(int assetId, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        }
+
+        private sealed class DummyStaffService : IStaffService
+        {
+            public Task<IReadOnlyList<Staff>> GetStaffAsync(CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<Staff>>(Array.Empty<Staff>());
+            public Task<int> AddStaffAsync(Staff staff, CancellationToken cancellationToken = default) => Task.FromResult(0);
+            public Task UpdateStaffAsync(Staff staff, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task DeleteStaffAsync(int staffId, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        }
+
+        private sealed class TestAssetService : IAssetService
+        {
+            private readonly Task<IEnumerable<Asset>> _getAssetsTask;
+            public TestAssetService(Task<IEnumerable<Asset>> getAssetsTask) => _getAssetsTask = getAssetsTask;
+            public Task<IEnumerable<Asset>> GetAssetsAsync(CancellationToken cancellationToken = default) => _getAssetsTask;
+            public Task<Asset?> GetAssetAsync(int assetId, CancellationToken cancellationToken = default) => Task.FromResult<Asset?>(null);
+            public Task AddOrUpdateAssetAsync(Asset asset, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task DeleteAssetAsync(int assetId, CancellationToken cancellationToken = default) => Task.CompletedTask;
         }
     }
 }
