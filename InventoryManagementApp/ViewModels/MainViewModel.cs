@@ -58,7 +58,6 @@ namespace InventoryManagementApp.ViewModels
         public ImportExportViewModel ImportExport { get; }
         public ActivityLogsViewModel ActivityLogs { get; }
         public ReportsViewModel Reports { get; }
-        public MonthlyTargetsViewModel MonthlyTargets { get; }
         public SettingsViewModel Settings { get; }
 
         private Page? _currentPage;
@@ -180,7 +179,6 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand OpenImportExportCommand { get; }
         public IAsyncRelayCommand OpenActivityLogsCommand { get; }
         public IAsyncRelayCommand OpenReportsCommand { get; }
-        public IAsyncRelayCommand OpenMonthlyTargetsCommand { get; }
         public IAsyncRelayCommand OpenImportMappingWindowCommand { get; }
         public IAsyncRelayCommand OpenImageImportMappingWindowCommand { get; }
         public IRelayCommand ExitCommand { get; }
@@ -200,7 +198,6 @@ namespace InventoryManagementApp.ViewModels
                              IThemeService themeService,
                              IDatabaseBackupService databaseService,
                              IDialogService dialogService,
-                             MonthlyTargetsViewModel monthlyTargetsViewModel,
                              ILogger<MainViewModel>? logger = null,
                              Func<Task<bool>>? showLoginWindow = null,
                                IDispatcherTimer? autoLogoutTimer = null,
@@ -247,7 +244,6 @@ namespace InventoryManagementApp.ViewModels
             Reports = new ReportsViewModel(new ReportService(itemService, rentalService, activityLogService, customerService, userService));
             ActivityLogs = new ActivityLogsViewModel(activityLogService);
             Settings = new SettingsViewModel(_fileDialogService, _settingsService, _dialogService, _themeService);
-            MonthlyTargets = monthlyTargetsViewModel;
             var logoPath = _settingsService.GetSettingAsync("CompanyLogoPath").GetAwaiter().GetResult();
             if (!string.IsNullOrWhiteSpace(logoPath))
                 CompanyLogoPath = logoPath;
@@ -446,22 +442,6 @@ namespace InventoryManagementApp.ViewModels
                 {
                     _logger.LogError(ex, "Failed to open reports page");
                     _dialogService.ShowInfo($"Failed to open reports page: {ex.Message}", "Reports");
-                    throw;
-                }
-            });
-
-            OpenMonthlyTargetsCommand = new AsyncRelayCommand(async () =>
-            {
-                try
-                {
-                    await MonthlyTargets.InitializeCommand.ExecuteAsync(null);
-                    var page = new MonthlyTargetsPage { DataContext = MonthlyTargets, Title = "Monthly Targets" };
-                    CurrentPage = page;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to open monthly targets page");
-                    _dialogService.ShowInfo($"Failed to open monthly targets page: {ex.Message}", "Monthly Targets");
                     throw;
                 }
             });

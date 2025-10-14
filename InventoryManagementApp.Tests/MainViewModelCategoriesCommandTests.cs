@@ -47,10 +47,6 @@ namespace InventoryManagementApp.Tests
 
                     var app = new App(host);
 
-                    var dialogService = new StubDialogService();
-                    var settingsService = new StubSettingsService();
-                    var monthlyTargets = new MonthlyTargetsViewModel(new StubMonthlyTargetService(), settingsService, dialogService);
-
                     var vm = new MainViewModel(
                         new StubItemService(),
                         new StubUserService(),
@@ -59,11 +55,10 @@ namespace InventoryManagementApp.Tests
                         new StubRentalService(),
                         new StubFileDialogService(),
                         new ActivityLogService(db),
-                        settingsService,
+                        new StubSettingsService(),
                         new StubThemeService(),
                         new StubDatabaseBackupService(),
-                        dialogService,
-                        monthlyTargets,
+                        new StubDialogService(),
                         NullLogger<MainViewModel>.Instance,
                         () => Task.FromResult(true),
                         new StubDispatcherTimer(),
@@ -160,15 +155,6 @@ namespace InventoryManagementApp.Tests
         {
             public string? OpenFile(string filter, string? initialDirectory = null) => null;
             public string? SaveFile(string filter) => null;
-        }
-
-        private sealed class StubMonthlyTargetService : IMonthlyTargetService
-        {
-            public Task<IReadOnlyList<MonthlyTarget>> GetTargetsAsync(int financialYearStart, CancellationToken cancellationToken = default)
-                => Task.FromResult<IReadOnlyList<MonthlyTarget>>(Array.Empty<MonthlyTarget>());
-
-            public Task SaveTargetsAsync(int financialYearStart, IEnumerable<MonthlyTarget> targets, CancellationToken cancellationToken = default)
-                => Task.CompletedTask;
         }
 
         private sealed class StubSettingsService : ISettingsService
