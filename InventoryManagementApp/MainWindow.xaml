@@ -58,10 +58,6 @@
 
                         <TextBlock Text="Insights" Style="{StaticResource CaptionTextBlock}" Margin="6,8,6,2"/>
                         <Button Style="{StaticResource NavButton}" Content="Reports" Command="{Binding OpenReportsCommand}"/>
-                        <Button Style="{StaticResource NavButton}"
-                                Content="Monthly Targets"
-                                Command="{Binding OpenMonthlyTargetsCommand}"
-                                Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
                         <Button Style="{StaticResource NavButton}" Content="Activity Logs" Command="{Binding OpenActivityLogsCommand}"/>
 
                         <Separator/>

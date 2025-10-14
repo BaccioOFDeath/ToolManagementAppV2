@@ -152,15 +152,6 @@ namespace InventoryManagementApp.Services.Core
                 CREATE TABLE IF NOT EXISTS Settings (
                     Key TEXT PRIMARY KEY,
                     Value TEXT
-                );
-                CREATE TABLE IF NOT EXISTS MonthlyTargets (
-                    TargetID INTEGER PRIMARY KEY AUTOINCREMENT,
-                    FinancialYearStart INTEGER NOT NULL,
-                    MonthOffset INTEGER NOT NULL,
-                    Year INTEGER NOT NULL,
-                    Month INTEGER NOT NULL,
-                    TargetAmount NUMERIC NOT NULL DEFAULT 0,
-                    UNIQUE(FinancialYearStart, MonthOffset)
                 );";
             using var cmd = new SqliteCommand(sql, conn);
             cmd.ExecuteNonQuery();
@@ -175,8 +166,6 @@ namespace InventoryManagementApp.Services.Core
             EnsureIndex(conn, "Users", "UserName", true);
             EnsureIndex(conn, "Customers", "Contact");
             EnsureIndex(conn, "Rentals", new[] { "ItemID", "CustomerID" });
-            EnsureIndex(conn, "MonthlyTargets", "FinancialYearStart");
-            EnsureIndex(conn, "MonthlyTargets", new[] { "Year", "Month" });
         }
 
         void MigrateLegacyItemsTable(SqliteConnection conn)
