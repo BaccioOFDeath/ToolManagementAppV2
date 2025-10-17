@@ -10,8 +10,37 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <TextBlock Text="Overview" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
-        <ItemsControl Grid.Row="1" ItemsSource="{Binding StatCards}" ItemTemplate="{StaticResource StatCardTemplate}" ItemsPanel="{StaticResource WrapPanelItems}"/>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Overview" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8" VerticalAlignment="Center"/>
+            <Button Grid.Column="1"
+                    Style="{StaticResource PrimaryButton}"
+                    Content="{Binding EditModeLabel}"
+                    Command="{Binding ToggleEditModeCommand}"
+                    Width="Auto"
+                    Margin="12,0,0,8"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Right"/>
+        </Grid>
+        <Border Grid.Row="1" Margin="0,0,0,8" Padding="0" CornerRadius="16">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            <Setter Property="BorderThickness" Value="2"/>
+                            <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <ItemsControl ItemsSource="{Binding StatCards}" ItemTemplate="{StaticResource StatCardTemplate}" ItemsPanel="{StaticResource WrapPanelItems}" Margin="0,8,0,0"/>
+        </Border>
         <Grid Grid.Row="2" Margin="0,16,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -19,7 +48,24 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Border Style="{StaticResource Card}" Grid.Column="0">
+            <Border Grid.Column="0">
+                <Border.Style>
+                    <Style TargetType="Border" BasedOn="{StaticResource Card}">
+                        <Setter Property="MinWidth" Value="220"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter Property="BorderThickness" Value="2"/>
+                                <Setter Property="Cursor" Value="SizeAll"/>
+                                <Setter Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect BlurRadius="20" ShadowDepth="0" Color="#40FFC326" Opacity="0.6"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
                 <StackPanel>
                     <TextBlock Text="Recent Activity" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
                     <ListView ItemsSource="{Binding RecentActivity}"
@@ -35,16 +81,47 @@
                     </ListView>
                 </StackPanel>
             </Border>
-            <Border Style="{StaticResource Card}" Grid.Column="1">
+            <GridSplitter Grid.Row="0"
+                          Grid.Column="0"
+                          Grid.ColumnSpan="1"
+                          Style="{StaticResource EditGridSplitterStyle}"
+                          Visibility="{Binding IsEditMode, Converter={StaticResource BoolToVis}}"
+                          HorizontalAlignment="Right"
+                          VerticalAlignment="Stretch"
+                          Width="10"
+                          Margin="-4,16,-4,16"
+                          ShowsPreview="True"
+                          Cursor="SizeWE"
+                          Panel.ZIndex="1"/>
+            <Border Grid.Column="1">
+                <Border.Style>
+                    <Style TargetType="Border" BasedOn="{StaticResource Card}">
+                        <Setter Property="MinWidth" Value="220"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter Property="BorderThickness" Value="2"/>
+                                <Setter Property="Cursor" Value="SizeAll"/>
+                                <Setter Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect BlurRadius="20" ShadowDepth="0" Color="#40FFC326" Opacity="0.6"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
                 <StackPanel>
                     <TextBlock Text="Quick Actions" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
                     <WrapPanel>
                         <Button Style="{StaticResource PrimaryButton}"
+                                Width="Auto"
                                 Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}"
                                 ContentStringFormat="New {0}"
                                 Command="{Binding NewItemCommand}"
                                 Margin="0,0,8,8"/>
                         <Button Style="{StaticResource PrimaryButton}"
+                                Width="Auto"
                                 Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}"
                                 ContentStringFormat="Rent {0}"
                                 Command="{Binding OpenRentalsCommand}"
@@ -52,7 +129,35 @@
                     </WrapPanel>
                 </StackPanel>
             </Border>
-            <Border Style="{StaticResource Card}" Grid.Column="2">
+            <GridSplitter Grid.Row="0"
+                          Grid.Column="1"
+                          Style="{StaticResource EditGridSplitterStyle}"
+                          Visibility="{Binding IsEditMode, Converter={StaticResource BoolToVis}}"
+                          HorizontalAlignment="Right"
+                          VerticalAlignment="Stretch"
+                          Width="10"
+                          Margin="-4,16,-4,16"
+                          ShowsPreview="True"
+                          Cursor="SizeWE"
+                          Panel.ZIndex="1"/>
+            <Border Grid.Column="2">
+                <Border.Style>
+                    <Style TargetType="Border" BasedOn="{StaticResource Card}">
+                        <Setter Property="MinWidth" Value="220"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter Property="BorderThickness" Value="2"/>
+                                <Setter Property="Cursor" Value="SizeAll"/>
+                                <Setter Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect BlurRadius="20" ShadowDepth="0" Color="#40FFC326" Opacity="0.6"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
                 <StackPanel>
                     <TextBlock Text="Checked-Out Items" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
                     <ListView ItemsSource="{Binding CheckedOutItems}"
@@ -85,7 +190,35 @@
                     </ListView>
                 </StackPanel>
             </Border>
-            <Border Style="{StaticResource Card}" Grid.Column="3">
+            <GridSplitter Grid.Row="0"
+                          Grid.Column="2"
+                          Style="{StaticResource EditGridSplitterStyle}"
+                          Visibility="{Binding IsEditMode, Converter={StaticResource BoolToVis}}"
+                          HorizontalAlignment="Right"
+                          VerticalAlignment="Stretch"
+                          Width="10"
+                          Margin="-4,16,-4,16"
+                          ShowsPreview="True"
+                          Cursor="SizeWE"
+                          Panel.ZIndex="1"/>
+            <Border Grid.Column="3">
+                <Border.Style>
+                    <Style TargetType="Border" BasedOn="{StaticResource Card}">
+                        <Setter Property="MinWidth" Value="220"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter Property="BorderThickness" Value="2"/>
+                                <Setter Property="Cursor" Value="SizeAll"/>
+                                <Setter Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect BlurRadius="20" ShadowDepth="0" Color="#40FFC326" Opacity="0.6"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
                 <StackPanel>
                     <TextBlock Text="Rented Items" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
                     <ListView ItemsSource="{Binding RentedItems}"

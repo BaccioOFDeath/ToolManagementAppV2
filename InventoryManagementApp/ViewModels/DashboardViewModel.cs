@@ -27,6 +27,8 @@ namespace InventoryManagementApp.ViewModels
         readonly IRelayCommand _openImportExportCommand;
         readonly ILogger<DashboardViewModel> _logger;
 
+        bool _isEditMode;
+
         public ObservableCollection<StatCard> StatCards { get; } = new();
         public ObservableCollection<ActivityLog> RecentActivity { get; } = new();
         public ObservableCollection<ItemModel> CheckedOutItems { get; } = new();
@@ -35,8 +37,21 @@ namespace InventoryManagementApp.ViewModels
         public IRelayCommand NewItemCommand { get; }
         public IRelayCommand OpenRentalsCommand { get; }
         public IRelayCommand OpenImportExportCommand { get; }
+        public IRelayCommand ToggleEditModeCommand { get; }
         public IAsyncRelayCommand<ItemModel> CheckInItemCommand { get; }
         public IAsyncRelayCommand<RentalModel> ReturnRentalCommand { get; }
+
+        public bool IsEditMode
+        {
+            get => _isEditMode;
+            set
+            {
+                if (SetProperty(ref _isEditMode, value))
+                    OnPropertyChanged(nameof(EditModeLabel));
+            }
+        }
+
+        public string EditModeLabel => IsEditMode ? "Done Editing" : "Edit Layout";
 
         public DashboardViewModel(IItemService itemService,
                                   IRentalService rentalService,
@@ -78,6 +93,7 @@ namespace InventoryManagementApp.ViewModels
 
             CheckInItemCommand = new AsyncRelayCommand<ItemModel>(CheckInItemAsync);
             ReturnRentalCommand = new AsyncRelayCommand<RentalModel>(ReturnRentalAsync);
+            ToggleEditModeCommand = new RelayCommand(() => IsEditMode = !IsEditMode);
         }
 
         public Task LoadAsync(CancellationToken cancellationToken)
