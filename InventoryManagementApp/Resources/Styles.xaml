@@ -14,8 +14,7 @@
     <Style TargetType="Window">
         <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
-        <Setter Property="FontFamily" Value="Frutiger, Inter, Segoe UI"/>
-        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
     </Style>
     <Style TargetType="ScrollViewer">
         <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
@@ -218,7 +217,6 @@
         <Setter Property="Height" Value="42"/>
         <Setter Property="HorizontalAlignment" Value="Stretch"/>
         <Setter Property="FontSize" Value="14"/>
-        <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
@@ -232,20 +230,17 @@
                     <Border Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="12"
-                            SnapsToDevicePixels="True">
+                            CornerRadius="8">
                         <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="Background" Value="{DynamicResource NavButtonHoverBrush}"/>
                             <Setter Property="BorderBrush" Value="{DynamicResource NavButtonHoverBorderBrush}"/>
-                            <Setter Property="Foreground" Value="{DynamicResource BrandBrush}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter Property="Background" Value="{DynamicResource NavButtonPressedBrush}"/>
                             <Setter Property="BorderBrush" Value="{DynamicResource NavButtonPressedBorderBrush}"/>
-                            <Setter Property="Foreground" Value="{DynamicResource BrandBrush}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}"/>
@@ -258,36 +253,8 @@
         </Setter>
     </Style>
     <Style TargetType="Button" x:Key="PrimaryButton" BasedOn="{StaticResource NavButton}">
-        <Setter Property="MinWidth" Value="140"/>
+        <Setter Property="Width" Value="120"/>
         <Setter Property="HorizontalAlignment" Value="Left"/>
-        <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-        <Setter Property="Foreground" Value="{DynamicResource OnAccentForegroundBrush}"/>
-        <Setter Property="Effect">
-            <Setter.Value>
-                <DropShadowEffect BlurRadius="14" ShadowDepth="1" Color="#20000000" Opacity="0.45"/>
-            </Setter.Value>
-        </Setter>
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
-                <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}"/>
-            </Trigger>
-            <Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="{DynamicResource AccentPressedBrush}"/>
-                <Setter Property="BorderBrush" Value="{DynamicResource AccentPressedBrush}"/>
-            </Trigger>
-            <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Background" Value="{DynamicResource DisabledBackgroundBrush}"/>
-                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
-                <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}"/>
-                <Setter Property="Effect">
-                    <Setter.Value>
-                        <DropShadowEffect BlurRadius="6" ShadowDepth="0" Color="#15000000" Opacity="0.2"/>
-                    </Setter.Value>
-                </Setter>
-            </Trigger>
-        </Style.Triggers>
     </Style>
     <Style x:Key="CompactPrimaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
         <Setter Property="HorizontalAlignment" Value="Left"/>
@@ -317,15 +284,9 @@
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushBase}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius" Value="16"/>
-        <Setter Property="Padding" Value="16"/>
+        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="Padding" Value="14"/>
         <Setter Property="Margin" Value="8"/>
-        <Setter Property="SnapsToDevicePixels" Value="True"/>
-        <Setter Property="Effect">
-            <Setter.Value>
-                <DropShadowEffect BlurRadius="18" ShadowDepth="2" Color="#19000000" Opacity="0.45"/>
-            </Setter.Value>
-        </Setter>
     </Style>
     <Style TargetType="Separator">
         <Setter Property="Background" Value="{DynamicResource BorderBrushAlt}"/>
@@ -387,23 +348,6 @@
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
-    </Style>
-    <Style TargetType="GridSplitter" x:Key="EditGridSplitterStyle">
-        <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Focusable" Value="False"/>
-        <Setter Property="SnapsToDevicePixels" Value="True"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="GridSplitter">
-                    <Border Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="4"/>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
     </Style>
     <Style TargetType="MenuItem">
         <Setter Property="Background" Value="Transparent"/>
