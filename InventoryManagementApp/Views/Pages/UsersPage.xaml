@@ -3,7 +3,7 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
-      xmlns:sharedControls="clr-namespace:ToolManagementApp.Controls"
+      xmlns:pages="clr-namespace:InventoryManagementApp.Views.Pages"
       Background="{DynamicResource BackgroundBrush}">
 
     <Grid Margin="8">
@@ -19,7 +19,7 @@
                     <Button Style="{StaticResource PrimaryButton}" Content="Edit User" Command="{Binding EditUserCommand}" Margin="0,0,8,0"/>
                     
                 </StackPanel>
-                <sharedControls:SearchBar DockPanel.Dock="Right"
+                <pages:SearchBar DockPanel.Dock="Right"
                                            Text="{Binding UserSearchText}"
                                            SearchCommand="{Binding SearchUsersCommand}"
                                            ClearCommand="{Binding ClearUserSearchCommand}"/>
