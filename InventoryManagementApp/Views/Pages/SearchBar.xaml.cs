@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace ToolManagementApp.Controls
+namespace InventoryManagementApp.Views.Pages
 {
     public partial class SearchBar : System.Windows.Controls.UserControl
     {
