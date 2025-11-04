@@ -52,6 +52,13 @@ namespace InventoryManagementApp.ViewModels
                 "Users",
                 "Active Rentals",
                 "Full Rental History",
+                "Maintenance Schedule",
+                "Overdue Maintenance",
+                "Calibration Records",
+                "Overdue Calibrations",
+                "Active Reservations",
+                "All Reservations",
+                "Active Kits"
             };
 
             RunReportCommand = new AsyncRelayCommand(RunReportAsync, CanRunReport);
@@ -70,6 +77,13 @@ namespace InventoryManagementApp.ViewModels
                 "Users" => await _reportService.GenerateUserReport(),
                 "Active Rentals" => await _reportService.GenerateRentalReport(true),
                 "Full Rental History" => await _reportService.GenerateRentalReport(false),
+                "Maintenance Schedule" => await _reportService.GenerateMaintenanceReport(false),
+                "Overdue Maintenance" => await _reportService.GenerateMaintenanceReport(true),
+                "Calibration Records" => await _reportService.GenerateCalibrationReport(false),
+                "Overdue Calibrations" => await _reportService.GenerateCalibrationReport(true),
+                "Active Reservations" => await _reportService.GenerateReservationReport(true),
+                "All Reservations" => await _reportService.GenerateReservationReport(false),
+                "Active Kits" => await _reportService.GenerateKitReport(),
                 _ => null,
             };
 
