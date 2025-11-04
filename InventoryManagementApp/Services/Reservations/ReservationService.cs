@@ -8,17 +8,29 @@ using InventoryManagementApp.Interfaces;
 
 namespace InventoryManagementApp.Services.Reservations
 {
+    /// <summary>
+    /// Service for managing item reservations, allowing customers to reserve items for future use.
+    /// </summary>
     public class ReservationService
     {
         private readonly DatabaseService _databaseService;
         private readonly IUserContext _userContext;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ReservationService"/> class.
+        /// </summary>
+        /// <param name="databaseService">Database service for data access.</param>
+        /// <param name="userContext">User context for tracking current user.</param>
         public ReservationService(DatabaseService databaseService, IUserContext userContext)
         {
-            _databaseService = databaseService;
-            _userContext = userContext;
+            _databaseService = databaseService ?? throw new ArgumentNullException(nameof(databaseService));
+            _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
         }
 
+        /// <summary>
+        /// Retrieves all reservations from the database, ordered by start date descending.
+        /// </summary>
+        /// <returns>A list of all reservations.</returns>
         public async Task<List<Reservation>> GetAllReservationsAsync()
         {
             return await Task.Run(() =>
@@ -41,6 +53,10 @@ namespace InventoryManagementApp.Services.Reservations
             });
         }
 
+        /// <summary>
+        /// Retrieves all active reservations (pending or confirmed status), ordered by start date.
+        /// </summary>
+        /// <returns>A list of active reservations.</returns>
         public async Task<List<Reservation>> GetActiveReservationsAsync()
         {
             return await Task.Run(() =>
@@ -64,8 +80,16 @@ namespace InventoryManagementApp.Services.Reservations
             });
         }
 
+        /// <summary>
+        /// Retrieves all reservations for a specific item.
+        /// </summary>
+        /// <param name="itemID">The ID of the item.</param>
+        /// <returns>A list of reservations for the specified item.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if itemID is less than 1.</exception>
         public async Task<List<Reservation>> GetReservationsByItemAsync(int itemID)
         {
+            if (itemID < 1)
+                throw new ArgumentOutOfRangeException(nameof(itemID), "Item ID must be greater than 0.");
             return await Task.Run(() =>
             {
                 var reservations = new List<Reservation>();
