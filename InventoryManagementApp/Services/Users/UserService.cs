@@ -15,24 +15,40 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace InventoryManagementApp.Services.Users
 {
+    /// <summary>
+    /// Service for managing user accounts including authentication, CRUD operations, and password management.
+    /// </summary>
     public class UserService : IUserService
     {
-        readonly DatabaseService _dbService;
-        readonly IUserContext _context;
-        readonly ILogger<UserService> _logger;
-        readonly IAuthorizationService _auth;
-        readonly ActivityLogService? _activityLog;
+        private readonly DatabaseService _dbService;
+        private readonly IUserContext _context;
+        private readonly ILogger<UserService> _logger;
+        private readonly IAuthorizationService _auth;
+        private readonly ActivityLogService? _activityLog;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserService"/> class.
+        /// </summary>
+        /// <param name="dbService">Database service for data access.</param>
+        /// <param name="context">User context for tracking current user.</param>
+        /// <param name="authorizationService">Optional authorization service for access control.</param>
+        /// <param name="logger">Optional logger for diagnostic output.</param>
+        /// <param name="activityLogService">Optional activity log service for audit trails.</param>
         public UserService(DatabaseService dbService, IUserContext context, IAuthorizationService? authorizationService = null, ILogger<UserService>? logger = null, ActivityLogService? activityLogService = null)
         {
-            _dbService = dbService;
-            _context = context;
+            _dbService = dbService ?? throw new ArgumentNullException(nameof(dbService));
+            _context = context ?? throw new ArgumentNullException(nameof(context));
             _auth = authorizationService ?? new NoOpAuthorizationService();
             _logger = logger ?? NullLogger<UserService>.Instance;
             _activityLog = activityLogService;
         }
 
 
+        /// <summary>
+        /// Parses a value to UTC DateTime, handling various input formats and timezones.
+        /// </summary>
+        /// <param name="value">The value to parse.</param>
+        /// <returns>UTC DateTime if parsing succeeds; otherwise, null.</returns>
         private static DateTime? ParseToUtcNullable(object value)
         {
             if (value == null || value == DBNull.Value) return null;

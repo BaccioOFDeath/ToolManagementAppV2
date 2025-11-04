@@ -8,17 +8,29 @@ using InventoryManagementApp.Interfaces;
 
 namespace InventoryManagementApp.Services.Calibration
 {
+    /// <summary>
+    /// Service for managing equipment calibration records including scheduling and tracking calibration status.
+    /// </summary>
     public class CalibrationService
     {
         private readonly DatabaseService _databaseService;
         private readonly IUserContext _userContext;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CalibrationService"/> class.
+        /// </summary>
+        /// <param name="databaseService">Database service for data access.</param>
+        /// <param name="userContext">User context for tracking current user.</param>
         public CalibrationService(DatabaseService databaseService, IUserContext userContext)
         {
-            _databaseService = databaseService;
-            _userContext = userContext;
+            _databaseService = databaseService ?? throw new ArgumentNullException(nameof(databaseService));
+            _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
         }
 
+        /// <summary>
+        /// Retrieves all calibration records from the database, ordered by calibration date descending.
+        /// </summary>
+        /// <returns>A list of all calibration records.</returns>
         public async Task<List<CalibrationRecord>> GetAllCalibrationRecordsAsync()
         {
             return await Task.Run(() =>
@@ -40,8 +52,16 @@ namespace InventoryManagementApp.Services.Calibration
             });
         }
 
+        /// <summary>
+        /// Retrieves all calibration records for a specific item.
+        /// </summary>
+        /// <param name="itemID">The ID of the item.</param>
+        /// <returns>A list of calibration records for the specified item.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if itemID is less than 1.</exception>
         public async Task<List<CalibrationRecord>> GetCalibrationRecordsByItemAsync(int itemID)
         {
+            if (itemID < 1)
+                throw new ArgumentOutOfRangeException(nameof(itemID), "Item ID must be greater than 0.");
             return await Task.Run(() =>
             {
                 var records = new List<CalibrationRecord>();

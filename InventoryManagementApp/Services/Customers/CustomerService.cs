@@ -17,57 +17,149 @@ using InventoryManagementApp.Services.Users;
 
 namespace InventoryManagementApp.Services.Customers
 {
+    /// <summary>
+    /// Service for managing customer data including CRUD operations, import/export, and search functionality.
+    /// </summary>
     public class CustomerService : ICustomerService
     {
-        readonly DatabaseService _dbService;
-        readonly ILogger<CustomerService> _logger;
-        readonly IAuthorizationService _auth;
+        private readonly DatabaseService _dbService;
+        private readonly ILogger<CustomerService> _logger;
+        private readonly IAuthorizationService _auth;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CustomerService"/> class.
+        /// </summary>
+        /// <param name="dbService">Database service for data access.</param>
+        /// <param name="authorizationService">Optional authorization service for access control.</param>
+        /// <param name="logger">Optional logger for diagnostic output.</param>
         public CustomerService(DatabaseService dbService, IAuthorizationService? authorizationService = null, ILogger<CustomerService>? logger = null)
         {
-            _dbService = dbService;
+            _dbService = dbService ?? throw new ArgumentNullException(nameof(dbService));
             _auth = authorizationService ?? new NoOpAuthorizationService();
             _logger = logger ?? NullLogger<CustomerService>.Instance;
         }
 
+        /// <summary>
+        /// Adds a new customer to the database. Requires admin privileges.
+        /// </summary>
+        /// <param name="customer">The customer to add.</param>
+        /// <param name="cancellationToken">Cancellation token for the operation.</param>
+        /// <exception cref="ArgumentNullException">Thrown if customer is null.</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown if user lacks admin privileges.</exception>
         public Task AddCustomerAsync(CustomerModel customer, CancellationToken cancellationToken = default)
         {
+            if (customer is null)
+                throw new ArgumentNullException(nameof(customer));
+            
             _auth.EnsureAdmin();
             return AddCustomerInternalAsync(customer, cancellationToken);
         }
 
+        /// <summary>
+        /// Updates an existing customer in the database. Requires admin privileges.
+        /// </summary>
+        /// <param name="customer">The customer with updated information.</param>
+        /// <param name="cancellationToken">Cancellation token for the operation.</param>
+        /// <exception cref="ArgumentNullException">Thrown if customer is null.</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown if user lacks admin privileges.</exception>
         public Task UpdateCustomerAsync(CustomerModel customer, CancellationToken cancellationToken = default)
         {
+            if (customer is null)
+                throw new ArgumentNullException(nameof(customer));
+            
             _auth.EnsureAdmin();
             return UpdateCustomerInternalAsync(customer, cancellationToken);
         }
 
+        /// <summary>
+        /// Deletes a customer from the database. Requires admin privileges.
+        /// </summary>
+        /// <param name="customerID">The ID of the customer to delete.</param>
+        /// <param name="cancellationToken">Cancellation token for the operation.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if customerID is less than 1.</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown if user lacks admin privileges.</exception>
         public Task DeleteCustomerAsync(int customerID, CancellationToken cancellationToken = default)
         {
+            if (customerID < 1)
+                throw new ArgumentOutOfRangeException(nameof(customerID), "Customer ID must be greater than 0.");
+            
             _auth.EnsureAdmin();
             return DeleteCustomerInternalAsync(customerID, cancellationToken);
         }
 
-        public Task<CustomerModel?> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default) =>
-            GetCustomerByIDInternalAsync(customerID, cancellationToken);
+        /// <summary>
+        /// Retrieves a customer by their unique identifier.
+        /// </summary>
+        /// <param name="customerID">The ID of the customer to retrieve.</param>
+        /// <param name="cancellationToken">Cancellation token for the operation.</param>
+        /// <returns>The customer if found; otherwise, null.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if customerID is less than 1.</exception>
+        public Task<CustomerModel?> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default)
+        {
+            if (customerID < 1)
+                throw new ArgumentOutOfRangeException(nameof(customerID), "Customer ID must be greater than 0.");
+            
+            return GetCustomerByIDInternalAsync(customerID, cancellationToken);
+        }
 
+        /// <summary>
+        /// Retrieves all customers from the database.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token for the operation.</param>
+        /// <returns>A list of all customers.</returns>
         public Task<List<CustomerModel>> GetAllCustomersAsync(CancellationToken cancellationToken = default) =>
             GetAllCustomersInternalAsync(cancellationToken);
 
+        /// <summary>
+        /// Gets the total count of customers in the database.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token for the operation.</param>
+        /// <returns>The number of customers.</returns>
         public Task<int> CountCustomersAsync(CancellationToken cancellationToken = default) =>
             CountCustomersInternalAsync(cancellationToken);
 
+        /// <summary>
+        /// Searches for customers matching the specified search term.
+        /// </summary>
+        /// <param name="searchTerm">The term to search for in customer data.</param>
+        /// <param name="cancellationToken">Cancellation token for the operation.</param>
+        /// <returns>A list of matching customers.</returns>
         public Task<List<CustomerModel>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default) =>
-            SearchCustomersInternalAsync(searchTerm, cancellationToken);
+            SearchCustomersInternalAsync(searchTerm ?? string.Empty, cancellationToken);
 
+        /// <summary>
+        /// Imports customers from a CSV file. Requires admin privileges.
+        /// </summary>
+        /// <param name="filePath">Path to the CSV file.</param>
+        /// <param name="map">Column mapping dictionary.</param>
+        /// <param name="cancellationToken">Cancellation token for the operation.</param>
+        /// <returns>Import result with success/failure statistics.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if filePath or map is null.</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown if user lacks admin privileges.</exception>
         public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrWhiteSpace(filePath))
+                throw new ArgumentNullException(nameof(filePath));
+            if (map is null)
+                throw new ArgumentNullException(nameof(map));
+            
             _auth.EnsureAdmin();
             return ImportCustomersFromCsvInternalAsync(filePath, map, cancellationToken);
         }
 
-        public Task ExportCustomersToCsvAsync(string filePath, CancellationToken cancellationToken = default) =>
-            ExportCustomersToCsvInternalAsync(filePath, cancellationToken);
+        /// <summary>
+        /// Exports all customers to a CSV file.
+        /// </summary>
+        /// <param name="filePath">Path where the CSV file will be saved.</param>
+        /// <param name="cancellationToken">Cancellation token for the operation.</param>
+        /// <exception cref="ArgumentNullException">Thrown if filePath is null or empty.</exception>
+        public Task ExportCustomersToCsvAsync(string filePath, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+                throw new ArgumentNullException(nameof(filePath));
+            
+            return ExportCustomersToCsvInternalAsync(filePath, cancellationToken);
+        }
 
         async Task AddCustomerInternalAsync(CustomerModel customer, CancellationToken cancellationToken)
         {

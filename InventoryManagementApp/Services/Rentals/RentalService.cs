@@ -15,6 +15,9 @@ using InventoryManagementApp.Services.Users;
 
 namespace InventoryManagementApp.Services.Rentals
 {
+    /// <summary>
+    /// Service for managing rental operations including renting items, returns, extensions, and rental history.
+    /// </summary>
     public class RentalService : IRentalService
     {
         private readonly DatabaseService _dbService;
@@ -24,6 +27,15 @@ namespace InventoryManagementApp.Services.Rentals
         private readonly ActivityLogService? _activityLog;
         private readonly IUserContext? _context;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RentalService"/> class.
+        /// </summary>
+        /// <param name="dbService">Database service for data access.</param>
+        /// <param name="authorizationService">Optional authorization service for access control.</param>
+        /// <param name="itemService">Optional item service for inventory synchronization.</param>
+        /// <param name="logger">Optional logger for diagnostic output.</param>
+        /// <param name="activityLogService">Optional activity log service for audit trails.</param>
+        /// <param name="userContext">Optional user context for tracking current user.</param>
         public RentalService(DatabaseService dbService, IAuthorizationService? authorizationService = null, IItemService? itemService = null, ILogger<RentalService>? logger = null, ActivityLogService? activityLogService = null, IUserContext? userContext = null)
         {
             _dbService = dbService ?? throw new ArgumentNullException(nameof(dbService));
@@ -132,8 +144,26 @@ namespace InventoryManagementApp.Services.Rentals
             return text;
         }
 
+        /// <summary>
+        /// Creates a new rental transaction for an item. Requires admin privileges.
+        /// </summary>
+        /// <param name="itemID">The ID of the item to rent.</param>
+        /// <param name="customerID">The ID of the customer renting the item.</param>
+        /// <param name="rentalDate">The start date of the rental.</param>
+        /// <param name="dueDate">The expected return date.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if itemID or customerID is less than 1.</exception>
+        /// <exception cref="ArgumentException">Thrown if dueDate is before rentalDate.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if item is not available for rental.</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown if user lacks admin privileges.</exception>
         public async Task RentItemAsync(int itemID, int customerID, DateTime rentalDate, DateTime dueDate)
         {
+            if (itemID < 1)
+                throw new ArgumentOutOfRangeException(nameof(itemID), "Item ID must be greater than 0.");
+            if (customerID < 1)
+                throw new ArgumentOutOfRangeException(nameof(customerID), "Customer ID must be greater than 0.");
+            if (dueDate < rentalDate)
+                throw new ArgumentException("Due date cannot be before rental date.", nameof(dueDate));
+            
             _auth.EnsureAdmin();
             await ExecuteWithTransactionAsync(async (conn, tx) =>
             {
@@ -166,8 +196,19 @@ namespace InventoryManagementApp.Services.Rentals
             }
         }
 
+        /// <summary>
+        /// Processes the return of a rented item. Requires admin privileges.
+        /// </summary>
+        /// <param name="rentalID">The ID of the rental to return.</param>
+        /// <param name="returnDate">The date the item was returned.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if rentalID is less than 1.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if rental not found or already returned.</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown if user lacks admin privileges.</exception>
         public async Task ReturnItemAsync(int rentalID, DateTime returnDate)
         {
+            if (rentalID < 1)
+                throw new ArgumentOutOfRangeException(nameof(rentalID), "Rental ID must be greater than 0.");
+            
             _auth.EnsureAdmin();
             await ExecuteWithTransactionAsync(async (conn, tx) =>
             {
@@ -196,8 +237,19 @@ namespace InventoryManagementApp.Services.Rentals
             }
         }
 
+        /// <summary>
+        /// Extends the due date of an active rental. Requires admin privileges.
+        /// </summary>
+        /// <param name="rentalID">The ID of the rental to extend.</param>
+        /// <param name="newDueDate">The new due date for the rental.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if rentalID is less than 1.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if rental not found or not active.</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown if user lacks admin privileges.</exception>
         public async Task ExtendRentalAsync(int rentalID, DateTime newDueDate)
         {
+            if (rentalID < 1)
+                throw new ArgumentOutOfRangeException(nameof(rentalID), "Rental ID must be greater than 0.");
+            
             _auth.EnsureAdmin();
             await ExecuteWithTransactionAsync(async (conn, tx) =>
             {
@@ -337,13 +389,5 @@ namespace InventoryManagementApp.Services.Rentals
             
             return frequencies;
         }
-    }
-
-    public class ItemRentalFrequency
-    {
-        public int ItemID { get; set; }
-        public string ItemNumber { get; set; } = string.Empty;
-        public string ItemName { get; set; } = string.Empty;
-        public int RentalCount { get; set; }
     }
 }

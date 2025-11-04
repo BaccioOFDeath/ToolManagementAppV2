@@ -8,17 +8,29 @@ using InventoryManagementApp.Interfaces;
 
 namespace InventoryManagementApp.Services.Kits
 {
+    /// <summary>
+    /// Service for managing equipment kits, which are collections of related items grouped together.
+    /// </summary>
     public class KitService
     {
         private readonly DatabaseService _databaseService;
         private readonly IUserContext _userContext;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="KitService"/> class.
+        /// </summary>
+        /// <param name="databaseService">Database service for data access.</param>
+        /// <param name="userContext">User context for tracking current user.</param>
         public KitService(DatabaseService databaseService, IUserContext userContext)
         {
-            _databaseService = databaseService;
-            _userContext = userContext;
+            _databaseService = databaseService ?? throw new ArgumentNullException(nameof(databaseService));
+            _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
         }
 
+        /// <summary>
+        /// Retrieves all kits from the database, ordered by name.
+        /// </summary>
+        /// <returns>A list of all kits.</returns>
         public async Task<List<Kit>> GetAllKitsAsync()
         {
             return await Task.Run(() =>
@@ -38,6 +50,10 @@ namespace InventoryManagementApp.Services.Kits
             });
         }
 
+        /// <summary>
+        /// Retrieves all active kits from the database, ordered by name.
+        /// </summary>
+        /// <returns>A list of active kits.</returns>
         public async Task<List<Kit>> GetActiveKitsAsync()
         {
             return await Task.Run(() =>
@@ -58,8 +74,17 @@ namespace InventoryManagementApp.Services.Kits
             });
         }
 
+        /// <summary>
+        /// Retrieves a specific kit by its ID.
+        /// </summary>
+        /// <param name="kitID">The ID of the kit to retrieve.</param>
+        /// <returns>The kit if found; otherwise, null.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if kitID is less than 1.</exception>
         public async Task<Kit?> GetKitByIdAsync(int kitID)
         {
+            if (kitID < 1)
+                throw new ArgumentOutOfRangeException(nameof(kitID), "Kit ID must be greater than 0.");
+            
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -75,8 +100,16 @@ namespace InventoryManagementApp.Services.Kits
             });
         }
 
+        /// <summary>
+        /// Retrieves all items that belong to a specific kit.
+        /// </summary>
+        /// <param name="kitID">The ID of the kit.</param>
+        /// <returns>A list of items in the kit.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if kitID is less than 1.</exception>
         public async Task<List<KitItem>> GetKitItemsAsync(int kitID)
         {
+            if (kitID < 1)
+                throw new ArgumentOutOfRangeException(nameof(kitID), "Kit ID must be greater than 0.");
             return await Task.Run(() =>
             {
                 var items = new List<KitItem>();
