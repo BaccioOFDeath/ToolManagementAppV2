@@ -29,5 +29,7 @@ namespace InventoryManagementApp.Interfaces
         Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default);
         Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental,
             SqliteConnection? conn = null, SqliteTransaction? tx = null, CancellationToken cancellationToken = default);
+        Task<List<ItemModel>> GetMostCommonlyUsedItemsAsync(int limit, CancellationToken cancellationToken = default);
+        Task<List<ItemModel>> GetIncompleteItemsAsync(CancellationToken cancellationToken = default);
     }
 }

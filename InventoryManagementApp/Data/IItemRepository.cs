@@ -21,4 +21,6 @@ public interface IItemRepository
     Task<List<Item>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken);
     Task<List<Item>> GetCheckedOutItemsAsync(CancellationToken cancellationToken);
     Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken);
+    Task<List<Item>> GetMostCommonlyUsedItemsAsync(int limit, CancellationToken cancellationToken);
+    Task<List<Item>> GetIncompleteItemsAsync(CancellationToken cancellationToken);
 }

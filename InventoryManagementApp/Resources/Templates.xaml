@@ -38,7 +38,16 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Border Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1" CornerRadius="8" Visibility="{Binding DataContext.ShowImage, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}">
-                    <Image Width="280" Height="280" Stretch="Uniform" Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
+                    <Grid>
+                        <Image Width="280" Height="280" Stretch="Uniform" Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
+                        <!-- Incomplete/Issues Warning Badge -->
+                        <Border Background="{DynamicResource ErrorBrush}" CornerRadius="4" Padding="6,3" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="8" Visibility="{Binding IsIncomplete, Converter={StaticResource BoolToVis}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚠" FontSize="14" Foreground="White" Margin="0,0,4,0"/>
+                                <TextBlock Text="ISSUE" FontSize="11" FontWeight="Bold" Foreground="White"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
                 </Border>
                 <Grid Grid.Row="1" Margin="0,6,0,0">
                     <Grid.RowDefinitions>

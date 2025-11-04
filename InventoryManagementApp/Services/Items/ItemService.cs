@@ -564,5 +564,15 @@ namespace InventoryManagementApp.Services.Items
             _auth.EnsureAdmin();
             return _repository.SaveChangesAsync(changes, ct);
         }
+
+        public Task<List<ItemModel>> GetMostCommonlyUsedItemsAsync(int limit, CancellationToken cancellationToken = default)
+        {
+            return _repository.GetMostCommonlyUsedItemsAsync(limit, cancellationToken);
+        }
+
+        public Task<List<ItemModel>> GetIncompleteItemsAsync(CancellationToken cancellationToken = default)
+        {
+            return _repository.GetIncompleteItemsAsync(cancellationToken);
+        }
     }
 }
