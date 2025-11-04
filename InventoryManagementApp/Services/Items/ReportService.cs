@@ -12,6 +12,10 @@ using InventoryManagementApp.Models;
 using InventoryManagementApp.Services.Customers;
 using InventoryManagementApp.Services.Rentals;
 using InventoryManagementApp.Services.Users;
+using InventoryManagementApp.Services.Maintenance;
+using InventoryManagementApp.Services.Calibration;
+using InventoryManagementApp.Services.Reservations;
+using InventoryManagementApp.Services.Kits;
 using InventoryManagementApp.Interfaces;
 
 namespace InventoryManagementApp.Services.Items
@@ -23,19 +27,31 @@ namespace InventoryManagementApp.Services.Items
         readonly ActivityLogService _activityLogService;
         readonly ICustomerService _customerService;
         readonly IUserService _userService;
+        readonly MaintenanceService? _maintenanceService;
+        readonly CalibrationService? _calibrationService;
+        readonly ReservationService? _reservationService;
+        readonly KitService? _kitService;
 
         public ReportService(
             IItemService itemService,
             IRentalService rentalService,
             ActivityLogService activityLogService,
             ICustomerService customerService,
-            IUserService userService)
+            IUserService userService,
+            MaintenanceService? maintenanceService = null,
+            CalibrationService? calibrationService = null,
+            ReservationService? reservationService = null,
+            KitService? kitService = null)
         {
             _itemService = itemService;
             _rentalService = rentalService;
             _activityLogService = activityLogService;
             _customerService = customerService;
             _userService = userService;
+            _maintenanceService = maintenanceService;
+            _calibrationService = calibrationService;
+            _reservationService = reservationService;
+            _kitService = kitService;
         }
 
         public async Task<FlowDocument> GenerateInventoryReport()
@@ -109,7 +125,7 @@ namespace InventoryManagementApp.Services.Items
             var totalCustomers = await totalCustomersTask.ConfigureAwait(false);
             var totalUsers = await totalUsersTask.ConfigureAwait(false);
 
-            var lines = new[]
+            var lines = new List<string>
             {
                 $"Total Items: {totalItems}",
                 $"Total Rentals (History): {totalRentals.Count}",
@@ -118,7 +134,115 @@ namespace InventoryManagementApp.Services.Items
                 $"Total Users: {totalUsers.Count}"
             };
 
+            if (_maintenanceService != null)
+            {
+                var overdueMaintenanceTask = _maintenanceService.GetOverdueMaintenanceAsync();
+                var upcomingMaintenanceTask = _maintenanceService.GetUpcomingMaintenanceAsync(30);
+                await Task.WhenAll(overdueMaintenanceTask, upcomingMaintenanceTask);
+                var overdueMaintenance = await overdueMaintenanceTask;
+                var upcomingMaintenance = await upcomingMaintenanceTask;
+                lines.Add($"Overdue Maintenance: {overdueMaintenance.Count}");
+                lines.Add($"Upcoming Maintenance (30 days): {upcomingMaintenance.Count}");
+            }
+
+            if (_calibrationService != null)
+            {
+                var overdueCalibrationTask = _calibrationService.GetOverdueCalibrationAsync();
+                var upcomingCalibrationTask = _calibrationService.GetUpcomingCalibrationAsync(30);
+                await Task.WhenAll(overdueCalibrationTask, upcomingCalibrationTask);
+                var overdueCalibration = await overdueCalibrationTask;
+                var upcomingCalibration = await upcomingCalibrationTask;
+                lines.Add($"Overdue Calibrations: {overdueCalibration.Count}");
+                lines.Add($"Upcoming Calibrations (30 days): {upcomingCalibration.Count}");
+            }
+
+            if (_reservationService != null)
+            {
+                var activeReservationsTask = _reservationService.GetActiveReservationsAsync();
+                var upcomingReservationsTask = _reservationService.GetUpcomingReservationsAsync(7);
+                await Task.WhenAll(activeReservationsTask, upcomingReservationsTask);
+                var activeReservations = await activeReservationsTask;
+                var upcomingReservations = await upcomingReservationsTask;
+                lines.Add($"Active Reservations: {activeReservations.Count}");
+                lines.Add($"Upcoming Reservations (7 days): {upcomingReservations.Count}");
+            }
+
+            if (_kitService != null)
+            {
+                var activeKits = await _kitService.GetActiveKitsAsync();
+                lines.Add($"Active Kits: {activeKits.Count}");
+            }
+
             return BuildReport("Application Summary Report", lines);
+        }
+
+        public async Task<FlowDocument> GenerateMaintenanceReport(bool overdueOnly = false)
+        {
+            if (_maintenanceService == null)
+                return BuildReport("Maintenance Report", new[] { "Maintenance service not available" });
+
+            var records = overdueOnly
+                ? await _maintenanceService.GetOverdueMaintenanceAsync().ConfigureAwait(false)
+                : await _maintenanceService.GetAllMaintenanceRecordsAsync().ConfigureAwait(false);
+
+            var title = overdueOnly ? "Overdue Maintenance Report" : "Maintenance Schedule Report";
+
+            var lines = records.Select(m =>
+                $"ID: {m.MaintenanceID} | Item: {m.ItemNumber} - {m.ItemName} | Type: {m.MaintenanceType} | Scheduled: {m.ScheduledDate:yyyy-MM-dd} | Status: {m.StatusDisplay} | Cost: ${m.Cost:F2}");
+
+            return BuildReport(title, lines);
+        }
+
+        public async Task<FlowDocument> GenerateCalibrationReport(bool overdueOnly = false)
+        {
+            if (_calibrationService == null)
+                return BuildReport("Calibration Report", new[] { "Calibration service not available" });
+
+            var records = overdueOnly
+                ? await _calibrationService.GetOverdueCalibrationAsync().ConfigureAwait(false)
+                : await _calibrationService.GetAllCalibrationRecordsAsync().ConfigureAwait(false);
+
+            var title = overdueOnly ? "Overdue Calibration Report" : "Calibration Records Report";
+
+            var lines = records.Select(c =>
+                $"ID: {c.CalibrationID} | Item: {c.ItemNumber} - {c.ItemName} | Date: {c.CalibrationDate:yyyy-MM-dd} | Next Due: {c.NextCalibrationDue:yyyy-MM-dd} | Status: {c.StatusDisplay} | Cert#: {c.CertificateNumber}");
+
+            return BuildReport(title, lines);
+        }
+
+        public async Task<FlowDocument> GenerateReservationReport(bool activeOnly = true)
+        {
+            if (_reservationService == null)
+                return BuildReport("Reservation Report", new[] { "Reservation service not available" });
+
+            var reservations = activeOnly
+                ? await _reservationService.GetActiveReservationsAsync().ConfigureAwait(false)
+                : await _reservationService.GetAllReservationsAsync().ConfigureAwait(false);
+
+            var title = activeOnly ? "Active Reservations Report" : "All Reservations Report";
+
+            var lines = reservations.Select(r =>
+                $"ID: {r.ReservationID} | Item: {r.ItemNumber} - {r.ItemName} | Customer: {r.CustomerName} | Start: {r.StartDate:yyyy-MM-dd} | End: {r.EndDate:yyyy-MM-dd} | Qty: {r.Quantity} | Status: {r.StatusDisplay}");
+
+            return BuildReport(title, lines);
+        }
+
+        public async Task<FlowDocument> GenerateKitReport()
+        {
+            if (_kitService == null)
+                return BuildReport("Kit Report", new[] { "Kit service not available" });
+
+            var kits = await _kitService.GetActiveKitsAsync().ConfigureAwait(false);
+            var lines = new List<string>();
+
+            foreach (var kit in kits)
+            {
+                var items = await _kitService.GetKitItemsAsync(kit.KitID).ConfigureAwait(false);
+                var itemCount = items.Count;
+                lines.Add($"Kit: {kit.KitNumber} - {kit.Name} | Category: {kit.Category} | Items: {itemCount} | Status: {(kit.IsActive ? "Active" : "Inactive")}");
+            }
+
+            return BuildReport("Active Kits Report", lines);
         }
 
         private async Task<int> CountItemsAsync()

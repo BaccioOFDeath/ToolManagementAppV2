@@ -152,6 +152,77 @@ namespace InventoryManagementApp.Services.Core
                 CREATE TABLE IF NOT EXISTS Settings (
                     Key TEXT PRIMARY KEY,
                     Value TEXT
+                );
+                CREATE TABLE IF NOT EXISTS MaintenanceRecords (
+                    MaintenanceID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ItemID INTEGER NOT NULL,
+                    ScheduledDate DATETIME NOT NULL,
+                    CompletedDate DATETIME,
+                    MaintenanceType TEXT NOT NULL,
+                    Description TEXT,
+                    PerformedBy TEXT,
+                    Cost NUMERIC NOT NULL DEFAULT 0,
+                    Status TEXT NOT NULL DEFAULT 'Scheduled',
+                    Notes TEXT,
+                    UserID INTEGER,
+                    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (ItemID) REFERENCES Items(ItemID),
+                    FOREIGN KEY (UserID) REFERENCES Users(UserID)
+                );
+                CREATE TABLE IF NOT EXISTS CalibrationRecords (
+                    CalibrationID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ItemID INTEGER NOT NULL,
+                    CalibrationDate DATETIME NOT NULL,
+                    NextCalibrationDue DATETIME NOT NULL,
+                    CalibratedBy TEXT,
+                    CertificateNumber TEXT,
+                    Standard TEXT,
+                    Result TEXT,
+                    Cost NUMERIC NOT NULL DEFAULT 0,
+                    Notes TEXT,
+                    UserID INTEGER,
+                    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (ItemID) REFERENCES Items(ItemID),
+                    FOREIGN KEY (UserID) REFERENCES Users(UserID)
+                );
+                CREATE TABLE IF NOT EXISTS Reservations (
+                    ReservationID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ItemID INTEGER NOT NULL,
+                    CustomerID INTEGER NOT NULL,
+                    ReservationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    StartDate DATETIME NOT NULL,
+                    EndDate DATETIME NOT NULL,
+                    Quantity INTEGER NOT NULL DEFAULT 1,
+                    Status TEXT NOT NULL DEFAULT 'Pending',
+                    Notes TEXT,
+                    CreatedByUserID INTEGER NOT NULL,
+                    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    RentalID INTEGER,
+                    FOREIGN KEY (ItemID) REFERENCES Items(ItemID),
+                    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID),
+                    FOREIGN KEY (CreatedByUserID) REFERENCES Users(UserID),
+                    FOREIGN KEY (RentalID) REFERENCES Rentals(RentalID)
+                );
+                CREATE TABLE IF NOT EXISTS Kits (
+                    KitID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    KitNumber TEXT NOT NULL,
+                    Name TEXT NOT NULL,
+                    Description TEXT,
+                    Category TEXT,
+                    IsActive INTEGER NOT NULL DEFAULT 1,
+                    CreatedByUserID INTEGER NOT NULL,
+                    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (CreatedByUserID) REFERENCES Users(UserID)
+                );
+                CREATE TABLE IF NOT EXISTS KitItems (
+                    KitItemID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    KitID INTEGER NOT NULL,
+                    ItemID INTEGER NOT NULL,
+                    Quantity INTEGER NOT NULL DEFAULT 1,
+                    IsOptional INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY (KitID) REFERENCES Kits(KitID),
+                    FOREIGN KEY (ItemID) REFERENCES Items(ItemID)
                 );";
             using var cmd = new SqliteCommand(sql, conn);
             cmd.ExecuteNonQuery();
@@ -166,6 +237,18 @@ namespace InventoryManagementApp.Services.Core
             EnsureIndex(conn, "Users", "UserName", true);
             EnsureIndex(conn, "Customers", "Contact");
             EnsureIndex(conn, "Rentals", new[] { "ItemID", "CustomerID" });
+            EnsureIndex(conn, "MaintenanceRecords", "ItemID");
+            EnsureIndex(conn, "MaintenanceRecords", "ScheduledDate");
+            EnsureIndex(conn, "MaintenanceRecords", "Status");
+            EnsureIndex(conn, "CalibrationRecords", "ItemID");
+            EnsureIndex(conn, "CalibrationRecords", "NextCalibrationDue");
+            EnsureIndex(conn, "Reservations", "ItemID");
+            EnsureIndex(conn, "Reservations", "CustomerID");
+            EnsureIndex(conn, "Reservations", new[] { "StartDate", "EndDate" });
+            EnsureIndex(conn, "Reservations", "Status");
+            EnsureIndex(conn, "Kits", "KitNumber", true);
+            EnsureIndex(conn, "KitItems", "KitID");
+            EnsureIndex(conn, "KitItems", "ItemID");
         }
 
         void MigrateLegacyItemsTable(SqliteConnection conn)

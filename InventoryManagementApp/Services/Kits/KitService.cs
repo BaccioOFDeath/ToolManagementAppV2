@@ -1,0 +1,283 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.Data.Sqlite;
+using InventoryManagementApp.Models.Domain;
+using InventoryManagementApp.Services.Core;
+using InventoryManagementApp.Interfaces;
+
+namespace InventoryManagementApp.Services.Kits
+{
+    public class KitService
+    {
+        private readonly DatabaseService _databaseService;
+        private readonly IUserContext _userContext;
+
+        public KitService(DatabaseService databaseService, IUserContext userContext)
+        {
+            _databaseService = databaseService;
+            _userContext = userContext;
+        }
+
+        public async Task<List<Kit>> GetAllKitsAsync()
+        {
+            return await Task.Run(() =>
+            {
+                var kits = new List<Kit>();
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT * FROM Kits
+                    ORDER BY Name ASC";
+                using var cmd = new SqliteCommand(sql, conn);
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    kits.Add(MapKit(reader));
+                }
+                return kits;
+            });
+        }
+
+        public async Task<List<Kit>> GetActiveKitsAsync()
+        {
+            return await Task.Run(() =>
+            {
+                var kits = new List<Kit>();
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT * FROM Kits
+                    WHERE IsActive = 1
+                    ORDER BY Name ASC";
+                using var cmd = new SqliteCommand(sql, conn);
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    kits.Add(MapKit(reader));
+                }
+                return kits;
+            });
+        }
+
+        public async Task<Kit?> GetKitByIdAsync(int kitID)
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = "SELECT * FROM Kits WHERE KitID = @KitID";
+                using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@KitID", kitID);
+                using var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    return MapKit(reader);
+                }
+                return null;
+            });
+        }
+
+        public async Task<List<KitItem>> GetKitItemsAsync(int kitID)
+        {
+            return await Task.Run(() =>
+            {
+                var items = new List<KitItem>();
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT ki.*, i.ItemNumber, i.NameDescription as ItemName
+                    FROM KitItems ki
+                    LEFT JOIN Items i ON ki.ItemID = i.ItemID
+                    WHERE ki.KitID = @KitID
+                    ORDER BY i.ItemNumber";
+                using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@KitID", kitID);
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    items.Add(MapKitItem(reader));
+                }
+                return items;
+            });
+        }
+
+        public async Task<int> CreateKitAsync(Kit kit)
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    INSERT INTO Kits 
+                    (KitNumber, Name, Description, Category, IsActive, CreatedByUserID, CreatedAt, UpdatedAt)
+                    VALUES 
+                    (@KitNumber, @Name, @Description, @Category, @IsActive, @CreatedByUserID, @CreatedAt, @UpdatedAt);
+                    SELECT last_insert_rowid();";
+                using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@KitNumber", kit.KitNumber);
+                cmd.Parameters.AddWithValue("@Name", kit.Name);
+                cmd.Parameters.AddWithValue("@Description", kit.Description);
+                cmd.Parameters.AddWithValue("@Category", kit.Category);
+                cmd.Parameters.AddWithValue("@IsActive", kit.IsActive ? 1 : 0);
+                cmd.Parameters.AddWithValue("@CreatedByUserID", _userContext.CurrentUser?.UserID ?? 0);
+                cmd.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
+                cmd.Parameters.AddWithValue("@UpdatedAt", DateTime.Now);
+                var id = Convert.ToInt32(cmd.ExecuteScalar());
+                return id;
+            });
+        }
+
+        public async Task<bool> UpdateKitAsync(Kit kit)
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    UPDATE Kits 
+                    SET KitNumber = @KitNumber,
+                        Name = @Name,
+                        Description = @Description,
+                        Category = @Category,
+                        IsActive = @IsActive,
+                        UpdatedAt = @UpdatedAt
+                    WHERE KitID = @KitID";
+                using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@KitID", kit.KitID);
+                cmd.Parameters.AddWithValue("@KitNumber", kit.KitNumber);
+                cmd.Parameters.AddWithValue("@Name", kit.Name);
+                cmd.Parameters.AddWithValue("@Description", kit.Description);
+                cmd.Parameters.AddWithValue("@Category", kit.Category);
+                cmd.Parameters.AddWithValue("@IsActive", kit.IsActive ? 1 : 0);
+                cmd.Parameters.AddWithValue("@UpdatedAt", DateTime.Now);
+                return cmd.ExecuteNonQuery() > 0;
+            });
+        }
+
+        public async Task<bool> DeleteKitAsync(int kitID)
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                using var transaction = conn.BeginTransaction();
+                try
+                {
+                    var deleteItemsSql = "DELETE FROM KitItems WHERE KitID = @KitID";
+                    using var deleteItemsCmd = new SqliteCommand(deleteItemsSql, conn, transaction);
+                    deleteItemsCmd.Parameters.AddWithValue("@KitID", kitID);
+                    deleteItemsCmd.ExecuteNonQuery();
+
+                    var deleteKitSql = "DELETE FROM Kits WHERE KitID = @KitID";
+                    using var deleteKitCmd = new SqliteCommand(deleteKitSql, conn, transaction);
+                    deleteKitCmd.Parameters.AddWithValue("@KitID", kitID);
+                    var result = deleteKitCmd.ExecuteNonQuery() > 0;
+
+                    transaction.Commit();
+                    return result;
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            });
+        }
+
+        public async Task<int> AddKitItemAsync(KitItem kitItem)
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    INSERT INTO KitItems 
+                    (KitID, ItemID, Quantity, IsOptional)
+                    VALUES 
+                    (@KitID, @ItemID, @Quantity, @IsOptional);
+                    SELECT last_insert_rowid();";
+                using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@KitID", kitItem.KitID);
+                cmd.Parameters.AddWithValue("@ItemID", kitItem.ItemID);
+                cmd.Parameters.AddWithValue("@Quantity", kitItem.Quantity);
+                cmd.Parameters.AddWithValue("@IsOptional", kitItem.IsOptional ? 1 : 0);
+                var id = Convert.ToInt32(cmd.ExecuteScalar());
+                return id;
+            });
+        }
+
+        public async Task<bool> UpdateKitItemAsync(KitItem kitItem)
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    UPDATE KitItems 
+                    SET ItemID = @ItemID,
+                        Quantity = @Quantity,
+                        IsOptional = @IsOptional
+                    WHERE KitItemID = @KitItemID";
+                using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@KitItemID", kitItem.KitItemID);
+                cmd.Parameters.AddWithValue("@ItemID", kitItem.ItemID);
+                cmd.Parameters.AddWithValue("@Quantity", kitItem.Quantity);
+                cmd.Parameters.AddWithValue("@IsOptional", kitItem.IsOptional ? 1 : 0);
+                return cmd.ExecuteNonQuery() > 0;
+            });
+        }
+
+        public async Task<bool> RemoveKitItemAsync(int kitItemID)
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = "DELETE FROM KitItems WHERE KitItemID = @KitItemID";
+                using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@KitItemID", kitItemID);
+                return cmd.ExecuteNonQuery() > 0;
+            });
+        }
+
+        public async Task<bool> CheckKitAvailabilityAsync(int kitID)
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(*) as MissingItems
+                    FROM KitItems ki
+                    LEFT JOIN Items i ON ki.ItemID = i.ItemID
+                    WHERE ki.KitID = @KitID
+                    AND ki.IsOptional = 0
+                    AND i.AvailableQuantity < ki.Quantity";
+                using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@KitID", kitID);
+                var missingItems = Convert.ToInt32(cmd.ExecuteScalar());
+                return missingItems == 0;
+            });
+        }
+
+        private Kit MapKit(SqliteDataReader reader)
+        {
+            return new Kit
+            {
+                KitID = reader.GetInt32(reader.GetOrdinal("KitID")),
+                KitNumber = reader.GetString(reader.GetOrdinal("KitNumber")),
+                Name = reader.GetString(reader.GetOrdinal("Name")),
+                Description = reader.IsDBNull(reader.GetOrdinal("Description")) ? "" : reader.GetString(reader.GetOrdinal("Description")),
+                Category = reader.IsDBNull(reader.GetOrdinal("Category")) ? "" : reader.GetString(reader.GetOrdinal("Category")),
+                IsActive = reader.GetInt32(reader.GetOrdinal("IsActive")) == 1,
+                CreatedByUserID = reader.GetInt32(reader.GetOrdinal("CreatedByUserID")),
+                CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt")),
+                UpdatedAt = reader.GetDateTime(reader.GetOrdinal("UpdatedAt"))
+            };
+        }
+
+        private KitItem MapKitItem(SqliteDataReader reader)
+        {
+            return new KitItem
+            {
+                KitItemID = reader.GetInt32(reader.GetOrdinal("KitItemID")),
+                KitID = reader.GetInt32(reader.GetOrdinal("KitID")),
+                ItemID = reader.GetInt32(reader.GetOrdinal("ItemID")),
+                ItemNumber = reader.IsDBNull(reader.GetOrdinal("ItemNumber")) ? "" : reader.GetString(reader.GetOrdinal("ItemNumber")),
+                ItemName = reader.IsDBNull(reader.GetOrdinal("ItemName")) ? "" : reader.GetString(reader.GetOrdinal("ItemName")),
+                Quantity = reader.GetInt32(reader.GetOrdinal("Quantity")),
+                IsOptional = reader.GetInt32(reader.GetOrdinal("IsOptional")) == 1
+            };
+        }
+    }
+}

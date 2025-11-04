@@ -38,5 +38,29 @@ namespace InventoryManagementApp.Interfaces
         Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping();
         void ShowPrintPreview(FlowDocument document, string title, string description);
         void ShowPrintLabelDialog();
+
+        Task<bool> ShowConfirmAsync(string title, string message) =>
+            ShowConfirmationAsync(message, title);
+
+        Task ShowErrorAsync(string title, string message) =>
+            ShowInfoAsync(message, title);
+
+        Task<string?> ShowInputDialogAsync(string title, string message) =>
+            Task.FromResult<string?>(null);
+
+        Task<bool> ShowMaintenanceEditDialogAsync(InventoryManagementApp.Models.Domain.MaintenanceRecord record, bool isNew) =>
+            Task.FromResult(false);
+
+        Task<bool> ShowCalibrationEditDialogAsync(InventoryManagementApp.Models.Domain.CalibrationRecord record, bool isNew) =>
+            Task.FromResult(false);
+
+        Task<bool> ShowReservationEditDialogAsync(InventoryManagementApp.Models.Domain.Reservation reservation, bool isNew) =>
+            Task.FromResult(false);
+
+        Task<bool> ShowKitEditDialogAsync(InventoryManagementApp.Models.Domain.Kit kit, bool isNew) =>
+            Task.FromResult(false);
+
+        Task<bool> ShowKitItemEditDialogAsync(InventoryManagementApp.Models.Domain.KitItem kitItem, bool isNew) =>
+            Task.FromResult(false);
     }
 }

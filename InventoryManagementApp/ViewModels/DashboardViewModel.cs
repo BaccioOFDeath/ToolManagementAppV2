@@ -9,6 +9,10 @@ using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Services.Users;
+using InventoryManagementApp.Services.Maintenance;
+using InventoryManagementApp.Services.Calibration;
+using InventoryManagementApp.Services.Reservations;
+using InventoryManagementApp.Services.Kits;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Utilities.Helpers;
@@ -22,6 +26,10 @@ namespace InventoryManagementApp.ViewModels
         readonly ICustomerService _customerService;
         readonly IUserService _userService;
         readonly ActivityLogService _activityLogService;
+        readonly MaintenanceService? _maintenanceService;
+        readonly CalibrationService? _calibrationService;
+        readonly ReservationService? _reservationService;
+        readonly KitService? _kitService;
         readonly IRelayCommand _openManageItemsCommand;
         readonly IRelayCommand _openRentalsCommand;
         readonly IRelayCommand _openImportExportCommand;
@@ -46,6 +54,10 @@ namespace InventoryManagementApp.ViewModels
                                   IRelayCommand openManageItemsCommand,
                                   IRelayCommand openRentalsCommand,
                                   IRelayCommand openImportExportCommand,
+                                  MaintenanceService? maintenanceService = null,
+                                  CalibrationService? calibrationService = null,
+                                  ReservationService? reservationService = null,
+                                  KitService? kitService = null,
                                   ILogger<DashboardViewModel>? logger = null)
         {
             _itemService = itemService ?? throw new ArgumentNullException(nameof(itemService));
@@ -53,6 +65,10 @@ namespace InventoryManagementApp.ViewModels
             _customerService = customerService ?? throw new ArgumentNullException(nameof(customerService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _activityLogService = activityLogService ?? throw new ArgumentNullException(nameof(activityLogService));
+            _maintenanceService = maintenanceService;
+            _calibrationService = calibrationService;
+            _reservationService = reservationService;
+            _kitService = kitService;
             _openManageItemsCommand = openManageItemsCommand ?? throw new ArgumentNullException(nameof(openManageItemsCommand));
             _openRentalsCommand = openRentalsCommand ?? throw new ArgumentNullException(nameof(openRentalsCommand));
             _openImportExportCommand = openImportExportCommand ?? throw new ArgumentNullException(nameof(openImportExportCommand));
@@ -107,6 +123,30 @@ namespace InventoryManagementApp.ViewModels
                 StatCards.Add(new StatCard { Title = "Active Rentals", Value = rentalCountTask.Result.ToString() });
                 StatCards.Add(new StatCard { Title = "Total Customers", Value = customerCountTask.Result.ToString() });
                 StatCards.Add(new StatCard { Title = "Total Users", Value = userCountTask.Result.ToString() });
+
+                if (_maintenanceService != null)
+                {
+                    var overdueMaintenance = await _maintenanceService.GetOverdueMaintenanceAsync().ConfigureAwait(false);
+                    StatCards.Add(new StatCard { Title = "Overdue Maintenance", Value = overdueMaintenance.Count.ToString() });
+                }
+
+                if (_calibrationService != null)
+                {
+                    var overdueCalibration = await _calibrationService.GetOverdueCalibrationAsync().ConfigureAwait(false);
+                    StatCards.Add(new StatCard { Title = "Overdue Calibrations", Value = overdueCalibration.Count.ToString() });
+                }
+
+                if (_reservationService != null)
+                {
+                    var activeReservations = await _reservationService.GetActiveReservationsAsync().ConfigureAwait(false);
+                    StatCards.Add(new StatCard { Title = "Active Reservations", Value = activeReservations.Count.ToString() });
+                }
+
+                if (_kitService != null)
+                {
+                    var activeKits = await _kitService.GetActiveKitsAsync().ConfigureAwait(false);
+                    StatCards.Add(new StatCard { Title = "Active Kits", Value = activeKits.Count.ToString() });
+                }
             }
             catch (OperationCanceledException)
             {
