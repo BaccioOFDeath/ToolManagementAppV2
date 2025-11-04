@@ -45,6 +45,7 @@ namespace InventoryManagementApp.ViewModels
         public IRelayCommand NewItemCommand { get; }
         public IRelayCommand OpenRentalsCommand { get; }
         public IRelayCommand OpenImportExportCommand { get; }
+        public IRelayCommand PrintCheckedOutItemsCommand { get; }
         public IAsyncRelayCommand<ItemModel> CheckInItemCommand { get; }
         public IAsyncRelayCommand<RentalModel> ReturnRentalCommand { get; }
 
@@ -94,6 +95,7 @@ namespace InventoryManagementApp.ViewModels
                 catch (Exception ex) { _logger.LogError(ex, "Failed to open import/export page"); }
             });
 
+            PrintCheckedOutItemsCommand = new RelayCommand(PrintCheckedOutItems);
             CheckInItemCommand = new AsyncRelayCommand<ItemModel>(CheckInItemAsync);
             ReturnRentalCommand = new AsyncRelayCommand<RentalModel>(ReturnRentalAsync);
         }
@@ -292,6 +294,112 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to load incomplete items");
             }
+        }
+
+        private void PrintCheckedOutItems()
+        {
+            try
+            {
+                var userName = _userService.GetCurrentUserNameAsync().Result;
+                var doc = GenerateCheckedOutItemsDocument(userName);
+                
+                var printDialog = new System.Windows.Controls.PrintDialog();
+                if (printDialog.ShowDialog() == true)
+                {
+                    var paginator = ((System.Windows.Documents.IDocumentPaginatorSource)doc).DocumentPaginator;
+                    printDialog.PrintDocument(paginator, $"Checked Out Items - {userName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to print checked-out items");
+            }
+        }
+
+        private System.Windows.Documents.FlowDocument GenerateCheckedOutItemsDocument(string userName)
+        {
+            var doc = new System.Windows.Documents.FlowDocument
+            {
+                PagePadding = new System.Windows.Thickness(40),
+                FontFamily = new System.Windows.Media.FontFamily("Calibri"),
+                FontSize = 12
+            };
+
+            doc.Blocks.Add(new System.Windows.Documents.Paragraph(new System.Windows.Documents.Bold(new System.Windows.Documents.Run("Checked Out Items")))
+            {
+                FontSize = 20,
+                TextAlignment = System.Windows.TextAlignment.Center,
+                Margin = new System.Windows.Thickness(0, 0, 0, 10)
+            });
+
+            doc.Blocks.Add(new System.Windows.Documents.Paragraph(new System.Windows.Documents.Run($"User: {userName}"))
+            {
+                FontSize = 14,
+                Margin = new System.Windows.Thickness(0, 0, 0, 5)
+            });
+
+            doc.Blocks.Add(new System.Windows.Documents.Paragraph(new System.Windows.Documents.Run($"Date: {DateTime.Now:yyyy-MM-dd HH:mm}"))
+            {
+                FontSize = 14,
+                Margin = new System.Windows.Thickness(0, 0, 0, 20)
+            });
+
+            var table = new System.Windows.Documents.Table();
+            table.CellSpacing = 0;
+            table.BorderBrush = System.Windows.Media.Brushes.Black;
+            table.BorderThickness = new System.Windows.Thickness(1);
+
+            table.Columns.Add(new System.Windows.Documents.TableColumn { Width = new System.Windows.GridLength(120) });
+            table.Columns.Add(new System.Windows.Documents.TableColumn { Width = new System.Windows.GridLength(200) });
+            table.Columns.Add(new System.Windows.Documents.TableColumn { Width = new System.Windows.GridLength(100) });
+            table.Columns.Add(new System.Windows.Documents.TableColumn { Width = new System.Windows.GridLength(120) });
+
+            var headerGroup = new System.Windows.Documents.TableRowGroup();
+            var headerRow = new System.Windows.Documents.TableRow();
+            headerRow.Background = System.Windows.Media.Brushes.LightGray;
+            
+            AddTableCell(headerRow, "Item Number", true);
+            AddTableCell(headerRow, "Name", true);
+            AddTableCell(headerRow, "Location", true);
+            AddTableCell(headerRow, "Checked Out", true);
+            headerGroup.Rows.Add(headerRow);
+            table.RowGroups.Add(headerGroup);
+
+            var dataGroup = new System.Windows.Documents.TableRowGroup();
+            foreach (var item in CheckedOutItems)
+            {
+                var row = new System.Windows.Documents.TableRow();
+                AddTableCell(row, item.ItemNumber);
+                AddTableCell(row, item.Name);
+                AddTableCell(row, item.Location);
+                AddTableCell(row, item.CheckedOutTime?.ToString("yyyy-MM-dd HH:mm") ?? "");
+                dataGroup.Rows.Add(row);
+            }
+            table.RowGroups.Add(dataGroup);
+
+            doc.Blocks.Add(table);
+
+            doc.Blocks.Add(new System.Windows.Documents.Paragraph(new System.Windows.Documents.Run($"\nTotal Items: {CheckedOutItems.Count}"))
+            {
+                FontSize = 12,
+                FontWeight = System.Windows.FontWeights.Bold,
+                Margin = new System.Windows.Thickness(0, 20, 0, 0)
+            });
+
+            return doc;
+        }
+
+        private void AddTableCell(System.Windows.Documents.TableRow row, string text, bool isHeader = false)
+        {
+            var cell = new System.Windows.Documents.TableCell(new System.Windows.Documents.Paragraph(new System.Windows.Documents.Run(text)))
+            {
+                BorderBrush = System.Windows.Media.Brushes.Black,
+                BorderThickness = new System.Windows.Thickness(1),
+                Padding = new System.Windows.Thickness(5)
+            };
+            if (isHeader)
+                cell.FontWeight = System.Windows.FontWeights.Bold;
+            row.Cells.Add(cell);
         }
     }
 }
