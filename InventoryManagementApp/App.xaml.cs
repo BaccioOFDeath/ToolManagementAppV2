@@ -64,7 +64,7 @@ namespace InventoryManagementApp
                 var logFile = Path.Combine(logsDir, "app-.log");
 
                 Log.Logger = new LoggerConfiguration()
-                    .MinimumLevel.Debug()
+                    .MinimumLevel.Information()
                     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                     .Enrich.FromLogContext()
                     .WriteTo.Debug()
@@ -147,6 +147,20 @@ namespace InventoryManagementApp
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
             await Host.StartAsync();
+
+            // Validate configuration at startup
+            var configuration = Host.Services.GetRequiredService<IConfiguration>();
+            var configLogger = Host.Services.GetRequiredService<ILogger<ConfigurationValidator>>();
+            var configValidator = new ConfigurationValidator(configuration, configLogger);
+            var configErrors = configValidator.Validate();
+            if (configErrors.Any())
+            {
+                var errorMessage = $"Configuration validation failed:\n\n{string.Join("\n", configErrors)}\n\nPlease check appsettings.json and try again.";
+                _logger.LogCritical("Application startup failed due to configuration errors.");
+                _dialogService.ShowInfo(errorMessage, "Configuration Error");
+                Shutdown();
+                return;
+            }
 
             // Ensure database initialization and migrations are executed at startup
             Host.Services.GetRequiredService<MigrationRunner>().Migrate();
