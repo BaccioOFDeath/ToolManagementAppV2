@@ -33,7 +33,39 @@ The application can be rebranded via its **Settings** to suit different inventor
 These options enable using the app for tracking AV gear, sports equipment, or any other lendable items.
 
 ## Configuration
-The application reads configuration from `appsettings.json`. By default, the SQLite database is stored in `inventory.db` within the application's base directory. This path can be changed by updating the `Database:Path` setting.
+
+The application reads configuration from `appsettings.json`. Configuration includes:
+
+- **Database**: SQLite database path (default: `inventory.db`)
+- **Logging**: Log directory location (default: `Logs`)
+- **Email**: SMTP settings for rental reminder notifications
+- **Company**: Company information for invoices and documents
+
+### Environment-Specific Configuration
+
+For development, the included `appsettings.json` uses example values. For production deployment:
+
+1. Use `appsettings.Production.json` as a template
+2. Configure actual SMTP credentials and company information
+3. Never commit production credentials to source control
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed production deployment instructions.
+
+### Configuration Validation
+
+The application validates configuration at startup and will display an error if required settings are missing or invalid. Email settings generate warnings if not configured, as email features are optional.
+
+## Security
+
+### Password Requirements
+- Minimum 8 characters
+- Must contain at least one uppercase letter, one lowercase letter, and one digit
+- Default passwords (admin, changeme, newpassword) are automatically expired and must be changed
+
+### Data Protection
+- SQLite database stores sensitive customer and rental data
+- Use appropriate file system permissions to protect the database file
+- Regular backups are recommended (see [DEPLOYMENT.md](DEPLOYMENT.md))
 
 ## DeviceManagementApp
 
