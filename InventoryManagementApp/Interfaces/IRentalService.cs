@@ -35,5 +35,14 @@ namespace InventoryManagementApp.Interfaces
         Task<List<Rental>> GetAllRentalsAsync();
         Task<List<Rental>> GetRentalHistoryForItemAsync(int itemID);
         Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID);
+        Task<List<ItemRentalFrequency>> GetRentalFrequencyAsync(int topN = 10);
+    }
+
+    public class ItemRentalFrequency
+    {
+        public int ItemID { get; set; }
+        public string ItemNumber { get; set; } = string.Empty;
+        public string ItemName { get; set; } = string.Empty;
+        public int RentalCount { get; set; }
     }
 }

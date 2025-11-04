@@ -86,6 +86,8 @@ namespace InventoryManagementApp.ViewModels
                     ExtendCommand.NotifyCanExecuteChanged();
                     OpenHistoryCommand.NotifyCanExecuteChanged();
                     PrintRentalCommand.NotifyCanExecuteChanged();
+                    PrintPickingSlipCommand.NotifyCanExecuteChanged();
+                    PrintInvoiceCommand.NotifyCanExecuteChanged();
                     DeleteRentalCommand.NotifyCanExecuteChanged();
                 }
             }
@@ -104,6 +106,8 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand ExtendCommand { get; }
         public IAsyncRelayCommand OpenHistoryCommand { get; }
         public IRelayCommand PrintRentalCommand { get; }
+        public IRelayCommand PrintPickingSlipCommand { get; }
+        public IRelayCommand PrintInvoiceCommand { get; }
         public IAsyncRelayCommand DeleteRentalCommand { get; }
 
         public ManageRentalsViewModel(IRentalService rentalService, IDialogService dialogService, ILogger<ManageRentalsViewModel>? logger = null)
@@ -118,6 +122,8 @@ namespace InventoryManagementApp.ViewModels
             ExtendCommand = new AsyncRelayCommand(ExtendAsync, () => SelectedRental != null);
             OpenHistoryCommand = new AsyncRelayCommand(OpenHistoryAsync, () => SelectedRental != null);
             PrintRentalCommand = new RelayCommand(PrintRental, () => SelectedRental != null);
+            PrintPickingSlipCommand = new RelayCommand(PrintPickingSlip, () => SelectedRental != null);
+            PrintInvoiceCommand = new RelayCommand(PrintInvoice, () => SelectedRental != null);
             DeleteRentalCommand = new AsyncRelayCommand(DeleteRentalAsync, () => SelectedRental != null);
         }
 
@@ -309,6 +315,40 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to print rental {RentalID}", SelectedRental?.RentalID);
                 _dialogService.ShowInfo($"Failed to print rental: {ex.Message}", "Error");
+            }
+        }
+
+        void PrintPickingSlip()
+        {
+            if (SelectedRental == null)
+                return;
+            try
+            {
+                var printService = new Services.Printing.RentalPrintingService("Equipment Rentals", "", "");
+                var doc = printService.GeneratePickingSlip(SelectedRental);
+                _dialogService.ShowPrintPreview(doc, $"Picking Slip - Rental {SelectedRental.RentalID}", string.Empty);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to print picking slip for rental {RentalID}", SelectedRental?.RentalID);
+                _dialogService.ShowInfo($"Failed to print picking slip: {ex.Message}", "Error");
+            }
+        }
+
+        void PrintInvoice()
+        {
+            if (SelectedRental == null)
+                return;
+            try
+            {
+                var printService = new Services.Printing.RentalPrintingService("Equipment Rentals", "", "");
+                var doc = printService.GenerateInvoice(SelectedRental, dailyRate: 25.00m, lateFee: 0);
+                _dialogService.ShowPrintPreview(doc, $"Invoice - Rental {SelectedRental.RentalID}", string.Empty);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to print invoice for rental {RentalID}", SelectedRental?.RentalID);
+                _dialogService.ShowInfo($"Failed to print invoice: {ex.Message}", "Error");
             }
         }
 

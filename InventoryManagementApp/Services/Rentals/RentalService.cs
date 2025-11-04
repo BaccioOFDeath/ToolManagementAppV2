@@ -304,5 +304,46 @@ namespace InventoryManagementApp.Services.Rentals
             var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);
             return list.Where(r => r != null).Select(r => r!).ToList();
         }
+
+        public async Task<List<ItemRentalFrequency>> GetRentalFrequencyAsync(int topN = 10)
+        {
+            const string sql = @"
+                SELECT t.ItemID, t.ItemNumber, t.NameDescription, COUNT(r.RentalID) AS RentalCount
+                FROM Items t
+                LEFT JOIN Rentals r ON t.ItemID = r.ItemID
+                GROUP BY t.ItemID, t.ItemNumber, t.NameDescription
+                HAVING RentalCount > 0
+                ORDER BY RentalCount DESC
+                LIMIT @TopN";
+            
+            var p = new[] { new SqliteParameter("@TopN", topN) };
+            using var conn = _dbService.CreateConnection();
+            
+            var frequencies = new List<ItemRentalFrequency>();
+            using var cmd = new SqliteCommand(sql, conn);
+            cmd.Parameters.AddRange(p);
+            using var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false);
+            
+            while (await reader.ReadAsync().ConfigureAwait(false))
+            {
+                frequencies.Add(new ItemRentalFrequency
+                {
+                    ItemID = Convert.ToInt32(reader["ItemID"]),
+                    ItemNumber = reader["ItemNumber"]?.ToString() ?? string.Empty,
+                    ItemName = reader["NameDescription"]?.ToString() ?? string.Empty,
+                    RentalCount = Convert.ToInt32(reader["RentalCount"])
+                });
+            }
+            
+            return frequencies;
+        }
+    }
+
+    public class ItemRentalFrequency
+    {
+        public int ItemID { get; set; }
+        public string ItemNumber { get; set; } = string.Empty;
+        public string ItemName { get; set; } = string.Empty;
+        public int RentalCount { get; set; }
     }
 }
