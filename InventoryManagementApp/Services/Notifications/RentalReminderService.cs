@@ -19,7 +19,7 @@ namespace InventoryManagementApp.Services.Notifications
         private readonly EmailService? _emailService;
         private readonly ILogger<RentalReminderService> _logger;
         private readonly string _contactInfo;
-        private Timer? _timer;
+        private System.Threading.Timer? _timer;
         private bool _disposed;
 
         public RentalReminderService(
@@ -57,7 +57,7 @@ namespace InventoryManagementApp.Services.Notifications
             
             _logger.LogInformation("Rental reminder service starting. Next check at {Time}", scheduledTime);
 
-            _timer = new Timer(
+            _timer = new System.Threading.Timer(
                 async _ => await CheckAndSendRemindersAsync().ConfigureAwait(false),
                 null,
                 initialDelay,

@@ -36,7 +36,7 @@ namespace InventoryManagementApp.Services.Printing
             var doc = new FlowDocument
             {
                 PagePadding = new Thickness(40),
-                FontFamily = new FontFamily("Calibri"),
+                FontFamily = new System.Windows.Media.FontFamily("Calibri"),
                 FontSize = 12
             };
 
@@ -119,7 +119,7 @@ namespace InventoryManagementApp.Services.Printing
             var doc = new FlowDocument
             {
                 PagePadding = new Thickness(40),
-                FontFamily = new FontFamily("Calibri"),
+                FontFamily = new System.Windows.Media.FontFamily("Calibri"),
                 FontSize = 12
             };
 
@@ -197,7 +197,7 @@ namespace InventoryManagementApp.Services.Printing
 
             var itemsTable = new Table
             {
-                BorderBrush = Brushes.Black,
+                BorderBrush = System.Windows.Media.Brushes.Black,
                 BorderThickness = new Thickness(1)
             };
             itemsTable.Columns.Add(new TableColumn());
@@ -207,7 +207,7 @@ namespace InventoryManagementApp.Services.Printing
 
             var itemsHeaderGroup = new TableRowGroup();
             itemsTable.RowGroups.Add(itemsHeaderGroup);
-            var headerRow = new TableRow { Background = Brushes.LightGray };
+            var headerRow = new TableRow { Background = System.Windows.Media.Brushes.LightGray };
             headerRow.Cells.Add(new TableCell(new Paragraph(new Bold(new Run("Description")))));
             headerRow.Cells.Add(new TableCell(new Paragraph(new Bold(new Run("Rental Period")))));
             headerRow.Cells.Add(new TableCell(new Paragraph(new Bold(new Run("Rate")))));
@@ -245,7 +245,7 @@ namespace InventoryManagementApp.Services.Printing
             }
 
             var totalAmount = rentalAmount + lateFee;
-            var totalRow = new TableRow { Background = Brushes.LightGray };
+            var totalRow = new TableRow { Background = System.Windows.Media.Brushes.LightGray };
             totalRow.Cells.Add(new TableCell(new Paragraph(new Bold(new Run("Total")))));
             totalRow.Cells.Add(new TableCell(new Paragraph(new Run(""))));
             totalRow.Cells.Add(new TableCell(new Paragraph(new Run(""))));
