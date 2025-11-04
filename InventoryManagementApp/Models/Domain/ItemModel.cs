@@ -170,6 +170,34 @@ namespace InventoryManagementApp.Models.Domain
             set => SetProperty(ref _updatedAt, value);
         }
 
+        private bool _isIncomplete;
+        public bool IsIncomplete
+        {
+            get => _isIncomplete;
+            set => SetProperty(ref _isIncomplete, value);
+        }
+
+        private string _missingComponentsNotes = string.Empty;
+        public string MissingComponentsNotes
+        {
+            get => _missingComponentsNotes;
+            set => SetProperty(ref _missingComponentsNotes, value);
+        }
+
+        private string _issuesNotes = string.Empty;
+        public string IssuesNotes
+        {
+            get => _issuesNotes;
+            set => SetProperty(ref _issuesNotes, value);
+        }
+
+        private int _checkoutCount;
+        public int CheckoutCount
+        {
+            get => _checkoutCount;
+            set => SetProperty(ref _checkoutCount, value);
+        }
+
         public int OnHand => QuantityOnHand;
 
         public string Purchased => PurchasedDate?.ToString("yyyy-MM-dd") ?? string.Empty;

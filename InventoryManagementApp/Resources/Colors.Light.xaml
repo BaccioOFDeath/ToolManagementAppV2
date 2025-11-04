@@ -26,7 +26,7 @@
     <Color x:Key="Col.CardBackground">#FFFFFF</Color>
     <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource Col.CardBackground}"/>
     <SolidColorBrush x:Key="TextBoxBackgroundBrush" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="ComboBoxPopupBackgroundBrush" Color="{StaticResource Col.SurfaceAlt}"/>
+    <SolidColorBrush x:Key="ComboBoxPopupBackgroundBrush" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="OverlayBrush" Color="#80000000"/>
     <SolidColorBrush x:Key="NavButtonHoverBrush" Color="#E0E0E0"/>
     <SolidColorBrush x:Key="NavButtonHoverBorderBrush" Color="#BBBBBB"/>

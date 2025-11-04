@@ -39,6 +39,8 @@ namespace InventoryManagementApp.ViewModels
         public ObservableCollection<ActivityLog> RecentActivity { get; } = new();
         public ObservableCollection<ItemModel> CheckedOutItems { get; } = new();
         public ObservableCollection<RentalModel> RentedItems { get; } = new();
+        public ObservableCollection<ItemModel> CommonlyUsedItems { get; } = new();
+        public ObservableCollection<ItemModel> IncompleteItems { get; } = new();
 
         public IRelayCommand NewItemCommand { get; }
         public IRelayCommand OpenRentalsCommand { get; }
@@ -101,7 +103,9 @@ namespace InventoryManagementApp.ViewModels
                 LoadStatsAsync(cancellationToken),
                 LoadRecentActivityAsync(cancellationToken),
                 LoadCheckedOutItemsAsync(cancellationToken),
-                LoadRentedItemsAsync(cancellationToken));
+                LoadRentedItemsAsync(cancellationToken),
+                LoadCommonlyUsedItemsAsync(cancellationToken),
+                LoadIncompleteItemsAsync(cancellationToken));
 
         internal async Task LoadStatsAsync(CancellationToken cancellationToken)
         {
@@ -251,6 +255,42 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to return rental {RentalID}", rental.RentalID);
+            }
+        }
+
+        internal async Task LoadCommonlyUsedItemsAsync(CancellationToken token)
+        {
+            try
+            {
+                CommonlyUsedItems.Clear();
+                var items = await _itemService.GetMostCommonlyUsedItemsAsync(10, token).ConfigureAwait(false);
+                foreach (var item in items)
+                    CommonlyUsedItems.Add(item);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load commonly used items");
+            }
+        }
+
+        internal async Task LoadIncompleteItemsAsync(CancellationToken token)
+        {
+            try
+            {
+                IncompleteItems.Clear();
+                var items = await _itemService.GetIncompleteItemsAsync(token).ConfigureAwait(false);
+                foreach (var item in items)
+                    IncompleteItems.Add(item);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load incomplete items");
             }
         }
     }

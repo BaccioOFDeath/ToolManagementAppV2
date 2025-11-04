@@ -19,7 +19,7 @@ public sealed class ItemRepository : IItemRepository
     public async IAsyncEnumerable<Item> GetPageAsync(ItemFilter filter, ItemPage page, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var sql = "SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, CheckedInBy, CheckedInTime, IsPowered, UpdatedAt FROM Items";
+        var sql = "SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, CheckedInBy, CheckedInTime, IsPowered, UpdatedAt, IsIncomplete, MissingComponentsNotes, IssuesNotes, CheckoutCount FROM Items";
         var (whereClause, parameters) = BuildFilter(filter);
         sql += whereClause;
         var orderColumn = filter.SortField switch
@@ -59,7 +59,7 @@ public sealed class ItemRepository : IItemRepository
         ct.ThrowIfCancellationRequested();
         const string sql = @"SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier,
             PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, ImagePath,
-            IsCheckedOut, CheckedOutBy, CheckedOutTime, CheckedInBy, CheckedInTime, IsPowered, UpdatedAt FROM Items WHERE ItemID=@ID";
+            IsCheckedOut, CheckedOutBy, CheckedOutTime, CheckedInBy, CheckedInTime, IsPowered, UpdatedAt, IsIncomplete, MissingComponentsNotes, IssuesNotes, CheckoutCount FROM Items WHERE ItemID=@ID";
         await using var conn = (DbConnection)_factory.Create();
         return await conn.QueryFirstOrDefaultAsync<Item>(new CommandDefinition(sql, new { ID = id }, cancellationToken: ct)).ConfigureAwait(false);
     }
@@ -86,8 +86,8 @@ public sealed class ItemRepository : IItemRepository
 
     public async Task<int> InsertAsync(Item item, CancellationToken ct)
     {
-        const string sql = @"INSERT INTO Items (ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, IsPowered)
-                             VALUES (@ItemNumber,@Name,@Location,@Brand,@PartNumber,@Supplier,@PurchasedDate,@Notes,@Keywords,@QuantityOnHand,@RentedQuantity,@IsRentalItem,@Price,@ImagePath,0,@IsPowered);
+        const string sql = @"INSERT INTO Items (ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, IsPowered, IsIncomplete, MissingComponentsNotes, IssuesNotes, CheckoutCount)
+                             VALUES (@ItemNumber,@Name,@Location,@Brand,@PartNumber,@Supplier,@PurchasedDate,@Notes,@Keywords,@QuantityOnHand,@RentedQuantity,@IsRentalItem,@Price,@ImagePath,0,@IsPowered,0,'','',0);
                              SELECT last_insert_rowid();";
         await using var conn = (DbConnection)_factory.Create();
         var id = await conn.ExecuteScalarAsync<long>(new CommandDefinition(sql, new
@@ -132,7 +132,11 @@ public sealed class ItemRepository : IItemRepository
                   CheckedOutTime = @CheckedOutTime,
                   CheckedInBy = @CheckedInBy,
                   CheckedInTime = @CheckedInTime,
-                  ImagePath = @ImagePath
+                  ImagePath = @ImagePath,
+                  IsIncomplete = @IsIncomplete,
+                  MissingComponentsNotes = @MissingComponentsNotes,
+                  IssuesNotes = @IssuesNotes,
+                  CheckoutCount = @CheckoutCount
                 WHERE ItemID = @ItemID";
         await using var conn = (DbConnection)_factory.Create();
         var rows = await conn.ExecuteAsync(new CommandDefinition(sql, new
@@ -156,6 +160,10 @@ public sealed class ItemRepository : IItemRepository
             item.CheckedInBy,
             item.CheckedInTime,
             item.ImagePath,
+            IsIncomplete = item.IsIncomplete ? 1 : 0,
+            item.MissingComponentsNotes,
+            item.IssuesNotes,
+            item.CheckoutCount,
             item.ItemID
         }, cancellationToken: ct));
         if (rows == 0)
@@ -206,7 +214,8 @@ public sealed class ItemRepository : IItemRepository
                   CheckedOutTime = @Time,
                   CheckedInBy = @InBy,
                   CheckedInTime = @InTime,
-                  AvailableQuantity = AvailableQuantity + @Q
+                  AvailableQuantity = AvailableQuantity + @Q,
+                  CheckoutCount = CASE WHEN @Out = 1 THEN CheckoutCount + 1 ELSE CheckoutCount END
                 WHERE ItemID = @ID",
             new { Out = newStatus, By = outBy, Time = outTime, InBy = inBy, InTime = inTime, Q = qtyChange, ID = itemID }, cancellationToken: ct));
 
@@ -218,7 +227,7 @@ public sealed class ItemRepository : IItemRepository
 
     public async Task<List<Item>> GetItemsCheckedOutByAsync(string userName, CancellationToken ct)
     {
-        const string sql = @"SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, CheckedInBy, CheckedInTime, IsPowered, UpdatedAt FROM Items WHERE CheckedOutBy=@User AND IsCheckedOut=1 AND IFNULL(IsRentalItem,0)=0";
+        const string sql = @"SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, CheckedInBy, CheckedInTime, IsPowered, UpdatedAt, IsIncomplete, MissingComponentsNotes, IssuesNotes, CheckoutCount FROM Items WHERE CheckedOutBy=@User AND IsCheckedOut=1 AND IFNULL(IsRentalItem,0)=0";
         await using var conn = (DbConnection)_factory.Create();
         var items = await conn.QueryAsync<Item>(new CommandDefinition(sql, new { User = userName }, cancellationToken: ct)).ConfigureAwait(false);
         return items.AsList();
@@ -226,7 +235,7 @@ public sealed class ItemRepository : IItemRepository
 
     public async Task<List<Item>> GetCheckedOutItemsAsync(CancellationToken ct)
     {
-        const string sql = @"SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, CheckedInBy, CheckedInTime, IsPowered, UpdatedAt FROM Items WHERE IsCheckedOut=1 AND IFNULL(IsRentalItem,0)=0";
+        const string sql = @"SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, CheckedInBy, CheckedInTime, IsPowered, UpdatedAt, IsIncomplete, MissingComponentsNotes, IssuesNotes, CheckoutCount FROM Items WHERE IsCheckedOut=1 AND IFNULL(IsRentalItem,0)=0";
         await using var conn = (DbConnection)_factory.Create();
         var items = await conn.QueryAsync<Item>(new CommandDefinition(sql, cancellationToken: ct)).ConfigureAwait(false);
         return items.AsList();
@@ -238,6 +247,28 @@ public sealed class ItemRepository : IItemRepository
         var rows = await conn.ExecuteAsync(new CommandDefinition("UPDATE Items SET ImagePath=@Img WHERE ItemID=@ID", new { Img = imagePath, ID = itemID }, cancellationToken: ct));
         if (rows == 0)
             throw new InvalidOperationException($"Failed to update image for item {itemID}.");
+    }
+
+    public async Task<List<Item>> GetMostCommonlyUsedItemsAsync(int limit, CancellationToken ct)
+    {
+        const string sql = @"SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, CheckedInBy, CheckedInTime, IsPowered, UpdatedAt, IsIncomplete, MissingComponentsNotes, IssuesNotes, CheckoutCount 
+            FROM Items 
+            WHERE CheckoutCount > 0 
+            ORDER BY CheckoutCount DESC 
+            LIMIT @Limit";
+        await using var conn = (DbConnection)_factory.Create();
+        var items = await conn.QueryAsync<Item>(new CommandDefinition(sql, new { Limit = limit }, cancellationToken: ct)).ConfigureAwait(false);
+        return items.AsList();
+    }
+
+    public async Task<List<Item>> GetIncompleteItemsAsync(CancellationToken ct)
+    {
+        const string sql = @"SELECT ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, CheckedInBy, CheckedInTime, IsPowered, UpdatedAt, IsIncomplete, MissingComponentsNotes, IssuesNotes, CheckoutCount 
+            FROM Items 
+            WHERE IsIncomplete = 1";
+        await using var conn = (DbConnection)_factory.Create();
+        var items = await conn.QueryAsync<Item>(new CommandDefinition(sql, cancellationToken: ct)).ConfigureAwait(false);
+        return items.AsList();
     }
 
     private static (string WhereClause, DynamicParameters Parameters) BuildFilter(ItemFilter filter)

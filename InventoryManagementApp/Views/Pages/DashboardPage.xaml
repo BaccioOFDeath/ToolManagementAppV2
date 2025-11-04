@@ -8,18 +8,107 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <TextBlock Text="Overview" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
         <ItemsControl Grid.Row="1" ItemsSource="{Binding StatCards}" ItemTemplate="{StaticResource StatCardTemplate}" ItemsPanel="{StaticResource WrapPanelItems}"/>
-        <Grid Grid.Row="2" Margin="0,16,0,0">
+        
+        <!-- Commonly Used Items Section -->
+        <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,16,0,8">
+            <StackPanel>
+                <TextBlock Text="Commonly Used Items (Quick Checkout)" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
+                <ListView ItemsSource="{Binding CommonlyUsedItems}"
+                          Style="{StaticResource CardListView}"
+                          VirtualizingPanel.IsVirtualizing="True"
+                          VirtualizingPanel.VirtualizationMode="Recycling"
+                          MaxHeight="150">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel.ToolTip>
+                                    <Image Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                           MaxWidth="150"
+                                           MaxHeight="150"
+                                           Stretch="Uniform"/>
+                                </StackPanel.ToolTip>
+                                <TextBlock Text="{Binding ItemNumber}" Margin="0,0,8,0" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding Name}" Margin="0,0,8,0"/>
+                                <TextBlock Text="{Binding CheckoutCount}" Margin="0,0,8,0" ToolTip="Times checked out"/>
+                                <TextBlock Text="✓" Foreground="{DynamicResource SuccessBrush}" Margin="0,0,8,0" Visibility="{Binding IsCheckedOut, Converter={StaticResource BoolToVis}}" ToolTip="Currently checked out"/>
+                                <TextBlock Text="⚠" Foreground="{DynamicResource ErrorBrush}" Margin="0,0,8,0" Visibility="{Binding IsIncomplete, Converter={StaticResource BoolToVis}}" ToolTip="Incomplete or missing components"/>
+                                <Button Margin="8,0,0,0">
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Content" Value="Checkout"/>
+                                            <Setter Property="Command" Value="{Binding DataContext.CheckInItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}"/>
+                                            <Setter Property="CommandParameter" Value="{Binding}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsCheckedOut}" Value="True">
+                                                    <Setter Property="Content" Value="Check In"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                    <ListView.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel/>
+                        </ItemsPanelTemplate>
+                    </ListView.ItemsPanel>
+                </ListView>
+            </StackPanel>
+        </Border>
+        
+        <Grid Grid.Row="3" Margin="0,0,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
+            
+            <!-- Incomplete Items Section -->
             <Border Style="{StaticResource Card}" Grid.Column="0">
+                <StackPanel>
+                    <TextBlock Text="⚠ Items with Issues" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8" Foreground="{DynamicResource ErrorBrush}"/>
+                    <ListView ItemsSource="{Binding IncompleteItems}"
+                              Style="{StaticResource CardListView}"
+                              VirtualizingPanel.IsVirtualizing="True"
+                              VirtualizingPanel.VirtualizationMode="Recycling">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <StackPanel.ToolTip>
+                                        <StackPanel>
+                                            <Image Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                                   MaxWidth="150"
+                                                   MaxHeight="150"
+                                                   Stretch="Uniform"/>
+                                            <TextBlock Text="{Binding MissingComponentsNotes}" TextWrapping="Wrap" Margin="0,4,0,0" FontWeight="Bold"/>
+                                            <TextBlock Text="{Binding IssuesNotes}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </StackPanel.ToolTip>
+                                    <TextBlock Text="{Binding ItemNumber}" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding Name}" Margin="0,2,0,0"/>
+                                    <TextBlock Text="{Binding MissingComponentsNotes}" TextWrapping="Wrap" Margin="0,2,0,0" Foreground="{DynamicResource ErrorBrush}" FontSize="11" MaxHeight="40"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel/>
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                    </ListView>
+                </StackPanel>
+            </Border>
+            
+            <Border Style="{StaticResource Card}" Grid.Column="1">
                 <StackPanel>
                     <TextBlock Text="Recent Activity" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
                     <ListView ItemsSource="{Binding RecentActivity}"
@@ -35,7 +124,7 @@
                     </ListView>
                 </StackPanel>
             </Border>
-            <Border Style="{StaticResource Card}" Grid.Column="1">
+            <Border Style="{StaticResource Card}" Grid.Column="2">
                 <StackPanel>
                     <TextBlock Text="Quick Actions" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
                     <WrapPanel>
@@ -52,7 +141,7 @@
                     </WrapPanel>
                 </StackPanel>
             </Border>
-            <Border Style="{StaticResource Card}" Grid.Column="2">
+            <Border Style="{StaticResource Card}" Grid.Column="3">
                 <StackPanel>
                     <TextBlock Text="Checked-Out Items" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
                     <ListView ItemsSource="{Binding CheckedOutItems}"
@@ -85,7 +174,7 @@
                     </ListView>
                 </StackPanel>
             </Border>
-            <Border Style="{StaticResource Card}" Grid.Column="3">
+            <Border Style="{StaticResource Card}" Grid.Column="4">
                 <StackPanel>
                     <TextBlock Text="Rented Items" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
                     <ListView ItemsSource="{Binding RentedItems}"

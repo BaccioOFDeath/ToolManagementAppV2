@@ -103,7 +103,11 @@ namespace InventoryManagementApp.Services.Core
                     CheckedOutTime DATETIME,
                     CheckedInBy TEXT,
                     CheckedInTime DATETIME,
-                    UpdatedAt DATETIME
+                    UpdatedAt DATETIME,
+                    IsIncomplete INTEGER NOT NULL DEFAULT 0,
+                    MissingComponentsNotes TEXT,
+                    IssuesNotes TEXT,
+                    CheckoutCount INTEGER NOT NULL DEFAULT 0
                 );
                 CREATE TABLE IF NOT EXISTS Users (
                     UserID INTEGER PRIMARY KEY AUTOINCREMENT,
