@@ -45,7 +45,7 @@ namespace InventoryManagementApp.ViewModels
         public IRelayCommand NewItemCommand { get; }
         public IRelayCommand OpenRentalsCommand { get; }
         public IRelayCommand OpenImportExportCommand { get; }
-        public IRelayCommand PrintCheckedOutItemsCommand { get; }
+        public IAsyncRelayCommand PrintCheckedOutItemsCommand { get; }
         public IAsyncRelayCommand<ItemModel> CheckInItemCommand { get; }
         public IAsyncRelayCommand<RentalModel> ReturnRentalCommand { get; }
 
@@ -95,7 +95,7 @@ namespace InventoryManagementApp.ViewModels
                 catch (Exception ex) { _logger.LogError(ex, "Failed to open import/export page"); }
             });
 
-            PrintCheckedOutItemsCommand = new RelayCommand(PrintCheckedOutItems);
+            PrintCheckedOutItemsCommand = new AsyncRelayCommand(PrintCheckedOutItemsAsync);
             CheckInItemCommand = new AsyncRelayCommand<ItemModel>(CheckInItemAsync);
             ReturnRentalCommand = new AsyncRelayCommand<RentalModel>(ReturnRentalAsync);
         }
@@ -296,11 +296,12 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        private void PrintCheckedOutItems()
+        private async Task PrintCheckedOutItemsAsync()
         {
             try
             {
-                var userName = _userService.GetCurrentUserNameAsync().Result;
+                var currentUser = await _userService.GetCurrentUserAsync().ConfigureAwait(false);
+                var userName = currentUser?.UserName ?? "Unknown";
                 var doc = GenerateCheckedOutItemsDocument(userName);
                 
                 var printDialog = new System.Windows.Controls.PrintDialog();

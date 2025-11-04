@@ -70,7 +70,10 @@
                     <TextBox Text="{Binding ItemModel.Notes, UpdateSourceTrigger=PropertyChanged}" Height="60" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
                 </StackPanel>
 
-                <CheckBox Grid.Row="10" Grid.ColumnSpan="2" Content="Mark as Incomplete/Missing Components" IsChecked="{Binding ItemModel.IsIncomplete}" Margin="0,0,0,8" Foreground="{DynamicResource ErrorBrush}" FontWeight="SemiBold"/>
+                <StackPanel Grid.Row="10" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
+                    <TextBlock Text="⚠" FontSize="16" Foreground="{DynamicResource ErrorBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <CheckBox Content="Mark as Incomplete/Missing Components" IsChecked="{Binding ItemModel.IsIncomplete}" Foreground="{DynamicResource ErrorBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                </StackPanel>
 
                 <StackPanel Grid.Row="11" Grid.ColumnSpan="2" Orientation="Vertical" Margin="0,0,0,8">
                     <TextBlock Text="Missing Components" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4" Foreground="{DynamicResource ErrorBrush}"/>
