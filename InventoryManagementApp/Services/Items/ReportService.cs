@@ -79,6 +79,14 @@ namespace InventoryManagementApp.Services.Items
             return BuildReport(title, lines);
         }
 
+        public async Task<FlowDocument> GenerateRentalFrequencyReport(int topN = 20)
+        {
+            var frequencies = await _rentalService.GetRentalFrequencyAsync(topN).ConfigureAwait(false);
+            var lines = frequencies.Select(f =>
+                $"Item Number: {f.ItemNumber} | Name: {f.ItemName} | Times Rented: {f.RentalCount}");
+            return BuildReport($"Most Frequently Rented Items (Top {topN})", lines);
+        }
+
         public async Task<FlowDocument> GenerateActivityLogReport()
         {
             var result = await _activityLogService.GetRecentLogsAsync(100).ConfigureAwait(false);

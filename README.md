@@ -11,6 +11,20 @@ InventoryManagementApp no longer handles device discovery or file transfers; tho
 
 InventoryManagementApp is a WPF application following the MVVM pattern for managing inventory item rentals in a variety of contexts. It includes features for handling inventory items, customers, rentals, and users, with data stored in SQLite through the provided `DatabaseService`.
 
+### Enhanced Rental Management Features
+
+The application now includes comprehensive rental management capabilities:
+
+- **Automated Email Reminders**: Sends reminder emails to customers 24 hours before rental due date at 2:30 PM
+- **Rental Analytics**: Track most frequently rented items for better inventory planning
+- **Professional Documents**: Generate picking slips and invoices with company branding
+- **Streamlined Workflow**: Quick customer search, preset rental periods, and inline customer creation
+- **Flexible Configuration**: All rental rates, fees, and email settings configurable at runtime
+
+For detailed documentation, see:
+- [RENTAL_ENHANCEMENTS.md](RENTAL_ENHANCEMENTS.md) - Feature documentation and usage guide
+- [RENTAL_IMPLEMENTATION_SUMMARY.md](RENTAL_IMPLEMENTATION_SUMMARY.md) - Implementation details
+
 ## Settings and Rebranding
 The application can be rebranded via its **Settings** to suit different inventory domains:
 - **Application Name**: Sets the title shown throughout the UI.
