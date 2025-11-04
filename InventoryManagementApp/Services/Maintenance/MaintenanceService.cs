@@ -8,17 +8,29 @@ using InventoryManagementApp.Interfaces;
 
 namespace InventoryManagementApp.Services.Maintenance
 {
+    /// <summary>
+    /// Service for managing equipment maintenance records including scheduling, tracking, and reporting.
+    /// </summary>
     public class MaintenanceService
     {
         private readonly DatabaseService _databaseService;
         private readonly IUserContext _userContext;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MaintenanceService"/> class.
+        /// </summary>
+        /// <param name="databaseService">Database service for data access.</param>
+        /// <param name="userContext">User context for tracking current user.</param>
         public MaintenanceService(DatabaseService databaseService, IUserContext userContext)
         {
-            _databaseService = databaseService;
-            _userContext = userContext;
+            _databaseService = databaseService ?? throw new ArgumentNullException(nameof(databaseService));
+            _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
         }
 
+        /// <summary>
+        /// Retrieves all maintenance records from the database, ordered by scheduled date descending.
+        /// </summary>
+        /// <returns>A list of all maintenance records.</returns>
         public async Task<List<MaintenanceRecord>> GetAllMaintenanceRecordsAsync()
         {
             return await Task.Run(() =>
@@ -40,8 +52,16 @@ namespace InventoryManagementApp.Services.Maintenance
             });
         }
 
+        /// <summary>
+        /// Retrieves all maintenance records for a specific item.
+        /// </summary>
+        /// <param name="itemID">The ID of the item.</param>
+        /// <returns>A list of maintenance records for the specified item.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if itemID is less than 1.</exception>
         public async Task<List<MaintenanceRecord>> GetMaintenanceRecordsByItemAsync(int itemID)
         {
+            if (itemID < 1)
+                throw new ArgumentOutOfRangeException(nameof(itemID), "Item ID must be greater than 0.");
             return await Task.Run(() =>
             {
                 var records = new List<MaintenanceRecord>();
@@ -63,6 +83,10 @@ namespace InventoryManagementApp.Services.Maintenance
             });
         }
 
+        /// <summary>
+        /// Retrieves all overdue maintenance records (scheduled but not completed before the scheduled date).
+        /// </summary>
+        /// <returns>A list of overdue maintenance records ordered by scheduled date ascending.</returns>
         public async Task<List<MaintenanceRecord>> GetOverdueMaintenanceAsync()
         {
             return await Task.Run(() =>
