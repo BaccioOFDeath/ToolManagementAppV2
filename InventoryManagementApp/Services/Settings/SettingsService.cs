@@ -14,24 +14,47 @@ using InventoryManagementApp.Services.Users;
 
 namespace InventoryManagementApp.Services.Settings
 {
+    /// <summary>
+    /// Service for managing application settings stored in the database, including item detail visibility and configuration options.
+    /// </summary>
     public class SettingsService : ISettingsService
     {
-        readonly DatabaseService _dbService;
-        readonly ILogger<SettingsService> _logger;
-        readonly IAuthorizationService _auth;
+        private readonly DatabaseService _dbService;
+        private readonly ILogger<SettingsService> _logger;
+        private readonly IAuthorizationService _auth;
+        
+        /// <summary>
+        /// Raised when item detail field visibility settings are changed.
+        /// </summary>
         public event EventHandler<IDictionary<ItemDetailField, bool>>? ItemDetailVisibilityChanged;
-        const string UpsertSql = @"
+        
+        private const string UpsertSql = @"
             INSERT INTO Settings (Key, Value)
             VALUES (@Key, @Value)
             ON CONFLICT(Key) DO UPDATE SET Value = @Value";
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SettingsService"/> class.
+        /// </summary>
+        /// <param name="dbService">Database service for data access.</param>
+        /// <param name="authorizationService">Optional authorization service for access control.</param>
+        /// <param name="logger">Optional logger for diagnostic output.</param>
         public SettingsService(DatabaseService dbService, IAuthorizationService? authorizationService = null, ILogger<SettingsService>? logger = null)
         {
-            _dbService = dbService;
+            _dbService = dbService ?? throw new ArgumentNullException(nameof(dbService));
             _auth = authorizationService ?? new NoOpAuthorizationService();
             _logger = logger ?? NullLogger<SettingsService>.Instance;
         }
 
+        /// <summary>
+        /// Saves a setting to the database. Requires admin privileges.
+        /// </summary>
+        /// <param name="key">The setting key.</param>
+        /// <param name="value">The setting value.</param>
+        /// <param name="cancellationToken">Cancellation token for the operation.</param>
+        /// <exception cref="ArgumentException">Thrown if key is null or whitespace.</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown if user lacks admin privileges.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if the database operation fails.</exception>
         public async Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
@@ -65,6 +88,12 @@ namespace InventoryManagementApp.Services.Settings
             }
         }
 
+        /// <summary>
+        /// Retrieves a setting value from the database.
+        /// </summary>
+        /// <param name="key">The setting key to retrieve.</param>
+        /// <param name="cancellationToken">Cancellation token for the operation.</param>
+        /// <returns>The setting value if found; otherwise, null.</returns>
         public async Task<string?> GetSettingAsync(string? key, CancellationToken cancellationToken = default)
         {
             if (key is null)

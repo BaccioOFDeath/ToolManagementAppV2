@@ -5,15 +5,22 @@ using Application = System.Windows.Application;
 
 namespace InventoryManagementApp.Services
 {
+    /// <summary>
+    /// Service for managing application theme (light/dark mode) by loading and applying appropriate resource dictionaries.
+    /// </summary>
     public class ThemeService : IThemeService
     {
-        readonly ResourceDictionary _light = new() { Source = new Uri("Resources/Colors.Light.xaml", UriKind.Relative) };
-        readonly ResourceDictionary _dark = new() { Source = new Uri("Resources/Colors.Dark.xaml", UriKind.Relative) };
+        private readonly ResourceDictionary _light = new() { Source = new Uri("Resources/Colors.Light.xaml", UriKind.Relative) };
+        private readonly ResourceDictionary _dark = new() { Source = new Uri("Resources/Colors.Dark.xaml", UriKind.Relative) };
 
+        /// <summary>
+        /// Applies the specified theme to the application.
+        /// </summary>
+        /// <param name="theme">The theme name ("Dark" for dark mode, any other value for light mode).</param>
         public void ApplyTheme(string? theme)
         {
             var app = Application.Current;
-            if (app == null) return;
+            if (app is null) return;
 
             var dictionaries = app.Resources.MergedDictionaries;
             var dict = string.Equals(theme, "Dark", StringComparison.OrdinalIgnoreCase) ? _dark : _light;
