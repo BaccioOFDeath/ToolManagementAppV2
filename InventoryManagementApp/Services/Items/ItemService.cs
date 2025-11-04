@@ -22,35 +22,62 @@ using System.Windows.Media.Imaging;
 
 namespace InventoryManagementApp.Services.Items
 {
+    /// <summary>
+    /// Service for managing inventory items including CRUD operations, check-out/check-in, and image management.
+    /// </summary>
     public class ItemService : IItemService
     {
-        readonly DatabaseService _dbService;
-        readonly IItemRepository _repository;
-        const int MaxQuantityOnHand = 10000;
+        private readonly DatabaseService _dbService;
+        private readonly IItemRepository _repository;
+        private const int MaxQuantityOnHand = 10000;
     
-        readonly ILogger<ItemService> _logger;
-        readonly IAuthorizationService _auth;
-        readonly ActivityLogService? _activityLog;
-        readonly IUserContext? _context;
+        private readonly ILogger<ItemService> _logger;
+        private readonly IAuthorizationService _auth;
+        private readonly ActivityLogService? _activityLog;
+        private readonly IUserContext? _context;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ItemService"/> class.
+        /// </summary>
+        /// <param name="dbService">Database service for data access.</param>
+        /// <param name="repository">Repository for item data operations.</param>
+        /// <param name="authorizationService">Optional authorization service for access control.</param>
+        /// <param name="logger">Optional logger for diagnostic output.</param>
+        /// <param name="activityLogService">Optional activity log service for audit trails.</param>
+        /// <param name="userContext">Optional user context for tracking current user.</param>
         public ItemService(DatabaseService dbService, IItemRepository repository, IAuthorizationService? authorizationService = null, ILogger<ItemService>? logger = null, ActivityLogService? activityLogService = null, IUserContext? userContext = null)
         {
-            _dbService = dbService;
-            _repository = repository;
+            _dbService = dbService ?? throw new ArgumentNullException(nameof(dbService));
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _auth = authorizationService ?? new NoOpAuthorizationService();
             _logger = logger ?? NullLogger<ItemService>.Instance;
             _activityLog = activityLogService;
             _context = userContext;
         }
 
-        static void ValidateQuantity(int quantity)
+        /// <summary>
+        /// Validates that a quantity value is within acceptable bounds.
+        /// </summary>
+        /// <param name="quantity">The quantity to validate.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if quantity is negative or exceeds maximum.</exception>
+        private static void ValidateQuantity(int quantity)
         {
             if (quantity < 0 || quantity > MaxQuantityOnHand)
                 throw new ArgumentOutOfRangeException(nameof(ItemModel.QuantityOnHand), $"QuantityOnHand must be between 0 and {MaxQuantityOnHand}.");
         }
 
+        /// <summary>
+        /// Adds a new item to the inventory. Requires admin privileges.
+        /// </summary>
+        /// <param name="item">The item to add.</param>
+        /// <param name="cancellationToken">Cancellation token for the operation.</param>
+        /// <exception cref="ArgumentNullException">Thrown if item is null.</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown if user lacks admin privileges.</exception>
         public async Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default)
         {
+            if (item is null)
+                throw new ArgumentNullException(nameof(item));
+            
             _auth.EnsureAdmin();
             await AddItemInternalAsync(item, cancellationToken).ConfigureAwait(false);
             if (_activityLog != null)
@@ -60,8 +87,18 @@ namespace InventoryManagementApp.Services.Items
             }
         }
 
+        /// <summary>
+        /// Updates an existing item in the inventory. Requires admin privileges.
+        /// </summary>
+        /// <param name="item">The item with updated information.</param>
+        /// <param name="cancellationToken">Cancellation token for the operation.</param>
+        /// <exception cref="ArgumentNullException">Thrown if item is null.</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown if user lacks admin privileges.</exception>
         public async Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default)
         {
+            if (item is null)
+                throw new ArgumentNullException(nameof(item));
+            
             _auth.EnsureAdmin();
             await UpdateItemInternalAsync(item, cancellationToken).ConfigureAwait(false);
             if (_activityLog != null)
@@ -71,8 +108,18 @@ namespace InventoryManagementApp.Services.Items
             }
         }
 
+        /// <summary>
+        /// Deletes an item from the inventory. Requires admin privileges.
+        /// </summary>
+        /// <param name="itemID">The ID of the item to delete.</param>
+        /// <param name="cancellationToken">Cancellation token for the operation.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if itemID is less than 1.</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown if user lacks admin privileges.</exception>
         public async Task DeleteItemAsync(int itemID, CancellationToken cancellationToken = default)
         {
+            if (itemID < 1)
+                throw new ArgumentOutOfRangeException(nameof(itemID), "Item ID must be greater than 0.");
+            
             _auth.EnsureAdmin();
             await DeleteItemInternalAsync(itemID, cancellationToken).ConfigureAwait(false);
             if (_activityLog != null)
