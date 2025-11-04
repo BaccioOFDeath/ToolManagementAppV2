@@ -11,6 +11,9 @@ namespace InventoryManagementApp.Utilities
     /// </summary>
     public class ConfigurationValidator
     {
+        private const string DefaultCompanyName = "Equipment Rentals";
+        private const string ExampleDomain = "example.com";
+        
         private readonly IConfiguration _configuration;
         private readonly ILogger<ConfigurationValidator> _logger;
 
@@ -44,7 +47,7 @@ namespace InventoryManagementApp.Utilities
 
             // Validate Email configuration (warnings only, as email is optional)
             var smtpHost = _configuration["Email:SmtpHost"];
-            if (string.IsNullOrWhiteSpace(smtpHost) || smtpHost.Contains("example.com"))
+            if (string.IsNullOrWhiteSpace(smtpHost) || smtpHost.Contains(ExampleDomain))
             {
                 _logger.LogWarning("Email:SmtpHost is not properly configured. Email features will not work until configured.");
             }
@@ -57,7 +60,7 @@ namespace InventoryManagementApp.Utilities
 
             // Validate Company configuration (informational)
             var companyName = _configuration["Company:Name"];
-            if (string.IsNullOrWhiteSpace(companyName) || companyName.Contains("Equipment Rentals"))
+            if (string.IsNullOrWhiteSpace(companyName) || companyName.Contains(DefaultCompanyName))
             {
                 _logger.LogInformation("Company:Name uses default value. Consider customizing for your organization.");
             }
