@@ -15,7 +15,7 @@ InventoryManagementApp is a WPF application following the MVVM pattern for manag
 
 The application now includes comprehensive rental management capabilities:
 
-- **Automated Email Reminders**: Sends reminder emails to customers 24 hours before rental due date at 2:30 PM
+- **Automated Email Reminders**: Sends reminder emails to customers 24 hours before rental due date at 2:30 PM (automatically starts when application runs with valid SMTP configuration)
 - **Rental Analytics**: Track most frequently rented items for better inventory planning
 - **Professional Documents**: Generate picking slips and invoices with company branding
 - **Streamlined Workflow**: Quick customer search, preset rental periods, and inline customer creation
