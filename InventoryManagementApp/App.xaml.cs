@@ -144,7 +144,9 @@ namespace InventoryManagementApp
                 services.AddTransient<CategoryManagementViewModel>();
                 
                 // Email and Reminder Services for server operation
-                services.AddSingleton<EmailService>(sp =>
+                // Register EmailService factory that returns null if not configured
+#pragma warning disable CS8621 // Nullability of reference types in return type doesn't match target delegate (by design)
+                services.AddSingleton(sp =>
                 {
                     var config = sp.GetRequiredService<IConfiguration>();
                     var logger = sp.GetRequiredService<ILogger<EmailService>>();
@@ -165,7 +167,7 @@ namespace InventoryManagementApp
                         smtpHost.Contains("example.com", StringComparison.OrdinalIgnoreCase))
                     {
                         logger.LogWarning("Email service not configured properly. Email features will be disabled.");
-                        return null!;
+                        return (EmailService?)null;
                     }
                     
                     if (!int.TryParse(smtpPortStr, out var smtpPort))
@@ -179,7 +181,7 @@ namespace InventoryManagementApp
                         bool.TryParse(enableSslStr, out enableSsl);
                     }
                     
-                    return new EmailService(
+                    return (EmailService?)new EmailService(
                         smtpHost,
                         smtpPort,
                         smtpUsername,
@@ -189,11 +191,12 @@ namespace InventoryManagementApp
                         enableSsl,
                         logger);
                 });
+#pragma warning restore CS8621
                 
                 services.AddSingleton<RentalReminderService>(sp =>
                 {
                     var rentalService = sp.GetRequiredService<IRentalService>();
-                    var emailService = sp.GetService<EmailService>(); // Use GetService since it can be null
+                    var emailService = sp.GetService<EmailService>(); // Can be null if not configured
                     var config = sp.GetRequiredService<IConfiguration>();
                     var logger = sp.GetRequiredService<ILogger<RentalReminderService>>();
                     
@@ -356,9 +359,16 @@ namespace InventoryManagementApp
             // Start the rental reminder service for server operation
             try
             {
-                var reminderService = Host.Services.GetRequiredService<RentalReminderService>();
-                reminderService.Start();
-                _logger.LogInformation("Rental reminder service started successfully");
+                var reminderService = Host.Services.GetService<RentalReminderService>();
+                if (reminderService != null)
+                {
+                    reminderService.Start();
+                    _logger.LogInformation("Rental reminder service started successfully");
+                }
+                else
+                {
+                    _logger.LogWarning("Rental reminder service not available. Email reminders will not be sent.");
+                }
             }
             catch (Exception ex)
             {
