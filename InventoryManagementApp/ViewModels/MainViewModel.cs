@@ -198,6 +198,7 @@ namespace InventoryManagementApp.ViewModels
                              IThemeService themeService,
                              IDatabaseBackupService databaseService,
                              IDialogService dialogService,
+                             Services.Settings.RentalConfigurationService? rentalConfigService = null,
                              ILogger<MainViewModel>? logger = null,
                              Func<Task<bool>>? showLoginWindow = null,
                                IDispatcherTimer? autoLogoutTimer = null,
@@ -243,7 +244,7 @@ namespace InventoryManagementApp.ViewModels
             ImportExport = new ImportExportViewModel(itemService, customerService, fileDialogService, databaseService, _dialogService, OpenImageImportMappingWindowCommand, _userContext);
             Reports = new ReportsViewModel(new ReportService(itemService, rentalService, activityLogService, customerService, userService));
             ActivityLogs = new ActivityLogsViewModel(activityLogService);
-            Settings = new SettingsViewModel(_fileDialogService, _settingsService, _dialogService, _themeService);
+            Settings = new SettingsViewModel(_fileDialogService, _settingsService, _dialogService, _themeService, rentalConfigService);
             var logoPath = _settingsService.GetSettingAsync("CompanyLogoPath").GetAwaiter().GetResult();
             if (!string.IsNullOrWhiteSpace(logoPath))
                 CompanyLogoPath = logoPath;

@@ -28,6 +28,7 @@ using InventoryManagementApp.Utilities;
 using Microsoft.Data.Sqlite;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Services.Categories;
+using InventoryManagementApp.Services.Notifications;
 
 namespace InventoryManagementApp
 {
@@ -141,6 +142,73 @@ namespace InventoryManagementApp
                     new LoginWindow(sp.GetRequiredService<ILoginViewModel>()));
                 services.AddSingleton<CategoriesService>();
                 services.AddTransient<CategoryManagementViewModel>();
+                services.AddSingleton<RentalConfigurationService>();
+                
+                // Email and Reminder Services for server operation
+                // Register EmailService factory that returns null if not configured
+#pragma warning disable CS8621 // Nullability of reference types in return type doesn't match target delegate (by design)
+                services.AddSingleton(sp =>
+                {
+                    var config = sp.GetRequiredService<IConfiguration>();
+                    var logger = sp.GetRequiredService<ILogger<EmailService>>();
+                    
+                    var smtpHost = config["Email:SmtpHost"];
+                    var smtpPortStr = config["Email:SmtpPort"];
+                    var smtpUsername = config["Email:SmtpUsername"];
+                    var smtpPassword = config["Email:SmtpPassword"];
+                    var fromEmail = config["Email:FromEmail"];
+                    var fromName = config["Email:FromName"];
+                    var enableSslStr = config["Email:EnableSsl"];
+                    
+                    // Return null if email is not properly configured
+                    if (string.IsNullOrWhiteSpace(smtpHost) || 
+                        string.IsNullOrWhiteSpace(smtpUsername) || 
+                        string.IsNullOrWhiteSpace(smtpPassword) ||
+                        string.IsNullOrWhiteSpace(fromEmail) ||
+                        smtpHost.Contains("example.com", StringComparison.OrdinalIgnoreCase))
+                    {
+                        logger.LogWarning("Email service not configured properly. Email features will be disabled.");
+                        return (EmailService?)null;
+                    }
+                    
+                    if (!int.TryParse(smtpPortStr, out var smtpPort))
+                    {
+                        smtpPort = 587; // Default SMTP port
+                    }
+                    
+                    var enableSsl = true; // Default to secure
+                    if (!string.IsNullOrWhiteSpace(enableSslStr))
+                    {
+                        bool.TryParse(enableSslStr, out enableSsl);
+                    }
+                    
+                    return (EmailService?)new EmailService(
+                        smtpHost,
+                        smtpPort,
+                        smtpUsername,
+                        smtpPassword,
+                        fromEmail,
+                        fromName ?? "Equipment Rentals",
+                        enableSsl,
+                        logger);
+                });
+#pragma warning restore CS8621
+                
+                services.AddSingleton<RentalReminderService>(sp =>
+                {
+                    var rentalService = sp.GetRequiredService<IRentalService>();
+                    var emailService = sp.GetService<EmailService>(); // Can be null if not configured
+                    var config = sp.GetRequiredService<IConfiguration>();
+                    var logger = sp.GetRequiredService<ILogger<RentalReminderService>>();
+                    
+                    var contactInfo = config["Email:ContactInfo"] ?? "your rental team";
+                    
+                    return new RentalReminderService(
+                        rentalService,
+                        emailService,
+                        contactInfo,
+                        logger);
+                });
             })
             .Build();
 
@@ -288,6 +356,25 @@ namespace InventoryManagementApp
             if (main.WindowState == WindowState.Minimized) main.WindowState = WindowState.Normal;
             main.Activate();
             main.Focus();
+            
+            // Start the rental reminder service for server operation
+            try
+            {
+                var reminderService = Host.Services.GetService<RentalReminderService>();
+                if (reminderService != null)
+                {
+                    reminderService.Start();
+                    _logger.LogInformation("Rental reminder service started successfully");
+                }
+                else
+                {
+                    _logger.LogWarning("Rental reminder service not available. Email reminders will not be sent.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to start rental reminder service. Email reminders will not be sent.");
+            }
         }
 
         internal void HandleDispatcherException(Exception ex, DispatcherUnhandledExceptionEventArgs? e = null)

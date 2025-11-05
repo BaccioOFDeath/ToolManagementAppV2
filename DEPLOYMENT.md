@@ -196,6 +196,69 @@ Database migrations run automatically on startup.
 - Windows Event Log: Application section
 - Database location: As specified in `appsettings.json`
 
+## Running Full-Time on a Server
+
+The application is designed to run continuously on a server and includes automated background services.
+
+### Automated Rental Reminders
+
+When properly configured, the application automatically sends email reminders:
+- Runs daily at 2:30 PM
+- Sends reminders 24 hours before rental due dates
+- Requires valid SMTP configuration in `appsettings.json`
+
+The reminder service starts automatically when:
+1. Email settings are properly configured (not using example.com)
+2. A user successfully logs into the application
+
+### Ensuring Continuous Operation
+
+For reliable server deployment:
+
+1. **Keep Application Running**: The application must remain running for reminders to be sent
+   - Consider using Task Scheduler to auto-start on login
+   - Use auto-login on the server for unattended operation
+   - Keep the application minimized to system tray if desired
+
+2. **Monitor Service Status**: Check logs regularly for:
+   ```
+   "Rental reminder service started successfully"
+   ```
+   This confirms the service is running.
+
+3. **Email Configuration**: Verify in `appsettings.json`:
+   - `SmtpHost` is not `smtp.example.com`
+   - All SMTP credentials are valid
+   - `SmtpPort`, `SmtpUsername`, `SmtpPassword` are set
+   - `FromEmail` and `ContactInfo` are configured
+
+4. **Test Email Functionality**: After deployment, verify emails are sending by:
+   - Checking application logs for successful email sends
+   - Creating a test rental due tomorrow
+   - Waiting for the 2:30 PM reminder cycle
+
+### Server-Specific Considerations
+
+**Windows Server Deployment**:
+- Install .NET 8.0 Desktop Runtime (includes Windows Forms support)
+- Configure Windows to allow the application through the firewall
+- Set up automatic user login if running unattended
+- Consider using Windows Service wrapper (e.g., NSSM) for production environments
+
+**High Availability**:
+- Multiple instances can run simultaneously using SQLite WAL mode
+- ⚠️ **Important**: Only ONE instance should have email configured to avoid duplicate reminder emails
+- For multi-user deployments, disable email on client instances (set SmtpHost to "smtp.example.com")
+- Implement external monitoring (e.g., ping endpoint, log monitoring)
+- Set up database backup automation
+- Document restart procedures for maintenance windows
+
+**Security**:
+- Run with least-privilege user account
+- Store SMTP credentials securely (Windows Credential Manager)
+- Restrict network access to required ports only
+- Keep .NET runtime updated with security patches
+
 ## Support
 
 For issues or questions:

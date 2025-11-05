@@ -9,6 +9,24 @@ namespace InventoryManagementApp.Views.Pages
         public SettingsPage()
         {
             InitializeComponent();
+            Loaded += SettingsPage_Loaded;
+        }
+
+        private void SettingsPage_Loaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            // Set initial password value if view model has one
+            if (DataContext is ViewModels.SettingsViewModel viewModel && !string.IsNullOrEmpty(viewModel.SmtpPassword))
+            {
+                SmtpPasswordBox.Password = viewModel.SmtpPassword;
+            }
+        }
+
+        private void SmtpPasswordBox_PasswordChanged(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (DataContext is ViewModels.SettingsViewModel viewModel)
+            {
+                viewModel.SmtpPassword = SmtpPasswordBox.Password;
+            }
         }
 
         void PasswordIterationsBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
