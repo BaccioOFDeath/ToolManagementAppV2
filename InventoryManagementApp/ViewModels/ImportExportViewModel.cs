@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Utilities.IO;
 using InventoryManagementApp.Utilities.Helpers;
+using InventoryManagementApp.Services.ImportExport;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -47,6 +48,12 @@ namespace InventoryManagementApp.ViewModels
 
         public ObservableCollection<string> ImportExportLogs { get; } = new();
 
+        // Available import/export formats
+        private readonly List<IDataImporter<ItemModel>> _itemImporters;
+        private readonly List<IDataExporter<ItemModel>> _itemExporters;
+        private readonly List<IDataImporter<Customer>> _customerImporters;
+        private readonly List<IDataExporter<Customer>> _customerExporters;
+
         public ImportExportViewModel(IItemService itemService,
                                      ICustomerService customerService,
                                      IFileDialogService fileDialogService,
@@ -65,6 +72,31 @@ namespace InventoryManagementApp.ViewModels
             OpenImageImportMappingWindowCommand = openImageImportMappingWindowCommand ?? new AsyncRelayCommand(ct => Task.CompletedTask);
             _userContext = userContext ?? new DummyUserContext();
             _userContext.UserChanged += (_, _) => OnPropertyChanged(nameof(IsCurrentUserAdmin));
+            
+            // Initialize importers and exporters
+            _itemImporters = new List<IDataImporter<ItemModel>>
+            {
+                new ItemJsonImporter(),
+                new ItemXmlImporter()
+            };
+            _itemExporters = new List<IDataExporter<ItemModel>>
+            {
+                new ItemCsvExporter(),
+                new ItemJsonExporter(),
+                new ItemXmlExporter()
+            };
+            _customerImporters = new List<IDataImporter<Customer>>
+            {
+                new CustomerJsonImporter(),
+                new CustomerXmlImporter()
+            };
+            _customerExporters = new List<IDataExporter<Customer>>
+            {
+                new CustomerCsvExporter(),
+                new CustomerJsonExporter(),
+                new CustomerXmlExporter()
+            };
+            
             ImportItemsCommand = new AsyncRelayCommand(ct => ImportItemsAsync(ct));
             CancelImportItemsCommand = new RelayCommand(() => ImportItemsCommand.Cancel());
             ExportItemsCommand = new AsyncRelayCommand(ct => ExportItemsAsync(ct));
@@ -95,30 +127,63 @@ namespace InventoryManagementApp.ViewModels
 
         async Task ImportItemsAsync(CancellationToken cancellationToken)
         {
-            var path = _fileDialogService.OpenFile("CSV Files|*.csv", AppContext.BaseDirectory);
+            // Build combined file filter for all supported formats
+            var filters = new List<string> { "CSV Files|*.csv" };
+            filters.AddRange(_itemImporters.Select(i => i.FileFilter));
+            var combinedFilter = string.Join("|", filters) + "|All Files|*.*";
+            
+            var path = _fileDialogService.OpenFile(combinedFilter, AppContext.BaseDirectory);
             if (string.IsNullOrWhiteSpace(path)) return;
+            
             try
             {
-                var headers = await CsvHelperUtil.ReadHeadersAsync(path);
-                var properties = typeof(ItemImportDto).GetProperties().Select(p => p.Name);
-                var map = _dialogService.ShowImportMapping(
-                    headers,
-                    properties,
-                    new[] { nameof(ItemImportDto.ItemNumber), nameof(ItemImportDto.Name) });
-                if (map == null)
-                    return;
+                var extension = Path.GetExtension(path).ToLowerInvariant();
                 var plural = LabelProvider.Instance.ItemLabelPlural;
-                if (!map.TryGetValue(nameof(ItemImportDto.ItemNumber), out var itemNumberHeader) || string.IsNullOrWhiteSpace(itemNumberHeader))
+                
+                List<int> skippedRows;
+                
+                // Check if it's CSV (requires mapping) or other format (direct import)
+                if (extension == ".csv")
                 {
-                    var singular = LabelProvider.Instance.ItemLabelSingular;
-                    var errorMessage = $"Mapping for {singular} number is required.";
-                    ImportExportLogs.Add(errorMessage);
-                    _logger.LogWarning("Import aborted: missing {ItemLabelSingular} number mapping", singular);
-                    await _dialogService.ShowInfoAsync(errorMessage, $"Import {plural}");
-                    return;
+                    // Use existing CSV import with mapping
+                    var headers = await CsvHelperUtil.ReadHeadersAsync(path);
+                    var properties = typeof(ItemImportDto).GetProperties().Select(p => p.Name);
+                    var map = _dialogService.ShowImportMapping(
+                        headers,
+                        properties,
+                        new[] { nameof(ItemImportDto.ItemNumber), nameof(ItemImportDto.Name) });
+                    if (map == null)
+                        return;
+                    
+                    if (!map.TryGetValue(nameof(ItemImportDto.ItemNumber), out var itemNumberHeader) || string.IsNullOrWhiteSpace(itemNumberHeader))
+                    {
+                        var singular = LabelProvider.Instance.ItemLabelSingular;
+                        var errorMessage = $"Mapping for {singular} number is required.";
+                        ImportExportLogs.Add(errorMessage);
+                        _logger.LogWarning("Import aborted: missing {ItemLabelSingular} number mapping", singular);
+                        await _dialogService.ShowInfoAsync(errorMessage, $"Import {plural}");
+                        return;
+                    }
+                    
+                    await _dialogService.ShowInfoAsync($"Importing {plural}...", $"Import {plural}");
+                    skippedRows = await _itemService.ImportItemsFromCsvAsync(path, map, cancellationToken);
                 }
-                await _dialogService.ShowInfoAsync($"Importing {plural}...", $"Import {plural}");
-                var skippedRows = await _itemService.ImportItemsFromCsvAsync(path, map, cancellationToken);
+                else
+                {
+                    // Find appropriate importer
+                    var importer = _itemImporters.FirstOrDefault(i => i.FileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase));
+                    if (importer == null)
+                    {
+                        var errorMessage = $"No importer found for file type: {extension}";
+                        ImportExportLogs.Add(errorMessage);
+                        await _dialogService.ShowInfoAsync(errorMessage, $"Import {plural}");
+                        return;
+                    }
+                    
+                    await _dialogService.ShowInfoAsync($"Importing {plural} from {importer.FormatName}...", $"Import {plural}");
+                    skippedRows = await _itemService.ImportItemsAsync(path, importer, cancellationToken);
+                }
+                
                 var successMessage = $"Successfully imported {plural} from {path}.";
                 ImportExportLogs.Add(successMessage);
                 if (skippedRows.Any())
@@ -146,13 +211,29 @@ namespace InventoryManagementApp.ViewModels
 
         async Task ExportItemsAsync(CancellationToken cancellationToken)
         {
-            var path = _fileDialogService.SaveFile("CSV Files|*.csv");
+            // Build combined file filter for all supported formats
+            var filters = _itemExporters.Select(e => e.FileFilter);
+            var combinedFilter = string.Join("|", filters);
+            
+            var path = _fileDialogService.SaveFile(combinedFilter);
             if (string.IsNullOrWhiteSpace(path)) return;
+            
             try
             {
+                var extension = Path.GetExtension(path).ToLowerInvariant();
                 var plural = LabelProvider.Instance.ItemLabelPlural;
-                await _itemService.ExportItemsToCsvAsync(path, cancellationToken);
-                ImportExportLogs.Add($"Successfully exported {plural} to {path}.");
+                
+                // Find appropriate exporter
+                var exporter = _itemExporters.FirstOrDefault(e => e.FileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase));
+                if (exporter == null)
+                {
+                    var errorMessage = $"No exporter found for file type: {extension}";
+                    ImportExportLogs.Add(errorMessage);
+                    return;
+                }
+                
+                await _itemService.ExportItemsAsync(path, exporter, cancellationToken);
+                ImportExportLogs.Add($"Successfully exported {plural} to {path} ({exporter.FormatName} format).");
             }
             catch (OperationCanceledException)
             {
@@ -169,19 +250,46 @@ namespace InventoryManagementApp.ViewModels
 
         async Task ImportCustomersAsync(CancellationToken cancellationToken)
         {
-            var path = _fileDialogService.OpenFile("CSV Files|*.csv", AppContext.BaseDirectory);
+            // Build combined file filter for all supported formats
+            var filters = new List<string> { "CSV Files|*.csv" };
+            filters.AddRange(_customerImporters.Select(i => i.FileFilter));
+            var combinedFilter = string.Join("|", filters) + "|All Files|*.*";
+            
+            var path = _fileDialogService.OpenFile(combinedFilter, AppContext.BaseDirectory);
             if (string.IsNullOrWhiteSpace(path)) return;
+            
             try
             {
-                var headers = await CsvHelperUtil.ReadHeadersAsync(path);
-                var properties = typeof(CustomerImportDto).GetProperties().Select(p => p.Name);
-                var map = _dialogService.ShowImportMapping(headers, properties);
-                if (map == null)
-                    return;
-                var result = await _customerService.ImportCustomersFromCsvAsync(path, map, cancellationToken);
-                ImportExportLogs.Add($"Successfully imported customers from {path}. Imported {result.ImportedCount} customers.");
-                foreach (var msg in result.SkippedRows)
-                    ImportExportLogs.Add($"Skipped {msg}");
+                var extension = Path.GetExtension(path).ToLowerInvariant();
+                
+                if (extension == ".csv")
+                {
+                    // Use existing CSV import with mapping
+                    var headers = await CsvHelperUtil.ReadHeadersAsync(path);
+                    var properties = typeof(CustomerImportDto).GetProperties().Select(p => p.Name);
+                    var map = _dialogService.ShowImportMapping(headers, properties);
+                    if (map == null)
+                        return;
+                    var result = await _customerService.ImportCustomersFromCsvAsync(path, map, cancellationToken);
+                    ImportExportLogs.Add($"Successfully imported customers from {path}. Imported {result.ImportedCount} customers.");
+                    foreach (var msg in result.SkippedRows)
+                        ImportExportLogs.Add($"Skipped {msg}");
+                }
+                else
+                {
+                    // Find appropriate importer
+                    var importer = _customerImporters.FirstOrDefault(i => i.FileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase));
+                    if (importer == null)
+                    {
+                        var errorMessage = $"No importer found for file type: {extension}";
+                        ImportExportLogs.Add(errorMessage);
+                        await _dialogService.ShowInfoAsync(errorMessage, "Import Customers");
+                        return;
+                    }
+                    
+                    var importedCount = await _customerService.ImportCustomersAsync(path, importer, cancellationToken);
+                    ImportExportLogs.Add($"Successfully imported {importedCount} customers from {path} ({importer.FormatName} format).");
+                }
             }
             catch (OperationCanceledException)
             {
@@ -196,12 +304,28 @@ namespace InventoryManagementApp.ViewModels
 
         async Task ExportCustomersAsync(CancellationToken cancellationToken)
         {
-            var path = _fileDialogService.SaveFile("CSV Files|*.csv");
+            // Build combined file filter for all supported formats
+            var filters = _customerExporters.Select(e => e.FileFilter);
+            var combinedFilter = string.Join("|", filters);
+            
+            var path = _fileDialogService.SaveFile(combinedFilter);
             if (string.IsNullOrWhiteSpace(path)) return;
+            
             try
             {
-                await _customerService.ExportCustomersToCsvAsync(path, cancellationToken);
-                ImportExportLogs.Add($"Successfully exported customers to {path}.");
+                var extension = Path.GetExtension(path).ToLowerInvariant();
+                
+                // Find appropriate exporter
+                var exporter = _customerExporters.FirstOrDefault(e => e.FileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase));
+                if (exporter == null)
+                {
+                    var errorMessage = $"No exporter found for file type: {extension}";
+                    ImportExportLogs.Add(errorMessage);
+                    return;
+                }
+                
+                await _customerService.ExportCustomersAsync(path, exporter, cancellationToken);
+                ImportExportLogs.Add($"Successfully exported customers to {path} ({exporter.FormatName} format).");
             }
             catch (OperationCanceledException)
             {

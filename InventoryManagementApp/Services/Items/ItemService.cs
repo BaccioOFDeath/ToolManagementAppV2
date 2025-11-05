@@ -578,5 +578,40 @@ namespace InventoryManagementApp.Services.Items
         {
             return _repository.GetIncompleteItemsAsync(cancellationToken);
         }
+
+        public async Task<List<int>> ImportItemsAsync(string filePath, IDataImporter<ItemModel> importer, CancellationToken cancellationToken = default)
+        {
+            _auth.EnsureAdmin();
+            
+            var (items, skippedRows) = await importer.ImportAsync(filePath, cancellationToken).ConfigureAwait(false);
+            
+            using var conn = _dbService.CreateConnection();
+            var existingNumbers = new HashSet<string>(
+                await SqliteHelper.ExecuteReaderAsync(conn,
+                    "SELECT ItemNumber FROM Items",
+                    r => r.GetString(0),
+                    null, cancellationToken));
+
+            foreach (var item in items)
+            {
+                if (!existingNumbers.Contains(item.ItemNumber))
+                {
+                    await AddItemInternalAsync(item, cancellationToken).ConfigureAwait(false);
+                    existingNumbers.Add(item.ItemNumber);
+                }
+            }
+
+            return skippedRows;
+        }
+
+        public async Task ExportItemsAsync(string filePath, IDataExporter<ItemModel> exporter, CancellationToken cancellationToken = default)
+        {
+            var items = new List<ItemModel>();
+            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken)
+                .WithCancellation(cancellationToken))
+                items.Add(item);
+            
+            await exporter.ExportAsync(filePath, items, cancellationToken).ConfigureAwait(false);
+        }
     }
 }
