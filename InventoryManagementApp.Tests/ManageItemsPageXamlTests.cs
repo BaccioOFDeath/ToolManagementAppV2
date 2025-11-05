@@ -29,7 +29,7 @@ namespace InventoryManagementApp.Tests
 
                     var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml"));
                     var xaml = File.ReadAllText(path);
-                    xaml = Regex.Replace(xaml, "x:Class=\"[^\"]*\"\s*", string.Empty);
+                    xaml = Regex.Replace(xaml, @"x:Class=""[^""]*""\s*", string.Empty);
 
                     var page = (Page)XamlReader.Parse(xaml);
                     var dataGrid = FindVisualChild<DataGrid>(page) ?? throw new InvalidOperationException("DataGrid not found");
