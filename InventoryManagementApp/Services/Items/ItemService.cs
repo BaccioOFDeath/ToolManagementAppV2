@@ -606,6 +606,9 @@ namespace InventoryManagementApp.Services.Items
 
         public async Task ExportItemsAsync(string filePath, IDataExporter<ItemModel> exporter, CancellationToken cancellationToken = default)
         {
+            // Note: Using int.MaxValue as page size loads all items into memory.
+            // For very large inventories (>10,000 items), consider implementing streaming export.
+            // Current implementation matches existing CSV export behavior.
             var items = new List<ItemModel>();
             await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken)
                 .WithCancellation(cancellationToken))

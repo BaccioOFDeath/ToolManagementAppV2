@@ -128,6 +128,8 @@ namespace InventoryManagementApp.ViewModels
         async Task ImportItemsAsync(CancellationToken cancellationToken)
         {
             // Build combined file filter for all supported formats
+            // Note: CSV is handled separately from _itemImporters because it requires
+            // an interactive mapping dialog, whereas JSON/XML use direct import
             var filters = new List<string> { "CSV Files|*.csv" };
             filters.AddRange(_itemImporters.Select(i => i.FileFilter));
             var combinedFilter = string.Join("|", filters) + "|All Files|*.*";
@@ -251,6 +253,8 @@ namespace InventoryManagementApp.ViewModels
         async Task ImportCustomersAsync(CancellationToken cancellationToken)
         {
             // Build combined file filter for all supported formats
+            // Note: CSV is handled separately from _customerImporters because it requires
+            // an interactive mapping dialog, whereas JSON/XML use direct import
             var filters = new List<string> { "CSV Files|*.csv" };
             filters.AddRange(_customerImporters.Select(i => i.FileFilter));
             var combinedFilter = string.Join("|", filters) + "|All Files|*.*";
