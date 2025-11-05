@@ -290,6 +290,10 @@ namespace InventoryManagementApp.Services.Items
             bitmap.EndInit();
             bitmap.Freeze();
 
+            // Prevent division by zero
+            if (bitmap.PixelWidth == 0 || bitmap.PixelHeight == 0)
+                throw new InvalidOperationException("Invalid image dimensions: image has zero width or height.");
+
             double scale = Math.Min((double)maxWidth / bitmap.PixelWidth, (double)maxHeight / bitmap.PixelHeight);
             if (scale > 1.0)
                 scale = 1.0;

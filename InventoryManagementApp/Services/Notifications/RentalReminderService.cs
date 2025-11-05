@@ -139,6 +139,7 @@ namespace InventoryManagementApp.Services.Notifications
             if (_disposed) return;
             Stop();
             _disposed = true;
+            GC.SuppressFinalize(this);
         }
     }
 }

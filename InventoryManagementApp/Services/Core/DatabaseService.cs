@@ -18,6 +18,9 @@ namespace InventoryManagementApp.Services.Core
         public string ConnectionString { get; }
         private readonly ILogger<DatabaseService> _logger;
         bool _disposed;
+        
+        private const int DefaultTimeoutSeconds = 5;
+        private const int BusyTimeoutMilliseconds = 5000;
 
         public SqliteConnection CreateConnection()
         {
@@ -33,7 +36,7 @@ namespace InventoryManagementApp.Services.Core
                 DataSource = dbPath,
                 Pooling = true,
                 Cache = SqliteCacheMode.Shared,
-                DefaultTimeout = 5
+                DefaultTimeout = DefaultTimeoutSeconds
             };
             ConnectionString = builder.ToString();
             _logger = logger ?? NullLogger<DatabaseService>.Instance;
@@ -68,7 +71,7 @@ namespace InventoryManagementApp.Services.Core
             conn.Open();
             using var cmd = new SqliteCommand("PRAGMA journal_mode=WAL;", conn);
             cmd.ExecuteNonQuery();
-            using var timeout = new SqliteCommand("PRAGMA busy_timeout=5000;", conn);
+            using var timeout = new SqliteCommand($"PRAGMA busy_timeout={BusyTimeoutMilliseconds};", conn);
             timeout.ExecuteNonQuery();
         }
 
