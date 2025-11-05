@@ -193,7 +193,7 @@ namespace InventoryManagementApp
                 services.AddSingleton<RentalReminderService>(sp =>
                 {
                     var rentalService = sp.GetRequiredService<IRentalService>();
-                    var emailService = sp.GetRequiredService<EmailService>();
+                    var emailService = sp.GetService<EmailService>(); // Use GetService since it can be null
                     var config = sp.GetRequiredService<IConfiguration>();
                     var logger = sp.GetRequiredService<ILogger<RentalReminderService>>();
                     
