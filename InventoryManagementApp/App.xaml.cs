@@ -142,6 +142,7 @@ namespace InventoryManagementApp
                     new LoginWindow(sp.GetRequiredService<ILoginViewModel>()));
                 services.AddSingleton<CategoriesService>();
                 services.AddTransient<CategoryManagementViewModel>();
+                services.AddSingleton<RentalConfigurationService>();
                 
                 // Email and Reminder Services for server operation
                 // Register EmailService factory that returns null if not configured

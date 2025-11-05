@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Services.Core;
+using InventoryManagementApp.Services.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Utilities.Helpers;
@@ -26,22 +27,29 @@ namespace InventoryManagementApp.ViewModels
         readonly ISettingsService _settingsService;
         readonly IDialogService _dialogService;
         readonly IThemeService _themeService;
+        readonly RentalConfigurationService? _rentalConfigService;
         readonly ILogger<SettingsViewModel> _logger;
         public ObservableCollection<ItemDetailOption> ItemDetailOptions { get; } = new();
         bool _bulkUpdating;
 
-        public SettingsViewModel(IFileDialogService fileDialog, ISettingsService settingsService, IDialogService dialogService, IThemeService themeService, ILogger<SettingsViewModel>? logger = null)
+        public SettingsViewModel(IFileDialogService fileDialog, ISettingsService settingsService, IDialogService dialogService, IThemeService themeService, RentalConfigurationService? rentalConfigService = null, ILogger<SettingsViewModel>? logger = null)
         {
             _fileDialog = fileDialog;
             _settingsService = settingsService;
             _dialogService = dialogService;
             _themeService = themeService;
+            _rentalConfigService = rentalConfigService;
             _logger = logger ?? NullLogger<SettingsViewModel>.Instance;
 
             ThemeOptions = new ObservableCollection<string> { "Light", "Dark" };
             _theme = ThemeOptions[0];
             _itemLabelSingular = LabelProvider.Instance.ItemLabelSingular;
             _itemLabelPlural = LabelProvider.Instance.ItemLabelPlural;
+            
+            // Email provider options
+            EmailProviders = new ObservableCollection<string> { "Custom", "Gmail", "Outlook/Office 365", "Yahoo", "iCloud" };
+            _selectedEmailProvider = EmailProviders[0];
+            
             TestDbCommand = new RelayCommand(() =>
             {
                 var success = TestDbConnection(out var message);
@@ -56,6 +64,8 @@ namespace InventoryManagementApp.ViewModels
             });
             BrowseCompanyLogoCommand = new RelayCommand(BrowseCompanyLogo);
             SaveCompanyLogoCommand = new AsyncRelayCommand(SaveCompanyLogoAsync);
+            SaveEmailSettingsCommand = new AsyncRelayCommand(SaveEmailSettingsAsync);
+            TestEmailCommand = new AsyncRelayCommand(TestEmailConnectionAsync);
             SelectAllItemDisplayCommand = new RelayCommand(() =>
             {
                 _bulkUpdating = true;
@@ -100,6 +110,36 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(Theme));
             OnPropertyChanged(nameof(PasswordIterations));
             OnPropertyChanged(nameof(AutoLogoutMinutes));
+            
+            // Load email settings if service is available
+            if (_rentalConfigService != null)
+            {
+                try
+                {
+                    _emailEnabled = await _rentalConfigService.GetEmailEnabledAsync().ConfigureAwait(false);
+                    _smtpHost = await _rentalConfigService.GetSmtpHostAsync().ConfigureAwait(false);
+                    _smtpPort = await _rentalConfigService.GetSmtpPortAsync().ConfigureAwait(false);
+                    _smtpUsername = await _rentalConfigService.GetSmtpUsernameAsync().ConfigureAwait(false);
+                    _smtpPassword = await _rentalConfigService.GetSmtpPasswordAsync().ConfigureAwait(false);
+                    _fromEmail = await _rentalConfigService.GetFromEmailAsync().ConfigureAwait(false);
+                    _fromName = await _rentalConfigService.GetFromNameAsync().ConfigureAwait(false);
+                    _enableSsl = await _rentalConfigService.GetEnableSslAsync().ConfigureAwait(false);
+                    
+                    OnPropertyChanged(nameof(EmailEnabled));
+                    OnPropertyChanged(nameof(SmtpHost));
+                    OnPropertyChanged(nameof(SmtpPort));
+                    OnPropertyChanged(nameof(SmtpUsername));
+                    OnPropertyChanged(nameof(SmtpPassword));
+                    OnPropertyChanged(nameof(FromEmail));
+                    OnPropertyChanged(nameof(FromName));
+                    OnPropertyChanged(nameof(EnableSsl));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to load email settings.");
+                }
+            }
+            
             _initialized = true;
         }
 
@@ -458,6 +498,188 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to copy company logo.");
                 _dialogService.ShowInfo("Failed to save company logo.", "Error");
+            }
+        }
+
+        // Email Configuration Properties and Commands
+        public ObservableCollection<string> EmailProviders { get; }
+        
+        private string _selectedEmailProvider = "Custom";
+        public string SelectedEmailProvider
+        {
+            get => _selectedEmailProvider;
+            set
+            {
+                if (SetProperty(ref _selectedEmailProvider, value))
+                {
+                    ApplyEmailProviderTemplate(value);
+                }
+            }
+        }
+
+        private bool _emailEnabled;
+        public bool EmailEnabled
+        {
+            get => _emailEnabled;
+            set => SetProperty(ref _emailEnabled, value);
+        }
+
+        private string _smtpHost = "";
+        public string SmtpHost
+        {
+            get => _smtpHost;
+            set => SetProperty(ref _smtpHost, value);
+        }
+
+        private int _smtpPort = 587;
+        public int SmtpPort
+        {
+            get => _smtpPort;
+            set => SetProperty(ref _smtpPort, value);
+        }
+
+        private string _smtpUsername = "";
+        public string SmtpUsername
+        {
+            get => _smtpUsername;
+            set => SetProperty(ref _smtpUsername, value);
+        }
+
+        private string _smtpPassword = "";
+        public string SmtpPassword
+        {
+            get => _smtpPassword;
+            set => SetProperty(ref _smtpPassword, value);
+        }
+
+        private string _fromEmail = "";
+        public string FromEmail
+        {
+            get => _fromEmail;
+            set => SetProperty(ref _fromEmail, value);
+        }
+
+        private string _fromName = "";
+        public string FromName
+        {
+            get => _fromName;
+            set => SetProperty(ref _fromName, value);
+        }
+
+        private bool _enableSsl = true;
+        public bool EnableSsl
+        {
+            get => _enableSsl;
+            set => SetProperty(ref _enableSsl, value);
+        }
+
+        public IAsyncRelayCommand SaveEmailSettingsCommand { get; }
+        public IAsyncRelayCommand TestEmailCommand { get; }
+
+        private void ApplyEmailProviderTemplate(string provider)
+        {
+            switch (provider)
+            {
+                case "Gmail":
+                    SmtpHost = "smtp.gmail.com";
+                    SmtpPort = 587;
+                    EnableSsl = true;
+                    break;
+                case "Outlook/Office 365":
+                    SmtpHost = "smtp-mail.outlook.com";
+                    SmtpPort = 587;
+                    EnableSsl = true;
+                    break;
+                case "Yahoo":
+                    SmtpHost = "smtp.mail.yahoo.com";
+                    SmtpPort = 587;
+                    EnableSsl = true;
+                    break;
+                case "iCloud":
+                    SmtpHost = "smtp.mail.me.com";
+                    SmtpPort = 587;
+                    EnableSsl = true;
+                    break;
+                case "Custom":
+                    // Don't change values for custom
+                    break;
+            }
+        }
+
+        private async Task SaveEmailSettingsAsync(CancellationToken token = default)
+        {
+            if (_rentalConfigService == null)
+            {
+                _dialogService.ShowInfo("Email configuration service not available.", "Error");
+                return;
+            }
+
+            try
+            {
+                await _rentalConfigService.SetEmailEnabledAsync(EmailEnabled, token);
+                await _rentalConfigService.SetSmtpHostAsync(SmtpHost, token);
+                await _rentalConfigService.SetSmtpPortAsync(SmtpPort, token);
+                await _rentalConfigService.SetSmtpUsernameAsync(SmtpUsername, token);
+                await _rentalConfigService.SetSmtpPasswordAsync(SmtpPassword, token);
+                await _rentalConfigService.SetFromEmailAsync(FromEmail, token);
+                await _rentalConfigService.SetFromNameAsync(FromName, token);
+                await _rentalConfigService.SetEnableSslAsync(EnableSsl, token);
+
+                _dialogService.ShowInfo("Email settings saved successfully. Restart the application for changes to take effect.", "Settings Saved");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save email settings.");
+                _dialogService.ShowInfo("Failed to save email settings. Please try again.", "Error");
+            }
+        }
+
+        private async Task TestEmailConnectionAsync(CancellationToken token = default)
+        {
+            if (string.IsNullOrWhiteSpace(SmtpHost) || SmtpHost.Contains("example.com", StringComparison.OrdinalIgnoreCase))
+            {
+                _dialogService.ShowInfo("Please enter a valid SMTP host.", "Invalid Configuration");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(SmtpUsername) || string.IsNullOrWhiteSpace(SmtpPassword))
+            {
+                _dialogService.ShowInfo("Please enter SMTP username and password.", "Invalid Configuration");
+                return;
+            }
+
+            try
+            {
+                // Test the connection using System.Net.Mail.SmtpClient
+                using var client = new System.Net.Mail.SmtpClient(SmtpHost, SmtpPort)
+                {
+                    EnableSsl = EnableSsl,
+                    Credentials = new System.Net.NetworkCredential(SmtpUsername, SmtpPassword),
+                    Timeout = 10000
+                };
+
+                // Try to send a test (but don't actually send)
+                await Task.Run(() =>
+                {
+                    // Just verify credentials - this will throw if authentication fails
+                    client.Send(new System.Net.Mail.MailMessage(
+                        FromEmail,
+                        FromEmail,
+                        "Test Connection",
+                        "This is a test message to verify SMTP configuration."));
+                }, token);
+
+                _dialogService.ShowInfo("Email configuration is valid and test email sent successfully!", "Connection Successful");
+            }
+            catch (System.Net.Mail.SmtpException ex)
+            {
+                _logger.LogWarning(ex, "SMTP test failed.");
+                _dialogService.ShowInfo($"SMTP connection failed: {ex.Message}\n\nPlease verify your settings and try again.", "Connection Failed");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Email test failed.");
+                _dialogService.ShowInfo($"Email test failed: {ex.Message}", "Test Failed");
             }
         }
     }
