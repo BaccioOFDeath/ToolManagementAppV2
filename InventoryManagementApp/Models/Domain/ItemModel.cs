@@ -1,3 +1,4 @@
+using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace InventoryManagementApp.Models.Domain
@@ -59,6 +60,8 @@ namespace InventoryManagementApp.Models.Domain
             get => _quantityOnHand;
             set
             {
+                if (value < 0)
+                    throw new ArgumentOutOfRangeException(nameof(QuantityOnHand), "Quantity cannot be negative.");
                 if (SetProperty(ref _quantityOnHand, value))
                 {
                     OnPropertyChanged(nameof(OnHand));
@@ -70,7 +73,12 @@ namespace InventoryManagementApp.Models.Domain
         public int RentedQuantity
         {
             get => _rentedQuantity;
-            set => SetProperty(ref _rentedQuantity, value);
+            set
+            {
+                if (value < 0)
+                    throw new ArgumentOutOfRangeException(nameof(RentedQuantity), "Quantity cannot be negative.");
+                SetProperty(ref _rentedQuantity, value);
+            }
         }
 
         private bool _isRentalItem;

@@ -30,7 +30,7 @@ namespace InventoryManagementApp.Utilities.Converters
             if (value is BitmapImage bmp) return bmp;
 
             // If it's a path, try loading it
-            if (value is string path && !string.IsNullOrEmpty(path))
+            if (value is string path && !string.IsNullOrWhiteSpace(path))
             {
                 try
                 {

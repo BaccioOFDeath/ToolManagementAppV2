@@ -274,7 +274,7 @@ namespace InventoryManagementApp.Utilities.IO
         private static string Quote(string value)
         {
             ArgumentNullException.ThrowIfNull(value);
-            if (string.IsNullOrEmpty(value)) return string.Empty;
+            if (string.IsNullOrWhiteSpace(value)) return string.Empty;
             if (value.Contains(",") || value.Contains("\"") || value.Contains("\n"))
                 return $"\"{value.Replace("\"", "\"\"")}\"";
             return value;

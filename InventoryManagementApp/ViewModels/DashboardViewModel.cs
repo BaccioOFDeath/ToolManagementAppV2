@@ -114,21 +114,21 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 StatCards.Clear();
-                var itemCountTask = _itemService.CountItemsAsync(new ItemFilter(null), cancellationToken);
-                var rentalCountTask = _rentalService.CountActiveRentalsAsync();
-                var customerCountTask = _customerService.CountCustomersAsync(cancellationToken);
-                var userCountTask = _userService.CountUsersAsync(cancellationToken);
-
-                await Task.WhenAll(itemCountTask, rentalCountTask, customerCountTask, userCountTask).ConfigureAwait(false);
+                
+                // Load stats in parallel
+                var itemCount = await _itemService.CountItemsAsync(new ItemFilter(null), cancellationToken).ConfigureAwait(false);
+                var rentalCount = await _rentalService.CountActiveRentalsAsync().ConfigureAwait(false);
+                var customerCount = await _customerService.CountCustomersAsync(cancellationToken).ConfigureAwait(false);
+                var userCount = await _userService.CountUsersAsync(cancellationToken).ConfigureAwait(false);
 
                 StatCards.Add(new StatCard
                 {
                     Title = $"Total {LabelProvider.Instance.ItemLabelPlural}",
-                    Value = itemCountTask.Result.ToString()
+                    Value = itemCount.ToString()
                 });
-                StatCards.Add(new StatCard { Title = "Active Rentals", Value = rentalCountTask.Result.ToString() });
-                StatCards.Add(new StatCard { Title = "Total Customers", Value = customerCountTask.Result.ToString() });
-                StatCards.Add(new StatCard { Title = "Total Users", Value = userCountTask.Result.ToString() });
+                StatCards.Add(new StatCard { Title = "Active Rentals", Value = rentalCount.ToString() });
+                StatCards.Add(new StatCard { Title = "Total Customers", Value = customerCount.ToString() });
+                StatCards.Add(new StatCard { Title = "Total Users", Value = userCount.ToString() });
 
                 if (_maintenanceService != null)
                 {

@@ -63,7 +63,7 @@ namespace InventoryManagementApp.ViewModels.Rental
         {
             var term = string.IsNullOrWhiteSpace(SearchText) ? string.Empty : SearchText.Trim();
             IEnumerable<RentalModel> results = _allHistory;
-            if (!string.IsNullOrEmpty(term))
+            if (!string.IsNullOrWhiteSpace(term))
             {
                 results = _allHistory.Where(r =>
                     r.RentalID.ToString().Contains(term, StringComparison.OrdinalIgnoreCase) ||

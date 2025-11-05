@@ -50,7 +50,15 @@ namespace InventoryManagementApp
                 HandleDomainException(e.ExceptionObject as Exception ?? new Exception("Unknown"), e);
             TaskScheduler.UnobservedTaskException += (s, e) =>
             {
-                try { Log.Error(e.Exception, "Unobserved task exception"); } catch { }
+                try 
+                { 
+                    Log.Error(e.Exception, "Unobserved task exception"); 
+                } 
+                catch (Exception logEx) 
+                { 
+                    // Fallback if logging fails - write to debug output
+                    System.Diagnostics.Debug.WriteLine($"Failed to log unobserved exception: {logEx.Message}");
+                }
                 e.SetObserved();
             };
         }

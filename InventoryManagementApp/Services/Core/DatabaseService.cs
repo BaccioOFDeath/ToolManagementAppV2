@@ -378,7 +378,7 @@ namespace InventoryManagementApp.Services.Core
                 ?.Substring("Data Source=".Length)
                 .Trim();
 
-            if (string.IsNullOrEmpty(dataSource) || !File.Exists(dataSource))
+            if (string.IsNullOrWhiteSpace(dataSource) || !File.Exists(dataSource))
                 throw new InvalidOperationException("Database file path could not be determined.");
 
             try

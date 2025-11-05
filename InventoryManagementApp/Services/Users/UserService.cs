@@ -60,7 +60,7 @@ namespace InventoryManagementApp.Services.Users
             }
             if (value is DateTimeOffset dto) return dto.UtcDateTime;
             var s = value.ToString()?.Trim();
-            if (string.IsNullOrEmpty(s)) return null;
+            if (string.IsNullOrWhiteSpace(s)) return null;
 
             var cultures = new[] { CultureInfo.InvariantCulture, CultureInfo.GetCultureInfo("en-NZ"), CultureInfo.CurrentCulture };
             var exactFormats = new[] { "o", "yyyy-MM-ddTHH:mm:ss.fffffffK" };
@@ -224,7 +224,7 @@ namespace InventoryManagementApp.Services.Users
             using var cmd = new SqliteCommand(sql, conn);
 
             var password = (user.PasswordHash ?? string.Empty).Trim();
-            if (string.IsNullOrEmpty(password))
+            if (string.IsNullOrWhiteSpace(password))
                 throw new ArgumentException("Password cannot be empty.", nameof(user.PasswordHash));
             if (!PasswordValidator.IsValid(password, out var error))
                 throw new ArgumentException(error, nameof(user.PasswordHash));
