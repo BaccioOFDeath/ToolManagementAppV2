@@ -96,7 +96,7 @@ namespace InventoryManagementApp.ViewModels
         async Task ImportItemsAsync(CancellationToken cancellationToken)
         {
             var path = _fileDialogService.OpenFile("CSV Files|*.csv", AppContext.BaseDirectory);
-            if (string.IsNullOrEmpty(path)) return;
+            if (string.IsNullOrWhiteSpace(path)) return;
             try
             {
                 var headers = await CsvHelperUtil.ReadHeadersAsync(path);
@@ -147,7 +147,7 @@ namespace InventoryManagementApp.ViewModels
         async Task ExportItemsAsync(CancellationToken cancellationToken)
         {
             var path = _fileDialogService.SaveFile("CSV Files|*.csv");
-            if (string.IsNullOrEmpty(path)) return;
+            if (string.IsNullOrWhiteSpace(path)) return;
             try
             {
                 var plural = LabelProvider.Instance.ItemLabelPlural;
@@ -170,7 +170,7 @@ namespace InventoryManagementApp.ViewModels
         async Task ImportCustomersAsync(CancellationToken cancellationToken)
         {
             var path = _fileDialogService.OpenFile("CSV Files|*.csv", AppContext.BaseDirectory);
-            if (string.IsNullOrEmpty(path)) return;
+            if (string.IsNullOrWhiteSpace(path)) return;
             try
             {
                 var headers = await CsvHelperUtil.ReadHeadersAsync(path);
@@ -197,7 +197,7 @@ namespace InventoryManagementApp.ViewModels
         async Task ExportCustomersAsync(CancellationToken cancellationToken)
         {
             var path = _fileDialogService.SaveFile("CSV Files|*.csv");
-            if (string.IsNullOrEmpty(path)) return;
+            if (string.IsNullOrWhiteSpace(path)) return;
             try
             {
                 await _customerService.ExportCustomersToCsvAsync(path, cancellationToken);
@@ -225,7 +225,7 @@ namespace InventoryManagementApp.ViewModels
         async Task BackupDatabaseAsync(CancellationToken cancellationToken)
         {
             var path = _fileDialogService.SaveFile("SQLite Database|*.db");
-            if (string.IsNullOrEmpty(path)) return;
+            if (string.IsNullOrWhiteSpace(path)) return;
             try
             {
                 await _databaseService.BackupDatabaseAsync(path, cancellationToken);

@@ -203,7 +203,7 @@ namespace InventoryManagementApp.Services.Items
                 foreach (var key in keys)
                 {
                     var k = (key ?? string.Empty).Trim().ToUpperInvariant();
-                    if (string.IsNullOrEmpty(k))
+                    if (string.IsNullOrWhiteSpace(k))
                         continue;
                     if (!groups.TryGetValue(k, out var list))
                         groups[k] = list = new List<ItemModel>();
@@ -249,7 +249,7 @@ namespace InventoryManagementApp.Services.Items
                     continue;
                 }
                 var item = list[0];
-                if (!string.IsNullOrEmpty(item.ImagePath))
+                if (!string.IsNullOrWhiteSpace(item.ImagePath))
                 {
                     result.ConflictingFiles.Add(file);
                     continue;
@@ -289,6 +289,10 @@ namespace InventoryManagementApp.Services.Items
             bitmap.UriSource = new Uri(sourceFileName);
             bitmap.EndInit();
             bitmap.Freeze();
+
+            // Prevent division by zero
+            if (bitmap.PixelWidth == 0 || bitmap.PixelHeight == 0)
+                throw new InvalidOperationException("Invalid image dimensions: image has zero width or height.");
 
             double scale = Math.Min((double)maxWidth / bitmap.PixelWidth, (double)maxHeight / bitmap.PixelHeight);
             if (scale > 1.0)

@@ -110,7 +110,7 @@ namespace InventoryManagementApp.Utilities.Helpers
         /// <returns>True if the password matches; otherwise, false.</returns>
         public static bool VerifyPassword(string password, string salt, string hash)
         {
-            if (string.IsNullOrEmpty(salt) || string.IsNullOrEmpty(hash)) return false;
+            if (string.IsNullOrWhiteSpace(salt) || string.IsNullOrWhiteSpace(hash)) return false;
             try
             {
                 var saltBytes = Convert.FromBase64String(salt);
@@ -135,7 +135,7 @@ namespace InventoryManagementApp.Utilities.Helpers
         /// <returns>True if the password matches; otherwise, false.</returns>
         public static async Task<bool> VerifyPasswordAsync(string password, string salt, string hash)
         {
-            if (string.IsNullOrEmpty(salt) || string.IsNullOrEmpty(hash)) return false;
+            if (string.IsNullOrWhiteSpace(salt) || string.IsNullOrWhiteSpace(hash)) return false;
             try
             {
                 var saltBytes = Convert.FromBase64String(salt);

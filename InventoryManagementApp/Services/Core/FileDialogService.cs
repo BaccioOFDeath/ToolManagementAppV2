@@ -12,7 +12,7 @@ namespace InventoryManagementApp.Services.Core
             {
                 Filter = filter
             };
-            if (!string.IsNullOrEmpty(initialDirectory))
+            if (!string.IsNullOrWhiteSpace(initialDirectory))
             {
                 dlg.InitialDirectory = initialDirectory;
             }

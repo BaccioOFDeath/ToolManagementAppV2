@@ -139,11 +139,11 @@ namespace InventoryManagementApp.ViewModels
                 }
 
                 var filterSetting = await _settingsService.GetSettingAsync("LastFilter", ct).ConfigureAwait(false);
-                if (!string.IsNullOrEmpty(filterSetting))
+                if (!string.IsNullOrWhiteSpace(filterSetting))
                     Filter = filterSetting;
 
                 var sortSetting = await _settingsService.GetSettingAsync("LastSort", ct).ConfigureAwait(false);
-                if (!string.IsNullOrEmpty(sortSetting))
+                if (!string.IsNullOrWhiteSpace(sortSetting))
                 {
                     var parts = sortSetting.Split('|');
                     if (parts.Length >= 2)

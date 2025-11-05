@@ -265,7 +265,7 @@ namespace InventoryManagementApp.ViewModels
 
             try
             {
-                if (!string.IsNullOrEmpty(term))
+                if (!string.IsNullOrWhiteSpace(term))
                 {
                     await foreach (var item in _itemService.SearchItemsAsync(term, page, SortField.Name, SortDirection.Ascending, isRentalItem: false, cancellationToken: cancellationToken)
                         .WithCancellation(cancellationToken))
@@ -284,12 +284,12 @@ namespace InventoryManagementApp.ViewModels
                 return;
             }
 
-            if (!string.IsNullOrEmpty(SelectedCategory) && SelectedCategory != "All")
+            if (!string.IsNullOrWhiteSpace(SelectedCategory) && SelectedCategory != "All")
             {
                 list = list.Where(t => string.Equals(t.Brand, SelectedCategory, StringComparison.OrdinalIgnoreCase)).ToList();
             }
 
-            if (string.IsNullOrEmpty(term))
+            if (string.IsNullOrWhiteSpace(term))
             {
                 Items.ReplaceRange(list);
                 SearchResults.ReplaceRange(list);

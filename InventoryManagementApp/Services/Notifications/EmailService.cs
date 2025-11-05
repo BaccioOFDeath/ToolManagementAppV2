@@ -153,6 +153,7 @@ The Equipment Rental Team";
             if (_disposed) return;
             _smtpClient?.Dispose();
             _disposed = true;
+            GC.SuppressFinalize(this);
         }
     }
 }
