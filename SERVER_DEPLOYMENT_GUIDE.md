@@ -50,6 +50,145 @@ For the automated reminder service to work, you must configure email settings in
 - **Reliable internet connection** for sending emails
 - **Valid SMTP server credentials**
 
+## Multiple Instances and Shared Drive Deployment
+
+### Can Multiple Users Run the Application Simultaneously?
+
+**Yes**, with important considerations:
+
+#### Database Concurrency
+
+The application uses **SQLite with WAL (Write-Ahead Logging) mode**, which supports:
+- ✅ Multiple readers simultaneously
+- ✅ Multiple processes accessing the same database file
+- ✅ One writer at a time with concurrent readers
+- ✅ Shared network drive deployment
+
+#### Critical Issue: Duplicate Reminder Emails
+
+⚠️ **Each application instance runs its own RentalReminderService**, which means:
+- If 3 users run the application, 3 reminder services start
+- Each service checks for rentals due tomorrow at 2:30 PM
+- **Customers receive 3 duplicate emails** for the same rental
+
+### Recommended Multi-User Configurations
+
+#### Option 1: Single Server Instance with Reminders (Recommended)
+
+**Setup**:
+1. **Server Machine**: Run one instance with email configured
+   - Configure valid SMTP settings in `appsettings.json`
+   - This instance sends reminder emails
+   
+2. **Client Machines**: Run instances with email disabled
+   - Set `"SmtpHost": "smtp.example.com"` in their `appsettings.json`
+   - These instances won't start the reminder service
+   - All users share the same database on network drive
+
+**Benefits**:
+- Only one reminder service runs
+- No duplicate emails
+- All users access shared database
+- Simple configuration
+
+**Example Client `appsettings.json`**:
+```json
+{
+  "Database": {
+    "Path": "\\\\server\\share\\inventory.db"
+  },
+  "Email": {
+    "SmtpHost": "smtp.example.com",
+    "SmtpPort": 587,
+    "SmtpUsername": "",
+    "SmtpPassword": "",
+    "FromEmail": "noreply@example.com",
+    "FromName": "Equipment Rentals",
+    "EnableSsl": true,
+    "ContactInfo": "Contact your IT department"
+  }
+}
+```
+
+#### Option 2: Remote Desktop Services
+
+**Setup**:
+- Install application on Windows Server
+- Users connect via Remote Desktop
+- Only one application instance runs
+- Multiple users access via RDP sessions
+
+**Benefits**:
+- Single instance, single database
+- No duplicate emails
+- Better performance (no network drive latency)
+- Centralized management
+
+#### Option 3: Designated Reminder Server
+
+**Setup**:
+- One machine designated as "reminder server" runs 24/7 with email enabled
+- All other machines have email disabled
+- All machines point to same database on shared drive
+
+**Benefits**:
+- Reminders work even if no user is logged in
+- Consistent reminder schedule
+- Other users don't need email configuration
+
+### Network Drive Considerations
+
+When deploying on a shared network drive:
+
+**Performance**:
+- Network latency affects database operations
+- Use gigabit network for best performance
+- Consider VPN impact if accessing remotely
+
+**Reliability**:
+- Network interruptions can cause database locks
+- Ensure stable network connection
+- Monitor for "database is locked" errors
+
+**Path Configuration**:
+```json
+{
+  "Database": {
+    "Path": "\\\\fileserver\\shared\\InventoryApp\\inventory.db"
+  }
+}
+```
+
+Or use mapped drive:
+```json
+{
+  "Database": {
+    "Path": "Z:\\InventoryApp\\inventory.db"
+  }
+}
+```
+
+### Troubleshooting Multiple Instances
+
+**Issue**: Database locked errors
+- **Cause**: Multiple writes happening simultaneously
+- **Solution**: Users will automatically retry. If persistent, reduce concurrent operations.
+
+**Issue**: Duplicate reminder emails
+- **Cause**: Multiple instances have email configured
+- **Solution**: Disable email on all but one instance (set SmtpHost to "smtp.example.com")
+
+**Issue**: Slow performance
+- **Cause**: Network drive latency
+- **Solution**: 
+  - Use gigabit network
+  - Consider local database with periodic sync
+  - Use Remote Desktop instead
+
+**Issue**: Log files in different locations
+- **Cause**: Each instance writes logs locally
+- **Solution**: Configure `Logging:Directory` to point to shared location if desired
+
 ## Deployment Steps for Server
 
 ### 1. Initial Setup

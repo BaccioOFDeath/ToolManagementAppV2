@@ -246,7 +246,9 @@ For reliable server deployment:
 - Consider using Windows Service wrapper (e.g., NSSM) for production environments
 
 **High Availability**:
-- Only one instance should run at a time (SQLite limitation)
+- Multiple instances can run simultaneously using SQLite WAL mode
+- ⚠️ **Important**: Only ONE instance should have email configured to avoid duplicate reminder emails
+- For multi-user deployments, disable email on client instances (set SmtpHost to "smtp.example.com")
 - Implement external monitoring (e.g., ping endpoint, log monitoring)
 - Set up database backup automation
 - Document restart procedures for maintenance windows
