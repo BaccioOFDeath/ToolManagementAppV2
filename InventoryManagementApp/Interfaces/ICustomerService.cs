@@ -18,6 +18,8 @@ namespace InventoryManagementApp.Interfaces
         Task<List<Customer>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default);
         Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default);
         Task ExportCustomersToCsvAsync(string filePath, CancellationToken cancellationToken = default);
+        Task<int> ImportCustomersAsync(string filePath, IDataImporter<Customer> importer, CancellationToken cancellationToken = default);
+        Task ExportCustomersAsync(string filePath, IDataExporter<Customer> exporter, CancellationToken cancellationToken = default);
     }
 }
 

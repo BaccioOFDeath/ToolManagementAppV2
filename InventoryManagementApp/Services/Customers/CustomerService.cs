@@ -412,6 +412,48 @@ namespace InventoryManagementApp.Services.Customers
             Mobile = r["Mobile"]?.ToString() ?? string.Empty,
             Address = r["Address"]?.ToString() ?? string.Empty
         };
+
+        public async Task<int> ImportCustomersAsync(string filePath, IDataImporter<Customer> importer, CancellationToken cancellationToken = default)
+        {
+            _auth.EnsureAdmin();
+            
+            var (customers, skippedRows) = await importer.ImportAsync(filePath, cancellationToken).ConfigureAwait(false);
+            
+            int importedCount = 0;
+            using var conn = _dbService.CreateConnection();
+            
+            foreach (var customer in customers)
+            {
+                var customerModel = new CustomerModel
+                {
+                    Company = customer.Company ?? string.Empty,
+                    Email = customer.Email ?? string.Empty,
+                    Contact = customer.Contact ?? string.Empty,
+                    Phone = customer.Phone ?? string.Empty,
+                    Mobile = customer.Mobile ?? string.Empty,
+                    Address = customer.Address ?? string.Empty
+                };
+
+                var skipReason = GetSkipReason(customerModel);
+                if (skipReason != null)
+                    continue;
+
+                bool exists = await CustomerExistsAsync(customerModel.Contact, customerModel.Phone, customerModel.Mobile, cancellationToken);
+                if (exists)
+                    continue;
+
+                await InsertCustomerAsync(conn, null, customerModel, cancellationToken);
+                importedCount++;
+            }
+
+            return importedCount;
+        }
+
+        public async Task ExportCustomersAsync(string filePath, IDataExporter<Customer> exporter, CancellationToken cancellationToken = default)
+        {
+            var all = await GetAllCustomersAsync(cancellationToken).ConfigureAwait(false);
+            await exporter.ExportAsync(filePath, all, cancellationToken).ConfigureAwait(false);
+        }
     }
 }
 

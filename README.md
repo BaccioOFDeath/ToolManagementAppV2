@@ -25,6 +25,18 @@ For detailed documentation, see:
 - [RENTAL_ENHANCEMENTS.md](RENTAL_ENHANCEMENTS.md) - Feature documentation and usage guide
 - [RENTAL_IMPLEMENTATION_SUMMARY.md](RENTAL_IMPLEMENTATION_SUMMARY.md) - Implementation details
 
+### Multiple Import/Export Formats
+
+The application supports multiple file formats for importing and exporting Items and Customers data:
+
+- **CSV** (Comma-Separated Values) - Traditional format with flexible column mapping
+- **JSON** (JavaScript Object Notation) - Structured format for easy integration with web applications
+- **XML** (Extensible Markup Language) - Structured format for enterprise systems
+
+Users can choose their preferred format when importing or exporting data through the Import/Export page. Each format maintains data integrity and validation.
+
+For detailed documentation, see [IMPORT_EXPORT_FORMATS.md](IMPORT_EXPORT_FORMATS.md).
+
 ## Settings and Rebranding
 The application can be rebranded via its **Settings** to suit different inventory domains:
 - **Application Name**: Sets the title shown throughout the UI.
