@@ -16,6 +16,10 @@ using InventoryManagementApp.Models.ImportExport;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Services.Users;
 using InventoryManagementApp.Services.Categories;
+using InventoryManagementApp.Services.Maintenance;
+using InventoryManagementApp.Services.Calibration;
+using InventoryManagementApp.Services.Reservations;
+using InventoryManagementApp.Services.Kits;
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Views.Pages;
 using Xunit;
@@ -47,10 +51,16 @@ namespace InventoryManagementApp.Tests
 
                     var app = new App(host);
 
+                    var userContext = new StubUserContext();
+                    var maintenanceService = new MaintenanceService(db, userContext);
+                    var calibrationService = new CalibrationService(db, userContext);
+                    var reservationService = new ReservationService(db, userContext);
+                    var kitService = new KitService(db, userContext);
+
                     var vm = new MainViewModel(
                         new StubItemService(),
                         new StubUserService(),
-                        new StubUserContext(),
+                        userContext,
                         new StubCustomerService(),
                         new StubRentalService(),
                         new StubFileDialogService(),
@@ -59,6 +69,11 @@ namespace InventoryManagementApp.Tests
                         new StubThemeService(),
                         new StubDatabaseBackupService(),
                         new StubDialogService(),
+                        maintenanceService,
+                        calibrationService,
+                        reservationService,
+                        kitService,
+                        null,
                         NullLogger<MainViewModel>.Instance,
                         () => Task.FromResult(true),
                         new StubDispatcherTimer(),

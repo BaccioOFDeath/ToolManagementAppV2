@@ -15,6 +15,10 @@ using InventoryManagementApp.Services;
 using InventoryManagementApp.Services.Rentals;
 using InventoryManagementApp.Services.Items;
 using InventoryManagementApp.Services.Users;
+using InventoryManagementApp.Services.Maintenance;
+using InventoryManagementApp.Services.Calibration;
+using InventoryManagementApp.Services.Reservations;
+using InventoryManagementApp.Services.Kits;
 using InventoryManagementApp.Views.Pages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -59,6 +63,10 @@ namespace InventoryManagementApp.ViewModels
         public ActivityLogsViewModel ActivityLogs { get; }
         public ReportsViewModel Reports { get; }
         public SettingsViewModel Settings { get; }
+        public MaintenanceManagementViewModel MaintenanceManagement { get; }
+        public CalibrationManagementViewModel CalibrationManagement { get; }
+        public ReservationManagementViewModel ReservationManagement { get; }
+        public KitManagementViewModel KitManagement { get; }
 
         private Page? _currentPage;
         public Page? CurrentPage
@@ -179,6 +187,10 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand OpenImportExportCommand { get; }
         public IAsyncRelayCommand OpenActivityLogsCommand { get; }
         public IAsyncRelayCommand OpenReportsCommand { get; }
+        public IAsyncRelayCommand OpenMaintenanceCommand { get; }
+        public IAsyncRelayCommand OpenCalibrationCommand { get; }
+        public IAsyncRelayCommand OpenReservationsCommand { get; }
+        public IAsyncRelayCommand OpenKitManagementCommand { get; }
         public IAsyncRelayCommand OpenImportMappingWindowCommand { get; }
         public IAsyncRelayCommand OpenImageImportMappingWindowCommand { get; }
         public IRelayCommand ExitCommand { get; }
@@ -198,6 +210,10 @@ namespace InventoryManagementApp.ViewModels
                              IThemeService themeService,
                              IDatabaseBackupService databaseService,
                              IDialogService dialogService,
+                             MaintenanceService maintenanceService,
+                             CalibrationService calibrationService,
+                             ReservationService reservationService,
+                             KitService kitService,
                              Services.Settings.RentalConfigurationService? rentalConfigService = null,
                              ILogger<MainViewModel>? logger = null,
                              Func<Task<bool>>? showLoginWindow = null,
@@ -245,6 +261,10 @@ namespace InventoryManagementApp.ViewModels
             Reports = new ReportsViewModel(new ReportService(itemService, rentalService, activityLogService, customerService, userService));
             ActivityLogs = new ActivityLogsViewModel(activityLogService);
             Settings = new SettingsViewModel(_fileDialogService, _settingsService, _dialogService, _themeService, rentalConfigService);
+            MaintenanceManagement = new MaintenanceManagementViewModel(maintenanceService ?? throw new ArgumentNullException(nameof(maintenanceService)), _dialogService);
+            CalibrationManagement = new CalibrationManagementViewModel(calibrationService ?? throw new ArgumentNullException(nameof(calibrationService)), _dialogService);
+            ReservationManagement = new ReservationManagementViewModel(reservationService ?? throw new ArgumentNullException(nameof(reservationService)), _dialogService);
+            KitManagement = new KitManagementViewModel(kitService ?? throw new ArgumentNullException(nameof(kitService)), _dialogService);
             var logoPath = _settingsService.GetSettingAsync("CompanyLogoPath").GetAwaiter().GetResult();
             if (!string.IsNullOrWhiteSpace(logoPath))
                 CompanyLogoPath = logoPath;
@@ -443,6 +463,70 @@ namespace InventoryManagementApp.ViewModels
                 {
                     _logger.LogError(ex, "Failed to open reports page");
                     _dialogService.ShowInfo($"Failed to open reports page: {ex.Message}", "Reports");
+                    throw;
+                }
+            });
+
+            OpenMaintenanceCommand = new AsyncRelayCommand(async () =>
+            {
+                try
+                {
+                    await MaintenanceManagement.LoadMaintenanceCommand.ExecuteAsync(null);
+                    var page = new MaintenancePage { DataContext = MaintenanceManagement, Title = "Maintenance" };
+                    CurrentPage = page;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open maintenance page");
+                    _dialogService.ShowInfo($"Failed to open maintenance page: {ex.Message}", "Maintenance");
+                    throw;
+                }
+            });
+
+            OpenCalibrationCommand = new AsyncRelayCommand(async () =>
+            {
+                try
+                {
+                    await CalibrationManagement.LoadCalibrationCommand.ExecuteAsync(null);
+                    var page = new CalibrationPage { DataContext = CalibrationManagement, Title = "Calibration" };
+                    CurrentPage = page;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open calibration page");
+                    _dialogService.ShowInfo($"Failed to open calibration page: {ex.Message}", "Calibration");
+                    throw;
+                }
+            });
+
+            OpenReservationsCommand = new AsyncRelayCommand(async () =>
+            {
+                try
+                {
+                    await ReservationManagement.LoadReservationsCommand.ExecuteAsync(null);
+                    var page = new ReservationPage { DataContext = ReservationManagement, Title = "Reservations" };
+                    CurrentPage = page;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open reservations page");
+                    _dialogService.ShowInfo($"Failed to open reservations page: {ex.Message}", "Reservations");
+                    throw;
+                }
+            });
+
+            OpenKitManagementCommand = new AsyncRelayCommand(async () =>
+            {
+                try
+                {
+                    await KitManagement.LoadKitsCommand.ExecuteAsync(null);
+                    var page = new KitManagementPage { DataContext = KitManagement, Title = "Kits" };
+                    CurrentPage = page;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to open kits page");
+                    _dialogService.ShowInfo($"Failed to open kits page: {ex.Message}", "Kits");
                     throw;
                 }
             });

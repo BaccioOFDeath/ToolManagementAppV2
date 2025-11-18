@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Documents;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.ViewModels.Rental;
 using InventoryManagementApp.Views.Pages;
@@ -234,6 +235,108 @@ namespace InventoryManagementApp.Services
             catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for PrintLabelWindow"); }
             try { win.ShowDialog(); }
             catch (Exception ex) { _logger.LogError(ex, "Failed to show PrintLabelWindow"); }
+        }
+
+
+        public Task<string?> ShowInputDialogAsync(string title, string message)
+            => InvokeOnDispatcherAsync(() => ShowInputDialog(title, message), (string?)null);
+
+        public Task<bool> ShowMaintenanceEditDialogAsync(MaintenanceRecord record, bool isNew)
+        {
+            ArgumentNullException.ThrowIfNull(record);
+            return InvokeOnDispatcherAsync(() => ShowMaintenanceDialog(record, isNew), false);
+        }
+
+        public Task<bool> ShowCalibrationEditDialogAsync(CalibrationRecord record, bool isNew)
+        {
+            ArgumentNullException.ThrowIfNull(record);
+            return InvokeOnDispatcherAsync(() => ShowCalibrationDialog(record, isNew), false);
+        }
+
+        public Task<bool> ShowReservationEditDialogAsync(Reservation reservation, bool isNew)
+        {
+            ArgumentNullException.ThrowIfNull(reservation);
+            return InvokeOnDispatcherAsync(() => ShowReservationDialog(reservation, isNew), false);
+        }
+
+        public Task<bool> ShowKitEditDialogAsync(Kit kit, bool isNew)
+        {
+            ArgumentNullException.ThrowIfNull(kit);
+            return InvokeOnDispatcherAsync(() => ShowKitDialog(kit, isNew), false);
+        }
+
+        public Task<bool> ShowKitItemEditDialogAsync(KitItem kitItem, bool isNew)
+        {
+            ArgumentNullException.ThrowIfNull(kitItem);
+            return InvokeOnDispatcherAsync(() => ShowKitItemDialog(kitItem, isNew), false);
+        }
+
+        async Task<T> InvokeOnDispatcherAsync<T>(Func<T> factory, T fallback)
+        {
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher != null)
+                return await dispatcher.InvokeAsync(factory);
+
+            _logger.LogWarning("No dispatcher available for dialog invocation; returning fallback value.");
+            return fallback;
+        }
+
+        string? ShowInputDialog(string title, string message, bool isRequired = false)
+        {
+            var win = new InputDialogWindow(title, message, isRequired);
+            TrySetOwner(win);
+            return ShowDialogSafe(win) ? win.ViewModel.InputText : null;
+        }
+
+        bool ShowMaintenanceDialog(MaintenanceRecord record, bool isNew)
+        {
+            var win = new MaintenanceEditWindow(record, isNew);
+            TrySetOwner(win);
+            return ShowDialogSafe(win);
+        }
+
+        bool ShowCalibrationDialog(CalibrationRecord record, bool isNew)
+        {
+            var win = new CalibrationEditWindow(record, isNew);
+            TrySetOwner(win);
+            return ShowDialogSafe(win);
+        }
+
+        bool ShowReservationDialog(Reservation reservation, bool isNew)
+        {
+            var win = new ReservationEditWindow(reservation, isNew);
+            TrySetOwner(win);
+            return ShowDialogSafe(win);
+        }
+
+        bool ShowKitDialog(Kit kit, bool isNew)
+        {
+            var win = new KitEditWindow(kit, isNew);
+            TrySetOwner(win);
+            return ShowDialogSafe(win);
+        }
+
+        bool ShowKitItemDialog(KitItem kitItem, bool isNew)
+        {
+            var win = new KitItemEditWindow(kitItem, isNew);
+            TrySetOwner(win);
+            return ShowDialogSafe(win);
+        }
+
+        void TrySetOwner(Window win)
+        {
+            try { win.Owner = System.Windows.Application.Current?.MainWindow; }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to set dialog owner"); }
+        }
+
+        bool ShowDialogSafe(Window window)
+        {
+            try { return window.ShowDialog() == true; }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to show dialog {Dialog}", window.GetType().Name);
+                return false;
+            }
         }
 
     }
