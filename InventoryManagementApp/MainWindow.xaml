@@ -46,6 +46,10 @@
                                 Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
                         <Button Style="{StaticResource NavButton}" Content="Customers" Command="{Binding OpenCustomersCommand}"/>
                         <Button Style="{StaticResource NavButton}" Content="Rentals" Command="{Binding OpenRentalsCommand}"/>
+                        <Button Style="{StaticResource NavButton}" Content="Maintenance" Command="{Binding OpenMaintenanceCommand}"/>
+                        <Button Style="{StaticResource NavButton}" Content="Calibration" Command="{Binding OpenCalibrationCommand}"/>
+                        <Button Style="{StaticResource NavButton}" Content="Reservations" Command="{Binding OpenReservationsCommand}"/>
+                        <Button Style="{StaticResource NavButton}" Content="Kits" Command="{Binding OpenKitManagementCommand}"/>
                         <Button Style="{StaticResource NavButton}" Content="Categories" Command="{Binding OpenCategoriesCommand}" />
                         <Button Style="{StaticResource NavButton}" Content="Users" Command="{Binding OpenUsersCommand}" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
 
