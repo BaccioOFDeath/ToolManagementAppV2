@@ -1,8 +1,10 @@
+import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { AccessControlService } from './access-control.service';
 import { AssignUserDto, ListAssignmentsDto, StaffLookupDto, TerminateAssignmentDto, TransferUserDto } from '../dto/user-assignment.dto';
 import { ConflictError, NotFoundError, ValidationError } from '../../../common/exceptions';
 
+@Injectable()
 export class UserAssignmentService {
   constructor(private readonly prisma: PrismaClient, private readonly accessControl: AccessControlService) {}
 
