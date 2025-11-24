@@ -1,7 +1,9 @@
+import { Injectable } from '@nestjs/common';
 import { PrismaClient, RoleDefinition } from '@prisma/client';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../../common/exceptions';
 import { CreateRoleDefinitionDto, UpdateRoleDefinitionDto } from '../dto/role-definition.dto';
 
+@Injectable()
 export class RoleDefinitionService {
   constructor(private readonly prisma: PrismaClient) {}
 

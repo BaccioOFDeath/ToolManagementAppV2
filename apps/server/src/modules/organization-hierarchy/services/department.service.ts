@@ -1,7 +1,9 @@
+import { Injectable } from '@nestjs/common';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { AssignManagerDto, CreateDepartmentDto, DepartmentFilterDto, UpdateDepartmentDto } from '../dto/department.dto';
 import { ConflictError, NotFoundError, ValidationError } from '../../../common/exceptions';
 
+@Injectable()
 export class DepartmentService {
   constructor(private readonly prisma: PrismaClient) {}
 
