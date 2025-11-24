@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Branch {
+  id        String       @id @default(uuid()) @map("id")
+  tenantId  String       @map("tenant_id")
+  code      String       @map("code")
+  name      String       @map("name")
+  metadata  Json?        @default("{}") @map("metadata")
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  departments Department[]
+
+  @@unique([tenantId, code], name: "branch_code_per_tenant")
+  @@map("Branch")
+}
+
+model Department {
+  id                  String      @id @default(uuid()) @map("id")
+  tenantId            String      @map("tenant_id")
+  branchId            String?     @map("branch_id")
+  code                String      @map("code")
+  name                String      @map("name")
+  parentDepartmentId  String?     @map("parent_department_id")
+  metadata            Json?       @default("{}") @map("metadata")
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @updatedAt @map("updated_at")
+
+  branch     Branch?      @relation(fields: [branchId], references: [id])
+  parent     Department?  @relation("DepartmentHierarchy", fields: [parentDepartmentId], references: [id])
+  children   Department[] @relation("DepartmentHierarchy")
+  roles      DepartmentRole[]
+  assignments UserDepartmentAssignment[]
+
+  @@unique([tenantId, code], name: "department_code_per_tenant")
+  @@map("Department")
+}
+
+model RoleDefinition {
+  id              String   @id @default(uuid()) @map("id")
+  tenantId        String   @map("tenant_id")
+  key             String   @map("key")
+  displayName     String   @map("display_name")
+  description     String?  @map("description")
+  scope           String   @map("scope")
+  permissions     Json     @map("permissions")
+  inheritsFromIds String[] @default([]) @map("inherits_from_ids")
+  isSystem        Boolean  @default(false) @map("is_system")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  departmentRoles DepartmentRole[]
+
+  @@unique([tenantId, key], name: "role_key_per_tenant")
+  @@map("RoleDefinition")
+}
+
+model DepartmentRole {
+  id                String   @id @default(uuid()) @map("id")
+  tenantId          String   @map("tenant_id")
+  departmentId      String   @map("department_id")
+  roleDefinitionId  String   @map("role_definition_id")
+  isDefault         Boolean  @default(false) @map("is_default")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  department  Department    @relation(fields: [departmentId], references: [id])
+  definition  RoleDefinition @relation(fields: [roleDefinitionId], references: [id])
+  assignments UserDepartmentAssignment[]
+
+  @@unique([departmentId, roleDefinitionId], name: "role_per_department")
+  @@map("DepartmentRole")
+}
+
+model UserDepartmentAssignment {
+  id               String   @id @default(uuid()) @map("id")
+  tenantId         String   @map("tenant_id")
+  userId           String   @map("user_id")
+  departmentRoleId String   @map("department_role_id")
+  departmentId     String   @map("department_id")
+  isPrimary        Boolean  @default(false) @map("is_primary")
+  assignedAt       DateTime @default(now()) @map("assigned_at")
+  removedAt        DateTime? @map("removed_at")
+
+  departmentRole DepartmentRole @relation(fields: [departmentRoleId], references: [id])
+  department     Department     @relation(fields: [departmentId], references: [id])
+
+  @@unique([tenantId, userId, departmentRoleId], name: "user_role_per_tenant")
+  @@map("UserDepartmentAssignment")
+}
