@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "test": "ts-node --transpile-only src/modules/organization-hierarchy/organization-hierarchy.integration.spec.ts",
     "prisma:migrate-dev": "prisma migrate dev --schema prisma/schema.prisma",
     "prisma:status": "ts-node prisma/check-migrations.ts",
     "prisma:seed-org-roles": "ts-node prisma/seed-org-roles.ts"
