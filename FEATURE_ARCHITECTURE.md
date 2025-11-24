@@ -153,6 +153,13 @@ Reservations ──── can link to ──→ Rentals (when fulfilled)
 Kits ──── contain ──→ KitItems ──→ Items
 ```
 
+## SDAutoOS Backend Integration (apps/server)
+
+- **Migrations & Seeds:** Prisma migrations live in `apps/server/prisma`; run `npm run prisma:status` to review pending changes, `npm run prisma:migrate-dev` to apply locally, and `npm run prisma:seed-org-roles` to preload demo tenants/branches/departments plus hierarchical role definitions. 【F:apps/server/prisma/check-migrations.ts†L8-L34】【F:apps/server/package.json†L6-L12】【F:apps/server/prisma/seed-org-roles.ts†L233-L308】
+- **Tenant & Branch Scoping:** The organization context helper resolves `tenantId`, `userId`, and `branchId` from request headers or legacy `user.branchId`, ensuring guard checks and service lookups always target the correct tenant/branch. Department creation and updates enforce tenant ownership for branches and parent departments. 【F:apps/server/src/modules/organization-hierarchy/organization-context.ts†L5-L33】【F:apps/server/src/modules/organization-hierarchy/services/department.service.ts†L10-L67】
+- **Authorization & Caching:** `OrganizationAccessGuard` relies on `AccessControlService` to fetch permissions derived from department assignments, caching them in Redis for five minutes and invalidating on assignment changes. Missing assignments raise `NotFoundError` to prevent default allow behavior. 【F:apps/server/src/modules/organization-hierarchy/organization-access.guard.ts†L35-L69】【F:apps/server/src/modules/organization-hierarchy/services/access-control.service.ts†L9-L64】
+- **GraphQL & REST Surface:** Department data is available via GraphQL queries/mutations and mirrored REST endpoints, all protected by the organization guard and `manageDepartmentPermission`. GraphQL connections support cursor-based pagination; REST endpoints accept optional `branchId` filters to keep responses branch-aware. 【F:apps/server/src/modules/organization-hierarchy/department.resolver.ts†L18-L90】【F:apps/server/src/modules/organization-hierarchy/controllers/department.controller.ts†L15-L80】
+
 ## Testing Coverage
 
 ```
