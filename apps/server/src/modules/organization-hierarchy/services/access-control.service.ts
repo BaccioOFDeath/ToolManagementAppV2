@@ -1,8 +1,10 @@
+import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import Redis from 'ioredis';
 import { ForbiddenError, NotFoundError } from '../../../common/exceptions';
 import { RoleDefinitionService } from './role-definition.service';
 
+@Injectable()
 export class AccessControlService {
   private readonly roleDefinitionService: RoleDefinitionService;
 
