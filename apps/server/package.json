@@ -1,0 +1,18 @@
+{
+  "name": "sdaautoos-server",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "prisma:migrate-dev": "prisma migrate dev --schema prisma/schema.prisma",
+    "prisma:status": "ts-node prisma/check-migrations.ts",
+    "prisma:seed-org-roles": "ts-node prisma/seed-org-roles.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.16.1"
+  },
+  "devDependencies": {
+    "prisma": "^5.16.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
