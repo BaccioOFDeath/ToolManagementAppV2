@@ -149,6 +149,37 @@ To download and persist new files, call:
 int count = await _deviceFileService.DownloadUnseenFilesAsync(device, "/var/data", CancellationToken.None);
 ```
 
+## SDAutoOS backend (apps/server)
+The `apps/server` workspace hosts the SDAutoOS backend services that expose the organization hierarchy over GraphQL and REST using NestJS, Prisma, PostgreSQL, and Redis caching.
+
+### Migration review and apply workflow
+- Check pending Prisma migrations with `npm run prisma:status`, which prints unapplied migration folders and reminds you to review the generated SQL under `apps/server/prisma/migrations/<name>/migration.sql` before applying. 【F:apps/server/prisma/check-migrations.ts†L8-L34】
+- For local development, apply changes with `npm run prisma:migrate-dev` (uses `prisma/schema.prisma`). For production, use `npx prisma migrate deploy --schema apps/server/prisma/schema.prisma` after reviewing the SQL. 【F:apps/server/package.json†L6-L12】【F:apps/server/prisma/check-migrations.ts†L23-L34】
+
+### Seeding commands
+- Seed the default tenant, branches, departments, and role definitions with `npm run prisma:seed-org-roles`. The script upserts demo branches and departments, attaches default department roles, and logs a reminder that migrations remain unapplied until you run the migrate command. 【F:apps/server/package.json†L10-L12】【F:apps/server/prisma/seed-org-roles.ts†L233-L308】
+
+### Authorization, tenant scoping, and caching
+- `OrganizationAccessGuard` reads tenant, user, branch, and department context from the request (including legacy `user.branchId` or the `x-branch-id` header) and enforces permission requirements via `AccessControlService`. 【F:apps/server/src/modules/organization-hierarchy/organization-context.ts†L5-L33】【F:apps/server/src/modules/organization-hierarchy/organization-access.guard.ts†L35-L69】
+- `AccessControlService` resolves effective permissions from department assignments, caches them in Redis for 5 minutes (`ac:permissions:<tenantId>:<userId>`), and invalidates entries when assignments change. It also raises a `NotFoundError` when a user lacks active assignments to prevent silent access. 【F:apps/server/src/modules/organization-hierarchy/services/access-control.service.ts†L9-L64】
+- Department operations are tenant-scoped by design: `DepartmentService` verifies branch/parent ownership before creation or updates and blocks deletion when child departments or active assignments exist. 【F:apps/server/src/modules/organization-hierarchy/services/department.service.ts†L10-L90】
+
+### API usage examples (GraphQL and REST)
+- **GraphQL:** Query departments by branch while passing tenant/user/branch headers (`x-tenant-id`, `x-user-id`, `x-branch-id`):
+  ```graphql
+  query Departments($branchId: String, $limit: Int) {
+    departments(branchId: $branchId, limit: $limit) {
+      edges { cursor node { id code name branchId } }
+      pageInfo { endCursor hasNextPage }
+    }
+  }
+  ```
+  Mutations such as `createDepartment(id: String!, input: CreateDepartmentDto!)` and `assignDepartmentManager` require the same scoped headers and satisfy `manageDepartmentPermission` via the guard. 【F:apps/server/src/modules/organization-hierarchy/department.resolver.ts†L18-L102】
+- **REST:** The `DepartmentController` exposes `GET /departments?branchId=<id>&type=<type>`, `POST /departments`, `PATCH /departments/:id`, and `POST /departments/:id/manager`. All routes require the organization access guard and will scope queries to the tenant plus optional branch filter. 【F:apps/server/src/modules/organization-hierarchy/controllers/department.controller.ts†L15-L80】
+
+### Backward compatibility
+- Requests populated with the legacy `user.branchId` continue to work because the organization context resolver prioritizes user-embedded branch IDs before reading headers, and permission checks propagate that branch to authorization handlers. This keeps older clients aligned with newer multi-tenant scoping rules while encouraging explicit `x-branch-id` headers going forward. 【F:apps/server/src/modules/organization-hierarchy/organization-context.ts†L5-L33】【F:apps/server/src/modules/organization-hierarchy/organization-access.guard.ts†L35-L69】
+
 ## Prerequisites
 - **.NET 8 SDK**
 
