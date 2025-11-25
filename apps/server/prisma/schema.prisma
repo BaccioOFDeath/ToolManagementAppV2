@@ -19,6 +19,7 @@ model Branch {
   departments Department[]
 
   @@unique([tenantId, code], name: "branch_code_per_tenant")
+  @@index([tenantId], name: "branch_tenant_idx")
   @@map("Branch")
 }
 
@@ -33,13 +34,16 @@ model Department {
   createdAt           DateTime    @default(now()) @map("created_at")
   updatedAt           DateTime    @updatedAt @map("updated_at")
 
-  branch     Branch?      @relation(fields: [branchId], references: [id])
-  parent     Department?  @relation("DepartmentHierarchy", fields: [parentDepartmentId], references: [id])
+  branch     Branch?      @relation(fields: [branchId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  parent     Department?  @relation("DepartmentHierarchy", fields: [parentDepartmentId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   children   Department[] @relation("DepartmentHierarchy")
   roles      DepartmentRole[]
   assignments UserDepartmentAssignment[]
 
   @@unique([tenantId, code], name: "department_code_per_tenant")
+  @@index([tenantId], name: "department_tenant_idx")
+  @@index([branchId], name: "department_branch_idx")
+  @@index([parentDepartmentId], name: "department_parent_idx")
   @@map("Department")
 }
 
@@ -59,6 +63,7 @@ model RoleDefinition {
   departmentRoles DepartmentRole[]
 
   @@unique([tenantId, key], name: "role_key_per_tenant")
+  @@index([tenantId], name: "role_definition_tenant_idx")
   @@map("RoleDefinition")
 }
 
@@ -71,11 +76,14 @@ model DepartmentRole {
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
-  department  Department    @relation(fields: [departmentId], references: [id])
-  definition  RoleDefinition @relation(fields: [roleDefinitionId], references: [id])
+  department  Department    @relation(fields: [departmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  definition  RoleDefinition @relation(fields: [roleDefinitionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   assignments UserDepartmentAssignment[]
 
   @@unique([departmentId, roleDefinitionId], name: "role_per_department")
+  @@index([tenantId], name: "department_role_tenant_idx")
+  @@index([departmentId], name: "department_role_department_idx")
+  @@index([roleDefinitionId], name: "department_role_definition_idx")
   @@map("DepartmentRole")
 }
 
@@ -89,9 +97,13 @@ model UserDepartmentAssignment {
   assignedAt       DateTime @default(now()) @map("assigned_at")
   removedAt        DateTime? @map("removed_at")
 
-  departmentRole DepartmentRole @relation(fields: [departmentRoleId], references: [id])
-  department     Department     @relation(fields: [departmentId], references: [id])
+  departmentRole DepartmentRole @relation(fields: [departmentRoleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  department     Department     @relation(fields: [departmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@unique([tenantId, userId, departmentRoleId], name: "user_role_per_tenant")
+  @@index([tenantId], name: "assignment_tenant_idx")
+  @@index([departmentId], name: "assignment_department_idx")
+  @@index([departmentRoleId], name: "assignment_role_idx")
+  @@index([userId], name: "assignment_user_idx")
   @@map("UserDepartmentAssignment")
 }
