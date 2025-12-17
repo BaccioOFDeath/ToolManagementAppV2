@@ -230,6 +230,43 @@ namespace InventoryManagementApp.Services.Core
                     IsOptional INTEGER NOT NULL DEFAULT 0,
                     FOREIGN KEY (KitID) REFERENCES Kits(KitID),
                     FOREIGN KEY (ItemID) REFERENCES Items(ItemID)
+                );
+                CREATE TABLE IF NOT EXISTS Vehicles (
+                    VehicleID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Vin TEXT NOT NULL,
+                    StockNumber TEXT,
+                    Year INTEGER,
+                    Make TEXT,
+                    Model TEXT,
+                    Trim TEXT,
+                    IntakeDate DATETIME NOT NULL,
+                    Status TEXT NOT NULL DEFAULT 'Received',
+                    Location TEXT,
+                    Mileage INTEGER,
+                    FuelType TEXT,
+                    DriveTrain TEXT,
+                    Disposition TEXT,
+                    Notes TEXT,
+                    ComplianceHoldReason TEXT,
+                    CreatedByUserID INTEGER,
+                    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (CreatedByUserID) REFERENCES Users(UserID)
+                );
+                CREATE TABLE IF NOT EXISTS DismantlingTasks (
+                    TaskID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    VehicleID INTEGER NOT NULL,
+                    PartName TEXT NOT NULL,
+                    PartTag TEXT,
+                    ConditionGrade TEXT,
+                    Technician TEXT,
+                    StartedAt DATETIME,
+                    CompletedAt DATETIME,
+                    Status TEXT NOT NULL DEFAULT 'Pending',
+                    Notes TEXT,
+                    ContainsHazmat INTEGER NOT NULL DEFAULT 0,
+                    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (VehicleID) REFERENCES Vehicles(VehicleID)
                 );";
             using var cmd = new SqliteCommand(sql, conn);
             cmd.ExecuteNonQuery();
@@ -256,6 +293,11 @@ namespace InventoryManagementApp.Services.Core
             EnsureIndex(conn, "Kits", "KitNumber", true);
             EnsureIndex(conn, "KitItems", "KitID");
             EnsureIndex(conn, "KitItems", "ItemID");
+            EnsureIndex(conn, "Vehicles", "Vin", true);
+            EnsureIndex(conn, "Vehicles", "Status");
+            EnsureIndex(conn, "Vehicles", "StockNumber");
+            EnsureIndex(conn, "DismantlingTasks", "VehicleID");
+            EnsureIndex(conn, "DismantlingTasks", "Status");
         }
 
         void MigrateLegacyItemsTable(SqliteConnection conn)
