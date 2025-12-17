@@ -149,20 +149,25 @@ To download and persist new files, call:
 int count = await _deviceFileService.DownloadUnseenFilesAsync(device, "/var/data", CancellationToken.None);
 ```
 
-## SDAutoOS backend (apps/server)
-The `apps/server` workspace hosts the SDAutoOS backend services that expose the organization hierarchy over GraphQL and REST using NestJS, Prisma, PostgreSQL, and Redis caching.
+## SDAutoOS backend (C#)
+The SDAutoOS backend now runs on ASP.NET Core with Entity Framework Core, PostgreSQL, Redis caching, and background workers for operational automations. It exposes both REST and GraphQL endpoints to power the dismantling, workshop, inventory, sales, finance, freight, and environmental recovery workflows described above.
+
+### Key capabilities
+- **Expanded domain coverage:** Vehicle intake, dismantling chain-of-custody, workshop jobs, inventory lifecycle, trade/retail/export sales channels, finance flows (Xero integration), freight dispatch/returns, and environmental recovery tracking are first-class modules.
+- **Organization graph & access control:** Multi-tenant organization graph with branches, departments, and role-based access control enforced by ASP.NET Core authorization policies and Redis-backed permission caching.
+- **Eventing & jobs:** Background services publish domain events to Kafka, trigger AI vision jobs (Python workers) for part recognition/damage grading, and schedule compliance tasks (e.g., hazardous material checks).
+- **API-first & client-friendly:** Versioned REST and GraphQL APIs with consistent DTOs, pagination, and filter support; responses include tenant/user context to keep legacy clients compatible while encouraging explicit header-based scoping.
+- **Data stewardship:** EF Core migrations manage PostgreSQL schema evolution; Redis accelerates hot reads while preserving transactionally consistent writes.
 
 ### Migration review and apply workflow
-- Check pending Prisma migrations with `npm run prisma:status`, which prints unapplied migration folders and reminds you to review the generated SQL under `apps/server/prisma/migrations/<name>/migration.sql` before applying. 【F:apps/server/prisma/check-migrations.ts†L8-L34】
-- For local development, apply changes with `npm run prisma:migrate-dev` (uses `prisma/schema.prisma`). For production, use `npx prisma migrate deploy --schema apps/server/prisma/schema.prisma` after reviewing the SQL. 【F:apps/server/package.json†L6-L12】【F:apps/server/prisma/check-migrations.ts†L23-L34】
+- Check pending EF Core migrations with `dotnet ef migrations list` from the backend project directory to see unapplied migrations before promoting changes.
+- Apply migrations locally with `dotnet ef database update`; for production deployments, run the same command with the production connection string after reviewing generated SQL scripts.
 
 ### Seeding commands
-- Seed the default tenant, branches, departments, and role definitions with `npm run prisma:seed-org-roles`. The script upserts demo branches and departments, attaches default department roles, and logs a reminder that migrations remain unapplied until you run the migrate command. 【F:apps/server/package.json†L10-L12】【F:apps/server/prisma/seed-org-roles.ts†L233-L308】
+- Seed default tenants, branches, departments, and role definitions with a backend seeding command (e.g., `dotnet run --project <BackendProject> -- seed-org-roles`). The seeder upserts demo branches/departments, attaches default department roles, and logs whether database migrations are pending.
 
 ### Authorization, tenant scoping, and caching
-- `OrganizationAccessGuard` reads tenant, user, branch, and department context from the request (including legacy `user.branchId` or the `x-branch-id` header) and enforces permission requirements via `AccessControlService`. 【F:apps/server/src/modules/organization-hierarchy/organization-context.ts†L5-L33】【F:apps/server/src/modules/organization-hierarchy/organization-access.guard.ts†L35-L69】
-- `AccessControlService` resolves effective permissions from department assignments, caches them in Redis for 5 minutes (`ac:permissions:<tenantId>:<userId>`), and invalidates entries when assignments change. It also raises a `NotFoundError` when a user lacks active assignments to prevent silent access. 【F:apps/server/src/modules/organization-hierarchy/services/access-control.service.ts†L9-L64】
-- Department operations are tenant-scoped by design: `DepartmentService` verifies branch/parent ownership before creation or updates and blocks deletion when child departments or active assignments exist. 【F:apps/server/src/modules/organization-hierarchy/services/department.service.ts†L10-L90】
+- ASP.NET Core policies enforce tenant, branch, and department scope on every request. A permission cache in Redis (e.g., `ac:permissions:<tenantId>:<userId>`) short-circuits repeat checks and invalidates on assignment changes.
 
 ### API usage examples (GraphQL and REST)
 - **GraphQL:** Query departments by branch while passing tenant/user/branch headers (`x-tenant-id`, `x-user-id`, `x-branch-id`):
@@ -174,11 +179,8 @@ The `apps/server` workspace hosts the SDAutoOS backend services that expose the 
     }
   }
   ```
-  Mutations such as `createDepartment(id: String!, input: CreateDepartmentDto!)` and `assignDepartmentManager` require the same scoped headers and satisfy `manageDepartmentPermission` via the guard. 【F:apps/server/src/modules/organization-hierarchy/department.resolver.ts†L18-L102】
-- **REST:** The `DepartmentController` exposes `GET /departments?branchId=<id>&type=<type>`, `POST /departments`, `PATCH /departments/:id`, and `POST /departments/:id/manager`. All routes require the organization access guard and will scope queries to the tenant plus optional branch filter. 【F:apps/server/src/modules/organization-hierarchy/controllers/department.controller.ts†L15-L80】
-
-### Backward compatibility
-- Requests populated with the legacy `user.branchId` continue to work because the organization context resolver prioritizes user-embedded branch IDs before reading headers, and permission checks propagate that branch to authorization handlers. This keeps older clients aligned with newer multi-tenant scoping rules while encouraging explicit `x-branch-id` headers going forward. 【F:apps/server/src/modules/organization-hierarchy/organization-context.ts†L5-L33】【F:apps/server/src/modules/organization-hierarchy/organization-access.guard.ts†L35-L69】
+  Mutations such as creating departments or assigning managers require the same scoped headers and must satisfy the corresponding ASP.NET Core authorization policies.
+- **REST:** Endpoints such as `GET /departments?branchId=<id>&type=<type>`, `POST /departments`, `PATCH /departments/:id`, and `POST /departments/:id/manager` are protected by the organization access policies and scope queries to the tenant plus optional branch filter.
 
 ## Prerequisites
 - **.NET 8 SDK**
