@@ -23,6 +23,7 @@ using InventoryManagementApp.Services.Maintenance;
 using InventoryManagementApp.Services.Calibration;
 using InventoryManagementApp.Services.Reservations;
 using InventoryManagementApp.Services.Kits;
+using InventoryManagementApp.Services.Vehicles;
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Utilities.Helpers;
 using InventoryManagementApp.Views.Pages;
@@ -135,6 +136,7 @@ namespace InventoryManagementApp
                 services.AddSingleton<CalibrationService>();
                 services.AddSingleton<ReservationService>();
                 services.AddSingleton<KitService>();
+                services.AddSingleton<VehicleIntakeService>();
                 services.AddSingleton<MemoryBudget>();
                 services.AddTransient<ItemsViewModel>();
                 services.AddSingleton<IMainViewModel, MainViewModel>();

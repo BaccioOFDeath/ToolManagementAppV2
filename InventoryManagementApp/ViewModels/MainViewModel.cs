@@ -19,6 +19,7 @@ using InventoryManagementApp.Services.Maintenance;
 using InventoryManagementApp.Services.Calibration;
 using InventoryManagementApp.Services.Reservations;
 using InventoryManagementApp.Services.Kits;
+using InventoryManagementApp.Services.Vehicles;
 using InventoryManagementApp.Views.Pages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -44,6 +45,7 @@ namespace InventoryManagementApp.ViewModels
         readonly IFileDialogService _fileDialogService;
         readonly IDialogService _dialogService;
         readonly IThemeService _themeService;
+        readonly VehicleIntakeService _vehicleIntakeService;
         readonly ILogger<MainViewModel> _logger;
         readonly Func<Task<bool>> _showLoginWindow;
         readonly IDispatcherTimer _autoLogoutTimer;
@@ -210,11 +212,12 @@ namespace InventoryManagementApp.ViewModels
                              IThemeService themeService,
                              IDatabaseBackupService databaseService,
                              IDialogService dialogService,
-                             MaintenanceService maintenanceService,
-                             CalibrationService calibrationService,
-                             ReservationService reservationService,
-                             KitService kitService,
-                             Services.Settings.RentalConfigurationService? rentalConfigService = null,
+                               MaintenanceService maintenanceService,
+                               CalibrationService calibrationService,
+                               ReservationService reservationService,
+                               KitService kitService,
+                               VehicleIntakeService vehicleIntakeService,
+                               Services.Settings.RentalConfigurationService? rentalConfigService = null,
                              ILogger<MainViewModel>? logger = null,
                              Func<Task<bool>>? showLoginWindow = null,
                                IDispatcherTimer? autoLogoutTimer = null,
@@ -230,6 +233,7 @@ namespace InventoryManagementApp.ViewModels
             _themeService = themeService;
             _dialogService = dialogService;
             _fileDialogService = fileDialogService;
+            _vehicleIntakeService = vehicleIntakeService ?? throw new ArgumentNullException(nameof(vehicleIntakeService));
             _logger = logger ?? NullLogger<MainViewModel>.Instance;
             _showLoginWindow = showLoginWindow ?? new Func<Task<bool>>(async () =>
             {
@@ -330,7 +334,16 @@ namespace InventoryManagementApp.ViewModels
             {
                 try
                 {
-                    var vm = new DashboardViewModel(_itemService, _rentalService, _customerService, _userService, _activityLogService, OpenManageItemsCommand, OpenRentalsCommand, OpenImportExportCommand);
+                    var vm = new DashboardViewModel(
+                        _itemService,
+                        _rentalService,
+                        _customerService,
+                        _userService,
+                        _activityLogService,
+                        OpenManageItemsCommand,
+                        OpenRentalsCommand,
+                        OpenImportExportCommand,
+                        vehicleService: _vehicleIntakeService);
                     var page = new DashboardPage { DataContext = vm, Title = "Dashboard" };
                     CurrentPage = page;
                     _pageLoadCts = new CancellationTokenSource();
