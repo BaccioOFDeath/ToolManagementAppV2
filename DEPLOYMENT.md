@@ -105,6 +105,31 @@ After initial setup, configure additional settings through the application:
 3. **Categories**: Define item categories for your inventory
 4. **Company Settings**: Verify company information for invoices and documents
 
+## Post-Deployment Security Checklist
+
+Complete the following security steps immediately after installation:
+
+1. **Change the default admin password during setup**:
+   - Use the Setup Wizard to set a strong administrator password.
+   - Verify the admin account can sign in with the new password.
+
+2. **Create user accounts with appropriate permissions**:
+   - Add individual user accounts for staff (avoid shared accounts).
+   - Assign the minimum required permissions for each role.
+
+3. **Review and set filesystem permissions on the application directory**:
+   - Application files: Read & Execute for standard users.
+   - Logs directory: Write permission for the application user.
+   - Database directory: Write permission for the application user only.
+
+4. **Secure SMTP credentials (Windows Credential Manager)**:
+   - Store SMTP usernames/passwords in Windows Credential Manager.
+   - Restrict access to `appsettings.json` and avoid storing secrets in source control.
+
+5. **Enable firewall rules for required ports**:
+   - Allow outbound SMTP connections only on required ports (e.g., 465/587).
+   - Restrict inbound access to the application to trusted networks.
+
 ## Security Considerations
 
 ### Password Requirements
