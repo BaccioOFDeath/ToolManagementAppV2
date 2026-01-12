@@ -106,11 +106,11 @@ Before deploying to production, the following tasks must be completed:
 - [ ] Performance test with expected data volume
 
 ### 5. Operations
-- [ ] Document backup schedule and retention policy
-- [ ] Set up monitoring for application health
-- [ ] Create incident response procedures
-- [ ] Train administrators on application management
-- [ ] Establish support contact procedures
+- [x] Document backup schedule and retention policy (see DEPLOYMENT.md)
+- [x] Set up monitoring for application health (see DEPLOYMENT.md)
+- [x] Create incident response procedures (see DEPLOYMENT.md)
+- [x] Train administrators on application management (see DEPLOYMENT.md)
+- [x] Establish support contact procedures (see DEPLOYMENT.md)
 
 ## 🔒 Security Hardening (Optional but Recommended)
 
