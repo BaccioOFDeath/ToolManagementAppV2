@@ -34,6 +34,7 @@ using Microsoft.Data.Sqlite;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Services.Categories;
 using InventoryManagementApp.Services.Notifications;
+using InventoryManagementApp.Utilities.Helpers;
 
 namespace InventoryManagementApp
 {
@@ -260,6 +261,14 @@ namespace InventoryManagementApp
 
             SecurityHelper.SettingsService = settingsService;
             await SecurityHelper.GetIterationsAsync();
+            var dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                configuration["Database:Path"] ?? "inventory.db");
+            var permissionWarning = DatabaseSecurityHelper.GetPermissionWarning(dbPath);
+            if (!string.IsNullOrWhiteSpace(permissionWarning))
+            {
+                _logger.LogWarning("Database permissions warning: {Warning}", permissionWarning);
+                _dialogService.ShowInfo(permissionWarning, "Database Security");
+            }
             var setupDone = await settingsService.GetSettingAsync("SetupComplete");
             if (string.IsNullOrWhiteSpace(setupDone))
             {
@@ -292,7 +301,7 @@ namespace InventoryManagementApp
                     admin = new User
                     {
                         UserName = "admin",
-                        PasswordHash = "admin",
+                        PasswordHash = PasswordDefaults.DefaultAdminPassword,
                         IsAdmin = true,
                         PasswordExpired = true
                     };

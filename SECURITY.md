@@ -36,8 +36,8 @@ When deploying the Inventory Management Application, follow these security best 
 
 #### 1. Password Security
 - Change the default admin password immediately after setup
-- Enforce strong passwords (8+ characters, mixed case, numbers)
-- Never use default passwords like "admin", "changeme", or "newpassword"
+- Enforce strong passwords (minimum 8 characters, at least one uppercase letter, one lowercase letter, and one digit)
+- Never continue using temporary passwords (for example, the initial "Admin123" or staff "TempPass1" defaults)
 - Rotate passwords periodically
 
 #### 2. Database Security
@@ -91,7 +91,7 @@ When deploying the Inventory Management Application, follow these security best 
 #### User Authentication
 - Passwords are hashed using PBKDF2-SHA256 with 100,000+ iterations
 - Legacy password hashes are automatically upgraded on login
-- Default/weak passwords trigger automatic expiration
+- Default/temporary passwords trigger automatic expiration
 - No session timeout is enforced by default (consider implementing for high-security deployments)
 
 ### Security Features

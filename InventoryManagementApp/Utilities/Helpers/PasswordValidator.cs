@@ -32,17 +32,10 @@ namespace InventoryManagementApp.Utilities.Helpers
             bool hasUpper = password.Any(char.IsUpper);
             bool hasLower = password.Any(char.IsLower);
             bool hasDigit = password.Any(char.IsDigit);
-            bool hasSpecial = password.Any(c => !char.IsLetterOrDigit(c));
 
             if (!hasUpper || !hasLower || !hasDigit)
             {
                 error = "Password must contain at least one uppercase letter, one lowercase letter, and one digit.";
-                return false;
-            }
-
-            if (!hasSpecial)
-            {
-                error = "Password must contain at least one special character.";
                 return false;
             }
 

@@ -263,16 +263,20 @@ namespace InventoryManagementApp.ViewModels
 
             var idx = 1;
             string name;
-            do { name = $"user{idx++}"; } while (existingNames.Contains(name));
+            do { name = $"workshop{idx++}"; } while (existingNames.Contains(name));
 
-            var newUser = new UserModel { UserName = name };
+            var newUser = new UserModel
+            {
+                UserName = name,
+                Role = "Workshop Staff",
+                IsAdmin = false
+            };
 
             if (!TryPromptForPassword(newUser, out var entered)) return;
 
             if (string.IsNullOrWhiteSpace(entered))
             {
-                const string defaultPwd = "changeme";
-                var hash = SecurityHelper.HashPassword(defaultPwd, out var salt);
+                var hash = SecurityHelper.HashPassword(PasswordDefaults.TemporaryPassword, out var salt);
                 newUser.PasswordHash = hash;
                 newUser.PasswordSalt = salt;
                 newUser.PasswordExpired = true;
