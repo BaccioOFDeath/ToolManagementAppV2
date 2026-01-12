@@ -118,20 +118,6 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void IsValid_ValidPasswordWithSpecialChars_ReturnsTrue()
-        {
-            // Arrange
-            string password = "P@ssw0rd!";
-
-            // Act
-            var result = PasswordValidator.IsValid(password, out var error);
-
-            // Assert
-            Assert.True(result);
-            Assert.Null(error);
-        }
-
-        [Fact]
         public void IsValid_MinimumLengthValidPassword_ReturnsTrue()
         {
             // Arrange

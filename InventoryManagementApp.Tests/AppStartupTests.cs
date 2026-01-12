@@ -419,8 +419,7 @@ namespace InventoryManagementApp.Tests
             public string LogoPath { get; } = Path.GetTempFileName();
 
             public Task<SetupWizardResult?> RunAsync() =>
-                Task.FromResult<SetupWizardResult?>(new SetupWizardResult("password", "App", "Item", "Items", LogoPath));
+                Task.FromResult<SetupWizardResult?>(new SetupWizardResult("Password123", "App", "Item", "Items", LogoPath));
         }
     }
 }
-

@@ -340,7 +340,7 @@ namespace InventoryManagementApp.Services.Users
             string hashed = result.hash;
             string salt = result.salt;
 
-            var expired = newPassword == "admin" || newPassword == "changeme" || newPassword == "newpassword";
+            var expired = PasswordDefaults.IsDefaultPassword(newPassword);
 
             var p = new[]
             {

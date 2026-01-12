@@ -185,7 +185,7 @@ namespace InventoryManagementApp.ViewModels
                 var admin = new User
                 {
                     UserName = "admin",
-                    PasswordHash = "admin",
+                    PasswordHash = PasswordDefaults.DefaultAdminPassword,
                     IsAdmin = true,
                     PasswordExpired = true
                 };
@@ -260,7 +260,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 try
                 {
-                    await _userService.ChangeUserPasswordAsync(user.UserID, "admin");
+                    await _userService.ChangeUserPasswordAsync(user.UserID, PasswordDefaults.DefaultAdminPassword);
                 }
                 catch (UnauthorizedAccessException ex)
                 {
@@ -286,7 +286,7 @@ namespace InventoryManagementApp.ViewModels
             }
 
             if (!user.IsAdmin &&
-                await SecurityHelper.VerifyPasswordAsync("newpassword", user.PasswordSalt, user.PasswordHash).ConfigureAwait(false))
+                await SecurityHelper.VerifyPasswordAsync(PasswordDefaults.TemporaryPassword, user.PasswordSalt, user.PasswordHash).ConfigureAwait(false))
             {
                 _userContext.CurrentUser = user;
                 if (user.PasswordExpired && !await PromptChangePasswordAsync(user))
@@ -299,6 +299,7 @@ namespace InventoryManagementApp.ViewModels
             }
 
             bool authenticated = false;
+            string? lastPassword = null;
             while (!authenticated)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -307,10 +308,11 @@ namespace InventoryManagementApp.ViewModels
                     ?? Task.FromResult<PasswordPromptResult?>(null));
                 if (promptResult == null)
                     return;
+                lastPassword = promptResult.Password;
 
                 if (promptResult.IsPasswordResetRequested)
                 {
-                    await _userService.ChangeUserPasswordAsync(user.UserID, "admin");
+                    await _userService.ChangeUserPasswordAsync(user.UserID, PasswordDefaults.DefaultAdminPassword);
                     var refreshed = await _userService.GetUserByIDAsync(user.UserID, cancellationToken);
                     if (refreshed != null)
                     {
@@ -319,7 +321,7 @@ namespace InventoryManagementApp.ViewModels
                         user.PasswordExpired = refreshed.PasswordExpired;
                     }
                     await LoadUsersCommand.ExecuteAsync(null);
-                    await _dialogService.ShowInfoAsync("Password has been reset to default. Please enter the new password to login.",
+                    await _dialogService.ShowInfoAsync("Password has been reset to the temporary default. Please enter the new password to login.",
                         "Password Reset");
                     continue;
                 }
@@ -349,7 +351,9 @@ namespace InventoryManagementApp.ViewModels
             }
 
             _userContext.CurrentUser = user;
-            if (user.PasswordExpired && !await PromptChangePasswordAsync(user))
+            var requiresPasswordChange = user.PasswordExpired ||
+                                         (user.IsAdmin && PasswordDefaults.IsDefaultPassword(lastPassword));
+            if (requiresPasswordChange && !await PromptChangePasswordAsync(user))
             {
                 _userContext.CurrentUser = null;
                 return;
