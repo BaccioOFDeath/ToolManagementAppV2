@@ -169,7 +169,8 @@ namespace InventoryManagementApp.Tests
         private sealed class StubFileDialogService : IFileDialogService
         {
             public string? OpenFile(string filter, string? initialDirectory = null) => null;
-            public string? SaveFile(string filter) => null;
+            public string? SaveFile(string filter, string? initialDirectory = null) => null;
+            public string? BrowseFolder(string? initialDirectory = null) => null;
         }
 
         private sealed class StubSettingsService : ISettingsService
@@ -231,4 +232,3 @@ namespace InventoryManagementApp.Tests
         }
     }
 }
-

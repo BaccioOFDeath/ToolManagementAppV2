@@ -104,6 +104,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <TextBlock Text="Enable Email Reminders" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
@@ -134,15 +135,36 @@
                                      PasswordChanged="SmtpPasswordBox_PasswordChanged"/>
 
                         <TextBlock Grid.Row="6" Text="From Email" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                        <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding FromEmail}" Margin="8,0,0,8"
-                                 ToolTip="Email address that reminders will be sent from"/>
+                        <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal" Margin="8,0,0,8">
+                            <ComboBox Width="280"
+                                      ItemsSource="{Binding FromEmailOptions}"
+                                      SelectedItem="{Binding SelectedFromEmail}"
+                                      ItemContainerStyle="{StaticResource DropdownItemStyle}"
+                                      ToolTip="Select the sender email address"/>
+                            <Button Style="{StaticResource PrimaryButton}"
+                                    Content="Remove"
+                                    Command="{Binding RemoveFromEmailCommand}"
+                                    Margin="8,0,0,0"
+                                    ToolTip="Remove the selected sender email"/>
+                        </StackPanel>
 
-                        <TextBlock Grid.Row="7" Text="From Name" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                        <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding FromName}" Margin="8,0,0,8"
+                        <TextBlock Grid.Row="7" Text="Add Sender Email" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <StackPanel Grid.Row="7" Grid.Column="1" Orientation="Horizontal" Margin="8,0,0,8">
+                            <TextBox Width="280"
+                                     Text="{Binding NewFromEmail}"
+                                     ToolTip="Add a sender email address"/>
+                            <Button Style="{StaticResource PrimaryButton}"
+                                    Content="Add"
+                                    Command="{Binding AddFromEmailCommand}"
+                                    Margin="8,0,0,0"/>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="8" Text="From Name" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="8" Grid.Column="1" Text="{Binding FromName}" Margin="8,0,0,8"
                                  ToolTip="Display name for outgoing emails"/>
 
-                        <TextBlock Grid.Row="8" Text="Enable SSL/TLS" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                        <CheckBox Grid.Row="8" Grid.Column="1" IsChecked="{Binding EnableSsl}" Margin="8,0,0,8"
+                        <TextBlock Grid.Row="9" Text="Enable SSL/TLS" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <CheckBox Grid.Row="9" Grid.Column="1" IsChecked="{Binding EnableSsl}" Margin="8,0,0,8"
                                   ToolTip="Recommended: Keep enabled for secure connection"/>
                     </Grid>
 
@@ -186,6 +208,66 @@
 
                         <Button Grid.Row="1" Grid.Column="2" Style="{StaticResource PrimaryButton}" Content="Change Logo" Command="{Binding BrowseCompanyLogoCommand}" Margin="8,0,8,0"/>
                         <Button Grid.Row="1" Grid.Column="3" Style="{StaticResource PrimaryButton}" Content="Save Logo" Command="{Binding SaveCompanyLogoCommand}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Padding="12" Margin="0,8,0,0">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Messaging (SMS)" Style="{StaticResource SectionHeader}"/>
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="Provider" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding SmsProviders}"
+                                  SelectedItem="{Binding SelectedSmsProvider}"
+                                  Margin="8,0,0,8"
+                                  ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
+
+                        <TextBlock Grid.Row="1" Text="Sender ID/Number" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SmsSender}" Margin="8,0,0,8"
+                                 ToolTip="Sender ID or phone number used for outgoing SMS"/>
+
+                        <TextBlock Grid.Row="2" Text="API Key" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <PasswordBox Grid.Row="2" Grid.Column="1" x:Name="SmsApiKeyBox" Margin="8,0,0,8"
+                                     ToolTip="API key or token for the SMS provider"
+                                     PasswordChanged="SmsApiKeyBox_PasswordChanged"/>
+                    </Grid>
+
+                    <Button Style="{StaticResource PrimaryButton}"
+                            Content="Save Messaging Settings"
+                            Command="{Binding SaveMessagingSettingsCommand}"
+                            Margin="0,8,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Padding="12" Margin="0,8,0,0">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Backups" Style="{StaticResource SectionHeader}"/>
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Backup Folder" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="1" Text="{Binding BackupDirectory}" Margin="8,0,8,0"
+                                 ToolTip="Default folder for database backups"/>
+                        <Button Grid.Column="2" Style="{StaticResource PrimaryButton}" Content="Browse"
+                                Command="{Binding BrowseBackupDirectoryCommand}" Margin="0,0,8,0"/>
+                        <Button Grid.Column="3" Style="{StaticResource PrimaryButton}" Content="Save"
+                                Command="{Binding SaveBackupSettingsCommand}"/>
                     </Grid>
                 </StackPanel>
             </Border>

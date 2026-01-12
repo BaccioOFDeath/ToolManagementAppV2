@@ -15,7 +15,8 @@ namespace InventoryManagementApp.Tests
         {
             public string? Result { get; set; }
             public string? OpenFile(string filter, string? initialDirectory = null) => Result;
-            public string? SaveFile(string filter) => null;
+            public string? SaveFile(string filter, string? initialDirectory = null) => null;
+            public string? BrowseFolder(string? initialDirectory = null) => null;
         }
 
         [Fact]
@@ -84,4 +85,3 @@ namespace InventoryManagementApp.Tests
         }
     }
 }
-

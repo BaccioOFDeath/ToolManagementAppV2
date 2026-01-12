@@ -156,5 +156,43 @@ namespace InventoryManagementApp.Tests
             
             Assert.Equal("Call (555) 123-4567", info);
         }
+
+        [Fact]
+        public async Task SetAndGetBackupDirectory_StoresAndRetrievesValue()
+        {
+            var directory = Path.Combine(Path.GetTempPath(), "inventory-backups");
+            await _configService.SetBackupDirectoryAsync(directory);
+            var stored = await _configService.GetBackupDirectoryAsync();
+
+            Assert.Equal(directory, stored);
+        }
+
+        [Fact]
+        public async Task SetAndGetSmsSettings_StoresAndRetrievesValues()
+        {
+            await _configService.SetSmsProviderAsync("Twilio");
+            await _configService.SetSmsApiKeyAsync("api-key");
+            await _configService.SetSmsSenderAsync("+15551234567");
+
+            var provider = await _configService.GetSmsProviderAsync();
+            var apiKey = await _configService.GetSmsApiKeyAsync();
+            var sender = await _configService.GetSmsSenderAsync();
+
+            Assert.Equal("Twilio", provider);
+            Assert.Equal("api-key", apiKey);
+            Assert.Equal("+15551234567", sender);
+        }
+
+        [Fact]
+        public async Task SetAndGetFromEmailOptions_StoresAndRetrievesValues()
+        {
+            var options = new[] { "first@example.com", "second@example.com", "first@example.com" };
+            await _configService.SetFromEmailOptionsAsync(options);
+
+            var stored = await _configService.GetFromEmailOptionsAsync();
+
+            Assert.Contains("first@example.com", stored, StringComparer.OrdinalIgnoreCase);
+            Assert.Contains("second@example.com", stored, StringComparer.OrdinalIgnoreCase);
+        }
     }
 }
