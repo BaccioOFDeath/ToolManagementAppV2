@@ -165,6 +165,22 @@ $destination = "C:\Backups\inventory_$(Get-Date -Format 'yyyyMMdd_HHmmss').db"
 Copy-Item -Path $source -Destination $destination
 ```
 
+### Backup Schedule & Retention Policy
+
+Define a backup schedule that matches business recovery objectives:
+
+- **Frequency**: Daily full backup at minimum; consider hourly for high-activity environments.
+- **Retention**: Keep daily backups for 30 days, weekly backups for 12 weeks, and monthly backups for 12 months.
+- **Storage**: Store at least one copy off the application host (external drive, file server, or cloud storage).
+- **Verification**: Test restore procedures monthly and document results.
+
+Suggested Windows Task Scheduler setup:
+
+- **Trigger**: Daily at 11:00 PM (or outside business hours).
+- **Action**: Run the PowerShell backup script.
+- **Condition**: Wake the computer if needed.
+- **History**: Enable task history to track success/failure.
+
 ### Log Files
 
 Logs are stored in the `Logs` directory:
@@ -220,6 +236,58 @@ Database migrations run automatically on startup.
 - Application logs: `Logs\app-<date>.log`
 - Windows Event Log: Application section
 - Database location: As specified in `appsettings.json`
+
+### Application Health Monitoring
+
+Implement lightweight monitoring appropriate for a desktop/server-hosted app:
+
+- **Process monitoring**: Use Windows Task Scheduler or a service wrapper to verify the app is running.
+- **Log monitoring**: Alert on errors/exceptions in `Logs\app-<date>.log`.
+- **Disk monitoring**: Alert when free disk space drops below 20% on the database and log volume.
+- **Backup monitoring**: Alert when a scheduled backup task fails or has not run in 24 hours.
+- **Email reminder monitoring**: Confirm daily reminder logs contain the success message.
+
+Recommended checks:
+
+- Daily: Review error logs, confirm backup task success.
+- Weekly: Review disk usage trend and database size growth.
+- Monthly: Perform a restore test in a staging environment.
+
+### Incident Response Procedures
+
+Create and maintain an incident response runbook:
+
+1. **Detect**: Identify the issue via logs, monitoring alerts, or user reports.
+2. **Triage**: Determine severity (outage, degraded performance, data issue).
+3. **Contain**: Stop the app if data corruption is suspected; preserve logs and backups.
+4. **Investigate**: Collect logs, event viewer entries, and recent configuration changes.
+5. **Recover**: Restore from the most recent verified backup if needed.
+6. **Communicate**: Notify stakeholders and provide status updates.
+7. **Postmortem**: Document root cause, timeline, and corrective actions.
+
+Store the runbook in a shared location and review it quarterly.
+
+### Administrator Training
+
+Ensure administrators are trained on the following:
+
+- User management and permission assignment.
+- Backup and restore procedures (including test restores).
+- Log review and troubleshooting basics.
+- Configuration updates and secure handling of `appsettings.json`.
+- Routine maintenance tasks (disk cleanup, update checks).
+
+Maintain a training checklist and record completion dates.
+
+### Support Contact Procedures
+
+Define clear support contact and escalation paths:
+
+- **Primary contact**: Internal IT/helpdesk email and phone number.
+- **Secondary contact**: Backup admin/manager contact info.
+- **Escalation**: Vendor support (if applicable) and leadership contact.
+- **Availability**: Document support hours and after-hours procedures.
+- **Ticketing**: Use a consistent ticketing system for incident tracking.
 
 ## Running Full-Time on a Server
 
