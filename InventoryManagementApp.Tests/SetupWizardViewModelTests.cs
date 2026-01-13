@@ -16,7 +16,8 @@ public class SetupWizardViewModelTests
 
     private sealed class DummyFileDialogService : IFileDialogService
     {
-        public string? OpenFile(string filter) => null;
-        public string? SaveFile(string filter) => null;
+        public string? OpenFile(string filter, string? initialDirectory = null) => null;
+        public string? SaveFile(string filter, string? initialDirectory = null) => null;
+        public string? BrowseFolder(string? initialDirectory = null) => null;
     }
 }

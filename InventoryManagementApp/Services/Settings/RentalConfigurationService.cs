@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
@@ -23,10 +26,15 @@ namespace InventoryManagementApp.Services.Settings
         private const string FromEmailKey = "Email.FromEmail";
         private const string FromNameKey = "Email.FromName";
         private const string EnableSslKey = "Email.EnableSsl";
+        private const string FromEmailOptionsKey = "Email.FromEmailOptions";
         private const string ContactInfoKey = "Company.ContactInfo";
         private const string CompanyNameKey = "Company.Name";
         private const string CompanyAddressKey = "Company.Address";
         private const string CompanyPhoneKey = "Company.Phone";
+        private const string BackupDirectoryKey = "Backup.Directory";
+        private const string SmsProviderKey = "Sms.Provider";
+        private const string SmsApiKey = "Sms.ApiKey";
+        private const string SmsSenderKey = "Sms.Sender";
 
         public RentalConfigurationService(ISettingsService settingsService)
         {
@@ -152,6 +160,50 @@ namespace InventoryManagementApp.Services.Settings
             await _settingsService.SaveSettingAsync(EnableSslKey, enabled.ToString(), cancellationToken).ConfigureAwait(false);
         }
 
+        public async Task<IReadOnlyList<string>> GetFromEmailOptionsAsync(CancellationToken cancellationToken = default)
+        {
+            var json = await _settingsService.GetSettingAsync(FromEmailOptionsKey, cancellationToken).ConfigureAwait(false);
+            List<string> options;
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                options = new List<string>();
+            }
+            else
+            {
+                try
+                {
+                    options = JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>();
+                }
+                catch (JsonException)
+                {
+                    options = new List<string>();
+                }
+            }
+
+            var currentFromEmail = await GetFromEmailAsync(cancellationToken).ConfigureAwait(false);
+            if (!string.IsNullOrWhiteSpace(currentFromEmail))
+            {
+                options.Insert(0, currentFromEmail);
+            }
+
+            return options
+                .Where(email => !string.IsNullOrWhiteSpace(email))
+                .Select(email => email.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        public async Task SetFromEmailOptionsAsync(IEnumerable<string> options, CancellationToken cancellationToken = default)
+        {
+            var normalized = options
+                .Where(email => !string.IsNullOrWhiteSpace(email))
+                .Select(email => email.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            var json = JsonSerializer.Serialize(normalized);
+            await _settingsService.SaveSettingAsync(FromEmailOptionsKey, json, cancellationToken).ConfigureAwait(false);
+        }
+
         public async Task<string> GetContactInfoAsync(CancellationToken cancellationToken = default)
         {
             return await _settingsService.GetSettingAsync(ContactInfoKey, cancellationToken).ConfigureAwait(false) 
@@ -194,6 +246,50 @@ namespace InventoryManagementApp.Services.Settings
         public async Task SetCompanyPhoneAsync(string phone, CancellationToken cancellationToken = default)
         {
             await _settingsService.SaveSettingAsync(CompanyPhoneKey, phone, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<string> GetBackupDirectoryAsync(CancellationToken cancellationToken = default)
+        {
+            return await _settingsService.GetSettingAsync(BackupDirectoryKey, cancellationToken).ConfigureAwait(false)
+                ?? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        }
+
+        public async Task SetBackupDirectoryAsync(string directory, CancellationToken cancellationToken = default)
+        {
+            await _settingsService.SaveSettingAsync(BackupDirectoryKey, directory, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<string> GetSmsProviderAsync(CancellationToken cancellationToken = default)
+        {
+            return await _settingsService.GetSettingAsync(SmsProviderKey, cancellationToken).ConfigureAwait(false)
+                ?? "None";
+        }
+
+        public async Task SetSmsProviderAsync(string provider, CancellationToken cancellationToken = default)
+        {
+            await _settingsService.SaveSettingAsync(SmsProviderKey, provider, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<string> GetSmsApiKeyAsync(CancellationToken cancellationToken = default)
+        {
+            return await _settingsService.GetSettingAsync(SmsApiKey, cancellationToken).ConfigureAwait(false)
+                ?? string.Empty;
+        }
+
+        public async Task SetSmsApiKeyAsync(string apiKey, CancellationToken cancellationToken = default)
+        {
+            await _settingsService.SaveSettingAsync(SmsApiKey, apiKey, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<string> GetSmsSenderAsync(CancellationToken cancellationToken = default)
+        {
+            return await _settingsService.GetSettingAsync(SmsSenderKey, cancellationToken).ConfigureAwait(false)
+                ?? string.Empty;
+        }
+
+        public async Task SetSmsSenderAsync(string sender, CancellationToken cancellationToken = default)
+        {
+            await _settingsService.SaveSettingAsync(SmsSenderKey, sender, cancellationToken).ConfigureAwait(false);
         }
     }
 }
