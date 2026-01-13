@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Utilities.IO;
 using InventoryManagementApp.Utilities.Helpers;
 using InventoryManagementApp.Services.ImportExport;
+using InventoryManagementApp.Services.Settings;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -27,6 +28,7 @@ namespace InventoryManagementApp.ViewModels
         private readonly IDialogService _dialogService;
         private readonly ILogger<ImportExportViewModel> _logger;
         private readonly IUserContext _userContext;
+        private readonly RentalConfigurationService? _rentalConfigService;
 
         public IAsyncRelayCommand ImportItemsCommand { get; }
         public IRelayCommand CancelImportItemsCommand { get; }
@@ -61,6 +63,7 @@ namespace InventoryManagementApp.ViewModels
                                      IDialogService dialogService,
                                      IAsyncRelayCommand? openImageImportMappingWindowCommand = null,
                                      IUserContext? userContext = null,
+                                     RentalConfigurationService? rentalConfigService = null,
                                      ILogger<ImportExportViewModel>? logger = null)
         {
             _itemService = itemService;
@@ -72,6 +75,7 @@ namespace InventoryManagementApp.ViewModels
             OpenImageImportMappingWindowCommand = openImageImportMappingWindowCommand ?? new AsyncRelayCommand(ct => Task.CompletedTask);
             _userContext = userContext ?? new DummyUserContext();
             _userContext.UserChanged += (_, _) => OnPropertyChanged(nameof(IsCurrentUserAdmin));
+            _rentalConfigService = rentalConfigService;
             
             // Initialize importers and exporters
             _itemImporters = new List<IDataImporter<ItemModel>>
@@ -352,7 +356,10 @@ namespace InventoryManagementApp.ViewModels
         /// <returns>A <see cref="Task"/> representing the asynchronous backup operation.</returns>
         async Task BackupDatabaseAsync(CancellationToken cancellationToken)
         {
-            var path = _fileDialogService.SaveFile("SQLite Database|*.db");
+            var initialDirectory = _rentalConfigService == null
+                ? null
+                : await _rentalConfigService.GetBackupDirectoryAsync(cancellationToken).ConfigureAwait(false);
+            var path = _fileDialogService.SaveFile("SQLite Database|*.db", initialDirectory);
             if (string.IsNullOrWhiteSpace(path)) return;
             try
             {

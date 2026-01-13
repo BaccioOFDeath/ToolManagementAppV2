@@ -19,6 +19,10 @@ namespace InventoryManagementApp.Views.Pages
             {
                 SmtpPasswordBox.Password = viewModel.SmtpPassword;
             }
+            if (DataContext is ViewModels.SettingsViewModel smsViewModel && !string.IsNullOrEmpty(smsViewModel.SmsApiKey))
+            {
+                SmsApiKeyBox.Password = smsViewModel.SmsApiKey;
+            }
         }
 
         private void SmtpPasswordBox_PasswordChanged(object sender, System.Windows.RoutedEventArgs e)
@@ -26,6 +30,14 @@ namespace InventoryManagementApp.Views.Pages
             if (DataContext is ViewModels.SettingsViewModel viewModel)
             {
                 viewModel.SmtpPassword = SmtpPasswordBox.Password;
+            }
+        }
+
+        private void SmsApiKeyBox_PasswordChanged(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (DataContext is ViewModels.SettingsViewModel viewModel)
+            {
+                viewModel.SmsApiKey = SmsApiKeyBox.Password;
             }
         }
 

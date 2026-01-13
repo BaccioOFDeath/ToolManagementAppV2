@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.ComponentModel;
+using System.Net.Mail;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
@@ -30,6 +31,8 @@ namespace InventoryManagementApp.ViewModels
         readonly RentalConfigurationService? _rentalConfigService;
         readonly ILogger<SettingsViewModel> _logger;
         public ObservableCollection<ItemDetailOption> ItemDetailOptions { get; } = new();
+        public ObservableCollection<string> FromEmailOptions { get; } = new();
+        public ObservableCollection<string> SmsProviders { get; }
         bool _bulkUpdating;
 
         public SettingsViewModel(IFileDialogService fileDialog, ISettingsService settingsService, IDialogService dialogService, IThemeService themeService, RentalConfigurationService? rentalConfigService = null, ILogger<SettingsViewModel>? logger = null)
@@ -49,6 +52,9 @@ namespace InventoryManagementApp.ViewModels
             // Email provider options
             EmailProviders = new ObservableCollection<string> { "Custom", "Gmail", "Outlook/Office 365", "Yahoo", "iCloud" };
             _selectedEmailProvider = EmailProviders[0];
+
+            SmsProviders = new ObservableCollection<string> { "None", "Twilio", "Vonage", "AWS SNS", "Custom" };
+            _selectedSmsProvider = SmsProviders[0];
             
             TestDbCommand = new RelayCommand(() =>
             {
@@ -66,6 +72,11 @@ namespace InventoryManagementApp.ViewModels
             SaveCompanyLogoCommand = new AsyncRelayCommand(SaveCompanyLogoAsync);
             SaveEmailSettingsCommand = new AsyncRelayCommand(SaveEmailSettingsAsync);
             TestEmailCommand = new AsyncRelayCommand(TestEmailConnectionAsync);
+            AddFromEmailCommand = new RelayCommand(AddFromEmailOption);
+            RemoveFromEmailCommand = new RelayCommand(RemoveFromEmailOption);
+            BrowseBackupDirectoryCommand = new RelayCommand(BrowseBackupDirectory);
+            SaveBackupSettingsCommand = new AsyncRelayCommand(SaveBackupSettingsAsync);
+            SaveMessagingSettingsCommand = new AsyncRelayCommand(SaveMessagingSettingsAsync);
             SelectAllItemDisplayCommand = new RelayCommand(() =>
             {
                 _bulkUpdating = true;
@@ -124,6 +135,28 @@ namespace InventoryManagementApp.ViewModels
                     _fromEmail = await _rentalConfigService.GetFromEmailAsync().ConfigureAwait(false);
                     _fromName = await _rentalConfigService.GetFromNameAsync().ConfigureAwait(false);
                     _enableSsl = await _rentalConfigService.GetEnableSslAsync().ConfigureAwait(false);
+                    var fromEmailOptions = await _rentalConfigService.GetFromEmailOptionsAsync().ConfigureAwait(false);
+                    _backupDirectory = await _rentalConfigService.GetBackupDirectoryAsync().ConfigureAwait(false);
+                    _selectedSmsProvider = await _rentalConfigService.GetSmsProviderAsync().ConfigureAwait(false);
+                    _smsApiKey = await _rentalConfigService.GetSmsApiKeyAsync().ConfigureAwait(false);
+                    _smsSender = await _rentalConfigService.GetSmsSenderAsync().ConfigureAwait(false);
+
+                    FromEmailOptions.Clear();
+                    foreach (var option in fromEmailOptions)
+                    {
+                        FromEmailOptions.Add(option);
+                    }
+                    if (!string.IsNullOrWhiteSpace(_fromEmail) && !FromEmailOptions.Contains(_fromEmail))
+                    {
+                        FromEmailOptions.Insert(0, _fromEmail);
+                    }
+                    _selectedFromEmail = FromEmailOptions.FirstOrDefault(email => email.Equals(_fromEmail, StringComparison.OrdinalIgnoreCase))
+                        ?? FromEmailOptions.FirstOrDefault()
+                        ?? _fromEmail;
+                    if (!string.IsNullOrWhiteSpace(_selectedFromEmail))
+                    {
+                        _fromEmail = _selectedFromEmail;
+                    }
                     
                     OnPropertyChanged(nameof(EmailEnabled));
                     OnPropertyChanged(nameof(SmtpHost));
@@ -133,6 +166,11 @@ namespace InventoryManagementApp.ViewModels
                     OnPropertyChanged(nameof(FromEmail));
                     OnPropertyChanged(nameof(FromName));
                     OnPropertyChanged(nameof(EnableSsl));
+                    OnPropertyChanged(nameof(SelectedFromEmail));
+                    OnPropertyChanged(nameof(BackupDirectory));
+                    OnPropertyChanged(nameof(SelectedSmsProvider));
+                    OnPropertyChanged(nameof(SmsApiKey));
+                    OnPropertyChanged(nameof(SmsSender));
                 }
                 catch (Exception ex)
                 {
@@ -399,12 +437,17 @@ namespace InventoryManagementApp.ViewModels
         }
 
         public ObservableCollection<string> ThemeOptions { get; }
+        public IRelayCommand AddFromEmailCommand { get; }
+        public IRelayCommand RemoveFromEmailCommand { get; }
 
         public IRelayCommand TestDbCommand { get; }
         public IRelayCommand BrowseCompanyLogoCommand { get; }
         public IAsyncRelayCommand SaveCompanyLogoCommand { get; }
         public IRelayCommand SelectAllItemDisplayCommand { get; }
         public IRelayCommand SelectNoneItemDisplayCommand { get; }
+        public IRelayCommand BrowseBackupDirectoryCommand { get; }
+        public IAsyncRelayCommand SaveBackupSettingsCommand { get; }
+        public IAsyncRelayCommand SaveMessagingSettingsCommand { get; }
 
         internal bool TestDbConnection(out string message)
         {
@@ -559,6 +602,30 @@ namespace InventoryManagementApp.ViewModels
             set => SetProperty(ref _fromEmail, value);
         }
 
+        private string _selectedFromEmail = "";
+        public string SelectedFromEmail
+        {
+            get => _selectedFromEmail;
+            set
+            {
+                if (SetProperty(ref _selectedFromEmail, value))
+                {
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
+                        FromEmail = value;
+                        EnsureFromEmailOption(value);
+                    }
+                }
+            }
+        }
+
+        private string _newFromEmail = "";
+        public string NewFromEmail
+        {
+            get => _newFromEmail;
+            set => SetProperty(ref _newFromEmail, value);
+        }
+
         private string _fromName = "";
         public string FromName
         {
@@ -616,6 +683,7 @@ namespace InventoryManagementApp.ViewModels
 
             try
             {
+                await SaveFromEmailOptionsAsync(token).ConfigureAwait(false);
                 await _rentalConfigService.SetEmailEnabledAsync(EmailEnabled, token);
                 await _rentalConfigService.SetSmtpHostAsync(SmtpHost, token);
                 await _rentalConfigService.SetSmtpPortAsync(SmtpPort, token);
@@ -632,6 +700,79 @@ namespace InventoryManagementApp.ViewModels
                 _logger.LogError(ex, "Failed to save email settings.");
                 _dialogService.ShowInfo("Failed to save email settings. Please try again.", "Error");
             }
+        }
+
+        private void AddFromEmailOption()
+        {
+            if (string.IsNullOrWhiteSpace(NewFromEmail))
+            {
+                _dialogService.ShowInfo("Enter an email address to add.", "Email Address");
+                return;
+            }
+
+            try
+            {
+                _ = new MailAddress(NewFromEmail);
+            }
+            catch (FormatException)
+            {
+                _dialogService.ShowInfo("Enter a valid email address.", "Invalid Email");
+                return;
+            }
+
+            EnsureFromEmailOption(NewFromEmail);
+            SelectedFromEmail = NewFromEmail.Trim();
+            NewFromEmail = string.Empty;
+            _ = SaveFromEmailOptionsAsync();
+        }
+
+        private void RemoveFromEmailOption()
+        {
+            if (string.IsNullOrWhiteSpace(SelectedFromEmail))
+            {
+                _dialogService.ShowInfo("Select an email address to remove.", "Email Address");
+                return;
+            }
+
+            var toRemove = SelectedFromEmail;
+            if (FromEmailOptions.Remove(toRemove))
+            {
+                SelectedFromEmail = FromEmailOptions.FirstOrDefault() ?? string.Empty;
+                if (!string.IsNullOrWhiteSpace(SelectedFromEmail))
+                {
+                    FromEmail = SelectedFromEmail;
+                }
+                _ = SaveFromEmailOptionsAsync();
+            }
+        }
+
+        private void EnsureFromEmailOption(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return;
+            }
+
+            var trimmed = value.Trim();
+            if (!FromEmailOptions.Any(option => option.Equals(trimmed, StringComparison.OrdinalIgnoreCase)))
+            {
+                FromEmailOptions.Add(trimmed);
+            }
+        }
+
+        private async Task SaveFromEmailOptionsAsync(CancellationToken token = default)
+        {
+            if (_rentalConfigService == null)
+            {
+                return;
+            }
+
+            var options = FromEmailOptions.ToList();
+            if (!string.IsNullOrWhiteSpace(FromEmail))
+            {
+                options.Add(FromEmail);
+            }
+            await _rentalConfigService.SetFromEmailOptionsAsync(options, token).ConfigureAwait(false);
         }
 
         private async Task TestEmailConnectionAsync(CancellationToken token = default)
@@ -682,6 +823,91 @@ namespace InventoryManagementApp.ViewModels
                 _dialogService.ShowInfo($"Email test failed: {ex.Message}", "Test Failed");
             }
         }
+
+        private string _backupDirectory = "";
+        public string BackupDirectory
+        {
+            get => _backupDirectory;
+            set => SetProperty(ref _backupDirectory, value);
+        }
+
+        private string _selectedSmsProvider = "None";
+        public string SelectedSmsProvider
+        {
+            get => _selectedSmsProvider;
+            set => SetProperty(ref _selectedSmsProvider, value);
+        }
+
+        private string _smsApiKey = "";
+        public string SmsApiKey
+        {
+            get => _smsApiKey;
+            set => SetProperty(ref _smsApiKey, value);
+        }
+
+        private string _smsSender = "";
+        public string SmsSender
+        {
+            get => _smsSender;
+            set => SetProperty(ref _smsSender, value);
+        }
+
+        private void BrowseBackupDirectory()
+        {
+            var path = _fileDialog.BrowseFolder(BackupDirectory);
+            if (!string.IsNullOrWhiteSpace(path))
+            {
+                BackupDirectory = path;
+            }
+        }
+
+        private async Task SaveBackupSettingsAsync(CancellationToken token = default)
+        {
+            if (_rentalConfigService == null)
+            {
+                _dialogService.ShowInfo("Backup configuration service not available.", "Error");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(BackupDirectory))
+            {
+                _dialogService.ShowInfo("Backup directory is required.", "Invalid Directory");
+                return;
+            }
+
+            try
+            {
+                Directory.CreateDirectory(BackupDirectory);
+                await _rentalConfigService.SetBackupDirectoryAsync(BackupDirectory, token).ConfigureAwait(false);
+                _dialogService.ShowInfo("Backup settings saved successfully.", "Settings Saved");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save backup settings.");
+                _dialogService.ShowInfo("Failed to save backup settings. Please try again.", "Error");
+            }
+        }
+
+        private async Task SaveMessagingSettingsAsync(CancellationToken token = default)
+        {
+            if (_rentalConfigService == null)
+            {
+                _dialogService.ShowInfo("Messaging configuration service not available.", "Error");
+                return;
+            }
+
+            try
+            {
+                await _rentalConfigService.SetSmsProviderAsync(SelectedSmsProvider, token).ConfigureAwait(false);
+                await _rentalConfigService.SetSmsApiKeyAsync(SmsApiKey, token).ConfigureAwait(false);
+                await _rentalConfigService.SetSmsSenderAsync(SmsSender, token).ConfigureAwait(false);
+                _dialogService.ShowInfo("Messaging settings saved successfully.", "Settings Saved");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save messaging settings.");
+                _dialogService.ShowInfo("Failed to save messaging settings. Please try again.", "Error");
+            }
+        }
     }
 }
-
