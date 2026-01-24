@@ -1,0 +1,110 @@
+App\App.xaml.cs
+using InventoryManagementApp.Data;
+using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Models;
+using InventoryManagementApp.Services;
+using InventoryManagementApp.Services.Core;
+using InventoryManagementApp.Services.Customers;
+using InventoryManagementApp.Services.Items;
+using InventoryManagementApp.Services.Navigation;
+using InventoryManagementApp.Services.Users;
+using InventoryManagementApp.ViewModels;
+using InventoryManagementApp.Views;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Serilog;
+using System;
+using System.IO;
+using System.Windows;
+using InventoryManagementApp.Services.Notifications;
+
+namespace InventoryManagementApp
+{
+    public partial class App : Application
+    {
+        private IHost _host;
+
+        public App()
+        {
+            _host = Host.CreateDefaultBuilder()
+                .ConfigureAppConfiguration((context, builder) =>
+                {
+                    builder.SetBasePath(context.HostingEnvironment.ContentRootPath)
+                           .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                })
+                .ConfigureServices((context, services) =>
+                {
+                    ConfigureServices(context.Configuration, services);
+                })
+                .UseSerilog((context, loggerConfig) =>
+                {
+                    loggerConfig.ReadFrom.Configuration(context.Configuration);
+                })
+                .Build();
+        }
+
+        private void ConfigureServices(IConfiguration configuration, IServiceCollection services)
+        {
+            // Configuration
+            services.AddSingleton(configuration);
+            services.Configure<AppSettings>(configuration);
+
+            // Services
+            services.AddSingleton<IDatabaseService, DatabaseService>();
+            services.AddSingleton<IItemRepository, ItemRepository>();
+            services.AddSingleton<IUserService, UserService>();
+            services.AddSingleton<ICustomerService, CustomerService>();
+            services.AddSingleton<IRentalService, RentalService>();
+            services.AddSingleton<IItemService, ItemService>();
+            services.AddSingleton<INavigationService, NavigationService>();
+            services.AddSingleton<Func<Type, ObservableObject>>(provider => viewModelType => (ObservableObject)provider.GetRequiredService(viewModelType));
+            services.AddSingleton<EmailService>();
+
+            // ViewModels
+            services.AddTransient<LoginViewModel>();
+            services.AddTransient<MainViewModel>();
+            services.AddTransient<DashboardViewModel>();
+            services.AddTransient<InventoryViewModel>();
+            services.AddTransient<RentalsViewModel>();
+            services.AddTransient<CustomersViewModel>();
+            services.AddTransient<UsersViewModel>();
+            services.AddTransient<SettingsViewModel>();
+            services.AddTransient<MaintenanceManagementViewModel>();
+            services.AddTransient<CalibrationManagementViewModel>();
+            services.AddTransient<ReservationManagementViewModel>();
+            services.AddTransient<KitManagementViewModel>();
+
+            // Views
+            services.AddSingleton<LoginView>();
+            services.AddSingleton<MainWindow>();
+            services.AddTransient<MaintenanceManagementPage>();
+            services.AddTransient<CalibrationManagementPage>();
+            services.AddTransient<ReservationManagementPage>();
+            services.AddTransient<KitManagementPage>();
+
+            // Converters
+            services.AddSingleton<NotNullToBoolConverter>();
+        }
+
+        protected override async void OnStartup(StartupEventArgs e)
+        {
+            await _host.StartAsync();
+
+            var loginView = _host.Services.GetRequiredService<LoginView>();
+            loginView.Show();
+
+            base.OnStartup(e);
+        }
+
+        protected override async void OnExit(ExitEventArgs e)
+        {
+            using (_host)
+            {
+                await _host.StopAsync(TimeSpan.FromSeconds(5));
+            }
+
+            base.OnExit(e);
+        }
+    }
+}
