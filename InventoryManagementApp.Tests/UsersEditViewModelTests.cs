@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Windows;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
@@ -81,7 +82,8 @@ namespace InventoryManagementApp.Tests
 
             vm.RemoveImageCommand.Execute(null);
 
-            Assert.Equal(Brushes.Black, user.InitialsBrush);
+            var expected = Application.Current?.TryFindResource("ForegroundBrush") as Brush ?? Brushes.Black;
+            Assert.Equal(expected, user.InitialsBrush);
         }
     }
 }

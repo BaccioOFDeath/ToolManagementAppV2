@@ -33,7 +33,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
@@ -65,7 +65,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
@@ -111,7 +111,7 @@ namespace InventoryManagementApp.Tests
                 finally
                 {
                     try { Directory.Delete(tempDir, true); } catch { }
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
@@ -152,7 +152,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);

@@ -2,6 +2,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.ComponentModel;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -89,6 +91,62 @@ namespace InventoryManagementApp.ViewModels
             private set => SetProperty(ref _currentPageTitle, value);
         }
 
+        private string _currentNavSectionTitle = "Overview";
+        public string CurrentNavSectionTitle
+        {
+            get => _currentNavSectionTitle;
+            private set => SetProperty(ref _currentNavSectionTitle, value);
+        }
+
+        private string _selectedNavSectionKey = NavSectionKeys.Overview;
+        public string SelectedNavSectionKey
+        {
+            get => _selectedNavSectionKey;
+            private set => SetProperty(ref _selectedNavSectionKey, value);
+        }
+
+        private bool _isOverviewSelected = true;
+        public bool IsOverviewSelected
+        {
+            get => _isOverviewSelected;
+            private set => SetProperty(ref _isOverviewSelected, value);
+        }
+
+        private bool _isOperationsSelected;
+        public bool IsOperationsSelected
+        {
+            get => _isOperationsSelected;
+            private set => SetProperty(ref _isOperationsSelected, value);
+        }
+
+        private bool _isInsightsSelected;
+        public bool IsInsightsSelected
+        {
+            get => _isInsightsSelected;
+            private set => SetProperty(ref _isInsightsSelected, value);
+        }
+
+        private bool _isDataSelected;
+        public bool IsDataSelected
+        {
+            get => _isDataSelected;
+            private set => SetProperty(ref _isDataSelected, value);
+        }
+
+        private bool _isAdminSelected;
+        public bool IsAdminSelected
+        {
+            get => _isAdminSelected;
+            private set => SetProperty(ref _isAdminSelected, value);
+        }
+
+        private bool _isSidebarOpen = true;
+        public bool IsSidebarOpen
+        {
+            get => _isSidebarOpen;
+            set => SetProperty(ref _isSidebarOpen, value);
+        }
+
         private string _globalSearchText = string.Empty;
         public string GlobalSearchText
         {
@@ -117,6 +175,11 @@ namespace InventoryManagementApp.ViewModels
         public bool HasCurrentUser => _userContext.CurrentUser != null;
 
         public MediaBrush? CurrentUserInitialsBrush => _userContext.CurrentUser?.InitialsBrush;
+
+        public bool IsAdminSectionVisible => IsCurrentUserAdmin;
+        public bool IsDataSectionVisible => IsCurrentUserAdmin;
+
+        public ObservableCollection<NavItem> CurrentNavItems { get; } = new();
 
         private string _applicationName = string.Empty;
         public string ApplicationName
@@ -166,6 +229,9 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(CurrentUserPhotoPath));
             OnPropertyChanged(nameof(CurrentUserInitialsBrush));
             OnPropertyChanged(nameof(HasCurrentUser));
+            OnPropertyChanged(nameof(IsAdminSectionVisible));
+            OnPropertyChanged(nameof(IsDataSectionVisible));
+            SetNavSection(SelectedNavSectionKey);
         }
 
         void CloseNonMainWindows()
@@ -200,6 +266,12 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand SwitchUserCommand { get; }
 
         public IAsyncRelayCommand OpenPrintLabelWindowCommand { get; }
+
+        public IRelayCommand SelectOverviewSectionCommand { get; }
+        public IRelayCommand SelectOperationsSectionCommand { get; }
+        public IRelayCommand SelectInsightsSectionCommand { get; }
+        public IRelayCommand SelectDataSectionCommand { get; }
+        public IRelayCommand SelectAdminSectionCommand { get; }
 
         public MainViewModel(IItemService itemService,
                              IUserService userService,
@@ -570,7 +642,7 @@ namespace InventoryManagementApp.ViewModels
                 {
                     if (await _showLoginWindow())
                     {
-                        await OpenDashboardCommand.ExecuteAsync(null);
+                        await OpenSearchItemsCommand.ExecuteAsync(null);
                     }
                     else
                     {
@@ -624,7 +696,19 @@ namespace InventoryManagementApp.ViewModels
                 }
             });
 
-            _ = OpenDashboardCommand.ExecuteAsync(null);
+            SelectOverviewSectionCommand = new RelayCommand(async () =>
+            {
+                SetNavSection(NavSectionKeys.Overview);
+                IsSidebarOpen = false;
+                await OpenSearchItemsCommand.ExecuteAsync(null);
+            });
+            SelectOperationsSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Operations));
+            SelectInsightsSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Insights));
+            SelectDataSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Data));
+            SelectAdminSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Admin));
+
+            SetNavSection(NavSectionKeys.Overview);
+            _ = OpenSearchItemsCommand.ExecuteAsync(null);
         }
 
         void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -734,6 +818,92 @@ namespace InventoryManagementApp.ViewModels
         {
             GlobalSearchText = string.Empty;
             _globalSearchDebounceTimer.Stop();
+        }
+
+        void SetNavSection(string key)
+        {
+            var items = BuildNavItems(key);
+            if (items.Count == 0 && key != NavSectionKeys.Overview)
+            {
+                key = NavSectionKeys.Overview;
+                items = BuildNavItems(key);
+            }
+
+            if (!IsSidebarOpen && key != NavSectionKeys.Overview)
+                IsSidebarOpen = true;
+            if (key == NavSectionKeys.Overview)
+                IsSidebarOpen = false;
+
+            SelectedNavSectionKey = key;
+            IsOverviewSelected = key == NavSectionKeys.Overview;
+            IsOperationsSelected = key == NavSectionKeys.Operations;
+            IsInsightsSelected = key == NavSectionKeys.Insights;
+            IsDataSelected = key == NavSectionKeys.Data;
+            IsAdminSelected = key == NavSectionKeys.Admin;
+
+            CurrentNavSectionTitle = key switch
+            {
+                NavSectionKeys.Overview => "Overview",
+                NavSectionKeys.Operations => "Operations",
+                NavSectionKeys.Insights => "Insights",
+                NavSectionKeys.Data => "Data",
+                NavSectionKeys.Admin => "Admin",
+                _ => "Overview"
+            };
+
+            CurrentNavItems.Clear();
+            foreach (var item in items)
+                CurrentNavItems.Add(item);
+        }
+
+        List<NavItem> BuildNavItems(string key)
+        {
+            var itemsPlural = LabelProvider.Instance.ItemLabelPlural;
+            var items = new List<NavItem>();
+
+            switch (key)
+            {
+                case NavSectionKeys.Overview:
+                    break;
+                case NavSectionKeys.Operations:
+                    if (IsCurrentUserAdmin)
+                        items.Add(new NavItem(itemsPlural, OpenManageItemsCommand));
+                    items.Add(new NavItem("Rentals", OpenRentalsCommand));
+                    items.Add(new NavItem("Customers", OpenCustomersCommand));
+                    items.Add(new NavItem("Maintenance", OpenMaintenanceCommand));
+                    items.Add(new NavItem("Calibration", OpenCalibrationCommand));
+                    items.Add(new NavItem("Reservations", OpenReservationsCommand));
+                    items.Add(new NavItem("Kits", OpenKitManagementCommand));
+                    items.Add(new NavItem("Categories", OpenCategoriesCommand));
+                    items.Add(new NavItem("Print Labels", OpenPrintLabelWindowCommand));
+                    break;
+                case NavSectionKeys.Insights:
+                    items.Add(new NavItem("Reports", OpenReportsCommand));
+                    items.Add(new NavItem("Activity Logs", OpenActivityLogsCommand));
+                    break;
+                case NavSectionKeys.Data:
+                    if (IsCurrentUserAdmin)
+                        items.Add(new NavItem("Import / Export", OpenImportExportCommand));
+                    break;
+                case NavSectionKeys.Admin:
+                    if (IsCurrentUserAdmin)
+                    {
+                        items.Add(new NavItem("Users", OpenUsersCommand));
+                        items.Add(new NavItem("Settings", OpenSettingsCommand));
+                    }
+                    break;
+            }
+
+            return items;
+        }
+
+        static class NavSectionKeys
+        {
+            public const string Overview = "overview";
+            public const string Operations = "operations";
+            public const string Insights = "insights";
+            public const string Data = "data";
+            public const string Admin = "admin";
         }
 
         /// <inheritdoc />

@@ -43,4 +43,17 @@ public class SettingsServiceTests
 
         Assert.Equal(1, value);
     }
+
+    [Fact]
+    public async Task SaveAndGetItemCardSizeAsync_RoundTrip()
+    {
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        await using var db = new DatabaseService(dbPath);
+        var service = new SettingsService(db);
+
+        await service.SaveItemCardSizeAsync(1.2);
+        var value = await service.GetItemCardSizeAsync();
+
+        Assert.Equal(1.2, value);
+    }
 }

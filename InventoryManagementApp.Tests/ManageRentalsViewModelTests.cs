@@ -5,9 +5,6 @@ using System.Windows.Documents;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.ViewModels;
 using Xunit;
-using ItemModel = InventoryManagementApp.Models.Domain.ItemModel;
-using CustomerModel = InventoryManagementApp.Models.Domain.Customer;
-using RentalModel = InventoryManagementApp.Models.Domain.Rental;
 
 namespace InventoryManagementApp.Tests
 {
@@ -48,6 +45,7 @@ namespace InventoryManagementApp.Tests
             public Task<List<RentalModel>> GetAllRentalsAsync() => Task.FromResult(_rentals);
             public Task<List<RentalModel>> GetRentalHistoryForItemAsync(int itemID) => Task.FromResult(new List<RentalModel>());
             public Task<List<RentalModel>> GetRentalHistoryForCustomerAsync(int customerID) => Task.FromResult(new List<RentalModel>());
+            public Task<List<ItemRentalFrequency>> GetRentalFrequencyAsync(int topN = 10) => Task.FromResult(new List<ItemRentalFrequency>());
         }
 
         private sealed class StubDialogService : IDialogService

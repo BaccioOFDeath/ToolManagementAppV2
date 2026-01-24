@@ -44,6 +44,8 @@ public class DashboardViewModelTests
         public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken ct) => Task.FromResult(new List<ItemModel>());
         public Task<List<ItemModel>> GetCheckedOutItemsAsync(CancellationToken ct) => Task.FromResult(new List<ItemModel>());
         public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken ct) => Task.CompletedTask;
+        public Task<List<ItemModel>> GetMostCommonlyUsedItemsAsync(int limit, CancellationToken ct) => Task.FromResult(new List<ItemModel>());
+        public Task<List<ItemModel>> GetIncompleteItemsAsync(CancellationToken ct) => Task.FromResult(new List<ItemModel>());
     }
 
     private sealed class StubRentalService : IRentalService
@@ -81,6 +83,7 @@ public class DashboardViewModelTests
         public Task<List<Rental>> GetRentalHistoryForItemAsync(int itemID) => throw new NotImplementedException();
         public Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID) => throw new NotImplementedException();
         public Task RentItemAsync(int itemID, int customerID, DateTime rentalDate, DateTime dueDate) => throw new NotImplementedException();
+        public Task<List<ItemRentalFrequency>> GetRentalFrequencyAsync(int topN = 10) => throw new NotImplementedException();
     }
 
     private sealed class StubCustomerService : ICustomerService
@@ -107,6 +110,8 @@ public class DashboardViewModelTests
         public Task<List<Customer>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task ExportCustomersToCsvAsync(string filePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<int> ImportCustomersAsync(string filePath, IDataImporter<Customer> importer, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task ExportCustomersAsync(string filePath, IDataExporter<Customer> exporter, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 
     private sealed class StubUserService : IUserService
@@ -175,9 +180,13 @@ public class DashboardViewModelTests
         public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task ExportItemsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<List<int>> ImportItemsAsync(string filePath, IDataImporter<ItemModel> importer, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task ExportItemsAsync(string filePath, IDataExporter<ItemModel> exporter, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, SqliteConnection? conn = null, SqliteTransaction? tx = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<List<ItemModel>> GetMostCommonlyUsedItemsAsync(int limit, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<List<ItemModel>> GetIncompleteItemsAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 
     private sealed class SlowItemRepository : IItemRepository
@@ -212,6 +221,8 @@ public class DashboardViewModelTests
         public Task<List<ItemModel>> GetCheckedOutItemsAsync(CancellationToken ct) => Task.FromResult(new List<ItemModel>());
         public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken ct) => Task.CompletedTask;
         public Task<ItemModel?> GetByIdAsync(int id, CancellationToken ct) => Task.FromResult<ItemModel?>(null);
+        public Task<List<ItemModel>> GetMostCommonlyUsedItemsAsync(int limit, CancellationToken ct) => Task.FromResult(new List<ItemModel>());
+        public Task<List<ItemModel>> GetIncompleteItemsAsync(CancellationToken ct) => Task.FromResult(new List<ItemModel>());
     }
 
     private sealed class CancellableActivityLogService : ActivityLogService

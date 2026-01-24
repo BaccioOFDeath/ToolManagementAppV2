@@ -433,7 +433,7 @@ namespace InventoryManagementApp.ViewModels
         async Task ResetPasswordFor(UserModel? user)
         {
             if (user == null) return;
-            var newPassword = SecurityHelper.GeneratePassword();
+            var newPassword = PasswordDefaults.TemporaryPassword;
             try
             {
                 await _userService.ChangeUserPasswordAsync(user.UserID, newPassword);
@@ -446,7 +446,9 @@ namespace InventoryManagementApp.ViewModels
                     user.PasswordSalt = refreshed.PasswordSalt;
                     user.PasswordExpired = true;
                 }
-                _dialogService.ShowInfo("Password has been reset. The user must change it at next login.", "Password Reset");
+                await _dialogService.ShowInfoAsync(
+                    $"Password has been reset to \"{newPassword}\". The user must change it at next login.",
+                    "Password Reset");
             }
             catch (UnauthorizedAccessException)
             {

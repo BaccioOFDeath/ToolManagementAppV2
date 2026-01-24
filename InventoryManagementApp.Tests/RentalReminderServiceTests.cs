@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using InventoryManagementApp.Data;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Services.Items;
 using InventoryManagementApp.Services.Customers;
@@ -23,7 +24,9 @@ namespace InventoryManagementApp.Tests
         {
             _testDbPath = Path.Combine(Path.GetTempPath(), $"test_reminder_{Guid.NewGuid()}.db");
             _dbService = new DatabaseService(_testDbPath);
-            _itemService = new ItemService(_dbService);
+            var factory = new SqliteConnectionFactory(_dbService.ConnectionString);
+            var repository = new ItemRepository(factory);
+            _itemService = new ItemService(_dbService, repository);
             _customerService = new CustomerService(_dbService);
             _rentalService = new RentalService(_dbService, itemService: _itemService);
         }
@@ -62,11 +65,25 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public async Task CheckAndSendRemindersAsync_FindsRentalsDueTomorrow()
         {
-            var customer = await _customerService.AddCustomerAsync(
-                "Test Customer", "customer@test.com", "John Doe", "", "", "");
-            var item = await _itemService.AddItemAsync("ITEM001", "Test Item", "Loc1", 5, 0, false);
+            var customer = new CustomerModel
+            {
+                Company = "Test Customer",
+                Email = "customer@test.com",
+                Contact = "John Doe"
+            };
+            await _customerService.AddCustomerAsync(customer);
+            var item = new ItemModel
+            {
+                ItemNumber = "ITEM001",
+                Name = "Test Item",
+                Location = "Loc1",
+                QuantityOnHand = 5,
+                RentedQuantity = 0,
+                IsRentalItem = false
+            };
+            await _itemService.AddItemAsync(item);
             
-            await _rentalService.RentItemAsync(item, customer, 
+            await _rentalService.RentItemAsync(item.ItemID, customer.CustomerID, 
                 DateTime.Today, DateTime.Today.AddDays(1));
 
             var reminderService = new RentalReminderService(_rentalService, null, "contact");

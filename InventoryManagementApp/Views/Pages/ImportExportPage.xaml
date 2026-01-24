@@ -4,65 +4,68 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
       Background="{DynamicResource BackgroundBrush}">
-    <Grid Margin="8">
+    <Grid Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+        <Border Grid.Row="0" Style="{StaticResource Card}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-            <!-- Items -->
-            <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                <TextBlock Text="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}" Style="{StaticResource SectionHeader}" />
-                <WrapPanel>
-                    <Button Style="{StaticResource CompactPrimaryButton}"
-                            Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}"
-                            ContentStringFormat="Import {0} CSV"
-                            Command="{Binding ImportItemsCommand}"/>
-                    <Button Style="{StaticResource CompactPrimaryButton}"
-                            Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}"
-                            ContentStringFormat="Import {0} Images"
-                            Command="{Binding OpenImageImportMappingWindowCommand}"
-                            Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
-                    <Button Style="{StaticResource CompactPrimaryButton}"
-                            Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}"
-                            ContentStringFormat="Export {0} CSV"
-                            Command="{Binding ExportItemsCommand}"/>
-                    <Button Style="{StaticResource CompactPrimaryButton}"
-                            Content="Backup Database"
-                            Command="{Binding BackupDatabaseCommand}"/>
-                    <Button Style="{StaticResource CompactPrimaryButton}"
-                            Content="Cancel Import"
-                            Command="{Binding CancelImportItemsCommand}"
-                            IsEnabled="{Binding ImportItemsCommand.IsRunning}"/>
+                <!-- Items -->
+                <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                    <TextBlock Text="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}" Style="{StaticResource SectionHeader}" />
+                    <WrapPanel>
+                        <Button Style="{StaticResource CompactPrimaryButton}"
+                                Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}"
+                                ContentStringFormat="Import {0} CSV"
+                                Command="{Binding ImportItemsCommand}"/>
+                        <Button Style="{StaticResource CompactPrimaryButton}"
+                                Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}"
+                                ContentStringFormat="Import {0} Images"
+                                Command="{Binding OpenImageImportMappingWindowCommand}"
+                                Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
+                        <Button Style="{StaticResource CompactPrimaryButton}"
+                                Content="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}"
+                                ContentStringFormat="Export {0} CSV"
+                                Command="{Binding ExportItemsCommand}"/>
+                        <Button Style="{StaticResource CompactPrimaryButton}"
+                                Content="Backup Database"
+                                Command="{Binding BackupDatabaseCommand}"/>
+                        <Button Style="{StaticResource CompactPrimaryButton}"
+                                Content="Cancel Import"
+                                Command="{Binding CancelImportItemsCommand}"
+                                IsEnabled="{Binding ImportItemsCommand.IsRunning}"/>
+                    </WrapPanel>
+                </StackPanel>
 
-                </WrapPanel>
-            </StackPanel>
+                <!-- Customers -->
+                <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                    <TextBlock Text="Customers" Style="{StaticResource SectionHeader}" />
+                    <WrapPanel>
+                        <Button Style="{StaticResource CompactPrimaryButton}"
+                                Content="Import Customers CSV"
+                                Command="{Binding ImportCustomersCommand}"/>
+                        <Button Style="{StaticResource CompactPrimaryButton}"
+                                Content="Export Customers CSV"
+                                Command="{Binding ExportCustomersCommand}"/>
+                    </WrapPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
 
-            <!-- Customers -->
-            <StackPanel Grid.Column="1" Margin="8,0,0,0">
-                <TextBlock Text="Customers" Style="{StaticResource SectionHeader}" />
-                <WrapPanel>
-                    <Button Style="{StaticResource CompactPrimaryButton}"
-                            Content="Import Customers CSV"
-                            Command="{Binding ImportCustomersCommand}"/>
-                    <Button Style="{StaticResource CompactPrimaryButton}"
-                            Content="Export Customers CSV"
-                            Command="{Binding ExportCustomersCommand}"/>
-                </WrapPanel>
-            </StackPanel>
-        </Grid>
-
-        <DataGrid Grid.Row="1" ItemsSource="{Binding ImportExportLogs}" IsReadOnly="True" AutoGenerateColumns="False"
-                  Style="{StaticResource VirtualizedDataGridStyle}" Margin="0,8,0,0">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Message" Binding="{Binding}" />
-            </DataGrid.Columns>
-        </DataGrid>
+        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" Margin="0,6,0,0">
+            <DataGrid ItemsSource="{Binding ImportExportLogs}" IsReadOnly="True" AutoGenerateColumns="False"
+                      Style="{StaticResource VirtualizedDataGridStyle}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Message" Binding="{Binding}" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
     </Grid>
 </Page>

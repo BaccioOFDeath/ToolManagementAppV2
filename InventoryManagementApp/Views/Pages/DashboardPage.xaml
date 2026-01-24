@@ -4,78 +4,111 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
       Background="{DynamicResource BackgroundBrush}">
-    <Grid Margin="8">
+    <Grid Margin="0">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <TextBlock Text="Overview" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
-        <ItemsControl Grid.Row="1" ItemsSource="{Binding StatCards}" ItemTemplate="{StaticResource StatCardTemplate}" ItemsPanel="{StaticResource WrapPanelItems}"/>
-        
-        <!-- Commonly Used Items Section -->
-        <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,16,0,8">
-            <StackPanel>
-                <TextBlock Text="Commonly Used Items (Quick Checkout)" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
-                <ListView ItemsSource="{Binding CommonlyUsedItems}"
-                          Style="{StaticResource CardListView}"
-                          VirtualizingPanel.IsVirtualizing="True"
-                          VirtualizingPanel.VirtualizationMode="Recycling"
-                          MaxHeight="150">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <StackPanel.ToolTip>
-                                    <Image Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
-                                           MaxWidth="150"
-                                           MaxHeight="150"
-                                           Stretch="Uniform"/>
-                                </StackPanel.ToolTip>
-                                <TextBlock Text="{Binding ItemNumber}" Margin="0,0,8,0" FontWeight="SemiBold"/>
-                                <TextBlock Text="{Binding Name}" Margin="0,0,8,0"/>
-                                <TextBlock Text="{Binding CheckoutCount}" Margin="0,0,8,0" ToolTip="Times checked out"/>
-                                <TextBlock Text="✓" Foreground="{DynamicResource SuccessBrush}" Margin="0,0,8,0" Visibility="{Binding IsCheckedOut, Converter={StaticResource BoolToVis}}" ToolTip="Currently checked out"/>
-                                <TextBlock Text="⚠" Foreground="{DynamicResource ErrorBrush}" Margin="0,0,8,0" Visibility="{Binding IsIncomplete, Converter={StaticResource BoolToVis}}" ToolTip="Incomplete or missing components"/>
-                                <Button Margin="8,0,0,0">
-                                    <Button.Style>
-                                        <Style TargetType="Button">
-                                            <Setter Property="Content" Value="Checkout"/>
-                                            <Setter Property="Command" Value="{Binding DataContext.CheckInItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}"/>
-                                            <Setter Property="CommandParameter" Value="{Binding}"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsCheckedOut}" Value="True">
-                                                    <Setter Property="Content" Value="Check In"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Button.Style>
-                                </Button>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                    <ListView.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <VirtualizingStackPanel/>
-                        </ItemsPanelTemplate>
-                    </ListView.ItemsPanel>
-                </ListView>
-            </StackPanel>
-        </Border>
-        
-        <Grid Grid.Row="3" Margin="0,0,0,0">
+
+        <ItemsControl Grid.Row="0"
+                      ItemsSource="{Binding StatCards}"
+                      ItemTemplate="{StaticResource StatCardTemplate}"
+                      ItemsPanel="{StaticResource WrapPanelItems}"/>
+
+        <Grid Grid.Row="1" Margin="0,8,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource Card}">
+                <DockPanel>
+                    <TextBlock Text="Commonly Used Items" Style="{StaticResource SubheadingTextBlock}" DockPanel.Dock="Top" Margin="0,0,0,6"/>
+                    <ListView ItemsSource="{Binding CommonlyUsedItems}"
+                              Style="{StaticResource CardListView}"
+                              VirtualizingPanel.IsVirtualizing="True"
+                              VirtualizingPanel.VirtualizationMode="Recycling"
+                              MaxHeight="200">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right"
+                                            Command="{Binding DataContext.CheckInItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                            CommandParameter="{Binding}">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                                                <Setter Property="Content" Value="Check Out"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsCheckedOut}" Value="True">
+                                                        <Setter Property="Content" Value="Check In"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                    <StackPanel Orientation="Horizontal">
+                                        <StackPanel.ToolTip>
+                                            <Image Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                                   MaxWidth="150"
+                                                   MaxHeight="150"
+                                                   Stretch="Uniform"/>
+                                        </StackPanel.ToolTip>
+                                        <TextBlock Text="{Binding ItemNumber}" Margin="0,0,8,0" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding Name}" Margin="0,0,8,0"/>
+                                        <TextBlock Text="{Binding CheckoutCount}" Margin="0,0,8,0" ToolTip="Times checked out"/>
+                                        <TextBlock Text="OUT" Foreground="{DynamicResource SuccessBrush}" Margin="0,0,8,0" Visibility="{Binding IsCheckedOut, Converter={StaticResource BoolToVis}}" ToolTip="Currently checked out"/>
+                                        <TextBlock Text="ISSUE" Foreground="{DynamicResource ErrorBrush}" Margin="0,0,8,0" Visibility="{Binding IsIncomplete, Converter={StaticResource BoolToVis}}" ToolTip="Incomplete or missing components"/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel/>
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                    </ListView>
+                </DockPanel>
+            </Border>
+
+            <Border Grid.Column="1" Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="Quick Actions" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,6"/>
+                    <WrapPanel>
+                        <Button Style="{StaticResource PrimaryButton}"
+                                Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}"
+                                ContentStringFormat="New {0}"
+                                Command="{Binding NewItemCommand}"
+                                Margin="0,0,6,6"/>
+                        <Button Style="{StaticResource PrimaryButton}"
+                                Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}"
+                                ContentStringFormat="Rent {0}"
+                                Command="{Binding OpenRentalsCommand}"
+                                Margin="0,0,6,6"/>
+                        <Button Style="{StaticResource PrimaryButton}"
+                                Content="Print My Items"
+                                Command="{Binding PrintCheckedOutItemsCommand}"
+                                Margin="0,0,6,6"
+                                ToolTip="Print list of items you have checked out"/>
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="2" Margin="0,8,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            
-            <!-- Incomplete Items Section -->
-            <Border Style="{StaticResource Card}" Grid.Column="0">
+
+            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource Card}">
                 <StackPanel>
-                    <TextBlock Text="⚠ Items with Issues" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8" Foreground="{DynamicResource ErrorBrush}"/>
+                    <TextBlock Text="Items With Issues" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,6" Foreground="{DynamicResource ErrorBrush}"/>
                     <ListView ItemsSource="{Binding IncompleteItems}"
                               Style="{StaticResource CardListView}"
                               VirtualizingPanel.IsVirtualizing="True"
@@ -107,10 +140,10 @@
                     </ListView>
                 </StackPanel>
             </Border>
-            
-            <Border Style="{StaticResource Card}" Grid.Column="1">
+
+            <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource Card}">
                 <StackPanel>
-                    <TextBlock Text="Recent Activity" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
+                    <TextBlock Text="Recent Activity" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,6"/>
                     <ListView ItemsSource="{Binding RecentActivity}"
                               ItemTemplate="{StaticResource ActivityLogItemTemplate}"
                               VirtualizingPanel.IsVirtualizing="True"
@@ -124,31 +157,10 @@
                     </ListView>
                 </StackPanel>
             </Border>
-            <Border Style="{StaticResource Card}" Grid.Column="2">
+
+            <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource Card}">
                 <StackPanel>
-                    <TextBlock Text="Quick Actions" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
-                    <WrapPanel>
-                        <Button Style="{StaticResource PrimaryButton}"
-                                Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}"
-                                ContentStringFormat="New {0}"
-                                Command="{Binding NewItemCommand}"
-                                Margin="0,0,8,8"/>
-                        <Button Style="{StaticResource PrimaryButton}"
-                                Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}"
-                                ContentStringFormat="Rent {0}"
-                                Command="{Binding OpenRentalsCommand}"
-                                Margin="0,0,8,8"/>
-                        <Button Style="{StaticResource PrimaryButton}"
-                                Content="Print My Items"
-                                Command="{Binding PrintCheckedOutItemsCommand}"
-                                Margin="0,0,8,8"
-                                ToolTip="Print list of items you have checked out"/>
-                    </WrapPanel>
-                </StackPanel>
-            </Border>
-            <Border Style="{StaticResource Card}" Grid.Column="3">
-                <StackPanel>
-                    <TextBlock Text="Checked-Out Items" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
+                    <TextBlock Text="Checked-Out Items" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,6"/>
                     <ListView ItemsSource="{Binding CheckedOutItems}"
                               Style="{StaticResource CardListView}"
                               VirtualizingPanel.IsVirtualizing="True"
@@ -165,6 +177,7 @@
                                     <TextBlock Text="{Binding ItemNumber}" Margin="0,0,8,0"/>
                                     <TextBlock Text="{Binding CheckedOutBy}" Margin="0,0,8,0"/>
                                     <Button Content="Check In"
+                                            Style="{StaticResource GhostButton}"
                                             Command="{Binding DataContext.CheckInItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
                                             CommandParameter="{Binding}"
                                             Margin="0,0,0,0"/>
@@ -179,9 +192,10 @@
                     </ListView>
                 </StackPanel>
             </Border>
-            <Border Style="{StaticResource Card}" Grid.Column="4">
+
+            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource Card}">
                 <StackPanel>
-                    <TextBlock Text="Rented Items" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,8"/>
+                    <TextBlock Text="Rented Items" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,6"/>
                     <ListView ItemsSource="{Binding RentedItems}"
                               Style="{StaticResource CardListView}"
                               VirtualizingPanel.IsVirtualizing="True"
@@ -198,6 +212,7 @@
                                     <TextBlock Text="{Binding ItemNumber}" Margin="0,0,8,0"/>
                                     <TextBlock Text="{Binding CustomerName}" Margin="0,0,8,0"/>
                                     <Button Content="Return"
+                                            Style="{StaticResource GhostButton}"
                                             Command="{Binding DataContext.ReturnRentalCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
                                             CommandParameter="{Binding}"
                                             Margin="0,0,0,0"/>

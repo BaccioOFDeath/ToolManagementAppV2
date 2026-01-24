@@ -187,6 +187,25 @@ namespace InventoryManagementApp.ViewModels
         public bool ShowPrice => VisibleFields.TryGetValue(ItemDetailField.Price, out var v) && v;
         public bool ShowNotes => VisibleFields.TryGetValue(ItemDetailField.Notes, out var v) && v;
 
+        private double _cardScale = 1.0;
+        public double CardScale
+        {
+            get => _cardScale;
+            private set
+            {
+                if (SetProperty(ref _cardScale, value))
+                {
+                    OnPropertyChanged(nameof(CardWidth));
+                    OnPropertyChanged(nameof(CardImageWidth));
+                    OnPropertyChanged(nameof(CardImageHeight));
+                }
+            }
+        }
+
+        public double CardWidth => Math.Round(240 * CardScale);
+        public double CardImageWidth => Math.Round(220 * CardScale);
+        public double CardImageHeight => Math.Round(200 * CardScale);
+
         bool _initialized;
         public async Task InitializeAsync()
         {
@@ -194,7 +213,9 @@ namespace InventoryManagementApp.ViewModels
             var vis = await _settingsService.GetItemDetailVisibilityAsync().ConfigureAwait(false);
             var complete = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, f => vis.TryGetValue(f, out var v) ? v : true);
             VisibleFields = complete;
+            CardScale = await _settingsService.GetItemCardSizeAsync().ConfigureAwait(false);
             _settingsService.ItemDetailVisibilityChanged += OnItemDetailVisibilityChanged;
+            _settingsService.ItemCardSizeChanged += OnItemCardSizeChanged;
             _initialized = true;
             _searchCts?.Cancel();
             _searchCts?.Dispose();
@@ -217,6 +238,13 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to handle visibility change");
             }
+        }
+
+        void OnItemCardSizeChanged(object? sender, double size)
+        {
+            if (size <= 0.2)
+                return;
+            CardScale = size;
         }
 
         void OnSearchDebounceTimerTick(object? s, EventArgs e)
@@ -587,6 +615,7 @@ namespace InventoryManagementApp.ViewModels
 
             Items.CollectionChanged -= Items_CollectionChanged;
             _settingsService.ItemDetailVisibilityChanged -= OnItemDetailVisibilityChanged;
+            _settingsService.ItemCardSizeChanged -= OnItemCardSizeChanged;
         }
     }
 }

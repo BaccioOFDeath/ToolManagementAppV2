@@ -7,9 +7,6 @@ using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Models.ImportExport;
 using Xunit;
-using ItemModel = InventoryManagementApp.Models.Domain.ItemModel;
-using CustomerModel = InventoryManagementApp.Models.Domain.Customer;
-using RentalModel = InventoryManagementApp.Models.Domain.Rental;
 
 namespace InventoryManagementApp.Tests
 {
@@ -108,6 +105,10 @@ namespace InventoryManagementApp.Tests
             public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default)
                 => Task.FromResult(new CustomerImportResult());
             public Task ExportCustomersToCsvAsync(string filePath, CancellationToken cancellationToken = default)
+                => Task.CompletedTask;
+            public Task<int> ImportCustomersAsync(string filePath, IDataImporter<CustomerModel> importer, CancellationToken cancellationToken = default)
+                => Task.FromResult(0);
+            public Task ExportCustomersAsync(string filePath, IDataExporter<CustomerModel> exporter, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
         }
 

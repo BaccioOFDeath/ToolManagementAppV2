@@ -16,9 +16,6 @@ using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Views.Pages;
 using InventoryManagementApp.ViewModels;
 using Xunit;
-using ItemModel = InventoryManagementApp.Models.Domain.ItemModel;
-using CustomerModel = InventoryManagementApp.Models.Domain.Customer;
-using RentalModel = InventoryManagementApp.Models.Domain.Rental;
 
 namespace InventoryManagementApp.Tests
 {
@@ -40,6 +37,7 @@ namespace InventoryManagementApp.Tests
                         })
                         .Build();
 
+                    WpfTestHelper.ShutdownApplication();
                     var app = new App(host);
                     var page = new ManageRentalsPage();
                     var vm = new StubViewModel();
@@ -66,7 +64,7 @@ namespace InventoryManagementApp.Tests
                     Assert.Same(vm.PrintRentalCommand, print.Command);
                     Assert.Same(vm.DeleteRentalCommand, delete.Command);
 
-                    app.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
                 catch (Exception ex)
                 {

@@ -71,6 +71,13 @@ namespace InventoryManagementApp
         }
 
         private static IHost BuildHost() => Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
+            .ConfigureAppConfiguration((context, config) =>
+            {
+                // Ensure appsettings are loaded from the executable directory.
+                config.SetBasePath(AppDomain.CurrentDomain.BaseDirectory);
+                config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                      .AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+            })
             .ConfigureLogging((context, logging) =>
             {
                 var logsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,

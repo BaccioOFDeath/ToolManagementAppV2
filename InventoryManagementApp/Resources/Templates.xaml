@@ -5,21 +5,20 @@
                     xmlns:models="clr-namespace:InventoryManagementApp.Models">
     <DataTemplate x:Key="StatCardTemplate">
         <Border Style="{StaticResource Card}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+            <StackPanel>
                 <TextBlock Text="{Binding Title}" Style="{StaticResource LabelTextBlock}"/>
-                <TextBlock Grid.Row="1" Text="{Binding Value}" Style="{StaticResource StatisticValueTextBlock}"/>
-            </Grid>
+                <TextBlock Text="{Binding Value}" Style="{StaticResource StatisticValueTextBlock}" Margin="0,4,0,0"/>
+            </StackPanel>
         </Border>
     </DataTemplate>
     <ItemsPanelTemplate x:Key="WrapPanelItems">
-        <WrapPanel Orientation="Horizontal" ItemWidth="260" ItemHeight="100"/>
+        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" ItemWidth="220" ItemHeight="88"/>
     </ItemsPanelTemplate>
     <DataTemplate x:Key="ItemCardTemplate">
-        <Border Style="{StaticResource Card}" Width="280" Padding="0" Margin="4">
+        <Border Style="{StaticResource Card}"
+                Width="{Binding DataContext.CardWidth, RelativeSource={RelativeSource AncestorType=Page}, FallbackValue=240}"
+                Padding="8"
+                Margin="4">
             <Border.Visibility>
                 <MultiBinding Converter="{StaticResource AnyTrueToVisibilityConverter}">
                     <Binding Path="DataContext.ShowImage" RelativeSource="{RelativeSource AncestorType=Page}"/>
@@ -33,38 +32,35 @@
             </Border.Visibility>
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="280"/>
-                    <RowDefinition Height="120"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <Border Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrushAlt}" BorderThickness="1" CornerRadius="8" Visibility="{Binding DataContext.ShowImage, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}">
+                <Border Background="{StaticResource SurfaceAltBrush}"
+                        BorderBrush="{StaticResource BorderBrushAlt}"
+                        BorderThickness="1"
+                        CornerRadius="{StaticResource RadiusSmall}"
+                        Height="{Binding DataContext.CardImageHeight, RelativeSource={RelativeSource AncestorType=Page}, FallbackValue=200}"
+                        Visibility="{Binding DataContext.ShowImage, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}">
                     <Grid>
-                        <Image Width="280" Height="280" Stretch="Uniform" Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
+                        <Image Width="{Binding DataContext.CardImageWidth, RelativeSource={RelativeSource AncestorType=Page}, FallbackValue=220}"
+                               Height="{Binding DataContext.CardImageHeight, RelativeSource={RelativeSource AncestorType=Page}, FallbackValue=200}"
+                               Stretch="Uniform"
+                               Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
                         <!-- Incomplete/Issues Warning Badge -->
-                        <Border Background="{DynamicResource ErrorBrush}" CornerRadius="4" Padding="6,3" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="8" Visibility="{Binding IsIncomplete, Converter={StaticResource BoolToVis}}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="⚠" FontSize="14" Foreground="White" Margin="0,0,4,0"/>
-                                <TextBlock Text="ISSUE" FontSize="11" FontWeight="Bold" Foreground="White"/>
-                            </StackPanel>
+                        <Border Background="{DynamicResource ErrorBrush}" CornerRadius="4" Padding="6,2" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6" Visibility="{Binding IsIncomplete, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="ISSUE" FontSize="10" FontWeight="Bold" Foreground="White"/>
                         </Border>
                     </Grid>
                 </Border>
-                <Grid Grid.Row="1" Margin="0,6,0,0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="20"/>
-                        <RowDefinition Height="20"/>
-                        <RowDefinition Height="20"/>
-                        <RowDefinition Height="20"/>
-                        <RowDefinition Height="20"/>
-                        <RowDefinition Height="20"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Text="{Binding Name}" Style="{StaticResource ListItemTitleTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxHeight="20" Visibility="{Binding DataContext.ShowName, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Grid.Row="1" Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxHeight="20" Visibility="{Binding DataContext.ShowItemNumber, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Grid.Row="2" Text="{Binding Brand}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxHeight="20" Visibility="{Binding DataContext.ShowBrand, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Grid.Row="3" Text="{Binding Location}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxHeight="20" Visibility="{Binding DataContext.ShowLocation, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Grid.Row="4" Text="{Binding Price, StringFormat={}{0:C}}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxHeight="20" Visibility="{Binding DataContext.ShowPrice, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Grid.Row="5" Text="{Binding Notes}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxHeight="20" Visibility="{Binding DataContext.ShowNotes, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
-                </Grid>
+                <StackPanel Grid.Row="1" Margin="0,6,0,0">
+                    <TextBlock Text="{Binding Name}" Style="{StaticResource ListItemTitleTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Visibility="{Binding DataContext.ShowName, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Visibility="{Binding DataContext.ShowItemNumber, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="{Binding Brand}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Visibility="{Binding DataContext.ShowBrand, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="{Binding Location}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Visibility="{Binding DataContext.ShowLocation, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="{Binding Price, StringFormat={}{0:C}}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Visibility="{Binding DataContext.ShowPrice, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="{Binding Notes}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Visibility="{Binding DataContext.ShowNotes, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
+                </StackPanel>
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,0">
                     <Button Content="Rent"
                             Style="{StaticResource PrimaryButton}"
@@ -112,3 +108,4 @@
     <DataGridTextColumn x:Key="RentalReturnedColumn" Header="Returned" Binding="{Binding DateReturned, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat=\{0:yyyy-MM-dd HH:mm\}, TargetNullValue=''}" Width="180" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalStatusColumn" Header="Status" Binding="{Binding Status}" Width="140" x:Shared="False"/>
 </ResourceDictionary>
+

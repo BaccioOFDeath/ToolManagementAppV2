@@ -18,7 +18,7 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
-                    var app = new Application();
+                    var app = WpfTestHelper.CreateApplication();
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
@@ -46,7 +46,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
@@ -63,7 +63,7 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
-                    var app = new Application();
+                    var app = WpfTestHelper.CreateApplication();
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
@@ -91,7 +91,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
@@ -108,7 +108,7 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
-                    var app = new Application();
+                    var app = WpfTestHelper.CreateApplication();
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
@@ -133,7 +133,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
@@ -150,7 +150,7 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
-                    var app = new Application();
+                    var app = WpfTestHelper.CreateApplication();
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
@@ -176,7 +176,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);

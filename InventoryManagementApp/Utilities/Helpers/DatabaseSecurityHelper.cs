@@ -22,7 +22,8 @@ namespace InventoryManagementApp.Utilities.Helpers
         {
             try
             {
-                var security = File.GetAccessControl(dbPath);
+                var fileInfo = new FileInfo(dbPath);
+                var security = fileInfo.GetAccessControl();
                 var rules = security.GetAccessRules(true, true, typeof(SecurityIdentifier));
 
                 foreach (FileSystemAccessRule rule in rules)

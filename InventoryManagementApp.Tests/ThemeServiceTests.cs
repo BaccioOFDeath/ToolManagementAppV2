@@ -15,11 +15,11 @@ namespace InventoryManagementApp.Tests
         {
             await RunOnStaThread(async () =>
             {
-                var app = new Application();
+                var app = WpfTestHelper.CreateApplication();
                 var service = new ThemeService();
                 service.ApplyTheme("Dark");
                 Assert.Contains("Colors.Dark.xaml", app.Resources.MergedDictionaries[0].Source.OriginalString);
-                app.Shutdown();
+                WpfTestHelper.ShutdownApplication();
                 await Task.CompletedTask;
             });
         }
@@ -29,11 +29,11 @@ namespace InventoryManagementApp.Tests
         {
             await RunOnStaThread(async () =>
             {
-                var app = new Application();
+                var app = WpfTestHelper.CreateApplication();
                 var service = new ThemeService();
                 service.ApplyTheme("Light");
                 Assert.Contains("Colors.Light.xaml", app.Resources.MergedDictionaries[0].Source.OriginalString);
-                app.Shutdown();
+                WpfTestHelper.ShutdownApplication();
                 await Task.CompletedTask;
             });
         }
@@ -43,11 +43,11 @@ namespace InventoryManagementApp.Tests
         {
             await RunOnStaThread(async () =>
             {
-                var app = new Application();
+                var app = WpfTestHelper.CreateApplication();
                 var service = new ThemeService();
                 service.ApplyTheme(null);
                 Assert.Contains("Colors.Light.xaml", app.Resources.MergedDictionaries[0].Source.OriginalString);
-                app.Shutdown();
+                WpfTestHelper.ShutdownApplication();
                 await Task.CompletedTask;
             });
         }
@@ -57,13 +57,13 @@ namespace InventoryManagementApp.Tests
         {
             await RunOnStaThread(async () =>
             {
-                var app = new Application();
+                var app = WpfTestHelper.CreateApplication();
                 app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("Resources/Colors.Dark.xaml", UriKind.Relative) });
                 var service = new ThemeService();
                 service.ApplyTheme("Light");
                 Assert.DoesNotContain(app.Resources.MergedDictionaries, d => d.Source?.OriginalString.Contains("Colors.Dark.xaml") == true);
                 Assert.Contains("Colors.Light.xaml", app.Resources.MergedDictionaries[0].Source.OriginalString);
-                app.Shutdown();
+                WpfTestHelper.ShutdownApplication();
                 await Task.CompletedTask;
             });
         }
@@ -73,14 +73,14 @@ namespace InventoryManagementApp.Tests
         {
             await RunOnStaThread(async () =>
             {
-                var app = new Application();
+                var app = WpfTestHelper.CreateApplication();
                 var service = new ThemeService();
                 service.ApplyTheme("Dark");
                 var darkHover = (SolidColorBrush)app.Resources["NavButtonHoverBrush"];
                 service.ApplyTheme("Light");
                 var lightHover = (SolidColorBrush)app.Resources["NavButtonHoverBrush"];
                 Assert.NotEqual(darkHover.Color, lightHover.Color);
-                app.Shutdown();
+                WpfTestHelper.ShutdownApplication();
                 await Task.CompletedTask;
             });
         }

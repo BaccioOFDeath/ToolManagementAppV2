@@ -21,7 +21,7 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
-                    var app = new Application();
+                    var app = WpfTestHelper.CreateApplication();
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary
                     {
                         Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute)
@@ -45,7 +45,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
@@ -80,7 +80,7 @@ namespace InventoryManagementApp.Tests
             var rowStyle = dataGrid.RowStyle ?? throw new InvalidOperationException("RowStyle not found");
             var eventSetter = rowStyle.Setters.OfType<EventSetter>().FirstOrDefault(es => es.Event == UIElement.PreviewMouseRightButtonDownEvent);
             Assert.NotNull(eventSetter);
-            Assert.Equal("DataGridRow_PreviewMouseRightButtonDown", eventSetter!.Handler);
+            Assert.Equal("DataGridRow_PreviewMouseRightButtonDown", eventSetter!.Handler?.Method.Name);
         }
 
         [Fact]

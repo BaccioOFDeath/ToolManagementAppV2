@@ -260,7 +260,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 try
                 {
-                    await _userService.ChangeUserPasswordAsync(user.UserID, PasswordDefaults.DefaultAdminPassword);
+                    await _userService.ChangeUserPasswordAsync(user.UserID, PasswordDefaults.TemporaryPassword);
                 }
                 catch (UnauthorizedAccessException ex)
                 {
@@ -321,7 +321,8 @@ namespace InventoryManagementApp.ViewModels
                         user.PasswordExpired = refreshed.PasswordExpired;
                     }
                     await LoadUsersCommand.ExecuteAsync(null);
-                    await _dialogService.ShowInfoAsync("Password has been reset to the temporary default. Please enter the new password to login.",
+                    await _dialogService.ShowInfoAsync(
+                        $"Password has been reset to the temporary password \"{PasswordDefaults.TemporaryPassword}\". Please log in and change it.",
                         "Password Reset");
                     continue;
                 }

@@ -6,13 +6,13 @@
       xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
       xmlns:pages="clr-namespace:InventoryManagementApp.Views.Pages"
       Background="{DynamicResource BackgroundBrush}">
-    <Grid Margin="8">
+    <Grid Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource Card}" Padding="12">
+        <Border Style="{StaticResource ToolbarCard}">
             <DockPanel LastChildFill="False">
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
 
@@ -33,9 +33,9 @@
                             Command="{Binding NewItemCommand}"/>
                 </StackPanel>
                 <pages:SearchBar DockPanel.Dock="Right"
-                                    Text="{Binding Filter}"
-                                    SearchCommand="{Binding SearchCommand}"
-                                    SearchLabel="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Search {0}}"/>
+                                 Text="{Binding Filter}"
+                                 SearchCommand="{Binding SearchCommand}"
+                                 SearchLabel="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Search {0}}"/>
             </DockPanel>
         </Border>
 

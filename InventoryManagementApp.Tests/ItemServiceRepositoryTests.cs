@@ -49,6 +49,8 @@ public class ItemServiceRepositoryTests
         public Task UpdateAsync(ItemModel item, CancellationToken ct) => Task.CompletedTask;
         public Task DeleteAsync(int itemID, CancellationToken ct) => Task.CompletedTask;
         public Task<bool> ToggleCheckOutStatusAsync(int itemID, string currentUser, bool isAdmin, CancellationToken ct) => Task.FromResult(false);
+        public Task<List<ItemModel>> GetMostCommonlyUsedItemsAsync(int limit, CancellationToken ct) => Task.FromResult(new List<ItemModel>());
+        public Task<List<ItemModel>> GetIncompleteItemsAsync(CancellationToken ct) => Task.FromResult(new List<ItemModel>());
     }
 
     [Fact]

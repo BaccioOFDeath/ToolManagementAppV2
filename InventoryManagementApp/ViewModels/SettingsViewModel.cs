@@ -109,6 +109,7 @@ namespace InventoryManagementApp.ViewModels
             _themeService.ApplyTheme(_theme);
             _passwordIterations = await _settingsService.GetPasswordIterationsAsync().ConfigureAwait(false);
             _autoLogoutMinutes = await _settingsService.GetAutoLogoutMinutesAsync().ConfigureAwait(false);
+            _itemCardSize = await _settingsService.GetItemCardSizeAsync().ConfigureAwait(false);
             var vis = await _settingsService.GetItemDetailVisibilityAsync().ConfigureAwait(false);
             foreach (var field in Enum.GetValues<ItemDetailField>())
             {
@@ -121,6 +122,7 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(Theme));
             OnPropertyChanged(nameof(PasswordIterations));
             OnPropertyChanged(nameof(AutoLogoutMinutes));
+            OnPropertyChanged(nameof(ItemCardSize));
             
             // Load email settings if service is available
             if (_rentalConfigService != null)
@@ -384,6 +386,20 @@ namespace InventoryManagementApp.ViewModels
             set => _ = SetAutoLogoutMinutesAsync(value);
         }
 
+        private double _itemCardSize = 1.0;
+        public double ItemCardSize
+        {
+            get => _itemCardSize;
+            set
+            {
+                if (SetProperty(ref _itemCardSize, value))
+                {
+                    if (_initialized)
+                        _ = SetItemCardSizeAsync(value);
+                }
+            }
+        }
+
         async Task SetAutoLogoutMinutesAsync(int value, CancellationToken token = default)
         {
             if (value < 0) return;
@@ -406,6 +422,34 @@ namespace InventoryManagementApp.ViewModels
                 {
                     _logger.LogError(ex, "Failed to save auto logout minutes.");
                 }
+            }
+        }
+
+        async Task SetItemCardSizeAsync(double value, CancellationToken token = default)
+        {
+            var clamped = Math.Clamp(value, 0.8, 1.3);
+            if (Math.Abs(clamped - value) > 0.0001)
+            {
+                _itemCardSize = clamped;
+                OnPropertyChanged(nameof(ItemCardSize));
+            }
+
+            try
+            {
+                await _settingsService.SaveItemCardSizeAsync(clamped, token).ConfigureAwait(false);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Unauthorized to change item card size.");
+                _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+            }
+            catch (OperationCanceledException ex)
+            {
+                _logger.LogInformation(ex, "Saving item card size was canceled.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save item card size.");
             }
         }
 

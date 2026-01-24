@@ -9,6 +9,7 @@ namespace InventoryManagementApp.Interfaces
     public interface ISettingsService
     {
         event EventHandler<IDictionary<ItemDetailField, bool>>? ItemDetailVisibilityChanged;
+        event EventHandler<double>? ItemCardSizeChanged;
         Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default);
         Task<string?> GetSettingAsync(string? key, CancellationToken cancellationToken = default);
         Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default);
@@ -35,5 +36,9 @@ namespace InventoryManagementApp.Interfaces
         // Item display configuration
         Task<IDictionary<ItemDetailField, bool>> GetItemDetailVisibilityAsync(CancellationToken cancellationToken = default);
         Task SaveItemDetailVisibilityAsync(IDictionary<ItemDetailField, bool> visibility, CancellationToken cancellationToken = default);
+
+        // Item card size configuration
+        Task<double> GetItemCardSizeAsync(CancellationToken cancellationToken = default);
+        Task SaveItemCardSizeAsync(double size, CancellationToken cancellationToken = default);
     }
 }

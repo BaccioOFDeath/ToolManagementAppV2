@@ -64,6 +64,7 @@ namespace InventoryManagementApp.Tests
                         })
                         .Build();
 
+                    WpfTestHelper.ShutdownApplication();
                     var app = new App(host);
                     app.StartAsync().GetAwaiter().GetResult();
 
@@ -71,7 +72,7 @@ namespace InventoryManagementApp.Tests
                     var setup = settings.GetSettingAsync("SetupComplete").GetAwaiter().GetResult();
                     Assert.Equal("true", setup);
 
-                    app.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
                 catch (Exception ex)
                 {
@@ -125,6 +126,7 @@ namespace InventoryManagementApp.Tests
                         })
                         .Build();
 
+                    WpfTestHelper.ShutdownApplication();
                     var app = new App(host);
                     app.StartAsync().GetAwaiter().GetResult();
 
@@ -135,7 +137,7 @@ namespace InventoryManagementApp.Tests
                     Assert.Equal(expected, saved);
                     Assert.True(File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, saved)));
 
-                    app.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
                 catch (Exception ex)
                 {
@@ -189,6 +191,7 @@ namespace InventoryManagementApp.Tests
                         })
                         .Build();
 
+                    WpfTestHelper.ShutdownApplication();
                     var app = new App(host);
                     app.StartAsync().GetAwaiter().GetResult();
 
@@ -198,7 +201,7 @@ namespace InventoryManagementApp.Tests
                     Assert.Same(main, login.Owner);
                     Assert.True(login.OwnerAssignedAfterMainShown);
 
-                    app.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
                 catch (Exception ex)
                 {
@@ -257,13 +260,14 @@ namespace InventoryManagementApp.Tests
                         })
                         .Build();
 
+                    WpfTestHelper.ShutdownApplication();
                     var app = new App(host);
                     app.StartAsync().GetAwaiter().GetResult();
 
                     var themeSvc = (StubThemeService)host.Services.GetRequiredService<IThemeService>();
                     Assert.Equal("Light", themeSvc.AppliedTheme);
 
-                    app.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
                 catch (Exception ex)
                 {
@@ -317,6 +321,7 @@ namespace InventoryManagementApp.Tests
                         })
                         .Build();
 
+                    WpfTestHelper.ShutdownApplication();
                     var app = new App(host);
                     app.StartAsync().GetAwaiter().GetResult();
 
@@ -324,7 +329,7 @@ namespace InventoryManagementApp.Tests
                     Assert.True(main.IsShown);
                     Assert.Equal(ShutdownMode.OnMainWindowClose, app.ShutdownMode);
 
-                    app.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
                 catch (Exception ex)
                 {
@@ -385,6 +390,9 @@ namespace InventoryManagementApp.Tests
                 IsShown = true;
                 base.Show();
             }
+
+            void IMainWindow.Activate() => base.Activate();
+            void IMainWindow.Focus() => base.Focus();
         }
 
         private sealed class StubLoginWindow : Window, ILoginWindow

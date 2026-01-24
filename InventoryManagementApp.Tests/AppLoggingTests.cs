@@ -17,7 +17,7 @@ public class AppLoggingTests
     {
         using var debugWriter = new StringWriter();
         var listener = new TextWriterTraceListener(debugWriter);
-        Debug.Listeners.Add(listener);
+        Trace.Listeners.Add(listener);
         try
         {
             var method = typeof(App).GetMethod("BuildHost", BindingFlags.Static | BindingFlags.NonPublic);
@@ -31,7 +31,7 @@ public class AppLoggingTests
             await host.StopAsync();
             host.Dispose();
             Log.CloseAndFlush();
-            Debug.Flush();
+            Trace.Flush();
 
             Assert.Contains(message, debugWriter.ToString());
 
@@ -42,7 +42,7 @@ public class AppLoggingTests
         }
         finally
         {
-            Debug.Listeners.Remove(listener);
+            Trace.Listeners.Remove(listener);
         }
     }
 }

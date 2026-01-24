@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Media;
+using InventoryManagementApp.Controls;
 using Xunit;
 
 namespace InventoryManagementApp.Tests
@@ -21,7 +22,7 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
-                    var app = new Application();
+                    var app = WpfTestHelper.CreateApplication();
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
@@ -29,6 +30,7 @@ namespace InventoryManagementApp.Tests
                     var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Pages", "UsersPage.xaml"));
                     var xaml = File.ReadAllText(path);
                     xaml = Regex.Replace(xaml, "x:Class=\\\"[^\\\"]*\\\"\\s*", string.Empty);
+                    xaml = Regex.Replace(xaml, "<pages:SearchBar[\\s\\S]*?/>", string.Empty);
                     var page = (Page)XamlReader.Parse(xaml);
                     var dataGrid = FindVisualChild<DataGrid>(page) ?? throw new InvalidOperationException("DataGrid not found");
                     var col = (DataGridTemplateColumn)dataGrid.Columns[0];
@@ -49,7 +51,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
@@ -66,7 +68,7 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
-                    var app = new Application();
+                    var app = WpfTestHelper.CreateApplication();
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
@@ -74,6 +76,7 @@ namespace InventoryManagementApp.Tests
                     var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Pages", "UsersPage.xaml"));
                     var xaml = File.ReadAllText(path);
                     xaml = Regex.Replace(xaml, "x:Class=\\\"[^\\\"]*\\\"\\s*", string.Empty);
+                    xaml = Regex.Replace(xaml, "<pages:SearchBar[\\s\\S]*?/>", string.Empty);
                     var page = (Page)XamlReader.Parse(xaml);
                     var dataGrid = FindVisualChild<DataGrid>(page) ?? throw new InvalidOperationException("DataGrid not found");
                     var col = (DataGridTemplateColumn)dataGrid.Columns[0];
@@ -93,7 +96,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
@@ -110,7 +113,7 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
-                    var app = new Application();
+                    var app = WpfTestHelper.CreateApplication();
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
@@ -123,10 +126,9 @@ namespace InventoryManagementApp.Tests
                     window.Measure(new Size(100, 100));
                     window.Arrange(new Rect(0, 0, 100, 100));
                     window.UpdateLayout();
-                    var border = FindVisualChildren<Border>(window).First(b => b.Width == 60 && b.Height == 60);
-                    var grid = VisualTreeHelper.GetChild(border, 0) as Grid ?? throw new InvalidOperationException("Grid not found");
-                    var textBlock = grid.Children.OfType<TextBlock>().Single();
-                    var image = grid.Children.OfType<Image>().Single();
+                    var avatar = FindVisualChild<UserAvatar>(window) ?? throw new InvalidOperationException("UserAvatar not found");
+                    var textBlock = FindVisualChild<TextBlock>(avatar) ?? throw new InvalidOperationException("TextBlock not found");
+                    var image = FindVisualChild<Image>(avatar) ?? throw new InvalidOperationException("Image not found");
                     Assert.Equal("JD", textBlock.Text);
                     Assert.Equal(Visibility.Visible, textBlock.Visibility);
                     Assert.Equal(Visibility.Collapsed, image.Visibility);
@@ -137,7 +139,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
@@ -154,7 +156,7 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
-                    var app = new Application();
+                    var app = WpfTestHelper.CreateApplication();
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
@@ -168,10 +170,9 @@ namespace InventoryManagementApp.Tests
                     window.Measure(new Size(100, 100));
                     window.Arrange(new Rect(0, 0, 100, 100));
                     window.UpdateLayout();
-                    var border = FindVisualChildren<Border>(window).First(b => b.Width == 60 && b.Height == 60);
-                    var grid = VisualTreeHelper.GetChild(border, 0) as Grid ?? throw new InvalidOperationException("Grid not found");
-                    var textBlock = grid.Children.OfType<TextBlock>().Single();
-                    var image = grid.Children.OfType<Image>().Single();
+                    var avatar = FindVisualChild<UserAvatar>(window) ?? throw new InvalidOperationException("UserAvatar not found");
+                    var textBlock = FindVisualChild<TextBlock>(avatar) ?? throw new InvalidOperationException("TextBlock not found");
+                    var image = FindVisualChild<Image>(avatar) ?? throw new InvalidOperationException("Image not found");
                     Assert.Equal("JD", textBlock.Text);
                     Assert.Equal(Visibility.Visible, textBlock.Visibility);
                     Assert.Equal(Visibility.Collapsed, image.Visibility);
@@ -182,7 +183,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
@@ -199,7 +200,7 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
-                    var app = new Application();
+                    var app = WpfTestHelper.CreateApplication();
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
@@ -226,7 +227,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
@@ -243,7 +244,7 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
-                    var app = new Application();
+                    var app = WpfTestHelper.CreateApplication();
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
@@ -274,7 +275,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
@@ -291,7 +292,7 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
-                    var app = new Application();
+                    var app = WpfTestHelper.CreateApplication();
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
@@ -322,7 +323,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);

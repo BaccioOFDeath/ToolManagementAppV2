@@ -16,7 +16,7 @@ namespace InventoryManagementApp.Tests
             XNamespace ns = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
             var hasBinding = doc
                 .Descendants(ns + "CheckBox")
-                .Any(cb => (string?)cb.Attribute("IsChecked")?.Contains("ItemModel.IsRentalItem") == true);
+                .Any(cb => cb.Attribute("IsChecked")?.Value.Contains("ItemModel.IsRentalItem") == true);
             Assert.True(hasBinding, "CheckBox bound to ItemModel.IsRentalItem not found");
         }
     }

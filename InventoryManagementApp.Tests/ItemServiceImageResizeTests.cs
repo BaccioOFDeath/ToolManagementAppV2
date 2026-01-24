@@ -41,7 +41,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);

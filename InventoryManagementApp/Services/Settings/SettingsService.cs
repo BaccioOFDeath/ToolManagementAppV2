@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using System.Collections.Generic;
 using System.Linq;
+using System.Globalization;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
@@ -27,6 +28,7 @@ namespace InventoryManagementApp.Services.Settings
         /// Raised when item detail field visibility settings are changed.
         /// </summary>
         public event EventHandler<IDictionary<ItemDetailField, bool>>? ItemDetailVisibilityChanged;
+        public event EventHandler<double>? ItemCardSizeChanged;
         
         private const string UpsertSql = @"
             INSERT INTO Settings (Key, Value)
@@ -251,6 +253,7 @@ namespace InventoryManagementApp.Services.Settings
         const string ItemLabelSingularKey = "ItemLabelSingular";
         const string ItemLabelPluralKey = "ItemLabelPlural";
         const string ItemDetailVisibilityKey = "ItemDetailVisibility";
+        const string ItemCardSizeKey = "ItemCardSize";
 
         // Theme configuration
         public Task<string?> GetThemeAsync(CancellationToken cancellationToken = default)
@@ -347,6 +350,28 @@ namespace InventoryManagementApp.Services.Settings
             var json = JsonSerializer.Serialize(dict);
             await SaveSettingAsync(ItemDetailVisibilityKey, json, cancellationToken).ConfigureAwait(false);
             ItemDetailVisibilityChanged?.Invoke(this, new Dictionary<ItemDetailField, bool>(visibility));
+        }
+
+        public async Task<double> GetItemCardSizeAsync(CancellationToken cancellationToken = default)
+        {
+            var value = await GetSettingAsync(ItemCardSizeKey, cancellationToken).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(value))
+                return 1.0;
+
+            if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed) && parsed > 0.2)
+                return parsed;
+
+            return 1.0;
+        }
+
+        public async Task SaveItemCardSizeAsync(double size, CancellationToken cancellationToken = default)
+        {
+            _auth.EnsureAdmin();
+            if (size <= 0.2)
+                throw new ArgumentOutOfRangeException(nameof(size));
+            var value = size.ToString("0.###", CultureInfo.InvariantCulture);
+            await SaveSettingAsync(ItemCardSizeKey, value, cancellationToken).ConfigureAwait(false);
+            ItemCardSizeChanged?.Invoke(this, size);
         }
     }
 }

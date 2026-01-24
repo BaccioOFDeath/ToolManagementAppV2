@@ -27,8 +27,10 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
-                    var app = new Application();
+                    var app = WpfTestHelper.CreateApplication();
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
                     var users = new List<User>
                     {
                         new User { UserID = 1, UserName = "John Doe" },
@@ -48,7 +50,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
@@ -65,8 +67,10 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
-                    var app = new Application();
+                    var app = WpfTestHelper.CreateApplication();
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
                     var users = new List<User>
                     {
                         new User { UserID = 1, UserName = "John Doe" }
@@ -95,7 +99,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
@@ -112,8 +116,10 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
-                    var app = new Application();
+                    var app = WpfTestHelper.CreateApplication();
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
                     var users = new List<User>
                     {
                         new User { UserID = 1, UserName = "John Doe" },
@@ -146,7 +152,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
@@ -163,8 +169,10 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
-                    var app = new Application();
+                    var app = WpfTestHelper.CreateApplication();
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
 
                     var hash = SecurityHelper.HashPassword("pass", out var salt);
                     var users = new List<User>
@@ -197,7 +205,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
@@ -214,8 +222,10 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
-                    var app = new Application();
+                    var app = WpfTestHelper.CreateApplication();
                     app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
+                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
 
                     var hash = SecurityHelper.HashPassword("pass", out var salt);
                     var users = new List<User>
@@ -249,7 +259,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
@@ -351,6 +361,7 @@ namespace InventoryManagementApp.Tests
         private sealed class DummySettingsService : ISettingsService
         {
             public event EventHandler<IDictionary<ItemDetailField, bool>>? ItemDetailVisibilityChanged;
+            public event EventHandler<double>? ItemCardSizeChanged;
             public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<string?> GetSettingAsync(string? key, CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
             public Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new Dictionary<string, string>());
@@ -370,6 +381,12 @@ namespace InventoryManagementApp.Tests
             public Task SaveItemDetailVisibilityAsync(IDictionary<ItemDetailField, bool> visibility, CancellationToken cancellationToken = default)
             {
                 ItemDetailVisibilityChanged?.Invoke(this, visibility);
+                return Task.CompletedTask;
+            }
+            public Task<double> GetItemCardSizeAsync(CancellationToken cancellationToken = default) => Task.FromResult(1.0);
+            public Task SaveItemCardSizeAsync(double size, CancellationToken cancellationToken = default)
+            {
+                ItemCardSizeChanged?.Invoke(this, size);
                 return Task.CompletedTask;
             }
         }

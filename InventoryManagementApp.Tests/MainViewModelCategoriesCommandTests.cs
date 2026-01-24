@@ -20,12 +20,10 @@ using InventoryManagementApp.Services.Maintenance;
 using InventoryManagementApp.Services.Calibration;
 using InventoryManagementApp.Services.Reservations;
 using InventoryManagementApp.Services.Kits;
+using InventoryManagementApp.Services.Vehicles;
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Views.Pages;
 using Xunit;
-using ItemModel = InventoryManagementApp.Models.Domain.ItemModel;
-using CustomerModel = InventoryManagementApp.Models.Domain.Customer;
-using RentalModel = InventoryManagementApp.Models.Domain.Rental;
 
 namespace InventoryManagementApp.Tests
 {
@@ -49,6 +47,7 @@ namespace InventoryManagementApp.Tests
                         })
                         .Build();
 
+                    WpfTestHelper.ShutdownApplication();
                     var app = new App(host);
 
                     var userContext = new StubUserContext();
@@ -56,6 +55,7 @@ namespace InventoryManagementApp.Tests
                     var calibrationService = new CalibrationService(db, userContext);
                     var reservationService = new ReservationService(db, userContext);
                     var kitService = new KitService(db, userContext);
+                    var vehicleIntakeService = new VehicleIntakeService(db, userContext);
 
                     var vm = new MainViewModel(
                         new StubItemService(),
@@ -73,6 +73,7 @@ namespace InventoryManagementApp.Tests
                         calibrationService,
                         reservationService,
                         kitService,
+                        vehicleIntakeService,
                         null,
                         NullLogger<MainViewModel>.Instance,
                         () => Task.FromResult(true),
@@ -83,7 +84,7 @@ namespace InventoryManagementApp.Tests
 
                     Assert.IsType<CategoriesPage>(vm.CurrentPage);
 
-                    app.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
                 catch (Exception ex)
                 {
@@ -112,9 +113,13 @@ namespace InventoryManagementApp.Tests
             public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => Task.FromResult(new List<int>());
             public Task ExportItemsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<List<int>> ImportItemsAsync(string filePath, IDataImporter<ItemModel> importer, CancellationToken cancellationToken = default) => Task.FromResult(new List<int>());
+            public Task ExportItemsAsync(string filePath, IDataExporter<ItemModel> exporter, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
             public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
             public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, Microsoft.Data.Sqlite.SqliteConnection? conn = null, Microsoft.Data.Sqlite.SqliteTransaction? tx = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<List<ItemModel>> GetMostCommonlyUsedItemsAsync(int limit, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
+            public Task<List<ItemModel>> GetIncompleteItemsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
         }
 
         private sealed class StubUserService : IUserService
@@ -122,7 +127,7 @@ namespace InventoryManagementApp.Tests
             public Task<List<User>> GetAllUsersAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<User>());
             public Task<int> CountUsersAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);
             public Task<User?> GetUserByIDAsync(int userID, CancellationToken cancellationToken = default) => Task.FromResult<User?>(null);
-            public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => Task.FromResult<(AuthenticationResult, User?)>((AuthenticationResult.Failed, null));
+            public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => Task.FromResult<(AuthenticationResult, User?)>((AuthenticationResult.IncorrectPassword, null));
             public Task<User?> GetCurrentUserAsync() => Task.FromResult<User?>(null);
             public Task AddUserAsync(User user) => Task.CompletedTask;
             public Task UpdateUserAsync(User user) => Task.CompletedTask;
@@ -150,6 +155,8 @@ namespace InventoryManagementApp.Tests
             public Task<List<Customer>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default) => Task.FromResult(new List<Customer>());
             public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default) => Task.FromResult(new CustomerImportResult());
             public Task ExportCustomersToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<int> ImportCustomersAsync(string filePath, IDataImporter<Customer> importer, CancellationToken cancellationToken = default) => Task.FromResult(0);
+            public Task ExportCustomersAsync(string filePath, IDataExporter<Customer> exporter, CancellationToken cancellationToken = default) => Task.CompletedTask;
         }
 
         private sealed class StubRentalService : IRentalService
@@ -164,6 +171,7 @@ namespace InventoryManagementApp.Tests
             public Task<List<Rental>> GetAllRentalsAsync() => Task.FromResult(new List<Rental>());
             public Task<List<Rental>> GetRentalHistoryForItemAsync(int itemID) => Task.FromResult(new List<Rental>());
             public Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID) => Task.FromResult(new List<Rental>());
+            public Task<List<ItemRentalFrequency>> GetRentalFrequencyAsync(int topN = 10) => Task.FromResult(new List<ItemRentalFrequency>());
         }
 
         private sealed class StubFileDialogService : IFileDialogService
@@ -176,6 +184,7 @@ namespace InventoryManagementApp.Tests
         private sealed class StubSettingsService : ISettingsService
         {
             public event EventHandler<IDictionary<ItemDetailField, bool>>? ItemDetailVisibilityChanged;
+            public event EventHandler<double>? ItemCardSizeChanged;
             public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<string?> GetSettingAsync(string? key, CancellationToken cancellationToken = default) => Task.FromResult(key == "DefaultInventoryId" ? "1" : null);
             public Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new Dictionary<string, string>());
@@ -193,6 +202,12 @@ namespace InventoryManagementApp.Tests
             public Task SaveItemLabelPluralAsync(string label, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<IDictionary<ItemDetailField, bool>> GetItemDetailVisibilityAsync(CancellationToken cancellationToken = default) => Task.FromResult<IDictionary<ItemDetailField, bool>>(new Dictionary<ItemDetailField, bool>());
             public Task SaveItemDetailVisibilityAsync(IDictionary<ItemDetailField, bool> visibility, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<double> GetItemCardSizeAsync(CancellationToken cancellationToken = default) => Task.FromResult(1.0);
+            public Task SaveItemCardSizeAsync(double size, CancellationToken cancellationToken = default)
+            {
+                ItemCardSizeChanged?.Invoke(this, size);
+                return Task.CompletedTask;
+            }
         }
 
         private sealed class StubThemeService : IThemeService

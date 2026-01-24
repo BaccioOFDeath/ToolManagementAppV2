@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Data;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Services.Items;
 using InventoryManagementApp.Services.Rentals;
@@ -23,7 +24,9 @@ namespace InventoryManagementApp.Tests
         {
             _testDbPath = Path.Combine(Path.GetTempPath(), $"test_rental_freq_{Guid.NewGuid()}.db");
             _dbService = new DatabaseService(_testDbPath);
-            _itemService = new ItemService(_dbService);
+            var factory = new SqliteConnectionFactory(_dbService.ConnectionString);
+            var repository = new ItemRepository(factory);
+            _itemService = new ItemService(_dbService, repository);
             _customerService = new CustomerService(_dbService);
             _rentalService = new RentalService(_dbService, itemService: _itemService);
         }
@@ -38,20 +41,29 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public async Task GetRentalFrequencyAsync_ReturnsItemsOrderedByRentalCount()
         {
-            var customer = await _customerService.AddCustomerAsync("Test Customer", "test@test.com", "John Doe", "", "", "");
-            
-            var item1 = await _itemService.AddItemAsync("ITEM001", "Item 1", "Loc1", 5, 0, false);
-            var item2 = await _itemService.AddItemAsync("ITEM002", "Item 2", "Loc2", 5, 0, false);
-            var item3 = await _itemService.AddItemAsync("ITEM003", "Item 3", "Loc3", 5, 0, false);
+            var customer = new CustomerModel
+            {
+                Company = "Test Customer",
+                Email = "test@test.com",
+                Contact = "John Doe"
+            };
+            await _customerService.AddCustomerAsync(customer);
 
-            await _rentalService.RentItemAsync(item1, customer, DateTime.Today.AddDays(-30), DateTime.Today.AddDays(-23));
-            await _rentalService.RentItemAsync(item1, customer, DateTime.Today.AddDays(-20), DateTime.Today.AddDays(-13));
-            await _rentalService.RentItemAsync(item1, customer, DateTime.Today.AddDays(-10), DateTime.Today.AddDays(-3));
-            
-            await _rentalService.RentItemAsync(item2, customer, DateTime.Today.AddDays(-15), DateTime.Today.AddDays(-8));
-            await _rentalService.RentItemAsync(item2, customer, DateTime.Today.AddDays(-5), DateTime.Today.AddDays(2));
+            var item1 = new ItemModel { ItemNumber = "ITEM001", Name = "Item 1", Location = "Loc1", QuantityOnHand = 5, IsRentalItem = false };
+            var item2 = new ItemModel { ItemNumber = "ITEM002", Name = "Item 2", Location = "Loc2", QuantityOnHand = 5, IsRentalItem = false };
+            var item3 = new ItemModel { ItemNumber = "ITEM003", Name = "Item 3", Location = "Loc3", QuantityOnHand = 5, IsRentalItem = false };
+            await _itemService.AddItemAsync(item1);
+            await _itemService.AddItemAsync(item2);
+            await _itemService.AddItemAsync(item3);
 
-            await _rentalService.RentItemAsync(item3, customer, DateTime.Today.AddDays(-7), DateTime.Today);
+            await _rentalService.RentItemAsync(item1.ItemID, customer.CustomerID, DateTime.Today.AddDays(-30), DateTime.Today.AddDays(-23));
+            await _rentalService.RentItemAsync(item1.ItemID, customer.CustomerID, DateTime.Today.AddDays(-20), DateTime.Today.AddDays(-13));
+            await _rentalService.RentItemAsync(item1.ItemID, customer.CustomerID, DateTime.Today.AddDays(-10), DateTime.Today.AddDays(-3));
+            
+            await _rentalService.RentItemAsync(item2.ItemID, customer.CustomerID, DateTime.Today.AddDays(-15), DateTime.Today.AddDays(-8));
+            await _rentalService.RentItemAsync(item2.ItemID, customer.CustomerID, DateTime.Today.AddDays(-5), DateTime.Today.AddDays(2));
+
+            await _rentalService.RentItemAsync(item3.ItemID, customer.CustomerID, DateTime.Today.AddDays(-7), DateTime.Today);
 
             var frequencies = await _rentalService.GetRentalFrequencyAsync(10);
 
@@ -67,14 +79,28 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public async Task GetRentalFrequencyAsync_WithTopN_ReturnsOnlyTopNItems()
         {
-            var customer = await _customerService.AddCustomerAsync("Test Customer", "test@test.com", "John Doe", "", "", "");
+            var customer = new CustomerModel
+            {
+                Company = "Test Customer",
+                Email = "test@test.com",
+                Contact = "John Doe"
+            };
+            await _customerService.AddCustomerAsync(customer);
             
             for (int i = 1; i <= 5; i++)
             {
-                var item = await _itemService.AddItemAsync($"ITEM{i:D3}", $"Item {i}", "Loc", 10, 0, false);
+                var item = new ItemModel
+                {
+                    ItemNumber = $"ITEM{i:D3}",
+                    Name = $"Item {i}",
+                    Location = "Loc",
+                    QuantityOnHand = 10,
+                    IsRentalItem = false
+                };
+                await _itemService.AddItemAsync(item);
                 for (int j = 0; j < i; j++)
                 {
-                    await _rentalService.RentItemAsync(item, customer, 
+                    await _rentalService.RentItemAsync(item.ItemID, customer.CustomerID, 
                         DateTime.Today.AddDays(-j * 10), DateTime.Today.AddDays(-j * 10 + 5));
                 }
             }
@@ -89,8 +115,10 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public async Task GetRentalFrequencyAsync_WithNoRentals_ReturnsEmptyList()
         {
-            await _itemService.AddItemAsync("ITEM001", "Item 1", "Loc1", 5, 0, false);
-            await _itemService.AddItemAsync("ITEM002", "Item 2", "Loc2", 5, 0, false);
+            var item1 = new ItemModel { ItemNumber = "ITEM001", Name = "Item 1", Location = "Loc1", QuantityOnHand = 5, IsRentalItem = false };
+            var item2 = new ItemModel { ItemNumber = "ITEM002", Name = "Item 2", Location = "Loc2", QuantityOnHand = 5, IsRentalItem = false };
+            await _itemService.AddItemAsync(item1);
+            await _itemService.AddItemAsync(item2);
 
             var frequencies = await _rentalService.GetRentalFrequencyAsync(10);
 

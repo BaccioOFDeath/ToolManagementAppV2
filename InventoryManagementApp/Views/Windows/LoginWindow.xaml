@@ -17,17 +17,17 @@
         <KeyBinding Key="Enter" Command="{Binding SelectUserCommand}" CommandParameter="{Binding SelectedUser}"/>
     </Window.InputBindings>
 
-    <Grid Margin="16">
+    <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <Border Style="{StaticResource Card}" Padding="10" Margin="0,0,0,8">
+        <Border Style="{StaticResource ToolbarCard}">
             <DockPanel LastChildFill="False">
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-                    <Image Source="{Binding CompanyLogo}" Width="36" Height="36" Margin="0,0,10,0"/>
+                    <Image Source="{Binding CompanyLogo}" Width="32" Height="32" Margin="0,0,8,0"/>
                     <TextBlock Text="{Binding WindowTitle}" Style="{StaticResource HeadingTextBlock}" VerticalAlignment="Center"/>
                 </StackPanel>
                 <TextBlock DockPanel.Dock="Right" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" 
@@ -36,13 +36,13 @@
         </Border>
 
         <!-- Users -->
-        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="12">
+        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="8">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <ItemsControl x:Name="UsersListBox"
                               ItemsSource="{Binding Users}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal" IsItemsHost="True"/>
+                            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" IsItemsHost="True"/>
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
@@ -50,20 +50,20 @@
                             <Button Command="{Binding DataContext.SelectUserCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
                                     CommandParameter="{Binding}"
                                     Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand">
-                                <Grid Width="100" Margin="6">
+                                <Grid Width="90" Margin="4">
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="80"/>
+                                        <RowDefinition Height="70"/>
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
                                     <Border Background="{DynamicResource SurfaceAltBrush}"
-                                            CornerRadius="8"
+                                            CornerRadius="{StaticResource RadiusSmall}"
                                             BorderBrush="{DynamicResource BorderBrushAlt}"
                                             BorderThickness="1"
                                             ClipToBounds="True">
                                         <controls:UserAvatar UserName="{Binding UserName}"
                                                             UserPhotoPath="{Binding UserPhotoPath}"
                                                             Foreground="{Binding InitialsBrush}"
-                                                            FontSize="48"/>
+                                                            FontSize="40"/>
                                     </Border>
                                     <TextBlock Grid.Row="1"
                                                Text="{Binding UserName}"

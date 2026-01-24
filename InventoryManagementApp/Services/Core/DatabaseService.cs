@@ -13,7 +13,7 @@ namespace InventoryManagementApp.Services.Core
     /// Provides Sqlite database access for the application. Instances should be
     /// disposed when no longer needed to release pooled connections.
     /// </summary>
-    public class DatabaseService : IDisposable, IDatabaseBackupService, IDatabaseService
+    public class DatabaseService : IDisposable, IAsyncDisposable, IDatabaseBackupService, IDatabaseService
     {
         public string ConnectionString { get; }
         private readonly ILogger<DatabaseService> _logger;
@@ -31,6 +31,18 @@ namespace InventoryManagementApp.Services.Core
 
         public DatabaseService(string dbPath, ILogger<DatabaseService>? logger = null)
         {
+            // Ensure database file exists (create if missing), but skip in-memory databases.
+            var isInMemory = dbPath.Contains(":memory:", StringComparison.OrdinalIgnoreCase);
+            if (!isInMemory)
+            {
+                if (!File.Exists(dbPath))
+                {
+                    var dir = Path.GetDirectoryName(dbPath);
+                    if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                        Directory.CreateDirectory(dir);
+                    using (File.Create(dbPath)) { }
+                }
+            }
             var builder = new SqliteConnectionStringBuilder
             {
                 DataSource = dbPath,
@@ -48,6 +60,12 @@ namespace InventoryManagementApp.Services.Core
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            Dispose();
+            return ValueTask.CompletedTask;
         }
 
         protected virtual void Dispose(bool disposing)
@@ -96,10 +114,12 @@ namespace InventoryManagementApp.Services.Core
                     Supplier TEXT,
                     PurchasedDate DATETIME,
                     Notes TEXT,
+                    Keywords TEXT,
                     AvailableQuantity INTEGER NOT NULL DEFAULT 0,
                     RentedQuantity INTEGER NOT NULL DEFAULT 0,
                     IsRentalItem INTEGER NOT NULL DEFAULT 0,
                     Price NUMERIC NOT NULL DEFAULT 0,
+                    ImagePath TEXT,
                     IsPowered INTEGER NOT NULL DEFAULT 0,
                     IsCheckedOut INTEGER NOT NULL DEFAULT 0,
                     CheckedOutBy TEXT,

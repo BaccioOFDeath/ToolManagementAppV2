@@ -17,7 +17,7 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
-                    var app = new Application();
+                    var app = WpfTestHelper.CreateApplication();
                     var ctx = new ApplicationUserContext();
                     var user = new User();
                     int eventCount = 0;
@@ -39,7 +39,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);
@@ -56,7 +56,7 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
-                    var app = new Application();
+                    var app = WpfTestHelper.CreateApplication();
                     var ctx = new ApplicationUserContext();
                     var user1 = new User();
                     var user2 = new User();
@@ -77,7 +77,7 @@ namespace InventoryManagementApp.Tests
                 }
                 finally
                 {
-                    Application.Current?.Shutdown();
+                    WpfTestHelper.ShutdownApplication();
                 }
             });
             thread.SetApartmentState(ApartmentState.STA);

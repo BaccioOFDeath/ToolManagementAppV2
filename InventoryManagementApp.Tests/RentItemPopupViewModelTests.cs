@@ -8,7 +8,6 @@ using InventoryManagementApp.ViewModels.Rental;
 using InventoryManagementApp.Models.ImportExport;
 using InventoryManagementApp.ViewModels;
 using System.Windows.Documents;
-using CustomerModel = InventoryManagementApp.Models.Domain.Customer;
 
 namespace InventoryManagementApp.Tests
 {
@@ -46,6 +45,8 @@ namespace InventoryManagementApp.Tests
             public Task<List<CustomerModel>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default) => throw new NotImplementedException();
             public Task ExportCustomersToCsvAsync(string filePath, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task<int> ImportCustomersAsync(string filePath, IDataImporter<CustomerModel> importer, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+            public Task ExportCustomersAsync(string filePath, IDataExporter<CustomerModel> exporter, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         }
 
         private sealed class StubDialogService : IDialogService
