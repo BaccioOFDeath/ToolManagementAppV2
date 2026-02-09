@@ -7,7 +7,7 @@ namespace InventoryManagementApp.Views.Pages
 {
     public partial class DashboardPage : Page
     {
-        private CancellationTokenSource _loadCts = new();
+        private CancellationTokenSource? _loadCts;
 
         public DashboardPage()
         {
@@ -20,6 +20,7 @@ namespace InventoryManagementApp.Views.Pages
         {
             if (DataContext is DashboardViewModel vm)
             {
+                _loadCts = new CancellationTokenSource();
                 try
                 {
                     await vm.LoadAsync(_loadCts.Token);
@@ -32,9 +33,9 @@ namespace InventoryManagementApp.Views.Pages
 
         private void DashboardPage_Unloaded(object sender, RoutedEventArgs e)
         {
-            _loadCts.Cancel();
-            _loadCts.Dispose();
-            _loadCts = new CancellationTokenSource();
+            _loadCts?.Cancel();
+            _loadCts?.Dispose();
+            _loadCts = null;
         }
     }
 }
