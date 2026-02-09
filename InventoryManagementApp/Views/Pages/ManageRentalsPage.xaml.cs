@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using InventoryManagementApp.ViewModels;
 
 namespace InventoryManagementApp.Views.Pages
 {
@@ -23,6 +24,15 @@ namespace InventoryManagementApp.Views.Pages
         public ManageRentalsPage()
         {
             InitializeComponent();
+            Loaded += ManageRentalsPage_Loaded;
+        }
+
+        private async void ManageRentalsPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is ManageRentalsViewModel vm)
+            {
+                await vm.LoadRentalsAsync();
+            }
         }
     }
 }
