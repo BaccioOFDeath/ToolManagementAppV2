@@ -162,8 +162,8 @@ namespace InventoryManagementApp.ViewModels
             var ok = await _service.DeleteCategoryAsync(id);
             if (ok)
             {
-                var idx = Categories.IndexOf(Categories.First(x => x.CategoryID == id));
-                if (idx >= 0) Categories.RemoveAt(idx);
+                var item = Categories.FirstOrDefault(x => x.CategoryID == id);
+                if (item != null) Categories.Remove(item);
                 CategoryName = "";
                 SelectedCategory = null;
             }

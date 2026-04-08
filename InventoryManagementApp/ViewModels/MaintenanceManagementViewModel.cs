@@ -168,7 +168,7 @@ namespace InventoryManagementApp.ViewModels
                 {
                     await _maintenanceService.UpdateMaintenanceRecordAsync(clone);
                     var index = MaintenanceRecords.IndexOf(SelectedRecord);
-                    MaintenanceRecords[index] = clone;
+                    if (index >= 0) MaintenanceRecords[index] = clone;
                     ApplyFilter();
                     await _dialogService.ShowInfoAsync("Success", "Maintenance record updated successfully");
                 }
@@ -223,6 +223,9 @@ namespace InventoryManagementApp.ViewModels
                     SelectedRecord.CompletedDate = DateTime.Now;
                     SelectedRecord.PerformedBy = performedBy;
                     ApplyFilter();
+                    EditMaintenanceCommand.NotifyCanExecuteChanged();
+                    DeleteMaintenanceCommand.NotifyCanExecuteChanged();
+                    CompleteMaintenanceCommand.NotifyCanExecuteChanged();
                     await _dialogService.ShowInfoAsync("Success", "Maintenance marked as completed");
                 }
                 catch (Exception ex)

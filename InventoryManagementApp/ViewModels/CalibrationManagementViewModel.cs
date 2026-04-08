@@ -164,7 +164,7 @@ namespace InventoryManagementApp.ViewModels
                 {
                     await _calibrationService.UpdateCalibrationRecordAsync(clone);
                     var index = CalibrationRecords.IndexOf(SelectedRecord);
-                    CalibrationRecords[index] = clone;
+                    if (index >= 0) CalibrationRecords[index] = clone;
                     ApplyFilter();
                     await _dialogService.ShowInfoAsync("Success", "Calibration record updated successfully");
                 }

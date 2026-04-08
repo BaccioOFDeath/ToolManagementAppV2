@@ -167,6 +167,7 @@ namespace InventoryManagementApp.ViewModels
                 await _vehicleService.UpdateStatusAsync(SelectedVehicle.VehicleID, status);
                 SelectedVehicle.Status = status;
                 ApplyFilter();
+                UpdateCommandStates();
                 await _dialogService.ShowInfoAsync("Status updated", $"Vehicle moved to {status}.");
             }
             catch (Exception ex)
