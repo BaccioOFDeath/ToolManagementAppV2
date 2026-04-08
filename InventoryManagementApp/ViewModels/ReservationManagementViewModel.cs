@@ -194,7 +194,7 @@ namespace InventoryManagementApp.ViewModels
                 {
                     await _reservationService.UpdateReservationAsync(clone);
                     var index = Reservations.IndexOf(SelectedReservation);
-                    Reservations[index] = clone;
+                    if (index >= 0) Reservations[index] = clone;
                     ApplyFilter();
                     await _dialogService.ShowInfoAsync("Success", "Reservation updated successfully");
                 }
@@ -238,6 +238,9 @@ namespace InventoryManagementApp.ViewModels
                 await _reservationService.ConfirmReservationAsync(SelectedReservation.ReservationID);
                 SelectedReservation.Status = "Confirmed";
                 ApplyFilter();
+                ConfirmReservationCommand.NotifyCanExecuteChanged();
+                CancelReservationCommand.NotifyCanExecuteChanged();
+                FulfillReservationCommand.NotifyCanExecuteChanged();
                 await _dialogService.ShowInfoAsync("Success", "Reservation confirmed");
             }
             catch (Exception ex)
@@ -261,6 +264,9 @@ namespace InventoryManagementApp.ViewModels
                     await _reservationService.CancelReservationAsync(SelectedReservation.ReservationID);
                     SelectedReservation.Status = "Cancelled";
                     ApplyFilter();
+                    ConfirmReservationCommand.NotifyCanExecuteChanged();
+                    CancelReservationCommand.NotifyCanExecuteChanged();
+                    FulfillReservationCommand.NotifyCanExecuteChanged();
                     await _dialogService.ShowInfoAsync("Success", "Reservation cancelled");
                 }
                 catch (Exception ex)
@@ -286,6 +292,9 @@ namespace InventoryManagementApp.ViewModels
                     SelectedReservation.Status = "Fulfilled";
                     SelectedReservation.RentalID = rentalId;
                     ApplyFilter();
+                    ConfirmReservationCommand.NotifyCanExecuteChanged();
+                    CancelReservationCommand.NotifyCanExecuteChanged();
+                    FulfillReservationCommand.NotifyCanExecuteChanged();
                     await _dialogService.ShowInfoAsync("Success", "Reservation marked as fulfilled");
                 }
                 catch (Exception ex)

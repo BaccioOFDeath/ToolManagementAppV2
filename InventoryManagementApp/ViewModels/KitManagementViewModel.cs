@@ -212,7 +212,7 @@ namespace InventoryManagementApp.ViewModels
                 {
                     await _kitService.UpdateKitAsync(clone);
                     var index = Kits.IndexOf(SelectedKit);
-                    Kits[index] = clone;
+                    if (index >= 0) Kits[index] = clone;
                     ApplyFilter();
                     await _dialogService.ShowInfoAsync("Success", "Kit updated successfully");
                 }
@@ -303,7 +303,7 @@ namespace InventoryManagementApp.ViewModels
                 {
                     await _kitService.UpdateKitItemAsync(clone);
                     var index = KitItems.IndexOf(SelectedKitItem);
-                    KitItems[index] = clone;
+                    if (index >= 0) KitItems[index] = clone;
                     await _dialogService.ShowInfoAsync("Success", "Kit item updated successfully");
                 }
                 catch (Exception ex)

@@ -300,7 +300,7 @@ namespace InventoryManagementApp.ViewModels
                 }
 
                 AddRow("Rental #:", SelectedRental.RentalID.ToString());
-                AddRow("ItemModel #:", SelectedRental.ItemNumber);
+                AddRow("Item #:", SelectedRental.ItemNumber);
                 AddRow("Customer:", SelectedRental.CustomerName);
                 AddRow("Rental Date:", SelectedRental.RentalDate.ToString("yyyy-MM-dd HH:mm"));
                 AddRow("Due Date:", SelectedRental.DueDate.ToString("yyyy-MM-dd HH:mm"));
@@ -355,6 +355,12 @@ namespace InventoryManagementApp.ViewModels
         async Task DeleteRentalAsync()
         {
             if (SelectedRental == null)
+                return;
+
+            var confirmed = await _dialogService.ShowConfirmAsync(
+                "Delete Rental",
+                $"Are you sure you want to delete rental #{SelectedRental.RentalID}?");
+            if (!confirmed)
                 return;
 
             var rentalToDelete = SelectedRental;

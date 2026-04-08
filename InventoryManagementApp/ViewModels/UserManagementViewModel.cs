@@ -283,7 +283,9 @@ namespace InventoryManagementApp.ViewModels
             }
             else
             {
-                newUser.PasswordHash = entered;
+                var hash = SecurityHelper.HashPassword(entered, out var salt);
+                newUser.PasswordHash = hash;
+                newUser.PasswordSalt = salt;
             }
 
             try
