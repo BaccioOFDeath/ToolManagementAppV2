@@ -57,6 +57,10 @@
         </Grid>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Style="{StaticResource GhostButton}" Content="Edit" Command="{Binding EditCommand}" Margin="0,0,8,0"/>
+            <Button Style="{StaticResource GhostButton}" Content="Rent Out" Command="{Binding RentOutCommand}" Margin="0,0,8,0"/>
+            <Button Style="{StaticResource GhostButton}" Content="{Binding CheckOutButtonText}" Command="{Binding ToggleCheckOutCommand}" Margin="0,0,8,0"/>
+            <Button Style="{StaticResource GhostButton}" Content="Rental History" Command="{Binding OpenRentalHistoryCommand}" Margin="0,0,8,0"/>
             <Button Style="{StaticResource PrimaryButton}" Content="Close" Command="{Binding CloseCommand}"/>
         </StackPanel>
     </Grid>

@@ -87,7 +87,7 @@ namespace InventoryManagementApp.Services
         public void ShowItemDetails(ItemModel item)
         {
             ArgumentNullException.ThrowIfNull(item);
-            var win = new ItemDetailsWindow(item);
+            var win = ActivatorUtilities.CreateInstance<ItemDetailsWindow>(_serviceProvider, item);
             try { win.Owner = System.Windows.Application.Current?.MainWindow; }
             catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for ItemDetailsWindow"); }
             try { win.ShowDialog(); }

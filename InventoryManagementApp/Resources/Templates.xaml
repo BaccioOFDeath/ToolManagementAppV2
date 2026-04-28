@@ -50,22 +50,21 @@
                 </Border.Style>
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="118"/>
+                        <RowDefinition Height="148"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Border Grid.Row="0"
                             Background="{DynamicResource SurfaceAltBrush}"
                             BorderBrush="{DynamicResource BorderBrushAlt}"
                             BorderThickness="1">
-                        <Image Stretch="UniformToFill"
+                        <Image Stretch="Uniform"
+                               Margin="6"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
                                Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
                     </Border>
                     <StackPanel Grid.Row="1" Margin="0,8,0,0">
-                        <TextBlock Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
                         <TextBlock Text="{Binding Name}" Style="{StaticResource ListItemTitleTextBlock}" TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Text="{Binding Location, StringFormat=Location: {0}}" Style="{StaticResource CaptionTextBlock}" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Text="{Binding OnHand, StringFormat=On Hand: {0}}" Style="{StaticResource CaptionTextBlock}" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Text="{Binding Notes}" Style="{StaticResource CaptionTextBlock}" Margin="0,4,0,0" MaxHeight="34" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                 </Grid>
             </Border>

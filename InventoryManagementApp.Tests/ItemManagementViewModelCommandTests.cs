@@ -78,11 +78,108 @@ namespace InventoryManagementApp.Tests
             Assert.Same(item, dialog.LastDetailedItem);
         }
 
+        [Fact]
+        public async Task ItemDetailsViewModel_RentalHistoryCommand_ShowsHistory()
+        {
+            var rental = new RecordingRentalService();
+            var dialog = new RecordingDialogService();
+            var itemService = new RecordingToggleItemService();
+            var customer = new RecordingCustomerService();
+            var item = new ItemModel { ItemID = 12, Name = "Brake Bleeder" };
+            var vm = new ItemDetailsViewModel(item, itemService, customer, rental, dialog, () => { });
+
+            await vm.OpenRentalHistoryCommand.ExecuteAsync(null);
+
+            Assert.Equal(12, rental.LastHistoryItemId);
+            Assert.True(dialog.ShowRentalHistoryCalled);
+            Assert.Same(item, dialog.LastHistoryItem);
+        }
+
+        [Fact]
+        public async Task ItemDetailsViewModel_EditCommand_UpdatesItem()
+        {
+            var rental = new RecordingRentalService();
+            var dialog = new RecordingDialogService();
+            var itemService = new RecordingToggleItemService();
+            var customer = new RecordingCustomerService();
+            var item = new ItemModel { ItemID = 3, Name = "Original", Location = "A1" };
+            dialog.EditItemDialogResult = new ItemModel { ItemID = 3, Name = "Updated", Location = "B9" };
+            var vm = new ItemDetailsViewModel(item, itemService, customer, rental, dialog, () => { });
+
+            await vm.EditCommand.ExecuteAsync(null);
+
+            Assert.True(itemService.UpdateCalled);
+            Assert.Equal("Updated", item.Name);
+            Assert.Equal("B9", item.Location);
+        }
+
+        [Fact]
+        public async Task ItemDetailsViewModel_ToggleCheckOutCommand_UpdatesItemState()
+        {
+            var rental = new RecordingRentalService();
+            var dialog = new RecordingDialogService();
+            var itemService = new RecordingToggleItemService
+            {
+                GetItemResult = new ItemModel
+                {
+                    ItemID = 4,
+                    CheckedOutBy = "Alex",
+                    CheckedOutTime = new DateTime(2026, 4, 28, 10, 0, 0)
+                }
+            };
+            var customer = new RecordingCustomerService();
+            var item = new ItemModel { ItemID = 4, QuantityOnHand = 2, IsCheckedOut = false };
+            var vm = new ItemDetailsViewModel(item, itemService, customer, rental, dialog, () => { });
+
+            await vm.ToggleCheckOutCommand.ExecuteAsync(null);
+
+            Assert.True(itemService.ToggleCalled);
+            Assert.True(item.IsCheckedOut);
+            Assert.Equal(1, item.QuantityOnHand);
+            Assert.Equal("Alex", item.CheckedOutBy);
+            Assert.Equal("Check In", vm.CheckOutButtonText);
+        }
+
+        [Fact]
+        public async Task ItemDetailsViewModel_RentOutCommand_RentsItemAndRefreshesState()
+        {
+            var rental = new RecordingRentalService();
+            var dialog = new RecordingDialogService
+            {
+                RentItemDialogResult = (new CustomerModel { CustomerID = 8 }, DateTime.Today.AddDays(3))
+            };
+            var itemService = new RecordingToggleItemService
+            {
+                GetItemResult = new ItemModel
+                {
+                    ItemID = 6,
+                    QuantityOnHand = 1,
+                    RentedQuantity = 1,
+                    Name = "Updated after rent"
+                }
+            };
+            var customer = new RecordingCustomerService();
+            var item = new ItemModel { ItemID = 6, QuantityOnHand = 2, RentedQuantity = 0, Name = "Before rent" };
+            var vm = new ItemDetailsViewModel(item, itemService, customer, rental, dialog, () => { });
+
+            await vm.RentOutCommand.ExecuteAsync(null);
+
+            Assert.True(customer.GetAllCalled);
+            Assert.True(dialog.RentItemDialogCalled);
+            Assert.True(rental.RentCalled);
+            Assert.Equal(6, rental.ItemId);
+            Assert.Equal(8, rental.CustomerId);
+            Assert.Equal(1, item.QuantityOnHand);
+            Assert.Equal(1, item.RentedQuantity);
+            Assert.Equal("Updated after rent", item.Name);
+        }
+
         private sealed class RecordingRentalService : IRentalService
         {
             public bool RentCalled { get; private set; }
             public int ItemId { get; private set; }
             public int CustomerId { get; private set; }
+            public int LastHistoryItemId { get; private set; }
             public Task RentItemAsync(int itemID, int customerID, DateTime rentalDate, DateTime dueDate)
             {
                 RentCalled = true;
@@ -97,7 +194,11 @@ namespace InventoryManagementApp.Tests
             public Task<int> CountActiveRentalsAsync() => Task.FromResult(0);
             public Task<List<Rental>> GetOverdueRentalsAsync() => Task.FromResult(new List<Rental>());
             public Task<List<Rental>> GetAllRentalsAsync() => Task.FromResult(new List<Rental>());
-            public Task<List<Rental>> GetRentalHistoryForItemAsync(int itemID) => Task.FromResult(new List<Rental>());
+            public Task<List<Rental>> GetRentalHistoryForItemAsync(int itemID)
+            {
+                LastHistoryItemId = itemID;
+                return Task.FromResult(new List<Rental>());
+            }
             public Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID) => Task.FromResult(new List<Rental>());
             public Task<List<ItemRentalFrequency>> GetRentalFrequencyAsync(int topN = 10) => Task.FromResult(new List<ItemRentalFrequency>());
         }
@@ -126,11 +227,15 @@ namespace InventoryManagementApp.Tests
         {
             public bool RentItemDialogCalled { get; private set; }
             public bool ShowItemDetailsCalled { get; private set; }
+            public bool ShowRentalHistoryCalled { get; private set; }
             public ItemModel? LastDetailedItem { get; private set; }
+            public ItemModel? LastHistoryItem { get; private set; }
             public (CustomerModel customer, DateTime dueDate)? RentItemDialogResult { get; set; }
+            public ItemModel? EditItemDialogResult { get; set; }
             public void ShowInfo(string message, string title) { }
             public bool ShowConfirmation(string message, string title) => true;
-            public ItemModel? ShowEditItemDialog(ItemModel item) => null;
+            public ItemModel? ShowEditItemDialog(ItemModel item) => EditItemDialogResult;
+            public Task<ItemModel?> ShowEditItemDialogAsync(ItemModel item) => Task.FromResult(EditItemDialogResult);
             public void ShowItemDetails(ItemModel item)
             {
                 ShowItemDetailsCalled = true;
@@ -144,7 +249,11 @@ namespace InventoryManagementApp.Tests
             public CustomerModel? ShowAddCustomerDialog() => null;
             public CustomerModel? ShowEditCustomerDialog(CustomerModel customer) => null;
             public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
-            public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history) { }
+            public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history)
+            {
+                ShowRentalHistoryCalled = true;
+                LastHistoryItem = item;
+            }
             public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties, IEnumerable<string>? requiredPropertyNames = null) => null;
             public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
@@ -212,10 +321,18 @@ namespace InventoryManagementApp.Tests
         private sealed class RecordingToggleItemService : IItemService
         {
             public bool ToggleCalled { get; private set; }
+            public bool UpdateCalled { get; private set; }
+            public ItemModel? UpdatedItem { get; private set; }
+            public ItemModel? GetItemResult { get; set; }
             public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default)
+            {
+                UpdateCalled = true;
+                UpdatedItem = item;
+                return Task.CompletedTask;
+            }
             public Task DeleteItemAsync(int itemID, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default) => Task.FromResult<ItemModel?>(null);
+            public Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default) => Task.FromResult(GetItemResult);
             public IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default) => AsyncEnumerable.Empty<ItemModel>();
             public IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default) => AsyncEnumerable.Empty<ItemModel>();
             public Task<int> CountItemsAsync(ItemFilter filter, CancellationToken ct) => Task.FromResult(0);

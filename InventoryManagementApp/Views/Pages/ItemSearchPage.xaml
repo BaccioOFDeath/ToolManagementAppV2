@@ -6,23 +6,7 @@
       Background="{DynamicResource BackgroundBrush}"
       Loaded="Page_Loaded">
     <Grid Margin="0">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-
-        <Border Style="{StaticResource ToolbarCard}">
-            <DockPanel LastChildFill="False">
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                    <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditItemCommand}" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Details" Command="{Binding ViewDetailsCommand}" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Rent" Command="{Binding OpenRentalsCommand}" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Rental History" Command="{Binding OpenRentalHistoryCommand}"/>
-                </StackPanel>
-            </DockPanel>
-        </Border>
-
-        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="8">
+        <Border Style="{StaticResource Card}" Padding="8">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <ItemsControl ItemsSource="{Binding SearchResults}">
                     <ItemsControl.ItemsPanel>

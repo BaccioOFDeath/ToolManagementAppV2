@@ -18,13 +18,18 @@ namespace InventoryManagementApp.Tests
             var template = doc.Root?.Elements(ns + "DataTemplate").First(e => e.Attribute(x + "Key")?.Value == "ItemCardTemplate");
             var image = template!.Descendants(ns + "Image").First();
             Assert.Contains("NullToDefaultImageConverter", image.Attribute("Source")?.Value);
+            Assert.Equal("Uniform", image.Attribute("Stretch")?.Value);
 
             var texts = template.Descendants(ns + "TextBlock")
                 .Select(element => element.Attribute("Text")?.Value)
                 .Where(value => value != null)
                 .ToList();
 
-            Assert.Contains("{Binding OnHand, StringFormat=On Hand: {0}}", texts);
+            Assert.Contains("{Binding Name}", texts);
+            Assert.DoesNotContain("{Binding Notes}", texts);
+            Assert.DoesNotContain("{Binding ItemNumber}", texts);
+            Assert.DoesNotContain("{Binding Location, StringFormat=Location: {0}}", texts);
+            Assert.DoesNotContain("{Binding OnHand, StringFormat=On Hand: {0}}", texts);
 
             var triggers = template.Descendants(ns + "DataTrigger")
                 .Select(trigger => trigger.Attribute("Binding")?.Value)

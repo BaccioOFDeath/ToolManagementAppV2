@@ -70,8 +70,6 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Border Background="{DynamicResource SurfaceAltBrush}"
-                        BorderBrush="{DynamicResource BorderBrushAlt}"
-                        BorderThickness="1"
                         Padding="10"
                         Margin="0,0,0,8">
                     <Grid>
@@ -79,20 +77,15 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Border Width="52"
-                                Height="52"
-                                CornerRadius="14"
-                                Background="{DynamicResource SurfaceBrush}"
-                                BorderBrush="{DynamicResource BorderBrushBase}"
-                                BorderThickness="1"
-                                VerticalAlignment="Center">
-                            <TextBlock Text="{Binding CurrentNavSectionIconGlyph}"
-                                       FontFamily="Segoe MDL2 Assets"
-                                       FontSize="28"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       Foreground="{DynamicResource AccentBrush}"/>
-                        </Border>
+                        <TextBlock Text="{Binding CurrentNavSectionIconGlyph}"
+                                   Width="52"
+                                   Height="52"
+                                   FontFamily="Segoe MDL2 Assets"
+                                   FontSize="32"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Center"
+                                   Foreground="{DynamicResource ForegroundMutedBrush}"/>
                         <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Sections" Style="{StaticResource PageTitleTextBlock}"/>
                             <TextBlock Text="{Binding CurrentNavSectionTitle}" Style="{StaticResource CaptionTextBlock}"/>
