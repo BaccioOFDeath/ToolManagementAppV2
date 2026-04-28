@@ -11,6 +11,7 @@
     <Color x:Key="Col.FgMuted">#9A9A9A</Color>
     <Color x:Key="Col.Success">#3FB950</Color>
     <Color x:Key="Col.Error">#F14C4C</Color>
+    <Color x:Key="Col.Warning">#D7BA7D</Color>
     <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource Col.Background}"/>
     <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource Col.Surface}"/>
     <SolidColorBrush x:Key="SurfaceAltBrush" Color="{StaticResource Col.SurfaceAlt}"/>
@@ -20,6 +21,7 @@
     <SolidColorBrush x:Key="ForegroundMutedBrush" Color="{StaticResource Col.FgMuted}"/>
     <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Col.Success}"/>
     <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource Col.Error}"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Col.Warning}"/>
     <Color x:Key="Col.Accent">#0E639C</Color>
     <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Col.Accent}"/>
     <Color x:Key="Col.OnAccent">#FFFFFF</Color>
@@ -42,6 +44,8 @@
     <SolidColorBrush x:Key="FocusVisualStrokeBrush" Color="{StaticResource Col.Accent}"/>
     <SolidColorBrush x:Key="ItemHoverBrush" Color="#2A2D2E"/>
     <SolidColorBrush x:Key="ItemSelectedBrush" Color="#094771"/>
+    <SolidColorBrush x:Key="ItemHoverForegroundBrush" Color="{StaticResource Col.Fg}"/>
+    <SolidColorBrush x:Key="ItemSelectedForegroundBrush" Color="{StaticResource Col.OnAccent}"/>
     <SolidColorBrush x:Key="DisabledForegroundBrush" Color="#6C7A86"/>
     <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="#202630"/>
     <SolidColorBrush x:Key="DataGridRowBackgroundBrush" Color="#1B212A"/>

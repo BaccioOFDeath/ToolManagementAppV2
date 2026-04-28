@@ -20,7 +20,6 @@ using InventoryManagementApp.Services.Maintenance;
 using InventoryManagementApp.Services.Calibration;
 using InventoryManagementApp.Services.Reservations;
 using InventoryManagementApp.Services.Kits;
-using InventoryManagementApp.Services.Vehicles;
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Views.Pages;
 using Xunit;
@@ -55,7 +54,6 @@ namespace InventoryManagementApp.Tests
                     var calibrationService = new CalibrationService(db, userContext);
                     var reservationService = new ReservationService(db, userContext);
                     var kitService = new KitService(db, userContext);
-                    var vehicleIntakeService = new VehicleIntakeService(db, userContext);
 
                     var vm = new MainViewModel(
                         new StubItemService(),
@@ -73,7 +71,6 @@ namespace InventoryManagementApp.Tests
                         calibrationService,
                         reservationService,
                         kitService,
-                        vehicleIntakeService,
                         null,
                         NullLogger<MainViewModel>.Instance,
                         () => Task.FromResult(true),

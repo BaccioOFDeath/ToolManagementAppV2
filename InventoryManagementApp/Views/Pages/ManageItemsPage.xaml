@@ -33,6 +33,7 @@
                             Command="{Binding NewItemCommand}"/>
                 </StackPanel>
                 <pages:SearchBar DockPanel.Dock="Right"
+                                 Width="360"
                                  Text="{Binding Filter}"
                                  SearchCommand="{Binding SearchCommand}"
                                  SearchLabel="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Search {0}}"/>

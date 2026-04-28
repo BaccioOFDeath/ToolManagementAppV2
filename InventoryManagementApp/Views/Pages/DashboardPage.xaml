@@ -7,22 +7,42 @@
     <Grid Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <ItemsControl Grid.Row="0"
-                      ItemsSource="{Binding StatCards}"
-                      ItemTemplate="{StaticResource StatCardTemplate}"
-                      ItemsPanel="{StaticResource WrapPanelItems}"/>
+        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}">
+            <DockPanel LastChildFill="False">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <Button Style="{StaticResource PrimaryButton}"
+                            Content="New Item"
+                            Command="{Binding NewItemCommand}"
+                            Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource PrimaryButton}"
+                            Content="Open Rentals"
+                            Command="{Binding OpenRentalsCommand}"
+                            Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource GhostButton}"
+                            Content="Import / Export"
+                            Command="{Binding OpenImportExportCommand}"/>
+                </StackPanel>
+                <ItemsControl DockPanel.Dock="Right"
+                              ItemsSource="{Binding StatCards}"
+                              ItemTemplate="{StaticResource StatCardTemplate}"
+                              ItemsPanel="{StaticResource WrapPanelItems}"/>
+            </DockPanel>
+        </Border>
 
-        <Grid Grid.Row="1" Margin="0,8,0,0">
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-            <Border Grid.Column="0" Style="{StaticResource Card}">
+            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource Card}" Margin="0,0,6,6">
                 <DockPanel>
                     <TextBlock Text="Commonly Used Items" Style="{StaticResource SubheadingTextBlock}" DockPanel.Dock="Top" Margin="0,0,0,6"/>
                     <ListView ItemsSource="{Binding CommonlyUsedItems}"
@@ -72,76 +92,7 @@
                 </DockPanel>
             </Border>
 
-            <Border Grid.Column="1" Style="{StaticResource Card}">
-                <StackPanel>
-                    <TextBlock Text="Quick Actions" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,6"/>
-                    <WrapPanel>
-                        <Button Style="{StaticResource PrimaryButton}"
-                                Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}"
-                                ContentStringFormat="New {0}"
-                                Command="{Binding NewItemCommand}"
-                                Margin="0,0,6,6"/>
-                        <Button Style="{StaticResource PrimaryButton}"
-                                Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}"
-                                ContentStringFormat="Rent {0}"
-                                Command="{Binding OpenRentalsCommand}"
-                                Margin="0,0,6,6"/>
-                        <Button Style="{StaticResource PrimaryButton}"
-                                Content="Print My Items"
-                                Command="{Binding PrintCheckedOutItemsCommand}"
-                                Margin="0,0,6,6"
-                                ToolTip="Print list of items you have checked out"/>
-                    </WrapPanel>
-                </StackPanel>
-            </Border>
-        </Grid>
-
-        <Grid Grid.Row="2" Margin="0,8,0,0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource Card}">
-                <StackPanel>
-                    <TextBlock Text="Items With Issues" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,6" Foreground="{DynamicResource ErrorBrush}"/>
-                    <ListView ItemsSource="{Binding IncompleteItems}"
-                              Style="{StaticResource CardListView}"
-                              VirtualizingPanel.IsVirtualizing="True"
-                              VirtualizingPanel.VirtualizationMode="Recycling">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel>
-                                    <StackPanel.ToolTip>
-                                        <StackPanel>
-                                            <Image Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
-                                                   MaxWidth="150"
-                                                   MaxHeight="150"
-                                                   Stretch="Uniform"/>
-                                            <TextBlock Text="{Binding MissingComponentsNotes}" TextWrapping="Wrap" Margin="0,4,0,0" FontWeight="Bold"/>
-                                            <TextBlock Text="{Binding IssuesNotes}" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                                        </StackPanel>
-                                    </StackPanel.ToolTip>
-                                    <TextBlock Text="{Binding ItemNumber}" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding Name}" Margin="0,2,0,0"/>
-                                    <TextBlock Text="{Binding MissingComponentsNotes}" TextWrapping="Wrap" Margin="0,2,0,0" Foreground="{DynamicResource ErrorBrush}" FontSize="11" MaxHeight="40"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                        <ListView.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <VirtualizingStackPanel/>
-                            </ItemsPanelTemplate>
-                        </ListView.ItemsPanel>
-                    </ListView>
-                </StackPanel>
-            </Border>
-
-            <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource Card}">
+            <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource Card}" Margin="0,0,0,6">
                 <StackPanel>
                     <TextBlock Text="Recent Activity" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,6"/>
                     <ListView ItemsSource="{Binding RecentActivity}"
@@ -158,7 +109,7 @@
                 </StackPanel>
             </Border>
 
-            <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource Card}">
+            <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource Card}" Margin="0,0,6,0">
                 <StackPanel>
                     <TextBlock Text="Checked-Out Items" Style="{StaticResource SubheadingTextBlock}" Margin="0,0,0,6"/>
                     <ListView ItemsSource="{Binding CheckedOutItems}"
@@ -167,28 +118,20 @@
                               VirtualizingPanel.VirtualizationMode="Recycling">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <StackPanel.ToolTip>
-                                        <Image Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
-                                               MaxWidth="150"
-                                               MaxHeight="150"
-                                               Stretch="Uniform"/>
-                                    </StackPanel.ToolTip>
-                                    <TextBlock Text="{Binding ItemNumber}" Margin="0,0,8,0"/>
-                                    <TextBlock Text="{Binding CheckedOutBy}" Margin="0,0,8,0"/>
+                                <DockPanel>
                                     <Button Content="Check In"
                                             Style="{StaticResource GhostButton}"
+                                            DockPanel.Dock="Right"
                                             Command="{Binding DataContext.CheckInItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
-                                            CommandParameter="{Binding}"
-                                            Margin="0,0,0,0"/>
-                                </StackPanel>
+                                            CommandParameter="{Binding}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding ItemNumber}" Margin="0,0,8,0"/>
+                                        <TextBlock Text="{Binding CheckedOutBy}" Margin="0,0,8,0"/>
+                                        <TextBlock Text="{Binding CheckedOutTime, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Style="{StaticResource CaptionTextBlock}"/>
+                                    </StackPanel>
+                                </DockPanel>
                             </DataTemplate>
                         </ListView.ItemTemplate>
-                        <ListView.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <VirtualizingStackPanel/>
-                            </ItemsPanelTemplate>
-                        </ListView.ItemsPanel>
                     </ListView>
                 </StackPanel>
             </Border>
@@ -202,29 +145,46 @@
                               VirtualizingPanel.VirtualizationMode="Recycling">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <StackPanel.ToolTip>
-                                        <Image Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
-                                               MaxWidth="150"
-                                               MaxHeight="150"
-                                               Stretch="Uniform"/>
-                                    </StackPanel.ToolTip>
-                                    <TextBlock Text="{Binding ItemNumber}" Margin="0,0,8,0"/>
-                                    <TextBlock Text="{Binding CustomerName}" Margin="0,0,8,0"/>
+                                <DockPanel>
                                     <Button Content="Return"
                                             Style="{StaticResource GhostButton}"
+                                            DockPanel.Dock="Right"
                                             Command="{Binding DataContext.ReturnRentalCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
-                                            CommandParameter="{Binding}"
-                                            Margin="0,0,0,0"/>
+                                            CommandParameter="{Binding}"/>
+                                    <StackPanel>
+                                        <TextBlock>
+                                            <Run Text="{Binding ItemNumber}"/>
+                                            <Run Text=" - "/>
+                                            <Run Text="{Binding CustomerName}"/>
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding DueDate, StringFormat=Due {0:yyyy-MM-dd HH:mm}}" Style="{StaticResource CaptionTextBlock}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                    <Separator/>
+                    <TextBlock Text="Items With Issues" Style="{StaticResource SubheadingTextBlock}" Margin="0,2,0,6" Foreground="{DynamicResource ErrorBrush}"/>
+                    <ListView ItemsSource="{Binding IncompleteItems}"
+                              Style="{StaticResource CardListView}"
+                              VirtualizingPanel.IsVirtualizing="True"
+                              VirtualizingPanel.VirtualizationMode="Recycling"
+                              MaxHeight="180">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding ItemNumber}" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding Name}" Margin="0,2,0,0"/>
+                                    <TextBlock Text="{Binding MissingComponentsNotes}" Style="{StaticResource CaptionTextBlock}" Foreground="{DynamicResource ErrorBrush}"/>
                                 </StackPanel>
                             </DataTemplate>
                         </ListView.ItemTemplate>
-                        <ListView.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <VirtualizingStackPanel/>
-                            </ItemsPanelTemplate>
-                        </ListView.ItemsPanel>
                     </ListView>
+                    <Button Style="{StaticResource GhostButton}"
+                                Content="Print My Items"
+                                Command="{Binding PrintCheckedOutItemsCommand}"
+                                Margin="0,8,0,0"
+                                ToolTip="Print list of items you have checked out"/>
                 </StackPanel>
             </Border>
         </Grid>

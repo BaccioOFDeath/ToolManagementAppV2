@@ -23,7 +23,6 @@ using InventoryManagementApp.Services.Maintenance;
 using InventoryManagementApp.Services.Calibration;
 using InventoryManagementApp.Services.Reservations;
 using InventoryManagementApp.Services.Kits;
-using InventoryManagementApp.Services.Vehicles;
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Utilities.Helpers;
 using InventoryManagementApp.Views.Pages;
@@ -34,7 +33,8 @@ using Microsoft.Data.Sqlite;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Services.Categories;
 using InventoryManagementApp.Services.Notifications;
-using InventoryManagementApp.Utilities.Helpers;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace InventoryManagementApp
 {
@@ -51,6 +51,8 @@ namespace InventoryManagementApp
             Host = host;
             _logger = Host.Services.GetRequiredService<ILogger<App>>();
             _dialogService = Host.Services.GetRequiredService<IDialogService>();
+
+            EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.LoadedEvent, new RoutedEventHandler(OnWindowLoaded));
 
             DispatcherUnhandledException += (s, e) => HandleDispatcherException(e.Exception, e);
             AppDomain.CurrentDomain.UnhandledException += (s, e) =>
@@ -144,7 +146,6 @@ namespace InventoryManagementApp
                 services.AddSingleton<CalibrationService>();
                 services.AddSingleton<ReservationService>();
                 services.AddSingleton<KitService>();
-                services.AddSingleton<VehicleIntakeService>();
                 services.AddSingleton<MemoryBudget>();
                 services.AddTransient<ItemsViewModel>();
                 services.AddSingleton<IMainViewModel, MainViewModel>();
@@ -265,6 +266,7 @@ namespace InventoryManagementApp
             var themeService = Host.Services.GetRequiredService<IThemeService>();
             var theme = await settingsService.GetThemeAsync();
             themeService.ApplyTheme(theme);
+            ApplyWindowBranding(await settingsService.GetSettingAsync("CompanyLogoPath"));
 
             SecurityHelper.SettingsService = settingsService;
             await SecurityHelper.GetIterationsAsync();
@@ -354,6 +356,7 @@ namespace InventoryManagementApp
 
                 // Refresh settings service for normal operations
                 settingsService = Host.Services.GetRequiredService<ISettingsService>();
+                ApplyWindowBranding(await settingsService.GetSettingAsync("CompanyLogoPath"));
             }
             await LabelProvider.Instance.InitializeAsync(settingsService);
 
@@ -429,6 +432,66 @@ namespace InventoryManagementApp
             Host.Dispose();
             Log.CloseAndFlush();
             base.OnExit(e);
+        }
+
+        void OnWindowLoaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is Window window)
+            {
+                window.SetResourceReference(Window.IconProperty, "WindowIcon");
+            }
+        }
+
+        public void ApplyWindowBranding(string? logoPath)
+        {
+            void ApplyOnUiThread()
+            {
+                var iconSource = LoadWindowIcon(logoPath);
+                Resources["WindowIcon"] = iconSource;
+
+                foreach (Window window in Current.Windows)
+                {
+                    window.SetResourceReference(Window.IconProperty, "WindowIcon");
+                    window.Icon = iconSource;
+                }
+            }
+
+            if (Dispatcher.CheckAccess())
+            {
+                ApplyOnUiThread();
+                return;
+            }
+
+            Dispatcher.Invoke(ApplyOnUiThread, DispatcherPriority.Send);
+        }
+
+        static ImageSource LoadWindowIcon(string? logoPath)
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(logoPath))
+                {
+                    var fullPath = PathHelper.GetAbsolutePath(logoPath, true);
+                    if (!string.IsNullOrWhiteSpace(fullPath) && File.Exists(fullPath))
+                        return LoadFrozenBitmap(new Uri(fullPath, UriKind.Absolute));
+                }
+            }
+            catch
+            {
+            }
+
+            return LoadFrozenBitmap(new Uri("pack://application:,,,/Resources/DefaultLogo.png", UriKind.Absolute));
+        }
+
+        static BitmapImage LoadFrozenBitmap(Uri uri)
+        {
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.UriSource = uri;
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.EndInit();
+            bitmap.Freeze();
+            return bitmap;
         }
     }
 }

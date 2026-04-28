@@ -65,6 +65,7 @@ namespace InventoryManagementApp.Models.Domain
                 if (SetProperty(ref _quantityOnHand, value))
                 {
                     OnPropertyChanged(nameof(OnHand));
+                    OnPropertyChanged(nameof(HasNoOnHand));
                 }
             }
         }
@@ -77,7 +78,10 @@ namespace InventoryManagementApp.Models.Domain
             {
                 if (value < 0)
                     throw new ArgumentOutOfRangeException(nameof(RentedQuantity), "Quantity cannot be negative.");
-                SetProperty(ref _rentedQuantity, value);
+                if (SetProperty(ref _rentedQuantity, value))
+                {
+                    OnPropertyChanged(nameof(HasRentedStock));
+                }
             }
         }
 
@@ -207,6 +211,10 @@ namespace InventoryManagementApp.Models.Domain
         }
 
         public int OnHand => QuantityOnHand;
+
+        public bool HasNoOnHand => QuantityOnHand <= 0;
+
+        public bool HasRentedStock => RentedQuantity > 0;
 
         public string Purchased => PurchasedDate?.ToString("yyyy-MM-dd") ?? string.Empty;
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Windows;
+using System.Windows.Threading;
 using InventoryManagementApp.Interfaces;
 using Application = System.Windows.Application;
 
@@ -10,8 +11,8 @@ namespace InventoryManagementApp.Services
     /// </summary>
     public class ThemeService : IThemeService
     {
-        private readonly ResourceDictionary _light = new() { Source = new Uri("Resources/Colors.Light.xaml", UriKind.Relative) };
-        private readonly ResourceDictionary _dark = new() { Source = new Uri("Resources/Colors.Dark.xaml", UriKind.Relative) };
+        private static readonly Uri LightThemeUri = new("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Light.xaml", UriKind.Absolute);
+        private static readonly Uri DarkThemeUri = new("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute);
 
         /// <summary>
         /// Applies the specified theme to the application.
@@ -22,20 +23,37 @@ namespace InventoryManagementApp.Services
             var app = Application.Current;
             if (app is null) return;
 
-            var dictionaries = app.Resources.MergedDictionaries;
-            var dict = string.Equals(theme, "Dark", StringComparison.OrdinalIgnoreCase) ? _dark : _light;
-
-            // Remove any existing theme dictionaries
-            for (int i = dictionaries.Count - 1; i >= 0; i--)
+            void ApplyOnUiThread()
             {
-                var source = dictionaries[i].Source?.OriginalString;
-                if (source == _light.Source.OriginalString || source == _dark.Source.OriginalString)
+                var dictionaries = app.Resources.MergedDictionaries;
+                var themeUri = string.Equals(theme, "Dark", StringComparison.OrdinalIgnoreCase) ? DarkThemeUri : LightThemeUri;
+
+                for (int i = dictionaries.Count - 1; i >= 0; i--)
                 {
-                    dictionaries.RemoveAt(i);
+                    var source = dictionaries[i].Source?.OriginalString;
+                    if (string.Equals(source, LightThemeUri.OriginalString, StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(source, DarkThemeUri.OriginalString, StringComparison.OrdinalIgnoreCase))
+                    {
+                        dictionaries.RemoveAt(i);
+                    }
+                }
+
+                dictionaries.Insert(0, new ResourceDictionary { Source = themeUri });
+
+                foreach (Window window in app.Windows)
+                {
+                    window.InvalidateVisual();
+                    window.UpdateLayout();
                 }
             }
 
-            dictionaries.Insert(0, dict);
+            if (app.Dispatcher.CheckAccess())
+            {
+                ApplyOnUiThread();
+                return;
+            }
+
+            app.Dispatcher.Invoke(ApplyOnUiThread, DispatcherPriority.Send);
         }
     }
 }

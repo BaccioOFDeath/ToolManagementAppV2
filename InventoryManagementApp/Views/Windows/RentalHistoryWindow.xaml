@@ -12,6 +12,7 @@
             <DockPanel>
                 <TextBlock Text="Rental History" Style="{StaticResource HeadingTextBlock}" DockPanel.Dock="Left"/>
                 <pages:SearchBar DockPanel.Dock="Right"
+                                   Width="340"
                                    Text="{Binding SearchText}"
                                    SearchCommand="{Binding SearchCommand}"/>
             </DockPanel>
@@ -37,8 +38,8 @@
         </Border>
 
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Style="{StaticResource PrimaryButton}" Content="Export CSV" Command="{Binding ExportCsvCommand}"/>
-            <Button Style="{StaticResource PrimaryButton}" Content="Close" Command="{Binding CloseCommand}" Margin="8,0,0,0"/>
+            <Button Style="{StaticResource PrimaryButton}" Width="92" Content="Export CSV" Command="{Binding ExportCsvCommand}"/>
+            <Button Style="{StaticResource GhostButton}" Width="92" Content="Close" Command="{Binding CloseCommand}" Margin="8,0,0,0"/>
         </StackPanel>
     </DockPanel>
 </Window>

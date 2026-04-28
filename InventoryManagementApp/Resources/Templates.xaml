@@ -4,7 +4,7 @@
                     xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
                     xmlns:models="clr-namespace:InventoryManagementApp.Models">
     <DataTemplate x:Key="StatCardTemplate">
-        <Border Style="{StaticResource Card}">
+        <Border Style="{StaticResource Card}" Padding="8,6" Margin="0,0,6,6" MinWidth="190">
             <StackPanel>
                 <TextBlock Text="{Binding Title}" Style="{StaticResource LabelTextBlock}"/>
                 <TextBlock Text="{Binding Value}" Style="{StaticResource StatisticValueTextBlock}" Margin="0,4,0,0"/>
@@ -12,76 +12,57 @@
         </Border>
     </DataTemplate>
     <ItemsPanelTemplate x:Key="WrapPanelItems">
-        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" ItemWidth="220" ItemHeight="88"/>
+        <WrapPanel Orientation="Horizontal"/>
     </ItemsPanelTemplate>
     <DataTemplate x:Key="ItemCardTemplate">
-        <Border Style="{StaticResource Card}"
-                Width="{Binding DataContext.CardWidth, RelativeSource={RelativeSource AncestorType=Page}, FallbackValue=240}"
-                Padding="8"
-                Margin="4">
-            <Border.Visibility>
-                <MultiBinding Converter="{StaticResource AnyTrueToVisibilityConverter}">
-                    <Binding Path="DataContext.ShowImage" RelativeSource="{RelativeSource AncestorType=Page}"/>
-                    <Binding Path="DataContext.ShowName" RelativeSource="{RelativeSource AncestorType=Page}"/>
-                    <Binding Path="DataContext.ShowItemNumber" RelativeSource="{RelativeSource AncestorType=Page}"/>
-                    <Binding Path="DataContext.ShowBrand" RelativeSource="{RelativeSource AncestorType=Page}"/>
-                    <Binding Path="DataContext.ShowLocation" RelativeSource="{RelativeSource AncestorType=Page}"/>
-                    <Binding Path="DataContext.ShowPrice" RelativeSource="{RelativeSource AncestorType=Page}"/>
-                    <Binding Path="DataContext.ShowNotes" RelativeSource="{RelativeSource AncestorType=Page}"/>
-                </MultiBinding>
-            </Border.Visibility>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <Border Background="{StaticResource SurfaceAltBrush}"
-                        BorderBrush="{StaticResource BorderBrushAlt}"
-                        BorderThickness="1"
-                        CornerRadius="{StaticResource RadiusSmall}"
-                        Height="{Binding DataContext.CardImageHeight, RelativeSource={RelativeSource AncestorType=Page}, FallbackValue=200}"
-                        Visibility="{Binding DataContext.ShowImage, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}">
-                    <Grid>
-                        <Image Width="{Binding DataContext.CardImageWidth, RelativeSource={RelativeSource AncestorType=Page}, FallbackValue=220}"
-                               Height="{Binding DataContext.CardImageHeight, RelativeSource={RelativeSource AncestorType=Page}, FallbackValue=200}"
-                               Stretch="Uniform"
+        <Button Command="{Binding DataContext.OpenItemCardCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                CommandParameter="{Binding}"
+                Background="Transparent"
+                BorderBrush="Transparent"
+                BorderThickness="0"
+                Padding="0"
+                Margin="0"
+                HorizontalContentAlignment="Stretch"
+                VerticalContentAlignment="Stretch">
+            <Border Width="230"
+                    Margin="6"
+                    Padding="8"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderThickness="2">
+                <Border.Style>
+                    <Style TargetType="Border" BasedOn="{StaticResource Card}">
+                        <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsCheckedOut}" Value="True">
+                                <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsIncomplete}" Value="True">
+                                <Setter Property="BorderBrush" Value="{DynamicResource ErrorBrush}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="118"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="0"
+                            Background="{DynamicResource SurfaceAltBrush}"
+                            BorderBrush="{DynamicResource BorderBrushAlt}"
+                            BorderThickness="1">
+                        <Image Stretch="UniformToFill"
                                Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
-                        <!-- Incomplete/Issues Warning Badge -->
-                        <Border Background="{DynamicResource ErrorBrush}" CornerRadius="4" Padding="6,2" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6" Visibility="{Binding IsIncomplete, Converter={StaticResource BoolToVis}}">
-                            <TextBlock Text="ISSUE" FontSize="10" FontWeight="Bold" Foreground="White"/>
-                        </Border>
-                    </Grid>
-                </Border>
-                <StackPanel Grid.Row="1" Margin="0,6,0,0">
-                    <TextBlock Text="{Binding Name}" Style="{StaticResource ListItemTitleTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Visibility="{Binding DataContext.ShowName, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Visibility="{Binding DataContext.ShowItemNumber, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Text="{Binding Brand}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Visibility="{Binding DataContext.ShowBrand, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Text="{Binding Location}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Visibility="{Binding DataContext.ShowLocation, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Text="{Binding Price, StringFormat={}{0:C}}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Visibility="{Binding DataContext.ShowPrice, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Text="{Binding Notes}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Visibility="{Binding DataContext.ShowNotes, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVis}}"/>
-                </StackPanel>
-                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,0">
-                    <Button Content="Rent"
-                            Style="{StaticResource PrimaryButton}"
-                            Command="{Binding DataContext.RentItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                            CommandParameter="{Binding}"/>
-                    <Button Command="{Binding DataContext.ToggleCheckOutCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                            CommandParameter="{Binding}" Margin="6,0,0,0">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
-                                <Setter Property="Content" Value="Check Out"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsCheckedOut}" Value="True">
-                                        <Setter Property="Content" Value="Check In"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                </StackPanel>
-            </Grid>
-        </Border>
+                    </Border>
+                    <StackPanel Grid.Row="1" Margin="0,8,0,0">
+                        <TextBlock Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding Name}" Style="{StaticResource ListItemTitleTextBlock}" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding Location, StringFormat=Location: {0}}" Style="{StaticResource CaptionTextBlock}" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding Notes}" Style="{StaticResource CaptionTextBlock}" Margin="0,4,0,0" MaxHeight="34" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Button>
     </DataTemplate>
 
     <DataTemplate x:Key="ActivityLogItemTemplate">

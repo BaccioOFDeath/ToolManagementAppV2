@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Net.Mail;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Services.Settings;
@@ -306,6 +307,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _theme, value))
                 {
+                    _themeService.ApplyTheme(value);
                     _ = SetThemeAsync(value);
                 }
             }
@@ -316,7 +318,6 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 await _settingsService.SaveThemeAsync(value, token).ConfigureAwait(false);
-                _themeService.ApplyTheme(value);
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -566,6 +567,8 @@ namespace InventoryManagementApp.ViewModels
                 try
                 {
                     await _settingsService.SaveSettingAsync("CompanyLogoPath", relativePath, token).ConfigureAwait(false);
+                    if (System.Windows.Application.Current is App app)
+                        app.ApplyWindowBranding(relativePath);
                 }
                 catch (UnauthorizedAccessException ex)
                 {

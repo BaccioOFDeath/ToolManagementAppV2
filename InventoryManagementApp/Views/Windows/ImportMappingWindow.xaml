@@ -4,11 +4,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
         Title="Import Mapping"
-        Width="1200" Height="700"
+        Width="1040" Height="620"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource BackgroundBrush}">
     <DockPanel Margin="10">
-        <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="10" CornerRadius="8">
+        <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="10">
             <TextBlock Text="Map CSV Columns to Fields" Style="{StaticResource HeadingTextBlock}"/>
         </Border>
 
@@ -33,7 +33,7 @@
                             <DataTemplate>
                                 <ComboBox ItemsSource="{Binding DataContext.ColumnHeaders, RelativeSource={RelativeSource AncestorType=Window}}"
                                           SelectedItem="{Binding SelectedColumn, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                          Margin="4"
+                                          Margin="0"
                                           ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellEditingTemplate>

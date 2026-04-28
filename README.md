@@ -1,5 +1,7 @@
 # InventoryManagementApp & DeviceManagementApp
 
+Design prompt see designprompt.md file
+
 This repository contains two WPF applications:
 
 - **InventoryManagementApp** – manage inventory items, customers, rentals, and users.

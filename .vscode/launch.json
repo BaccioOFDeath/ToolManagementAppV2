@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug InventoryManagementApp",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/InventoryManagementApp/bin/Debug/net8.0-windows/InventoryManagementApp.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/InventoryManagementApp",
+      "stopAtEntry": false,
+      "console": "internalConsole"
+    }
+  ]
+}

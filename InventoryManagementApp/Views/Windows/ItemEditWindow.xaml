@@ -4,7 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:InventoryManagementApp.Views.Controls"
         xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
-        Title="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}" Width="520" Height="620" WindowStartupLocation="CenterOwner"
+    Title="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}" Width="620" Height="760" MinHeight="720" WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
     <Grid Margin="12">
         <Grid.RowDefinitions>
@@ -52,37 +52,39 @@
                 <TextBlock Grid.Row="5" Grid.Column="0" Text="Supplier" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
                 <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding ItemModel.Supplier, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-                <CheckBox Grid.Row="6" Grid.ColumnSpan="2" Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Power {0}'}" IsChecked="{Binding ItemModel.IsPowered}" Margin="0,0,0,8"/>
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="Flags" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Top" Margin="0,0,8,8"/>
+                <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,8">
+                    <CheckBox Content="Powered item" IsChecked="{Binding ItemModel.IsPowered}" Margin="0,0,16,0"/>
+                    <CheckBox Content="Available for rental" IsChecked="{Binding ItemModel.IsRentalItem}"/>
+                </StackPanel>
 
-                <CheckBox Grid.Row="7" Grid.ColumnSpan="2" Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Rental {0}'}" IsChecked="{Binding ItemModel.IsRentalItem}" Margin="0,0,0,8"/>
-
-                <StackPanel Grid.Row="8" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
+                <StackPanel Grid.Row="7" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
                     <Image Width="100" Height="100" Stretch="Uniform"
                            Source="{Binding ItemModel.ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
                     <StackPanel Orientation="Vertical" Margin="8,0,0,0">
-                        <Button Content="Browse" Style="{StaticResource PrimaryButton}" Width="75" Command="{Binding BrowseImageCommand}"/>
-                        <Button Content="Remove" Style="{StaticResource PrimaryButton}" Width="75" Margin="0,4,0,0" Command="{Binding RemoveImageCommand}"/>
+                        <Button Content="Browse" Style="{StaticResource PrimaryButton}" Width="92" Command="{Binding BrowseImageCommand}"/>
+                        <Button Content="Remove" Style="{StaticResource GhostButton}" Width="92" Margin="0,4,0,0" Command="{Binding RemoveImageCommand}"/>
                     </StackPanel>
                 </StackPanel>
 
-                <StackPanel Grid.Row="9" Grid.ColumnSpan="2" Orientation="Vertical" Margin="0,0,0,8">
+                <StackPanel Grid.Row="8" Grid.ColumnSpan="2" Orientation="Vertical" Margin="0,0,0,8">
                     <TextBlock Text="Notes" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding ItemModel.Notes, UpdateSourceTrigger=PropertyChanged}" Height="60" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+                    <TextBox Text="{Binding ItemModel.Notes, UpdateSourceTrigger=PropertyChanged}" Height="72" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
                 </StackPanel>
 
-                <StackPanel Grid.Row="10" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
+                <StackPanel Grid.Row="9" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
                     <TextBlock Text="⚠" FontSize="16" Foreground="{DynamicResource ErrorBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <CheckBox Content="Mark as Incomplete/Missing Components" IsChecked="{Binding ItemModel.IsIncomplete}" Foreground="{DynamicResource ErrorBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <StackPanel Grid.Row="11" Grid.ColumnSpan="2" Orientation="Vertical" Margin="0,0,0,8">
+                <StackPanel Grid.Row="10" Grid.ColumnSpan="2" Orientation="Vertical" Margin="0,0,0,8">
                     <TextBlock Text="Missing Components" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4" Foreground="{DynamicResource ErrorBrush}"/>
-                    <TextBox Text="{Binding ItemModel.MissingComponentsNotes, UpdateSourceTrigger=PropertyChanged}" Height="50" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" ToolTip="List missing parts or components"/>
+                    <TextBox Text="{Binding ItemModel.MissingComponentsNotes, UpdateSourceTrigger=PropertyChanged}" Height="64" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" ToolTip="List missing parts or components"/>
                 </StackPanel>
 
-                <StackPanel Grid.Row="12" Grid.ColumnSpan="2" Orientation="Vertical">
+                <StackPanel Grid.Row="11" Grid.ColumnSpan="2" Orientation="Vertical">
                     <TextBlock Text="Issues / Problems" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding ItemModel.IssuesNotes, UpdateSourceTrigger=PropertyChanged}" Height="50" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" ToolTip="Describe any issues or problems with this item"/>
+                    <TextBox Text="{Binding ItemModel.IssuesNotes, UpdateSourceTrigger=PropertyChanged}" Height="64" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" ToolTip="Describe any issues or problems with this item"/>
                 </StackPanel>
             </Grid>
         </ScrollViewer>

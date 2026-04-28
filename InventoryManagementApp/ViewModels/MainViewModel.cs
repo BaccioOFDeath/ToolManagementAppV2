@@ -21,7 +21,6 @@ using InventoryManagementApp.Services.Maintenance;
 using InventoryManagementApp.Services.Calibration;
 using InventoryManagementApp.Services.Reservations;
 using InventoryManagementApp.Services.Kits;
-using InventoryManagementApp.Services.Vehicles;
 using InventoryManagementApp.Views.Pages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -47,7 +46,6 @@ namespace InventoryManagementApp.ViewModels
         readonly IFileDialogService _fileDialogService;
         readonly IDialogService _dialogService;
         readonly IThemeService _themeService;
-        readonly VehicleIntakeService _vehicleIntakeService;
         readonly ILogger<MainViewModel> _logger;
         readonly Func<Task<bool>> _showLoginWindow;
         readonly IDispatcherTimer _autoLogoutTimer;
@@ -97,6 +95,16 @@ namespace InventoryManagementApp.ViewModels
             get => _currentNavSectionTitle;
             private set => SetProperty(ref _currentNavSectionTitle, value);
         }
+
+        public string CurrentNavSectionIconGlyph => SelectedNavSectionKey switch
+        {
+            NavSectionKeys.Overview => "\uE80F",
+            NavSectionKeys.Operations => "\uE90F",
+            NavSectionKeys.Insights => "\uE9D2",
+            NavSectionKeys.Data => "\uE943",
+            NavSectionKeys.Admin => "\uE713",
+            _ => "\uE80F"
+        };
 
         private string _selectedNavSectionKey = NavSectionKeys.Overview;
         public string SelectedNavSectionKey
@@ -288,7 +296,6 @@ namespace InventoryManagementApp.ViewModels
                                CalibrationService calibrationService,
                                ReservationService reservationService,
                                KitService kitService,
-                               VehicleIntakeService vehicleIntakeService,
                                Services.Settings.RentalConfigurationService? rentalConfigService = null,
                              ILogger<MainViewModel>? logger = null,
                              Func<Task<bool>>? showLoginWindow = null,
@@ -305,7 +312,6 @@ namespace InventoryManagementApp.ViewModels
             _themeService = themeService;
             _dialogService = dialogService;
             _fileDialogService = fileDialogService;
-            _vehicleIntakeService = vehicleIntakeService ?? throw new ArgumentNullException(nameof(vehicleIntakeService));
             _logger = logger ?? NullLogger<MainViewModel>.Instance;
             _showLoginWindow = showLoginWindow ?? new Func<Task<bool>>(async () =>
             {
@@ -414,8 +420,7 @@ namespace InventoryManagementApp.ViewModels
                         _activityLogService,
                         OpenManageItemsCommand,
                         OpenRentalsCommand,
-                        OpenImportExportCommand,
-                        vehicleService: _vehicleIntakeService);
+                        OpenImportExportCommand);
                     var page = new DashboardPage { DataContext = vm, Title = "Dashboard" };
                     CurrentPage = page;
                     _pageLoadCts = new CancellationTokenSource();
@@ -840,6 +845,7 @@ namespace InventoryManagementApp.ViewModels
             IsInsightsSelected = key == NavSectionKeys.Insights;
             IsDataSelected = key == NavSectionKeys.Data;
             IsAdminSelected = key == NavSectionKeys.Admin;
+            OnPropertyChanged(nameof(CurrentNavSectionIconGlyph));
 
             CurrentNavSectionTitle = key switch
             {
@@ -864,6 +870,8 @@ namespace InventoryManagementApp.ViewModels
             switch (key)
             {
                 case NavSectionKeys.Overview:
+                    items.Add(new NavItem($"Search {itemsPlural}", OpenSearchItemsCommand));
+                    items.Add(new NavItem("Dashboard", OpenDashboardCommand));
                     break;
                 case NavSectionKeys.Operations:
                     if (IsCurrentUserAdmin)

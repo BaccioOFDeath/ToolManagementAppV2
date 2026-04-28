@@ -1,95 +1,41 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"label": "Run InventoryManagementApp",
-			"type": "shell",
-			"command": "dotnet run --project InventoryManagementApp/InventoryManagementApp.csproj",
-			"isBackground": false,
-			"problemMatcher": [
-				"$msCompile"
-			],
-			"group": "build"
-		},
-		{
-			"label": "Run InventoryManagementApp",
-			"type": "shell",
-			"command": "dotnet run --project InventoryManagementApp/InventoryManagementApp.csproj",
-			"isBackground": false,
-			"problemMatcher": [
-				"$msCompile"
-			],
-			"group": "build"
-		},
-		{
-			"label": "Run InventoryManagementApp",
-			"type": "shell",
-			"command": "dotnet run --project InventoryManagementApp/InventoryManagementApp.csproj",
-			"isBackground": false,
-			"problemMatcher": [
-				"$msCompile"
-			],
-			"group": "build"
-		},
-		{
-			"label": "Run InventoryManagementApp",
-			"type": "shell",
-			"command": "dotnet run --project InventoryManagementApp/InventoryManagementApp.csproj",
-			"isBackground": false,
-			"problemMatcher": [
-				"$msCompile"
-			],
-			"group": "build"
-		},
-		{
-			"label": "Run InventoryManagementApp",
-			"type": "shell",
-			"command": "dotnet run --project InventoryManagementApp/InventoryManagementApp.csproj",
-			"isBackground": false,
-			"problemMatcher": [
-				"$msCompile"
-			],
-			"group": "build"
-		},
-		{
-			"label": "Run InventoryManagementApp",
-			"type": "shell",
-			"command": "dotnet run --project InventoryManagementApp/InventoryManagementApp.csproj",
-			"isBackground": false,
-			"problemMatcher": [
-				"$msCompile"
-			],
-			"group": "build"
-		},
-		{
-			"label": "Run InventoryManagementApp",
-			"type": "shell",
-			"command": "dotnet run --project InventoryManagementApp/InventoryManagementApp.csproj",
-			"isBackground": false,
-			"problemMatcher": [
-				"$msCompile"
-			],
-			"group": "build"
-		},
-		{
-			"label": "Run InventoryManagementApp",
-			"type": "shell",
-			"command": "dotnet run --project InventoryManagementApp/InventoryManagementApp.csproj",
-			"isBackground": false,
-			"problemMatcher": [
-				"$msCompile"
-			],
-			"group": "build"
-		},
-		{
-			"label": "Run InventoryManagementApp",
-			"type": "shell",
-			"command": "dotnet run --project InventoryManagementApp/InventoryManagementApp.csproj",
-			"isBackground": false,
-			"problemMatcher": [
-				"$msCompile"
-			],
-			"group": "build"
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/InventoryManagementApp.sln"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "test",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "test",
+        "${workspaceFolder}/InventoryManagementApp.sln"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "test"
+    },
+    {
+      "label": "run",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "${workspaceFolder}/InventoryManagementApp/InventoryManagementApp.csproj"
+      ],
+      "problemMatcher": "$msCompile"
+    }
+  ]
 }

@@ -50,9 +50,9 @@
                             <Button Command="{Binding DataContext.SelectUserCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
                                     CommandParameter="{Binding}"
                                     Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand">
-                                <Grid Width="90" Margin="4">
+                                <Grid Width="120" Margin="4">
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="70"/>
+                                        <RowDefinition Height="78"/>
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
                                     <Border Background="{DynamicResource SurfaceAltBrush}"
@@ -68,6 +68,9 @@
                                     <TextBlock Grid.Row="1"
                                                Text="{Binding UserName}"
                                                HorizontalAlignment="Center"
+                                               TextAlignment="Center"
+                                               TextWrapping="Wrap"
+                                               MaxWidth="112"
                                                Margin="0,6,0,0"
                                                Style="{StaticResource CaptionTextBlock}"/>
                                 </Grid>

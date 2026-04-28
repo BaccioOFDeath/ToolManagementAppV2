@@ -10,6 +10,8 @@ namespace InventoryManagementApp.Tests
 {
     public class ThemeServiceTests
     {
+        private static readonly Uri DarkThemeUri = new("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute);
+
         [Fact]
         public async Task ApplyTheme_LoadsDarkDictionary()
         {
@@ -58,7 +60,7 @@ namespace InventoryManagementApp.Tests
             await RunOnStaThread(async () =>
             {
                 var app = WpfTestHelper.CreateApplication();
-                app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("Resources/Colors.Dark.xaml", UriKind.Relative) });
+                app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = DarkThemeUri });
                 var service = new ThemeService();
                 service.ApplyTheme("Light");
                 Assert.DoesNotContain(app.Resources.MergedDictionaries, d => d.Source?.OriginalString.Contains("Colors.Dark.xaml") == true);

@@ -13,7 +13,6 @@ using InventoryManagementApp.Services.Maintenance;
 using InventoryManagementApp.Services.Calibration;
 using InventoryManagementApp.Services.Reservations;
 using InventoryManagementApp.Services.Kits;
-using InventoryManagementApp.Services.Vehicles;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Utilities.Helpers;
@@ -31,7 +30,6 @@ namespace InventoryManagementApp.ViewModels
         readonly CalibrationService? _calibrationService;
         readonly ReservationService? _reservationService;
         readonly KitService? _kitService;
-        readonly VehicleIntakeService? _vehicleService;
         readonly IRelayCommand _openManageItemsCommand;
         readonly IRelayCommand _openRentalsCommand;
         readonly IRelayCommand _openImportExportCommand;
@@ -63,7 +61,6 @@ namespace InventoryManagementApp.ViewModels
                                   CalibrationService? calibrationService = null,
                                   ReservationService? reservationService = null,
                                   KitService? kitService = null,
-                                  VehicleIntakeService? vehicleService = null,
                                   ILogger<DashboardViewModel>? logger = null)
         {
             _itemService = itemService ?? throw new ArgumentNullException(nameof(itemService));
@@ -75,7 +72,6 @@ namespace InventoryManagementApp.ViewModels
             _calibrationService = calibrationService;
             _reservationService = reservationService;
             _kitService = kitService;
-            _vehicleService = vehicleService;
             _openManageItemsCommand = openManageItemsCommand ?? throw new ArgumentNullException(nameof(openManageItemsCommand));
             _openRentalsCommand = openRentalsCommand ?? throw new ArgumentNullException(nameof(openRentalsCommand));
             _openImportExportCommand = openImportExportCommand ?? throw new ArgumentNullException(nameof(openImportExportCommand));
@@ -156,15 +152,6 @@ namespace InventoryManagementApp.ViewModels
                 {
                     var activeKits = await _kitService.GetActiveKitsAsync().ConfigureAwait(false);
                     StatCards.Add(new StatCard { Title = "Active Kits", Value = activeKits.Count.ToString() });
-                }
-
-                if (_vehicleService != null)
-                {
-                    var pipeline = await _vehicleService.GetPipelineSummaryAsync().ConfigureAwait(false);
-                    StatCards.Add(new StatCard { Title = "Vehicles Received", Value = pipeline.Received.ToString() });
-                    StatCards.Add(new StatCard { Title = "On Hold (Compliance)", Value = pipeline.OnHold.ToString() });
-                    StatCards.Add(new StatCard { Title = "In Dismantling", Value = pipeline.Dismantling.ToString() });
-                    StatCards.Add(new StatCard { Title = "Dismantled", Value = pipeline.Completed.ToString() });
                 }
             }
             catch (OperationCanceledException)

@@ -8,138 +8,119 @@
         Background="{DynamicResource BackgroundBrush}">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="48"/>
-            <ColumnDefinition x:Name="SidebarColumn">
-                <ColumnDefinition.Style>
-                    <Style TargetType="ColumnDefinition">
-                        <Setter Property="Width" Value="0"/>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsChecked, ElementName=SidebarToggle}" Value="True">
-                                <Setter Property="Width" Value="220"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </ColumnDefinition.Style>
-            </ColumnDefinition>
+            <ColumnDefinition Width="220"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-        <Border x:Name="ActivityBar" Grid.Column="0" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushBase}" BorderThickness="0,0,1,0">
-            <DockPanel Margin="6,8">
-                <StackPanel DockPanel.Dock="Top">
-                    <ToggleButton x:Name="SidebarToggle"
-                                  Style="{StaticResource SidebarToggleButton}"
-                                  IsChecked="{Binding IsSidebarOpen, Mode=TwoWay}"
-                                  ToolTip="Toggle menu"/>
-                    <ToggleButton Style="{StaticResource ActivityToggleButton}"
-                                  Content="&#xE80F;"
-                                  Command="{Binding SelectOverviewSectionCommand}"
-                                  IsChecked="{Binding IsOverviewSelected, Mode=OneWay}"
-                                  ToolTip="Overview"/>
-                    <ToggleButton Style="{StaticResource ActivityToggleButton}"
-                                  Content="&#xE7C3;"
-                                  Command="{Binding SelectOperationsSectionCommand}"
-                                  IsChecked="{Binding IsOperationsSelected, Mode=OneWay}"
-                                  ToolTip="Operations"/>
-                    <ToggleButton Style="{StaticResource ActivityToggleButton}"
-                                  Content="&#xE9D2;"
-                                  Command="{Binding SelectInsightsSectionCommand}"
-                                  IsChecked="{Binding IsInsightsSelected, Mode=OneWay}"
-                                  ToolTip="Insights"/>
-                    <ToggleButton Style="{StaticResource ActivityToggleButton}"
-                                  Content="&#xE8F1;"
-                                  Command="{Binding SelectDataSectionCommand}"
-                                  IsChecked="{Binding IsDataSelected, Mode=OneWay}"
-                                  ToolTip="Data"
-                                  Visibility="{Binding IsDataSectionVisible, Converter={StaticResource BoolToVis}}"/>
-                    <ToggleButton Style="{StaticResource ActivityToggleButton}"
-                                  Content="&#xE713;"
-                                  Command="{Binding SelectAdminSectionCommand}"
-                                  IsChecked="{Binding IsAdminSelected, Mode=OneWay}"
-                                  ToolTip="Admin"
-                                  Visibility="{Binding IsAdminSectionVisible, Converter={StaticResource BoolToVis}}"/>
+        <Border Grid.Row="0" Grid.ColumnSpan="2" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrushBase}" BorderThickness="0,0,0,1" Padding="8,6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="{Binding WindowTitle}" Style="{StaticResource HeadingTextBlock}"/>
+                    <TextBlock Text="Desktop inventory workspace" Style="{StaticResource CaptionTextBlock}"/>
                 </StackPanel>
-                <StackPanel DockPanel.Dock="Bottom" VerticalAlignment="Bottom">
-                    <Button Style="{StaticResource ActivityButton}" Content="&#xE74D;" Command="{Binding ExitCommand}" ToolTip="Exit"/>
+                <pages:SearchBar Grid.Column="1"
+                                 Width="500"
+                                 HorizontalAlignment="Left"
+                                 VerticalAlignment="Center"
+                                 Margin="12,0,0,0"
+                                 Text="{Binding GlobalSearchText}"
+                                 SearchCommand="{Binding GlobalSearchCommand}"
+                                 SearchLabel=""/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                    <Border Width="28" Height="28" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Margin="0,0,6,0">
+                        <controls:UserAvatar UserName="{Binding CurrentUserName}"
+                                              UserPhotoPath="{Binding CurrentUserPhotoPath}"
+                                              Foreground="{Binding CurrentUserInitialsBrush}"
+                                              FontSize="14"/>
+                    </Border>
+                    <StackPanel Margin="0,0,8,0">
+                        <TextBlock Text="{Binding CurrentUserName}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding CurrentUserRole}" Style="{StaticResource CaptionTextBlock}"/>
+                    </StackPanel>
+                    <Button Style="{StaticResource GhostButton}" Content="Switch User" Command="{Binding SwitchUserCommand}" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Exit" Command="{Binding ExitCommand}"/>
                 </StackPanel>
-            </DockPanel>
+            </Grid>
         </Border>
 
-        <Border x:Name="SidebarPanel" Grid.Column="1" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrushBase}" BorderThickness="0,0,1,0">
-            <Grid Margin="10,10,10,8">
+        <Border Grid.Row="1" Grid.ColumnSpan="2" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushBase}" BorderThickness="0,0,0,1" Padding="8,4">
+            <WrapPanel Orientation="Horizontal">
+                <ToggleButton Style="{StaticResource SectionToggleButton}" Content="Overview" Command="{Binding SelectOverviewSectionCommand}" IsChecked="{Binding IsOverviewSelected, Mode=OneWay}"/>
+                <ToggleButton Style="{StaticResource SectionToggleButton}" Content="Operations" Command="{Binding SelectOperationsSectionCommand}" IsChecked="{Binding IsOperationsSelected, Mode=OneWay}"/>
+                <ToggleButton Style="{StaticResource SectionToggleButton}" Content="Insights" Command="{Binding SelectInsightsSectionCommand}" IsChecked="{Binding IsInsightsSelected, Mode=OneWay}"/>
+                <ToggleButton Style="{StaticResource SectionToggleButton}" Content="Data" Command="{Binding SelectDataSectionCommand}" IsChecked="{Binding IsDataSelected, Mode=OneWay}" Visibility="{Binding IsDataSectionVisible, Converter={StaticResource BoolToVis}}"/>
+                <ToggleButton Style="{StaticResource SectionToggleButton}" Content="Admin" Command="{Binding SelectAdminSectionCommand}" IsChecked="{Binding IsAdminSelected, Mode=OneWay}" Visibility="{Binding IsAdminSectionVisible, Converter={StaticResource BoolToVis}}"/>
+            </WrapPanel>
+        </Border>
+
+        <Border Grid.Row="2" Grid.Column="0" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrushBase}" BorderThickness="0,0,1,0" Padding="8,8,6,8">
+            <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                    <Image Source="{Binding CompanyLogoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=logo}" Width="28" Height="28" Margin="0,0,8,0"/>
-                    <StackPanel>
-                        <TextBlock Text="{Binding WindowTitle}" Style="{StaticResource HeadingTextBlock}"/>
-                        <TextBlock Text="{Binding CurrentNavSectionTitle}" Style="{StaticResource CaptionTextBlock}"/>
-                    </StackPanel>
-                </StackPanel>
-
-                <ScrollViewer Grid.Row="1"
-                              PreviewMouseWheel="LeftNavScrollViewer_PreviewMouseWheel"
-                              SnapsToDevicePixels="True"
-                              UseLayoutRounding="True">
+                <Border Background="{DynamicResource SurfaceAltBrush}"
+                        BorderBrush="{DynamicResource BorderBrushAlt}"
+                        BorderThickness="1"
+                        Padding="10"
+                        Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="52"
+                                Height="52"
+                                CornerRadius="14"
+                                Background="{DynamicResource SurfaceBrush}"
+                                BorderBrush="{DynamicResource BorderBrushBase}"
+                                BorderThickness="1"
+                                VerticalAlignment="Center">
+                            <TextBlock Text="{Binding CurrentNavSectionIconGlyph}"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       FontSize="28"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource AccentBrush}"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="Sections" Style="{StaticResource PageTitleTextBlock}"/>
+                            <TextBlock Text="{Binding CurrentNavSectionTitle}" Style="{StaticResource CaptionTextBlock}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <ScrollViewer Grid.Row="1" PreviewMouseWheel="LeftNavScrollViewer_PreviewMouseWheel">
                     <ItemsControl ItemsSource="{Binding CurrentNavItems}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Button Style="{StaticResource NavButton}"
-                                        Content="{Binding Title}"
-                                        Command="{Binding Command}"/>
+                                <Button Style="{StaticResource NavButton}" Content="{Binding Title}" Command="{Binding Command}"/>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
-
-                <Border Grid.Row="2" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" CornerRadius="{StaticResource RadiusMedium}" Padding="8">
-                    <DockPanel LastChildFill="False">
-                        <TextBlock Text="Quick tips" Style="{StaticResource CaptionTextBlock}"/>
-                    </DockPanel>
-                </Border>
             </Grid>
         </Border>
 
-        <Grid Grid.Column="2">
+        <Grid Grid.Row="2" Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-
-            <Border Background="{DynamicResource SurfaceBrush}" Padding="10,8" BorderBrush="{DynamicResource BorderBrushBase}" BorderThickness="0,0,0,1">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="{Binding CurrentPageTitle}" VerticalAlignment="Center" Style="{StaticResource PageTitleTextBlock}"/>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <pages:SearchBar x:Name="GlobalSearchBar"
-                                         Text="{Binding GlobalSearchText}"
-                                         SearchCommand="{Binding GlobalSearchCommand}"
-                                         SearchLabel="Search"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
-                        <Border Width="28" Height="28" CornerRadius="14" ClipToBounds="True" Margin="0,0,6,0">
-                            <controls:UserAvatar UserName="{Binding CurrentUserName}"
-                                                  UserPhotoPath="{Binding CurrentUserPhotoPath}"
-                                                  Foreground="{Binding CurrentUserInitialsBrush}"
-                                                  FontSize="14"/>
-                        </Border>
-                        <StackPanel>
-                            <TextBlock Text="{Binding CurrentUserName}" FontWeight="SemiBold"/>
-                            <TextBlock Text="{Binding CurrentUserRole}" Style="{StaticResource CaptionTextBlock}"/>
-                        </StackPanel>
-                        <Button Style="{StaticResource GhostButton}" Content="Switch" Command="{Binding SwitchUserCommand}" Margin="8,0,0,0"/>
-                    </StackPanel>
-                </Grid>
+            <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrushBase}" BorderThickness="0,0,0,1" Padding="8,6">
+                <StackPanel>
+                    <TextBlock Text="{Binding CurrentPageTitle}" Style="{StaticResource PageTitleTextBlock}"/>
+                </StackPanel>
             </Border>
-
             <Frame Grid.Row="1"
                    Name="MainFrame"
                    NavigationUIVisibility="Hidden"

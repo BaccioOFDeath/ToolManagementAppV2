@@ -60,6 +60,24 @@ namespace InventoryManagementApp.Tests
             Assert.Equal(3, item.QuantityOnHand);
         }
 
+        [Fact]
+        public void OpenItemCardCommand_SelectsItemAndShowsDetails()
+        {
+            var itemService = new ToggleItemService();
+            var dialog = new RecordingDialogService();
+            var rental = new RecordingRentalService();
+            var customer = new RecordingCustomerService();
+            var settings = new DummySettingsService();
+            var vm = new ItemManagementViewModel(itemService, customer, rental, dialog, settings, NullLogger<ItemManagementViewModel>.Instance);
+            var item = new ItemModel { ItemID = 9, Name = "Torque Wrench" };
+
+            vm.OpenItemCardCommand.Execute(item);
+
+            Assert.Same(item, vm.SelectedItem);
+            Assert.True(dialog.ShowItemDetailsCalled);
+            Assert.Same(item, dialog.LastDetailedItem);
+        }
+
         private sealed class RecordingRentalService : IRentalService
         {
             public bool RentCalled { get; private set; }
@@ -107,11 +125,17 @@ namespace InventoryManagementApp.Tests
         private sealed class RecordingDialogService : IDialogService
         {
             public bool RentItemDialogCalled { get; private set; }
+            public bool ShowItemDetailsCalled { get; private set; }
+            public ItemModel? LastDetailedItem { get; private set; }
             public (CustomerModel customer, DateTime dueDate)? RentItemDialogResult { get; set; }
             public void ShowInfo(string message, string title) { }
             public bool ShowConfirmation(string message, string title) => true;
             public ItemModel? ShowEditItemDialog(ItemModel item) => null;
-            public void ShowItemDetails(ItemModel item) { }
+            public void ShowItemDetails(ItemModel item)
+            {
+                ShowItemDetailsCalled = true;
+                LastDetailedItem = item;
+            }
             public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers)
             {
                 RentItemDialogCalled = true;

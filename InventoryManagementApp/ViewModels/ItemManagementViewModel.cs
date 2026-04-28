@@ -96,6 +96,7 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand<IList?> DeleteItemsCommand { get; }
         public IAsyncRelayCommand OpenRentalsCommand { get; }
         public IRelayCommand ViewDetailsCommand { get; }
+        public IRelayCommand<ItemModel?> OpenItemCardCommand { get; }
         public IAsyncRelayCommand OpenRentalHistoryCommand { get; }
         public IAsyncRelayCommand<ItemModel> RentItemCommand { get; }
         public IAsyncRelayCommand<ItemModel> ToggleCheckOutCommand { get; }
@@ -146,6 +147,7 @@ namespace InventoryManagementApp.ViewModels
             DeleteItemsCommand = new AsyncRelayCommand<IList?>(DeleteItemsAsync);
             OpenRentalsCommand = new AsyncRelayCommand(ct => OpenRentalsAsync(ct), () => SelectedItem != null);
             ViewDetailsCommand = new RelayCommand(ViewDetails, () => SelectedItem != null);
+            OpenItemCardCommand = new RelayCommand<ItemModel?>(OpenItemCard);
             OpenRentalHistoryCommand = new AsyncRelayCommand(OpenRentalHistoryAsync, () => SelectedItem != null);
             RentItemCommand = new AsyncRelayCommand<ItemModel>(RentItemAsync);
             ToggleCheckOutCommand = new AsyncRelayCommand<ItemModel>(ToggleCheckOutAsync);
@@ -414,6 +416,15 @@ namespace InventoryManagementApp.ViewModels
             var item = SelectedItem;
             if (item == null) return;
             _dialogService.ShowItemDetails(item);
+        }
+
+        void OpenItemCard(ItemModel? item)
+        {
+            if (item == null)
+                return;
+
+            SelectedItem = item;
+            ViewDetails();
         }
 
         async Task OpenRentalHistoryAsync()
