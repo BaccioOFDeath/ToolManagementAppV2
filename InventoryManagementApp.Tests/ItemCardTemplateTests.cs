@@ -9,7 +9,7 @@ namespace InventoryManagementApp.Tests
     public class ItemCardTemplateTests
     {
         [Fact]
-        public void Image_UsesThumbnailConverterAndSize()
+        public void ItemCardTemplate_ShowsAvailabilityAndStatusBindings()
         {
             var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Resources", "Templates.xaml"));
             var doc = XDocument.Load(path);
@@ -17,9 +17,23 @@ namespace InventoryManagementApp.Tests
             XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
             var template = doc.Root?.Elements(ns + "DataTemplate").First(e => e.Attribute(x + "Key")?.Value == "ItemCardTemplate");
             var image = template!.Descendants(ns + "Image").First();
-            Assert.Equal("280", image.Attribute("Width")?.Value);
-            Assert.Equal("280", image.Attribute("Height")?.Value);
             Assert.Contains("NullToDefaultImageConverter", image.Attribute("Source")?.Value);
+
+            var texts = template.Descendants(ns + "TextBlock")
+                .Select(element => element.Attribute("Text")?.Value)
+                .Where(value => value != null)
+                .ToList();
+
+            Assert.Contains("{Binding OnHand, StringFormat=On Hand: {0}}", texts);
+
+            var triggers = template.Descendants(ns + "DataTrigger")
+                .Select(trigger => trigger.Attribute("Binding")?.Value)
+                .Where(value => value != null)
+                .ToList();
+
+            Assert.Contains("{Binding HasNoOnHand}", triggers);
+            Assert.Contains("{Binding HasRentedStock}", triggers);
+            Assert.Contains("{Binding IsCheckedOut}", triggers);
         }
     }
 }

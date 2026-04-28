@@ -33,8 +33,14 @@
                     <Style TargetType="Border" BasedOn="{StaticResource Card}">
                         <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
                         <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasRentedStock}" Value="True">
+                                <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}"/>
+                            </DataTrigger>
                             <DataTrigger Binding="{Binding IsCheckedOut}" Value="True">
                                 <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding HasNoOnHand}" Value="True">
+                                <Setter Property="BorderBrush" Value="{DynamicResource ErrorBrush}"/>
                             </DataTrigger>
                             <DataTrigger Binding="{Binding IsIncomplete}" Value="True">
                                 <Setter Property="BorderBrush" Value="{DynamicResource ErrorBrush}"/>
@@ -58,6 +64,7 @@
                         <TextBlock Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
                         <TextBlock Text="{Binding Name}" Style="{StaticResource ListItemTitleTextBlock}" TextTrimming="CharacterEllipsis"/>
                         <TextBlock Text="{Binding Location, StringFormat=Location: {0}}" Style="{StaticResource CaptionTextBlock}" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding OnHand, StringFormat=On Hand: {0}}" Style="{StaticResource CaptionTextBlock}" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"/>
                         <TextBlock Text="{Binding Notes}" Style="{StaticResource CaptionTextBlock}" Margin="0,4,0,0" MaxHeight="34" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                 </Grid>
