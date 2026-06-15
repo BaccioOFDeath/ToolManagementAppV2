@@ -7,12 +7,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows;
-using Microsoft.Win32;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Utilities.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Interfaces;
+using RentalModel = InventoryManagementApp.Models.Domain.Rental;
 
 namespace InventoryManagementApp.ViewModels.Rental
 {
@@ -24,6 +24,15 @@ namespace InventoryManagementApp.ViewModels.Rental
 
         public ObservableCollection<RentalModel> History { get; }
         public string ItemDisplayName { get; }
+        public string WindowSummary => _allHistory.Count == 1
+            ? "1 rental record loaded"
+            : $"{_allHistory.Count} rental records loaded";
+        public string ResultsSummary => History.Count == _allHistory.Count
+            ? WindowSummary
+            : $"{History.Count} of {_allHistory.Count} records shown";
+        public string SelectedEntrySummary => SelectedEntry == null
+            ? "Select a rental row to see holder, dates, and status. Double-click any row for details."
+            : $"Rental #{SelectedEntry.RentalID} | {SelectedEntry.ItemNumber} | {SelectedEntry.CustomerName} | {SelectedEntry.Status}";
 
         private string _searchText = string.Empty;
         public string SearchText
@@ -36,10 +45,19 @@ namespace InventoryManagementApp.ViewModels.Rental
         public RentalModel? SelectedEntry
         {
             get => _selectedEntry;
-            set => SetProperty(ref _selectedEntry, value);
+            set
+            {
+                if (SetProperty(ref _selectedEntry, value))
+                {
+                    OnPropertyChanged(nameof(SelectedEntrySummary));
+                    OpenDetailsCommand.NotifyCanExecuteChanged();
+                }
+            }
         }
 
         public IRelayCommand SearchCommand { get; }
+        public IRelayCommand ClearSearchCommand { get; }
+        public IRelayCommand OpenDetailsCommand { get; }
         public IRelayCommand ExportCsvCommand { get; }
         public IRelayCommand CloseCommand { get; }
 
@@ -55,6 +73,8 @@ namespace InventoryManagementApp.ViewModels.Rental
             _dialogService = dialogService;
 
             SearchCommand = new RelayCommand(ExecuteSearch);
+            ClearSearchCommand = new RelayCommand(ClearSearch);
+            OpenDetailsCommand = new RelayCommand(OpenDetails, () => SelectedEntry != null);
             ExportCsvCommand = new RelayCommand(ExportCsv);
             CloseCommand = new RelayCommand(CloseWindow);
         }
@@ -68,11 +88,40 @@ namespace InventoryManagementApp.ViewModels.Rental
                 results = _allHistory.Where(r =>
                     r.RentalID.ToString().Contains(term, StringComparison.OrdinalIgnoreCase) ||
                     (r.ItemNumber?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (r.ItemLocation?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (r.CustomerName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (r.Status?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false));
             }
 
             History.ReplaceRange(results);
+            OnPropertyChanged(nameof(ResultsSummary));
+        }
+
+        void ClearSearch()
+        {
+            SearchText = string.Empty;
+            History.ReplaceRange(_allHistory);
+            OnPropertyChanged(nameof(ResultsSummary));
+        }
+
+        void OpenDetails()
+        {
+            if (SelectedEntry == null)
+                return;
+
+            var returned = SelectedEntry.ReturnDate?.ToString("yyyy-MM-dd HH:mm") ?? "Not returned";
+            var details = new StringBuilder()
+                .AppendLine($"Rental #: {SelectedEntry.RentalID}")
+                .AppendLine($"Item #: {SelectedEntry.ItemNumber}")
+                .AppendLine($"Location: {SelectedEntry.ItemLocation}")
+                .AppendLine($"Customer: {SelectedEntry.CustomerName}")
+                .AppendLine($"Checked out: {SelectedEntry.RentalDate:yyyy-MM-dd HH:mm}")
+                .AppendLine($"Due back: {SelectedEntry.DueDate:yyyy-MM-dd HH:mm}")
+                .AppendLine($"Returned: {returned}")
+                .AppendLine($"Status: {SelectedEntry.Status}")
+                .ToString();
+
+            _dialogService.ShowInfo(details, "Rental History Details");
         }
 
         void ExportCsv()
@@ -100,12 +149,13 @@ namespace InventoryManagementApp.ViewModels.Rental
             path ??= Path.Combine(Environment.CurrentDirectory, "rental_history.csv");
 
             var sb = new StringBuilder();
-            sb.AppendLine("RentalID,ItemNumber,CustomerName,RentalDate,DueDate,ReturnDate,Status");
+            sb.AppendLine("RentalID,ItemNumber,ItemLocation,CustomerName,RentalDate,DueDate,ReturnDate,Status");
             foreach (var r in History)
             {
                 sb.AppendLine(string.Join(',',
                     r.RentalID,
                     Escape(r.ItemNumber),
+                    Escape(r.ItemLocation),
                     Escape(r.CustomerName),
                     r.RentalDate.ToString("o"),
                     r.DueDate.ToString("o"),
@@ -124,8 +174,16 @@ namespace InventoryManagementApp.ViewModels.Rental
             }
         }
 
-        static string Escape(string? value) =>
-            value?.Replace("\"", "\"\"") ?? string.Empty;
+        static string Escape(string? value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return string.Empty;
+
+            var escaped = value.Replace("\"", "\"\"");
+            return escaped.IndexOfAny(new[] { ',', '"', '\r', '\n' }) >= 0
+                ? $"\"{escaped}\""
+                : escaped;
+        }
 
         void CloseWindow()
         {
