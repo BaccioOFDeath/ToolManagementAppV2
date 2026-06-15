@@ -141,7 +141,15 @@ namespace InventoryManagementApp.ViewModels
         public ManageRentalsViewModel(
             IRentalService rentalService,
             IDialogService dialogService,
-            ReservationService? reservationService = null,
+            ILogger<ManageRentalsViewModel>? logger = null)
+            : this(rentalService, dialogService, null, logger)
+        {
+        }
+
+        public ManageRentalsViewModel(
+            IRentalService rentalService,
+            IDialogService dialogService,
+            ReservationService? reservationService,
             ILogger<ManageRentalsViewModel>? logger = null)
         {
             _rentalService = rentalService;
