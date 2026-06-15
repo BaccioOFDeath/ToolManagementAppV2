@@ -1,0 +1,36 @@
+name: .NET CI
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: Restore, build, and test
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore InventoryManagementApp.sln
+
+      - name: Build
+        run: dotnet build InventoryManagementApp.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test InventoryManagementApp.sln --configuration Release --no-build --verbosity normal
