@@ -1,0 +1,39 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="DesktopSectionListTabControl" TargetType="TabControl" BasedOn="{StaticResource {x:Type TabControl}}">
+        <Setter Property="TabStripPlacement" Value="Left"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+
+    <Style x:Key="DesktopSectionListTabItem" TargetType="TabItem" BasedOn="{StaticResource {x:Type TabItem}}">
+        <Setter Property="Width" Value="184"/>
+        <Setter Property="MinHeight" Value="27"/>
+        <Setter Property="Padding" Value="8,3"/>
+        <Setter Property="Margin" Value="0,0,0,2"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="FontSize" Value="12"/>
+    </Style>
+
+    <Style x:Key="DesktopContentPane" TargetType="Border" BasedOn="{StaticResource Card}">
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Margin" Value="4,0,0,0"/>
+    </Style>
+
+    <Style x:Key="DesktopSectionActionStrip" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="Padding" Value="4"/>
+    </Style>
+
+    <Style x:Key="DesktopSettingsForm" TargetType="Grid">
+        <Setter Property="Margin" Value="8"/>
+    </Style>
+
+    <Style x:Key="DesktopSettingsCheckList" TargetType="ItemsControl">
+        <Setter Property="Margin" Value="6,0,0,0"/>
+    </Style>
+</ResourceDictionary>
