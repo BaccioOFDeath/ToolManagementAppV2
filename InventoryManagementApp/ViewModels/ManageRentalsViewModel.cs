@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Documents;
@@ -14,10 +15,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace InventoryManagementApp.ViewModels
 {
-    /// <summary>
-    /// View model backing the ManageRentalsPage. Provides filtering and
-    /// commands for common rental operations.
-    /// </summary>
     public class ManageRentalsViewModel : ObservableObject
     {
         private readonly IRentalService _rentalService;
@@ -26,6 +23,10 @@ namespace InventoryManagementApp.ViewModels
         private List<RentalModel> _allRentals = new();
 
         public ObservableCollection<RentalModel> Rentals { get; } = new();
+        public ObservableCollection<RentalModel> ActiveRentals { get; } = new();
+
+        public string SearchSummary => $"{Rentals.Count} result{(Rentals.Count == 1 ? string.Empty : "s")} shown";
+        public string CheckedOutSummary => $"{ActiveRentals.Count} item{(ActiveRentals.Count == 1 ? string.Empty : "s")} currently checked out";
 
         private string _searchText = string.Empty;
         public string SearchText
@@ -60,8 +61,7 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        public ObservableCollection<string> StatusOptions { get; } =
-            new ObservableCollection<string> { "All", "Rented", "Returned" };
+        public ObservableCollection<string> StatusOptions { get; } = new() { "All", "Rented", "Returned" };
 
         private string _selectedStatus = "All";
         public string SelectedStatus
@@ -85,6 +85,7 @@ namespace InventoryManagementApp.ViewModels
                     CheckInCommand.NotifyCanExecuteChanged();
                     ExtendCommand.NotifyCanExecuteChanged();
                     OpenHistoryCommand.NotifyCanExecuteChanged();
+                    OpenRentalDetailsCommand.NotifyCanExecuteChanged();
                     PrintRentalCommand.NotifyCanExecuteChanged();
                     PrintPickingSlipCommand.NotifyCanExecuteChanged();
                     PrintInvoiceCommand.NotifyCanExecuteChanged();
@@ -105,7 +106,10 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand CheckInCommand { get; }
         public IAsyncRelayCommand ExtendCommand { get; }
         public IAsyncRelayCommand OpenHistoryCommand { get; }
+        public IRelayCommand OpenRentalDetailsCommand { get; }
         public IRelayCommand PrintRentalCommand { get; }
+        public IRelayCommand PrintSearchResultsCommand { get; }
+        public IRelayCommand PrintCheckedOutCommand { get; }
         public IRelayCommand PrintPickingSlipCommand { get; }
         public IRelayCommand PrintInvoiceCommand { get; }
         public IAsyncRelayCommand DeleteRentalCommand { get; }
@@ -118,23 +122,26 @@ namespace InventoryManagementApp.ViewModels
 
             ApplyFilterCommand = new RelayCommand(ApplyFilter);
             ClearFilterCommand = new RelayCommand(ClearFilter);
-            CheckInCommand = new AsyncRelayCommand(CheckInAsync, () => SelectedRental != null);
-            ExtendCommand = new AsyncRelayCommand(ExtendAsync, () => SelectedRental != null);
+            CheckInCommand = new AsyncRelayCommand(CheckInAsync, CanReturnSelectedRental);
+            ExtendCommand = new AsyncRelayCommand(ExtendAsync, CanReturnSelectedRental);
             OpenHistoryCommand = new AsyncRelayCommand(OpenHistoryAsync, () => SelectedRental != null);
+            OpenRentalDetailsCommand = new RelayCommand(OpenRentalDetails, () => SelectedRental != null);
             PrintRentalCommand = new RelayCommand(PrintRental, () => SelectedRental != null);
+            PrintSearchResultsCommand = new RelayCommand(PrintSearchResults);
+            PrintCheckedOutCommand = new RelayCommand(PrintCheckedOut);
             PrintPickingSlipCommand = new RelayCommand(PrintPickingSlip, () => SelectedRental != null);
             PrintInvoiceCommand = new RelayCommand(PrintInvoice, () => SelectedRental != null);
             DeleteRentalCommand = new AsyncRelayCommand(DeleteRentalAsync, () => SelectedRental != null);
         }
 
-        /// <summary>Loads all rentals from the service.</summary>
         public async Task LoadRentalsAsync()
         {
             IsLoading = true;
             try
             {
                 _allRentals = await _rentalService.GetAllRentalsAsync();
-                Rentals.ReplaceRange(_allRentals);
+                RefreshActiveRentals();
+                ApplyFilter();
             }
             catch (Exception ex)
             {
@@ -162,6 +169,7 @@ namespace InventoryManagementApp.ViewModels
                 var term = SearchText.Trim();
                 filtered = filtered.Where(r =>
                     (r.ItemNumber?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (r.ItemLocation?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (r.CustomerName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false));
             }
 
@@ -173,6 +181,7 @@ namespace InventoryManagementApp.ViewModels
                 filtered = filtered.Where(r => string.Equals(r.Status, SelectedStatus, StringComparison.OrdinalIgnoreCase));
 
             Rentals.ReplaceRange(filtered);
+            OnPropertyChanged(nameof(SearchSummary));
         }
 
         void ClearFilter()
@@ -182,6 +191,7 @@ namespace InventoryManagementApp.ViewModels
             FilterTo = null;
             SelectedStatus = StatusOptions.First();
             Rentals.ReplaceRange(_allRentals);
+            OnPropertyChanged(nameof(SearchSummary));
         }
 
         async Task CheckInAsync()
@@ -262,51 +272,52 @@ namespace InventoryManagementApp.ViewModels
             _dialogService.ShowRentalHistory(item, history);
         }
 
+        void OpenRentalDetails()
+        {
+            if (SelectedRental == null)
+                return;
+
+            var rental = SelectedRental;
+            var details = new StringBuilder();
+            details.AppendLine($"Rental #: {rental.RentalID}");
+            details.AppendLine($"Item #: {rental.ItemNumber}");
+            details.AppendLine($"Location: {ValueOrNotRecorded(rental.ItemLocation)}");
+            details.AppendLine($"Status: {rental.Status}");
+            details.AppendLine();
+            details.AppendLine($"Checked out to: {ValueOrNotRecorded(rental.CustomerName)}");
+            details.AppendLine($"Contact: {ValueOrNotRecorded(rental.CustomerContact)}");
+            details.AppendLine($"Phone: {ValueOrNotRecorded(rental.CustomerPhone)}");
+            details.AppendLine($"Email: {ValueOrNotRecorded(rental.CustomerEmail)}");
+            details.AppendLine();
+            details.AppendLine($"Checked out: {FormatDate(rental.RentalDate)}");
+            details.AppendLine($"Due back: {FormatDate(rental.DueDate)}");
+            details.AppendLine($"Returned: {FormatNullableDate(rental.ReturnDate)}");
+            details.AppendLine($"Time out: {DescribeRentalAge(rental)}");
+            details.AppendLine();
+            details.AppendLine(IsRentalActive(rental)
+                ? "Next steps: check in when returned, extend if approved, or open history for prior usage."
+                : "Next steps: open history to inspect prior usage or print this rental record.");
+
+            _dialogService.ShowInfo(details.ToString(), $"Rental Details - {rental.ItemNumber}");
+        }
+
         void PrintRental()
         {
             if (SelectedRental == null)
                 return;
             try
             {
-                var doc = new FlowDocument
-                {
-                    PagePadding = new Thickness(40),
-                    FontFamily = new System.Windows.Media.FontFamily("Calibri"),
-                    FontSize = 16
-                };
-
-                doc.Blocks.Add(new Paragraph(new Bold(new Run("Rental Information")))
-                {
-                    FontSize = 22,
-                    TextAlignment = TextAlignment.Center,
-                    Margin = new Thickness(0, 0, 0, 20)
-                });
-
-                var table = new Table();
-                table.Columns.Add(new TableColumn { Width = new GridLength(150) });
-                table.Columns.Add(new TableColumn());
-                var group = new TableRowGroup();
-                table.RowGroups.Add(group);
-
-                void AddRow(string label, string value)
-                {
-                    var row = new TableRow();
-                    row.Cells.Add(new TableCell(new Paragraph(new Run(label))
-                    {
-                        FontWeight = FontWeights.Bold
-                    }));
-                    row.Cells.Add(new TableCell(new Paragraph(new Run(value ?? string.Empty))));
-                    group.Rows.Add(row);
-                }
-
-                AddRow("Rental #:", SelectedRental.RentalID.ToString());
-                AddRow("Item #:", SelectedRental.ItemNumber);
-                AddRow("Customer:", SelectedRental.CustomerName);
-                AddRow("Rental Date:", SelectedRental.RentalDate.ToString("yyyy-MM-dd HH:mm"));
-                AddRow("Due Date:", SelectedRental.DueDate.ToString("yyyy-MM-dd HH:mm"));
-                AddRow("Return Date:", SelectedRental.ReturnDate?.ToString("yyyy-MM-dd HH:mm") ?? "N/A");
-                AddRow("Status:", SelectedRental.Status ?? string.Empty);
-
+                var doc = CreateRentalDocument("Rental Information");
+                var table = CreateKeyValueTable();
+                var group = table.RowGroups[0];
+                AddKeyValueRow(group, "Rental #:", SelectedRental.RentalID.ToString());
+                AddKeyValueRow(group, "Item #:", SelectedRental.ItemNumber);
+                AddKeyValueRow(group, "Location:", SelectedRental.ItemLocation);
+                AddKeyValueRow(group, "Customer:", SelectedRental.CustomerName);
+                AddKeyValueRow(group, "Rental Date:", SelectedRental.RentalDate.ToString("yyyy-MM-dd HH:mm"));
+                AddKeyValueRow(group, "Due Date:", SelectedRental.DueDate.ToString("yyyy-MM-dd HH:mm"));
+                AddKeyValueRow(group, "Return Date:", SelectedRental.ReturnDate?.ToString("yyyy-MM-dd HH:mm") ?? "N/A");
+                AddKeyValueRow(group, "Status:", SelectedRental.Status ?? string.Empty);
                 doc.Blocks.Add(table);
 
                 _dialogService.ShowPrintPreview(doc, $"Rental {SelectedRental.RentalID}", string.Empty);
@@ -316,6 +327,114 @@ namespace InventoryManagementApp.ViewModels
                 _logger.LogError(ex, "Failed to print rental {RentalID}", SelectedRental?.RentalID);
                 _dialogService.ShowInfo($"Failed to print rental: {ex.Message}", "Error");
             }
+        }
+
+        void PrintSearchResults() => PrintRentalList("Rental Search Results", Rentals, "There are no rental search results to print.");
+
+        void PrintCheckedOut() => PrintRentalList("Currently Checked Out Items", ActiveRentals, "There are no checked-out items to print.");
+
+        void PrintRentalList(string title, IEnumerable<RentalModel> rentals, string emptyMessage)
+        {
+            var records = rentals.ToList();
+            if (records.Count == 0)
+            {
+                _dialogService.ShowInfo(emptyMessage, title);
+                return;
+            }
+
+            try
+            {
+                var doc = CreateRentalDocument(title, fontSize: 11);
+                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | {records.Count} record{(records.Count == 1 ? string.Empty : "s")}"))
+                {
+                    FontSize = 10,
+                    Margin = new Thickness(0, 0, 0, 10)
+                });
+
+                var table = new Table { CellSpacing = 0 };
+                table.Columns.Add(new TableColumn { Width = new GridLength(70) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(95) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(140) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(140) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(95) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(95) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(80) });
+
+                var group = new TableRowGroup();
+                table.RowGroups.Add(group);
+                AddPrintRow(group, true, "Rental", "Item #", "Location", "Checked Out To", "Out", "Due", "Status");
+
+                foreach (var rental in records)
+                {
+                    AddPrintRow(group, false, rental.RentalID.ToString(), rental.ItemNumber, rental.ItemLocation, rental.CustomerName, rental.RentalDate.ToString("yyyy-MM-dd"), rental.DueDate.ToString("yyyy-MM-dd"), rental.Status ?? string.Empty);
+                }
+
+                doc.Blocks.Add(table);
+                _dialogService.ShowPrintPreview(doc, title, string.Empty);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to print rental list {Title}", title);
+                _dialogService.ShowInfo($"Failed to print rental list: {ex.Message}", "Error");
+            }
+        }
+
+        static FlowDocument CreateRentalDocument(string title, double fontSize = 16)
+        {
+            var doc = new FlowDocument
+            {
+                PagePadding = new Thickness(36),
+                FontFamily = new System.Windows.Media.FontFamily("Calibri"),
+                FontSize = fontSize
+            };
+
+            doc.Blocks.Add(new Paragraph(new Bold(new Run(title)))
+            {
+                FontSize = 20,
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0, 0, 0, 10)
+            });
+
+            return doc;
+        }
+
+        static Table CreateKeyValueTable()
+        {
+            var table = new Table();
+            table.Columns.Add(new TableColumn { Width = new GridLength(150) });
+            table.Columns.Add(new TableColumn());
+            table.RowGroups.Add(new TableRowGroup());
+            return table;
+        }
+
+        static void AddKeyValueRow(TableRowGroup group, string label, string value)
+        {
+            var row = new TableRow();
+            row.Cells.Add(new TableCell(new Paragraph(new Run(label)) { FontWeight = FontWeights.Bold }));
+            row.Cells.Add(new TableCell(new Paragraph(new Run(value ?? string.Empty))));
+            group.Rows.Add(row);
+        }
+
+        static void AddPrintRow(TableRowGroup group, bool isHeader, params string[] values)
+        {
+            var row = new TableRow();
+            foreach (var value in values)
+            {
+                var paragraph = new Paragraph(new Run(value ?? string.Empty))
+                {
+                    Margin = new Thickness(3),
+                    FontSize = isHeader ? 10 : 9,
+                    FontWeight = isHeader ? FontWeights.Bold : FontWeights.Normal
+                };
+                var cell = new TableCell(paragraph)
+                {
+                    BorderBrush = System.Windows.Media.Brushes.Gray,
+                    BorderThickness = new Thickness(0.5),
+                    Padding = new Thickness(2)
+                };
+                row.Cells.Add(cell);
+            }
+            group.Rows.Add(row);
         }
 
         void PrintPickingSlip()
@@ -357,9 +476,7 @@ namespace InventoryManagementApp.ViewModels
             if (SelectedRental == null)
                 return;
 
-            var confirmed = await _dialogService.ShowConfirmAsync(
-                "Delete Rental",
-                $"Are you sure you want to delete rental #{SelectedRental.RentalID}?");
+            var confirmed = await _dialogService.ShowConfirmAsync("Delete Rental", $"Are you sure you want to delete rental #{SelectedRental.RentalID}?");
             if (!confirmed)
                 return;
 
@@ -369,8 +486,9 @@ namespace InventoryManagementApp.ViewModels
                 IsLoading = true;
                 await _rentalService.DeleteRentalAsync(rentalToDelete.RentalID);
                 _allRentals.Remove(rentalToDelete);
-                Rentals.Remove(rentalToDelete);
                 SelectedRental = null;
+                RefreshActiveRentals();
+                ApplyFilter();
             }
             catch (UnauthorizedAccessException)
             {
@@ -386,6 +504,31 @@ namespace InventoryManagementApp.ViewModels
                 IsLoading = false;
             }
         }
+
+        void RefreshActiveRentals()
+        {
+            ActiveRentals.ReplaceRange(_allRentals.Where(IsRentalActive));
+            OnPropertyChanged(nameof(CheckedOutSummary));
+        }
+
+        bool CanReturnSelectedRental() => SelectedRental != null && IsRentalActive(SelectedRental);
+
+        static bool IsRentalActive(RentalModel rental)
+        {
+            return rental.ReturnDate == null && !string.Equals(rental.Status, "Returned", StringComparison.OrdinalIgnoreCase);
+        }
+
+        static string ValueOrNotRecorded(string? value) => string.IsNullOrWhiteSpace(value) ? "Not recorded" : value;
+
+        static string FormatDate(DateTime value) => value.ToString("yyyy-MM-dd HH:mm");
+
+        static string FormatNullableDate(DateTime? value) => value?.ToString("yyyy-MM-dd HH:mm") ?? "Not returned yet";
+
+        static string DescribeRentalAge(RentalModel rental)
+        {
+            var end = rental.ReturnDate ?? DateTime.Now;
+            var days = Math.Max(0, (end.Date - rental.RentalDate.Date).Days);
+            return days == 1 ? "1 day" : $"{days} days";
+        }
     }
 }
-

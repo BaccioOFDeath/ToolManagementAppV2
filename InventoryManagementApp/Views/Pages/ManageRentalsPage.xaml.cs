@@ -1,17 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using InventoryManagementApp.ViewModels;
 
 namespace InventoryManagementApp.Views.Pages
@@ -32,6 +21,23 @@ namespace InventoryManagementApp.Views.Pages
             if (DataContext is ManageRentalsViewModel vm)
             {
                 await vm.LoadRentalsAsync();
+            }
+        }
+
+        private void RentalRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (DataContext is ManageRentalsViewModel vm && vm.OpenRentalDetailsCommand.CanExecute(null))
+            {
+                vm.OpenRentalDetailsCommand.Execute(null);
+            }
+        }
+
+        private void RentalRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is DataGridRow row && !row.IsSelected)
+            {
+                row.IsSelected = true;
+                e.Handled = true;
             }
         }
     }
