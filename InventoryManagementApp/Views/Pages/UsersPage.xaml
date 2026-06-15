@@ -13,24 +13,21 @@
         </Grid.RowDefinitions>
 
         <Border Style="{StaticResource ToolbarCard}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Orientation="Horizontal" Grid.Column="0" VerticalAlignment="Center">
-                    <Button Style="{StaticResource PrimaryButton}" Content="Add User" Command="{Binding AddUserCommand}" Margin="0,0,8,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Edit User" Command="{Binding EditUserCommand}" Margin="0,0,8,0"/>
+            <DockPanel LastChildFill="False">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                    <TextBlock Text="Actions" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Add" Command="{Binding AddUserCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditUserCommand}"/>
                 </StackPanel>
-                <pages:SearchBar Grid.Column="2"
-                                 Width="360"
-                                 SearchLabel=""
-                                 HorizontalAlignment="Right"
-                                 Text="{Binding UserSearchText}"
-                                 SearchCommand="{Binding SearchUsersCommand}"
-                                 ClearCommand="{Binding ClearUserSearchCommand}"/>
-            </Grid>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
+                    <TextBlock Text="Filter" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <pages:SearchBar Width="360"
+                                     SearchLabel=""
+                                     Text="{Binding UserSearchText}"
+                                     SearchCommand="{Binding SearchUsersCommand}"
+                                     ClearCommand="{Binding ClearUserSearchCommand}"/>
+                </StackPanel>
+            </DockPanel>
         </Border>
 
         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
@@ -43,25 +40,25 @@
                       CanUserAddRows="False"
                       Style="{StaticResource VirtualizedDataGridStyle}">
                 <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="Image" Width="60">
+                    <DataGridTemplateColumn Header="Image" Width="48">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Grid Width="36" Height="36" VerticalAlignment="Center">
+                                <Grid Width="26" Height="26" VerticalAlignment="Center">
                                     <controls:UserAvatar UserName="{Binding UserName}"
                                                         UserPhotoPath="{Binding UserPhotoPath}"
                                                         Foreground="{Binding InitialsBrush}"
-                                                        FontSize="20"/>
+                                                        FontSize="14"/>
                                 </Grid>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                     <DataGridTextColumn Header="Username" Binding="{Binding UserName}" Width="*"/>
-                    <DataGridTextColumn Header="Role" Binding="{Binding IsAdmin, Converter={StaticResource BooleanToAdminConverter}}" Width="120"/>
+                    <DataGridTextColumn Header="Role" Binding="{Binding IsAdmin, Converter={StaticResource BooleanToAdminConverter}}" Width="110"/>
                     <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="220"/>
-                    <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="140"/>
-                    <DataGridTextColumn Header="Mobile" Binding="{Binding Mobile}" Width="140"/>
-                    <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive}" Width="100"/>
-                    <DataGridTextColumn Header="Created" Binding="{Binding CreatedAt, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat={}{0:yyyy-MM-dd}, TargetNullValue=''}" Width="140"/>
+                    <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="130"/>
+                    <DataGridTextColumn Header="Mobile" Binding="{Binding Mobile}" Width="130"/>
+                    <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive}" Width="80"/>
+                    <DataGridTextColumn Header="Created" Binding="{Binding CreatedAt, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat={}{0:yyyy-MM-dd}, TargetNullValue=''}" Width="120"/>
                 </DataGrid.Columns>
                 <DataGrid.ContextMenu>
                     <ContextMenu Style="{StaticResource {x:Type ContextMenu}}">
