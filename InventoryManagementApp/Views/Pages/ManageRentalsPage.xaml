@@ -6,6 +6,8 @@
     <Grid Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -14,15 +16,17 @@
             <DockPanel LastChildFill="False">
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
                     <TextBlock Text="Actions" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenRentalDetailsCommand}" Margin="0,0,4,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,4,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Extend" Command="{Binding ExtendCommand}" Margin="0,0,4,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="History" Command="{Binding OpenHistoryCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintRentalCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Print Search" Command="{Binding PrintSearchResultsCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Print Checked Out" Command="{Binding PrintCheckedOutCommand}" Margin="0,0,4,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Delete" Command="{Binding DeleteRentalCommand}"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
                     <TextBlock Text="Filter" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <TextBox Width="140" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0"/>
+                    <TextBox Width="150" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0"/>
                     <DatePicker SelectedDate="{Binding FilterFrom, UpdateSourceTrigger=PropertyChanged}" Width="125" Margin="0,0,4,0"/>
                     <DatePicker SelectedDate="{Binding FilterTo, UpdateSourceTrigger=PropertyChanged}" Width="125" Margin="0,0,4,0"/>
                     <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus, UpdateSourceTrigger=PropertyChanged}" Width="110" Margin="0,0,4,0"/>
@@ -34,38 +38,56 @@
 
         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
             <Grid>
-                <DataGrid ItemsSource="{Binding Rentals}"
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Border Background="{DynamicResource SurfaceAltBrush}"
+                        BorderBrush="{DynamicResource BorderBrushAlt}"
+                        BorderThickness="0,0,0,1"
+                        Padding="5,3">
+                    <DockPanel>
+                        <TextBlock Text="01 Search Results" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
+                        <TextBlock Text="{Binding SearchSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                    </DockPanel>
+                </Border>
+                <DataGrid Grid.Row="1"
+                          ItemsSource="{Binding Rentals}"
                           SelectedItem="{Binding SelectedRental}"
-                          SelectionMode="Extended"
+                          SelectionMode="Single"
                           IsReadOnly="True"
                           AutoGenerateColumns="False"
                           Style="{StaticResource VirtualizedDataGridStyle}">
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                            <EventSetter Event="MouseDoubleClick" Handler="RentalRow_MouseDoubleClick"/>
+                            <EventSetter Event="PreviewMouseRightButtonDown" Handler="RentalRow_PreviewMouseRightButtonDown"/>
+                        </Style>
+                    </DataGrid.RowStyle>
                     <DataGrid.Columns>
-                        <StaticResource ResourceKey="RentalIdColumn"/>
-                        <StaticResource ResourceKey="RentalItemNumberColumn"/>
-                        <StaticResource ResourceKey="RentalItemNameColumn"/>
-                        <StaticResource ResourceKey="RentalCustomerColumn"/>
-                        <StaticResource ResourceKey="RentalOutColumn"/>
-                        <StaticResource ResourceKey="RentalDueColumn"/>
-                        <StaticResource ResourceKey="RentalReturnedColumn"/>
-                        <StaticResource ResourceKey="RentalStatusColumn"/>
+                        <DataGridTextColumn Header="Rental" Binding="{Binding RentalID}" Width="70"/>
+                        <DataGridTextColumn Header="Tool #" Binding="{Binding ItemNumber}" Width="120"/>
+                        <DataGridTextColumn Header="Tool / Item" Binding="{Binding ItemName}" Width="220"/>
+                        <DataGridTextColumn Header="Who Has It" Binding="{Binding CustomerName}" Width="190"/>
+                        <DataGridTextColumn Header="Checked Out" Binding="{Binding RentalDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="145"/>
+                        <DataGridTextColumn Header="Due Back" Binding="{Binding DueDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="145"/>
+                        <DataGridTextColumn Header="Returned" Binding="{Binding ReturnDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="145"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="110"/>
                     </DataGrid.Columns>
                     <DataGrid.ContextMenu>
                         <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
                                     DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                            <MenuItem Header="Open Details" Command="{Binding OpenRentalDetailsCommand}"/>
                             <MenuItem Header="Check In" Command="{Binding CheckInCommand}"/>
                             <MenuItem Header="Extend" Command="{Binding ExtendCommand}"/>
                             <MenuItem Header="History" Command="{Binding OpenHistoryCommand}"/>
-                            <MenuItem Header="Print" Command="{Binding PrintRentalCommand}"/>
+                            <MenuItem Header="Print Rental" Command="{Binding PrintRentalCommand}"/>
+                            <MenuItem Header="Print Search Results" Command="{Binding PrintSearchResultsCommand}"/>
                             <MenuItem Header="Delete" Command="{Binding DeleteRentalCommand}"/>
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                 </DataGrid>
-                <TextBlock Text="No rental records"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           FontSize="13"
-                           FontWeight="SemiBold">
+                <TextBlock Grid.Row="1" Text="No rental records match this search" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
                             <Setter Property="Visibility" Value="Collapsed"/>
@@ -80,9 +102,60 @@
             </Grid>
         </Border>
 
-        <ProgressBar Grid.Row="2"
-                     IsIndeterminate="True"
-                     Margin="0,4,0,0"
-                     Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
+        <GridSplitter Grid.Row="2" Height="6" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
+
+        <Border Grid.Row="3" Style="{StaticResource Card}" Padding="0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                    <DockPanel>
+                        <TextBlock Text="02 Currently Checked Out" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
+                        <TextBlock Text="{Binding CheckedOutSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                    </DockPanel>
+                </Border>
+                <DataGrid Grid.Row="1" ItemsSource="{Binding ActiveRentals}" SelectedItem="{Binding SelectedRental}" SelectionMode="Single" IsReadOnly="True" AutoGenerateColumns="False" Style="{StaticResource VirtualizedDataGridStyle}">
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                            <EventSetter Event="MouseDoubleClick" Handler="RentalRow_MouseDoubleClick"/>
+                            <EventSetter Event="PreviewMouseRightButtonDown" Handler="RentalRow_PreviewMouseRightButtonDown"/>
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Tool #" Binding="{Binding ItemNumber}" Width="120"/>
+                        <DataGridTextColumn Header="Tool / Item" Binding="{Binding ItemName}" Width="250"/>
+                        <DataGridTextColumn Header="Checked Out To" Binding="{Binding CustomerName}" Width="220"/>
+                        <DataGridTextColumn Header="Checked Out" Binding="{Binding RentalDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="150"/>
+                        <DataGridTextColumn Header="Due Back" Binding="{Binding DueDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="150"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="110"/>
+                    </DataGrid.Columns>
+                    <DataGrid.ContextMenu>
+                        <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                            <MenuItem Header="Open Details" Command="{Binding OpenRentalDetailsCommand}"/>
+                            <MenuItem Header="Check In" Command="{Binding CheckInCommand}"/>
+                            <MenuItem Header="Extend" Command="{Binding ExtendCommand}"/>
+                            <MenuItem Header="History" Command="{Binding OpenHistoryCommand}"/>
+                            <MenuItem Header="Print Checked Out" Command="{Binding PrintCheckedOutCommand}"/>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                </DataGrid>
+                <TextBlock Grid.Row="1" Text="No tools are currently checked out" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ActiveRentals.Count}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+        </Border>
+
+        <ProgressBar Grid.Row="4" IsIndeterminate="True" Margin="0,4,0,0" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
     </Grid>
 </Page>
