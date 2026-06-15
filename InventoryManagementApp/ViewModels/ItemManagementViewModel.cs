@@ -32,6 +32,10 @@ namespace InventoryManagementApp.ViewModels
 
         public ObservableCollection<ItemModel> Items { get; } = new();
         public ObservableCollection<ItemModel> SearchResults { get; } = new();
+        public ObservableCollection<ItemModel> CheckedOutItems { get; } = new();
+
+        public string SearchResultsSummary => SearchResults.Count == 1 ? "1 result" : $"{SearchResults.Count} results";
+        public string CheckedOutSummary => CheckedOutItems.Count == 1 ? "1 checked out" : $"{CheckedOutItems.Count} checked out";
 
         /// <summary>
         /// List of available item categories derived from distinct brands
@@ -156,6 +160,10 @@ namespace InventoryManagementApp.ViewModels
             // instances.
             Items.CollectionChanged -= Items_CollectionChanged;
             Items.CollectionChanged += Items_CollectionChanged;
+            SearchResults.CollectionChanged -= SearchResults_CollectionChanged;
+            SearchResults.CollectionChanged += SearchResults_CollectionChanged;
+            CheckedOutItems.CollectionChanged -= CheckedOutItems_CollectionChanged;
+            CheckedOutItems.CollectionChanged += CheckedOutItems_CollectionChanged;
         }
 
         Dictionary<ItemDetailField, bool> _visibleFields = new();
@@ -269,6 +277,7 @@ namespace InventoryManagementApp.ViewModels
                 Items.ReplaceRange(list);
                 SearchResults.ReplaceRange(list);
                 LoadCategories(Items);
+                RefreshCheckedOutItems();
             }
             finally
             {
@@ -324,6 +333,7 @@ namespace InventoryManagementApp.ViewModels
                 Items.ReplaceRange(list);
                 SearchResults.ReplaceRange(list);
                 LoadCategories(list, suppressSearch: true);
+                RefreshCheckedOutItems();
             }
             else
             {
@@ -557,6 +567,8 @@ namespace InventoryManagementApp.ViewModels
                     item.CheckedInBy = refreshed.CheckedInBy;
                     item.CheckedInTime = refreshed.CheckedInTime;
                 }
+
+                RefreshCheckedOutItems();
             }
             catch (OperationCanceledException)
             {
@@ -596,12 +608,32 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
+        void RefreshCheckedOutItems()
+        {
+            var checkedOutItems = Items.Where(t => t.IsCheckedOut)
+                                       .OrderByDescending(t => t.CheckedOutTime ?? DateTime.MinValue)
+                                       .ThenBy(t => t.Name)
+                                       .ToList();
+            CheckedOutItems.ReplaceRange(checkedOutItems);
+        }
+
         void Items_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             if (_suppressItemsChanged)
                 return;
 
             LoadCategories(Items);
+            RefreshCheckedOutItems();
+        }
+
+        void SearchResults_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            OnPropertyChanged(nameof(SearchResultsSummary));
+        }
+
+        void CheckedOutItems_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            OnPropertyChanged(nameof(CheckedOutSummary));
         }
 
         /// <inheritdoc />
@@ -625,6 +657,8 @@ namespace InventoryManagementApp.ViewModels
             cts?.Dispose();
 
             Items.CollectionChanged -= Items_CollectionChanged;
+            SearchResults.CollectionChanged -= SearchResults_CollectionChanged;
+            CheckedOutItems.CollectionChanged -= CheckedOutItems_CollectionChanged;
             _settingsService.ItemDetailVisibilityChanged -= OnItemDetailVisibilityChanged;
             _settingsService.ItemCardSizeChanged -= OnItemCardSizeChanged;
         }
