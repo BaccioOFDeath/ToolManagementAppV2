@@ -57,9 +57,9 @@
                     </DataGrid.RowStyle>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Rental" Binding="{Binding RentalID}" Width="70"/>
-                        <DataGridTextColumn Header="Tool #" Binding="{Binding ItemNumber}" Width="120"/>
+                        <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="120"/>
                         <DataGridTextColumn Header="Location" Binding="{Binding ItemLocation}" Width="180"/>
-                        <DataGridTextColumn Header="Who Has It" Binding="{Binding CustomerName}" Width="190"/>
+                        <DataGridTextColumn Header="Checked Out To" Binding="{Binding CustomerName}" Width="190"/>
                         <DataGridTextColumn Header="Checked Out" Binding="{Binding RentalDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="145"/>
                         <DataGridTextColumn Header="Due Back" Binding="{Binding DueDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="145"/>
                         <DataGridTextColumn Header="Returned" Binding="{Binding ReturnDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="145"/>
@@ -114,7 +114,7 @@
                         </Style>
                     </DataGrid.RowStyle>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Tool #" Binding="{Binding ItemNumber}" Width="120"/>
+                        <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="120"/>
                         <DataGridTextColumn Header="Location" Binding="{Binding ItemLocation}" Width="180"/>
                         <DataGridTextColumn Header="Checked Out To" Binding="{Binding CustomerName}" Width="220"/>
                         <DataGridTextColumn Header="Checked Out" Binding="{Binding RentalDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="150"/>
@@ -131,7 +131,7 @@
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                 </DataGrid>
-                <TextBlock Grid.Row="1" Text="No tools are currently checked out" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold">
+                <TextBlock Grid.Row="1" Text="No items are currently checked out" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
                             <Setter Property="Visibility" Value="Collapsed"/>
