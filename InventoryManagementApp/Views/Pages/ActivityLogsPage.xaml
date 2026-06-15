@@ -7,28 +7,178 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource ToolbarCard}">
-            <Button Style="{StaticResource PrimaryButton}"
-                    Content="Refresh"
-                    Command="{Binding RefreshCommand}"/>
+        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="220"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="160"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="170"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="Search:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,4,0"/>
+                <TextBox Grid.Column="1"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="Filter by user, action, or timestamp"/>
+
+                <TextBlock Grid.Column="2" Text="User:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="8,0,4,0"/>
+                <ComboBox Grid.Column="3"
+                          ItemsSource="{Binding UserFilters}"
+                          SelectedItem="{Binding SelectedUserFilter}"
+                          MinWidth="150"/>
+
+                <TextBlock Grid.Column="4" Text="Action:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="8,0,4,0"/>
+                <ComboBox Grid.Column="5"
+                          ItemsSource="{Binding ActionFilters}"
+                          SelectedItem="{Binding SelectedActionFilter}"
+                          MinWidth="160"/>
+
+                <StackPanel Grid.Column="7" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource PrimaryButton}"
+                            Content="Refresh"
+                            Command="{Binding RefreshCommand}"
+                            Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource GhostButton}"
+                            Content="Clear"
+                            Command="{Binding ClearFiltersCommand}"
+                            Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource GhostButton}"
+                            Content="Copy Row"
+                            Click="CopySelectedLog_Click"
+                            Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource GhostButton}"
+                            Content="Print"
+                            Click="PrintLogs_Click"/>
+                </StackPanel>
+            </Grid>
         </Border>
 
-        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
-            <DataGrid ItemsSource="{Binding Logs}" IsReadOnly="True" AutoGenerateColumns="False" Style="{StaticResource VirtualizedDataGridStyle}">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Timestamp"
-                                         Binding="{Binding Timestamp, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat={}{0:yyyy-MM-dd HH:mm}, TargetNullValue=''}"
-                                         Width="180"/>
-                    <DataGridTextColumn Header="User"
-                                         Binding="{Binding UserName}"
-                                         Width="160"/>
-                    <DataGridTextColumn Header="Action"
-                                         Binding="{Binding Action}"
-                                         Width="*"/>
-                </DataGrid.Columns>
-            </DataGrid>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="1.15*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
+                <DataGrid x:Name="ActivityGrid"
+                          ItemsSource="{Binding FilteredLogs}"
+                          SelectedItem="{Binding SelectedLog, Mode=TwoWay}"
+                          IsReadOnly="True"
+                          AutoGenerateColumns="False"
+                          Style="{StaticResource VirtualizedDataGridStyle}"
+                          MouseDoubleClick="ActivityGrid_MouseDoubleClick">
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                            <EventSetter Event="PreviewMouseRightButtonDown" Handler="ActivityGridRow_PreviewMouseRightButtonDown"/>
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Open Activity Detail" Click="OpenSelectedLog_Click"/>
+                            <MenuItem Header="Copy Activity Row" Click="CopySelectedLog_Click"/>
+                            <Separator/>
+                            <MenuItem Header="Print Current Results" Click="PrintLogs_Click"/>
+                            <MenuItem Header="Refresh" Click="RefreshLogs_Click"/>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Timestamp"
+                                            Binding="{Binding Timestamp, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat={}{0:yyyy-MM-dd HH:mm:ss}, TargetNullValue=''}"
+                                            Width="150"/>
+                        <DataGridTextColumn Header="User"
+                                            Binding="{Binding UserName}"
+                                            Width="140"/>
+                        <DataGridTextColumn Header="User ID"
+                                            Binding="{Binding UserID}"
+                                            Width="70"/>
+                        <DataGridTextColumn Header="Action"
+                                            Binding="{Binding Action}"
+                                            Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <GridSplitter Grid.Column="1"
+                          Width="6"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Background="{DynamicResource BorderBrushBase}"/>
+
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="8">
+                <DockPanel LastChildFill="True">
+                    <Border DockPanel.Dock="Top"
+                            Background="{DynamicResource SurfaceAltBrush}"
+                            BorderBrush="{DynamicResource BorderBrushAlt}"
+                            BorderThickness="1"
+                            Padding="6"
+                            Margin="0,0,0,6">
+                        <StackPanel>
+                            <TextBlock Text="Activity Detail" Style="{StaticResource SectionHeader}"/>
+                            <TextBlock Text="{Binding SelectedLogTitle}"
+                                       Style="{StaticResource PageTitleTextBlock}"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding SelectedLogTimestamp}"
+                                       FontSize="11"
+                                       Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                        <TextBlock Text="Type" Style="{StaticResource SectionHeader}"/>
+                        <TextBlock Text="{Binding SelectedLogActionGroup}"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <StackPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
+                        <TextBlock Text="Actions" Style="{StaticResource SectionHeader}"/>
+                        <UniformGrid Columns="2">
+                            <Button Style="{StaticResource GhostButton}"
+                                    Content="Open"
+                                    Click="OpenSelectedLog_Click"
+                                    Margin="0,0,4,0"/>
+                            <Button Style="{StaticResource GhostButton}"
+                                    Content="Copy"
+                                    Click="CopySelectedLog_Click"/>
+                        </UniformGrid>
+                    </StackPanel>
+
+                    <Border BorderBrush="{DynamicResource BorderBrushAlt}"
+                            BorderThickness="1"
+                            Background="{DynamicResource TextBoxBackgroundBrush}"
+                            Padding="6">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <TextBlock Text="{Binding SelectedLogDetail}"
+                                       TextWrapping="Wrap"/>
+                        </ScrollViewer>
+                    </Border>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="2"
+                Background="{DynamicResource SurfaceAltBrush}"
+                BorderBrush="{DynamicResource BorderBrushAlt}"
+                BorderThickness="1,0,1,1"
+                Padding="6,3">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Left"
+                           Text="{Binding StatusMessage}"
+                           FontSize="11"
+                           VerticalAlignment="Center"/>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <TextBlock Text="{Binding FilteredLogCount, StringFormat='Visible: {0}'}" FontSize="11" Margin="0,0,12,0"/>
+                    <TextBlock Text="{Binding TotalLogCount, StringFormat='Loaded: {0}'}" FontSize="11" Margin="0,0,12,0"/>
+                    <TextBlock Text="{Binding LastLoadedText, StringFormat='Last refresh: {0}'}" FontSize="11"/>
+                </StackPanel>
+            </DockPanel>
         </Border>
     </Grid>
 </Page>
