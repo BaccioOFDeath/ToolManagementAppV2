@@ -2,10 +2,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Services.Users;
 
@@ -13,18 +13,115 @@ namespace InventoryManagementApp.ViewModels
 {
     public class ActivityLogsViewModel : ObservableObject
     {
+        const string AllUsersFilter = "All users";
+        const string AllActionsFilter = "All actions";
+
         private readonly ActivityLogService _service;
         private readonly ILogger<ActivityLogsViewModel> _logger;
 
         public ObservableCollection<ActivityLog> Logs { get; } = new();
+        public ObservableCollection<ActivityLog> FilteredLogs { get; } = new();
+        public ObservableCollection<string> UserFilters { get; } = new();
+        public ObservableCollection<string> ActionFilters { get; } = new();
+
+        private string _searchText = string.Empty;
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                if (SetProperty(ref _searchText, value))
+                    ApplyFilters();
+            }
+        }
+
+        private string _selectedUserFilter = AllUsersFilter;
+        public string SelectedUserFilter
+        {
+            get => _selectedUserFilter;
+            set
+            {
+                if (SetProperty(ref _selectedUserFilter, string.IsNullOrWhiteSpace(value) ? AllUsersFilter : value))
+                    ApplyFilters();
+            }
+        }
+
+        private string _selectedActionFilter = AllActionsFilter;
+        public string SelectedActionFilter
+        {
+            get => _selectedActionFilter;
+            set
+            {
+                if (SetProperty(ref _selectedActionFilter, string.IsNullOrWhiteSpace(value) ? AllActionsFilter : value))
+                    ApplyFilters();
+            }
+        }
+
+        private ActivityLog? _selectedLog;
+        public ActivityLog? SelectedLog
+        {
+            get => _selectedLog;
+            set
+            {
+                if (SetProperty(ref _selectedLog, value))
+                {
+                    OnPropertyChanged(nameof(SelectedLogTitle));
+                    OnPropertyChanged(nameof(SelectedLogDetail));
+                    OnPropertyChanged(nameof(SelectedLogActionGroup));
+                    OnPropertyChanged(nameof(SelectedLogTimestamp));
+                }
+            }
+        }
+
+        private string _statusMessage = "Loading recent activity...";
+        public string StatusMessage
+        {
+            get => _statusMessage;
+            set => SetProperty(ref _statusMessage, value);
+        }
+
+        private DateTime? _lastLoadedAt;
+        public DateTime? LastLoadedAt
+        {
+            get => _lastLoadedAt;
+            set
+            {
+                if (SetProperty(ref _lastLoadedAt, value))
+                    OnPropertyChanged(nameof(LastLoadedText));
+            }
+        }
+
+        public string LastLoadedText => LastLoadedAt.HasValue ? LastLoadedAt.Value.ToString("g") : "Not loaded";
+        public int TotalLogCount => Logs.Count;
+        public int FilteredLogCount => FilteredLogs.Count;
+
+        public string SelectedLogTitle => SelectedLog == null
+            ? "No activity row selected"
+            : $"{SelectedLog.UserName} - {SelectedLogActionGroup}";
+
+        public string SelectedLogActionGroup => SelectedLog == null
+            ? "No action"
+            : ClassifyAction(SelectedLog.Action);
+
+        public string SelectedLogTimestamp => SelectedLog == null
+            ? string.Empty
+            : SelectedLog.Timestamp.ToString("f");
+
+        public string SelectedLogDetail => SelectedLog == null
+            ? "Select or double-click a row to inspect the full activity text."
+            : SelectedLog.Action;
 
         public IAsyncRelayCommand RefreshCommand { get; }
+        public IRelayCommand ClearFiltersCommand { get; }
 
         public ActivityLogsViewModel(ActivityLogService service, ILogger<ActivityLogsViewModel>? logger = null)
         {
             _service = service;
             _logger = logger ?? NullLogger<ActivityLogsViewModel>.Instance;
             RefreshCommand = new AsyncRelayCommand(LoadLogsAsync);
+            ClearFiltersCommand = new RelayCommand(ClearFilters, HasActiveFilter);
+            UserFilters.Add(AllUsersFilter);
+            ActionFilters.Add(AllActionsFilter);
             _ = RefreshCommand.ExecuteAsync(null);
         }
 
@@ -32,22 +129,119 @@ namespace InventoryManagementApp.ViewModels
         {
             try
             {
+                StatusMessage = "Loading recent activity...";
                 Logs.Clear();
                 var result = await _service.GetRecentLogsAsync();
                 if (!result.Success || result.Value == null)
                 {
+                    StatusMessage = "Activity logs could not be loaded.";
                     _logger.LogError("Failed to load activity logs: {Error}", result.ErrorMessage);
+                    ApplyFilters();
                     return false;
                 }
+
                 foreach (var log in result.Value)
                     Logs.Add(log);
+
+                LastLoadedAt = DateTime.Now;
+                RebuildFilterLists();
+                ApplyFilters();
+                StatusMessage = $"Loaded {Logs.Count} recent activity row(s).";
                 return true;
             }
             catch (Exception ex)
             {
+                StatusMessage = "Activity logs could not be loaded.";
                 _logger.LogError(ex, "Failed to load activity logs");
+                ApplyFilters();
                 return false;
             }
+        }
+
+        private void ClearFilters()
+        {
+            SearchText = string.Empty;
+            SelectedUserFilter = AllUsersFilter;
+            SelectedActionFilter = AllActionsFilter;
+            ApplyFilters();
+        }
+
+        private bool HasActiveFilter()
+        {
+            return !string.IsNullOrWhiteSpace(SearchText)
+                || SelectedUserFilter != AllUsersFilter
+                || SelectedActionFilter != AllActionsFilter;
+        }
+
+        private void RebuildFilterLists()
+        {
+            UserFilters.Clear();
+            UserFilters.Add(AllUsersFilter);
+            foreach (var userName in Logs.Select(l => l.UserName).Where(u => !string.IsNullOrWhiteSpace(u)).Distinct().OrderBy(u => u))
+                UserFilters.Add(userName);
+
+            ActionFilters.Clear();
+            ActionFilters.Add(AllActionsFilter);
+            foreach (var actionGroup in Logs.Select(l => ClassifyAction(l.Action)).Distinct().OrderBy(g => g))
+                ActionFilters.Add(actionGroup);
+
+            if (!UserFilters.Contains(SelectedUserFilter))
+                SelectedUserFilter = AllUsersFilter;
+            if (!ActionFilters.Contains(SelectedActionFilter))
+                SelectedActionFilter = AllActionsFilter;
+        }
+
+        private void ApplyFilters()
+        {
+            var previousSelection = SelectedLog;
+            var search = SearchText?.Trim() ?? string.Empty;
+
+            var filtered = Logs.Where(log =>
+                (SelectedUserFilter == AllUsersFilter || string.Equals(log.UserName, SelectedUserFilter, StringComparison.OrdinalIgnoreCase)) &&
+                (SelectedActionFilter == AllActionsFilter || string.Equals(ClassifyAction(log.Action), SelectedActionFilter, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrWhiteSpace(search) ||
+                    log.UserName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    log.Action.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    log.Timestamp.ToString("g").Contains(search, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+
+            FilteredLogs.Clear();
+            foreach (var log in filtered)
+                FilteredLogs.Add(log);
+
+            SelectedLog = previousSelection != null && FilteredLogs.Contains(previousSelection)
+                ? previousSelection
+                : FilteredLogs.FirstOrDefault();
+
+            OnPropertyChanged(nameof(TotalLogCount));
+            OnPropertyChanged(nameof(FilteredLogCount));
+            ClearFiltersCommand.NotifyCanExecuteChanged();
+
+            StatusMessage = HasActiveFilter()
+                ? $"{FilteredLogs.Count} of {Logs.Count} activity row(s) match the current filters."
+                : $"{Logs.Count} recent activity row(s) visible.";
+        }
+
+        public static string ClassifyAction(string action)
+        {
+            if (ContainsAny(action, "checkout", "checked out", "rent", "rental", "returned", "check in", "checked in"))
+                return "Checkout / Rental";
+            if (ContainsAny(action, "request", "reservation", "hold"))
+                return "Request / Hold";
+            if (ContainsAny(action, "maintenance", "repair", "calibration"))
+                return "Maintenance";
+            if (ContainsAny(action, "import", "export", "backup"))
+                return "Import / Export";
+            if (ContainsAny(action, "user", "password", "login", "role", "permission"))
+                return "User / Admin";
+            if (ContainsAny(action, "item", "tool", "inventory", "stock", "category"))
+                return "Inventory";
+            return "System";
+        }
+
+        private static bool ContainsAny(string text, params string[] terms)
+        {
+            return terms.Any(term => text.Contains(term, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
