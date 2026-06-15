@@ -163,7 +163,7 @@
                 <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
                     <DockPanel>
                         <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                            <TextBlock Text="03 Pending Requests" Style="{StaticResource SectionHeader}" Margin="0"/>
+                            <TextBlock Text="03 Open Requests" Style="{StaticResource SectionHeader}" Margin="0"/>
                             <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenRequestDetailsCommand}" Margin="8,0,4,0"/>
                             <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintRequestsCommand}"/>
                         </StackPanel>
@@ -194,7 +194,7 @@
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                 </DataGrid>
-                <TextBlock Grid.Row="1" Text="No pending requests captured in this session" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold">
+                <TextBlock Grid.Row="1" Text="No open requests for unavailable items" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
                             <Setter Property="Visibility" Value="Collapsed"/>
