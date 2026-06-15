@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Documents;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Utilities.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -24,9 +25,11 @@ namespace InventoryManagementApp.ViewModels
 
         public ObservableCollection<RentalModel> Rentals { get; } = new();
         public ObservableCollection<RentalModel> ActiveRentals { get; } = new();
+        public ObservableCollection<Reservation> PendingRequests { get; } = new();
 
         public string SearchSummary => $"{Rentals.Count} result{(Rentals.Count == 1 ? string.Empty : "s")} shown";
         public string CheckedOutSummary => $"{ActiveRentals.Count} item{(ActiveRentals.Count == 1 ? string.Empty : "s")} currently checked out";
+        public string RequestSummary => $"{PendingRequests.Count} pending request{(PendingRequests.Count == 1 ? string.Empty : "s")}";
 
         private string _searchText = string.Empty;
         public string SearchText
@@ -86,10 +89,24 @@ namespace InventoryManagementApp.ViewModels
                     ExtendCommand.NotifyCanExecuteChanged();
                     OpenHistoryCommand.NotifyCanExecuteChanged();
                     OpenRentalDetailsCommand.NotifyCanExecuteChanged();
+                    PlaceRequestCommand.NotifyCanExecuteChanged();
                     PrintRentalCommand.NotifyCanExecuteChanged();
                     PrintPickingSlipCommand.NotifyCanExecuteChanged();
                     PrintInvoiceCommand.NotifyCanExecuteChanged();
                     DeleteRentalCommand.NotifyCanExecuteChanged();
+                }
+            }
+        }
+
+        private Reservation? _selectedRequest;
+        public Reservation? SelectedRequest
+        {
+            get => _selectedRequest;
+            set
+            {
+                if (SetProperty(ref _selectedRequest, value))
+                {
+                    OpenRequestDetailsCommand.NotifyCanExecuteChanged();
                 }
             }
         }
@@ -107,9 +124,12 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand ExtendCommand { get; }
         public IAsyncRelayCommand OpenHistoryCommand { get; }
         public IRelayCommand OpenRentalDetailsCommand { get; }
+        public IAsyncRelayCommand PlaceRequestCommand { get; }
+        public IRelayCommand OpenRequestDetailsCommand { get; }
         public IRelayCommand PrintRentalCommand { get; }
         public IRelayCommand PrintSearchResultsCommand { get; }
         public IRelayCommand PrintCheckedOutCommand { get; }
+        public IRelayCommand PrintRequestsCommand { get; }
         public IRelayCommand PrintPickingSlipCommand { get; }
         public IRelayCommand PrintInvoiceCommand { get; }
         public IAsyncRelayCommand DeleteRentalCommand { get; }
@@ -126,9 +146,12 @@ namespace InventoryManagementApp.ViewModels
             ExtendCommand = new AsyncRelayCommand(ExtendAsync, CanReturnSelectedRental);
             OpenHistoryCommand = new AsyncRelayCommand(OpenHistoryAsync, () => SelectedRental != null);
             OpenRentalDetailsCommand = new RelayCommand(OpenRentalDetails, () => SelectedRental != null);
+            PlaceRequestCommand = new AsyncRelayCommand(PlaceRequestAsync, CanPlaceRequestForSelectedRental);
+            OpenRequestDetailsCommand = new RelayCommand(OpenRequestDetails, () => SelectedRequest != null);
             PrintRentalCommand = new RelayCommand(PrintRental, () => SelectedRental != null);
             PrintSearchResultsCommand = new RelayCommand(PrintSearchResults);
             PrintCheckedOutCommand = new RelayCommand(PrintCheckedOut);
+            PrintRequestsCommand = new RelayCommand(PrintRequests);
             PrintPickingSlipCommand = new RelayCommand(PrintPickingSlip, () => SelectedRental != null);
             PrintInvoiceCommand = new RelayCommand(PrintInvoice, () => SelectedRental != null);
             DeleteRentalCommand = new AsyncRelayCommand(DeleteRentalAsync, () => SelectedRental != null);
@@ -283,6 +306,7 @@ namespace InventoryManagementApp.ViewModels
             details.AppendLine($"Item #: {rental.ItemNumber}");
             details.AppendLine($"Location: {ValueOrNotRecorded(rental.ItemLocation)}");
             details.AppendLine($"Status: {rental.Status}");
+            details.AppendLine($"Pending requests: {PendingRequests.Count(r => r.ItemID == rental.ItemID && r.IsActive)}");
             details.AppendLine();
             details.AppendLine($"Checked out to: {ValueOrNotRecorded(rental.CustomerName)}");
             details.AppendLine($"Contact: {ValueOrNotRecorded(rental.CustomerContact)}");
@@ -295,10 +319,73 @@ namespace InventoryManagementApp.ViewModels
             details.AppendLine($"Time out: {DescribeRentalAge(rental)}");
             details.AppendLine();
             details.AppendLine(IsRentalActive(rental)
-                ? "Next steps: check in when returned, extend if approved, or open history for prior usage."
+                ? "Next steps: check in when returned, extend if approved, place a request for the next customer, or open history for prior usage."
                 : "Next steps: open history to inspect prior usage or print this rental record.");
 
             _dialogService.ShowInfo(details.ToString(), $"Rental Details - {rental.ItemNumber}");
+        }
+
+        async Task PlaceRequestAsync()
+        {
+            if (SelectedRental == null)
+                return;
+
+            var rental = SelectedRental;
+            var reservation = new Reservation
+            {
+                ItemID = rental.ItemID,
+                CustomerID = 0,
+                ItemNumber = rental.ItemNumber,
+                ItemName = rental.ItemNumber,
+                CustomerName = string.Empty,
+                ReservationDate = DateTime.Now,
+                StartDate = rental.DueDate.Date,
+                EndDate = rental.DueDate.Date.AddDays(7),
+                Quantity = 1,
+                Status = "Pending",
+                Notes = $"Requested from rental screen while rental #{rental.RentalID} is out to {ValueOrNotRecorded(rental.CustomerName)}. Due back {rental.DueDate:yyyy-MM-dd}."
+            };
+
+            try
+            {
+                var accepted = await _dialogService.ShowReservationEditDialogAsync(reservation, isNew: true);
+                if (!accepted)
+                    return;
+
+                PendingRequests.Add(reservation);
+                SelectedRequest = reservation;
+                OnPropertyChanged(nameof(RequestSummary));
+                await _dialogService.ShowInfoAsync("Request captured on this rental screen. It will stay visible in the pending request queue until the page is reloaded or a reservation service is wired in.", "Request Captured");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to place request for rental {RentalID}", rental.RentalID);
+                await _dialogService.ShowInfoAsync($"Failed to place request: {ex.Message}", "Error");
+            }
+        }
+
+        void OpenRequestDetails()
+        {
+            if (SelectedRequest == null)
+                return;
+
+            var request = SelectedRequest;
+            var details = new StringBuilder();
+            details.AppendLine($"Item #: {ValueOrNotRecorded(request.ItemNumber)}");
+            details.AppendLine($"Item: {ValueOrNotRecorded(request.ItemName)}");
+            details.AppendLine($"Customer: {ValueOrNotRecorded(request.CustomerName)}");
+            details.AppendLine($"Status: {ValueOrNotRecorded(request.Status)}");
+            details.AppendLine($"Quantity: {request.Quantity}");
+            details.AppendLine();
+            details.AppendLine($"Requested: {FormatDate(request.ReservationDate)}");
+            details.AppendLine($"Needed from: {FormatDate(request.StartDate)}");
+            details.AppendLine($"Needed until: {FormatDate(request.EndDate)}");
+            details.AppendLine();
+            details.AppendLine($"Notes: {ValueOrNotRecorded(request.Notes)}");
+            details.AppendLine();
+            details.AppendLine("Next steps: contact the current holder, monitor check-in, then convert this request into the durable reservation workflow when availability opens.");
+
+            _dialogService.ShowInfo(details.ToString(), $"Request Details - {request.ItemNumber}");
         }
 
         void PrintRental()
@@ -318,6 +405,7 @@ namespace InventoryManagementApp.ViewModels
                 AddKeyValueRow(group, "Due Date:", SelectedRental.DueDate.ToString("yyyy-MM-dd HH:mm"));
                 AddKeyValueRow(group, "Return Date:", SelectedRental.ReturnDate?.ToString("yyyy-MM-dd HH:mm") ?? "N/A");
                 AddKeyValueRow(group, "Status:", SelectedRental.Status ?? string.Empty);
+                AddKeyValueRow(group, "Pending Requests:", PendingRequests.Count(r => r.ItemID == SelectedRental.ItemID && r.IsActive).ToString());
                 doc.Blocks.Add(table);
 
                 _dialogService.ShowPrintPreview(doc, $"Rental {SelectedRental.RentalID}", string.Empty);
@@ -332,6 +420,51 @@ namespace InventoryManagementApp.ViewModels
         void PrintSearchResults() => PrintRentalList("Rental Search Results", Rentals, "There are no rental search results to print.");
 
         void PrintCheckedOut() => PrintRentalList("Currently Checked Out Items", ActiveRentals, "There are no checked-out items to print.");
+
+        void PrintRequests()
+        {
+            var requests = PendingRequests.ToList();
+            if (requests.Count == 0)
+            {
+                _dialogService.ShowInfo("There are no pending requests to print.", "Pending Requests");
+                return;
+            }
+
+            try
+            {
+                var doc = CreateRentalDocument("Open Requests", fontSize: 11);
+                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | {requests.Count} request{(requests.Count == 1 ? string.Empty : "s")}"))
+                {
+                    FontSize = 10,
+                    Margin = new Thickness(0, 0, 0, 10)
+                });
+
+                var table = new Table { CellSpacing = 0 };
+                table.Columns.Add(new TableColumn { Width = new GridLength(100) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(150) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(150) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(95) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(95) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(90) });
+
+                var group = new TableRowGroup();
+                table.RowGroups.Add(group);
+                AddPrintRow(group, true, "Item #", "Item", "Customer", "Needed", "Until", "Status");
+
+                foreach (var request in requests)
+                {
+                    AddPrintRow(group, false, request.ItemNumber, request.ItemName, request.CustomerName, request.StartDate.ToString("yyyy-MM-dd"), request.EndDate.ToString("yyyy-MM-dd"), request.Status);
+                }
+
+                doc.Blocks.Add(table);
+                _dialogService.ShowPrintPreview(doc, "Open Requests", string.Empty);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to print pending requests");
+                _dialogService.ShowInfo($"Failed to print pending requests: {ex.Message}", "Error");
+            }
+        }
 
         void PrintRentalList(string title, IEnumerable<RentalModel> rentals, string emptyMessage)
         {
@@ -512,6 +645,8 @@ namespace InventoryManagementApp.ViewModels
         }
 
         bool CanReturnSelectedRental() => SelectedRental != null && IsRentalActive(SelectedRental);
+
+        bool CanPlaceRequestForSelectedRental() => SelectedRental != null && IsRentalActive(SelectedRental);
 
         static bool IsRentalActive(RentalModel rental)
         {
