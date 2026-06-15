@@ -6,6 +6,9 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
+using WpfDataGrid = System.Windows.Controls.DataGrid;
+using WpfMessageBox = System.Windows.MessageBox;
+using WpfPrintDialog = System.Windows.Controls.PrintDialog;
 
 namespace InventoryManagementApp.Views.Pages
 {
@@ -33,7 +36,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void ItemGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (DataContext is not ItemManagementViewModel vm || sender is not DataGrid grid || grid.SelectedItem is not ItemModel item)
+            if (DataContext is not ItemManagementViewModel vm || sender is not WpfDataGrid grid || grid.SelectedItem is not ItemModel item)
                 return;
 
             vm.SelectedItem = item;
@@ -58,11 +61,11 @@ namespace InventoryManagementApp.Views.Pages
             var itemList = items.ToList();
             if (itemList.Count == 0)
             {
-                MessageBox.Show("There are no rows to print.", "Print", MessageBoxButton.OK, MessageBoxImage.Information);
+                WpfMessageBox.Show("There are no rows to print.", "Print", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            var printDialog = new PrintDialog();
+            var printDialog = new WpfPrintDialog();
             if (printDialog.ShowDialog() != true)
                 return;
 
