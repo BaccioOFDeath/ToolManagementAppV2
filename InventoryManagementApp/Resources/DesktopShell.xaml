@@ -186,7 +186,6 @@
     <Style TargetType="DatePicker">
         <Setter Property="MinHeight" Value="24"/>
         <Setter Property="FontSize" Value="12"/>
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
 
     <Style TargetType="DataGrid">
