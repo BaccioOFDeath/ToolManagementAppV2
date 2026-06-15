@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using InventoryManagementApp.ViewModels;
 
 namespace InventoryManagementApp.Views.Pages
@@ -17,6 +18,23 @@ namespace InventoryManagementApp.Views.Pages
             if (DataContext is CalibrationManagementViewModel vm)
             {
                 await vm.LoadCalibrationCommand.ExecuteAsync(null);
+            }
+        }
+
+        private void CalibrationRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (DataContext is CalibrationManagementViewModel vm && vm.OpenCalibrationDetailsCommand.CanExecute(null))
+            {
+                vm.OpenCalibrationDetailsCommand.Execute(null);
+            }
+        }
+
+        private void CalibrationRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is DataGridRow row && !row.IsSelected)
+            {
+                row.IsSelected = true;
+                e.Handled = true;
             }
         }
     }

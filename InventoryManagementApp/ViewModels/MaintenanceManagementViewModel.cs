@@ -3,7 +3,10 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Documents;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Services.Maintenance;
 using InventoryManagementApp.Interfaces;
@@ -18,6 +21,11 @@ namespace InventoryManagementApp.ViewModels
         public ObservableCollection<MaintenanceRecord> MaintenanceRecords { get; }
         public ObservableCollection<MaintenanceRecord> FilteredMaintenanceRecords { get; }
 
+        public string MaintenanceResultsSummary => $"{FilteredMaintenanceRecords.Count} of {MaintenanceRecords.Count} maintenance record{(MaintenanceRecords.Count == 1 ? string.Empty : "s")} shown";
+        public string SelectedRecordSummary => SelectedRecord == null
+            ? "Select or double-click a maintenance row to view details, complete work, print the record, edit, or delete."
+            : $"{ValueOrNotRecorded(SelectedRecord.ItemNumber)} | {ValueOrNotRecorded(SelectedRecord.ItemName)} | {SelectedRecord.StatusDisplay} | scheduled {SelectedRecord.ScheduledDate:yyyy-MM-dd}";
+
         private MaintenanceRecord? _selectedRecord;
         public MaintenanceRecord? SelectedRecord
         {
@@ -29,6 +37,9 @@ namespace InventoryManagementApp.ViewModels
                     EditMaintenanceCommand.NotifyCanExecuteChanged();
                     DeleteMaintenanceCommand.NotifyCanExecuteChanged();
                     CompleteMaintenanceCommand.NotifyCanExecuteChanged();
+                    OpenMaintenanceDetailsCommand.NotifyCanExecuteChanged();
+                    PrintSelectedMaintenanceCommand.NotifyCanExecuteChanged();
+                    OnPropertyChanged(nameof(SelectedRecordSummary));
                 }
             }
         }
@@ -67,6 +78,9 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand DeleteMaintenanceCommand { get; }
         public IAsyncRelayCommand CompleteMaintenanceCommand { get; }
         public IAsyncRelayCommand RefreshCommand { get; }
+        public IRelayCommand OpenMaintenanceDetailsCommand { get; }
+        public IRelayCommand PrintMaintenanceListCommand { get; }
+        public IRelayCommand PrintSelectedMaintenanceCommand { get; }
 
         public MaintenanceManagementViewModel(
             MaintenanceService maintenanceService,
@@ -92,6 +106,9 @@ namespace InventoryManagementApp.ViewModels
             DeleteMaintenanceCommand = new AsyncRelayCommand(DeleteMaintenanceAsync, CanEditOrDelete);
             CompleteMaintenanceCommand = new AsyncRelayCommand(CompleteMaintenanceAsync, CanComplete);
             RefreshCommand = new AsyncRelayCommand(LoadMaintenanceAsync);
+            OpenMaintenanceDetailsCommand = new RelayCommand(OpenMaintenanceDetails, CanEditOrDelete);
+            PrintMaintenanceListCommand = new RelayCommand(PrintMaintenanceList);
+            PrintSelectedMaintenanceCommand = new RelayCommand(PrintSelectedMaintenance, CanEditOrDelete);
         }
 
         private async Task LoadMaintenanceAsync()
@@ -169,6 +186,7 @@ namespace InventoryManagementApp.ViewModels
                     await _maintenanceService.UpdateMaintenanceRecordAsync(clone);
                     var index = MaintenanceRecords.IndexOf(SelectedRecord);
                     if (index >= 0) MaintenanceRecords[index] = clone;
+                    SelectedRecord = clone;
                     ApplyFilter();
                     await _dialogService.ShowInfoAsync("Success", "Maintenance record updated successfully");
                 }
@@ -185,7 +203,7 @@ namespace InventoryManagementApp.ViewModels
 
             var confirmed = await _dialogService.ShowConfirmAsync(
                 "Delete Maintenance Record",
-                $"Are you sure you want to delete this maintenance record?");
+                $"Delete maintenance for {ValueOrNotRecorded(SelectedRecord.ItemName)} scheduled {SelectedRecord.ScheduledDate:yyyy-MM-dd}?");
 
             if (confirmed)
             {
@@ -193,6 +211,7 @@ namespace InventoryManagementApp.ViewModels
                 {
                     await _maintenanceService.DeleteMaintenanceRecordAsync(SelectedRecord.MaintenanceID);
                     MaintenanceRecords.Remove(SelectedRecord);
+                    SelectedRecord = null;
                     ApplyFilter();
                     await _dialogService.ShowInfoAsync("Success", "Maintenance record deleted successfully");
                 }
@@ -226,6 +245,9 @@ namespace InventoryManagementApp.ViewModels
                     EditMaintenanceCommand.NotifyCanExecuteChanged();
                     DeleteMaintenanceCommand.NotifyCanExecuteChanged();
                     CompleteMaintenanceCommand.NotifyCanExecuteChanged();
+                    OpenMaintenanceDetailsCommand.NotifyCanExecuteChanged();
+                    PrintSelectedMaintenanceCommand.NotifyCanExecuteChanged();
+                    OnPropertyChanged(nameof(SelectedRecordSummary));
                     await _dialogService.ShowInfoAsync("Success", "Maintenance marked as completed");
                 }
                 catch (Exception ex)
@@ -264,10 +286,173 @@ namespace InventoryManagementApp.ViewModels
             {
                 FilteredMaintenanceRecords.Add(record);
             }
+
+            OnPropertyChanged(nameof(MaintenanceResultsSummary));
+        }
+
+        private void OpenMaintenanceDetails()
+        {
+            if (SelectedRecord == null) return;
+
+            var record = SelectedRecord;
+            var details = new StringBuilder();
+            details.AppendLine($"Maintenance #: {record.MaintenanceID}");
+            details.AppendLine($"Item: {ValueOrNotRecorded(record.ItemNumber)} - {ValueOrNotRecorded(record.ItemName)}");
+            details.AppendLine($"Type: {ValueOrNotRecorded(record.MaintenanceType)}");
+            details.AppendLine($"Status: {record.StatusDisplay}");
+            details.AppendLine();
+            details.AppendLine($"Scheduled: {record.ScheduledDate:yyyy-MM-dd}");
+            details.AppendLine($"Completed: {FormatDate(record.CompletedDate)}");
+            details.AppendLine($"Performed by: {ValueOrNotRecorded(record.PerformedBy)}");
+            details.AppendLine($"Cost: {record.Cost:C}");
+            details.AppendLine();
+            details.AppendLine($"Description: {ValueOrNotRecorded(record.Description)}");
+            details.AppendLine($"Notes: {ValueOrNotRecorded(record.Notes)}");
+            details.AppendLine();
+            details.AppendLine(record.IsOverdue
+                ? "Next action: complete or reschedule this overdue maintenance before the item is issued again."
+                : "Next action: review work notes, complete scheduled work, or print this record for the bench file.");
+
+            _dialogService.ShowInfo(details.ToString(), $"Maintenance Details - {ValueOrNotRecorded(record.ItemNumber)}");
+        }
+
+        private void PrintMaintenanceList()
+        {
+            if (FilteredMaintenanceRecords.Count == 0)
+            {
+                _dialogService.ShowInfo("There are no maintenance records to print.", "Maintenance Report");
+                return;
+            }
+
+            try
+            {
+                var doc = CreateMaintenanceDocument("Maintenance Schedule", fontSize: 11);
+                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Filter: {SelectedFilter} | Search: {ValueOrNotRecorded(SearchText)} | {MaintenanceResultsSummary}"))
+                {
+                    FontSize = 10,
+                    Margin = new Thickness(0, 0, 0, 10)
+                });
+
+                var table = new Table { CellSpacing = 0 };
+                table.Columns.Add(new TableColumn { Width = new GridLength(90) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(150) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(85) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(90) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(85) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(110) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(90) });
+
+                var group = new TableRowGroup();
+                table.RowGroups.Add(group);
+                AddPrintRow(group, true, "Item #", "Name", "Type", "Scheduled", "Status", "Performed By", "Completed");
+                foreach (var record in FilteredMaintenanceRecords)
+                {
+                    AddPrintRow(group, false, record.ItemNumber, record.ItemName, record.MaintenanceType, record.ScheduledDate.ToString("yyyy-MM-dd"), record.StatusDisplay, record.PerformedBy, FormatDate(record.CompletedDate));
+                }
+
+                doc.Blocks.Add(table);
+                _dialogService.ShowPrintPreview(doc, "Maintenance Schedule", string.Empty);
+            }
+            catch (Exception ex)
+            {
+                _dialogService.ShowInfo($"Failed to print maintenance report: {ex.Message}", "Print Failed");
+            }
+        }
+
+        private void PrintSelectedMaintenance()
+        {
+            if (SelectedRecord == null) return;
+
+            try
+            {
+                var record = SelectedRecord;
+                var doc = CreateMaintenanceDocument($"Maintenance Record - {ValueOrNotRecorded(record.ItemNumber)}");
+                var table = CreateKeyValueTable();
+                var group = table.RowGroups[0];
+                AddKeyValueRow(group, "Maintenance #:", record.MaintenanceID.ToString());
+                AddKeyValueRow(group, "Item:", $"{ValueOrNotRecorded(record.ItemNumber)} - {ValueOrNotRecorded(record.ItemName)}");
+                AddKeyValueRow(group, "Type:", record.MaintenanceType);
+                AddKeyValueRow(group, "Status:", record.StatusDisplay);
+                AddKeyValueRow(group, "Scheduled:", record.ScheduledDate.ToString("yyyy-MM-dd"));
+                AddKeyValueRow(group, "Completed:", FormatDate(record.CompletedDate));
+                AddKeyValueRow(group, "Performed by:", record.PerformedBy);
+                AddKeyValueRow(group, "Cost:", record.Cost.ToString("C"));
+                AddKeyValueRow(group, "Description:", record.Description);
+                AddKeyValueRow(group, "Notes:", record.Notes);
+                doc.Blocks.Add(table);
+
+                _dialogService.ShowPrintPreview(doc, $"Maintenance {record.MaintenanceID}", string.Empty);
+            }
+            catch (Exception ex)
+            {
+                _dialogService.ShowInfo($"Failed to print maintenance record: {ex.Message}", "Print Failed");
+            }
         }
 
         private bool CanEditOrDelete() => SelectedRecord != null;
 
         private bool CanComplete() => SelectedRecord != null && SelectedRecord.Status == "Scheduled";
+
+        private static FlowDocument CreateMaintenanceDocument(string title, double fontSize = 16)
+        {
+            var doc = new FlowDocument
+            {
+                PagePadding = new Thickness(36),
+                FontFamily = new System.Windows.Media.FontFamily("Calibri"),
+                FontSize = fontSize
+            };
+
+            doc.Blocks.Add(new Paragraph(new Bold(new Run(title)))
+            {
+                FontSize = 20,
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0, 0, 0, 10)
+            });
+
+            return doc;
+        }
+
+        private static Table CreateKeyValueTable()
+        {
+            var table = new Table();
+            table.Columns.Add(new TableColumn { Width = new GridLength(150) });
+            table.Columns.Add(new TableColumn());
+            table.RowGroups.Add(new TableRowGroup());
+            return table;
+        }
+
+        private static void AddKeyValueRow(TableRowGroup group, string label, string? value)
+        {
+            var row = new TableRow();
+            row.Cells.Add(new TableCell(new Paragraph(new Run(label)) { FontWeight = FontWeights.Bold }));
+            row.Cells.Add(new TableCell(new Paragraph(new Run(ValueOrNotRecorded(value)))));
+            group.Rows.Add(row);
+        }
+
+        private static void AddPrintRow(TableRowGroup group, bool isHeader, params string?[] values)
+        {
+            var row = new TableRow();
+            foreach (var value in values)
+            {
+                var paragraph = new Paragraph(new Run(ValueOrNotRecorded(value)))
+                {
+                    Margin = new Thickness(3),
+                    FontSize = isHeader ? 10 : 9,
+                    FontWeight = isHeader ? FontWeights.Bold : FontWeights.Normal
+                };
+                var cell = new TableCell(paragraph)
+                {
+                    BorderBrush = System.Windows.Media.Brushes.Gray,
+                    BorderThickness = new Thickness(0.5),
+                    Padding = new Thickness(2)
+                };
+                row.Cells.Add(cell);
+            }
+            group.Rows.Add(row);
+        }
+
+        private static string FormatDate(DateTime? value) => value?.ToString("yyyy-MM-dd") ?? "Not recorded";
+
+        private static string ValueOrNotRecorded(string? value) => string.IsNullOrWhiteSpace(value) ? "Not recorded" : value;
     }
 }
