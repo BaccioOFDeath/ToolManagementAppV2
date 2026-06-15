@@ -23,6 +23,79 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand OpenRentalHistoryCommand { get; }
 
         public string CheckOutButtonText => ItemModel.IsCheckedOut ? "Check In" : "Check Out";
+        public string StatusText
+        {
+            get
+            {
+                if (ItemModel.IsIncomplete)
+                    return "Maintenance / Incomplete";
+                if (ItemModel.IsCheckedOut)
+                    return "Checked Out";
+                if (ItemModel.HasRentedStock)
+                    return "Rented";
+                if (ItemModel.HasNoOnHand)
+                    return "Unavailable";
+                return "Available";
+            }
+        }
+
+        public string AvailabilitySummary => ItemModel.IsCheckedOut
+            ? "Not available until it is checked back in."
+            : ItemModel.HasRentedStock
+                ? "Rental stock is currently out with a customer."
+                : ItemModel.HasNoOnHand
+                    ? "No on-hand stock is available at this location."
+                    : "Available for checkout or rental.";
+
+        public string HolderSummary => ItemModel.IsCheckedOut
+            ? string.IsNullOrWhiteSpace(ItemModel.CheckedOutBy) ? "Holder not recorded" : ItemModel.CheckedOutBy
+            : ItemModel.HasRentedStock ? "Customer rental in progress" : "Shelf / available stock";
+
+        public string CheckedOutSinceText => ItemModel.CheckedOutTime?.ToString("yyyy-MM-dd HH:mm") ?? "Not checked out";
+        public string TimeOutText => ItemModel.CheckedOutTime is DateTime checkedOut
+            ? FormatElapsed(DateTime.Now - checkedOut)
+            : "-";
+        public string LastCheckInText => ItemModel.CheckedInTime?.ToString("yyyy-MM-dd HH:mm") ?? "No recent check-in recorded";
+        public string StockSummary => $"On hand {ItemModel.QuantityOnHand} | Rented {ItemModel.RentedQuantity}";
+        public string UsageSummary => ItemModel.CheckoutCount == 1 ? "1 recorded checkout" : $"{ItemModel.CheckoutCount} recorded checkouts";
+        public string UpdatedText => ItemModel.UpdatedAt == default ? "Not recorded" : ItemModel.UpdatedAt.ToString("yyyy-MM-dd HH:mm");
+        public string PurchasedText => ItemModel.PurchasedDate?.ToString("yyyy-MM-dd") ?? "Not recorded";
+        public string PriceText => ItemModel.Price > 0 ? ItemModel.Price.ToString("C") : "Not recorded";
+        public string ConditionSummary
+        {
+            get
+            {
+                if (ItemModel.IsIncomplete)
+                {
+                    var missing = ItemModel.MissingComponentsNotes;
+                    var issues = ItemModel.IssuesNotes;
+                    if (!string.IsNullOrWhiteSpace(missing) && !string.IsNullOrWhiteSpace(issues))
+                        return $"{missing} | {issues}";
+                    if (!string.IsNullOrWhiteSpace(missing))
+                        return missing;
+                    if (!string.IsNullOrWhiteSpace(issues))
+                        return issues;
+                    return "Marked incomplete";
+                }
+
+                if (!string.IsNullOrWhiteSpace(ItemModel.IssuesNotes))
+                    return ItemModel.IssuesNotes;
+
+                return "No open condition notes";
+            }
+        }
+
+        public string NextActionText
+        {
+            get
+            {
+                if (ItemModel.IsCheckedOut)
+                    return "Check in from this window, then review any waiting rental requests from the rentals page.";
+                if (ItemModel.HasRentedStock || ItemModel.HasNoOnHand)
+                    return "Open rental history or place a request from the rentals workflow if another user needs this item.";
+                return "Check out to a technician, rent to a customer, or open history before handing it out.";
+            }
+        }
 
         public ItemDetailsViewModel(ItemModel item, IItemService itemService, ICustomerService customerService, IRentalService rentalService, IDialogService dialogService, Action onClose)
         {
@@ -63,10 +136,7 @@ namespace InventoryManagementApp.ViewModels
             var refreshed = await _itemService.GetItemByIDAsync(ItemModel.ItemID).ConfigureAwait(false);
             if (refreshed != null)
             {
-                ItemModel.CheckedOutBy = refreshed.CheckedOutBy;
-                ItemModel.CheckedOutTime = refreshed.CheckedOutTime;
-                ItemModel.CheckedInBy = refreshed.CheckedInBy;
-                ItemModel.CheckedInTime = refreshed.CheckedInTime;
+                CopyItem(ItemModel, refreshed);
             }
 
             RefreshState();
@@ -100,6 +170,28 @@ namespace InventoryManagementApp.ViewModels
         void RefreshState()
         {
             OnPropertyChanged(nameof(CheckOutButtonText));
+            OnPropertyChanged(nameof(StatusText));
+            OnPropertyChanged(nameof(AvailabilitySummary));
+            OnPropertyChanged(nameof(HolderSummary));
+            OnPropertyChanged(nameof(CheckedOutSinceText));
+            OnPropertyChanged(nameof(TimeOutText));
+            OnPropertyChanged(nameof(LastCheckInText));
+            OnPropertyChanged(nameof(StockSummary));
+            OnPropertyChanged(nameof(UsageSummary));
+            OnPropertyChanged(nameof(UpdatedText));
+            OnPropertyChanged(nameof(PurchasedText));
+            OnPropertyChanged(nameof(PriceText));
+            OnPropertyChanged(nameof(ConditionSummary));
+            OnPropertyChanged(nameof(NextActionText));
+        }
+
+        static string FormatElapsed(TimeSpan elapsed)
+        {
+            if (elapsed.TotalDays >= 1)
+                return $"{(int)elapsed.TotalDays}d {elapsed.Hours}h";
+            if (elapsed.TotalHours >= 1)
+                return $"{(int)elapsed.TotalHours}h {elapsed.Minutes}m";
+            return $"{Math.Max(0, (int)elapsed.TotalMinutes)}m";
         }
 
         static ItemModel CloneItem(ItemModel source)
@@ -112,6 +204,7 @@ namespace InventoryManagementApp.ViewModels
                 Name = source.Name,
                 Brand = source.Brand,
                 Location = source.Location,
+                Price = source.Price,
                 QuantityOnHand = source.QuantityOnHand,
                 RentedQuantity = source.RentedQuantity,
                 Supplier = source.Supplier,
@@ -125,7 +218,12 @@ namespace InventoryManagementApp.ViewModels
                 CheckedOutTime = source.CheckedOutTime,
                 CheckedInBy = source.CheckedInBy,
                 CheckedInTime = source.CheckedInTime,
-                ImagePath = source.ImagePath
+                ImagePath = source.ImagePath,
+                UpdatedAt = source.UpdatedAt,
+                IsIncomplete = source.IsIncomplete,
+                MissingComponentsNotes = source.MissingComponentsNotes,
+                IssuesNotes = source.IssuesNotes,
+                CheckoutCount = source.CheckoutCount
             };
         }
 
@@ -136,6 +234,7 @@ namespace InventoryManagementApp.ViewModels
             target.Name = source.Name;
             target.Brand = source.Brand;
             target.Location = source.Location;
+            target.Price = source.Price;
             target.QuantityOnHand = source.QuantityOnHand;
             target.RentedQuantity = source.RentedQuantity;
             target.Supplier = source.Supplier;
@@ -150,6 +249,11 @@ namespace InventoryManagementApp.ViewModels
             target.CheckedInBy = source.CheckedInBy;
             target.CheckedInTime = source.CheckedInTime;
             target.ImagePath = source.ImagePath;
+            target.UpdatedAt = source.UpdatedAt;
+            target.IsIncomplete = source.IsIncomplete;
+            target.MissingComponentsNotes = source.MissingComponentsNotes;
+            target.IssuesNotes = source.IssuesNotes;
+            target.CheckoutCount = source.CheckoutCount;
         }
     }
 }
