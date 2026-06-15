@@ -47,7 +47,10 @@ namespace InventoryManagementApp.ViewModels.Rental
             set
             {
                 if (SetProperty(ref _selectedEntry, value))
+                {
                     OnPropertyChanged(nameof(SelectedEntrySummary));
+                    OpenDetailsCommand.NotifyCanExecuteChanged();
+                }
             }
         }
 
