@@ -276,16 +276,14 @@ namespace InventoryManagementApp.ViewModels
 
             if (string.IsNullOrWhiteSpace(entered))
             {
-                var hash = SecurityHelper.HashPassword(PasswordDefaults.TemporaryPassword, out var salt);
-                newUser.PasswordHash = hash;
-                newUser.PasswordSalt = salt;
+                newUser.PasswordHash = PasswordDefaults.TemporaryPassword;
+                newUser.PasswordSalt = string.Empty;
                 newUser.PasswordExpired = true;
             }
             else
             {
-                var hash = SecurityHelper.HashPassword(entered, out var salt);
-                newUser.PasswordHash = hash;
-                newUser.PasswordSalt = salt;
+                newUser.PasswordHash = entered;
+                newUser.PasswordSalt = string.Empty;
             }
 
             try
@@ -299,9 +297,15 @@ namespace InventoryManagementApp.ViewModels
             {
                 await _dialogService.ShowInfoAsync("You are not authorized to add users.", "Unauthorized");
             }
+            catch (ArgumentException ex)
+            {
+                _logger.LogError(ex, "Failed to add user because the password is invalid");
+                await _dialogService.ShowInfoAsync(ex.Message, "Invalid Password");
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to add user");
+                await _dialogService.ShowInfoAsync($"Failed to add user: {ex.Message}", "Error");
             }
         }
 
