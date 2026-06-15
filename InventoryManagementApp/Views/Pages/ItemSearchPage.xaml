@@ -11,6 +11,10 @@
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
             <Style.Triggers>
+                <DataTrigger Binding="{Binding HasNoOnHand}" Value="True">
+                    <Setter Property="Text" Value="Unavailable"/>
+                    <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}"/>
+                </DataTrigger>
                 <DataTrigger Binding="{Binding HasRentedStock}" Value="True">
                     <Setter Property="Text" Value="Rented"/>
                     <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
@@ -18,10 +22,6 @@
                 <DataTrigger Binding="{Binding IsCheckedOut}" Value="True">
                     <Setter Property="Text" Value="Checked Out"/>
                     <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding HasNoOnHand}" Value="True">
-                    <Setter Property="Text" Value="Unavailable"/>
-                    <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding IsIncomplete}" Value="True">
                     <Setter Property="Text" Value="Incomplete"/>
