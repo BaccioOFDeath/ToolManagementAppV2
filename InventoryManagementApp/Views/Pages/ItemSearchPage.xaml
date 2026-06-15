@@ -185,8 +185,14 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Margin="0,4">
-                                            <TextBlock Text="{Binding QuantityOnHand, StringFormat=On hand: {0}}"/>
-                                            <TextBlock Text="{Binding RentedQuantity, StringFormat=Rented: {0}}" Style="{StaticResource CaptionTextBlock}" Margin="0,4,0,0"/>
+                                            <TextBlock>
+                                                <Run Text="On hand: "/>
+                                                <Run Text="{Binding QuantityOnHand}"/>
+                                            </TextBlock>
+                                            <TextBlock Style="{StaticResource CaptionTextBlock}" Margin="0,4,0,0">
+                                                <Run Text="Rented: "/>
+                                                <Run Text="{Binding RentedQuantity}"/>
+                                            </TextBlock>
                                         </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -195,8 +201,8 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Margin="0,4">
-                                            <TextBlock Text="{Binding CheckedOutTime, StringFormat=Out: yyyy-MM-dd HH:mm}" TextTrimming="CharacterEllipsis"/>
-                                            <TextBlock Text="{Binding UpdatedAt, StringFormat=Updated: yyyy-MM-dd}" Style="{StaticResource CaptionTextBlock}" Margin="0,4,0,0"/>
+                                            <TextBlock Text="{Binding CheckedOutTime, StringFormat=yyyy-MM-dd HH:mm}" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding UpdatedAt, StringFormat=yyyy-MM-dd}" Style="{StaticResource CaptionTextBlock}" Margin="0,4,0,0"/>
                                         </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
