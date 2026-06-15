@@ -8,13 +8,18 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Border Style="{StaticResource ToolbarCard}">
             <DockPanel LastChildFill="False">
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
                     <TextBlock Text="Actions" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Add" Command="{Binding AddCustomerCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditCustomerCommand}"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenCustomerDetailsCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditCustomerCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Print Customer" Command="{Binding PrintSelectedCustomerCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Print Directory" Command="{Binding PrintCustomerDirectoryCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteCustomerCommand}"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
                     <TextBlock Text="Filter" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
@@ -27,24 +32,71 @@
             </DockPanel>
         </Border>
         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
-            <DataGrid ItemsSource="{Binding Customers}" SelectedItem="{Binding SelectedCustomer}" IsReadOnly="True" AutoGenerateColumns="False" SelectionMode="Extended" Style="{StaticResource VirtualizedDataGridStyle}">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Company" Binding="{Binding Company}" Width="*"/>
-                    <DataGridTextColumn Header="Contact" Binding="{Binding Contact}" Width="200"/>
-                    <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="150"/>
-                    <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="220"/>
-                </DataGrid.Columns>
-                <DataGrid.ContextMenu>
-                    <ContextMenu Style="{StaticResource {x:Type ContextMenu}}">
-                        <MenuItem Header="Edit"
-                                  Command="{Binding PlacementTarget.DataContext.EditCustomerFromRowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                        <MenuItem Header="Delete"
-                                  Command="{Binding PlacementTarget.DataContext.DeleteCustomerFromRowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                    </ContextMenu>
-                </DataGrid.ContextMenu>
-            </DataGrid>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                    <DockPanel>
+                        <TextBlock Text="01 Customer Directory" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
+                        <TextBlock Text="{Binding CustomerResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                    </DockPanel>
+                </Border>
+                <DataGrid Grid.Row="1"
+                          ItemsSource="{Binding Customers}"
+                          SelectedItem="{Binding SelectedCustomer}"
+                          IsReadOnly="True"
+                          AutoGenerateColumns="False"
+                          SelectionMode="Single"
+                          Style="{StaticResource VirtualizedDataGridStyle}">
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                            <EventSetter Event="MouseDoubleClick" Handler="CustomerRow_MouseDoubleClick"/>
+                            <EventSetter Event="PreviewMouseRightButtonDown" Handler="CustomerRow_PreviewMouseRightButtonDown"/>
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Company" Binding="{Binding Company}" Width="2*"/>
+                        <DataGridTextColumn Header="Contact" Binding="{Binding Contact}" Width="180"/>
+                        <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="130"/>
+                        <DataGridTextColumn Header="Mobile" Binding="{Binding Mobile}" Width="130"/>
+                        <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="220"/>
+                        <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="2*"/>
+                    </DataGrid.Columns>
+                    <DataGrid.ContextMenu>
+                        <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                            <MenuItem Header="Open Details" Command="{Binding OpenCustomerDetailsCommand}"/>
+                            <MenuItem Header="Edit" Command="{Binding EditCustomerCommand}"/>
+                            <MenuItem Header="Print Customer Sheet" Command="{Binding PrintSelectedCustomerCommand}"/>
+                            <Separator/>
+                            <MenuItem Header="Print Directory" Command="{Binding PrintCustomerDirectoryCommand}"/>
+                            <MenuItem Header="Delete" Command="{Binding DeleteCustomerCommand}"/>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                </DataGrid>
+                <TextBlock Grid.Row="1" Text="No customers match this search" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Customers.Count}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+        </Border>
+        <Border Grid.Row="2" Style="{StaticResource ToolbarCard}" Margin="0,4,0,0">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenCustomerDetailsCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Clear Search" Command="{Binding ClearCustomerSearchCommand}"/>
+                </StackPanel>
+                <TextBlock Text="{Binding SelectedCustomerSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="2,0,10,0"/>
+            </DockPanel>
         </Border>
     </Grid>
 </Page>
