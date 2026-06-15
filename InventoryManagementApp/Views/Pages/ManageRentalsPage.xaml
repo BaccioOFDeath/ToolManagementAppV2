@@ -42,22 +42,13 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Border Background="{DynamicResource SurfaceAltBrush}"
-                        BorderBrush="{DynamicResource BorderBrushAlt}"
-                        BorderThickness="0,0,0,1"
-                        Padding="5,3">
+                <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
                     <DockPanel>
                         <TextBlock Text="01 Search Results" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
                         <TextBlock Text="{Binding SearchSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
                     </DockPanel>
                 </Border>
-                <DataGrid Grid.Row="1"
-                          ItemsSource="{Binding Rentals}"
-                          SelectedItem="{Binding SelectedRental}"
-                          SelectionMode="Single"
-                          IsReadOnly="True"
-                          AutoGenerateColumns="False"
-                          Style="{StaticResource VirtualizedDataGridStyle}">
+                <DataGrid Grid.Row="1" ItemsSource="{Binding Rentals}" SelectedItem="{Binding SelectedRental}" SelectionMode="Single" IsReadOnly="True" AutoGenerateColumns="False" Style="{StaticResource VirtualizedDataGridStyle}">
                     <DataGrid.RowStyle>
                         <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
                             <EventSetter Event="MouseDoubleClick" Handler="RentalRow_MouseDoubleClick"/>
@@ -67,7 +58,7 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Rental" Binding="{Binding RentalID}" Width="70"/>
                         <DataGridTextColumn Header="Tool #" Binding="{Binding ItemNumber}" Width="120"/>
-                        <DataGridTextColumn Header="Tool / Item" Binding="{Binding ItemName}" Width="220"/>
+                        <DataGridTextColumn Header="Location" Binding="{Binding ItemLocation}" Width="180"/>
                         <DataGridTextColumn Header="Who Has It" Binding="{Binding CustomerName}" Width="190"/>
                         <DataGridTextColumn Header="Checked Out" Binding="{Binding RentalDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="145"/>
                         <DataGridTextColumn Header="Due Back" Binding="{Binding DueDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="145"/>
@@ -75,8 +66,7 @@
                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="110"/>
                     </DataGrid.Columns>
                     <DataGrid.ContextMenu>
-                        <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
-                                    DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                             <MenuItem Header="Open Details" Command="{Binding OpenRentalDetailsCommand}"/>
                             <MenuItem Header="Check In" Command="{Binding CheckInCommand}"/>
                             <MenuItem Header="Extend" Command="{Binding ExtendCommand}"/>
@@ -125,7 +115,7 @@
                     </DataGrid.RowStyle>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Tool #" Binding="{Binding ItemNumber}" Width="120"/>
-                        <DataGridTextColumn Header="Tool / Item" Binding="{Binding ItemName}" Width="250"/>
+                        <DataGridTextColumn Header="Location" Binding="{Binding ItemLocation}" Width="180"/>
                         <DataGridTextColumn Header="Checked Out To" Binding="{Binding CustomerName}" Width="220"/>
                         <DataGridTextColumn Header="Checked Out" Binding="{Binding RentalDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="150"/>
                         <DataGridTextColumn Header="Due Back" Binding="{Binding DueDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="150"/>
