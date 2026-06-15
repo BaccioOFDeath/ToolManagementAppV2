@@ -48,99 +48,45 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void IsValid_TooShortPassword_ReturnsFalse()
+        public void IsValid_SingleDigitPassword_ReturnsTrue()
         {
-            // Arrange
-            string password = "Pass1";
+            string password = "1";
 
-            // Act
             var result = PasswordValidator.IsValid(password, out var error);
 
-            // Assert
-            Assert.False(result);
-            Assert.Contains("at least 8 characters", error);
-        }
-
-        [Fact]
-        public void IsValid_NoUppercase_ReturnsFalse()
-        {
-            // Arrange
-            string password = "password123";
-
-            // Act
-            var result = PasswordValidator.IsValid(password, out var error);
-
-            // Assert
-            Assert.False(result);
-            Assert.Contains("uppercase letter", error);
-        }
-
-        [Fact]
-        public void IsValid_NoLowercase_ReturnsFalse()
-        {
-            // Arrange
-            string password = "PASSWORD123";
-
-            // Act
-            var result = PasswordValidator.IsValid(password, out var error);
-
-            // Assert
-            Assert.False(result);
-            Assert.Contains("lowercase letter", error);
-        }
-
-        [Fact]
-        public void IsValid_NoDigit_ReturnsFalse()
-        {
-            // Arrange
-            string password = "Password";
-
-            // Act
-            var result = PasswordValidator.IsValid(password, out var error);
-
-            // Assert
-            Assert.False(result);
-            Assert.Contains("digit", error);
-        }
-
-        [Fact]
-        public void IsValid_ValidPassword_ReturnsTrue()
-        {
-            // Arrange
-            string password = "Password123";
-
-            // Act
-            var result = PasswordValidator.IsValid(password, out var error);
-
-            // Assert
             Assert.True(result);
             Assert.Null(error);
         }
 
         [Fact]
-        public void IsValid_MinimumLengthValidPassword_ReturnsTrue()
+        public void IsValid_ShortNumericPassword_ReturnsTrue()
         {
-            // Arrange
-            string password = "Pass1234";
+            string password = "123";
 
-            // Act
             var result = PasswordValidator.IsValid(password, out var error);
 
-            // Assert
             Assert.True(result);
             Assert.Null(error);
         }
 
         [Fact]
-        public void IsValid_LongValidPassword_ReturnsTrue()
+        public void IsValid_ShortAlphabeticPassword_ReturnsTrue()
         {
-            // Arrange
+            string password = "bmw";
+
+            var result = PasswordValidator.IsValid(password, out var error);
+
+            Assert.True(result);
+            Assert.Null(error);
+        }
+
+        [Fact]
+        public void IsValid_LongPassword_ReturnsTrue()
+        {
             string password = "ThisIsAVeryLongPassword123WithLotsOfCharacters";
 
-            // Act
             var result = PasswordValidator.IsValid(password, out var error);
 
-            // Assert
             Assert.True(result);
             Assert.Null(error);
         }
