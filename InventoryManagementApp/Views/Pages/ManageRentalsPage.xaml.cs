@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using InventoryManagementApp.ViewModels;
@@ -33,6 +33,24 @@ namespace InventoryManagementApp.Views.Pages
         }
 
         private void RentalRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            SelectRowForContextMenu(sender, e);
+        }
+
+        private void RequestRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (DataContext is ManageRentalsViewModel vm && vm.OpenRequestDetailsCommand.CanExecute(null))
+            {
+                vm.OpenRequestDetailsCommand.Execute(null);
+            }
+        }
+
+        private void RequestRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            SelectRowForContextMenu(sender, e);
+        }
+
+        private static void SelectRowForContextMenu(object sender, MouseButtonEventArgs e)
         {
             if (sender is DataGridRow row && !row.IsSelected)
             {
