@@ -255,7 +255,7 @@ namespace InventoryManagementApp.ViewModels
                 return "Maintenance";
             if (ContainsAny(line, "calibration", "calibrated"))
                 return "Calibration";
-            if (ContainsAny(line, "item", "tool", "inventory", "stock"))
+            if (ContainsAny(line, "item", "equipment", "inventory", "stock"))
                 return "Inventory";
             if (ContainsAny(line, "customer", "technician", "advisor", "user"))
                 return "Person";
