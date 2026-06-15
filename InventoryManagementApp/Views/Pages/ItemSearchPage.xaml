@@ -47,7 +47,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Find tool" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                <TextBlock Grid.Column="0" Text="Find item" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                 <TextBox Grid.Column="1"
                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                          ToolTip="Search by name, item number, part number, brand, location, or keyword"/>
@@ -111,7 +111,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Tool #" Binding="{Binding ItemNumber}" Width="90"/>
+                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="90"/>
                             <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
                             <DataGridTextColumn Header="Brand" Binding="{Binding Brand}" Width="110"/>
                             <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="120"/>
@@ -157,7 +157,7 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Tool #" Binding="{Binding ItemNumber}" Width="82"/>
+                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="82"/>
                             <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
                             <DataGridTextColumn Header="Holder" Binding="{Binding CheckedOutBy}" Width="105"/>
                             <DataGridTextColumn Header="Out Since" Binding="{Binding CheckedOutTime, StringFormat=yyyy-MM-dd HH:mm}" Width="116"/>
