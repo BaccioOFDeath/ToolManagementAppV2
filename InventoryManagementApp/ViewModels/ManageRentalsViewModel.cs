@@ -10,9 +10,12 @@ using System.Windows;
 using System.Windows.Documents;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
+using InventoryManagementApp.Services.Reservations;
 using InventoryManagementApp.Utilities.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using RentalModel = InventoryManagementApp.Models.Domain.Rental;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -20,6 +23,7 @@ namespace InventoryManagementApp.ViewModels
     {
         private readonly IRentalService _rentalService;
         private readonly IDialogService _dialogService;
+        private readonly ReservationService? _reservationService;
         private readonly ILogger<ManageRentalsViewModel> _logger;
         private List<RentalModel> _allRentals = new();
 
@@ -29,7 +33,7 @@ namespace InventoryManagementApp.ViewModels
 
         public string SearchSummary => $"{Rentals.Count} result{(Rentals.Count == 1 ? string.Empty : "s")} shown";
         public string CheckedOutSummary => $"{ActiveRentals.Count} item{(ActiveRentals.Count == 1 ? string.Empty : "s")} currently checked out";
-        public string RequestSummary => $"{PendingRequests.Count} pending request{(PendingRequests.Count == 1 ? string.Empty : "s")}";
+        public string RequestSummary => $"{PendingRequests.Count} open request{(PendingRequests.Count == 1 ? string.Empty : "s")}";
 
         private string _searchText = string.Empty;
         public string SearchText
@@ -134,10 +138,15 @@ namespace InventoryManagementApp.ViewModels
         public IRelayCommand PrintInvoiceCommand { get; }
         public IAsyncRelayCommand DeleteRentalCommand { get; }
 
-        public ManageRentalsViewModel(IRentalService rentalService, IDialogService dialogService, ILogger<ManageRentalsViewModel>? logger = null)
+        public ManageRentalsViewModel(
+            IRentalService rentalService,
+            IDialogService dialogService,
+            ReservationService? reservationService = null,
+            ILogger<ManageRentalsViewModel>? logger = null)
         {
             _rentalService = rentalService;
             _dialogService = dialogService;
+            _reservationService = reservationService ?? TryResolveReservationService();
             _logger = logger ?? NullLogger<ManageRentalsViewModel>.Instance;
 
             ApplyFilterCommand = new RelayCommand(ApplyFilter);
@@ -163,6 +172,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 _allRentals = await _rentalService.GetAllRentalsAsync();
+                await LoadPendingRequestsAsync();
                 RefreshActiveRentals();
                 ApplyFilter();
             }
@@ -174,6 +184,32 @@ namespace InventoryManagementApp.ViewModels
             finally
             {
                 IsLoading = false;
+            }
+        }
+
+        async Task LoadPendingRequestsAsync()
+        {
+            if (_reservationService == null)
+            {
+                PendingRequests.Clear();
+                OnPropertyChanged(nameof(RequestSummary));
+                return;
+            }
+
+            try
+            {
+                var requests = await _reservationService.GetActiveReservationsAsync();
+                PendingRequests.ReplaceRange(requests);
+                SelectedRequest = PendingRequests.FirstOrDefault(r => SelectedRequest?.ReservationID == r.ReservationID);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load open reservations for rentals page");
+                PendingRequests.Clear();
+            }
+            finally
+            {
+                OnPropertyChanged(nameof(RequestSummary));
             }
         }
 
@@ -221,11 +257,14 @@ namespace InventoryManagementApp.ViewModels
         {
             if (SelectedRental == null)
                 return;
+
+            var returnedRental = SelectedRental;
             try
             {
                 IsLoading = true;
-                await _rentalService.ReturnItemAsync(SelectedRental.RentalID, DateTime.Today);
+                await _rentalService.ReturnItemAsync(returnedRental.RentalID, DateTime.Today);
                 await LoadRentalsAsync();
+                await NotifyWaitingRequestsAsync(returnedRental.ItemID, returnedRental.ItemNumber);
             }
             catch (UnauthorizedAccessException)
             {
@@ -233,13 +272,32 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to check in rental {RentalID}", SelectedRental.RentalID);
+                _logger.LogError(ex, "Failed to check in rental {RentalID}", returnedRental.RentalID);
                 await _dialogService.ShowInfoAsync($"Failed to check in rental: {ex.Message}", "Error");
             }
             finally
             {
                 IsLoading = false;
             }
+        }
+
+        async Task NotifyWaitingRequestsAsync(int itemId, string itemNumber)
+        {
+            var waitingRequests = PendingRequests.Where(r => r.ItemID == itemId && r.IsActive).ToList();
+            if (waitingRequests.Count == 0)
+                return;
+
+            var firstRequest = waitingRequests.OrderBy(r => r.StartDate).First();
+            var message = new StringBuilder();
+            message.AppendLine($"{waitingRequests.Count} open request{(waitingRequests.Count == 1 ? string.Empty : "s")} is waiting for item {itemNumber}.");
+            message.AppendLine();
+            message.AppendLine($"Next customer: {ValueOrNotRecorded(firstRequest.CustomerName)}");
+            message.AppendLine($"Needed from: {FormatDate(firstRequest.StartDate)}");
+            message.AppendLine($"Needed until: {FormatDate(firstRequest.EndDate)}");
+            message.AppendLine();
+            message.AppendLine("Use the pending requests grid to open the request, contact the customer, or print the queue.");
+
+            await _dialogService.ShowInfoAsync(message.ToString(), "Requests Waiting");
         }
 
         async Task ExtendAsync()
@@ -305,8 +363,8 @@ namespace InventoryManagementApp.ViewModels
             details.AppendLine($"Rental #: {rental.RentalID}");
             details.AppendLine($"Item #: {rental.ItemNumber}");
             details.AppendLine($"Location: {ValueOrNotRecorded(rental.ItemLocation)}");
-            details.AppendLine($"Status: {rental.Status}");
-            details.AppendLine($"Pending requests: {PendingRequests.Count(r => r.ItemID == rental.ItemID && r.IsActive)}");
+            details.AppendLine($"Status: {ValueOrNotRecorded(rental.Status)}");
+            details.AppendLine($"Open requests: {PendingRequests.Count(r => r.ItemID == rental.ItemID && r.IsActive)}");
             details.AppendLine();
             details.AppendLine($"Checked out to: {ValueOrNotRecorded(rental.CustomerName)}");
             details.AppendLine($"Contact: {ValueOrNotRecorded(rental.CustomerContact)}");
@@ -320,7 +378,7 @@ namespace InventoryManagementApp.ViewModels
             details.AppendLine();
             details.AppendLine(IsRentalActive(rental)
                 ? "Next steps: check in when returned, extend if approved, place a request for the next customer, or open history for prior usage."
-                : "Next steps: open history to inspect prior usage or print this rental record.");
+                : "Next steps: open history to inspect prior usage, review open requests, or print this rental record.");
 
             _dialogService.ShowInfo(details.ToString(), $"Rental Details - {rental.ItemNumber}");
         }
@@ -352,16 +410,43 @@ namespace InventoryManagementApp.ViewModels
                 if (!accepted)
                     return;
 
-                PendingRequests.Add(reservation);
-                SelectedRequest = reservation;
+                if (reservation.ReservationDate == default)
+                    reservation.ReservationDate = DateTime.Now;
+                if (reservation.CreatedAt == default)
+                    reservation.CreatedAt = DateTime.Now;
+                if (string.IsNullOrWhiteSpace(reservation.Status))
+                    reservation.Status = "Pending";
+                if (reservation.Quantity < 1)
+                    reservation.Quantity = 1;
+
+                var savedReservation = await SaveReservationAsync(reservation);
+                PendingRequests.Add(savedReservation);
+                SelectedRequest = savedReservation;
                 OnPropertyChanged(nameof(RequestSummary));
-                await _dialogService.ShowInfoAsync("Request captured on this rental screen. It will stay visible in the pending request queue until the page is reloaded or a reservation service is wired in.", "Request Captured");
+
+                var persistenceNote = _reservationService == null
+                    ? "Request captured for this rentals screen."
+                    : "Request saved to reservations and added to the open request queue.";
+                await _dialogService.ShowInfoAsync(persistenceNote, "Request Captured");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to place request for rental {RentalID}", rental.RentalID);
                 await _dialogService.ShowInfoAsync($"Failed to place request: {ex.Message}", "Error");
             }
+        }
+
+        async Task<Reservation> SaveReservationAsync(Reservation reservation)
+        {
+            if (_reservationService == null)
+                return reservation;
+
+            var reservationId = await _reservationService.CreateReservationAsync(reservation);
+            reservation.ReservationID = reservationId;
+            reservation.ReservationDate = DateTime.Now;
+            reservation.CreatedAt = DateTime.Now;
+
+            return await _reservationService.GetReservationByIdAsync(reservationId) ?? reservation;
         }
 
         void OpenRequestDetails()
@@ -371,6 +456,7 @@ namespace InventoryManagementApp.ViewModels
 
             var request = SelectedRequest;
             var details = new StringBuilder();
+            details.AppendLine($"Request #: {(request.ReservationID > 0 ? request.ReservationID.ToString() : "Not saved")}");
             details.AppendLine($"Item #: {ValueOrNotRecorded(request.ItemNumber)}");
             details.AppendLine($"Item: {ValueOrNotRecorded(request.ItemName)}");
             details.AppendLine($"Customer: {ValueOrNotRecorded(request.CustomerName)}");
@@ -383,7 +469,7 @@ namespace InventoryManagementApp.ViewModels
             details.AppendLine();
             details.AppendLine($"Notes: {ValueOrNotRecorded(request.Notes)}");
             details.AppendLine();
-            details.AppendLine("Next steps: contact the current holder, monitor check-in, then convert this request into the durable reservation workflow when availability opens.");
+            details.AppendLine("Next steps: contact the current holder, monitor check-in, then fulfill or update this reservation when availability opens.");
 
             _dialogService.ShowInfo(details.ToString(), $"Request Details - {request.ItemNumber}");
         }
@@ -405,7 +491,7 @@ namespace InventoryManagementApp.ViewModels
                 AddKeyValueRow(group, "Due Date:", SelectedRental.DueDate.ToString("yyyy-MM-dd HH:mm"));
                 AddKeyValueRow(group, "Return Date:", SelectedRental.ReturnDate?.ToString("yyyy-MM-dd HH:mm") ?? "N/A");
                 AddKeyValueRow(group, "Status:", SelectedRental.Status ?? string.Empty);
-                AddKeyValueRow(group, "Pending Requests:", PendingRequests.Count(r => r.ItemID == SelectedRental.ItemID && r.IsActive).ToString());
+                AddKeyValueRow(group, "Open Requests:", PendingRequests.Count(r => r.ItemID == SelectedRental.ItemID && r.IsActive).ToString());
                 doc.Blocks.Add(table);
 
                 _dialogService.ShowPrintPreview(doc, $"Rental {SelectedRental.RentalID}", string.Empty);
@@ -426,7 +512,7 @@ namespace InventoryManagementApp.ViewModels
             var requests = PendingRequests.ToList();
             if (requests.Count == 0)
             {
-                _dialogService.ShowInfo("There are no pending requests to print.", "Pending Requests");
+                _dialogService.ShowInfo("There are no open requests to print.", "Open Requests");
                 return;
             }
 
@@ -440,8 +526,9 @@ namespace InventoryManagementApp.ViewModels
                 });
 
                 var table = new Table { CellSpacing = 0 };
+                table.Columns.Add(new TableColumn { Width = new GridLength(80) });
                 table.Columns.Add(new TableColumn { Width = new GridLength(100) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(150) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(140) });
                 table.Columns.Add(new TableColumn { Width = new GridLength(150) });
                 table.Columns.Add(new TableColumn { Width = new GridLength(95) });
                 table.Columns.Add(new TableColumn { Width = new GridLength(95) });
@@ -449,11 +536,11 @@ namespace InventoryManagementApp.ViewModels
 
                 var group = new TableRowGroup();
                 table.RowGroups.Add(group);
-                AddPrintRow(group, true, "Item #", "Item", "Customer", "Needed", "Until", "Status");
+                AddPrintRow(group, true, "Request", "Item #", "Item", "Customer", "Needed", "Until", "Status");
 
                 foreach (var request in requests)
                 {
-                    AddPrintRow(group, false, request.ItemNumber, request.ItemName, request.CustomerName, request.StartDate.ToString("yyyy-MM-dd"), request.EndDate.ToString("yyyy-MM-dd"), request.Status);
+                    AddPrintRow(group, false, request.ReservationID.ToString(), request.ItemNumber, request.ItemName, request.CustomerName, request.StartDate.ToString("yyyy-MM-dd"), request.EndDate.ToString("yyyy-MM-dd"), request.Status);
                 }
 
                 doc.Blocks.Add(table);
@@ -461,8 +548,8 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to print pending requests");
-                _dialogService.ShowInfo($"Failed to print pending requests: {ex.Message}", "Error");
+                _logger.LogError(ex, "Failed to print open requests");
+                _dialogService.ShowInfo($"Failed to print open requests: {ex.Message}", "Error");
             }
         }
 
@@ -664,6 +751,20 @@ namespace InventoryManagementApp.ViewModels
             var end = rental.ReturnDate ?? DateTime.Now;
             var days = Math.Max(0, (end.Date - rental.RentalDate.Date).Days);
             return days == 1 ? "1 day" : $"{days} days";
+        }
+
+        static ReservationService? TryResolveReservationService()
+        {
+            try
+            {
+                if (Application.Current is App app)
+                    return app.Host.Services.GetService<ReservationService>();
+            }
+            catch
+            {
+            }
+
+            return null;
         }
     }
 }
