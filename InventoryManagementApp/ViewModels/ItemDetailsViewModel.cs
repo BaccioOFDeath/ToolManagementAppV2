@@ -67,9 +67,15 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (ItemModel.IsIncomplete)
                 {
-                    var notes = string.Join(" | ", new[] { ItemModel.MissingComponentsNotes, ItemModel.IssuesNotes }
-                        .WhereText());
-                    return string.IsNullOrWhiteSpace(notes) ? "Marked incomplete" : notes;
+                    var missing = ItemModel.MissingComponentsNotes;
+                    var issues = ItemModel.IssuesNotes;
+                    if (!string.IsNullOrWhiteSpace(missing) && !string.IsNullOrWhiteSpace(issues))
+                        return $"{missing} | {issues}";
+                    if (!string.IsNullOrWhiteSpace(missing))
+                        return missing;
+                    if (!string.IsNullOrWhiteSpace(issues))
+                        return issues;
+                    return "Marked incomplete";
                 }
 
                 if (!string.IsNullOrWhiteSpace(ItemModel.IssuesNotes))
@@ -248,14 +254,6 @@ namespace InventoryManagementApp.ViewModels
             target.MissingComponentsNotes = source.MissingComponentsNotes;
             target.IssuesNotes = source.IssuesNotes;
             target.CheckoutCount = source.CheckoutCount;
-        }
-    }
-
-    internal static class ItemDetailsTextExtensions
-    {
-        public static string[] WhereText(this string[] values)
-        {
-            return Array.FindAll(values, value => !string.IsNullOrWhiteSpace(value));
         }
     }
 }
