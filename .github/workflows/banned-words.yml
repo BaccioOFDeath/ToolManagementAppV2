@@ -12,4 +12,4 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y ripgrep
       - name: Run banned words check
-        run: ./scripts/check-banned-words.sh
+        run: bash ./scripts/check-banned-words.sh
