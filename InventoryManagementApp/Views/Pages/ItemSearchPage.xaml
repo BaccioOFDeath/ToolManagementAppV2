@@ -29,6 +29,22 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+        <Style x:Key="ResultPrimaryText" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="ResultDetailText" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlock}">
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,1,10,0"/>
+        </Style>
+        <Style x:Key="ResultImage" TargetType="Image">
+            <Setter Property="Width" Value="58"/>
+            <Setter Property="Height" Value="58"/>
+            <Setter Property="Stretch" Value="UniformToFill"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+        </Style>
     </Page.Resources>
 
     <Grid Margin="4">
@@ -66,9 +82,9 @@
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*" MinWidth="520"/>
+                <ColumnDefinition Width="2*" MinWidth="560"/>
                 <ColumnDefinition Width="4"/>
-                <ColumnDefinition Width="*" MinWidth="340"/>
+                <ColumnDefinition Width="*" MinWidth="380"/>
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
@@ -85,7 +101,7 @@
                                 <Button Content="Rent Out" Command="{Binding OpenRentalsCommand}" Margin="0,0,4,0"/>
                                 <Button Content="Check Out / In" Command="{Binding ToggleCheckOutCommand}" CommandParameter="{Binding SelectedItem}"/>
                             </StackPanel>
-                            <TextBlock Text="Double-click a row for full details." Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                            <TextBlock Text="Rows include photo, stock, holder, and location; double-click for full details." Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="10,0,0,0"/>
                         </DockPanel>
                     </Border>
                     <DataGrid x:Name="ResultsGrid"
@@ -93,6 +109,8 @@
                               Style="{StaticResource VirtualizedDataGridStyle}"
                               ItemsSource="{Binding SearchResults}"
                               SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                              RowHeight="78"
+                              EnableRowVirtualization="True"
                               MouseDoubleClick="ItemGrid_MouseDoubleClick">
                         <DataGrid.ContextMenu>
                             <ContextMenu>
@@ -104,21 +122,91 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                         <DataGrid.Columns>
-                            <DataGridTemplateColumn Header="Status" Width="95">
+                            <DataGridTemplateColumn Header="Photo" Width="70" IsReadOnly="True">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Style="{StaticResource StatusTextBlock}"/>
+                                        <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Width="62" Height="62" HorizontalAlignment="Center" VerticalAlignment="Center" Background="{DynamicResource ControlBackgroundBrush}">
+                                            <Image Style="{StaticResource ResultImage}"
+                                                   Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                                   ToolTipService.ShowDuration="60000">
+                                                <Image.ToolTip>
+                                                    <Border Padding="4" Background="{DynamicResource ControlBackgroundBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1">
+                                                        <StackPanel>
+                                                            <Image Width="260" Height="190" Stretch="Uniform" Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
+                                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Margin="0,6,0,0" TextWrapping="Wrap" MaxWidth="260"/>
+                                                            <TextBlock Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </Image.ToolTip>
+                                            </Image>
+                                        </Border>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="90"/>
-                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
-                            <DataGridTextColumn Header="Brand" Binding="{Binding Brand}" Width="110"/>
-                            <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="120"/>
-                            <DataGridTextColumn Header="On Hand" Binding="{Binding QuantityOnHand}" Width="70"/>
-                            <DataGridTextColumn Header="Rented" Binding="{Binding RentedQuantity}" Width="60"/>
-                            <DataGridTextColumn Header="Holder" Binding="{Binding CheckedOutBy}" Width="120"/>
-                            <DataGridTextColumn Header="Out Since" Binding="{Binding CheckedOutTime, StringFormat=yyyy-MM-dd HH:mm}" Width="120"/>
+                            <DataGridTemplateColumn Header="Item" Width="2.3*" IsReadOnly="True">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,3">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <TextBlock Grid.Row="0" Text="{Binding Name}" Style="{StaticResource ResultPrimaryText}"/>
+                                            <WrapPanel Grid.Row="1" Margin="0,3,0,0">
+                                                <TextBlock Text="Item # " Style="{StaticResource ResultDetailText}" FontWeight="SemiBold" Margin="0,1,0,0"/>
+                                                <TextBlock Text="{Binding ItemNumber}" Style="{StaticResource ResultDetailText}"/>
+                                                <TextBlock Text="Part # " Style="{StaticResource ResultDetailText}" FontWeight="SemiBold" Margin="0,1,0,0"/>
+                                                <TextBlock Text="{Binding PartNumber}" Style="{StaticResource ResultDetailText}"/>
+                                                <TextBlock Text="Brand " Style="{StaticResource ResultDetailText}" FontWeight="SemiBold" Margin="0,1,0,0"/>
+                                                <TextBlock Text="{Binding Brand}" Style="{StaticResource ResultDetailText}"/>
+                                            </WrapPanel>
+                                            <WrapPanel Grid.Row="2" Margin="0,1,0,0">
+                                                <TextBlock Text="Location " Style="{StaticResource ResultDetailText}" FontWeight="SemiBold" Margin="0,1,0,0"/>
+                                                <TextBlock Text="{Binding Location}" Style="{StaticResource ResultDetailText}"/>
+                                                <TextBlock Text="Keywords " Style="{StaticResource ResultDetailText}" FontWeight="SemiBold" Margin="0,1,0,0"/>
+                                                <TextBlock Text="{Binding Keywords}" Style="{StaticResource ResultDetailText}"/>
+                                            </WrapPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Status" Width="112" IsReadOnly="True">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,4">
+                                            <TextBlock Style="{StaticResource StatusTextBlock}"/>
+                                            <TextBlock Text="{Binding CheckedOutBy}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Stock" Width="92" IsReadOnly="True">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,4">
+                                            <TextBlock>
+                                                <Run Text="On hand: "/>
+                                                <Run Text="{Binding QuantityOnHand}"/>
+                                            </TextBlock>
+                                            <TextBlock Style="{StaticResource CaptionTextBlock}" Margin="0,4,0,0">
+                                                <Run Text="Rented: "/>
+                                                <Run Text="{Binding RentedQuantity}"/>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Activity" Width="145" IsReadOnly="True">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,4">
+                                            <TextBlock Text="{Binding CheckedOutTime, StringFormat=yyyy-MM-dd HH:mm}" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding UpdatedAt, StringFormat=yyyy-MM-dd}" Style="{StaticResource CaptionTextBlock}" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
@@ -147,6 +235,8 @@
                               Style="{StaticResource VirtualizedDataGridStyle}"
                               ItemsSource="{Binding CheckedOutItems}"
                               SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                              RowHeight="64"
+                              EnableRowVirtualization="True"
                               MouseDoubleClick="ItemGrid_MouseDoubleClick">
                         <DataGrid.ContextMenu>
                             <ContextMenu>
@@ -157,10 +247,34 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="82"/>
-                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
-                            <DataGridTextColumn Header="Holder" Binding="{Binding CheckedOutBy}" Width="105"/>
-                            <DataGridTextColumn Header="Out Since" Binding="{Binding CheckedOutTime, StringFormat=yyyy-MM-dd HH:mm}" Width="116"/>
+                            <DataGridTemplateColumn Header="Photo" Width="56" IsReadOnly="True">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Image Width="44" Height="44" Stretch="UniformToFill" Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Checked Out Item" Width="*" IsReadOnly="True">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,3">
+                                            <TextBlock Text="{Binding Name}" Style="{StaticResource ResultPrimaryText}"/>
+                                            <WrapPanel Margin="0,3,0,0">
+                                                <TextBlock Text="{Binding ItemNumber}" Style="{StaticResource ResultDetailText}"/>
+                                                <TextBlock Text="{Binding Location}" Style="{StaticResource ResultDetailText}"/>
+                                                <TextBlock Text="{Binding CheckedOutBy}" Style="{StaticResource ResultDetailText}"/>
+                                            </WrapPanel>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Out Since" Width="118" IsReadOnly="True">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding CheckedOutTime, StringFormat=yyyy-MM-dd HH:mm}" Margin="0,4" TextWrapping="Wrap"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                             <DataGridTemplateColumn Header="Action" Width="76">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
