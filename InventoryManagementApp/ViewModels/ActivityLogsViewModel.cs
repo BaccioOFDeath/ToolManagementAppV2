@@ -234,7 +234,7 @@ namespace InventoryManagementApp.ViewModels
                 return "Import / Export";
             if (ContainsAny(action, "user", "password", "login", "role", "permission"))
                 return "User / Admin";
-            if (ContainsAny(action, "item", "tool", "inventory", "stock", "category"))
+            if (ContainsAny(action, "item", "equipment", "inventory", "stock", "category"))
                 return "Inventory";
             return "System";
         }
