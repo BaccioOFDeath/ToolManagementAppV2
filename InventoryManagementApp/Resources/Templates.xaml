@@ -4,10 +4,10 @@
                     xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
                     xmlns:models="clr-namespace:InventoryManagementApp.Models">
     <DataTemplate x:Key="StatCardTemplate">
-        <Border Style="{StaticResource Card}" Padding="8,6" Margin="0,0,6,6" MinWidth="190">
+        <Border Style="{StaticResource Card}" Padding="6,4" Margin="0,0,4,4" MinWidth="170">
             <StackPanel>
                 <TextBlock Text="{Binding Title}" Style="{StaticResource LabelTextBlock}"/>
-                <TextBlock Text="{Binding Value}" Style="{StaticResource StatisticValueTextBlock}" Margin="0,4,0,0"/>
+                <TextBlock Text="{Binding Value}" Style="{StaticResource StatisticValueTextBlock}" Margin="0,2,0,0"/>
             </StackPanel>
         </Border>
     </DataTemplate>
@@ -24,11 +24,11 @@
                 Margin="0"
                 HorizontalContentAlignment="Stretch"
                 VerticalContentAlignment="Stretch">
-            <Border Width="230"
-                    Margin="6"
-                    Padding="8"
+            <Border Width="196"
+                    Margin="3"
+                    Padding="5"
                     Background="{DynamicResource SurfaceBrush}"
-                    BorderThickness="2">
+                    BorderThickness="1,1,1,3">
                 <Border.Style>
                     <Style TargetType="Border" BasedOn="{StaticResource Card}">
                         <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
@@ -50,7 +50,7 @@
                 </Border.Style>
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="148"/>
+                        <RowDefinition Height="96"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Border Grid.Row="0"
@@ -58,14 +58,19 @@
                             BorderBrush="{DynamicResource BorderBrushAlt}"
                             BorderThickness="1">
                         <Image Stretch="Uniform"
-                               Margin="6"
+                               Margin="4"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
                     </Border>
-                    <StackPanel Grid.Row="1" Margin="0,8,0,0">
-                        <TextBlock Text="{Binding Name}" Style="{StaticResource ListItemTitleTextBlock}" TextTrimming="CharacterEllipsis"/>
-                    </StackPanel>
+                    <Grid Grid.Row="1" Margin="0,5,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="{Binding Name}" Style="{StaticResource ListItemTitleTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Grid.Row="1" Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                    </Grid>
                 </Grid>
             </Border>
         </Button>
@@ -86,13 +91,12 @@
     </DataTemplate>
 
     <!-- Shared rental DataGrid columns -->
-    <DataGridTextColumn x:Key="RentalIdColumn" Header="Rental #" Binding="{Binding RentalId}" Width="120" x:Shared="False"/>
-    <DataGridTextColumn x:Key="RentalItemNumberColumn" Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='{}{0} #'}" Binding="{Binding ItemNumber}" Width="120" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalIdColumn" Header="Rental #" Binding="{Binding RentalId}" Width="100" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalItemNumberColumn" Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='{}{0} #'}" Binding="{Binding ItemNumber}" Width="115" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalItemNameColumn" Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}" Binding="{Binding Name}" Width="*" x:Shared="False"/>
-    <DataGridTextColumn x:Key="RentalCustomerColumn" Header="Customer" Binding="{Binding CustomerName}" Width="220" x:Shared="False"/>
-    <DataGridTextColumn x:Key="RentalOutColumn" Header="Out" Binding="{Binding DateOut, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat=\{0:yyyy-MM-dd HH:mm\}, TargetNullValue=''}" Width="180" x:Shared="False"/>
-    <DataGridTextColumn x:Key="RentalDueColumn" Header="Due" Binding="{Binding DueDate, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat=\{0:yyyy-MM-dd HH:mm\}, TargetNullValue=''}" Width="180" x:Shared="False"/>
-    <DataGridTextColumn x:Key="RentalReturnedColumn" Header="Returned" Binding="{Binding DateReturned, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat=\{0:yyyy-MM-dd HH:mm\}, TargetNullValue=''}" Width="180" x:Shared="False"/>
-    <DataGridTextColumn x:Key="RentalStatusColumn" Header="Status" Binding="{Binding Status}" Width="140" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalCustomerColumn" Header="Customer" Binding="{Binding CustomerName}" Width="200" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalOutColumn" Header="Out" Binding="{Binding DateOut, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat=\{0:yyyy-MM-dd HH:mm\}, TargetNullValue=''}" Width="150" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalDueColumn" Header="Due" Binding="{Binding DueDate, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat=\{0:yyyy-MM-dd HH:mm\}, TargetNullValue=''}" Width="150" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalReturnedColumn" Header="Returned" Binding="{Binding DateReturned, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat=\{0:yyyy-MM-dd HH:mm\}, TargetNullValue=''}" Width="150" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalStatusColumn" Header="Status" Binding="{Binding Status}" Width="120" x:Shared="False"/>
 </ResourceDictionary>
-

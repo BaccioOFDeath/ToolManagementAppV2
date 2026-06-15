@@ -13,18 +13,20 @@
         <Border Style="{StaticResource ToolbarCard}">
             <DockPanel LastChildFill="False">
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-                    <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,8,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Extend" Command="{Binding ExtendCommand}" Margin="0,0,8,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="History" Command="{Binding OpenHistoryCommand}" Margin="0,0,8,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintRentalCommand}" Margin="0,0,8,0"/>
+                    <TextBlock Text="Actions" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Extend" Command="{Binding ExtendCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="History" Command="{Binding OpenHistoryCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintRentalCommand}" Margin="0,0,4,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Delete" Command="{Binding DeleteRentalCommand}"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
-                    <TextBox Width="140" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
-                    <DatePicker SelectedDate="{Binding FilterFrom, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
-                    <DatePicker SelectedDate="{Binding FilterTo, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
-                    <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus, UpdateSourceTrigger=PropertyChanged}" Width="110" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Apply" Command="{Binding ApplyFilterCommand}" Margin="0,0,6,0"/>
+                    <TextBlock Text="Filter" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBox Width="140" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0"/>
+                    <DatePicker SelectedDate="{Binding FilterFrom, UpdateSourceTrigger=PropertyChanged}" Width="125" Margin="0,0,4,0"/>
+                    <DatePicker SelectedDate="{Binding FilterTo, UpdateSourceTrigger=PropertyChanged}" Width="125" Margin="0,0,4,0"/>
+                    <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus, UpdateSourceTrigger=PropertyChanged}" Width="110" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Apply" Command="{Binding ApplyFilterCommand}" Margin="0,0,4,0"/>
                     <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearFilterCommand}"/>
                 </StackPanel>
             </DockPanel>
@@ -34,6 +36,7 @@
             <Grid>
                 <DataGrid ItemsSource="{Binding Rentals}"
                           SelectedItem="{Binding SelectedRental}"
+                          SelectionMode="Extended"
                           IsReadOnly="True"
                           AutoGenerateColumns="False"
                           Style="{StaticResource VirtualizedDataGridStyle}">
@@ -58,10 +61,10 @@
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                 </DataGrid>
-                <TextBlock Text="No rentals"
+                <TextBlock Text="No rental records"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
-                           FontSize="16"
+                           FontSize="13"
                            FontWeight="SemiBold">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
@@ -79,7 +82,7 @@
 
         <ProgressBar Grid.Row="2"
                      IsIndeterminate="True"
-                     Margin="0,6,0,0"
+                     Margin="0,4,0,0"
                      Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
     </Grid>
 </Page>
