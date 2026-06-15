@@ -4,43 +4,62 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
         Title="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Rent {0}'}"
-        Width="800" Height="420"
-        WindowStartupLocation="CenterScreen"
+        Width="760" Height="360" MinWidth="680" MinHeight="320"
+        WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
-    <DockPanel Margin="10">
-        <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="10" CornerRadius="8">
-            <TextBlock Text="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Rent {0}'}" Style="{StaticResource HeadingTextBlock}"/>
+    <DockPanel Margin="8">
+        <Border DockPanel.Dock="Top" Style="{StaticResource ToolbarCard}">
+            <DockPanel LastChildFill="True">
+                <TextBlock Text="Rent Item" Style="{StaticResource PageTitleTextBlock}" DockPanel.Dock="Left" Margin="0,0,12,0"/>
+                <TextBlock Text="Select the customer and due-back date before confirming the rental." Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center"/>
+            </DockPanel>
         </Border>
 
-        <Border Style="{StaticResource Card}" Margin="0,8,0,8">
-            <Grid Margin="4">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="200"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+        <Border Style="{StaticResource Card}" Padding="0" Margin="0,0,0,8">
+            <DockPanel LastChildFill="True">
+                <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                    <TextBlock Text="01 Rental Details" Style="{StaticResource SectionHeader}" Margin="0"/>
+                </Border>
 
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Customer" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                <ComboBox Grid.Row="0" Grid.Column="1"
-                          ItemsSource="{Binding Customers}"
-                          DisplayMemberPath="Company"
-                          SelectedItem="{Binding SelectedCustomer, Mode=TwoWay}" Margin="8,4"
-                          ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
-                <Button Grid.Row="0" Grid.Column="2" Style="{StaticResource PrimaryButton}" Content="Add Customer" Command="{Binding AddCustomerCommand}" Margin="8,4,0,4"/>
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="135"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Due Date" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                <DatePicker Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
-                            SelectedDate="{Binding SelectedDueDate, Mode=TwoWay}" Margin="8,4"/>
-            </Grid>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Customer" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Row="0" Grid.Column="1"
+                              ItemsSource="{Binding Customers}"
+                              DisplayMemberPath="Company"
+                              SelectedItem="{Binding SelectedCustomer, Mode=TwoWay}"
+                              Margin="8,3"
+                              MinWidth="320"
+                              ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
+                    <Button Grid.Row="0" Grid.Column="2" Style="{StaticResource PrimaryButton}" Content="Add Customer" Command="{Binding AddCustomerCommand}" Margin="8,3,0,3"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Due Back" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                    <DatePicker Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
+                                SelectedDate="{Binding SelectedDueDate, Mode=TwoWay}"
+                                Margin="8,3"
+                                Width="160"
+                                HorizontalAlignment="Left"/>
+
+                    <Border Grid.Row="2" Grid.ColumnSpan="3" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="6" Margin="0,10,0,0">
+                        <TextBlock Text="Confirm only after the item has been physically picked or set aside for the customer." TextWrapping="Wrap"/>
+                    </Border>
+                </Grid>
+            </DockPanel>
         </Border>
 
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Style="{StaticResource PrimaryButton}" Content="Cancel" Command="{Binding CancelCommand}"/>
-            <Button Style="{StaticResource PrimaryButton}" Content="Confirm" Command="{Binding CheckOutCommand}" Margin="8,0,0,0"/>
+            <Button Style="{StaticResource GhostButton}" Content="Cancel" Command="{Binding CancelCommand}" Margin="0,0,6,0"/>
+            <Button Style="{StaticResource PrimaryButton}" Content="Confirm Rental" Command="{Binding CheckOutCommand}"/>
         </StackPanel>
     </DockPanel>
 </Window>
