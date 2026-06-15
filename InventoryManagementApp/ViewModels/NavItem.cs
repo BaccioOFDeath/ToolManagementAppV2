@@ -12,5 +12,6 @@ namespace InventoryManagementApp.ViewModels
 
         public string Title { get; }
         public ICommand Command { get; }
+        public int DisplayNumber { get; set; }
     }
 }
