@@ -442,7 +442,14 @@ namespace InventoryManagementApp.ViewModels
             var newPassword = PasswordDefaults.TemporaryPassword;
             try
             {
-                await _userService.ChangeUserPasswordAsync(user.UserID, newPassword);
+                var changed = await _userService.ChangeUserPasswordAsync(user.UserID, newPassword);
+                if (!changed)
+                {
+                    _logger.LogWarning("Failed to reset password for user {UserID}", user.UserID);
+                    await _dialogService.ShowInfoAsync("Failed to reset password.", "Error");
+                    return;
+                }
+
                 var refreshed = await _userService.GetUserByIDAsync(user.UserID, CancellationToken.None);
                 if (refreshed != null)
                 {
@@ -459,6 +466,11 @@ namespace InventoryManagementApp.ViewModels
             catch (UnauthorizedAccessException)
             {
                 await _dialogService.ShowInfoAsync("You are not authorized to reset passwords.", "Unauthorized");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to reset password for user {UserID}", user.UserID);
+                await _dialogService.ShowInfoAsync($"Failed to reset password: {ex.Message}", "Error");
             }
         }
 
