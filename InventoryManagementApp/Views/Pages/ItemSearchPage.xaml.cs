@@ -144,12 +144,12 @@ namespace InventoryManagementApp.Views.Pages
         {
             if (item.IsIncomplete)
                 return "Incomplete";
-            if (item.HasNoOnHand)
-                return "Unavailable";
             if (item.IsCheckedOut)
                 return "Checked Out";
             if (item.HasRentedStock)
                 return "Rented";
+            if (item.HasNoOnHand)
+                return "Unavailable";
             return "Available";
         }
     }
