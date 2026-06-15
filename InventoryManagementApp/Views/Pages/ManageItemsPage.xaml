@@ -15,28 +15,19 @@
         <Border Style="{StaticResource ToolbarCard}">
             <DockPanel LastChildFill="False">
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-
-                    <Button Style="{StaticResource PrimaryButton}"
-                            Content="Edit"
-                            Command="{Binding EditItemCommand}"
-                            Margin="0,0,8,0"/>
-                    <Button Style="{StaticResource PrimaryButton}"
-                            Content="View Details"
-                            Command="{Binding ViewDetailsCommand}"
-                            Margin="0,0,8,0"/>
-                    <Button Style="{StaticResource PrimaryButton}"
-                            Content="Rental History"
-                            Command="{Binding OpenRentalHistoryCommand}"
-                            Margin="0,0,8,0"/>
-                    <Button Style="{StaticResource PrimaryButton}"
-                            Content="New"
-                            Command="{Binding NewItemCommand}"/>
+                    <TextBlock Text="Actions" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="New" Command="{Binding NewItemCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditItemCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="View Details" Command="{Binding ViewDetailsCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Rental History" Command="{Binding OpenRentalHistoryCommand}"/>
                 </StackPanel>
-                <pages:SearchBar DockPanel.Dock="Right"
-                                 Width="360"
-                                 Text="{Binding Filter}"
-                                 SearchCommand="{Binding SearchCommand}"
-                                 SearchLabel="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Search {0}}"/>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
+                    <TextBlock Text="Filter" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <pages:SearchBar Width="360"
+                                     Text="{Binding Filter}"
+                                     SearchCommand="{Binding SearchCommand}"
+                                     SearchLabel="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Search {0}}"/>
+                </StackPanel>
             </DockPanel>
         </Border>
 
@@ -52,14 +43,12 @@
                           IsReadOnly="False"
                           AutoGenerateColumns="False"
                           EnableColumnVirtualization="True"
-                          Background="{DynamicResource SurfaceBrush}"
-                          BorderBrush="{DynamicResource BorderBrushAlt}"
                           Style="{StaticResource VirtualizedDataGridStyle}">
                     <DataGrid.Resources>
                         <helpers:BindingProxy x:Key="VmProxy" Data="{Binding}"/>
                     </DataGrid.Resources>
                     <DataGrid.RowStyle>
-                        <Style TargetType="DataGridRow">
+                        <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
                             <EventSetter Event="PreviewMouseRightButtonDown"
                                          Handler="DataGridRow_PreviewMouseRightButtonDown"/>
                             <EventSetter Event="Loaded" Handler="DataGridRow_Loaded"/>
@@ -67,28 +56,28 @@
                         </Style>
                     </DataGrid.RowStyle>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Number" Visibility="{Binding Data.ShowItemNumber, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding ItemNumber, Mode=OneWay}" Width="140"/>
-                        <DataGridTextColumn Header="Part #" Visibility="{Binding Data.ShowPartNumber, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding PartNumber, Mode=OneWay}" Width="140"/>
-                        <DataGridTextColumn Header="Name" Visibility="{Binding Data.ShowName, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Name, Mode=OneWay}" Width="280"/>
-                        <DataGridTextColumn Header="Brand" Visibility="{Binding Data.ShowBrand, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Brand, Mode=OneWay}" Width="160"/>
-                        <DataGridTextColumn Header="Qty" Visibility="{Binding Data.ShowQuantityOnHand, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding QuantityOnHand, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="100"/>
-                        <DataGridTextColumn Header="Location" Visibility="{Binding Data.ShowLocation, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="180"/>
-                        <DataGridTextColumn Header="Price" Visibility="{Binding Data.ShowPrice, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Price, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
-                        <DataGridTextColumn Header="Notes" Visibility="{Binding Data.ShowNotes, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Notes, Mode=OneWay}" Width="300"/>
+                        <DataGridTextColumn Header="Number" Visibility="{Binding Data.ShowItemNumber, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding ItemNumber, Mode=OneWay}" Width="120"/>
+                        <DataGridTextColumn Header="Part #" Visibility="{Binding Data.ShowPartNumber, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding PartNumber, Mode=OneWay}" Width="120"/>
+                        <DataGridTextColumn Header="Name" Visibility="{Binding Data.ShowName, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Name, Mode=OneWay}" Width="260"/>
+                        <DataGridTextColumn Header="Brand" Visibility="{Binding Data.ShowBrand, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Brand, Mode=OneWay}" Width="140"/>
+                        <DataGridTextColumn Header="Qty" Visibility="{Binding Data.ShowQuantityOnHand, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding QuantityOnHand, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="80"/>
+                        <DataGridTextColumn Header="Location" Visibility="{Binding Data.ShowLocation, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="160"/>
+                        <DataGridTextColumn Header="Price" Visibility="{Binding Data.ShowPrice, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Price, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="100"/>
+                        <DataGridTextColumn Header="Notes" Visibility="{Binding Data.ShowNotes, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Notes, Mode=OneWay}" Width="*"/>
                     </DataGrid.Columns>
                     <DataGrid.ContextMenu>
                         <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
                                     DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                            <MenuItem Header="Delete"
+                            <MenuItem Header="Delete selected"
                                       Command="{Binding PlacementTarget.DataContext.DeleteItemsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                       CommandParameter="{Binding PlacementTarget.SelectedItems, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                 </DataGrid>
-                <TextBlock Text="No results"
+                <TextBlock Text="No matching records"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
-                           FontSize="16"
+                           FontSize="13"
                            FontWeight="SemiBold">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
@@ -104,7 +93,7 @@
                 <ProgressBar Grid.Row="1"
                              IsIndeterminate="True"
                              Height="4"
-                             Margin="0,8,0,0"
+                             Margin="0,4,0,0"
                              Visibility="{Binding Items.IsLoading, Converter={StaticResource BoolToVis}}"/>
             </Grid>
         </Border>
