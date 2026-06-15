@@ -93,7 +93,7 @@
     <!-- Shared rental DataGrid columns -->
     <DataGridTextColumn x:Key="RentalIdColumn" Header="Rental #" Binding="{Binding RentalID}" Width="90" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalItemNumberColumn" Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='{}{0} #'}" Binding="{Binding ItemNumber}" Width="115" x:Shared="False"/>
-    <DataGridTextColumn x:Key="RentalItemNameColumn" Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}" Binding="{Binding ItemName}" Width="*" x:Shared="False"/>
+    <DataGridTextColumn x:Key="RentalItemNameColumn" Header="Location" Binding="{Binding ItemLocation}" Width="160" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalCustomerColumn" Header="Customer" Binding="{Binding CustomerName}" Width="200" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalOutColumn" Header="Out" Binding="{Binding RentalDate, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat=\{0:yyyy-MM-dd HH:mm\}, TargetNullValue=''}" Width="150" x:Shared="False"/>
     <DataGridTextColumn x:Key="RentalDueColumn" Header="Due" Binding="{Binding DueDate, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat=\{0:yyyy-MM-dd HH:mm\}, TargetNullValue=''}" Width="150" x:Shared="False"/>
