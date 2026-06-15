@@ -5,21 +5,177 @@
       x:Class="InventoryManagementApp.Views.Pages.ItemSearchPage"
       Background="{DynamicResource BackgroundBrush}"
       Loaded="Page_Loaded">
-    <Grid Margin="0">
-        <Border Style="{StaticResource Card}" Padding="8">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <ItemsControl ItemsSource="{Binding SearchResults}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <StaticResource ResourceKey="ItemCardTemplate"/>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+    <Page.Resources>
+        <Style x:Key="StatusTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="Text" Value="Available"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding HasRentedStock}" Value="True">
+                    <Setter Property="Text" Value="Rented"/>
+                    <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsCheckedOut}" Value="True">
+                    <Setter Property="Text" Value="Checked Out"/>
+                    <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding HasNoOnHand}" Value="True">
+                    <Setter Property="Text" Value="Unavailable"/>
+                    <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsIncomplete}" Value="True">
+                    <Setter Property="Text" Value="Incomplete"/>
+                    <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Page.Resources>
+
+    <Grid Margin="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="320"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Find tool" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                <TextBox Grid.Column="1"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="Search by name, item number, part number, brand, location, or keyword"/>
+                <TextBlock Grid.Column="2" Text="Brand" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="10,0,6,0"/>
+                <ComboBox Grid.Column="3" ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}"/>
+                <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                    <TextBlock Text="{Binding SearchResultsSummary}" Style="{StaticResource CaptionTextBlock}" Margin="0,0,12,0"/>
+                    <TextBlock Text="{Binding CheckedOutSummary}" Style="{StaticResource CaptionTextBlock}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="5" Orientation="Horizontal">
+                    <Button Content="Print Results" Click="PrintSearchResults_Click" Margin="0,0,4,0"/>
+                    <Button Content="Print Checked Out" Click="PrintCheckedOut_Click"/>
+                </StackPanel>
+            </Grid>
         </Border>
 
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" MinWidth="520"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="*" MinWidth="340"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Margin="0" BorderThickness="0,0,0,1">
+                        <DockPanel LastChildFill="True">
+                            <TextBlock Text="Search Results" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0"/>
+                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                <Button Content="Details" Command="{Binding ViewDetailsCommand}" Margin="0,0,4,0"/>
+                                <Button Content="Rent Out" Command="{Binding OpenRentalsCommand}" Margin="0,0,4,0"/>
+                                <Button Content="Check Out / In" Command="{Binding ToggleCheckOutCommand}" CommandParameter="{Binding SelectedItem}"/>
+                            </StackPanel>
+                            <TextBlock Text="Double-click a row for full details." Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        </DockPanel>
+                    </Border>
+                    <DataGrid x:Name="ResultsGrid"
+                              Grid.Row="1"
+                              Style="{StaticResource VirtualizedDataGridStyle}"
+                              ItemsSource="{Binding SearchResults}"
+                              SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                              MouseDoubleClick="ItemGrid_MouseDoubleClick">
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Open Details" Command="{Binding PlacementTarget.DataContext.ViewDetailsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <MenuItem Header="Rent Out" Command="{Binding PlacementTarget.DataContext.OpenRentalsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <MenuItem Header="Check Out / In" Command="{Binding PlacementTarget.DataContext.ToggleCheckOutCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <Separator/>
+                                <MenuItem Header="Print Results" Click="PrintSearchResults_Click"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="Status" Width="95">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Style="{StaticResource StatusTextBlock}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Tool #" Binding="{Binding ItemNumber}" Width="90"/>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="Brand" Binding="{Binding Brand}" Width="110"/>
+                            <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="120"/>
+                            <DataGridTextColumn Header="On Hand" Binding="{Binding QuantityOnHand}" Width="70"/>
+                            <DataGridTextColumn Header="Rented" Binding="{Binding RentedQuantity}" Width="60"/>
+                            <DataGridTextColumn Header="Holder" Binding="{Binding CheckedOutBy}" Width="120"/>
+                            <DataGridTextColumn Header="Out Since" Binding="{Binding CheckedOutTime, StringFormat=yyyy-MM-dd HH:mm}" Width="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+
+            <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushAlt}"/>
+
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Margin="0" BorderThickness="0,0,0,1">
+                        <DockPanel LastChildFill="True">
+                            <TextBlock Text="Currently Checked Out" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0"/>
+                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                <Button Content="Print" Click="PrintCheckedOut_Click" Margin="0,0,4,0"/>
+                                <Button Content="Details" Command="{Binding ViewDetailsCommand}"/>
+                            </StackPanel>
+                            <TextBlock Text="Visible while searching; double-click to inspect or check back in." Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        </DockPanel>
+                    </Border>
+                    <DataGrid x:Name="CheckedOutGrid"
+                              Grid.Row="1"
+                              Style="{StaticResource VirtualizedDataGridStyle}"
+                              ItemsSource="{Binding CheckedOutItems}"
+                              SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                              MouseDoubleClick="ItemGrid_MouseDoubleClick">
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Open Details" Command="{Binding PlacementTarget.DataContext.ViewDetailsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <MenuItem Header="Check In" Command="{Binding PlacementTarget.DataContext.ToggleCheckOutCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <Separator/>
+                                <MenuItem Header="Print Checked Out" Click="PrintCheckedOut_Click"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Tool #" Binding="{Binding ItemNumber}" Width="82"/>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="Holder" Binding="{Binding CheckedOutBy}" Width="105"/>
+                            <DataGridTextColumn Header="Out Since" Binding="{Binding CheckedOutTime, StringFormat=yyyy-MM-dd HH:mm}" Width="116"/>
+                            <DataGridTemplateColumn Header="Action" Width="76">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Check In"
+                                                MinWidth="64"
+                                                Padding="4,0"
+                                                Command="{Binding DataContext.ToggleCheckOutCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                CommandParameter="{Binding}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </Page>
