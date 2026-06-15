@@ -28,9 +28,8 @@
         </Border>
 
         <TabControl Grid.Row="1"
-                    Style="{StaticResource DesktopSectionListTabControl}"
-                    ItemContainerStyle="{StaticResource DesktopSectionListTabItem}">
-            <TabItem Header="01 Database">
+                    Style="{StaticResource DesktopSectionListTabControl}">
+            <TabItem Style="{StaticResource DesktopSectionListTabItem}" Header="01 Database">
                 <Border Style="{StaticResource DesktopContentPane}">
                     <DockPanel>
                         <Border DockPanel.Dock="Top" Style="{StaticResource DesktopSectionActionStrip}">
@@ -51,7 +50,7 @@
                 </Border>
             </TabItem>
 
-            <TabItem Header="02 General">
+            <TabItem Style="{StaticResource DesktopSectionListTabItem}" Header="02 General">
                 <Border Style="{StaticResource DesktopContentPane}">
                     <Grid Style="{StaticResource DesktopSettingsForm}">
                         <Grid.ColumnDefinitions>
@@ -79,7 +78,7 @@
                 </Border>
             </TabItem>
 
-            <TabItem Header="03 Item Display">
+            <TabItem Style="{StaticResource DesktopSectionListTabItem}" Header="03 Item Display">
                 <Border Style="{StaticResource DesktopContentPane}">
                     <DockPanel>
                         <Border DockPanel.Dock="Top" Style="{StaticResource DesktopSectionActionStrip}">
@@ -102,7 +101,7 @@
                 </Border>
             </TabItem>
 
-            <TabItem Header="04 Email">
+            <TabItem Style="{StaticResource DesktopSectionListTabItem}" Header="04 Email">
                 <Border Style="{StaticResource DesktopContentPane}">
                     <DockPanel>
                         <Border DockPanel.Dock="Top" Style="{StaticResource DesktopSectionActionStrip}">
@@ -163,7 +162,7 @@
                 </Border>
             </TabItem>
 
-            <TabItem Header="05 Branding">
+            <TabItem Style="{StaticResource DesktopSectionListTabItem}" Header="05 Branding">
                 <Border Style="{StaticResource DesktopContentPane}">
                     <Grid Style="{StaticResource DesktopSettingsForm}">
                         <Grid.ColumnDefinitions>
@@ -191,7 +190,7 @@
                 </Border>
             </TabItem>
 
-            <TabItem Header="06 Messaging">
+            <TabItem Style="{StaticResource DesktopSectionListTabItem}" Header="06 Messaging">
                 <Border Style="{StaticResource DesktopContentPane}">
                     <DockPanel>
                         <Border DockPanel.Dock="Top" Style="{StaticResource DesktopSectionActionStrip}">
@@ -221,7 +220,7 @@
                 </Border>
             </TabItem>
 
-            <TabItem Header="07 Backups">
+            <TabItem Style="{StaticResource DesktopSectionListTabItem}" Header="07 Backups">
                 <Border Style="{StaticResource DesktopContentPane}">
                     <DockPanel>
                         <Border DockPanel.Dock="Top" Style="{StaticResource DesktopSectionActionStrip}">
