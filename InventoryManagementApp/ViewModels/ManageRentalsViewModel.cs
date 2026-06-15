@@ -432,7 +432,7 @@ namespace InventoryManagementApp.ViewModels
 
             try
             {
-                var doc = CreateRentalDocument("Pending Tool Requests", fontSize: 11);
+                var doc = CreateRentalDocument("Open Requests", fontSize: 11);
                 doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | {requests.Count} request{(requests.Count == 1 ? string.Empty : "s")}"))
                 {
                     FontSize = 10,
@@ -457,7 +457,7 @@ namespace InventoryManagementApp.ViewModels
                 }
 
                 doc.Blocks.Add(table);
-                _dialogService.ShowPrintPreview(doc, "Pending Tool Requests", string.Empty);
+                _dialogService.ShowPrintPreview(doc, "Open Requests", string.Empty);
             }
             catch (Exception ex)
             {
