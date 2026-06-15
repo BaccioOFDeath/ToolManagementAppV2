@@ -221,6 +221,38 @@ namespace InventoryManagementApp.Views.Pages
                 vm.ViewDetailsCommand.Execute(null);
         }
 
+        private void ClearSearchIntelligence_Click(object sender, RoutedEventArgs e)
+        {
+            if (_searchHistory.Count == 0 && _unavailableDemand.Count == 0)
+                return;
+
+            _searchHistory.Clear();
+            _unavailableDemand.Clear();
+            _demandByItemId.Clear();
+            _lastSearchSignature = string.Empty;
+            UpdateSearchIntelligenceSummary();
+        }
+
+        private void PrintSearchIntelligence_Click(object sender, RoutedEventArgs e)
+        {
+            if (_searchHistory.Count == 0 && _unavailableDemand.Count == 0)
+            {
+                WpfMessageBox.Show("There is no search intelligence to print yet.", "Print", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var printDialog = new WpfPrintDialog();
+            if (printDialog.ShowDialog() != true)
+                return;
+
+            var document = BuildSearchIntelligenceDocument(_searchHistory.ToList(), _unavailableDemand.ToList());
+            document.PageWidth = printDialog.PrintableAreaWidth;
+            document.PageHeight = printDialog.PrintableAreaHeight;
+            document.PagePadding = new Thickness(36);
+            document.ColumnWidth = printDialog.PrintableAreaWidth;
+            printDialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, "Item Search Intelligence");
+        }
+
         private void PrintSearchResults_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is ItemManagementViewModel vm)
@@ -307,6 +339,108 @@ namespace InventoryManagementApp.Views.Pages
             return document;
         }
 
+        private static FlowDocument BuildSearchIntelligenceDocument(
+            IReadOnlyCollection<SearchHistoryEntry> searches,
+            IReadOnlyCollection<UnavailableDemandEntry> demand)
+        {
+            var document = new FlowDocument
+            {
+                FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
+                FontSize = 11
+            };
+
+            document.Blocks.Add(new Paragraph(new Run("Item Search Intelligence"))
+            {
+                FontSize = 16,
+                FontWeight = FontWeights.SemiBold,
+                Margin = new Thickness(0, 0, 0, 4)
+            });
+            document.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:g} - {searches.Count} recent search(es), {demand.Count} unavailable demand signal(s)"))
+            {
+                FontSize = 10,
+                Margin = new Thickness(0, 0, 0, 10)
+            });
+
+            if (searches.Count > 0)
+            {
+                AddSectionTitle(document, "Recent Searches");
+                var searchTable = new Table { CellSpacing = 0 };
+                foreach (var width in new[] { 210.0, 90.0, 70.0, 90.0, 90.0 })
+                    searchTable.Columns.Add(new TableColumn { Width = new GridLength(width) });
+
+                var rowGroup = new TableRowGroup();
+                searchTable.RowGroups.Add(rowGroup);
+                var header = new TableRow { FontWeight = FontWeights.SemiBold };
+                rowGroup.Rows.Add(header);
+                AddCell(header, "Search");
+                AddCell(header, "Brand");
+                AddCell(header, "Results");
+                AddCell(header, "Unavailable");
+                AddCell(header, "Last Search");
+
+                foreach (var entry in searches)
+                {
+                    var row = new TableRow();
+                    rowGroup.Rows.Add(row);
+                    AddCell(row, entry.Term);
+                    AddCell(row, entry.Category);
+                    AddCell(row, entry.ResultCount.ToString());
+                    AddCell(row, entry.UnavailableCount.ToString());
+                    AddCell(row, entry.LastSearched.ToString("g"));
+                }
+
+                document.Blocks.Add(searchTable);
+            }
+
+            if (demand.Count > 0)
+            {
+                AddSectionTitle(document, "Unavailable Demand");
+                var demandTable = new Table { CellSpacing = 0 };
+                foreach (var width in new[] { 75.0, 150.0, 85.0, 45.0, 90.0, 80.0, 90.0, 120.0 })
+                    demandTable.Columns.Add(new TableColumn { Width = new GridLength(width) });
+
+                var rowGroup = new TableRowGroup();
+                demandTable.RowGroups.Add(rowGroup);
+                var header = new TableRow { FontWeight = FontWeights.SemiBold };
+                rowGroup.Rows.Add(header);
+                AddCell(header, "Item #");
+                AddCell(header, "Item");
+                AddCell(header, "Status");
+                AddCell(header, "Hits");
+                AddCell(header, "Holder");
+                AddCell(header, "Location");
+                AddCell(header, "Last Search");
+                AddCell(header, "Terms");
+
+                foreach (var entry in demand)
+                {
+                    var row = new TableRow();
+                    rowGroup.Rows.Add(row);
+                    AddCell(row, entry.ItemNumber);
+                    AddCell(row, entry.Name);
+                    AddCell(row, entry.Status);
+                    AddCell(row, entry.HitCount.ToString());
+                    AddCell(row, entry.Holder);
+                    AddCell(row, entry.Location);
+                    AddCell(row, entry.LastSearched.ToString("g"));
+                    AddCell(row, entry.SearchTerms);
+                }
+
+                document.Blocks.Add(demandTable);
+            }
+
+            return document;
+        }
+
+        private static void AddSectionTitle(FlowDocument document, string title)
+        {
+            document.Blocks.Add(new Paragraph(new Run(title))
+            {
+                FontWeight = FontWeights.SemiBold,
+                Margin = new Thickness(0, 10, 0, 4)
+            });
+        }
+
         private static void AddCell(TableRow row, string text)
         {
             row.Cells.Add(new TableCell(new Paragraph(new Run(text ?? string.Empty))
@@ -357,6 +491,8 @@ namespace InventoryManagementApp.Views.Pages
             public string ItemNumber => Item?.ItemNumber ?? string.Empty;
             public string Name => Item?.Name ?? string.Empty;
             public string Status => Item == null ? string.Empty : GetStatus(Item);
+            public string Holder => Item?.CheckedOutBy ?? string.Empty;
+            public string Location => Item?.Location ?? string.Empty;
             public string SearchTerms => string.Join(", ", _terms.Take(3));
 
             public void UpdateFrom(ItemModel item, string term)
