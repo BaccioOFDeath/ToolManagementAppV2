@@ -4,439 +4,275 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="{DynamicResource BackgroundBrush}">
 
-    <Grid Margin="{StaticResource PagePadding}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-
-        <Border Style="{StaticResource DesktopPageToolbar}">
-            <DockPanel LastChildFill="False">
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-                    <Button Style="{StaticResource PrimaryButton}"
-                            Content="Test Database"
-                            Command="{Binding TestDbCommand}"
-                            Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource PrimaryButton}"
-                            Content="Test Email"
-                            Command="{Binding TestEmailCommand}"
-                            Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource GhostButton}"
-                            Content="Browse Backup"
-                            Command="{Binding BrowseBackupDirectoryCommand}"/>
+    <ScrollViewer>
+        <StackPanel Margin="0" Orientation="Vertical">
+            <Border Style="{StaticResource Card}" Padding="8" Margin="0,0,0,6">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Database" Style="{StaticResource SectionHeader}"/>
+                    <Grid Margin="0,6,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Connection String"
+                                   Style="{StaticResource LabelTextBlock}"
+                                   VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="1"
+                                 Text="{Binding ConnectionString}"
+                                 Margin="6,0,6,0"/>
+                        <Button Grid.Column="2"
+                                Style="{StaticResource PrimaryButton}"
+                                Content="Test"
+                                Command="{Binding TestDbCommand}"/>
+                    </Grid>
                 </StackPanel>
-                <TextBlock DockPanel.Dock="Right"
-                           Text="Changes to general settings save as fields are edited."
-                           Style="{StaticResource CaptionTextBlock}"
-                           VerticalAlignment="Center"
-                           Margin="12,0,0,0"/>
-            </DockPanel>
-        </Border>
+            </Border>
 
-        <TabControl Grid.Row="1"
-                    Style="{StaticResource DesktopSectionTabControl}"
-                    ItemContainerStyle="{StaticResource DesktopSectionTabItem}">
-
-            <TabItem Header="01  Database">
-                <Border Style="{StaticResource DesktopContentPane}">
+            <Border Style="{StaticResource Card}" Padding="8" Margin="0,0,0,6">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="General" Style="{StaticResource SectionHeader}"/>
                     <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Border Style="{StaticResource SectionActionStrip}">
-                            <StackPanel Orientation="Horizontal">
-                                <Button Style="{StaticResource PrimaryButton}"
-                                        Content="Test Connection"
-                                        Command="{Binding TestDbCommand}"/>
-                            </StackPanel>
-                        </Border>
-                        <ScrollViewer Grid.Row="1">
-                            <Border Style="{StaticResource DesktopPropertyGroup}">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="180"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Connection String" Style="{StaticResource DesktopFieldLabel}"/>
-                                    <TextBox Grid.Column="1"
-                                             Text="{Binding ConnectionString}"
-                                             Margin="0,0,0,4"/>
-                                </Grid>
-                            </Border>
-                        </ScrollViewer>
+                        <TextBlock Text="Theme" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Column="1" SelectedItem="{Binding Theme}" ItemsSource="{Binding ThemeOptions}" Margin="6,0,0,0" ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
+                        <TextBlock Grid.Row="1" Text="Password Iterations" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding PasswordIterations}" Margin="6,0,0,0" PreviewTextInput="PasswordIterationsBox_PreviewTextInput"/>
+                        <TextBlock Grid.Row="2" Text="Auto-logout (minutes)" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding AutoLogoutMinutes}" Margin="6,0,0,0" PreviewTextInput="AutoLogoutMinutesBox_PreviewTextInput"/>
+                        <TextBlock Grid.Row="3" Text="Item name (singular)" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding ItemLabelSingular}" Margin="6,0,0,0"
+                                 ToolTip="Used for buttons like 'New Item' and 'Rent Item'"/>
+                        <TextBlock Grid.Row="4"
+                                   Text="Item name (plural)"
+                                   Style="{StaticResource LabelTextBlock}"
+                                   VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="4"
+                                 Grid.Column="1"
+                                 Text="{Binding ItemLabelPlural}"
+                                 Margin="6,0,0,0"
+                                 ToolTip="Used for navigation and import/export pages"/>
                     </Grid>
-                </Border>
-            </TabItem>
+                </StackPanel>
+            </Border>
 
-            <TabItem Header="02  General">
-                <Border Style="{StaticResource DesktopContentPane}">
-                    <ScrollViewer>
-                        <StackPanel>
-                            <Border Style="{StaticResource DesktopPropertyGroup}">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="180"/>
-                                        <ColumnDefinition Width="260"/>
-                                        <ColumnDefinition Width="120"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
+            <Border Style="{StaticResource Card}" Padding="8" Margin="0,0,0,6">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Item Display" Style="{StaticResource SectionHeader}"/>
+                    <TextBlock Text="Choose which fields appear in search results and management grids." Style="{StaticResource CaptionTextBlock}" Margin="0,0,0,6"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                        <Button Style="{StaticResource PrimaryButton}" Content="Select All" Command="{Binding SelectAllItemDisplayCommand}" Margin="0,0,8,0"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Select None" Command="{Binding SelectNoneItemDisplayCommand}"/>
+                    </StackPanel>
+                    <ItemsControl ItemsSource="{Binding ItemDetailOptions}" Margin="0,6,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox Content="{Binding Field}" IsChecked="{Binding IsVisible, Mode=TwoWay}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
 
-                                    <TextBlock Text="Theme" Style="{StaticResource DesktopFieldLabel}"/>
-                                    <ComboBox Grid.Column="1"
-                                              SelectedItem="{Binding Theme}"
-                                              ItemsSource="{Binding ThemeOptions}"
-                                              Margin="0,0,0,4"/>
+            <Border Style="{StaticResource Card}" Padding="8" Margin="0,0,0,6">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Email Configuration (Rental Reminders)" Style="{StaticResource SectionHeader}"/>
+                    <TextBlock Text="Configure email settings for automated rental reminder emails. Enable on server instance, disable on client instances." 
+                               TextWrapping="Wrap" Margin="0,4,0,6" Opacity="0.7" FontSize="12"/>
+                    
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
 
-                                    <TextBlock Grid.Row="1" Text="Password Iterations" Style="{StaticResource DesktopFieldLabel}"/>
-                                    <TextBox Grid.Row="1"
-                                             Grid.Column="1"
-                                             Text="{Binding PasswordIterations}"
-                                             PreviewTextInput="PasswordIterationsBox_PreviewTextInput"
-                                             Margin="0,0,0,4"/>
+                        <TextBlock Text="Enable Email Reminders" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <CheckBox Grid.Column="1" IsChecked="{Binding EmailEnabled}" Margin="6,0,0,6"
+                                  ToolTip="Enable on server instance, disable on client instances"/>
 
-                                    <TextBlock Grid.Row="2" Text="Auto-logout (minutes)" Style="{StaticResource DesktopFieldLabel}"/>
-                                    <TextBox Grid.Row="2"
-                                             Grid.Column="1"
-                                             Text="{Binding AutoLogoutMinutes}"
-                                             PreviewTextInput="AutoLogoutMinutesBox_PreviewTextInput"
-                                             Margin="0,0,0,4"/>
+                        <TextBlock Grid.Row="1" Text="Email Provider" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Row="1" Grid.Column="1" SelectedItem="{Binding SelectedEmailProvider}" 
+                                  ItemsSource="{Binding EmailProviders}" Margin="6,0,0,6" 
+                                  ItemContainerStyle="{StaticResource DropdownItemStyle}"
+                                  ToolTip="Select a provider for auto-configuration or choose Custom"/>
 
-                                    <TextBlock Grid.Row="3" Text="Item Card Size" Style="{StaticResource DesktopFieldLabel}"/>
-                                    <Slider Grid.Row="3"
-                                            Grid.Column="1"
-                                            Minimum="0.8"
-                                            Maximum="1.3"
-                                            TickFrequency="0.1"
-                                            IsSnapToTickEnabled="True"
-                                            Value="{Binding ItemCardSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                            Margin="0,0,8,4"/>
-                                    <TextBlock Grid.Row="3"
-                                               Grid.Column="2"
-                                               Text="{Binding ItemCardSize, StringFormat={}{0:0.0}x}"
-                                               Style="{StaticResource DesktopFieldValue}"/>
+                        <TextBlock Grid.Row="2" Text="SMTP Host" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding SmtpHost}" Margin="6,0,0,6"
+                                 ToolTip="SMTP server address (e.g., smtp.gmail.com)"/>
 
-                                    <TextBlock Grid.Row="4" Text="Item Naming" Style="{StaticResource DesktopFieldLabel}"/>
-                                    <Grid Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="180"/>
-                                            <ColumnDefinition Width="180"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBox Text="{Binding ItemLabelSingular}"
-                                                 ToolTip="Used for buttons like 'New Item' and 'Rent Item'"
-                                                 Margin="0,0,6,4"/>
-                                        <TextBox Grid.Column="1"
-                                                 Text="{Binding ItemLabelPlural}"
-                                                 ToolTip="Used for navigation and import/export pages"
-                                                 Margin="0,0,6,4"/>
-                                        <TextBlock Grid.Column="2"
-                                                   Text="Singular and plural labels"
-                                                   Style="{StaticResource CaptionTextBlock}"
-                                                   VerticalAlignment="Center"
-                                                   Margin="0,0,0,4"/>
-                                    </Grid>
-                                </Grid>
-                            </Border>
+                        <TextBlock Grid.Row="3" Text="SMTP Port" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding SmtpPort}" Margin="6,0,0,6"
+                                 ToolTip="SMTP port (usually 587 for TLS)"/>
+
+                        <TextBlock Grid.Row="4" Text="Username" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding SmtpUsername}" Margin="6,0,0,6"
+                                 ToolTip="Email account username"/>
+
+                        <TextBlock Grid.Row="5" Text="Password" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <PasswordBox Grid.Row="5" Grid.Column="1" x:Name="SmtpPasswordBox" Margin="6,0,0,6"
+                                     ToolTip="Email account password"
+                                     PasswordChanged="SmtpPasswordBox_PasswordChanged"/>
+
+                        <TextBlock Grid.Row="6" Text="From Email" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal" Margin="6,0,0,6">
+                            <ComboBox Width="280"
+                                      ItemsSource="{Binding FromEmailOptions}"
+                                      SelectedItem="{Binding SelectedFromEmail}"
+                                      ItemContainerStyle="{StaticResource DropdownItemStyle}"
+                                      ToolTip="Select the sender email address"/>
+                            <Button Style="{StaticResource PrimaryButton}"
+                                    Content="Remove"
+                                    Command="{Binding RemoveFromEmailCommand}"
+                                    Margin="6,0,0,0"
+                                    ToolTip="Remove the selected sender email"/>
                         </StackPanel>
-                    </ScrollViewer>
-                </Border>
-            </TabItem>
 
-            <TabItem Header="03  Item Display">
-                <Border Style="{StaticResource DesktopContentPane}">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        <Border Style="{StaticResource SectionActionStrip}">
-                            <StackPanel Orientation="Horizontal">
-                                <Button Style="{StaticResource PrimaryButton}"
-                                        Content="Select All"
-                                        Command="{Binding SelectAllItemDisplayCommand}"
-                                        Margin="0,0,6,0"/>
-                                <Button Style="{StaticResource GhostButton}"
-                                        Content="Select None"
-                                        Command="{Binding SelectNoneItemDisplayCommand}"/>
-                            </StackPanel>
-                        </Border>
-                        <DataGrid Grid.Row="1"
-                                  ItemsSource="{Binding ItemDetailOptions}"
-                                  AutoGenerateColumns="False"
-                                  CanUserAddRows="False"
-                                  CanUserDeleteRows="False"
-                                  IsReadOnly="False"
-                                  SelectionMode="Extended"
-                                  Style="{StaticResource VirtualizedDataGridStyle}">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Field" Binding="{Binding Field}" Width="240" IsReadOnly="True"/>
-                                <DataGridCheckBoxColumn Header="Visible" Binding="{Binding IsVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="100"/>
-                                <DataGridTextColumn Header="Applies To" Binding="{Binding Field}" Width="*" IsReadOnly="True"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
+                        <TextBlock Grid.Row="7" Text="Add Sender Email" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <StackPanel Grid.Row="7" Grid.Column="1" Orientation="Horizontal" Margin="6,0,0,6">
+                            <TextBox Width="280"
+                                     Text="{Binding NewFromEmail}"
+                                     ToolTip="Add a sender email address"/>
+                            <Button Style="{StaticResource PrimaryButton}"
+                                    Content="Add"
+                                    Command="{Binding AddFromEmailCommand}"
+                                    Margin="6,0,0,0"/>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="8" Text="From Name" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="8" Grid.Column="1" Text="{Binding FromName}" Margin="6,0,0,6"
+                                 ToolTip="Display name for outgoing emails"/>
+
+                        <TextBlock Grid.Row="9" Text="Enable SSL/TLS" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <CheckBox Grid.Row="9" Grid.Column="1" IsChecked="{Binding EnableSsl}" Margin="6,0,0,6"
+                                  ToolTip="Recommended: Keep enabled for secure connection"/>
                     </Grid>
-                </Border>
-            </TabItem>
 
-            <TabItem Header="04  Messaging">
-                <Border Style="{StaticResource DesktopContentPane}">
-                    <TabControl Style="{StaticResource DesktopInnerTabControl}"
-                                ItemContainerStyle="{StaticResource DesktopInnerTabItem}">
-                        <TabItem Header="Email">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-                                <Border Style="{StaticResource SectionActionStrip}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Button Style="{StaticResource PrimaryButton}"
-                                                Content="Test Email"
-                                                Command="{Binding TestEmailCommand}"
-                                                Margin="0,0,6,0"/>
-                                        <Button Style="{StaticResource PrimaryButton}"
-                                                Content="Save Email Settings"
-                                                Command="{Binding SaveEmailSettingsCommand}"/>
-                                    </StackPanel>
-                                </Border>
-                                <ScrollViewer Grid.Row="1">
-                                    <Border Style="{StaticResource DesktopPropertyGroup}">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="180"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                        <Button Style="{StaticResource PrimaryButton}" Content="Test Email" Command="{Binding TestEmailCommand}" Margin="0,0,8,0"
+                                ToolTip="Send a test email to verify configuration"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Save Email Settings" Command="{Binding SaveEmailSettingsCommand}"
+                                ToolTip="Save email configuration (restart required)"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
 
-                                            <TextBlock Text="Enable Reminders" Style="{StaticResource DesktopFieldLabel}"/>
-                                            <CheckBox Grid.Column="1"
-                                                      Style="{StaticResource DesktopCheckBox}"
-                                                      IsChecked="{Binding EmailEnabled}"
-                                                      ToolTip="Enable on server instance, disable on client instances"/>
-
-                                            <TextBlock Grid.Row="1" Text="Provider" Style="{StaticResource DesktopFieldLabel}"/>
-                                            <ComboBox Grid.Row="1" Grid.Column="1"
-                                                      SelectedItem="{Binding SelectedEmailProvider}"
-                                                      ItemsSource="{Binding EmailProviders}"
-                                                      Margin="0,0,0,4"/>
-
-                                            <TextBlock Grid.Row="2" Text="SMTP Host" Style="{StaticResource DesktopFieldLabel}"/>
-                                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding SmtpHost}" Margin="0,0,0,4"/>
-
-                                            <TextBlock Grid.Row="3" Text="SMTP Port" Style="{StaticResource DesktopFieldLabel}"/>
-                                            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding SmtpPort}" Margin="0,0,0,4"/>
-
-                                            <TextBlock Grid.Row="4" Text="Username" Style="{StaticResource DesktopFieldLabel}"/>
-                                            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding SmtpUsername}" Margin="0,0,0,4"/>
-
-                                            <TextBlock Grid.Row="5" Text="Password" Style="{StaticResource DesktopFieldLabel}"/>
-                                            <PasswordBox Grid.Row="5" Grid.Column="1" x:Name="SmtpPasswordBox" PasswordChanged="SmtpPasswordBox_PasswordChanged" Margin="0,0,0,4"/>
-
-                                            <TextBlock Grid.Row="6" Text="From Email" Style="{StaticResource DesktopFieldLabel}"/>
-                                            <Grid Grid.Row="6" Grid.Column="1" Margin="0,0,0,4">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="280"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                </Grid.ColumnDefinitions>
-                                                <ComboBox ItemsSource="{Binding FromEmailOptions}"
-                                                          SelectedItem="{Binding SelectedFromEmail}"/>
-                                                <Button Grid.Column="1"
-                                                        Style="{StaticResource GhostButton}"
-                                                        Content="Remove"
-                                                        Command="{Binding RemoveFromEmailCommand}"
-                                                        Margin="6,0,0,0"/>
-                                            </Grid>
-
-                                            <TextBlock Grid.Row="7" Text="Add Sender Email" Style="{StaticResource DesktopFieldLabel}"/>
-                                            <Grid Grid.Row="7" Grid.Column="1" Margin="0,0,0,4">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="280"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                </Grid.ColumnDefinitions>
-                                                <TextBox Text="{Binding NewFromEmail}"/>
-                                                <Button Grid.Column="1"
-                                                        Style="{StaticResource PrimaryButton}"
-                                                        Content="Add"
-                                                        Command="{Binding AddFromEmailCommand}"
-                                                        Margin="6,0,0,0"/>
-                                            </Grid>
-
-                                            <TextBlock Grid.Row="8" Text="From Name" Style="{StaticResource DesktopFieldLabel}"/>
-                                            <TextBox Grid.Row="8" Grid.Column="1" Text="{Binding FromName}" Margin="0,0,0,4"/>
-
-                                            <TextBlock Grid.Row="9" Text="Enable SSL/TLS" Style="{StaticResource DesktopFieldLabel}"/>
-                                            <CheckBox Grid.Row="9" Grid.Column="1"
-                                                      Style="{StaticResource DesktopCheckBox}"
-                                                      IsChecked="{Binding EnableSsl}"/>
-                                        </Grid>
-                                    </Border>
-                                </ScrollViewer>
-                            </Grid>
-                        </TabItem>
-
-                        <TabItem Header="SMS">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-                                <Border Style="{StaticResource SectionActionStrip}">
-                                    <Button Style="{StaticResource PrimaryButton}"
-                                            Content="Save Messaging Settings"
-                                            Command="{Binding SaveMessagingSettingsCommand}"/>
-                                </Border>
-                                <ScrollViewer Grid.Row="1">
-                                    <Border Style="{StaticResource DesktopPropertyGroup}">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="180"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
-
-                                            <TextBlock Text="Provider" Style="{StaticResource DesktopFieldLabel}"/>
-                                            <ComboBox Grid.Column="1"
-                                                      ItemsSource="{Binding SmsProviders}"
-                                                      SelectedItem="{Binding SelectedSmsProvider}"
-                                                      Margin="0,0,0,4"/>
-
-                                            <TextBlock Grid.Row="1" Text="Sender ID/Number" Style="{StaticResource DesktopFieldLabel}"/>
-                                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SmsSender}" Margin="0,0,0,4"/>
-
-                                            <TextBlock Grid.Row="2" Text="API Key" Style="{StaticResource DesktopFieldLabel}"/>
-                                            <PasswordBox Grid.Row="2" Grid.Column="1" x:Name="SmsApiKeyBox" PasswordChanged="SmsApiKeyBox_PasswordChanged" Margin="0,0,0,4"/>
-                                        </Grid>
-                                    </Border>
-                                </ScrollViewer>
-                            </Grid>
-                        </TabItem>
-                    </TabControl>
-                </Border>
-            </TabItem>
-
-            <TabItem Header="05  Branding">
-                <Border Style="{StaticResource DesktopContentPane}">
+            <Border Style="{StaticResource Card}" Padding="8">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Branding" Style="{StaticResource SectionHeader}"/>
                     <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Border Style="{StaticResource SectionActionStrip}">
-                            <StackPanel Orientation="Horizontal">
-                                <Button Style="{StaticResource PrimaryButton}"
-                                        Content="Change Logo"
-                                        Command="{Binding BrowseCompanyLogoCommand}"
-                                        Margin="0,0,6,0"/>
-                                <Button Style="{StaticResource PrimaryButton}"
-                                        Content="Save Logo"
-                                        Command="{Binding SaveCompanyLogoCommand}"/>
-                            </StackPanel>
-                        </Border>
-                        <ScrollViewer Grid.Row="1">
-                            <Border Style="{StaticResource DesktopPropertyGroup}">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="180"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
 
-                                    <TextBlock Text="Application Name" Style="{StaticResource DesktopFieldLabel}"/>
-                                    <TextBox Grid.Column="1" Text="{Binding ApplicationName}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Application Name" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding ApplicationName}" Margin="6,0,0,6"/>
 
-                                    <TextBlock Grid.Row="1" Text="Company Logo" Style="{StaticResource DesktopFieldLabel}"/>
-                                    <Grid Grid.Row="1" Grid.Column="1" Margin="0,0,0,4">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="72"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Border Width="64"
-                                                Height="64"
-                                                Background="{DynamicResource SurfaceAltBrush}"
-                                                BorderBrush="{DynamicResource BorderBrushAlt}"
-                                                BorderThickness="1"
-                                                HorizontalAlignment="Left">
-                                            <Image Width="64"
-                                                   Height="64"
-                                                   Source="{Binding CompanyLogoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=logo}"
-                                                   Stretch="Uniform"/>
-                                        </Border>
-                                        <TextBlock Grid.Column="1"
-                                                   Text="{Binding CompanyLogoPath}"
-                                                   Style="{StaticResource DesktopFieldValue}"
-                                                   VerticalAlignment="Center"/>
-                                    </Grid>
-                                </Grid>
+                        <TextBlock Grid.Row="1" Text="Company Logo" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+
+                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+                            <Border Width="64" Height="64" CornerRadius="6" Background="{DynamicResource SurfaceAltBrush}" Margin="6,0,6,0">
+                                <Image Width="64" Height="64"
+                                       Source="{Binding CompanyLogoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=logo}"
+                                       Stretch="Uniform" ClipToBounds="True"/>
                             </Border>
-                        </ScrollViewer>
-                    </Grid>
-                </Border>
-            </TabItem>
+                            <TextBlock Text="{Binding CompanyLogoPath}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
 
-            <TabItem Header="06  Backups">
-                <Border Style="{StaticResource DesktopContentPane}">
-                    <Grid>
+                        <Button Grid.Row="1" Grid.Column="2" Style="{StaticResource PrimaryButton}" Content="Change Logo" Command="{Binding BrowseCompanyLogoCommand}" Margin="6,0,6,0"/>
+                        <Button Grid.Row="1" Grid.Column="3" Style="{StaticResource PrimaryButton}" Content="Save Logo" Command="{Binding SaveCompanyLogoCommand}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Padding="8" Margin="0,6,0,0">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Messaging (SMS)" Style="{StaticResource SectionHeader}"/>
+                    <Grid Margin="0,6,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Border Style="{StaticResource SectionActionStrip}">
-                            <StackPanel Orientation="Horizontal">
-                                <Button Style="{StaticResource PrimaryButton}"
-                                        Content="Browse"
-                                        Command="{Binding BrowseBackupDirectoryCommand}"
-                                        Margin="0,0,6,0"/>
-                                <Button Style="{StaticResource PrimaryButton}"
-                                        Content="Save Backup Settings"
-                                        Command="{Binding SaveBackupSettingsCommand}"/>
-                            </StackPanel>
-                        </Border>
-                        <ScrollViewer Grid.Row="1">
-                            <Border Style="{StaticResource DesktopPropertyGroup}">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="180"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Backup Folder" Style="{StaticResource DesktopFieldLabel}"/>
-                                    <TextBox Grid.Column="1"
-                                             Text="{Binding BackupDirectory}"
-                                             ToolTip="Default folder for database backups"
-                                             Margin="0,0,0,4"/>
-                                </Grid>
-                            </Border>
-                        </ScrollViewer>
+
+                        <TextBlock Text="Provider" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding SmsProviders}"
+                                  SelectedItem="{Binding SelectedSmsProvider}"
+                                  Margin="6,0,0,6"
+                                  ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
+
+                        <TextBlock Grid.Row="1" Text="Sender ID/Number" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SmsSender}" Margin="6,0,0,6"
+                                 ToolTip="Sender ID or phone number used for outgoing SMS"/>
+
+                        <TextBlock Grid.Row="2" Text="API Key" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <PasswordBox Grid.Row="2" Grid.Column="1" x:Name="SmsApiKeyBox" Margin="6,0,0,6"
+                                     ToolTip="API key or token for the SMS provider"
+                                     PasswordChanged="SmsApiKeyBox_PasswordChanged"/>
                     </Grid>
-                </Border>
-            </TabItem>
-        </TabControl>
-    </Grid>
+
+                    <Button Style="{StaticResource PrimaryButton}"
+                            Content="Save Messaging Settings"
+                            Command="{Binding SaveMessagingSettingsCommand}"
+                            Margin="0,6,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Padding="8" Margin="0,6,0,0">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Backups" Style="{StaticResource SectionHeader}"/>
+                    <Grid Margin="0,6,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Backup Folder" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="1" Text="{Binding BackupDirectory}" Margin="6,0,6,0"
+                                 ToolTip="Default folder for database backups"/>
+                        <Button Grid.Column="2" Style="{StaticResource PrimaryButton}" Content="Browse"
+                                Command="{Binding BrowseBackupDirectoryCommand}" Margin="0,0,8,0"/>
+                        <Button Grid.Column="3" Style="{StaticResource PrimaryButton}" Content="Save"
+                                Command="{Binding SaveBackupSettingsCommand}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
 </Page>
+
