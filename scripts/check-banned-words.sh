@@ -11,6 +11,7 @@ if rg --ignore-case --line-number \
   --glob '!SERVER_DEPLOYMENT_GUIDE.md' \
   --glob '!EXPANSION_SUMMARY.md' \
   --glob '!README.md' \
+  --glob '!scripts/check-banned-words.sh' \
   --glob '!.git/**' \
   '\btool\b' .; then
   echo "Banned word check failed: standalone banned term found outside allowed legacy files." >&2
