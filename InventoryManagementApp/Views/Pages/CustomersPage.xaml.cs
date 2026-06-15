@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using InventoryManagementApp.ViewModels;
 
 namespace InventoryManagementApp.Views.Pages
@@ -17,6 +18,23 @@ namespace InventoryManagementApp.Views.Pages
             if (DataContext is CustomerManagementViewModel vm)
             {
                 await vm.LoadCustomersAsync();
+            }
+        }
+
+        private void CustomerRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (DataContext is CustomerManagementViewModel vm && vm.OpenCustomerDetailsCommand.CanExecute(null))
+            {
+                vm.OpenCustomerDetailsCommand.Execute(null);
+            }
+        }
+
+        private void CustomerRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is DataGridRow row && !row.IsSelected)
+            {
+                row.IsSelected = true;
+                e.Handled = true;
             }
         }
     }
