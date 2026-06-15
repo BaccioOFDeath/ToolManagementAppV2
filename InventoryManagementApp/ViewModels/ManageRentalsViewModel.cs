@@ -26,7 +26,7 @@ namespace InventoryManagementApp.ViewModels
         public ObservableCollection<RentalModel> ActiveRentals { get; } = new();
 
         public string SearchSummary => $"{Rentals.Count} result{(Rentals.Count == 1 ? string.Empty : "s")} shown";
-        public string CheckedOutSummary => $"{ActiveRentals.Count} tool{(ActiveRentals.Count == 1 ? string.Empty : "s")} currently checked out";
+        public string CheckedOutSummary => $"{ActiveRentals.Count} item{(ActiveRentals.Count == 1 ? string.Empty : "s")} currently checked out";
 
         private string _searchText = string.Empty;
         public string SearchText
@@ -280,7 +280,7 @@ namespace InventoryManagementApp.ViewModels
             var rental = SelectedRental;
             var details = new StringBuilder();
             details.AppendLine($"Rental #: {rental.RentalID}");
-            details.AppendLine($"Tool #: {rental.ItemNumber}");
+            details.AppendLine($"Item #: {rental.ItemNumber}");
             details.AppendLine($"Location: {ValueOrNotRecorded(rental.ItemLocation)}");
             details.AppendLine($"Status: {rental.Status}");
             details.AppendLine();
@@ -331,7 +331,7 @@ namespace InventoryManagementApp.ViewModels
 
         void PrintSearchResults() => PrintRentalList("Rental Search Results", Rentals, "There are no rental search results to print.");
 
-        void PrintCheckedOut() => PrintRentalList("Currently Checked Out Tools", ActiveRentals, "There are no checked-out tools to print.");
+        void PrintCheckedOut() => PrintRentalList("Currently Checked Out Items", ActiveRentals, "There are no checked-out items to print.");
 
         void PrintRentalList(string title, IEnumerable<RentalModel> rentals, string emptyMessage)
         {
@@ -362,7 +362,7 @@ namespace InventoryManagementApp.ViewModels
 
                 var group = new TableRowGroup();
                 table.RowGroups.Add(group);
-                AddPrintRow(group, true, "Rental", "Tool #", "Location", "Who Has It", "Out", "Due", "Status");
+                AddPrintRow(group, true, "Rental", "Item #", "Location", "Checked Out To", "Out", "Due", "Status");
 
                 foreach (var rental in records)
                 {
