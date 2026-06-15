@@ -44,13 +44,13 @@ namespace InventoryManagementApp.Views.Pages
         private void PrintSearchResults_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is ItemManagementViewModel vm)
-                PrintItems("Tool Search Results", vm.SearchResults);
+                PrintItems("Item Search Results", vm.SearchResults);
         }
 
         private void PrintCheckedOut_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is ItemManagementViewModel vm)
-                PrintItems("Currently Checked Out Tools", vm.CheckedOutItems);
+                PrintItems("Currently Checked Out Items", vm.CheckedOutItems);
         }
 
         private void PrintItems(string title, IEnumerable<ItemModel> items)
@@ -102,7 +102,7 @@ namespace InventoryManagementApp.Views.Pages
             table.RowGroups.Add(rowGroup);
             var header = new TableRow { FontWeight = FontWeights.SemiBold };
             rowGroup.Rows.Add(header);
-            AddCell(header, "Tool #");
+            AddCell(header, "Item #");
             AddCell(header, "Name");
             AddCell(header, "Status");
             AddCell(header, "Location");
