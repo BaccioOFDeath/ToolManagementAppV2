@@ -94,6 +94,9 @@ namespace InventoryManagementApp.Tests
 
             public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword)
             {
+                if (!ChangePasswordResult)
+                    return Task.FromResult(false);
+
                 var user = Users.FirstOrDefault(existing => existing.UserID == userID);
                 if (user != null)
                 {
@@ -101,7 +104,7 @@ namespace InventoryManagementApp.Tests
                     user.PasswordSalt = "salt";
                 }
 
-                return Task.FromResult(ChangePasswordResult);
+                return Task.FromResult(true);
             }
         }
 
@@ -142,7 +145,7 @@ namespace InventoryManagementApp.Tests
             public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties, IEnumerable<string>? requiredPropertyNames = null) => null;
             public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
             public void ShowPrintPreview(FlowDocument document, string title, string description) { }
-            public void ShowPrintLabelDialog() { }
+            public void ShowPrintLabelDialog();
         }
     }
 }
