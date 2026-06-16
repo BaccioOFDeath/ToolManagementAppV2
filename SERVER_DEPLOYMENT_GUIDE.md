@@ -1,476 +1,147 @@
-# Server Deployment Guide
+# InventoryManagementApp Server Deployment Guide
 
-## Overview
+This guide covers running InventoryManagementApp continuously on a Windows machine for shared rental operations and automated email reminders.
 
-This document provides specific guidance for running the Inventory Management Application full-time on a Windows server. The application has been enhanced with automated background services that run continuously.
+## Purpose
 
-## What's New for Server Deployment
+InventoryManagementApp is a WPF desktop application. A server-style deployment can be useful when one workstation or Windows Server instance should stay signed in, keep the SQLite database available, and send scheduled rental reminder emails.
 
-### Automated Rental Reminder Service
+## Requirements
 
-The application now includes an **automated rental reminder service** that:
+- Windows Server 2019 or later, or Windows 10 version 1809 or later.
+- .NET 8 Desktop Runtime x64.
+- A writable SQLite database location.
+- SMTP settings when email reminders should be enabled.
+- Appropriate file permissions for the application folder, database file, and log folder.
 
-- **Runs automatically** when the application starts (after successful login)
-- **Sends email reminders** daily at 2:30 PM to customers with rentals due the next day
-- **Operates in the background** without user interaction
-- **Logs all activity** for monitoring and troubleshooting
+## Reminder Service
 
-### Key Components Added
+The rental reminder service starts after a successful login when email configuration is valid. It checks for rentals due the next day and sends reminder emails using the configured SMTP account.
 
-1. **EmailService**: Handles all email communications using SMTP
-2. **RentalReminderService**: Scheduled background service for sending reminders
-3. **Automatic startup**: Services start when a user logs in successfully
-4. **Graceful degradation**: Application works normally even if email is not configured
+If SMTP settings are incomplete or intentionally left as example values, the rest of the application should continue to run and email reminders remain disabled.
 
-## Prerequisites for Server Operation
-
-### Required Configuration
-
-For the automated reminder service to work, you must configure email settings in `appsettings.json`:
+Example email configuration:
 
 ```json
 {
   "Email": {
-    "SmtpHost": "smtp.yourdomain.com",        // NOT smtp.example.com
+    "SmtpHost": "smtp.yourdomain.com",
     "SmtpPort": 587,
     "SmtpUsername": "your-username",
     "SmtpPassword": "your-password",
     "FromEmail": "noreply@yourdomain.com",
-    "FromName": "Your Company Name",
+    "FromName": "Inventory Rentals",
     "EnableSsl": true,
-    "ContactInfo": "Contact us at support@yourdomain.com or call (555) 123-4567"
+    "ContactInfo": "Contact support@yourdomain.com"
   }
 }
 ```
 
-### System Requirements
+Do not commit production credentials.
 
-- **Windows Server 2019 or later** (or Windows 10 version 1809+)
-- **.NET 8.0 Desktop Runtime** (x64)
-- **Reliable internet connection** for sending emails
-- **Valid SMTP server credentials**
+## Shared Database Deployment
 
-## Multiple Instances and Shared Drive Deployment
+InventoryManagementApp uses SQLite. SQLite supports multiple readers and one writer at a time. For shared use, prefer a reliable local or network path with stable connectivity.
 
-### Can Multiple Users Run the Application Simultaneously?
+Example database configuration:
 
-**Yes**, with important considerations:
-
-#### Database Concurrency
-
-The application uses **SQLite with WAL (Write-Ahead Logging) mode**, which supports:
-- ✅ Multiple readers simultaneously
-- ✅ Multiple processes accessing the same database file
-- ✅ One writer at a time with concurrent readers
-- ✅ Shared network drive deployment
-
-#### Critical Issue: Duplicate Reminder Emails
-
-⚠️ **Each application instance runs its own RentalReminderService**, which means:
-- If 3 users run the application, 3 reminder services start
-- Each service checks for rentals due tomorrow at 2:30 PM
-- **Customers receive 3 duplicate emails** for the same rental
-
-### Recommended Multi-User Configurations
-
-#### Option 1: Single Server Instance with Reminders (Recommended)
-
-**Setup**:
-1. **Server Machine**: Run one instance with email configured
-   - Configure valid SMTP settings in `appsettings.json`
-   - This instance sends reminder emails
-   
-2. **Client Machines**: Run instances with email disabled
-   - Set `"SmtpHost": "smtp.example.com"` in their `appsettings.json`
-   - These instances won't start the reminder service
-   - All users share the same database on network drive
-
-**Benefits**:
-- Only one reminder service runs
-- No duplicate emails
-- All users access shared database
-- Simple configuration
-
-**Example Client `appsettings.json`**:
 ```json
 {
   "Database": {
-    "Path": "\\\\server\\share\\inventory.db"
-  },
-  "Email": {
-    "SmtpHost": "smtp.example.com",
-    "SmtpPort": 587,
-    "SmtpUsername": "",
-    "SmtpPassword": "",
-    "FromEmail": "noreply@example.com",
-    "FromName": "Equipment Rentals",
-    "EnableSsl": true,
-    "ContactInfo": "Contact your IT department"
+    "Path": "\\\\fileserver\\shared\\InventoryManagementApp\\inventory.db"
   }
 }
 ```
 
-#### Option 2: Remote Desktop Services
+For mapped drives:
 
-**Setup**:
-- Install application on Windows Server
-- Users connect via Remote Desktop
-- Only one application instance runs
-- Multiple users access via RDP sessions
-
-**Benefits**:
-- Single instance, single database
-- No duplicate emails
-- Better performance (no network drive latency)
-- Centralized management
-
-#### Option 3: Designated Reminder Server
-
-**Setup**:
-- One machine designated as "reminder server" runs 24/7 with email enabled
-- All other machines have email disabled
-- All machines point to same database on shared drive
-
-**Benefits**:
-- Reminders work even if no user is logged in
-- Consistent reminder schedule
-- Other users don't need email configuration
-
-### Network Drive Considerations
-
-When deploying on a shared network drive:
-
-**Performance**:
-- Network latency affects database operations
-- Use gigabit network for best performance
-- Consider VPN impact if accessing remotely
-
-**Reliability**:
-- Network interruptions can cause database locks
-- Ensure stable network connection
-- Monitor for "database is locked" errors
-
-**Path Configuration**:
 ```json
 {
   "Database": {
-    "Path": "\\\\fileserver\\shared\\InventoryApp\\inventory.db"
+    "Path": "Z:\\InventoryManagementApp\\inventory.db"
   }
 }
 ```
 
-Or use mapped drive:
-```json
-{
-  "Database": {
-    "Path": "Z:\\InventoryApp\\inventory.db"
-  }
-}
-```
+## Avoid Duplicate Reminder Emails
 
-### Troubleshooting Multiple Instances
+Each running application instance can start its own reminder service when SMTP is configured. In a multi-user deployment, configure exactly one always-on instance with real SMTP settings.
 
-**Issue**: Database locked errors
-- **Cause**: Multiple writes happening simultaneously
-- **Solution**: Users will automatically retry. If persistent, reduce concurrent operations.
+Recommended setup:
 
-**Issue**: Duplicate reminder emails
-- **Cause**: Multiple instances have email configured
-- **Solution**: Disable email on all but one instance (set SmtpHost to "smtp.example.com")
+- One server or designated workstation has SMTP enabled.
+- Other workstations point to the shared database but leave SMTP disabled by using example values or blank credentials.
+- All users share the same SQLite database path.
 
-**Issue**: Slow performance
-- **Cause**: Network drive latency
-- **Solution**: 
-  - Use gigabit network
-  - Consider local database with periodic sync
-  - Use Remote Desktop instead
+## Continuous Operation Options
 
-**Issue**: Log files in different locations
-- **Cause**: Each instance writes logs locally
-- **Solution**: Configure `Logging:Directory` to point to shared location if desired
+### Keep One Session Running
 
-## Deployment Steps for Server
+1. Sign in with a dedicated Windows account.
+2. Start InventoryManagementApp.
+3. Log in to the application.
+4. Leave the session locked rather than signed out.
 
-### 1. Initial Setup
+### Auto-Start on Login
 
-Follow the standard deployment steps in [DEPLOYMENT.md](DEPLOYMENT.md), ensuring you:
+1. Create a shortcut to the application.
+2. Place it in the Windows Startup folder for the service account.
+3. Configure the Windows account and restart policy according to local IT requirements.
+4. Restart and confirm the application launches and logs in as expected.
 
-1. Install .NET 8.0 Desktop Runtime
-2. Copy application files to server
-3. Configure `appsettings.json` with production SMTP settings
-4. Run the application and complete setup wizard
-5. Log in with admin credentials
+### Windows Service Wrapper
 
-### 2. Verify Reminder Service Started
+For stricter production operations, use a wrapper such as NSSM or WinSW to supervise the desktop executable. Validate printing, dialogs, and reminder behavior carefully before relying on this approach, because WPF applications are normally interactive desktop processes.
 
-After logging in, check the application logs (`Logs/app-<date>.log`) for:
+## Monitoring
 
-```
-Rental reminder service started successfully
-```
+Daily checks:
 
-If you see this message, the service is running and will send reminders at 2:30 PM daily.
+- Confirm the process is running.
+- Review `Logs/app-<date>.log`.
+- Confirm reminder-service startup messages when SMTP is enabled.
+- Check for SMTP errors, database lock warnings, or unhandled exceptions.
 
-If email is not configured, you'll see:
-```
-Email service not configured properly. Email features will be disabled.
-```
+Weekly checks:
 
-### 3. Configure for Continuous Operation
-
-#### Option A: Keep Application Running (Simplest)
-
-1. Log into the server with a dedicated service account
-2. Launch the application and log in
-3. Minimize the application (don't close it)
-4. Lock the session (don't log out)
-
-**Pros**: Simple, no additional software needed
-**Cons**: Application stops if server restarts or user logs out
-
-#### Option B: Auto-Start on Login (Recommended)
-
-1. Create a shortcut to the application
-2. Place it in: `C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp`
-3. Configure Windows to auto-login the service account
-4. Test by restarting the server
-
-**Pros**: Survives server restarts
-**Cons**: Requires auto-login configuration
-
-#### Option C: Windows Service (Production)
-
-For production environments, consider wrapping the application as a Windows Service using tools like:
-- **NSSM** (Non-Sucking Service Manager)
-- **WinSW** (Windows Service Wrapper)
-
-This provides:
-- Automatic startup on server boot
-- Automatic restart on failure
-- No user session required
-- Better management and monitoring
-
-## Monitoring Server Operation
-
-### Daily Checks
-
-1. **Verify Application is Running**
-   - Check Task Manager for InventoryManagementApp.exe process
-   - Verify application window is visible (if not running as service)
-
-2. **Check Log Files**
-   - Location: `Logs/app-<date>.log`
-   - Look for: "Rental reminder service started successfully"
-   - Look for: "Checking for rentals due tomorrow..."
-   - Look for: "Sent reminder for rental {ID} to {Email}"
-
-3. **Monitor Email Sending**
-   - At 2:30 PM, check logs for reminder activity
-   - Verify emails are being delivered (check with test account)
-   - Check for any SMTP errors in logs
-
-### Weekly Checks
-
-1. Review error logs for any patterns
-2. Verify database backups are working
-3. Check disk space usage
-4. Monitor memory usage of application
-
-### Monthly Checks
-
-1. Test the reminder system with a test rental
-2. Review and rotate application logs
-3. Check for .NET runtime updates
-4. Verify SMTP credentials are still valid
+- Verify database backups.
+- Review disk space for the database and logs.
+- Confirm reminder emails are not duplicated.
+- Test check-in and checkout on the shared database path.
 
 ## Troubleshooting
 
-### Reminder Service Not Starting
+### Reminder Service Does Not Start
 
-**Symptom**: No "Rental reminder service started successfully" in logs
+Check that:
 
-**Possible Causes**:
-1. Email not configured properly
-   - Check `appsettings.json` for valid SMTP settings
-   - Ensure SmtpHost is not "smtp.example.com"
-   - Verify all required fields are filled
+- The user has logged in successfully.
+- `Email:SmtpHost` is not an example host.
+- SMTP username, password, sender address, and SSL settings are valid.
+- The log folder is writable.
 
-2. Application not fully started
-   - Ensure user has logged in successfully
-   - Service only starts after login, not at application launch
+### Emails Do Not Send
 
-**Solution**:
-1. Review logs for specific error messages
-2. Verify email configuration
-3. Test SMTP credentials manually
-4. Restart application after fixing configuration
+Check that:
 
-### Emails Not Sending
+- At least one rental is due tomorrow.
+- The customer has an email address.
+- The SMTP account accepts the configured port and SSL mode.
+- Local firewall or network policy allows outbound SMTP.
 
-**Symptom**: Service started but no emails at 2:30 PM
+### Database Lock Messages Appear
 
-**Possible Causes**:
-1. No rentals due tomorrow
-2. SMTP credentials incorrect
-3. Firewall blocking SMTP port
-4. Network connectivity issues
+Check that:
 
-**Solution**:
-1. Create a test rental due tomorrow
-2. Test SMTP credentials using a separate tool
-3. Check firewall rules (allow outbound port 587 or 465)
-4. Review logs for specific SMTP errors
+- The database path is stable and reachable.
+- Network connectivity is reliable.
+- Large imports or reports are not running repeatedly during peak checkout activity.
+- Users retry the operation after a short wait.
 
-### Application Stops Running
+## Related Docs
 
-**Symptom**: Application not visible in Task Manager
-
-**Possible Causes**:
-1. Server was restarted
-2. User session was logged out
-3. Application crashed
-4. Windows updates forced restart
-
-**Solution**:
-1. Implement auto-start mechanism (see Option B or C above)
-2. Check Windows Event Log for crash details
-3. Review application logs before crash
-4. Consider using Windows Service wrapper for reliability
-
-## Best Practices
-
-### Security
-
-1. **Use dedicated service account** with minimal privileges
-2. **Store SMTP passwords securely** (Windows Credential Manager)
-3. **Enable SSL/TLS** for SMTP connections (EnableSsl: true)
-4. **Restrict network access** to only required ports
-5. **Keep .NET runtime updated** with security patches
-
-### Reliability
-
-1. **Set up automatic database backups** (daily or more frequent)
-2. **Monitor disk space** for logs and database
-3. **Implement health checks** (external monitoring)
-4. **Document restart procedures** for maintenance
-5. **Test failover scenarios** before production
-
-### Performance
-
-1. **Monitor memory usage** (typical: 100-300 MB)
-2. **Review log file rotation** (14 days retention by default)
-3. **Optimize database** periodically (VACUUM)
-4. **Limit concurrent users** (SQLite works best with single writer)
-
-## Configuration Examples
-
-### Example 1: Office 365 SMTP
-
-```json
-{
-  "Email": {
-    "SmtpHost": "smtp.office365.com",
-    "SmtpPort": 587,
-    "SmtpUsername": "noreply@yourcompany.com",
-    "SmtpPassword": "your-password",
-    "FromEmail": "noreply@yourcompany.com",
-    "FromName": "Equipment Rentals",
-    "EnableSsl": true,
-    "ContactInfo": "support@yourcompany.com"
-  }
-}
-```
-
-### Example 2: Gmail SMTP
-
-```json
-{
-  "Email": {
-    "SmtpHost": "smtp.gmail.com",
-    "SmtpPort": 587,
-    "SmtpUsername": "your-email@gmail.com",
-    "SmtpPassword": "your-app-password",
-    "FromEmail": "your-email@gmail.com",
-    "FromName": "Equipment Rentals",
-    "EnableSsl": true,
-    "ContactInfo": "your-email@gmail.com"
-  }
-}
-```
-
-**Note**: Gmail requires an "App Password" if 2FA is enabled.
-
-### Example 3: Custom SMTP Server
-
-```json
-{
-  "Email": {
-    "SmtpHost": "mail.yourcompany.com",
-    "SmtpPort": 25,
-    "SmtpUsername": "notifications",
-    "SmtpPassword": "secure-password",
-    "FromEmail": "noreply@yourcompany.com",
-    "FromName": "Rental System",
-    "EnableSsl": false,
-    "ContactInfo": "(555) 123-4567"
-  }
-}
-```
-
-## Testing the Reminder Service
-
-### Test Procedure
-
-1. **Create Test Rental**:
-   - Create a customer with a valid email address
-   - Create a rental with due date = tomorrow
-   - Ensure customer has an email address set
-
-2. **Verify Service Status**:
-   - Check logs for "Rental reminder service started successfully"
-   - Note the time (service runs at 2:30 PM)
-
-3. **Wait for Reminder Time**:
-   - At 2:30 PM, the service will check for rentals
-   - Check logs for: "Found {Count} rentals due tomorrow"
-   - Check logs for: "Sent reminder for rental {ID} to {Email}"
-
-4. **Verify Email Received**:
-   - Check the customer's email inbox
-   - Verify email content is correct
-   - Confirm all rental details are present
-
-### Manual Testing
-
-You can also test the reminder system manually by:
-
-1. Setting system time to 2:29 PM
-2. Creating a rental due tomorrow
-3. Waiting for 2:30 PM
-4. Checking logs for reminder activity
-
-## Support and Additional Resources
-
-- **Deployment Guide**: [DEPLOYMENT.md](DEPLOYMENT.md) - Detailed deployment instructions
-- **Production Readiness**: [PRODUCTION_READINESS.md](PRODUCTION_READINESS.md) - Complete checklist
-- **Security Policy**: [SECURITY.md](SECURITY.md) - Security best practices
-- **Feature Documentation**: [README.md](README.md) - Application features
-- **Rental Features**: [RENTAL_ENHANCEMENTS.md](RENTAL_ENHANCEMENTS.md) - Rental system details
-
-## Summary
-
-The Inventory Management Application is now fully prepared for server deployment with:
-
-✅ **Automated background services** for rental reminders
-✅ **Daily reminder checks** at 2:30 PM
-✅ **Graceful error handling** if email is not configured
-✅ **Comprehensive logging** for monitoring and troubleshooting
-✅ **Production-ready configuration** with security best practices
-
-With proper configuration and monitoring, the application will run reliably on your server and automatically send rental reminders to customers.
-
----
-
-**Version**: 1.0.0  
-**Last Updated**: 2025-11-05  
-**Prepared for**: Production Server Deployment
+- [README.md](README.md)
+- [DEPLOYMENT.md](DEPLOYMENT.md)
+- [PRODUCTION_READINESS.md](PRODUCTION_READINESS.md)
+- [SECURITY.md](SECURITY.md)
+- [RENTAL_ENHANCEMENTS.md](RENTAL_ENHANCEMENTS.md)
