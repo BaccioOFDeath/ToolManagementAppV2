@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-17 05:20 NZST
+Last audit date/time: 2026-06-17 06:19 NZST
 
 ## Completed workflows
 
@@ -17,8 +17,10 @@ Last audit date/time: 2026-06-17 05:20 NZST
 - QA screenshot wrapper validation now requires every expected screenshot folder to contain PNG output and appends the captured file list to the run README.
 - Kits now use a compact desktop workstation with kit directory, item membership, selected-kit detail, availability guidance, row-correct context menus, double-click drilldown, keyboard shortcuts, copy selected kit details, printable kit directory output, and printable kit pick sheets.
 - QA screenshot wrapper validation now checks for each expected named screenshot file so missing captures fail loudly instead of passing on folder count alone.
-- Customers now use a two-pane advisor workstation with customer directory, selected-customer contact/address/next-step handoff, copy contact, detail/edit/print actions in the right panel, stable selection after refresh/search/edit, and row-correct context menus that still open after right-click selection.
+- Customers now use a two-pane advisor workstation with customer directory, selected-customer contact/address/next-step handoff, copy contact, detail/edit/print actions in the right panel, stable selection after refresh/search/edit where possible, and row-correct context menus that still open after right-click selection.
 - QA screenshot wrapper validation now rejects suspiciously tiny PNG output so blank or broken captures fail earlier.
+- Maintenance now uses a two-pane technician workbench with schedule backlog context, selected work-order detail, timing, next action, bench checklist, quick overdue/upcoming/scheduled filters, copy handoff, print actions, stable useful selection, and null-safe search across legacy/imported records.
+- QA screenshot wrapper validation now rejects expected PNG captures that are too small in pixel dimensions, catching failed or cropped screenshots beyond file-size checks.
 
 ## Partially complete workflows
 
@@ -28,6 +30,7 @@ Last audit date/time: 2026-06-17 05:20 NZST
 - Import / Export has been redesigned and wired for log actions, but runtime file-dialog, print, and screenshot checks still need a Windows/.NET workstation.
 - Kits now have a completed desktop workflow surface, but runtime add/edit/item-membership dialog validation still needs a Windows/.NET workstation.
 - Customers now have a completed desktop workflow surface, but runtime add/edit/delete/print/copy validation still needs a Windows/.NET workstation.
+- Maintenance now has a completed desktop workflow surface, but runtime add/edit/complete/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
 
 ## Known broken workflows
 
@@ -37,11 +40,11 @@ Last audit date/time: 2026-06-17 05:20 NZST
 
 ## Next recommended target
 
-- Continue the end-to-end workflow audit from a technician/advisor/admin perspective, with the next useful pass focused on Maintenance, Calibration, Reservations, or Categories depending on which page still exposes the most incomplete action/result path on `master`.
+- Continue the end-to-end workflow audit from a technician/advisor/admin perspective, with the next useful pass focused on Calibration, Reservations, or Categories depending on which page still exposes the most incomplete action/result path on `master`.
 
 ## Validation status
 
-- GitHub connector readback reviewed the Customer workstation branch files, screenshot wrapper, progress note, and completion checklist.
+- GitHub connector readback reviewed the Maintenance workbench branch files, screenshot wrapper, progress note, and completion checklist.
 - `dotnet --info`: failed because `dotnet` is not installed in this scheduled container.
 - `dotnet restore InventoryManagementApp.sln`: not run because the .NET SDK is unavailable.
 - `dotnet build InventoryManagementApp.sln --no-restore`: not run because the .NET SDK is unavailable.

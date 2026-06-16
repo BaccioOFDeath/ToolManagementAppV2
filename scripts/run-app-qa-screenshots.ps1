@@ -28,12 +28,35 @@ function Ensure-Directory {
     }
 }
 
+function Get-PngDimensions {
+    param([System.IO.FileInfo]$File)
+
+    Add-Type -AssemblyName PresentationCore
+    $stream = [System.IO.File]::OpenRead($File.FullName)
+    try {
+        $decoder = [System.Windows.Media.Imaging.BitmapDecoder]::Create(
+            $stream,
+            [System.Windows.Media.Imaging.BitmapCreateOptions]::IgnoreColorProfile,
+            [System.Windows.Media.Imaging.BitmapCacheOption]::OnLoad)
+        $frame = $decoder.Frames[0]
+        return [pscustomobject]@{
+            Width = $frame.PixelWidth
+            Height = $frame.PixelHeight
+        }
+    }
+    finally {
+        $stream.Dispose()
+    }
+}
+
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
     $OutputRoot = Join-Path $repoRoot ".qa-screenshots"
 }
 
 $minimumScreenshotBytes = 1024
+$minimumScreenshotWidth = 640
+$minimumScreenshotHeight = 360
 $expectedFolders = @(
     "00-auth",
     "01-overview",
@@ -119,7 +142,7 @@ try {
     Get-ChildItem -LiteralPath $runDirectory -Filter "*.db*" -File -Recurse -Force -ErrorAction SilentlyContinue |
         Remove-Item -Force -ErrorAction SilentlyContinue
     if (Test-Path -LiteralPath (Join-Path $runDirectory "Logs")) {
-        Remove-Item -LiteralPath (Join-Path $runDirectory "Logs") -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath (Join-Path $runDirectory "Logs") -Recurse -Force
     }
 
     Write-Step "Starting QA screenshot run."
@@ -176,10 +199,23 @@ try {
         throw "QA screenshot run produced suspiciously small PNG capture(s): $($undersizedList -join ', ')."
     }
 
+    $dimensionFailures = @()
+    foreach ($screenshot in $screenshots) {
+        $dimensions = Get-PngDimensions -File $screenshot
+        if ($dimensions.Width -lt $minimumScreenshotWidth -or $dimensions.Height -lt $minimumScreenshotHeight) {
+            $dimensionFailures += "{0} ({1}x{2})" -f $screenshot.FullName, $dimensions.Width, $dimensions.Height
+        }
+    }
+
+    if ($dimensionFailures.Count -gt 0) {
+        throw "QA screenshot run produced unexpectedly small-dimension PNG capture(s): $($dimensionFailures -join ', ')."
+    }
+
     $readmePath = Join-Path $sessionOutput "README.md"
     Add-Content -Path $readmePath -Value ""
     Add-Content -Path $readmePath -Value ("Captured screenshots: {0}" -f $screenshots.Count)
     Add-Content -Path $readmePath -Value ("Minimum PNG size checked: {0} bytes" -f $minimumScreenshotBytes)
+    Add-Content -Path $readmePath -Value ("Minimum PNG dimensions checked: {0}x{1}" -f $minimumScreenshotWidth, $minimumScreenshotHeight)
     Add-Content -Path $readmePath -Value ""
     Add-Content -Path $readmePath -Value "Captured files:"
     foreach ($screenshot in ($screenshots | Sort-Object FullName)) {

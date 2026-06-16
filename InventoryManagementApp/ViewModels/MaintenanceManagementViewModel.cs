@@ -22,9 +22,61 @@ namespace InventoryManagementApp.ViewModels
         public ObservableCollection<MaintenanceRecord> FilteredMaintenanceRecords { get; }
 
         public string MaintenanceResultsSummary => $"{FilteredMaintenanceRecords.Count} of {MaintenanceRecords.Count} maintenance record{(MaintenanceRecords.Count == 1 ? string.Empty : "s")} shown";
+        public string MaintenanceBacklogSummary
+        {
+            get
+            {
+                var scheduled = MaintenanceRecords.Count(r => IsScheduled(r));
+                var overdue = MaintenanceRecords.Count(r => r.IsOverdue);
+                var upcoming = MaintenanceRecords.Count(r => IsUpcoming(r));
+                var completed = MaintenanceRecords.Count(r => IsCompleted(r));
+                return $"{overdue} overdue | {upcoming} upcoming | {scheduled} scheduled | {completed} completed";
+            }
+        }
+
         public string SelectedRecordSummary => SelectedRecord == null
-            ? "Select or double-click a maintenance row to view details, complete work, print the record, edit, or delete."
+            ? "Select or double-click maintenance work to review it, complete it, copy the technician handoff, edit, print, or delete."
             : $"{ValueOrNotRecorded(SelectedRecord.ItemNumber)} | {ValueOrNotRecorded(SelectedRecord.ItemName)} | {SelectedRecord.StatusDisplay} | scheduled {SelectedRecord.ScheduledDate:yyyy-MM-dd}";
+
+        public string SelectedMaintenanceDetail => SelectedRecord == null
+            ? "No work selected. Choose a maintenance row or create new work before taking an action."
+            : $"{ValueOrNotRecorded(SelectedRecord.MaintenanceType)} for {ValueOrNotRecorded(SelectedRecord.ItemNumber)} - {ValueOrNotRecorded(SelectedRecord.ItemName)}. Description: {ValueOrNotRecorded(SelectedRecord.Description)}. Notes: {ValueOrNotRecorded(SelectedRecord.Notes)}";
+
+        public string SelectedMaintenanceTimingSummary => SelectedRecord == null
+            ? "No schedule selected."
+            : $"Scheduled {SelectedRecord.ScheduledDate:yyyy-MM-dd}. Completed {FormatDate(SelectedRecord.CompletedDate)}. Performed by {ValueOrNotRecorded(SelectedRecord.PerformedBy)}. Cost {SelectedRecord.Cost:C}.";
+
+        public string SelectedMaintenanceNextAction
+        {
+            get
+            {
+                if (SelectedRecord == null)
+                {
+                    return "Add a maintenance record or select existing work to see the next operational step.";
+                }
+
+                if (SelectedRecord.IsOverdue)
+                {
+                    return "This work is overdue. Hold the item from issue, complete or reschedule the job, then print or copy the updated record for the bench file.";
+                }
+
+                if (IsScheduled(SelectedRecord))
+                {
+                    return "Confirm the item is on the shelf or staged for service, perform the work, mark it complete, and print or copy the record for handoff.";
+                }
+
+                if (IsCompleted(SelectedRecord))
+                {
+                    return "This work is complete. Review the notes, print the record if needed, or edit the entry if follow-up details are missing.";
+                }
+
+                return "Review the work details, update the status, and keep the record with the item before it is released.";
+            }
+        }
+
+        public string SelectedMaintenanceBenchChecklist => SelectedRecord == null
+            ? "Select work first, then verify the tool tag, confirm service notes, complete or edit the record, and print/copy the handoff before releasing the item."
+            : "Verify item tag and location, capture who performed the work, record cost/notes, mark complete when finished, and keep the printed or copied handoff with the tool.";
 
         private MaintenanceRecord? _selectedRecord;
         public MaintenanceRecord? SelectedRecord
@@ -39,7 +91,8 @@ namespace InventoryManagementApp.ViewModels
                     CompleteMaintenanceCommand.NotifyCanExecuteChanged();
                     OpenMaintenanceDetailsCommand.NotifyCanExecuteChanged();
                     PrintSelectedMaintenanceCommand.NotifyCanExecuteChanged();
-                    OnPropertyChanged(nameof(SelectedRecordSummary));
+                    CopySelectedMaintenanceCommand.NotifyCanExecuteChanged();
+                    OnSelectedRecordSummariesChanged();
                 }
             }
         }
@@ -81,6 +134,11 @@ namespace InventoryManagementApp.ViewModels
         public IRelayCommand OpenMaintenanceDetailsCommand { get; }
         public IRelayCommand PrintMaintenanceListCommand { get; }
         public IRelayCommand PrintSelectedMaintenanceCommand { get; }
+        public IRelayCommand CopySelectedMaintenanceCommand { get; }
+        public IRelayCommand ClearSearchCommand { get; }
+        public IRelayCommand ShowOverdueCommand { get; }
+        public IRelayCommand ShowUpcomingCommand { get; }
+        public IRelayCommand ShowScheduledCommand { get; }
 
         public MaintenanceManagementViewModel(
             MaintenanceService maintenanceService,
@@ -109,19 +167,25 @@ namespace InventoryManagementApp.ViewModels
             OpenMaintenanceDetailsCommand = new RelayCommand(OpenMaintenanceDetails, CanEditOrDelete);
             PrintMaintenanceListCommand = new RelayCommand(PrintMaintenanceList);
             PrintSelectedMaintenanceCommand = new RelayCommand(PrintSelectedMaintenance, CanEditOrDelete);
+            CopySelectedMaintenanceCommand = new RelayCommand(CopySelectedMaintenance, CanEditOrDelete);
+            ClearSearchCommand = new RelayCommand(ClearSearch);
+            ShowOverdueCommand = new RelayCommand(() => SelectedFilter = "Overdue");
+            ShowUpcomingCommand = new RelayCommand(() => SelectedFilter = "Upcoming (30 days)");
+            ShowScheduledCommand = new RelayCommand(() => SelectedFilter = "Scheduled");
         }
 
         private async Task LoadMaintenanceAsync()
         {
             try
             {
+                var selectedId = SelectedRecord?.MaintenanceID;
                 var records = await _maintenanceService.GetAllMaintenanceRecordsAsync();
                 MaintenanceRecords.Clear();
                 foreach (var record in records)
                 {
                     MaintenanceRecords.Add(record);
                 }
-                ApplyFilter();
+                ApplyFilter(selectedId);
             }
             catch (Exception ex)
             {
@@ -146,7 +210,7 @@ namespace InventoryManagementApp.ViewModels
                     var id = await _maintenanceService.CreateMaintenanceRecordAsync(newRecord);
                     newRecord.MaintenanceID = id;
                     MaintenanceRecords.Insert(0, newRecord);
-                    ApplyFilter();
+                    ApplyFilter(newRecord.MaintenanceID);
                     await _dialogService.ShowInfoAsync("Success", "Maintenance record created successfully");
                 }
                 catch (Exception ex)
@@ -186,8 +250,7 @@ namespace InventoryManagementApp.ViewModels
                     await _maintenanceService.UpdateMaintenanceRecordAsync(clone);
                     var index = MaintenanceRecords.IndexOf(SelectedRecord);
                     if (index >= 0) MaintenanceRecords[index] = clone;
-                    SelectedRecord = clone;
-                    ApplyFilter();
+                    ApplyFilter(clone.MaintenanceID);
                     await _dialogService.ShowInfoAsync("Success", "Maintenance record updated successfully");
                 }
                 catch (Exception ex)
@@ -209,9 +272,9 @@ namespace InventoryManagementApp.ViewModels
             {
                 try
                 {
-                    await _maintenanceService.DeleteMaintenanceRecordAsync(SelectedRecord.MaintenanceID);
-                    MaintenanceRecords.Remove(SelectedRecord);
-                    SelectedRecord = null;
+                    var deletedRecord = SelectedRecord;
+                    await _maintenanceService.DeleteMaintenanceRecordAsync(deletedRecord.MaintenanceID);
+                    MaintenanceRecords.Remove(deletedRecord);
                     ApplyFilter();
                     await _dialogService.ShowInfoAsync("Success", "Maintenance record deleted successfully");
                 }
@@ -234,20 +297,16 @@ namespace InventoryManagementApp.ViewModels
             {
                 try
                 {
+                    var completedId = SelectedRecord.MaintenanceID;
                     await _maintenanceService.CompleteMaintenanceAsync(
-                        SelectedRecord.MaintenanceID,
+                        completedId,
                         performedBy,
                         "");
                     SelectedRecord.Status = "Completed";
                     SelectedRecord.CompletedDate = DateTime.Now;
                     SelectedRecord.PerformedBy = performedBy;
-                    ApplyFilter();
-                    EditMaintenanceCommand.NotifyCanExecuteChanged();
-                    DeleteMaintenanceCommand.NotifyCanExecuteChanged();
-                    CompleteMaintenanceCommand.NotifyCanExecuteChanged();
-                    OpenMaintenanceDetailsCommand.NotifyCanExecuteChanged();
-                    PrintSelectedMaintenanceCommand.NotifyCanExecuteChanged();
-                    OnPropertyChanged(nameof(SelectedRecordSummary));
+                    ApplyFilter(completedId);
+                    NotifyCommandStatesAndSummaries();
                     await _dialogService.ShowInfoAsync("Success", "Maintenance marked as completed");
                 }
                 catch (Exception ex)
@@ -257,37 +316,57 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        private void ApplyFilter()
+        private void ClearSearch()
         {
+            SearchText = string.Empty;
+            SelectedFilter = "All";
+            ApplyFilter();
+        }
+
+        private void ApplyFilter(int? preferredMaintenanceId = null)
+        {
+            preferredMaintenanceId ??= SelectedRecord?.MaintenanceID;
             FilteredMaintenanceRecords.Clear();
 
             var filtered = MaintenanceRecords.AsEnumerable();
 
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
-                var search = SearchText.ToLowerInvariant();
+                var search = SearchText.Trim().ToLowerInvariant();
                 filtered = filtered.Where(r =>
-                    r.ItemNumber.ToLowerInvariant().Contains(search) ||
-                    r.ItemName.ToLowerInvariant().Contains(search) ||
-                    r.MaintenanceType.ToLowerInvariant().Contains(search) ||
-                    r.Description.ToLowerInvariant().Contains(search));
+                    Searchable(r.ItemNumber).Contains(search) ||
+                    Searchable(r.ItemName).Contains(search) ||
+                    Searchable(r.MaintenanceType).Contains(search) ||
+                    Searchable(r.Description).Contains(search) ||
+                    Searchable(r.PerformedBy).Contains(search) ||
+                    Searchable(r.Notes).Contains(search));
             }
 
             filtered = SelectedFilter switch
             {
-                "Scheduled" => filtered.Where(r => r.Status == "Scheduled" && r.ScheduledDate >= DateTime.Now),
-                "Completed" => filtered.Where(r => r.Status == "Completed"),
+                "Scheduled" => filtered.Where(r => IsScheduled(r) && r.ScheduledDate >= DateTime.Now),
+                "Completed" => filtered.Where(IsCompleted),
                 "Overdue" => filtered.Where(r => r.IsOverdue),
-                "Upcoming (30 days)" => filtered.Where(r => r.Status == "Scheduled" && r.ScheduledDate >= DateTime.Now && r.ScheduledDate <= DateTime.Now.AddDays(30)),
+                "Upcoming (30 days)" => filtered.Where(IsUpcoming),
                 _ => filtered
             };
 
-            foreach (var record in filtered)
+            var filteredList = filtered
+                .OrderBy(r => IsCompleted(r) ? 1 : 0)
+                .ThenBy(r => r.ScheduledDate)
+                .ThenBy(r => Searchable(r.ItemNumber))
+                .ToList();
+
+            foreach (var record in filteredList)
             {
                 FilteredMaintenanceRecords.Add(record);
             }
 
+            SelectedRecord = FilteredMaintenanceRecords.FirstOrDefault(r => r.MaintenanceID == preferredMaintenanceId)
+                ?? FilteredMaintenanceRecords.FirstOrDefault();
+
             OnPropertyChanged(nameof(MaintenanceResultsSummary));
+            OnPropertyChanged(nameof(MaintenanceBacklogSummary));
         }
 
         private void OpenMaintenanceDetails()
@@ -309,11 +388,37 @@ namespace InventoryManagementApp.ViewModels
             details.AppendLine($"Description: {ValueOrNotRecorded(record.Description)}");
             details.AppendLine($"Notes: {ValueOrNotRecorded(record.Notes)}");
             details.AppendLine();
-            details.AppendLine(record.IsOverdue
-                ? "Next action: complete or reschedule this overdue maintenance before the item is issued again."
-                : "Next action: review work notes, complete scheduled work, or print this record for the bench file.");
+            details.AppendLine(SelectedMaintenanceNextAction);
 
             _dialogService.ShowInfo(details.ToString(), $"Maintenance Details - {ValueOrNotRecorded(record.ItemNumber)}");
+        }
+
+        private void CopySelectedMaintenance()
+        {
+            if (SelectedRecord == null) return;
+
+            var record = SelectedRecord;
+            var handoff = new StringBuilder();
+            handoff.AppendLine("Maintenance handoff");
+            handoff.AppendLine($"Item: {ValueOrNotRecorded(record.ItemNumber)} - {ValueOrNotRecorded(record.ItemName)}");
+            handoff.AppendLine($"Type: {ValueOrNotRecorded(record.MaintenanceType)}");
+            handoff.AppendLine($"Status: {record.StatusDisplay}");
+            handoff.AppendLine($"Scheduled: {record.ScheduledDate:yyyy-MM-dd}");
+            handoff.AppendLine($"Completed: {FormatDate(record.CompletedDate)}");
+            handoff.AppendLine($"Performed by: {ValueOrNotRecorded(record.PerformedBy)}");
+            handoff.AppendLine($"Description: {ValueOrNotRecorded(record.Description)}");
+            handoff.AppendLine($"Notes: {ValueOrNotRecorded(record.Notes)}");
+            handoff.AppendLine($"Next action: {SelectedMaintenanceNextAction}");
+
+            try
+            {
+                Clipboard.SetText(handoff.ToString());
+                _dialogService.ShowInfo("Maintenance handoff copied to the clipboard.", "Copied");
+            }
+            catch (Exception ex)
+            {
+                _dialogService.ShowInfo($"Unable to copy maintenance handoff: {ex.Message}", "Copy Failed");
+            }
         }
 
         private void PrintMaintenanceList()
@@ -327,7 +432,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 var doc = CreateMaintenanceDocument("Maintenance Schedule", fontSize: 11);
-                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Filter: {SelectedFilter} | Search: {ValueOrNotRecorded(SearchText)} | {MaintenanceResultsSummary}"))
+                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Filter: {SelectedFilter} | Search: {ValueOrNotRecorded(SearchText)} | {MaintenanceResultsSummary} | {MaintenanceBacklogSummary}"))
                 {
                     FontSize = 10,
                     Margin = new Thickness(0, 0, 0, 10)
@@ -379,6 +484,7 @@ namespace InventoryManagementApp.ViewModels
                 AddKeyValueRow(group, "Cost:", record.Cost.ToString("C"));
                 AddKeyValueRow(group, "Description:", record.Description);
                 AddKeyValueRow(group, "Notes:", record.Notes);
+                AddKeyValueRow(group, "Next action:", SelectedMaintenanceNextAction);
                 doc.Blocks.Add(table);
 
                 _dialogService.ShowPrintPreview(doc, $"Maintenance {record.MaintenanceID}", string.Empty);
@@ -391,7 +497,40 @@ namespace InventoryManagementApp.ViewModels
 
         private bool CanEditOrDelete() => SelectedRecord != null;
 
-        private bool CanComplete() => SelectedRecord != null && SelectedRecord.Status == "Scheduled";
+        private bool CanComplete() => SelectedRecord != null && IsScheduled(SelectedRecord);
+
+        private void NotifyCommandStatesAndSummaries()
+        {
+            EditMaintenanceCommand.NotifyCanExecuteChanged();
+            DeleteMaintenanceCommand.NotifyCanExecuteChanged();
+            CompleteMaintenanceCommand.NotifyCanExecuteChanged();
+            OpenMaintenanceDetailsCommand.NotifyCanExecuteChanged();
+            PrintSelectedMaintenanceCommand.NotifyCanExecuteChanged();
+            CopySelectedMaintenanceCommand.NotifyCanExecuteChanged();
+            OnSelectedRecordSummariesChanged();
+            OnPropertyChanged(nameof(MaintenanceBacklogSummary));
+            OnPropertyChanged(nameof(MaintenanceResultsSummary));
+        }
+
+        private void OnSelectedRecordSummariesChanged()
+        {
+            OnPropertyChanged(nameof(SelectedRecordSummary));
+            OnPropertyChanged(nameof(SelectedMaintenanceDetail));
+            OnPropertyChanged(nameof(SelectedMaintenanceTimingSummary));
+            OnPropertyChanged(nameof(SelectedMaintenanceNextAction));
+            OnPropertyChanged(nameof(SelectedMaintenanceBenchChecklist));
+        }
+
+        private static bool IsScheduled(MaintenanceRecord record) =>
+            string.Equals(record.Status, "Scheduled", StringComparison.OrdinalIgnoreCase);
+
+        private static bool IsCompleted(MaintenanceRecord record) =>
+            string.Equals(record.Status, "Completed", StringComparison.OrdinalIgnoreCase);
+
+        private static bool IsUpcoming(MaintenanceRecord record) =>
+            IsScheduled(record) && record.ScheduledDate >= DateTime.Now && record.ScheduledDate <= DateTime.Now.AddDays(30);
+
+        private static string Searchable(string? value) => value?.ToLowerInvariant() ?? string.Empty;
 
         private static FlowDocument CreateMaintenanceDocument(string title, double fontSize = 16)
         {
