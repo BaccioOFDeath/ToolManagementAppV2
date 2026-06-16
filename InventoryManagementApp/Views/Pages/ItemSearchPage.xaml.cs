@@ -6,12 +6,12 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Threading;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
+using InventoryManagementApp.Views.Windows;
 using WpfDataGrid = System.Windows.Controls.DataGrid;
-using WpfMessageBox = System.Windows.MessageBox;
-using WpfPrintDialog = System.Windows.Controls.PrintDialog;
 
 namespace InventoryManagementApp.Views.Pages
 {
@@ -29,12 +29,16 @@ namespace InventoryManagementApp.Views.Pages
             InitializeComponent();
             RecentSearchGrid.ItemsSource = _searchHistory;
             UnavailableDemandGrid.ItemsSource = _unavailableDemand;
+            ResultsGrid.PreviewMouseRightButtonDown += ItemGrid_PreviewMouseRightButtonDown;
+            CheckedOutGrid.PreviewMouseRightButtonDown += ItemGrid_PreviewMouseRightButtonDown;
+            PreviewKeyDown += ItemSearchPage_PreviewKeyDown;
             UpdateSearchIntelligenceSummary();
         }
 
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
             UpdateState();
+            Focus();
             if (DataContext is ItemManagementViewModel vm)
             {
                 AttachViewModel(vm);
@@ -70,12 +74,87 @@ namespace InventoryManagementApp.Views.Pages
             VisualStateManager.GoToState(this, "Wide", true);
         }
 
-        private void ItemGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void ItemGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (DataContext is not ItemManagementViewModel vm || sender is not WpfDataGrid grid || grid.SelectedItem is not ItemModel item)
                 return;
 
             vm.SelectedItem = item;
+            OpenSelectedItemDetails(vm);
+        }
+
+        private void ItemGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is not WpfDataGrid grid)
+                return;
+
+            var row = FindAncestor<DataGridRow>(e.OriginalSource as DependencyObject);
+            if (row?.Item is not ItemModel item)
+                return;
+
+            row.IsSelected = true;
+            row.Focus();
+            grid.SelectedItem = item;
+
+            if (DataContext is ItemManagementViewModel vm)
+                vm.SelectedItem = item;
+        }
+
+        private void ItemSearchPage_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (DataContext is not ItemManagementViewModel vm)
+                return;
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P)
+            {
+                PrintItems("Item Search Results", vm.SearchResults);
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && e.Key == Key.P)
+            {
+                PrintItems("Currently Checked Out Items", vm.CheckedOutItems);
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.I)
+            {
+                PrintSearchIntelligence();
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.R)
+            {
+                RepeatSearch(RecentSearchGrid.SelectedItem as SearchHistoryEntry);
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Enter && vm.SelectedItem != null)
+            {
+                OpenSelectedItemDetails(vm);
+                e.Handled = true;
+            }
+        }
+
+        private static T? FindAncestor<T>(DependencyObject? current) where T : DependencyObject
+        {
+            while (current != null)
+            {
+                if (current is T match)
+                    return match;
+
+                current = System.Windows.Media.VisualTreeHelper.GetParent(current);
+            }
+
+            return null;
+        }
+
+        private static void OpenSelectedItemDetails(ItemManagementViewModel vm)
+        {
             if (vm.ViewDetailsCommand.CanExecute(null))
                 vm.ViewDetailsCommand.Execute(null);
         }
@@ -177,7 +256,7 @@ namespace InventoryManagementApp.Views.Pages
         {
             SearchIntelligenceSummaryText.Text = _searchHistory.Count == 0
                 ? "No search activity yet"
-                : $"{_searchHistory.Count} recent searches; {_unavailableDemand.Count} unavailable demand signals";
+                : $"{_searchHistory.Count} recent searches; {_unavailableDemand.Count} unavailable demand signals | Ctrl+P results, Ctrl+Shift+P checked out, Ctrl+I intelligence";
         }
 
         private void RepeatSelectedSearch_Click(object sender, RoutedEventArgs e)
@@ -185,7 +264,7 @@ namespace InventoryManagementApp.Views.Pages
             RepeatSearch(RecentSearchGrid.SelectedItem as SearchHistoryEntry);
         }
 
-        private void RecentSearchGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void RecentSearchGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             RepeatSearch(RecentSearchGrid.SelectedItem as SearchHistoryEntry);
         }
@@ -206,7 +285,7 @@ namespace InventoryManagementApp.Views.Pages
             OpenDemandItem(UnavailableDemandGrid.SelectedItem as UnavailableDemandEntry);
         }
 
-        private void UnavailableDemandGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void UnavailableDemandGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             OpenDemandItem(UnavailableDemandGrid.SelectedItem as UnavailableDemandEntry);
         }
@@ -217,8 +296,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
 
             vm.SelectedItem = entry.Item;
-            if (vm.ViewDetailsCommand.CanExecute(null))
-                vm.ViewDetailsCommand.Execute(null);
+            OpenSelectedItemDetails(vm);
         }
 
         private void ClearSearchIntelligence_Click(object sender, RoutedEventArgs e)
@@ -235,22 +313,19 @@ namespace InventoryManagementApp.Views.Pages
 
         private void PrintSearchIntelligence_Click(object sender, RoutedEventArgs e)
         {
+            PrintSearchIntelligence();
+        }
+
+        private void PrintSearchIntelligence()
+        {
             if (_searchHistory.Count == 0 && _unavailableDemand.Count == 0)
             {
-                WpfMessageBox.Show("There is no search intelligence to print yet.", "Print", MessageBoxButton.OK, MessageBoxImage.Information);
+                ShowInfo("There is no search intelligence to print yet.", "Print Search Intelligence");
                 return;
             }
 
-            var printDialog = new WpfPrintDialog();
-            if (printDialog.ShowDialog() != true)
-                return;
-
             var document = BuildSearchIntelligenceDocument(_searchHistory.ToList(), _unavailableDemand.ToList());
-            document.PageWidth = printDialog.PrintableAreaWidth;
-            document.PageHeight = printDialog.PrintableAreaHeight;
-            document.PagePadding = new Thickness(36);
-            document.ColumnWidth = printDialog.PrintableAreaWidth;
-            printDialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, "Item Search Intelligence");
+            ShowPrintPreview(document, "Item Search Intelligence");
         }
 
         private void PrintSearchResults_Click(object sender, RoutedEventArgs e)
@@ -270,20 +345,12 @@ namespace InventoryManagementApp.Views.Pages
             var itemList = items.ToList();
             if (itemList.Count == 0)
             {
-                WpfMessageBox.Show("There are no rows to print.", "Print", MessageBoxButton.OK, MessageBoxImage.Information);
+                ShowInfo("There are no rows to print.", title);
                 return;
             }
 
-            var printDialog = new WpfPrintDialog();
-            if (printDialog.ShowDialog() != true)
-                return;
-
             var document = BuildPrintDocument(title, itemList);
-            document.PageWidth = printDialog.PrintableAreaWidth;
-            document.PageHeight = printDialog.PrintableAreaHeight;
-            document.PagePadding = new Thickness(36);
-            document.ColumnWidth = printDialog.PrintableAreaWidth;
-            printDialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, title);
+            ShowPrintPreview(document, title);
         }
 
         private static FlowDocument BuildPrintDocument(string title, IReadOnlyCollection<ItemModel> items)
@@ -452,6 +519,20 @@ namespace InventoryManagementApp.Views.Pages
                 BorderThickness = new Thickness(0, 0, 0, 0.5),
                 Padding = new Thickness(3, 2, 3, 2)
             });
+        }
+
+        private void ShowPrintPreview(FlowDocument document, string title)
+        {
+            var preview = new PrintPreviewWindow();
+            preview.ShowPreview(document, title, string.Empty);
+        }
+
+        private void ShowInfo(string message, string title)
+        {
+            var dialog = new InfoDialogWindow(message) { Title = title };
+            try { dialog.Owner = Application.Current?.MainWindow; }
+            catch { }
+            dialog.ShowDialog();
         }
 
         private static bool IsUnavailable(ItemModel item)
