@@ -47,7 +47,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control && e.Key == Key.C)
+            if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control && e.Key == Key.H)
             {
                 if (vm.CopySelectedCalibrationCommand.CanExecute(null))
                 {
