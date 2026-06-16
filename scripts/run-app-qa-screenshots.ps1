@@ -49,6 +49,11 @@ function Get-PngDimensions {
     }
 }
 
+function Convert-ToHtmlAttribute {
+    param([string]$Value)
+    return [System.Net.WebUtility]::HtmlEncode($Value)
+}
+
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
     $OutputRoot = Join-Path $repoRoot ".qa-screenshots"
@@ -96,6 +101,10 @@ $expectedScreenshotFiles = @(
     "05-admin\09-settings-backups.png",
     "06-dialogs\01-print-labels.png"
 )
+$expectedScreenshotSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+foreach ($expectedFile in $expectedScreenshotFiles) {
+    [void]$expectedScreenshotSet.Add($expectedFile)
+}
 if ($ExpectedScreenshotCount -lt $expectedScreenshotFiles.Count) {
     $ExpectedScreenshotCount = $expectedScreenshotFiles.Count
 }
@@ -193,6 +202,18 @@ try {
         throw "QA screenshot run missed expected capture(s): $($missingExpectedFiles -join ', ')."
     }
 
+    $unexpectedScreenshots = @()
+    foreach ($screenshot in $screenshots) {
+        $relativeToSession = [System.IO.Path]::GetRelativePath($sessionOutput, $screenshot.FullName)
+        if (-not $expectedScreenshotSet.Contains($relativeToSession)) {
+            $unexpectedScreenshots += $relativeToSession
+        }
+    }
+
+    if ($unexpectedScreenshots.Count -gt 0) {
+        throw "QA screenshot run produced unexpected capture(s). Update the expected screenshot manifest if these are intentional: $($unexpectedScreenshots -join ', ')."
+    }
+
     $undersizedScreenshots = @($screenshots | Where-Object { $_.Length -lt $minimumScreenshotBytes })
     if ($undersizedScreenshots.Count -gt 0) {
         $undersizedList = $undersizedScreenshots | ForEach-Object { $_.FullName }
@@ -211,6 +232,21 @@ try {
         throw "QA screenshot run produced unexpectedly small-dimension PNG capture(s): $($dimensionFailures -join ', ')."
     }
 
+    $captureRows = @()
+    foreach ($screenshot in ($screenshots | Sort-Object FullName)) {
+        $relativePath = [System.IO.Path]::GetRelativePath($sessionOutput, $screenshot.FullName)
+        $relativeWebPath = $relativePath -replace '\\', '/'
+        $dimensions = Get-PngDimensions -File $screenshot
+        $captureRows += [pscustomobject]@{
+            Path = $relativePath
+            WebPath = $relativeWebPath
+            Folder = Split-Path $relativePath -Parent
+            Width = $dimensions.Width
+            Height = $dimensions.Height
+            Bytes = $screenshot.Length
+        }
+    }
+
     $readmePath = Join-Path $sessionOutput "README.md"
     Add-Content -Path $readmePath -Value ""
     Add-Content -Path $readmePath -Value ("Captured screenshots: {0}" -f $screenshots.Count)
@@ -218,12 +254,47 @@ try {
     Add-Content -Path $readmePath -Value ("Minimum PNG dimensions checked: {0}x{1}" -f $minimumScreenshotWidth, $minimumScreenshotHeight)
     Add-Content -Path $readmePath -Value ""
     Add-Content -Path $readmePath -Value "Captured files:"
-    foreach ($screenshot in ($screenshots | Sort-Object FullName)) {
-        $relativePath = Resolve-Path -LiteralPath $screenshot.FullName -Relative
-        $dimensions = Get-PngDimensions -File $screenshot
-        Add-Content -Path $readmePath -Value ("- `{0}` - {1}x{2}, {3} bytes" -f $relativePath, $dimensions.Width, $dimensions.Height, $screenshot.Length)
+    foreach ($capture in $captureRows) {
+        Add-Content -Path $readmePath -Value ("- `{0}` - {1}x{2}, {3} bytes" -f $capture.Path, $capture.Width, $capture.Height, $capture.Bytes)
     }
+
+    $indexPath = Join-Path $sessionOutput "index.html"
+    $html = [System.Collections.Generic.List[string]]::new()
+    $html.Add('<!doctype html>')
+    $html.Add('<html lang="en">'.Replace('\"', '"'))
+    $html.Add('<head>')
+    $html.Add('<meta charset="utf-8">'.Replace('\"', '"'))
+    $html.Add('<meta name="viewport" content="width=device-width, initial-scale=1">'.Replace('\"', '"'))
+    $html.Add('<title>QA Screenshot Review</title>')
+    $html.Add('<style>')
+    $html.Add('body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#f5f7fa;color:#17202a;}header{position:sticky;top:0;background:#ffffff;border-bottom:1px solid #d8dee8;padding:14px 20px;z-index:1;}h1{font-size:20px;margin:0 0 4px;}p{margin:0;color:#526071;}main{padding:20px;}section{margin:0 0 28px;}h2{font-size:16px;margin:0 0 10px;} .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;}figure{margin:0;background:#fff;border:1px solid #d8dee8;border-radius:6px;overflow:hidden;}img{display:block;width:100%;height:auto;background:#eef2f6;}figcaption{padding:8px 10px;font-size:12px;color:#526071;line-height:1.35;}code{color:#17202a;font-weight:600;} .meta{display:block;margin-top:3px;}@media (max-width:520px){main{padding:12px}.grid{grid-template-columns:1fr;}}')
+    $html.Add('</style>')
+    $html.Add('</head>')
+    $html.Add('<body>')
+    $html.Add("<header><h1>QA Screenshot Review</h1><p>Generated $(Convert-ToHtmlAttribute (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) | $($captureRows.Count) captures | minimum $minimumScreenshotWidth x $minimumScreenshotHeight px and $minimumScreenshotBytes bytes</p></header>")
+    $html.Add('<main>')
+    foreach ($folder in $expectedFolders) {
+        $folderCaptures = @($captureRows | Where-Object { $_.Folder -eq $folder })
+        if ($folderCaptures.Count -eq 0) { continue }
+        $html.Add('<section>')
+        $html.Add("<h2>$(Convert-ToHtmlAttribute $folder)</h2>")
+        $html.Add('<div class="grid">'.Replace('\"', '"'))
+        foreach ($capture in $folderCaptures) {
+            $html.Add('<figure>')
+            $html.Add(('<img src="{0}" alt="{1}">' -f (Convert-ToHtmlAttribute $capture.WebPath), (Convert-ToHtmlAttribute $capture.Path)).Replace('\"', '"'))
+            $html.Add(('<figcaption><code>{0}</code><span class="meta">{1}x{2}, {3} bytes</span></figcaption>' -f (Convert-ToHtmlAttribute $capture.Path), $capture.Width, $capture.Height, $capture.Bytes).Replace('\"', '"'))
+            $html.Add('</figure>')
+        }
+        $html.Add('</div>')
+        $html.Add('</section>')
+    }
+    $html.Add('</main>')
+    $html.Add('</body>')
+    $html.Add('</html>')
+    Set-Content -Path $indexPath -Value $html -Encoding UTF8
+
     Write-Step "QA screenshots saved to '$sessionOutput' ($($screenshots.Count) PNG files)."
+    Write-Step "Screenshot review index saved to '$indexPath'."
 }
 finally {
     if ($process -and -not $process.HasExited) {
