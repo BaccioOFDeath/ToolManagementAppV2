@@ -287,6 +287,13 @@ namespace InventoryManagementApp.ViewModels
                 return;
             }
 
+            if (user.IsLockedOut)
+            {
+                await LoadUsersCommand.ExecuteAsync(null);
+                await _dialogService.ShowInfoAsync(GetLockoutMessage(user), "Account Locked");
+                return;
+            }
+
             if (!user.IsAdmin &&
                 await SecurityHelper.VerifyPasswordAsync(PasswordDefaults.TemporaryPassword, user.PasswordSalt, user.PasswordHash).ConfigureAwait(false))
             {
