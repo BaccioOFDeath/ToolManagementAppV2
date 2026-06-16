@@ -4,6 +4,7 @@ namespace InventoryManagementApp.Models
     {
         Success,
         IncorrectPassword,
-        Inactive
+        Inactive,
+        LockedOut
     }
 }

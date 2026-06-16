@@ -51,6 +51,20 @@ namespace InventoryManagementApp.Models.Domain
         private bool _passwordExpired;
         public bool PasswordExpired { get => _passwordExpired; set => SetProperty(ref _passwordExpired, value); }
 
+        private int _failedLoginAttempts;
+        public int FailedLoginAttempts { get => _failedLoginAttempts; set => SetProperty(ref _failedLoginAttempts, value); }
+
+        private DateTime? _lockoutEndUtc;
+        public DateTime? LockoutEndUtc { get => _lockoutEndUtc; set => SetProperty(ref _lockoutEndUtc, value); }
+
+        public bool IsLockedOut => LockoutEndUtc.HasValue && LockoutEndUtc.Value > DateTime.UtcNow;
+
+        public string LockoutStatus => IsLockedOut
+            ? $"Locked until {LockoutEndUtc!.Value.ToLocalTime():g}"
+            : FailedLoginAttempts > 0
+                ? $"{FailedLoginAttempts} failed login attempt{(FailedLoginAttempts == 1 ? string.Empty : "s")}."
+                : "Ready";
+
         private MediaBrush _initialsBrush = MediaBrushes.Transparent;
         public MediaBrush InitialsBrush { get => _initialsBrush; set => SetProperty(ref _initialsBrush, value); }
     }

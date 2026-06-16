@@ -173,8 +173,8 @@ namespace InventoryManagementApp.ViewModels
         {
             var appName = await _settingsService.GetSettingAsync("ApplicationName", cancellationToken);
             return !string.IsNullOrWhiteSpace(appName)
-                ? $"{appName} – Login"
-                : $"{LabelProvider.Instance.ItemLabelSingular} Inventory Management – Login";
+                ? $"{appName} - Login"
+                : $"{LabelProvider.Instance.ItemLabelSingular} Inventory Management - Login";
         }
 
         async Task LoadUsersAsync()
@@ -273,6 +273,8 @@ namespace InventoryManagementApp.ViewModels
                     user.PasswordHash = refreshed.PasswordHash;
                     user.PasswordSalt = refreshed.PasswordSalt;
                     user.PasswordExpired = refreshed.PasswordExpired;
+                    user.FailedLoginAttempts = refreshed.FailedLoginAttempts;
+                    user.LockoutEndUtc = refreshed.LockoutEndUtc;
                 }
             }
 
@@ -282,6 +284,13 @@ namespace InventoryManagementApp.ViewModels
                 if (await PromptChangePasswordAsync(user))
                     await _dialogService.ShowInfoAsync("Password has been set. Please log in with your new password.", "Password Updated");
                 _userContext.CurrentUser = null;
+                return;
+            }
+
+            if (user.IsLockedOut)
+            {
+                await LoadUsersCommand.ExecuteAsync(null);
+                await _dialogService.ShowInfoAsync(GetLockoutMessage(user), "Account Locked");
                 return;
             }
 
@@ -319,6 +328,8 @@ namespace InventoryManagementApp.ViewModels
                         user.PasswordHash = refreshed.PasswordHash;
                         user.PasswordSalt = refreshed.PasswordSalt;
                         user.PasswordExpired = refreshed.PasswordExpired;
+                        user.FailedLoginAttempts = refreshed.FailedLoginAttempts;
+                        user.LockoutEndUtc = refreshed.LockoutEndUtc;
                     }
                     await LoadUsersCommand.ExecuteAsync(null);
                     await _dialogService.ShowInfoAsync(
@@ -335,6 +346,15 @@ namespace InventoryManagementApp.ViewModels
                         continue;
                     case AuthenticationResult.Inactive:
                         await _dialogService.ShowInfoAsync("User is inactive. Please contact an administrator.", "Login Failed");
+                        return;
+                    case AuthenticationResult.LockedOut:
+                        if (authResult.User != null)
+                        {
+                            user.FailedLoginAttempts = authResult.User.FailedLoginAttempts;
+                            user.LockoutEndUtc = authResult.User.LockoutEndUtc;
+                        }
+                        await LoadUsersCommand.ExecuteAsync(null);
+                        await _dialogService.ShowInfoAsync(GetLockoutMessage(authResult.User ?? user), "Account Locked");
                         return;
                     case AuthenticationResult.Success:
                         if (authResult.User != null)
@@ -360,6 +380,16 @@ namespace InventoryManagementApp.ViewModels
                 return;
             }
             LoginSucceeded?.Invoke(this, EventArgs.Empty);
+        }
+
+        static string GetLockoutMessage(User user)
+        {
+            if (user.LockoutEndUtc.HasValue && user.LockoutEndUtc.Value > DateTime.UtcNow)
+            {
+                return $"This account is temporarily locked until {user.LockoutEndUtc.Value.ToLocalTime():g} after repeated failed password attempts. Please wait or ask an administrator to reset the password.";
+            }
+
+            return "This account is temporarily locked after repeated failed password attempts. Please wait or ask an administrator to reset the password.";
         }
 
         async Task<bool> PromptChangePasswordAsync(User user)
@@ -392,6 +422,8 @@ namespace InventoryManagementApp.ViewModels
                 user.PasswordHash = refreshed.PasswordHash;
                 user.PasswordSalt = refreshed.PasswordSalt;
                 user.PasswordExpired = refreshed.PasswordExpired;
+                user.FailedLoginAttempts = refreshed.FailedLoginAttempts;
+                user.LockoutEndUtc = refreshed.LockoutEndUtc;
             }
             await LoadUsersCommand.ExecuteAsync(null);
             return true;
