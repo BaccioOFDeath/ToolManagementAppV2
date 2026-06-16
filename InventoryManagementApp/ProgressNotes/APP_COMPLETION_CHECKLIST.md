@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-17 09:11 NZST
+Last audit date/time: 2026-06-17 10:11 NZST
 
 ## Completed workflows
 
@@ -26,11 +26,11 @@ Last audit date/time: 2026-06-17 09:11 NZST
 - Admin user management now supports durable checkbox permissions, advisor/technician/admin presets, access summaries in the directory/detail/copy/print flows, and permission-based navigation visibility for operations, insights, data, and admin sections.
 - Reservations now use a two-pane advisor workbench with hold directory, quick status filters, selected-hold detail, timing, next action, shelf checklist, copy handoff, print handoff, printable filtered directory, stable useful selection, null-safe expanded search, and row-correct double-click/right-click actions.
 - QA screenshot review now produces a browser-friendly `index.html` gallery grouped by app area and fails when unexpected PNG captures appear without updating the expected screenshot manifest.
+- Rentals now use a rental desk workbench with a main rental directory, selected-rental advisor handoff, customer/timing/shelf context, check-in/extend/request/document actions, open request queue, row-correct context menus, wrapping toolbar actions, and a compact footer for repeated desk work.
 
 ## Partially complete workflows
 
 - Item import/export coverage exists, but solution-wide validation still needs to run in an environment with the .NET SDK.
-- Checkout/check-in refresh behavior was improved in the prior audit, but broader runtime UI review is still pending.
 - Reports page has a compact operational grid, summary panel, print/copy actions, and safe empty unknown-report handling; runtime screenshot and full report generation checks remain pending.
 - Import / Export has been redesigned and wired for log actions, but runtime file-dialog, print, and screenshot checks still need a Windows/.NET workstation.
 - Kits now have a completed desktop workflow surface, but runtime add/edit/item-membership dialog validation still needs a Windows/.NET workstation.
@@ -39,6 +39,7 @@ Last audit date/time: 2026-06-17 09:11 NZST
 - Calibration now has a completed desktop workflow surface, but runtime add/edit/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
 - User permission editing now has a completed persistence/UI/navigation pass, but runtime login-as-each-role and screenshot validation still need a Windows/.NET workstation.
 - Reservations now have a completed desktop workflow surface, but runtime add/edit/confirm/cancel/fulfill/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
+- Rentals now have a completed desktop workflow surface, but runtime check-in/extend/request/delete/print/document and screenshot validation still need a Windows/.NET workstation.
 
 ## Known broken workflows
 
@@ -52,6 +53,7 @@ Last audit date/time: 2026-06-17 09:11 NZST
 
 ## Validation status
 
-- GitHub connector readback reviewed the QA screenshot wrapper, progress note, and completion checklist.
+- GitHub connector readback reviewed the rental desk XAML, progress note, and completion checklist.
+- Compared the rental desk branch against `master`; the branch is ahead and not behind.
 - Local XAML parsing, `dotnet --info`, `dotnet restore`, `dotnet build`, `dotnet test`, and `scripts/run-app-qa-screenshots.ps1` were not run because this scheduled Linux container lacks the .NET SDK and Windows/WPF runtime, and direct local clone/raw fetches remain blocked by the network tunnel.
 - Did not run unrelated tests, per instruction.
