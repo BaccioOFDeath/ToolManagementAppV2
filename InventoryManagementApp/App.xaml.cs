@@ -40,6 +40,7 @@ namespace InventoryManagementApp
 {
     public partial class App : System.Windows.Application
     {
+        internal const string DefaultLogoResourceUri = "pack://application:,,,/InventoryManagementApp;component/Resources/DefaultLogo.png";
         public IHost Host { get; }
         private readonly ILogger<App> _logger;
         private readonly IDialogService _dialogService;
@@ -365,8 +366,9 @@ namespace InventoryManagementApp
             ShutdownMode = ShutdownMode.OnMainWindowClose;
             main.Show();
 
-            // Defer login sequence until the main window is fully shown
-            await main.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+            // Yield once on the UI dispatcher so startup continues after Show()
+            // without depending on an ApplicationIdle pump in tests.
+            await main.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Background);
 
             var login = Host.Services.GetRequiredService<ILoginWindow>();
             login.Owner = main;
@@ -480,7 +482,7 @@ namespace InventoryManagementApp
             {
             }
 
-            return LoadFrozenBitmap(new Uri("pack://application:,,,/Resources/DefaultLogo.png", UriKind.Absolute));
+            return LoadFrozenBitmap(new Uri(DefaultLogoResourceUri, UriKind.Absolute));
         }
 
         static BitmapImage LoadFrozenBitmap(Uri uri)

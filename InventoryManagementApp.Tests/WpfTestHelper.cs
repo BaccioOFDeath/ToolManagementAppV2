@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Reflection;
+using System.Threading.Tasks;
 
 internal static class WpfTestHelper
 {
@@ -22,12 +23,26 @@ internal static class WpfTestHelper
         if (app == null)
             return;
 
-        if (app.Dispatcher.CheckAccess())
-            app.Shutdown();
-        else
-            app.Dispatcher.Invoke(app.Shutdown);
+        try
+        {
+            if (app.Dispatcher.HasShutdownStarted || app.Dispatcher.HasShutdownFinished)
+                return;
 
-        ClearCurrentApplication();
+            if (app.Dispatcher.CheckAccess())
+                app.Shutdown();
+            else
+                app.Dispatcher.Invoke(app.Shutdown);
+        }
+        catch (TaskCanceledException)
+        {
+        }
+        catch (InvalidOperationException)
+        {
+        }
+        finally
+        {
+            ClearCurrentApplication();
+        }
     }
 
     private static void ClearCurrentApplication()
