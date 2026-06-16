@@ -8,104 +8,189 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="2*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="1.1*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="0.9*"/>
+            <RowDefinition Height="8"/>
+            <RowDefinition Height="1.05*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Border Style="{StaticResource ToolbarCard}">
-            <DockPanel LastChildFill="False">
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-                    <TextBlock Text="Actions" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenRentalDetailsCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Extend" Command="{Binding ExtendCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="History" Command="{Binding OpenHistoryCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Place Request" Command="{Binding PlaceRequestCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Print Rental" Command="{Binding PrintRentalCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Pick Slip" Command="{Binding PrintPickingSlipCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Invoice" Command="{Binding PrintInvoiceCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Print Search" Command="{Binding PrintSearchResultsCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Print Checked Out" Command="{Binding PrintCheckedOutCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Print Requests" Command="{Binding PrintRequestsCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Delete" Command="{Binding DeleteRentalCommand}"/>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
-                    <TextBlock Text="Filter" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <TextBox x:Name="SearchTextBox" Width="150" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0"/>
-                    <DatePicker SelectedDate="{Binding FilterFrom, UpdateSourceTrigger=PropertyChanged}" Width="125" Margin="0,0,4,0"/>
-                    <DatePicker SelectedDate="{Binding FilterTo, UpdateSourceTrigger=PropertyChanged}" Width="125" Margin="0,0,4,0"/>
-                    <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus, UpdateSourceTrigger=PropertyChanged}" Width="110" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Apply" Command="{Binding ApplyFilterCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearFilterCommand}"/>
-                </StackPanel>
+            <DockPanel LastChildFill="True">
+                <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
+                    <TextBlock Text="Find rental" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBox x:Name="SearchTextBox" Width="210" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,4" ToolTip="Search item number, location, or customer"/>
+                    <DatePicker SelectedDate="{Binding FilterFrom, UpdateSourceTrigger=PropertyChanged}" Width="125" Margin="0,0,6,4"/>
+                    <DatePicker SelectedDate="{Binding FilterTo, UpdateSourceTrigger=PropertyChanged}" Width="125" Margin="0,0,6,4"/>
+                    <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus, UpdateSourceTrigger=PropertyChanged}" Width="110" Margin="0,0,6,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearFilterCommand}" Margin="0,0,0,4"/>
+                </WrapPanel>
+                <WrapPanel VerticalAlignment="Center">
+                    <TextBlock Text="Rental workflow" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenRentalDetailsCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Extend" Command="{Binding ExtendCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Request" Command="{Binding PlaceRequestCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="History" Command="{Binding OpenHistoryCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Pick Slip" Command="{Binding PrintPickingSlipCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Invoice" Command="{Binding PrintInvoiceCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Print Rental" Command="{Binding PrintRentalCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Print List" Command="{Binding PrintSearchResultsCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteRentalCommand}" Margin="0,0,0,4"/>
+                </WrapPanel>
             </DockPanel>
         </Border>
 
-        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
-                    <DockPanel>
-                        <TextBlock Text="01 Search Results" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
-                        <TextBlock Text="{Binding SearchSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
-                    </DockPanel>
-                </Border>
-                <DataGrid Grid.Row="1" ItemsSource="{Binding Rentals}" SelectedItem="{Binding SelectedRental}" SelectionMode="Single" IsReadOnly="True" AutoGenerateColumns="False" Style="{StaticResource VirtualizedDataGridStyle}">
-                    <DataGrid.RowStyle>
-                        <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
-                            <EventSetter Event="MouseDoubleClick" Handler="RentalRow_MouseDoubleClick"/>
-                            <EventSetter Event="PreviewMouseRightButtonDown" Handler="RentalRow_PreviewMouseRightButtonDown"/>
-                        </Style>
-                    </DataGrid.RowStyle>
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Rental" Binding="{Binding RentalID}" Width="70"/>
-                        <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="120"/>
-                        <DataGridTextColumn Header="Location" Binding="{Binding ItemLocation}" Width="180"/>
-                        <DataGridTextColumn Header="Checked Out To" Binding="{Binding CustomerName}" Width="190"/>
-                        <DataGridTextColumn Header="Checked Out" Binding="{Binding RentalDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="145"/>
-                        <DataGridTextColumn Header="Due Back" Binding="{Binding DueDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="145"/>
-                        <DataGridTextColumn Header="Returned" Binding="{Binding ReturnDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="145"/>
-                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="110"/>
-                    </DataGrid.Columns>
-                    <DataGrid.ContextMenu>
-                        <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                            <MenuItem Header="Open Details" Command="{Binding OpenRentalDetailsCommand}"/>
-                            <MenuItem Header="Check In" Command="{Binding CheckInCommand}"/>
-                            <MenuItem Header="Extend" Command="{Binding ExtendCommand}"/>
-                            <MenuItem Header="Place Request" Command="{Binding PlaceRequestCommand}"/>
-                            <MenuItem Header="History" Command="{Binding OpenHistoryCommand}"/>
-                            <Separator/>
-                            <MenuItem Header="Print Rental" Command="{Binding PrintRentalCommand}"/>
-                            <MenuItem Header="Print Picking Slip" Command="{Binding PrintPickingSlipCommand}"/>
-                            <MenuItem Header="Print Invoice" Command="{Binding PrintInvoiceCommand}"/>
-                            <MenuItem Header="Print Search Results" Command="{Binding PrintSearchResultsCommand}"/>
-                            <Separator/>
-                            <MenuItem Header="Delete" Command="{Binding DeleteRentalCommand}"/>
-                        </ContextMenu>
-                    </DataGrid.ContextMenu>
-                </DataGrid>
-                <TextBlock Grid.Row="1" Text="No rental records match this search" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Rentals.Count}" Value="0">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
-            </Grid>
-        </Border>
+        <Grid Grid.Row="1" Margin="0,6,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" MinWidth="620"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="440" MinWidth="380"/>
+            </Grid.ColumnDefinitions>
 
-        <GridSplitter Grid.Row="2" Height="6" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
+            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                        <DockPanel>
+                            <TextBlock Text="01 Rental Desk" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
+                            <TextBlock Text="{Binding SearchSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                        </DockPanel>
+                    </Border>
+                    <Border Grid.Row="1" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                        <DockPanel LastChildFill="True">
+                            <WrapPanel DockPanel.Dock="Right">
+                                <Button Style="{StaticResource GhostButton}" Content="Print Checked Out" Command="{Binding PrintCheckedOutCommand}" Margin="0,0,4,0"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Print Requests" Command="{Binding PrintRequestsCommand}"/>
+                            </WrapPanel>
+                            <TextBlock Text="{Binding CheckedOutSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,10,0"/>
+                        </DockPanel>
+                    </Border>
+                    <DataGrid Grid.Row="2"
+                              ItemsSource="{Binding Rentals}"
+                              SelectedItem="{Binding SelectedRental}"
+                              SelectionMode="Single"
+                              IsReadOnly="True"
+                              AutoGenerateColumns="False"
+                              Style="{StaticResource VirtualizedDataGridStyle}">
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                                <EventSetter Event="MouseDoubleClick" Handler="RentalRow_MouseDoubleClick"/>
+                                <EventSetter Event="PreviewMouseRightButtonDown" Handler="RentalRow_PreviewMouseRightButtonDown"/>
+                            </Style>
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Rental" Binding="{Binding RentalID}" Width="70"/>
+                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="120"/>
+                            <DataGridTextColumn Header="Location" Binding="{Binding ItemLocation}" Width="150"/>
+                            <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="2*"/>
+                            <DataGridTextColumn Header="Checked Out" Binding="{Binding RentalDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="145"/>
+                            <DataGridTextColumn Header="Due Back" Binding="{Binding DueDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="145"/>
+                            <DataGridTextColumn Header="Returned" Binding="{Binding ReturnDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="145"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="105"/>
+                        </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                <MenuItem Header="Open Rental Details" Command="{Binding OpenRentalDetailsCommand}"/>
+                                <MenuItem Header="Check In" Command="{Binding CheckInCommand}"/>
+                                <MenuItem Header="Extend Due Date" Command="{Binding ExtendCommand}"/>
+                                <MenuItem Header="Place Follow-up Request" Command="{Binding PlaceRequestCommand}"/>
+                                <MenuItem Header="Open Item History" Command="{Binding OpenHistoryCommand}"/>
+                                <Separator/>
+                                <MenuItem Header="Print Rental" Command="{Binding PrintRentalCommand}"/>
+                                <MenuItem Header="Print Picking Slip" Command="{Binding PrintPickingSlipCommand}"/>
+                                <MenuItem Header="Print Invoice" Command="{Binding PrintInvoiceCommand}"/>
+                                <MenuItem Header="Print Current List" Command="{Binding PrintSearchResultsCommand}"/>
+                                <Separator/>
+                                <MenuItem Header="Delete Rental" Command="{Binding DeleteRentalCommand}"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                    </DataGrid>
+                    <TextBlock Grid.Row="2" Text="No rental records match this search" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Rentals.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+            </Border>
+
+            <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
+
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                        <DockPanel>
+                            <TextBlock Text="02 Advisor Handoff" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
+                            <TextBlock Text="Selected rental" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                        </DockPanel>
+                    </Border>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="10">
+                            <TextBlock Text="{Binding SelectedRental.ItemNumber, TargetNullValue='No rental selected', FallbackValue='No rental selected'}"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding SelectedRental.Status, StringFormat='Status: {0}', TargetNullValue='Choose a rental to see check-in and billing actions'}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,10"/>
+
+                            <TextBlock Text="Customer" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
+                            <TextBlock Text="{Binding SelectedRental.CustomerName, TargetNullValue='No customer selected'}" TextWrapping="Wrap" Margin="0,0,0,2"/>
+                            <TextBlock Text="{Binding SelectedRental.CustomerContact, StringFormat='Contact: {0}', TargetNullValue='Contact: Not recorded'}" TextWrapping="Wrap" Margin="0,0,0,2"/>
+                            <TextBlock Text="{Binding SelectedRental.CustomerPhone, StringFormat='Phone: {0}', TargetNullValue='Phone: Not recorded'}" TextWrapping="Wrap" Margin="0,0,0,2"/>
+                            <TextBlock Text="{Binding SelectedRental.CustomerEmail, StringFormat='Email: {0}', TargetNullValue='Email: Not recorded'}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                            <TextBlock Text="Timing" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
+                            <TextBlock Text="{Binding SelectedRental.RentalDate, StringFormat='Checked out: {0:yyyy-MM-dd HH:mm}', TargetNullValue='Checked out: -'}" TextWrapping="Wrap" Margin="0,0,0,2"/>
+                            <TextBlock Text="{Binding SelectedRental.DueDate, StringFormat='Due back: {0:yyyy-MM-dd HH:mm}', TargetNullValue='Due back: -'}" TextWrapping="Wrap" Margin="0,0,0,2"/>
+                            <TextBlock Text="{Binding SelectedRental.ReturnDate, StringFormat='Returned: {0:yyyy-MM-dd HH:mm}', TargetNullValue='Returned: Not returned yet'}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                            <TextBlock Text="Shelf and documents" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
+                            <TextBlock Text="{Binding SelectedRental.ItemLocation, StringFormat='Shelf: {0}', TargetNullValue='Shelf: Not recorded'}" TextWrapping="Wrap" Margin="0,0,0,2"/>
+                            <TextBlock Text="Confirm the item number, collect or return it from the listed shelf, print the pick slip or invoice when needed, then check it in or extend it before ending the customer handoff." TextWrapping="Wrap" Margin="0,0,0,14"/>
+
+                            <UniformGrid Columns="2" Margin="0,0,0,8">
+                                <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Extend" Command="{Binding ExtendCommand}" Margin="4,0,0,4"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Request" Command="{Binding PlaceRequestCommand}" Margin="0,4,4,4"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenRentalDetailsCommand}" Margin="4,4,0,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Pick Slip" Command="{Binding PrintPickingSlipCommand}" Margin="0,4,4,0"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Invoice" Command="{Binding PrintInvoiceCommand}" Margin="4,4,0,0"/>
+                            </UniformGrid>
+
+                            <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="8" Margin="0,6,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="Desk checklist" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="For checkout: confirm customer, item number, due date, and print documents. For check-in: inspect condition, check in the rental, then review open requests for the same item before returning it to the shelf." TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                    <Border Grid.Row="2" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,1,0,0" Padding="5,3">
+                        <WrapPanel>
+                            <Button Style="{StaticResource GhostButton}" Content="History" Command="{Binding OpenHistoryCommand}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Print Rental" Command="{Binding PrintRentalCommand}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Print Checked Out" Command="{Binding PrintCheckedOutCommand}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Clear Filter" Command="{Binding ClearFilterCommand}" Margin="0,0,0,4"/>
+                        </WrapPanel>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <GridSplitter Grid.Row="2" Height="8" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
 
         <Border Grid.Row="3" Style="{StaticResource Card}" Padding="0">
             <Grid>
@@ -115,81 +200,22 @@
                 </Grid.RowDefinitions>
                 <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
                     <DockPanel>
-                        <TextBlock Text="02 Currently Checked Out" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
-                        <TextBlock Text="{Binding CheckedOutSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
-                    </DockPanel>
-                </Border>
-                <DataGrid Grid.Row="1" ItemsSource="{Binding ActiveRentals}" SelectedItem="{Binding SelectedRental}" SelectionMode="Single" IsReadOnly="True" AutoGenerateColumns="False" Style="{StaticResource VirtualizedDataGridStyle}">
-                    <DataGrid.RowStyle>
-                        <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
-                            <EventSetter Event="MouseDoubleClick" Handler="RentalRow_MouseDoubleClick"/>
-                            <EventSetter Event="PreviewMouseRightButtonDown" Handler="RentalRow_PreviewMouseRightButtonDown"/>
-                        </Style>
-                    </DataGrid.RowStyle>
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="120"/>
-                        <DataGridTextColumn Header="Location" Binding="{Binding ItemLocation}" Width="180"/>
-                        <DataGridTextColumn Header="Checked Out To" Binding="{Binding CustomerName}" Width="220"/>
-                        <DataGridTextColumn Header="Checked Out" Binding="{Binding RentalDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="150"/>
-                        <DataGridTextColumn Header="Due Back" Binding="{Binding DueDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="150"/>
-                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="110"/>
-                    </DataGrid.Columns>
-                    <DataGrid.ContextMenu>
-                        <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                            <MenuItem Header="Open Details" Command="{Binding OpenRentalDetailsCommand}"/>
-                            <MenuItem Header="Check In" Command="{Binding CheckInCommand}"/>
-                            <MenuItem Header="Extend" Command="{Binding ExtendCommand}"/>
-                            <MenuItem Header="Place Request" Command="{Binding PlaceRequestCommand}"/>
-                            <MenuItem Header="History" Command="{Binding OpenHistoryCommand}"/>
-                            <Separator/>
-                            <MenuItem Header="Print Rental" Command="{Binding PrintRentalCommand}"/>
-                            <MenuItem Header="Print Picking Slip" Command="{Binding PrintPickingSlipCommand}"/>
-                            <MenuItem Header="Print Invoice" Command="{Binding PrintInvoiceCommand}"/>
-                            <MenuItem Header="Print Checked Out" Command="{Binding PrintCheckedOutCommand}"/>
-                        </ContextMenu>
-                    </DataGrid.ContextMenu>
-                </DataGrid>
-                <TextBlock Grid.Row="1" Text="No items are currently checked out" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding ActiveRentals.Count}" Value="0">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
-            </Grid>
-        </Border>
-
-        <GridSplitter Grid.Row="4" Height="6" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
-
-        <Border Grid.Row="5" Style="{StaticResource Card}" Padding="0">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
-                    <DockPanel>
-                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                            <TextBlock Text="03 Open Requests" Style="{StaticResource SectionHeader}" Margin="0"/>
+                        <WrapPanel DockPanel.Dock="Left">
+                            <TextBlock Text="03 Open Request Queue" Style="{StaticResource SectionHeader}" Margin="0" VerticalAlignment="Center"/>
                             <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenRequestDetailsCommand}" Margin="8,0,4,0"/>
                             <Button Style="{StaticResource PrimaryButton}" Content="Confirm" Command="{Binding ConfirmRequestCommand}" Margin="0,0,4,0"/>
                             <Button Style="{StaticResource PrimaryButton}" Content="Cancel" Command="{Binding CancelRequestCommand}" Margin="0,0,4,0"/>
-                            <Button Style="{StaticResource PrimaryButton}" Content="Print Request" Command="{Binding PrintRequestCommand}" Margin="0,0,4,0"/>
-                            <Button Style="{StaticResource PrimaryButton}" Content="Print Queue" Command="{Binding PrintRequestsCommand}"/>
-                        </StackPanel>
-                        <TextBlock Text="{Binding RequestSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Print Request" Command="{Binding PrintRequestCommand}" Margin="0,0,4,0"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Print Queue" Command="{Binding PrintRequestsCommand}"/>
+                        </WrapPanel>
+                        <TextBlock Text="{Binding RequestSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                     </DockPanel>
                 </Border>
                 <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="6"/>
-                        <ColumnDefinition Width="310"/>
+                        <ColumnDefinition Width="2*" MinWidth="600"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="420" MinWidth="360"/>
                     </Grid.ColumnDefinitions>
                     <DataGrid Grid.Column="0" ItemsSource="{Binding PendingRequests}" SelectedItem="{Binding SelectedRequest}" SelectionMode="Single" IsReadOnly="True" AutoGenerateColumns="False" Style="{StaticResource VirtualizedDataGridStyle}">
                         <DataGrid.RowStyle>
@@ -219,23 +245,25 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </DataGrid>
-                    <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
+                    <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
                     <Border Grid.Column="2" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1,0,0,0" Padding="8">
-                        <StackPanel>
-                            <TextBlock Text="Selected Request" Style="{StaticResource SectionHeader}" Margin="0,0,0,6"/>
-                            <TextBlock Text="{Binding SelectedRequestSummary}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,6"/>
-                            <TextBlock Text="{Binding SelectedRequestDateLine}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,6"/>
-                            <TextBlock Text="Current Holder" Style="{StaticResource LabelTextBlock}" Margin="0,4,0,2"/>
-                            <TextBlock Text="{Binding SelectedRequestHolderLine}" TextWrapping="Wrap" Margin="0,0,0,8"/>
-                            <TextBlock Text="Next Action" Style="{StaticResource LabelTextBlock}" Margin="0,4,0,2"/>
-                            <TextBlock Text="{Binding SelectedRequestNextAction}" TextWrapping="Wrap" Margin="0,0,0,8"/>
-                            <UniformGrid Columns="2" Margin="0,4,0,0">
-                                <Button Style="{StaticResource PrimaryButton}" Content="Confirm" Command="{Binding ConfirmRequestCommand}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Cancel" Command="{Binding CancelRequestCommand}" Margin="0,0,0,4"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Details" Command="{Binding OpenRequestDetailsCommand}" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintRequestCommand}"/>
-                            </UniformGrid>
-                        </StackPanel>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <TextBlock Text="Selected Request" Style="{StaticResource SectionHeader}" Margin="0,0,0,6"/>
+                                <TextBlock Text="{Binding SelectedRequestSummary}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                <TextBlock Text="{Binding SelectedRequestDateLine}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                <TextBlock Text="Current Holder" Style="{StaticResource LabelTextBlock}" Margin="0,4,0,2"/>
+                                <TextBlock Text="{Binding SelectedRequestHolderLine}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                <TextBlock Text="Next Action" Style="{StaticResource LabelTextBlock}" Margin="0,4,0,2"/>
+                                <TextBlock Text="{Binding SelectedRequestNextAction}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                <UniformGrid Columns="2" Margin="0,4,0,0">
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Confirm" Command="{Binding ConfirmRequestCommand}" Margin="0,0,4,4"/>
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Cancel" Command="{Binding CancelRequestCommand}" Margin="0,0,0,4"/>
+                                    <Button Style="{StaticResource GhostButton}" Content="Details" Command="{Binding OpenRequestDetailsCommand}" Margin="0,0,4,0"/>
+                                    <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintRequestCommand}"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </ScrollViewer>
                     </Border>
                     <TextBlock Grid.Column="0" Text="No open requests for unavailable items" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold">
                         <TextBlock.Style>
@@ -253,6 +281,16 @@
             </Grid>
         </Border>
 
-        <ProgressBar Grid.Row="6" IsIndeterminate="True" Margin="0,4,0,0" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
+        <Border Grid.Row="4" Style="{StaticResource ToolbarCard}" Margin="0,4,0,0">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Print Queue" Command="{Binding PrintRequestsCommand}"/>
+                </StackPanel>
+                <TextBlock Text="{Binding CheckedOutSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="2,0,10,0" TextWrapping="Wrap"/>
+            </DockPanel>
+        </Border>
+
+        <ProgressBar Grid.Row="4" IsIndeterminate="True" Height="4" VerticalAlignment="Top" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
     </Grid>
 </Page>
