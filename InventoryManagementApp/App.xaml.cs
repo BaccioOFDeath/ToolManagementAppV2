@@ -67,7 +67,7 @@ namespace InventoryManagementApp
                 { 
                     Log.Error(e.Exception, "Unobserved task exception"); 
                 } 
-                catch (Exception logEx) 
+                catch (Exception logEx)
                 { 
                     // Fallback if logging fails - write to debug output
                     System.Diagnostics.Debug.WriteLine($"Failed to log unobserved exception: {logEx.Message}");
@@ -555,8 +555,8 @@ namespace InventoryManagementApp
             await CapturePageAsync(mainWindow, mainViewModel.OpenImportExportCommand.ExecuteAsync(null), Path.Combine(dataDir, "01-import-export.png"), runLogPath, "Import export");
 
             await CapturePageAsync(mainWindow, mainViewModel.OpenUsersCommand.ExecuteAsync(null), Path.Combine(adminDir, "01-users.png"), runLogPath, "Users");
-            await CapturePageAsync(mainWindow, mainViewModel.OpenSettingsCommand.ExecuteAsync(null), Path.Combine(adminDir, "02-settings-database.png"), runLogPath, "Settings database");
-            for (var tabIndex = 1; tabIndex <= 6; tabIndex++)
+            await CapturePageAsync(mainWindow, mainViewModel.OpenSettingsCommand.ExecuteAsync(null), Path.Combine(adminDir, "02-settings-service-status.png"), runLogPath, "Settings service status");
+            for (var tabIndex = 1; tabIndex <= 7; tabIndex++)
             {
                 await CaptureSelectedTabPageAsync(
                     mainWindow,
@@ -589,12 +589,13 @@ namespace InventoryManagementApp
 
         static string GetSettingsTabSlug(int tabIndex) => tabIndex switch
         {
-            1 => "general",
-            2 => "item-display",
-            3 => "email",
-            4 => "branding",
-            5 => "messaging",
-            6 => "backups",
+            1 => "database",
+            2 => "general",
+            3 => "item-display",
+            4 => "email",
+            5 => "branding",
+            6 => "messaging",
+            7 => "backups",
             _ => $"tab-{tabIndex + 1:00}"
         };
 
