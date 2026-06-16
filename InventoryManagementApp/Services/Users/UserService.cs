@@ -28,14 +28,6 @@ namespace InventoryManagementApp.Services.Users
         private const int MaxFailedLoginAttempts = 5;
         private static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="UserService"/> class.
-        /// </summary>
-        /// <param name="dbService">Database service for data access.</param>
-        /// <param name="context">User context for tracking current user.</param>
-        /// <param name="authorizationService">Optional authorization service for access control.</param>
-        /// <param name="logger">Optional logger for diagnostic output.</param>
-        /// <param name="activityLogService">Optional activity log service for audit trails.</param>
         public UserService(DatabaseService dbService, IUserContext context, IAuthorizationService? authorizationService = null, ILogger<UserService>? logger = null, ActivityLogService? activityLogService = null)
         {
             _dbService = dbService ?? throw new ArgumentNullException(nameof(dbService));
@@ -45,11 +37,6 @@ namespace InventoryManagementApp.Services.Users
             _activityLog = activityLogService;
         }
 
-        /// <summary>
-        /// Parses a value to UTC DateTime, handling various input formats and timezones.
-        /// </summary>
-        /// <param name="value">The value to parse.</param>
-        /// <returns>UTC DateTime if parsing succeeds; otherwise, null.</returns>
         private static DateTime? ParseToUtcNullable(object value)
         {
             if (value == null || value == DBNull.Value) return null;
@@ -117,14 +104,15 @@ namespace InventoryManagementApp.Services.Users
                 CreatedAt = createdAt,
                 PasswordExpired = HasColumn("PasswordExpired") && rdr["PasswordExpired"] != DBNull.Value && Convert.ToInt32(rdr["PasswordExpired"]) == 1,
                 FailedLoginAttempts = HasColumn("FailedLoginAttempts") && rdr["FailedLoginAttempts"] != DBNull.Value ? Convert.ToInt32(rdr["FailedLoginAttempts"]) : 0,
-                LockoutEndUtc = ParseToUtcNullable(HasColumn("LockoutEndUtc") ? rdr["LockoutEndUtc"] : DBNull.Value)
+                LockoutEndUtc = ParseToUtcNullable(HasColumn("LockoutEndUtc") ? rdr["LockoutEndUtc"] : DBNull.Value),
+                Permissions = GetString("Permissions")
             };
         }
 
         public async Task<List<User>> GetAllUsersAsync(CancellationToken cancellationToken = default)
         {
             using var conn = _dbService.CreateConnection();
-            const string sql = "SELECT UserID, UserName, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired, FailedLoginAttempts, LockoutEndUtc FROM Users";
+            const string sql = "SELECT UserID, UserName, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired, FailedLoginAttempts, LockoutEndUtc, Permissions FROM Users";
             return await SqliteHelper.ExecuteReaderAsync(conn, sql, MapUser, cancellationToken: cancellationToken);
         }
 
@@ -269,7 +257,6 @@ namespace InventoryManagementApp.Services.Users
             var existingUsers = await GetAllUsersAsync(CancellationToken.None);
             if (existingUsers.Count == 0)
             {
-                // Seed first user as an administrator regardless of input flag
                 user.IsAdmin = true;
             }
             else
@@ -278,9 +265,9 @@ namespace InventoryManagementApp.Services.Users
             }
             const string sql = @"
                 INSERT INTO Users
-                  (UserName, PasswordHash, PasswordSalt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired)
+                  (UserName, PasswordHash, PasswordSalt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired, Permissions)
                 VALUES
-                  (@UserName,@PasswordHash,@PasswordSalt,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role,@IsActive,@CreatedAt,@PasswordExpired);
+                  (@UserName,@PasswordHash,@PasswordSalt,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role,@IsActive,@CreatedAt,@PasswordExpired,@Permissions);
                 SELECT last_insert_rowid();";
 
             using var conn = _dbService.CreateConnection();
@@ -312,7 +299,8 @@ namespace InventoryManagementApp.Services.Users
                 new SqliteParameter("@Role",     (object)user.Role ?? DBNull.Value),
                 new SqliteParameter("@IsActive", user.IsActive ? 1 : 0),
                 new SqliteParameter("@CreatedAt", user.CreatedAt),
-                new SqliteParameter("@PasswordExpired", user.PasswordExpired ? 1 : 0)
+                new SqliteParameter("@PasswordExpired", user.PasswordExpired ? 1 : 0),
+                new SqliteParameter("@Permissions", (object)user.Permissions ?? DBNull.Value)
             });
             try
             {
@@ -344,7 +332,8 @@ namespace InventoryManagementApp.Services.Users
                   Mobile        = @Mobile,
                   Address       = @Address,
                   Role          = @Role,
-                  IsActive      = @IsActive
+                  IsActive      = @IsActive,
+                  Permissions   = @Permissions
                 WHERE UserID = @UserID";
 
             string hashed = user.PasswordHash;
@@ -382,7 +371,8 @@ namespace InventoryManagementApp.Services.Users
                 new SqliteParameter("@Mobile",   (object)user.Mobile ?? DBNull.Value),
                 new SqliteParameter("@Address",  (object)user.Address ?? DBNull.Value),
                 new SqliteParameter("@Role",     (object)user.Role ?? DBNull.Value),
-                new SqliteParameter("@IsActive", user.IsActive ? 1 : 0)
+                new SqliteParameter("@IsActive", user.IsActive ? 1 : 0),
+                new SqliteParameter("@Permissions", (object)user.Permissions ?? DBNull.Value)
             };
 
             using var conn = _dbService.CreateConnection();
