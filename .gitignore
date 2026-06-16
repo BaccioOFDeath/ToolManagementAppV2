@@ -375,3 +375,7 @@ Thumbs.db
 
 # Ignore PDF documents
 *.pdf
+
+# QA automation artifacts
+.qa-run/
+.qa-screenshots/
