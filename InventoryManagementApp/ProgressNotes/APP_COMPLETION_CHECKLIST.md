@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-16 23:20 NZST
+Last audit date/time: 2026-06-16 23:48 NZST
 
 ## Completed workflows
 
@@ -8,6 +8,8 @@ Last audit date/time: 2026-06-16 23:20 NZST
 - Rent item popup supports customer search, selected-customer review, quick due-date controls, and add-customer flow before confirming rental.
 - Reservation editor supports item lookup inside the popup so advisors/admins can search inventory and apply item details without leaving the workflow.
 - Reports ViewModel now keeps `ReportResults` as a compatibility alias for `ReportLines`, protecting older tests/bindings while the reports page uses the newer dense report grid.
+- Item edit saves now clone all operational fields, show clear validation/database failure messages, and keep the selected row stable when a save fails.
+- QA screenshot capture now has a repository script and latest screenshot set covering login, overview/search, operational pages, reports/activity, import/export, users, settings, and print-label dialog surfaces; the script now fails if the expected PNG count is not produced.
 
 ## Partially complete workflows
 
@@ -24,12 +26,14 @@ Last audit date/time: 2026-06-16 23:20 NZST
 
 ## Next recommended target
 
-- Add user-safe error handling around item edit saves so validation/database failures display a clear message and leave the selected row stable.
+- Run the .NET build/test and QA screenshot script on a Windows/.NET workstation, then use the generated screenshots to target any remaining visual or navigation defects.
 
 ## Validation status
 
+- GitHub connector readback reviewed the item edit save code, new regression test, screenshot runner, and completion checklist on `master`.
 - `dotnet --info`: failed because `dotnet` is not installed in this scheduled container.
 - `dotnet restore InventoryManagementApp.sln`: not run because the .NET SDK is unavailable.
 - `dotnet build InventoryManagementApp.sln --no-restore`: not run because the .NET SDK is unavailable.
 - `dotnet test InventoryManagementApp.sln --no-build`: not run because the .NET SDK is unavailable.
+- `scripts/run-app-qa-screenshots.ps1`: not run because this scheduled Linux container cannot launch the Windows WPF app.
 - `bash ./scripts/check-banned-words.sh`: not run because no local checkout is available in this scheduled container.
