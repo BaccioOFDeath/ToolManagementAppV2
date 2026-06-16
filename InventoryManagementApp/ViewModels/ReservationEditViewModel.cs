@@ -112,10 +112,17 @@ namespace InventoryManagementApp.ViewModels
             }
 
             var matches = new List<ItemModel>();
-            await foreach (var item in _itemService.SearchItemsAsync(term, new ItemPage(1, 20), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken)
-                .WithCancellation(cancellationToken))
+            try
             {
-                matches.Add(item);
+                await foreach (var item in _itemService.SearchItemsAsync(term, new ItemPage(1, 20), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken)
+                    .WithCancellation(cancellationToken))
+                {
+                    matches.Add(item);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                return;
             }
 
             foreach (var item in matches.OrderBy(i => i.ItemNumber).ThenBy(i => i.Name))
