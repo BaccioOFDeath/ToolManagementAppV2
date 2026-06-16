@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-17 02:11 NZST
+Last audit date/time: 2026-06-17 03:11 NZST
 
 ## Completed workflows
 
@@ -15,6 +15,8 @@ Last audit date/time: 2026-06-17 02:11 NZST
 - Import / Export now uses a compact data workstation layout with separate sections for item data, customer data, backup/image admin work, and run-log review.
 - Import / Export operation logs now support selected-row detail, copy, print, clear, double-click drilldown, and row-correct right-click actions.
 - QA screenshot wrapper validation now requires every expected screenshot folder to contain PNG output and appends the captured file list to the run README.
+- Kits now use a compact desktop workstation with kit directory, item membership, selected-kit detail, availability guidance, row-correct context menus, double-click drilldown, keyboard shortcuts, copy selected kit details, printable kit directory output, and printable kit pick sheets.
+- QA screenshot wrapper validation now checks for each expected named screenshot file so missing captures fail loudly instead of passing on folder count alone.
 
 ## Partially complete workflows
 
@@ -23,6 +25,7 @@ Last audit date/time: 2026-06-17 02:11 NZST
 - Customer CSV import already uses a transaction, but customer workflow coverage still needs broader review.
 - Reports page has a compact operational grid, summary panel, print/copy actions, and safe empty unknown-report handling; runtime screenshot and full report generation checks remain pending.
 - Import / Export has been redesigned and wired for log actions, but runtime file-dialog, print, and screenshot checks still need a Windows/.NET workstation.
+- Kits now have a completed desktop workflow surface, but runtime add/edit/item-membership dialog validation still needs a Windows/.NET workstation.
 
 ## Known broken workflows
 
@@ -36,7 +39,7 @@ Last audit date/time: 2026-06-17 02:11 NZST
 
 ## Validation status
 
-- GitHub connector readback reviewed the Import / Export workstation branch files, screenshot wrapper, progress note, and completion checklist.
+- GitHub connector readback reviewed the Kit workstation branch files, screenshot wrapper, progress note, and completion checklist.
 - `dotnet --info`: failed because `dotnet` is not installed in this scheduled container.
 - `dotnet restore InventoryManagementApp.sln`: not run because the .NET SDK is unavailable.
 - `dotnet build InventoryManagementApp.sln --no-restore`: not run because the .NET SDK is unavailable.
