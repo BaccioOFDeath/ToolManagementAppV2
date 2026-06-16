@@ -276,7 +276,7 @@ namespace InventoryManagementApp.Services.Customers
         {
             const string sql = @"
                 SELECT * FROM Customers
-                WHERE Company LIKE @t OR Email LIKE @t OR Phone LIKE @t OR Mobile LIKE @t OR Address LIKE @t";
+                WHERE Company LIKE @t OR Contact LIKE @t OR Email LIKE @t OR Phone LIKE @t OR Mobile LIKE @t OR Address LIKE @t";
             var p = new[] { new SqliteParameter("@t", $"%{searchTerm}%") };
             using var conn = _dbService.CreateConnection();
             try
@@ -456,4 +456,3 @@ namespace InventoryManagementApp.Services.Customers
         }
     }
 }
-
