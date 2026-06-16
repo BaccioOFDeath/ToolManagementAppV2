@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-17 10:11 NZST
+Last audit date/time: 2026-06-17 11:11 NZST
 
 ## Completed workflows
 
@@ -27,6 +27,7 @@ Last audit date/time: 2026-06-17 10:11 NZST
 - Reservations now use a two-pane advisor workbench with hold directory, quick status filters, selected-hold detail, timing, next action, shelf checklist, copy handoff, print handoff, printable filtered directory, stable useful selection, null-safe expanded search, and row-correct double-click/right-click actions.
 - QA screenshot review now produces a browser-friendly `index.html` gallery grouped by app area and fails when unexpected PNG captures appear without updating the expected screenshot manifest.
 - Rentals now use a rental desk workbench with a main rental directory, selected-rental advisor handoff, customer/timing/shelf context, check-in/extend/request/document actions, open request queue, row-correct context menus, wrapping toolbar actions, and a compact footer for repeated desk work.
+- Categories now use an admin workbench layout with a directory pane, selected-category handoff, next action, setup checklist, name review, status feedback, row-correct context menus, keyboard shortcuts, printable directory output, and printable selected-category sheets.
 
 ## Partially complete workflows
 
@@ -37,9 +38,10 @@ Last audit date/time: 2026-06-17 10:11 NZST
 - Customers now have a completed desktop workflow surface, but runtime add/edit/delete/print/copy validation still needs a Windows/.NET workstation.
 - Maintenance now has a completed desktop workflow surface, but runtime add/edit/complete/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
 - Calibration now has a completed desktop workflow surface, but runtime add/edit/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
-- User permission editing now has a completed persistence/UI/navigation pass, but runtime login-as-each-role and screenshot validation still need a Windows/.NET workstation.
+- User permission editing now has a completed persistence/UI/navigation pass, but runtime login-as-each-role and screenshot validation still needs a Windows/.NET workstation.
 - Reservations now have a completed desktop workflow surface, but runtime add/edit/confirm/cancel/fulfill/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
 - Rentals now have a completed desktop workflow surface, but runtime check-in/extend/request/delete/print/document and screenshot validation still need a Windows/.NET workstation.
+- Categories now have a completed desktop workflow surface, but runtime create/rename/delete/filter/print/copy and screenshot validation still need a Windows/.NET workstation.
 
 ## Known broken workflows
 
@@ -53,7 +55,7 @@ Last audit date/time: 2026-06-17 10:11 NZST
 
 ## Validation status
 
-- GitHub connector readback reviewed the rental desk XAML, progress note, and completion checklist.
-- Compared the rental desk branch against `master`; the branch is ahead and not behind.
+- GitHub connector readback reviewed the category workbench XAML, code-behind, view model, progress note, and completion checklist.
+- The existing QA screenshot routine captures the redesigned Categories page at `02-operations/08-categories.png`, but the screenshot run itself could not be executed in this scheduled Linux container.
 - Local XAML parsing, `dotnet --info`, `dotnet restore`, `dotnet build`, `dotnet test`, and `scripts/run-app-qa-screenshots.ps1` were not run because this scheduled Linux container lacks the .NET SDK and Windows/WPF runtime, and direct local clone/raw fetches remain blocked by the network tunnel.
 - Did not run unrelated tests, per instruction.
