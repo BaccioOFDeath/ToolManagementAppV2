@@ -304,7 +304,7 @@ namespace InventoryManagementApp.Services
 
         bool ShowReservationDialog(Reservation reservation, bool isNew)
         {
-            var win = new ReservationEditWindow(reservation, isNew);
+            var win = ActivatorUtilities.CreateInstance<ReservationEditWindow>(_serviceProvider, reservation, isNew);
             TrySetOwner(win);
             return ShowDialogSafe(win);
         }

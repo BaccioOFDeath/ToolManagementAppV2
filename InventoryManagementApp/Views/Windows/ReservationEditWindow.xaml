@@ -3,10 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:InventoryManagementApp.Views.Controls"
         Title="Reservation"
-        Width="720"
-        Height="500"
-        MinWidth="680"
-        MinHeight="460"
+        Width="780"
+        Height="560"
+        MinWidth="720"
+        MinHeight="520"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
     <Grid Margin="8">
@@ -65,6 +65,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="160"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -79,21 +80,61 @@
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Item Name" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,6" VerticalAlignment="Center"/>
                     <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding Reservation.ItemName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
 
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Customer" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,6" VerticalAlignment="Center"/>
-                    <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding Reservation.CustomerName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+                    <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="6" Margin="0,0,0,6">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="90"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Find item" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ItemSearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,4"/>
+                            <Button Grid.Row="0" Grid.Column="2" Content="Clear" Command="{Binding ClearItemSearchCommand}" Margin="0,0,6,4"/>
+                            <Button Grid.Row="0" Grid.Column="3" Style="{StaticResource PrimaryButton}" Content="Apply" Command="{Binding ApplySelectedItemCommand}" Margin="0,0,0,4"/>
+                            <ListBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" ItemsSource="{Binding ItemSearchResults}" SelectedItem="{Binding SelectedSearchItem, Mode=TwoWay}" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="105"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="120"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding ItemNumber}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" Margin="8,0"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding Location}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            <DockPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4" Margin="0,4,0,0">
+                                <TextBlock Text="{Binding ItemSearchSummary}" Style="{StaticResource CaptionTextBlock}" DockPanel.Dock="Left"/>
+                                <TextBlock Text="{Binding SelectedItemSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                            </DockPanel>
+                        </Grid>
+                    </Border>
 
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Start Date" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,6" VerticalAlignment="Center"/>
-                    <DatePicker Grid.Row="3" Grid.Column="1" SelectedDate="{Binding Reservation.StartDate}" Margin="0,0,8,6"/>
-                    <TextBlock Grid.Row="3" Grid.Column="2" Text="End Date" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,6" VerticalAlignment="Center"/>
-                    <DatePicker Grid.Row="3" Grid.Column="3" SelectedDate="{Binding Reservation.EndDate}" Margin="0,0,0,6"/>
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Customer" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,6" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding Reservation.CustomerName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
 
-                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Quantity" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,6" VerticalAlignment="Center"/>
-                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Reservation.Quantity, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,6"/>
-                    <TextBlock Grid.Row="4" Grid.Column="2" Text="Rental ID" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,6" VerticalAlignment="Center"/>
-                    <TextBox Grid.Row="4" Grid.Column="3" Text="{Binding Reservation.RentalID, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Start Date" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,6" VerticalAlignment="Center"/>
+                    <DatePicker Grid.Row="4" Grid.Column="1" SelectedDate="{Binding Reservation.StartDate}" Margin="0,0,8,6"/>
+                    <TextBlock Grid.Row="4" Grid.Column="2" Text="End Date" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,6" VerticalAlignment="Center"/>
+                    <DatePicker Grid.Row="4" Grid.Column="3" SelectedDate="{Binding Reservation.EndDate}" Margin="0,0,0,6"/>
 
-                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Notes" Style="{StaticResource LabelTextBlock}" Margin="0,2,8,0"/>
-                    <TextBox Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding Reservation.Notes, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" MinHeight="110"/>
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Quantity" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,6" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Reservation.Quantity, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,6"/>
+                    <TextBlock Grid.Row="5" Grid.Column="2" Text="Rental ID" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,6" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="5" Grid.Column="3" Text="{Binding Reservation.RentalID, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+
+                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Notes" Style="{StaticResource LabelTextBlock}" Margin="0,2,8,0"/>
+                    <TextBox Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding Reservation.Notes, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" MinHeight="90"/>
                 </Grid>
             </Border>
         </Grid>

@@ -17,7 +17,27 @@ namespace InventoryManagementApp.ViewModels.Rental
 
         public ObservableCollection<CustomerModel> Customers { get; }
         public ObservableCollection<CustomerModel> FilteredCustomers { get; }
-        
+
+        public string CustomerCountSummary => FilteredCustomers.Count == Customers.Count
+            ? $"{Customers.Count} customer{(Customers.Count == 1 ? string.Empty : "s")} available"
+            : $"{FilteredCustomers.Count} of {Customers.Count} customer{(Customers.Count == 1 ? string.Empty : "s")} shown";
+
+        public string SelectedCustomerSummary => SelectedCustomer == null
+            ? "No customer selected"
+            : $"{ValueOrNotRecorded(SelectedCustomer.Company)} | {ValueOrNotRecorded(SelectedCustomer.Contact)}";
+
+        public string SelectedCustomerContactLine => SelectedCustomer == null
+            ? "Search or select a customer before confirming the rental."
+            : $"Email: {ValueOrNotRecorded(SelectedCustomer.Email)} | Phone: {ValueOrNotRecorded(SelectedCustomer.Phone)} | Mobile: {ValueOrNotRecorded(SelectedCustomer.Mobile)}";
+
+        public string SelectedCustomerAddressLine => SelectedCustomer == null
+            ? "Customer details will appear here for final advisor review."
+            : $"Address: {ValueOrNotRecorded(SelectedCustomer.Address)}";
+
+        public string SelectedCustomerActionHint => SelectedCustomer == null
+            ? "Next action: choose the customer collecting this item."
+            : $"Next action: confirm the rental for {ValueOrNotRecorded(SelectedCustomer.Company)} due back {SelectedDueDate:yyyy-MM-dd}.";
+
         CustomerModel? _selectedCustomer;
         public CustomerModel? SelectedCustomer
         {
@@ -25,7 +45,13 @@ namespace InventoryManagementApp.ViewModels.Rental
             set
             {
                 if (SetProperty(ref _selectedCustomer, value))
+                {
                     CheckOutCommand.NotifyCanExecuteChanged();
+                    OnPropertyChanged(nameof(SelectedCustomerSummary));
+                    OnPropertyChanged(nameof(SelectedCustomerContactLine));
+                    OnPropertyChanged(nameof(SelectedCustomerAddressLine));
+                    OnPropertyChanged(nameof(SelectedCustomerActionHint));
+                }
             }
         }
 
@@ -59,7 +85,11 @@ namespace InventoryManagementApp.ViewModels.Rental
         public DateTime SelectedDueDate
         {
             get => _selectedDueDate;
-            set => SetProperty(ref _selectedDueDate, value);
+            set
+            {
+                if (SetProperty(ref _selectedDueDate, value))
+                    OnPropertyChanged(nameof(SelectedCustomerActionHint));
+            }
         }
 
         public event EventHandler? RequestClose;
@@ -71,17 +101,19 @@ namespace InventoryManagementApp.ViewModels.Rental
         public IRelayCommand CancelCommand { get; }
         public IAsyncRelayCommand AddCustomerCommand { get; }
         public IRelayCommand SetRentalDaysCommand { get; }
+        public IRelayCommand ClearCustomerSearchCommand { get; }
 
         public RentItemPopupViewModel(ItemModel item, IEnumerable<CustomerModel> customers, ICustomerService customerService, IDialogService dialogService)
         {
             _customerService = customerService;
             _dialogService = dialogService;
-            Customers = new ObservableCollection<CustomerModel>(customers);
-            FilteredCustomers = new ObservableCollection<CustomerModel>(customers);
+            Customers = new ObservableCollection<CustomerModel>(customers.OrderBy(c => c.Company).ThenBy(c => c.Contact));
+            FilteredCustomers = new ObservableCollection<CustomerModel>(Customers);
             CheckOutCommand = new RelayCommand(Confirm, CanConfirm);
             CancelCommand = new RelayCommand(Cancel);
             AddCustomerCommand = new AsyncRelayCommand(AddCustomerAsync);
             SetRentalDaysCommand = new RelayCommand<string>(SetRentalDays);
+            ClearCustomerSearchCommand = new RelayCommand(ClearCustomerSearch, () => !string.IsNullOrWhiteSpace(CustomerSearchText));
         }
 
         bool CanConfirm() => SelectedCustomer != null;
@@ -104,7 +136,8 @@ namespace InventoryManagementApp.ViewModels.Rental
             if (customer == null) return;
             await _customerService.AddCustomerAsync(customer);
             Customers.Add(customer);
-            FilteredCustomers.Add(customer);
+            CustomerSearchText = string.Empty;
+            FilterCustomers();
             SelectedCustomer = customer;
         }
 
@@ -116,31 +149,51 @@ namespace InventoryManagementApp.ViewModels.Rental
             }
         }
 
+        void ClearCustomerSearch()
+        {
+            CustomerSearchText = string.Empty;
+        }
+
         void FilterCustomers()
         {
+            var selected = SelectedCustomer;
             FilteredCustomers.Clear();
-            
+
+            IEnumerable<CustomerModel> matches;
             if (string.IsNullOrWhiteSpace(CustomerSearchText))
             {
-                foreach (var customer in Customers)
-                {
-                    FilteredCustomers.Add(customer);
-                }
+                matches = Customers;
             }
             else
             {
-                var searchTerm = CustomerSearchText.ToLowerInvariant();
-                var matches = Customers.Where(c =>
-                    (c.Company?.ToLowerInvariant().Contains(searchTerm) ?? false) ||
-                    (c.Contact?.ToLowerInvariant().Contains(searchTerm) ?? false) ||
-                    (c.Email?.ToLowerInvariant().Contains(searchTerm) ?? false) ||
-                    (c.Phone?.ToLowerInvariant().Contains(searchTerm) ?? false));
-                
-                foreach (var customer in matches)
-                {
-                    FilteredCustomers.Add(customer);
-                }
+                var searchTerm = CustomerSearchText.Trim();
+                matches = Customers.Where(c =>
+                    Contains(c.Company, searchTerm) ||
+                    Contains(c.Contact, searchTerm) ||
+                    Contains(c.Email, searchTerm) ||
+                    Contains(c.Phone, searchTerm) ||
+                    Contains(c.Mobile, searchTerm) ||
+                    Contains(c.Address, searchTerm));
             }
+
+            foreach (var customer in matches.OrderBy(c => c.Company).ThenBy(c => c.Contact))
+            {
+                FilteredCustomers.Add(customer);
+            }
+
+            if (selected != null && !FilteredCustomers.Contains(selected))
+                SelectedCustomer = null;
+            else if (SelectedCustomer == null && FilteredCustomers.Count == 1)
+                SelectedCustomer = FilteredCustomers[0];
+
+            OnPropertyChanged(nameof(CustomerCountSummary));
+            ClearCustomerSearchCommand.NotifyCanExecuteChanged();
         }
+
+        static bool Contains(string? value, string searchTerm)
+            => !string.IsNullOrWhiteSpace(value) && value.Contains(searchTerm, StringComparison.OrdinalIgnoreCase);
+
+        static string ValueOrNotRecorded(string? value)
+            => string.IsNullOrWhiteSpace(value) ? "Not recorded" : value;
     }
 }
