@@ -22,7 +22,11 @@ namespace InventoryManagementApp.ViewModels.Rental
         public CustomerModel? SelectedCustomer
         {
             get => _selectedCustomer;
-            set => SetProperty(ref _selectedCustomer, value);
+            set
+            {
+                if (SetProperty(ref _selectedCustomer, value))
+                    CheckOutCommand.NotifyCanExecuteChanged();
+            }
         }
 
         private string _customerSearchText = string.Empty;
@@ -140,4 +144,3 @@ namespace InventoryManagementApp.ViewModels.Rental
         }
     }
 }
-
