@@ -17,6 +17,7 @@ namespace InventoryManagementApp.ViewModels
 
         public ObservableCollection<string> ReportTypes { get; }
         public ObservableCollection<ReportLine> ReportLines { get; } = new();
+        public ObservableCollection<ReportLine> ReportResults => ReportLines;
 
         private string _selectedReport = string.Empty;
         public string SelectedReport
