@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-17 08:22 NZST
+Last audit date/time: 2026-06-17 09:11 NZST
 
 ## Completed workflows
 
@@ -25,6 +25,7 @@ Last audit date/time: 2026-06-17 08:22 NZST
 - QA screenshot manifests now list each captured PNG with dimensions and byte size so future screenshot reviews can spot cropped or suspicious captures faster.
 - Admin user management now supports durable checkbox permissions, advisor/technician/admin presets, access summaries in the directory/detail/copy/print flows, and permission-based navigation visibility for operations, insights, data, and admin sections.
 - Reservations now use a two-pane advisor workbench with hold directory, quick status filters, selected-hold detail, timing, next action, shelf checklist, copy handoff, print handoff, printable filtered directory, stable useful selection, null-safe expanded search, and row-correct double-click/right-click actions.
+- QA screenshot review now produces a browser-friendly `index.html` gallery grouped by app area and fails when unexpected PNG captures appear without updating the expected screenshot manifest.
 
 ## Partially complete workflows
 
@@ -47,10 +48,10 @@ Last audit date/time: 2026-06-17 08:22 NZST
 
 ## Next recommended target
 
-- Continue the end-to-end workflow audit from a technician/advisor/admin perspective, with the next useful pass focused on Categories or Reports runtime polish depending on which page still exposes the most incomplete action/result path on `master`.
+- Continue the end-to-end workflow audit from a technician/advisor/admin perspective, with the next useful pass focused on using the new screenshot review index to identify any cramped or inconsistent pages after a Windows QA capture run.
 
 ## Validation status
 
-- GitHub connector readback reviewed the reservation branch files, including reservation model notifications, workflow view model, workbench XAML, row interaction code-behind, progress note, and completion checklist.
+- GitHub connector readback reviewed the QA screenshot wrapper, progress note, and completion checklist.
 - Local XAML parsing, `dotnet --info`, `dotnet restore`, `dotnet build`, `dotnet test`, and `scripts/run-app-qa-screenshots.ps1` were not run because this scheduled Linux container lacks the .NET SDK and Windows/WPF runtime, and direct local clone/raw fetches remain blocked by the network tunnel.
 - Did not run unrelated tests, per instruction.
