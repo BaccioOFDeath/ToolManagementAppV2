@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.Sqlite;
+using Microsoft.Data.Sqlite;
 using System;
 using System.IO;
 using System.Linq;
@@ -290,7 +290,6 @@ namespace InventoryManagementApp.Services.Items
             bitmap.EndInit();
             bitmap.Freeze();
 
-            // Prevent division by zero
             if (bitmap.PixelWidth == 0 || bitmap.PixelHeight == 0)
                 throw new InvalidOperationException("Invalid image dimensions: image has zero width or height.");
 
@@ -406,12 +405,13 @@ namespace InventoryManagementApp.Services.Items
                 throw new InvalidDataException("CSV header row is missing or empty.");
 
             using var conn = _dbService.CreateConnection();
-            using var transaction = conn.BeginTransaction();
             var existingNumbers = new HashSet<string>(
                 await SqliteHelper.ExecuteReaderAsync(conn,
                     "SELECT ItemNumber FROM Items",
                     r => r.GetString(0),
-                    null, cancellationToken));
+                    null, cancellationToken),
+                StringComparer.OrdinalIgnoreCase);
+            using var transaction = conn.BeginTransaction();
 
             var row = 1; // header already read
             try
@@ -624,18 +624,56 @@ namespace InventoryManagementApp.Services.Items
                 await SqliteHelper.ExecuteReaderAsync(conn,
                     "SELECT ItemNumber FROM Items",
                     r => r.GetString(0),
-                    null, cancellationToken));
+                    null, cancellationToken),
+                StringComparer.OrdinalIgnoreCase);
+            using var transaction = conn.BeginTransaction();
 
-            foreach (var item in items)
+            try
             {
-                if (!existingNumbers.Contains(item.ItemNumber))
+                foreach (var item in items)
                 {
-                    await AddItemInternalAsync(item, cancellationToken).ConfigureAwait(false);
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (string.IsNullOrWhiteSpace(item.ItemNumber))
+                        item.ItemNumber = GenerateNextImportedItemNumber(existingNumbers);
+
+                    if (existingNumbers.Contains(item.ItemNumber))
+                        continue;
+
+                    ValidateQuantity(item.QuantityOnHand);
+                    item.ItemID = await InsertItemAsync(conn, transaction, item, cancellationToken).ConfigureAwait(false);
                     existingNumbers.Add(item.ItemNumber);
                 }
+
+                transaction.Commit();
+                return skippedRows;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to import items");
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        private static string GenerateNextImportedItemNumber(ISet<string> existingNumbers)
+        {
+            var max = 0;
+            foreach (var number in existingNumbers)
+            {
+                if (number.Length > 1 && number[0] == 'T' && int.TryParse(number[1..], out var parsed))
+                    max = Math.Max(max, parsed);
             }
 
-            return skippedRows;
+            string candidate;
+            do
+            {
+                max++;
+                candidate = $"T{max}";
+            }
+            while (existingNumbers.Contains(candidate));
+
+            return candidate;
         }
 
         public async Task ExportItemsAsync(string filePath, IDataExporter<ItemModel> exporter, CancellationToken cancellationToken = default)
