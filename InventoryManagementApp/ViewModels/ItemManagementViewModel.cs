@@ -370,6 +370,11 @@ namespace InventoryManagementApp.ViewModels
                 _logger.LogError(ex, "Failed to add {ItemLabelSingular} due to invalid argument", LabelProvider.Instance.ItemLabelSingular);
                 await _dialogService.ShowInfoAsync(ex.Message, "Error");
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to add {ItemLabelSingular}", LabelProvider.Instance.ItemLabelSingular);
+                await _dialogService.ShowInfoAsync($"Failed to add {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message}", "Error");
+            }
         }
 
         async Task EditItemAsync(CancellationToken cancellationToken)
@@ -377,39 +382,19 @@ namespace InventoryManagementApp.ViewModels
             var selected = SelectedItem;
             if (selected == null) return;
 
-            var clone = new ItemModel
-            {
-                ItemID = selected.ItemID,
-                ItemNumber = selected.ItemNumber,
-                PartNumber = selected.PartNumber,
-                Name = selected.Name,
-                Brand = selected.Brand,
-                Location = selected.Location,
-                QuantityOnHand = selected.QuantityOnHand,
-                RentedQuantity = selected.RentedQuantity,
-                Supplier = selected.Supplier,
-                PurchasedDate = selected.PurchasedDate,
-                Notes = selected.Notes,
-                Keywords = selected.Keywords,
-                IsPowered = selected.IsPowered,
-                IsRentalItem = selected.IsRentalItem,
-                IsCheckedOut = selected.IsCheckedOut,
-                CheckedOutBy = selected.CheckedOutBy,
-                CheckedOutTime = selected.CheckedOutTime,
-                CheckedInBy = selected.CheckedInBy,
-                CheckedInTime = selected.CheckedInTime,
-                ImagePath = selected.ImagePath
-            };
-
+            var clone = CloneItemForEdit(selected);
             var updated = await _dialogService.ShowEditItemDialogAsync(clone);
             if (updated == null) return;
 
             try
             {
+                var itemId = updated.ItemID;
                 await _itemService.UpdateItemAsync(updated, cancellationToken);
                 await LoadItemsAsync(new ItemPage(1, PageSize));
                 await FilterItemsAsync();
-                SelectedItem = Items.FirstOrDefault(t => t.ItemID == updated.ItemID);
+                SelectedItem = SearchResults.FirstOrDefault(t => t.ItemID == itemId)
+                    ?? Items.FirstOrDefault(t => t.ItemID == itemId)
+                    ?? selected;
             }
             catch (OperationCanceledException)
             {
@@ -418,6 +403,21 @@ namespace InventoryManagementApp.ViewModels
             catch (UnauthorizedAccessException)
             {
                 await _dialogService.ShowInfoAsync($"You are not authorized to update {LabelProvider.Instance.ItemLabelPlural.ToLower()}.", "Unauthorized");
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogError(ex, "Failed to update {ItemLabelSingular} {ItemID} due to invalid operation", LabelProvider.Instance.ItemLabelSingular, selected.ItemID);
+                await _dialogService.ShowInfoAsync(ex.Message, "Error");
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogError(ex, "Failed to update {ItemLabelSingular} {ItemID} due to invalid argument", LabelProvider.Instance.ItemLabelSingular, selected.ItemID);
+                await _dialogService.ShowInfoAsync(ex.Message, "Error");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update {ItemLabelSingular} {ItemID}", LabelProvider.Instance.ItemLabelSingular, selected.ItemID);
+                await _dialogService.ShowInfoAsync($"Failed to update {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message}", "Error");
             }
         }
 
@@ -581,6 +581,39 @@ namespace InventoryManagementApp.ViewModels
                 _logger.LogError(ex, "Failed to toggle check out status for item {ItemID}", item.ItemID);
                 await _dialogService.ShowInfoAsync($"Failed to update check-out status: {ex.Message}", "Error");
             }
+        }
+
+        private static ItemModel CloneItemForEdit(ItemModel source)
+        {
+            return new ItemModel
+            {
+                ItemID = source.ItemID,
+                ItemNumber = source.ItemNumber,
+                PartNumber = source.PartNumber,
+                Name = source.Name,
+                Brand = source.Brand,
+                Location = source.Location,
+                Price = source.Price,
+                QuantityOnHand = source.QuantityOnHand,
+                RentedQuantity = source.RentedQuantity,
+                Supplier = source.Supplier,
+                PurchasedDate = source.PurchasedDate,
+                Notes = source.Notes,
+                Keywords = source.Keywords,
+                IsPowered = source.IsPowered,
+                IsRentalItem = source.IsRentalItem,
+                IsCheckedOut = source.IsCheckedOut,
+                CheckedOutBy = source.CheckedOutBy,
+                CheckedOutTime = source.CheckedOutTime,
+                CheckedInBy = source.CheckedInBy,
+                CheckedInTime = source.CheckedInTime,
+                ImagePath = source.ImagePath,
+                UpdatedAt = source.UpdatedAt,
+                IsIncomplete = source.IsIncomplete,
+                MissingComponentsNotes = source.MissingComponentsNotes,
+                IssuesNotes = source.IssuesNotes,
+                CheckoutCount = source.CheckoutCount
+            };
         }
 
         private static void ApplyItemState(ItemModel target, ItemModel source)
