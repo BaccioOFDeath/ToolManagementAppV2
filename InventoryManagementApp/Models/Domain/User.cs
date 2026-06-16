@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MediaBrush = System.Windows.Media.Brush;
 using MediaBrushes = System.Windows.Media.Brushes;
@@ -9,6 +11,55 @@ namespace InventoryManagementApp.Models.Domain
 {
     public class User : ObservableObject
     {
+        public const string PermissionManageItems = "manage-items";
+        public const string PermissionRentals = "rentals";
+        public const string PermissionCustomers = "customers";
+        public const string PermissionMaintenance = "maintenance";
+        public const string PermissionCalibration = "calibration";
+        public const string PermissionReservations = "reservations";
+        public const string PermissionKits = "kits";
+        public const string PermissionCategories = "categories";
+        public const string PermissionPrintLabels = "print-labels";
+        public const string PermissionReports = "reports";
+        public const string PermissionActivityLogs = "activity-logs";
+        public const string PermissionImportExport = "import-export";
+        public const string PermissionManageUsers = "manage-users";
+        public const string PermissionSettings = "settings";
+
+        public static readonly IReadOnlyDictionary<string, string> PermissionLabels = new Dictionary<string, string>
+        {
+            [PermissionManageItems] = "Manage items",
+            [PermissionRentals] = "Rentals / checkout",
+            [PermissionCustomers] = "Customers",
+            [PermissionMaintenance] = "Maintenance",
+            [PermissionCalibration] = "Calibration",
+            [PermissionReservations] = "Reservations / holds",
+            [PermissionKits] = "Kits",
+            [PermissionCategories] = "Categories",
+            [PermissionPrintLabels] = "Print labels",
+            [PermissionReports] = "Reports",
+            [PermissionActivityLogs] = "Activity logs",
+            [PermissionImportExport] = "Import / export",
+            [PermissionManageUsers] = "Manage users",
+            [PermissionSettings] = "Settings"
+        };
+
+        public static readonly IReadOnlyCollection<string> DefaultUserPermissions = new[]
+        {
+            PermissionRentals,
+            PermissionCustomers,
+            PermissionMaintenance,
+            PermissionCalibration,
+            PermissionReservations,
+            PermissionKits,
+            PermissionCategories,
+            PermissionPrintLabels,
+            PermissionReports,
+            PermissionActivityLogs
+        };
+
+        const string NoPermissionsValue = "none";
+
         private int _userID;
         public int UserID { get => _userID; set => SetProperty(ref _userID, value); }
 
@@ -25,7 +76,15 @@ namespace InventoryManagementApp.Models.Domain
         public string UserPhotoPath { get => _userPhotoPath; set => SetProperty(ref _userPhotoPath, value); }
 
         private bool _isAdmin;
-        public bool IsAdmin { get => _isAdmin; set => SetProperty(ref _isAdmin, value); }
+        public bool IsAdmin
+        {
+            get => _isAdmin;
+            set
+            {
+                if (SetProperty(ref _isAdmin, value))
+                    OnPropertyChanged(nameof(AccessSummary));
+            }
+        }
 
         private string _email = string.Empty;
         public string Email { get => _email; set => SetProperty(ref _email, value); }
@@ -57,6 +116,17 @@ namespace InventoryManagementApp.Models.Domain
         private DateTime? _lockoutEndUtc;
         public DateTime? LockoutEndUtc { get => _lockoutEndUtc; set => SetProperty(ref _lockoutEndUtc, value); }
 
+        private string _permissions = string.Empty;
+        public string Permissions
+        {
+            get => _permissions;
+            set
+            {
+                if (SetProperty(ref _permissions, value ?? string.Empty))
+                    OnPropertyChanged(nameof(AccessSummary));
+            }
+        }
+
         public bool IsLockedOut => LockoutEndUtc.HasValue && LockoutEndUtc.Value > DateTime.UtcNow;
 
         public string LockoutStatus => IsLockedOut
@@ -65,7 +135,75 @@ namespace InventoryManagementApp.Models.Domain
                 ? $"{FailedLoginAttempts} failed login attempt{(FailedLoginAttempts == 1 ? string.Empty : "s")}."
                 : "Ready";
 
+        public string AccessSummary
+        {
+            get
+            {
+                if (IsAdmin)
+                    return "Full admin access";
+
+                var labels = GetPermissionKeys()
+                    .Select(key => PermissionLabels.TryGetValue(key, out var label) ? label : key)
+                    .ToList();
+
+                return labels.Count == 0
+                    ? "No app sections assigned"
+                    : string.Join(", ", labels);
+            }
+        }
+
         private MediaBrush _initialsBrush = MediaBrushes.Transparent;
         public MediaBrush InitialsBrush { get => _initialsBrush; set => SetProperty(ref _initialsBrush, value); }
+
+        public bool HasPermission(string permissionKey)
+        {
+            if (IsAdmin)
+                return true;
+            if (string.IsNullOrWhiteSpace(permissionKey))
+                return false;
+            return GetPermissionKeys().Contains(permissionKey);
+        }
+
+        public bool HasAnyPermission(params string[] permissionKeys)
+            => permissionKeys.Any(HasPermission);
+
+        public void SetPermission(string permissionKey, bool allowed)
+        {
+            var permissions = GetPermissionKeys().ToHashSet(StringComparer.OrdinalIgnoreCase);
+            if (allowed)
+                permissions.Add(permissionKey);
+            else
+                permissions.Remove(permissionKey);
+
+            Permissions = permissions.Count == 0
+                ? NoPermissionsValue
+                : string.Join(";", PermissionLabels.Keys.Where(permissions.Contains));
+        }
+
+        IEnumerable<string> GetPermissionKeys()
+        {
+            if (string.Equals(Permissions, NoPermissionsValue, StringComparison.OrdinalIgnoreCase))
+                return Array.Empty<string>();
+
+            if (string.IsNullOrWhiteSpace(Permissions))
+                return DefaultUserPermissions;
+
+            return Permissions
+                .Split(new[] { ';', ',', '|', ' ' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(key => PermissionLabels.ContainsKey(key))
+                .Distinct(StringComparer.OrdinalIgnoreCase);
+        }
+
+        public static string BuildPermissions(IEnumerable<string> permissionKeys)
+        {
+            var permissions = permissionKeys
+                .Where(PermissionLabels.ContainsKey)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            return permissions.Count == 0
+                ? NoPermissionsValue
+                : string.Join(";", PermissionLabels.Keys.Where(permissions.Contains));
+        }
     }
 }

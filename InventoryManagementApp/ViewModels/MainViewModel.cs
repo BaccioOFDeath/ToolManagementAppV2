@@ -184,8 +184,8 @@ namespace InventoryManagementApp.ViewModels
 
         public MediaBrush? CurrentUserInitialsBrush => _userContext.CurrentUser?.InitialsBrush;
 
-        public bool IsAdminSectionVisible => IsCurrentUserAdmin;
-        public bool IsDataSectionVisible => IsCurrentUserAdmin;
+        public bool IsAdminSectionVisible => CanAny(User.PermissionManageUsers, User.PermissionSettings);
+        public bool IsDataSectionVisible => Can(User.PermissionImportExport);
 
         public ObservableCollection<NavItem> CurrentNavItems { get; } = new();
 
@@ -212,6 +212,10 @@ namespace InventoryManagementApp.ViewModels
         }
 
         public ItemModel? SelectedItem => ItemManagement.SelectedItem;
+
+        bool Can(string permissionKey) => _userContext.CurrentUser?.HasPermission(permissionKey) == true;
+
+        bool CanAny(params string[] permissionKeys) => _userContext.CurrentUser?.HasAnyPermission(permissionKeys) == true;
 
         void CancelCurrentPageLoad()
         {
@@ -874,31 +878,40 @@ namespace InventoryManagementApp.ViewModels
                     items.Add(new NavItem("Dashboard", OpenDashboardCommand));
                     break;
                 case NavSectionKeys.Operations:
-                    if (IsCurrentUserAdmin)
+                    if (Can(User.PermissionManageItems))
                         items.Add(new NavItem(itemsPlural, OpenManageItemsCommand));
-                    items.Add(new NavItem("Rentals", OpenRentalsCommand));
-                    items.Add(new NavItem("Customers", OpenCustomersCommand));
-                    items.Add(new NavItem("Maintenance", OpenMaintenanceCommand));
-                    items.Add(new NavItem("Calibration", OpenCalibrationCommand));
-                    items.Add(new NavItem("Reservations", OpenReservationsCommand));
-                    items.Add(new NavItem("Kits", OpenKitManagementCommand));
-                    items.Add(new NavItem("Categories", OpenCategoriesCommand));
-                    items.Add(new NavItem("Print Labels", OpenPrintLabelWindowCommand));
+                    if (Can(User.PermissionRentals))
+                        items.Add(new NavItem("Rentals", OpenRentalsCommand));
+                    if (Can(User.PermissionCustomers))
+                        items.Add(new NavItem("Customers", OpenCustomersCommand));
+                    if (Can(User.PermissionMaintenance))
+                        items.Add(new NavItem("Maintenance", OpenMaintenanceCommand));
+                    if (Can(User.PermissionCalibration))
+                        items.Add(new NavItem("Calibration", OpenCalibrationCommand));
+                    if (Can(User.PermissionReservations))
+                        items.Add(new NavItem("Reservations", OpenReservationsCommand));
+                    if (Can(User.PermissionKits))
+                        items.Add(new NavItem("Kits", OpenKitManagementCommand));
+                    if (Can(User.PermissionCategories))
+                        items.Add(new NavItem("Categories", OpenCategoriesCommand));
+                    if (Can(User.PermissionPrintLabels))
+                        items.Add(new NavItem("Print Labels", OpenPrintLabelWindowCommand));
                     break;
                 case NavSectionKeys.Insights:
-                    items.Add(new NavItem("Reports", OpenReportsCommand));
-                    items.Add(new NavItem("Activity Logs", OpenActivityLogsCommand));
+                    if (Can(User.PermissionReports))
+                        items.Add(new NavItem("Reports", OpenReportsCommand));
+                    if (Can(User.PermissionActivityLogs))
+                        items.Add(new NavItem("Activity Logs", OpenActivityLogsCommand));
                     break;
                 case NavSectionKeys.Data:
-                    if (IsCurrentUserAdmin)
+                    if (Can(User.PermissionImportExport))
                         items.Add(new NavItem("Import / Export", OpenImportExportCommand));
                     break;
                 case NavSectionKeys.Admin:
-                    if (IsCurrentUserAdmin)
-                    {
+                    if (Can(User.PermissionManageUsers))
                         items.Add(new NavItem("Users", OpenUsersCommand));
+                    if (Can(User.PermissionSettings))
                         items.Add(new NavItem("Settings", OpenSettingsCommand));
-                    }
                     break;
             }
 

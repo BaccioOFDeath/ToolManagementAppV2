@@ -149,7 +149,8 @@ namespace InventoryManagementApp.Services.Core
                     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     PasswordExpired INTEGER NOT NULL DEFAULT 0,
                     FailedLoginAttempts INTEGER NOT NULL DEFAULT 0,
-                    LockoutEndUtc DATETIME
+                    LockoutEndUtc DATETIME,
+                    Permissions TEXT
                 );
                 CREATE TABLE IF NOT EXISTS Customers (
                     CustomerID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -258,6 +259,7 @@ namespace InventoryManagementApp.Services.Core
             cmd.ExecuteNonQuery();
             EnsureColumn("Users", "FailedLoginAttempts", "INTEGER", "0");
             EnsureColumn("Users", "LockoutEndUtc", "DATETIME");
+            EnsureColumn("Users", "Permissions", "TEXT");
             EnsureIndex(conn, "Items", "ItemNumber", true);
             EnsureIndex(conn, "Items", "NameDescription");
             EnsureIndex(conn, "Items", "Brand");

@@ -12,7 +12,6 @@ using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Utilities.Extensions;
 using InventoryManagementApp.Utilities.Helpers;
-using InventoryManagementApp.Views.Pages;
 using InventoryManagementApp.Views.Windows;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -269,7 +268,8 @@ namespace InventoryManagementApp.ViewModels
             {
                 UserName = name,
                 Role = "Workshop Staff",
-                IsAdmin = false
+                IsAdmin = false,
+                Permissions = User.BuildPermissions(User.DefaultUserPermissions)
             };
 
             if (!TryPromptForPassword(newUser, out var entered)) return;
@@ -347,9 +347,12 @@ namespace InventoryManagementApp.ViewModels
                 var term = UserSearchText.Trim();
                 filtered = filtered.Where(u =>
                     (u.UserName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (u.Role?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (u.Email?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (u.Phone?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (u.Mobile?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false));
+                    (u.Mobile?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (u.Address?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (u.AccessSummary?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false));
             }
             Users.ReplaceRange(filtered);
         }
@@ -394,6 +397,10 @@ namespace InventoryManagementApp.ViewModels
                 Role = source.Role,
                 IsActive = source.IsActive,
                 CreatedAt = source.CreatedAt,
+                PasswordExpired = source.PasswordExpired,
+                FailedLoginAttempts = source.FailedLoginAttempts,
+                LockoutEndUtc = source.LockoutEndUtc,
+                Permissions = source.Permissions,
                 InitialsBrush = source.InitialsBrush
             };
 
@@ -457,6 +464,9 @@ namespace InventoryManagementApp.ViewModels
                     user.PasswordHash = refreshed.PasswordHash;
                     user.PasswordSalt = refreshed.PasswordSalt;
                     user.PasswordExpired = true;
+                    user.FailedLoginAttempts = refreshed.FailedLoginAttempts;
+                    user.LockoutEndUtc = refreshed.LockoutEndUtc;
+                    user.Permissions = refreshed.Permissions;
                 }
                 await _dialogService.ShowInfoAsync(
                     $"Password has been reset to \"{newPassword}\". The user must change it at next login.",
@@ -506,6 +516,5 @@ namespace InventoryManagementApp.ViewModels
                 await _dialogService.ShowInfoAsync($"Failed to delete user: {ex.Message}", "Error");
             }
         }
-
     }
 }
