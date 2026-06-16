@@ -37,6 +37,14 @@ public class NullSafetyTests
     }
 
     [Fact]
+    public void ReportsViewModel_ReportResults_AliasesReportLines()
+    {
+        var vm = new ReportsViewModel(new ReportService(null!, null!, null!, null!, null!));
+
+        Assert.Same(vm.ReportLines, vm.ReportResults);
+    }
+
+    [Fact]
     public void CustomerManagementViewModel_InitializesFields()
     {
         var vm = new CustomerManagementViewModel(null!, null!);
