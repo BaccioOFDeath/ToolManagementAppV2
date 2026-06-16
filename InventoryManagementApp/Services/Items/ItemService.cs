@@ -406,6 +406,7 @@ namespace InventoryManagementApp.Services.Items
                 throw new InvalidDataException("CSV header row is missing or empty.");
 
             using var conn = _dbService.CreateConnection();
+            using var transaction = conn.BeginTransaction();
             var existingNumbers = new HashSet<string>(
                 await SqliteHelper.ExecuteReaderAsync(conn,
                     "SELECT ItemNumber FROM Items",
@@ -500,15 +501,17 @@ namespace InventoryManagementApp.Services.Items
                         IsRentalItem = TryParseBool(rental)
                     };
 
-                    await _repository.InsertAsync(item, cancellationToken);
+                    await InsertItemAsync(conn, transaction, item, cancellationToken).ConfigureAwait(false);
                     existingNumbers.Add(itemNumber!);
                 }
 
+                transaction.Commit();
                 return invalidRows;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to import items from CSV");
+                transaction.Rollback();
                 throw;
             }
 
@@ -517,6 +520,37 @@ namespace InventoryManagementApp.Services.Items
             static bool TryParseBool(string? input) => input != null && (input.Equals("1") || bool.TryParse(input, out var b) && b);
 
             static DateTime? TryParseDate(string? input) => DateTime.TryParse(input, out var result) ? result : null;
+        }
+
+        protected virtual async Task<int> InsertItemAsync(SqliteConnection conn, SqliteTransaction? transaction, ItemModel item, CancellationToken cancellationToken)
+        {
+            const string sql = @"INSERT INTO Items (ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, IsPowered, IsIncomplete, MissingComponentsNotes, IssuesNotes, CheckoutCount)
+                                 VALUES (@ItemNumber,@Name,@Location,@Brand,@PartNumber,@Supplier,@PurchasedDate,@Notes,@Keywords,@QuantityOnHand,@RentedQuantity,@IsRentalItem,@Price,@ImagePath,0,@IsPowered,0,'','',0);
+                                 SELECT last_insert_rowid();";
+
+            var parameters = new[]
+            {
+                new SqliteParameter("@ItemNumber", item.ItemNumber),
+                new SqliteParameter("@Name", item.Name),
+                new SqliteParameter("@Location", item.Location),
+                new SqliteParameter("@Brand", item.Brand),
+                new SqliteParameter("@PartNumber", item.PartNumber),
+                new SqliteParameter("@Supplier", item.Supplier),
+                new SqliteParameter("@PurchasedDate", item.PurchasedDate is null ? DBNull.Value : item.PurchasedDate),
+                new SqliteParameter("@Notes", item.Notes),
+                new SqliteParameter("@Keywords", item.Keywords),
+                new SqliteParameter("@QuantityOnHand", item.QuantityOnHand),
+                new SqliteParameter("@RentedQuantity", item.RentedQuantity),
+                new SqliteParameter("@IsRentalItem", item.IsRentalItem ? 1 : 0),
+                new SqliteParameter("@Price", item.Price),
+                new SqliteParameter("@ImagePath", string.IsNullOrWhiteSpace(item.ImagePath) ? DBNull.Value : item.ImagePath),
+                new SqliteParameter("@IsPowered", item.IsPowered ? 1 : 0)
+            };
+
+            using var command = new SqliteCommand(sql, conn, transaction);
+            command.Parameters.AddRange(parameters);
+            var id = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            return Convert.ToInt32(id);
         }
 
         private async Task ExportItemsToCsvInternalAsync(string filePath, CancellationToken cancellationToken)

@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using Microsoft.Data.Sqlite;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Models.ImportExport;
@@ -167,5 +168,87 @@ public class ItemServiceCsvImportTests
 
         File.Delete(csvPath);
         File.Delete(dbPath);
+    }
+
+    [Fact]
+    public async Task ImportItemsFromCsv_SkipsDuplicateItemNumbers()
+    {
+        var csvPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
+        await File.WriteAllTextAsync(csvPath, "ItemNumber,NameDescription\nNUM1,Existing\nNUM1,Duplicate");
+
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        await using var db = new DatabaseService(dbPath);
+        new MigrationRunner(db).Migrate();
+        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+        var service = new ItemService(db, repository);
+
+        var map = new Dictionary<string, string>
+        {
+            ["ItemNumber"] = "ItemNumber",
+            [nameof(ItemImportDto.Name)] = "NameDescription"
+        };
+
+        var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
+        Assert.Contains(3, invalid);
+
+        using var conn = db.CreateConnection();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT COUNT(*) FROM Items WHERE ItemNumber='NUM1'";
+        var count = Convert.ToInt32(cmd.ExecuteScalar());
+        Assert.Equal(1, count);
+
+        File.Delete(csvPath);
+        File.Delete(dbPath);
+    }
+
+    [Fact]
+    public async Task ImportItemsFromCsv_RollsBackInsertedRowsWhenInsertFails()
+    {
+        var csvPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
+        await File.WriteAllTextAsync(csvPath, "ItemNumber,NameDescription\nNUM1,First\nNUM2,Second");
+
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        await using var db = new DatabaseService(dbPath);
+        new MigrationRunner(db).Migrate();
+        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+        var service = new FailingInsertItemService(db, repository, failOnInsertAttempt: 2);
+
+        var map = new Dictionary<string, string>
+        {
+            ["ItemNumber"] = "ItemNumber",
+            [nameof(ItemImportDto.Name)] = "NameDescription"
+        };
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None));
+
+        using var conn = db.CreateConnection();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT COUNT(*) FROM Items";
+        var count = Convert.ToInt32(cmd.ExecuteScalar());
+        Assert.Equal(0, count);
+
+        File.Delete(csvPath);
+        File.Delete(dbPath);
+    }
+
+    private sealed class FailingInsertItemService : ItemService
+    {
+        private readonly int _failOnInsertAttempt;
+        private int _insertAttempts;
+
+        public FailingInsertItemService(DatabaseService dbService, IItemRepository repository, int failOnInsertAttempt)
+            : base(dbService, repository)
+        {
+            _failOnInsertAttempt = failOnInsertAttempt;
+        }
+
+        protected override Task<int> InsertItemAsync(SqliteConnection conn, SqliteTransaction? transaction, ItemModel item, CancellationToken cancellationToken)
+        {
+            _insertAttempts++;
+            if (_insertAttempts == _failOnInsertAttempt)
+                throw new InvalidOperationException("Simulated insert failure.");
+
+            return base.InsertItemAsync(conn, transaction, item, cancellationToken);
+        }
     }
 }
