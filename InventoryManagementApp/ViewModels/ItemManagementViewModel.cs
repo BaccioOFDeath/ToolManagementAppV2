@@ -556,18 +556,17 @@ namespace InventoryManagementApp.ViewModels
             {
                 var result = await _itemService.ToggleItemCheckOutStatusAsync(item.ItemID, cancellationToken).ConfigureAwait(false);
                 if (!result) return;
-                var checkedOut = !item.IsCheckedOut;
-                item.IsCheckedOut = checkedOut;
-                item.QuantityOnHand += checkedOut ? -1 : 1;
+
                 var refreshed = await _itemService.GetItemByIDAsync(item.ItemID, cancellationToken).ConfigureAwait(false);
-                if (refreshed != null)
+                if (refreshed == null)
                 {
-                    item.CheckedOutBy = refreshed.CheckedOutBy;
-                    item.CheckedOutTime = refreshed.CheckedOutTime;
-                    item.CheckedInBy = refreshed.CheckedInBy;
-                    item.CheckedInTime = refreshed.CheckedInTime;
+                    _logger.LogWarning("Item {ItemID} was toggled but could not be refreshed from storage", item.ItemID);
+                    await LoadItemsAsync(new ItemPage(1, PageSize));
+                    await FilterItemsAsync();
+                    return;
                 }
 
+                ApplyItemState(item, refreshed);
                 RefreshCheckedOutItems();
             }
             catch (OperationCanceledException)
@@ -582,6 +581,36 @@ namespace InventoryManagementApp.ViewModels
                 _logger.LogError(ex, "Failed to toggle check out status for item {ItemID}", item.ItemID);
                 await _dialogService.ShowInfoAsync($"Failed to update check-out status: {ex.Message}", "Error");
             }
+        }
+
+        private static void ApplyItemState(ItemModel target, ItemModel source)
+        {
+            target.ItemID = source.ItemID;
+            target.ItemNumber = source.ItemNumber;
+            target.PartNumber = source.PartNumber;
+            target.Name = source.Name;
+            target.Brand = source.Brand;
+            target.Location = source.Location;
+            target.Price = source.Price;
+            target.QuantityOnHand = source.QuantityOnHand;
+            target.RentedQuantity = source.RentedQuantity;
+            target.Supplier = source.Supplier;
+            target.PurchasedDate = source.PurchasedDate;
+            target.Notes = source.Notes;
+            target.Keywords = source.Keywords;
+            target.IsPowered = source.IsPowered;
+            target.IsRentalItem = source.IsRentalItem;
+            target.IsCheckedOut = source.IsCheckedOut;
+            target.CheckedOutBy = source.CheckedOutBy;
+            target.CheckedOutTime = source.CheckedOutTime;
+            target.CheckedInBy = source.CheckedInBy;
+            target.CheckedInTime = source.CheckedInTime;
+            target.ImagePath = source.ImagePath;
+            target.UpdatedAt = source.UpdatedAt;
+            target.IsIncomplete = source.IsIncomplete;
+            target.MissingComponentsNotes = source.MissingComponentsNotes;
+            target.IssuesNotes = source.IssuesNotes;
+            target.CheckoutCount = source.CheckoutCount;
         }
 
         void LoadCategories(IEnumerable<ItemModel> items, bool suppressSearch = false)
