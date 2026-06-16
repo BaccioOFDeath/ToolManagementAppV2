@@ -22,6 +22,7 @@ namespace InventoryManagementApp.ViewModels
         private CategoryItem? _selectedCategory;
         private string _categoryName = "";
         private string _searchText = "";
+        private string _statusMessage = "Ready to manage category setup.";
         private bool _isBusy;
 
         public ObservableCollection<CategoryItem> Categories { get; } = new();
@@ -35,6 +36,7 @@ namespace InventoryManagementApp.ViewModels
                 if (_selectedInventoryId == value) return;
                 _selectedInventoryId = value;
                 OnPropertyChanged();
+                _addCommand.RaiseCanExecuteChanged();
                 LoadCategoriesAsync();
             }
         }
@@ -48,11 +50,7 @@ namespace InventoryManagementApp.ViewModels
                 _selectedCategory = value;
                 OnPropertyChanged();
                 CategoryName = value?.Name ?? "";
-                OnPropertyChanged(nameof(SelectedCategoryTitle));
-                OnPropertyChanged(nameof(SelectedCategorySubtitle));
-                OnPropertyChanged(nameof(SelectedCategoryDetail));
-                OnPropertyChanged(nameof(SelectedCategoryNextAction));
-                OnPropertyChanged(nameof(SelectedCategorySummary));
+                RaiseSelectedCategoryProperties();
                 _saveCommand.RaiseCanExecuteChanged();
                 _deleteCommand.RaiseCanExecuteChanged();
             }
@@ -66,6 +64,8 @@ namespace InventoryManagementApp.ViewModels
                 if (_categoryName == value) return;
                 _categoryName = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(CategoryNameStatus));
+                OnPropertyChanged(nameof(SelectedCategoryNextAction));
                 _addCommand.RaiseCanExecuteChanged();
                 _saveCommand.RaiseCanExecuteChanged();
             }
@@ -84,35 +84,99 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
+        public string StatusMessage
+        {
+            get => _statusMessage;
+            private set
+            {
+                if (_statusMessage == value) return;
+                _statusMessage = value;
+                OnPropertyChanged();
+            }
+        }
+
         public bool IsBusy
         {
             get => _isBusy;
-            private set { if (_isBusy == value) return; _isBusy = value; OnPropertyChanged(); }
+            private set
+            {
+                if (_isBusy == value) return;
+                _isBusy = value;
+                OnPropertyChanged();
+            }
         }
 
         public string CategoryResultsSummary => string.IsNullOrWhiteSpace(SearchText)
             ? $"{FilteredCategories.Count} {(FilteredCategories.Count == 1 ? "category" : "categories")} shown"
             : $"{FilteredCategories.Count} of {Categories.Count} categor{(FilteredCategories.Count == 1 ? "y" : "ies")} match \"{SearchText.Trim()}\"";
 
+        public string CategorySetupSummary => Categories.Count == 0
+            ? "No categories have been linked to this inventory area yet."
+            : $"{Categories.Count} categor{(Categories.Count == 1 ? "y" : "ies")} support filtering, item setup, and advisor search.";
+
+        public string CategoryFilterSummary => string.IsNullOrWhiteSpace(SearchText)
+            ? "Showing every linked category."
+            : $"Filter active: \"{SearchText.Trim()}\".";
+
+        public string CategoryNameStatus
+        {
+            get
+            {
+                var name = CategoryName.Trim();
+                if (name.Length == 0) return "Enter a category name before creating or saving.";
+                var duplicate = Categories.Any(c =>
+                    c.CategoryID != SelectedCategory?.CategoryID &&
+                    string.Equals(c.Name.Trim(), name, StringComparison.OrdinalIgnoreCase));
+                return duplicate
+                    ? "Another category already uses this name. Saving may be rejected by the data layer."
+                    : "Name is ready for create or save.";
+            }
+        }
+
         public string SelectedCategoryTitle => SelectedCategory == null
             ? "No category selected"
             : SelectedCategory.Name;
 
         public string SelectedCategorySubtitle => SelectedCategory == null
-            ? "Select or double-click a category row."
-            : $"Category #{SelectedCategory.CategoryID}";
+            ? "Select a row to review, rename, print, or copy its setup handoff."
+            : $"Category #{SelectedCategory.CategoryID} | {CategoryFilterSummary}";
 
         public string SelectedCategoryDetail => SelectedCategory == null
-            ? "Choose a category to rename, delete, copy, print, or review before assigning inventory records."
-            : $"Category #{SelectedCategory.CategoryID} is named \"{SelectedCategory.Name}\". Use this directory to keep advisor search filters and inventory setup tidy.";
+            ? "Choose a category to review how advisors and technicians will find matching inventory records."
+            : $"Category #{SelectedCategory.CategoryID} is named \"{SelectedCategory.Name}\". Keep names short, familiar, and aligned with how staff ask for items at the counter or shelf.";
 
-        public string SelectedCategoryNextAction => SelectedCategory == null
-            ? "Create a category, filter the list, or select a row to continue."
-            : "Natural next step: confirm the name matches how technicians and advisors search, then use inventory item setup to assign matching records.";
+        public string SelectedCategoryNextAction
+        {
+            get
+            {
+                if (SelectedCategory == null)
+                {
+                    return Categories.Count == 0
+                        ? "Create the first category for this inventory area so item setup can be grouped cleanly."
+                        : "Select a category, filter the directory, or create a new category for another workflow group.";
+                }
+
+                var proposedName = CategoryName.Trim();
+                if (!string.Equals(proposedName, SelectedCategory.Name, StringComparison.Ordinal) && proposedName.Length > 0)
+                {
+                    return "Unsaved rename detected. Save the name before assigning or reviewing related inventory records.";
+                }
+
+                return "Next step: confirm this category matches staff language, then assign matching inventory records from item setup or use search filters to review coverage.";
+            }
+        }
 
         public string SelectedCategorySummary => SelectedCategory == null
-            ? "Select or double-click a category row to view details, copy it, print the directory, rename it, or delete it."
+            ? "Select a category row to open details, rename it, copy the handoff, print the directory, or delete it."
             : $"Selected: #{SelectedCategory.CategoryID} | {SelectedCategory.Name}";
+
+        public string SelectedCategoryChecklist => SelectedCategory == null
+            ? "Checklist: create category name, save it, assign matching inventory records, then verify search/filter results."
+            : "Checklist: name is clear, matching items are assigned, advisors can find it quickly, and obsolete duplicate categories are removed.";
+
+        public string SelectedCategoryHandoff => SelectedCategory == null
+            ? "Admin handoff will appear here after a category is selected."
+            : $"Admin handoff: #{SelectedCategory.CategoryID} - {SelectedCategory.Name}. Use for setup review, rename discussion, or printed category directory notes.";
 
         private readonly AsyncCommand _addCommand;
         private readonly AsyncCommand _saveCommand;
@@ -148,6 +212,7 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load categories");
+                StatusMessage = "Categories could not be loaded. Review logs or retry refresh.";
             }
         }
 
@@ -168,6 +233,13 @@ namespace InventoryManagementApp.ViewModels
                 Categories.Clear();
                 foreach (var c in list) Categories.Add(new CategoryItem { CategoryID = c.CategoryID, Name = c.Name });
                 ApplyFilter(selectedId);
+                StatusMessage = $"Loaded {Categories.Count} categor{(Categories.Count == 1 ? "y" : "ies")}.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load categories for inventory {InventoryId}", SelectedInventoryId);
+                StatusMessage = "Categories could not be loaded. Review logs or retry refresh.";
+                WpfMessageBox.Show("Categories could not be loaded. Please retry or check the application log.", "Category Management", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally { IsBusy = false; }
         }
@@ -192,31 +264,48 @@ namespace InventoryManagementApp.ViewModels
                 ? FilteredCategories.FirstOrDefault(c => c.CategoryID == currentId.Value)
                 : FilteredCategories.FirstOrDefault();
 
-            OnPropertyChanged(nameof(CategoryResultsSummary));
+            RaiseDirectoryProperties();
         }
 
         private async Task ClearSearchAsync()
         {
             SearchText = "";
             ApplyFilter();
+            StatusMessage = "Category filter cleared.";
             await Task.CompletedTask;
         }
 
         private async Task AddAsync()
         {
             if (SelectedInventoryId <= 0) return;
-            var id = await _service.EnsureCategoryAsync(CategoryName.Trim());
+            var name = CategoryName.Trim();
+            if (name.Length == 0) return;
+
+            IsBusy = true;
             try
             {
-                await _service.LinkCategoryToInventoryAsync(id, SelectedInventoryId);
+                var id = await _service.EnsureCategoryAsync(name);
+                try
+                {
+                    await _service.LinkCategoryToInventoryAsync(id, SelectedInventoryId);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    _logger.LogInformation(ex, "Category {CategoryId} was already linked to inventory {InventoryId}", id, SelectedInventoryId);
+                }
+
+                await LoadAsync();
+                SelectedCategory = FilteredCategories.FirstOrDefault(x => x.CategoryID == id)
+                    ?? Categories.FirstOrDefault(x => x.CategoryID == id);
+                StatusMessage = $"Category '{name}' is ready for item assignment.";
             }
-            catch (InvalidOperationException)
+            catch (Exception ex)
             {
-                return;
+                _logger.LogError(ex, "Failed to add category {CategoryName}", name);
+                StatusMessage = $"Category '{name}' could not be created.";
+                WpfMessageBox.Show($"Category '{name}' could not be created. Please retry or check the application log.", "Create Category", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-            await LoadAsync();
-            SelectedCategory = FilteredCategories.FirstOrDefault(x => x.CategoryID == id)
-                ?? Categories.FirstOrDefault(x => x.CategoryID == id);
+            finally { IsBusy = false; }
         }
 
         private async Task SaveAsync()
@@ -224,13 +313,32 @@ namespace InventoryManagementApp.ViewModels
             if (SelectedCategory == null) return;
             var name = CategoryName.Trim();
             if (name.Length == 0) return;
-            var ok = await _service.RenameCategoryAsync(SelectedCategory.CategoryID, name);
-            if (ok)
+
+            var id = SelectedCategory.CategoryID;
+            IsBusy = true;
+            try
             {
-                var item = Categories.FirstOrDefault(x => x.CategoryID == SelectedCategory.CategoryID);
-                if (item != null) item.Name = name;
-                ApplyFilter(SelectedCategory.CategoryID);
+                var ok = await _service.RenameCategoryAsync(id, name);
+                if (ok)
+                {
+                    var item = Categories.FirstOrDefault(x => x.CategoryID == id);
+                    if (item != null) item.Name = name;
+                    ApplyFilter(id);
+                    StatusMessage = $"Category #{id} renamed to '{name}'.";
+                }
+                else
+                {
+                    StatusMessage = $"Category #{id} could not be renamed.";
+                    WpfMessageBox.Show("The category was not renamed. Refresh and try again.", "Save Category", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to rename category {CategoryId}", id);
+                StatusMessage = $"Category #{id} could not be renamed.";
+                WpfMessageBox.Show("The category could not be saved. Please retry or check the application log.", "Save Category", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally { IsBusy = false; }
         }
 
         private async Task DeleteAsync()
@@ -238,21 +346,57 @@ namespace InventoryManagementApp.ViewModels
             if (SelectedCategory == null) return;
             var category = SelectedCategory;
             var confirmed = WpfMessageBox.Show(
-                $"Delete category \"{category.Name}\"?",
+                $"Delete category \"{category.Name}\"?\n\nOnly delete categories that are no longer needed for item setup or advisor search.",
                 "Delete Category",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning) == MessageBoxResult.Yes;
             if (!confirmed) return;
 
-            var id = category.CategoryID;
-            var ok = await _service.DeleteCategoryAsync(id);
-            if (ok)
+            IsBusy = true;
+            try
             {
-                var item = Categories.FirstOrDefault(x => x.CategoryID == id);
-                if (item != null) Categories.Remove(item);
-                CategoryName = "";
-                ApplyFilter();
+                var id = category.CategoryID;
+                var ok = await _service.DeleteCategoryAsync(id);
+                if (ok)
+                {
+                    var item = Categories.FirstOrDefault(x => x.CategoryID == id);
+                    if (item != null) Categories.Remove(item);
+                    CategoryName = "";
+                    ApplyFilter();
+                    StatusMessage = $"Category '{category.Name}' deleted.";
+                }
+                else
+                {
+                    StatusMessage = $"Category '{category.Name}' could not be deleted.";
+                    WpfMessageBox.Show("The category was not deleted. Refresh and try again.", "Delete Category", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete category {CategoryId}", category.CategoryID);
+                StatusMessage = $"Category '{category.Name}' could not be deleted.";
+                WpfMessageBox.Show("The category could not be deleted. It may still be needed by other records.", "Delete Category", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally { IsBusy = false; }
+        }
+
+        private void RaiseDirectoryProperties()
+        {
+            OnPropertyChanged(nameof(CategoryResultsSummary));
+            OnPropertyChanged(nameof(CategorySetupSummary));
+            OnPropertyChanged(nameof(CategoryFilterSummary));
+            OnPropertyChanged(nameof(CategoryNameStatus));
+        }
+
+        private void RaiseSelectedCategoryProperties()
+        {
+            OnPropertyChanged(nameof(SelectedCategoryTitle));
+            OnPropertyChanged(nameof(SelectedCategorySubtitle));
+            OnPropertyChanged(nameof(SelectedCategoryDetail));
+            OnPropertyChanged(nameof(SelectedCategoryNextAction));
+            OnPropertyChanged(nameof(SelectedCategorySummary));
+            OnPropertyChanged(nameof(SelectedCategoryChecklist));
+            OnPropertyChanged(nameof(SelectedCategoryHandoff));
         }
 
         private void OnPropertyChanged([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
@@ -264,6 +408,8 @@ namespace InventoryManagementApp.ViewModels
 
             public int CategoryID { get => _categoryId; set { if (_categoryId == value) return; _categoryId = value; OnPropertyChanged(); } }
             public string Name { get => _name; set { if (_name == value) return; _name = value; OnPropertyChanged(); } }
+
+            public string DirectoryLabel => $"#{CategoryID} | {Name}";
 
             public event PropertyChangedEventHandler? PropertyChanged;
             private void OnPropertyChanged([CallerMemberName] string? n = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));

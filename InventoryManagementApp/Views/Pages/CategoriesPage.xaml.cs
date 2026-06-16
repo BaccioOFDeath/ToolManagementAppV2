@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using InventoryManagementApp.ViewModels;
@@ -28,6 +29,68 @@ namespace InventoryManagementApp.Views.Pages
             };
         }
 
+        private CategoryManagementViewModel? ViewModel => DataContext as CategoryManagementViewModel;
+
+        private void Page_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (ViewModel == null) return;
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F)
+            {
+                FindBox.Focus();
+                FindBox.SelectAll();
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.N)
+            {
+                CategoryNameBox.Focus();
+                CategoryNameBox.SelectAll();
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.S && ViewModel.SaveCommand.CanExecute(null))
+            {
+                ViewModel.SaveCommand.Execute(null);
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P)
+            {
+                PrintCategories_Click(sender, e);
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C)
+            {
+                CopyCategory_Click(sender, e);
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Delete && ViewModel.DeleteCommand.CanExecute(null))
+            {
+                ViewModel.DeleteCommand.Execute(null);
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Enter && !IsTextInputFocused())
+            {
+                OpenCategoryDetail_Click(sender, e);
+                e.Handled = true;
+            }
+        }
+
+        private static bool IsTextInputFocused()
+        {
+            return Keyboard.FocusedElement is TextBoxBase or PasswordBox or ComboBox;
+        }
+
         private void CategoryRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             OpenCategoryDetail_Click(sender, e);
@@ -37,29 +100,23 @@ namespace InventoryManagementApp.Views.Pages
         {
             if (sender is DataGridRow row && !row.IsSelected)
             {
+                row.Focus();
                 row.IsSelected = true;
-                e.Handled = true;
             }
         }
 
         private void OpenCategoryDetail_Click(object sender, RoutedEventArgs e)
         {
-            if (CategoryGrid.SelectedItem is not CategoryManagementViewModel.CategoryItem category)
-            {
-                WpfMessageBox.Show("Select a category row first.", "Category Detail", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (!TryGetSelectedCategory(out var category))
                 return;
-            }
 
             WpfMessageBox.Show(FormatCategoryDetail(category), $"Category Detail - {category.Name}", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void CopyCategory_Click(object sender, RoutedEventArgs e)
         {
-            if (CategoryGrid.SelectedItem is not CategoryManagementViewModel.CategoryItem category)
-            {
-                WpfMessageBox.Show("Select a category row first.", "Category Detail", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (!TryGetSelectedCategory(out var category))
                 return;
-            }
 
             System.Windows.Clipboard.SetText(FormatCategoryDetail(category));
         }
@@ -72,32 +129,56 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
+            var document = BuildDirectoryPrintDocument(vm.FilteredCategories.ToList(), vm.CategoryResultsSummary, vm.CategorySetupSummary);
+            PrintDocument(document, "Category Directory");
+        }
+
+        private void PrintSelectedCategory_Click(object sender, RoutedEventArgs e)
+        {
+            if (!TryGetSelectedCategory(out var category))
+                return;
+
+            var document = BuildSelectedCategoryPrintDocument(category);
+            PrintDocument(document, $"Category Sheet - {category.Name}");
+        }
+
+        private bool TryGetSelectedCategory(out CategoryManagementViewModel.CategoryItem category)
+        {
+            if (CategoryGrid.SelectedItem is CategoryManagementViewModel.CategoryItem selected)
+            {
+                category = selected;
+                return true;
+            }
+
+            category = null!;
+            WpfMessageBox.Show("Select a category row first.", "Category Detail", MessageBoxButton.OK, MessageBoxImage.Information);
+            return false;
+        }
+
+        private static void PrintDocument(FlowDocument document, string title)
+        {
             var printDialog = new WpfPrintDialog();
             if (printDialog.ShowDialog() != true)
                 return;
 
-            var document = BuildPrintDocument(vm.FilteredCategories.ToList(), vm.CategoryResultsSummary);
             document.PageWidth = printDialog.PrintableAreaWidth;
             document.PageHeight = printDialog.PrintableAreaHeight;
             document.PagePadding = new Thickness(36);
             document.ColumnWidth = printDialog.PrintableAreaWidth;
-            printDialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, "Category Directory");
+            printDialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, title);
         }
 
         private static string FormatCategoryDetail(CategoryManagementViewModel.CategoryItem category)
         {
             return $"Category #: {category.CategoryID}{Environment.NewLine}" +
-                   $"Name: {category.Name}{Environment.NewLine}{Environment.NewLine}" +
-                   "Next steps: assign matching inventory items to this category, review search results by category, or rename the category if advisors cannot find it quickly.";
+                   $"Name: {category.Name}{Environment.NewLine}" +
+                   $"Directory label: {category.DirectoryLabel}{Environment.NewLine}{Environment.NewLine}" +
+                   "Admin handoff: confirm the category name matches staff language, assign matching inventory records, review search/filter coverage, and remove obsolete duplicates.";
         }
 
-        private static FlowDocument BuildPrintDocument(IReadOnlyCollection<CategoryManagementViewModel.CategoryItem> categories, string summary)
+        private static FlowDocument BuildDirectoryPrintDocument(IReadOnlyCollection<CategoryManagementViewModel.CategoryItem> categories, string summary, string setupSummary)
         {
-            var document = new FlowDocument
-            {
-                FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
-                FontSize = 10
-            };
+            var document = CreateBaseDocument();
 
             document.Blocks.Add(new Paragraph(new Run("Category Directory"))
             {
@@ -105,7 +186,7 @@ namespace InventoryManagementApp.Views.Pages
                 FontWeight = FontWeights.SemiBold,
                 Margin = new Thickness(0, 0, 0, 4)
             });
-            document.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:g} - {summary}"))
+            document.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:g} - {summary}. {setupSummary}"))
             {
                 FontSize = 10,
                 Margin = new Thickness(0, 0, 0, 10)
@@ -113,7 +194,8 @@ namespace InventoryManagementApp.Views.Pages
 
             var table = new Table { CellSpacing = 0 };
             table.Columns.Add(new TableColumn { Width = new GridLength(90) });
-            table.Columns.Add(new TableColumn { Width = new GridLength(420) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(220) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(280) });
 
             var rowGroup = new TableRowGroup();
             table.RowGroups.Add(rowGroup);
@@ -121,7 +203,8 @@ namespace InventoryManagementApp.Views.Pages
             var header = new TableRow { FontWeight = FontWeights.SemiBold };
             rowGroup.Rows.Add(header);
             AddCell(header, "ID");
-            AddCell(header, "Name");
+            AddCell(header, "Category");
+            AddCell(header, "Admin Handoff");
 
             foreach (var category in categories)
             {
@@ -129,10 +212,52 @@ namespace InventoryManagementApp.Views.Pages
                 rowGroup.Rows.Add(row);
                 AddCell(row, category.CategoryID.ToString());
                 AddCell(row, category.Name);
+                AddCell(row, "Verify item assignment and search/filter coverage.");
             }
 
             document.Blocks.Add(table);
             return document;
+        }
+
+        private static FlowDocument BuildSelectedCategoryPrintDocument(CategoryManagementViewModel.CategoryItem category)
+        {
+            var document = CreateBaseDocument();
+
+            document.Blocks.Add(new Paragraph(new Run($"Category Sheet - {category.Name}"))
+            {
+                FontSize = 16,
+                FontWeight = FontWeights.SemiBold,
+                Margin = new Thickness(0, 0, 0, 4)
+            });
+            document.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:g}"))
+            {
+                FontSize = 10,
+                Margin = new Thickness(0, 0, 0, 10)
+            });
+
+            document.Blocks.Add(new Paragraph(new Run(FormatCategoryDetail(category)))
+            {
+                Margin = new Thickness(0, 0, 0, 10)
+            });
+            document.Blocks.Add(new Paragraph(new Run("Checklist"))
+            {
+                FontWeight = FontWeights.SemiBold,
+                Margin = new Thickness(0, 0, 0, 4)
+            });
+            document.Blocks.Add(new Paragraph(new Run("[ ] Name matches staff language")) { Margin = new Thickness(0, 0, 0, 2) });
+            document.Blocks.Add(new Paragraph(new Run("[ ] Matching inventory records are assigned")) { Margin = new Thickness(0, 0, 0, 2) });
+            document.Blocks.Add(new Paragraph(new Run("[ ] Search and filter coverage has been checked")) { Margin = new Thickness(0, 0, 0, 2) });
+            document.Blocks.Add(new Paragraph(new Run("[ ] Duplicate or obsolete categories have been removed")) { Margin = new Thickness(0, 0, 0, 2) });
+            return document;
+        }
+
+        private static FlowDocument CreateBaseDocument()
+        {
+            return new FlowDocument
+            {
+                FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
+                FontSize = 10
+            };
         }
 
         private static void AddCell(TableRow row, string text)
