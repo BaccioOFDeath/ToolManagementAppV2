@@ -47,7 +47,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void OpenSelectedUser_Click(object sender, RoutedEventArgs e)
         {
-            if (UsersDataGrid.SelectedItem is not User user)
+            if (UsersDataGrid.SelectedItem is not UserModel user)
             {
                 WpfMessageBox.Show("Select a user row first.", "User Directory", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
@@ -58,7 +58,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void CopySelectedUser_Click(object sender, RoutedEventArgs e)
         {
-            if (UsersDataGrid.SelectedItem is not User user)
+            if (UsersDataGrid.SelectedItem is not UserModel user)
             {
                 WpfMessageBox.Show("Select a user row first.", "User Directory", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
@@ -98,7 +98,7 @@ namespace InventoryManagementApp.Views.Pages
             printDialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, "User Directory");
         }
 
-        private static string FormatUserDetail(User user)
+        private static string FormatUserDetail(UserModel user)
         {
             return $"User #: {user.UserID}{Environment.NewLine}" +
                    $"Name: {user.UserName}{Environment.NewLine}" +
@@ -181,7 +181,7 @@ namespace InventoryManagementApp.Views.Pages
             });
         }
 
-        private static string ResolveRole(User user)
+        private static string ResolveRole(UserModel user)
         {
             if (!string.IsNullOrWhiteSpace(user.Role))
                 return user.Role;
