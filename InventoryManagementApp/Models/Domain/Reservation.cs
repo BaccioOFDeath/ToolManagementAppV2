@@ -58,7 +58,11 @@ namespace InventoryManagementApp.Models.Domain
         public DateTime StartDate
         {
             get => _startDate;
-            set => SetProperty(ref _startDate, value);
+            set
+            {
+                if (SetProperty(ref _startDate, value))
+                    OnPropertyChanged(nameof(StatusDisplay));
+            }
         }
 
         private DateTime _endDate;
@@ -79,7 +83,15 @@ namespace InventoryManagementApp.Models.Domain
         public string Status
         {
             get => _status;
-            set => SetProperty(ref _status, value);
+            set
+            {
+                if (SetProperty(ref _status, value))
+                {
+                    OnPropertyChanged(nameof(IsActive));
+                    OnPropertyChanged(nameof(IsFulfilled));
+                    OnPropertyChanged(nameof(StatusDisplay));
+                }
+            }
         }
 
         private string _notes = string.Empty;
@@ -107,7 +119,14 @@ namespace InventoryManagementApp.Models.Domain
         public int? RentalID
         {
             get => _rentalID;
-            set => SetProperty(ref _rentalID, value);
+            set
+            {
+                if (SetProperty(ref _rentalID, value))
+                {
+                    OnPropertyChanged(nameof(IsFulfilled));
+                    OnPropertyChanged(nameof(StatusDisplay));
+                }
+            }
         }
 
         public bool IsActive => Status == "Pending" || Status == "Confirmed";
