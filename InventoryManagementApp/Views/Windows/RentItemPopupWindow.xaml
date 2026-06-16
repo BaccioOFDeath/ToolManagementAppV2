@@ -54,8 +54,7 @@
                     <Border Grid.Row="1" Grid.Column="0" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Background="{DynamicResource ControlBackgroundBrush}">
                         <ListBox ItemsSource="{Binding FilteredCustomers}"
                                  SelectedItem="{Binding SelectedCustomer, Mode=TwoWay}"
-                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                 ItemContainerStyle="{StaticResource DropdownItemStyle}">
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <Grid Margin="2" MinHeight="52">
