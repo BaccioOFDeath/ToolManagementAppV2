@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-17 06:19 NZST
+Last audit date/time: 2026-06-17 07:42 NZST
 
 ## Completed workflows
 
@@ -21,6 +21,7 @@ Last audit date/time: 2026-06-17 06:19 NZST
 - QA screenshot wrapper validation now rejects suspiciously tiny PNG output so blank or broken captures fail earlier.
 - Maintenance now uses a two-pane technician workbench with schedule backlog context, selected work-order detail, timing, next action, bench checklist, quick overdue/upcoming/scheduled filters, copy handoff, print actions, stable useful selection, and null-safe search across legacy/imported records.
 - QA screenshot wrapper validation now rejects expected PNG captures that are too small in pixel dimensions, catching failed or cropped screenshots beyond file-size checks.
+- Calibration now uses a two-pane technician bench with certificate handoff details, timing and next-action guidance, shelf-release checklist, quick overdue/due-soon/current filters, copy handoff, print actions, stable useful selection, null-safe expanded search, and row-correct context menus.
 
 ## Partially complete workflows
 
@@ -31,6 +32,7 @@ Last audit date/time: 2026-06-17 06:19 NZST
 - Kits now have a completed desktop workflow surface, but runtime add/edit/item-membership dialog validation still needs a Windows/.NET workstation.
 - Customers now have a completed desktop workflow surface, but runtime add/edit/delete/print/copy validation still needs a Windows/.NET workstation.
 - Maintenance now has a completed desktop workflow surface, but runtime add/edit/complete/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
+- Calibration now has a completed desktop workflow surface, but runtime add/edit/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
 
 ## Known broken workflows
 
@@ -40,11 +42,12 @@ Last audit date/time: 2026-06-17 06:19 NZST
 
 ## Next recommended target
 
-- Continue the end-to-end workflow audit from a technician/advisor/admin perspective, with the next useful pass focused on Calibration, Reservations, or Categories depending on which page still exposes the most incomplete action/result path on `master`.
+- Continue the end-to-end workflow audit from a technician/advisor/admin perspective, with the next useful pass focused on Reservations or Categories depending on which page still exposes the most incomplete action/result path on `master`.
 
 ## Validation status
 
-- GitHub connector readback reviewed the Maintenance workbench branch files, screenshot wrapper, progress note, and completion checklist.
+- GitHub connector readback reviewed the Calibration workbench branch files, progress note, and completion checklist.
+- `CalibrationPage.xaml` was parsed locally as well-formed XML from the generated branch content.
 - `dotnet --info`: failed because `dotnet` is not installed in this scheduled container.
 - `dotnet restore InventoryManagementApp.sln`: not run because the .NET SDK is unavailable.
 - `dotnet build InventoryManagementApp.sln --no-restore`: not run because the .NET SDK is unavailable.
