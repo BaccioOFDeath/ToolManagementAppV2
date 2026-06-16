@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Models.ImportExport;
 using InventoryManagementApp.ViewModels;
 using Microsoft.Data.Sqlite;
