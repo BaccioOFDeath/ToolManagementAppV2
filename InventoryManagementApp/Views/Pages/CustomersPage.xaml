@@ -115,7 +115,7 @@
                     </Border>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                         <StackPanel Margin="10">
-                            <TextBlock Text="{Binding SelectedCustomer.Company, TargetNullValue=No customer selected, FallbackValue=No customer selected}"
+                            <TextBlock Text="{Binding SelectedCustomer.Company, TargetNullValue='No customer selected', FallbackValue='No customer selected'}"
                                        FontSize="18"
                                        FontWeight="SemiBold"
                                        TextWrapping="Wrap"/>
