@@ -8,6 +8,7 @@ param(
     [string]$ItemLabelPlural = "Tools",
     [string]$AdminPassword = "AdminQ123",
     [string]$OutputRoot = "",
+    [int]$ExpectedScreenshotCount = 28,
     [switch]$SkipBuild,
     [switch]$KeepRunDirectory
 )
@@ -97,7 +98,14 @@ try {
         throw "The QA screenshot run exited with code $($process.ExitCode)."
     }
 
-    Write-Step "QA screenshots saved to '$sessionOutput'."
+    $screenshots = @(Get-ChildItem -LiteralPath $sessionOutput -Recurse -File -Filter "*.png")
+    if ($screenshots.Count -lt $ExpectedScreenshotCount) {
+        throw "QA screenshot run produced $($screenshots.Count) PNG file(s); expected at least $ExpectedScreenshotCount."
+    }
+
+    Add-Content -Path (Join-Path $sessionOutput "README.md") -Value ""
+    Add-Content -Path (Join-Path $sessionOutput "README.md") -Value ("Captured screenshots: {0}" -f $screenshots.Count)
+    Write-Step "QA screenshots saved to '$sessionOutput' ($($screenshots.Count) PNG files)."
 }
 finally {
     if ($process -and -not $process.HasExited) {
