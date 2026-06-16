@@ -42,6 +42,39 @@ $expectedFolders = @(
     "05-admin",
     "06-dialogs"
 )
+$expectedScreenshotFiles = @(
+    "00-auth\01-login-window.png",
+    "01-overview\01-search-tools-results.png",
+    "01-overview\02-search-tools-recent-searches.png",
+    "01-overview\03-search-tools-unavailable-demand.png",
+    "01-overview\04-dashboard-summary.png",
+    "01-overview\05-dashboard-recent-activity.png",
+    "01-overview\06-dashboard-items-with-issues.png",
+    "02-operations\01-manage-tools.png",
+    "02-operations\02-rentals.png",
+    "02-operations\03-customers.png",
+    "02-operations\04-maintenance.png",
+    "02-operations\05-calibration.png",
+    "02-operations\06-reservations.png",
+    "02-operations\07-kits.png",
+    "02-operations\08-categories.png",
+    "03-insights\01-reports.png",
+    "03-insights\02-activity-logs.png",
+    "04-data\01-import-export.png",
+    "05-admin\01-users.png",
+    "05-admin\02-settings-service-status.png",
+    "05-admin\03-settings-database.png",
+    "05-admin\04-settings-general.png",
+    "05-admin\05-settings-item-display.png",
+    "05-admin\06-settings-email.png",
+    "05-admin\07-settings-branding.png",
+    "05-admin\08-settings-messaging.png",
+    "05-admin\09-settings-backups.png",
+    "06-dialogs\01-print-labels.png"
+)
+if ($ExpectedScreenshotCount -lt $expectedScreenshotFiles.Count) {
+    $ExpectedScreenshotCount = $expectedScreenshotFiles.Count
+}
 $sessionOutput = Join-Path $OutputRoot "latest"
 $runRoot = Join-Path $repoRoot ".qa-run"
 $runDirectory = Join-Path $runRoot "latest"
@@ -124,6 +157,18 @@ try {
         }
     }
 
+    $missingExpectedFiles = @()
+    foreach ($expectedFile in $expectedScreenshotFiles) {
+        $expectedPath = Join-Path $sessionOutput $expectedFile
+        if (-not (Test-Path -LiteralPath $expectedPath)) {
+            $missingExpectedFiles += $expectedFile
+        }
+    }
+
+    if ($missingExpectedFiles.Count -gt 0) {
+        throw "QA screenshot run missed expected capture(s): $($missingExpectedFiles -join ', ')."
+    }
+
     $readmePath = Join-Path $sessionOutput "README.md"
     Add-Content -Path $readmePath -Value ""
     Add-Content -Path $readmePath -Value ("Captured screenshots: {0}" -f $screenshots.Count)
@@ -141,6 +186,6 @@ finally {
     }
 
     if (-not $KeepRunDirectory -and (Test-Path -LiteralPath $runRoot)) {
-        Remove-Item -LiteralPath $runRoot -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $runRoot -Recurse -Force
     }
 }
