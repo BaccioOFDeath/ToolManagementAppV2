@@ -33,6 +33,7 @@ if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
     $OutputRoot = Join-Path $repoRoot ".qa-screenshots"
 }
 
+$minimumScreenshotBytes = 1024
 $expectedFolders = @(
     "00-auth",
     "01-overview",
@@ -169,9 +170,16 @@ try {
         throw "QA screenshot run missed expected capture(s): $($missingExpectedFiles -join ', ')."
     }
 
+    $undersizedScreenshots = @($screenshots | Where-Object { $_.Length -lt $minimumScreenshotBytes })
+    if ($undersizedScreenshots.Count -gt 0) {
+        $undersizedList = $undersizedScreenshots | ForEach-Object { $_.FullName }
+        throw "QA screenshot run produced suspiciously small PNG capture(s): $($undersizedList -join ', ')."
+    }
+
     $readmePath = Join-Path $sessionOutput "README.md"
     Add-Content -Path $readmePath -Value ""
     Add-Content -Path $readmePath -Value ("Captured screenshots: {0}" -f $screenshots.Count)
+    Add-Content -Path $readmePath -Value ("Minimum PNG size checked: {0} bytes" -f $minimumScreenshotBytes)
     Add-Content -Path $readmePath -Value ""
     Add-Content -Path $readmePath -Value "Captured files:"
     foreach ($screenshot in ($screenshots | Sort-Object FullName)) {
