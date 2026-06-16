@@ -1,23 +1,24 @@
 # Sample Export Files
 
-This directory contains sample export files demonstrating the different formats supported by the application.
+These examples show the item and customer formats supported by InventoryManagementApp import/export.
 
 ## Items Export Samples
 
 ### items_sample.json
+
 ```json
 [
   {
     "itemID": 1,
-    "itemNumber": "TOOL-001",
+    "itemNumber": "ITEM-001",
     "name": "Cordless Drill",
     "location": "Workshop - Shelf A",
     "brand": "DeWalt",
     "partNumber": "DCD771C2",
     "supplier": "Home Depot",
     "purchasedDate": "2024-01-15T00:00:00",
-    "notes": "18V Compact Drill/Driver Kit",
-    "keywords": "power tool drill cordless battery",
+    "notes": "18V compact drill/driver kit",
+    "keywords": "power drill cordless battery",
     "quantityOnHand": 3,
     "rentedQuantity": 0,
     "isPowered": true,
@@ -25,7 +26,7 @@ This directory contains sample export files demonstrating the different formats 
   },
   {
     "itemID": 2,
-    "itemNumber": "TOOL-002",
+    "itemNumber": "ITEM-002",
     "name": "Digital Multimeter",
     "location": "Testing Station - Drawer 2",
     "brand": "Fluke",
@@ -43,20 +44,21 @@ This directory contains sample export files demonstrating the different formats 
 ```
 
 ### items_sample.xml
+
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <Items>
   <ItemModel>
     <ItemID>1</ItemID>
-    <ItemNumber>TOOL-001</ItemNumber>
+    <ItemNumber>ITEM-001</ItemNumber>
     <Name>Cordless Drill</Name>
     <Location>Workshop - Shelf A</Location>
     <Brand>DeWalt</Brand>
     <PartNumber>DCD771C2</PartNumber>
     <Supplier>Home Depot</Supplier>
     <PurchasedDate>2024-01-15T00:00:00</PurchasedDate>
-    <Notes>18V Compact Drill/Driver Kit</Notes>
-    <Keywords>power tool drill cordless battery</Keywords>
+    <Notes>18V compact drill/driver kit</Notes>
+    <Keywords>power drill cordless battery</Keywords>
     <QuantityOnHand>3</QuantityOnHand>
     <RentedQuantity>0</RentedQuantity>
     <IsPowered>true</IsPowered>
@@ -64,7 +66,7 @@ This directory contains sample export files demonstrating the different formats 
   </ItemModel>
   <ItemModel>
     <ItemID>2</ItemID>
-    <ItemNumber>TOOL-002</ItemNumber>
+    <ItemNumber>ITEM-002</ItemNumber>
     <Name>Digital Multimeter</Name>
     <Location>Testing Station - Drawer 2</Location>
     <Brand>Fluke</Brand>
@@ -82,15 +84,17 @@ This directory contains sample export files demonstrating the different formats 
 ```
 
 ### items_sample.csv
+
 ```csv
 ItemID,ItemNumber,Name,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,Keywords,QuantityOnHand,RentedQuantity,IsPowered,IsRentalItem
-1,TOOL-001,Cordless Drill,Workshop - Shelf A,DeWalt,DCD771C2,Home Depot,2024-01-15,18V Compact Drill/Driver Kit,power tool drill cordless battery,3,0,True,True
-2,TOOL-002,Digital Multimeter,Testing Station - Drawer 2,Fluke,87V,Grainger,2024-02-20,Industrial multimeter with temperature probe,test measure electrical voltage current,2,1,True,True
+1,ITEM-001,Cordless Drill,Workshop - Shelf A,DeWalt,DCD771C2,Home Depot,2024-01-15,18V compact drill/driver kit,power drill cordless battery,3,0,True,True
+2,ITEM-002,Digital Multimeter,Testing Station - Drawer 2,Fluke,87V,Grainger,2024-02-20,Industrial multimeter with temperature probe,test measure electrical voltage current,2,1,True,True
 ```
 
 ## Customers Export Samples
 
 ### customers_sample.json
+
 ```json
 [
   {
@@ -115,6 +119,7 @@ ItemID,ItemNumber,Name,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,Ke
 ```
 
 ### customers_sample.xml
+
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <Customers>
@@ -140,6 +145,7 @@ ItemID,ItemNumber,Name,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,Ke
 ```
 
 ### customers_sample.csv
+
 ```csv
 CustomerID,Company,Contact,Email,Phone,Mobile,Address
 1,Acme Construction,John Smith,jsmith@acmeconstruction.com,555-0100,555-0101,"123 Builder Ave, Construction City, CC 12345"
@@ -148,9 +154,8 @@ CustomerID,Company,Contact,Email,Phone,Mobile,Address
 
 ## Usage Notes
 
-- All formats maintain the same data structure
-- JSON uses camelCase property names
-- XML uses PascalCase element names
-- CSV headers match the property names
-- Dates are in ISO 8601 format
-- Boolean values are represented as true/false (JSON/XML) or True/False (CSV)
+- JSON uses camelCase property names.
+- XML uses PascalCase element names.
+- CSV headers match the property names.
+- Dates are in ISO 8601 format.
+- Boolean values are represented as true/false in JSON and XML, and True/False in CSV.
