@@ -78,7 +78,7 @@
                     <TextBlock Text="{Binding EditingUser.Role, TargetNullValue='Set role and contact details'}" FontSize="11" TextWrapping="Wrap"/>
                     <TextBlock Text="{Binding EditingUser.UserID, StringFormat='User #: {0}'}" FontSize="11" Margin="0,6,0,8"/>
                     <TextBlock Text="Access" Style="{StaticResource LabelTextBlock}" Margin="0,4,0,2"/>
-                    <TextBlock Text="{Binding AccessSummary}" FontSize="11" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding EditingUser.AccessSummary}" FontSize="11" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
 
@@ -197,7 +197,7 @@
                                     <CheckBox Content="Manage users" IsChecked="{Binding CanManageUsers, Mode=TwoWay}" Margin="0,0,0,4"/>
                                     <CheckBox Content="Settings" IsChecked="{Binding CanUseSettings, Mode=TwoWay}" Margin="0,0,0,10"/>
                                     <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="6" Background="{DynamicResource SurfaceAltBrush}">
-                                        <TextBlock Text="{Binding AccessSummary}" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding EditingUser.AccessSummary}" TextWrapping="Wrap"/>
                                     </Border>
                                 </StackPanel>
                             </Grid>
