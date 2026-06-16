@@ -34,7 +34,7 @@ namespace InventoryManagementApp.Views.Pages
             if (sender is DataGridRow row && !row.IsSelected)
             {
                 row.IsSelected = true;
-                e.Handled = true;
+                row.Focus();
             }
         }
     }

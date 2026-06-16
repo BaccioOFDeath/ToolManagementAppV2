@@ -220,7 +220,8 @@ try {
     Add-Content -Path $readmePath -Value "Captured files:"
     foreach ($screenshot in ($screenshots | Sort-Object FullName)) {
         $relativePath = Resolve-Path -LiteralPath $screenshot.FullName -Relative
-        Add-Content -Path $readmePath -Value ("- `{0}`" -f $relativePath)
+        $dimensions = Get-PngDimensions -File $screenshot
+        Add-Content -Path $readmePath -Value ("- `{0}` - {1}x{2}, {3} bytes" -f $relativePath, $dimensions.Width, $dimensions.Height, $screenshot.Length)
     }
     Write-Step "QA screenshots saved to '$sessionOutput' ($($screenshots.Count) PNG files)."
 }
