@@ -61,7 +61,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            Clipboard.SetText(FormatCategoryDetail(category));
+            System.Windows.Clipboard.SetText(FormatCategoryDetail(category));
         }
 
         private void PrintCategories_Click(object sender, RoutedEventArgs e)

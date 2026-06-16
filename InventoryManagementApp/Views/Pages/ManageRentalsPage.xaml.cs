@@ -4,8 +4,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
-using RentalModel = InventoryManagementApp.Models.Domain.Rental;
-
 namespace InventoryManagementApp.Views.Pages
 {
     /// <summary>
@@ -58,7 +56,7 @@ namespace InventoryManagementApp.Views.Pages
             SelectRowForContextMenu(sender, e);
         }
 
-        private void ManageRentalsPage_PreviewKeyDown(object sender, KeyEventArgs e)
+        private void ManageRentalsPage_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (DataContext is not ManageRentalsViewModel vm)
                 return;
@@ -143,7 +141,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private static void OpenFocusedDetails(ManageRentalsViewModel vm)
         {
-            if (Keyboard.FocusedElement is DependencyObject focusedElement && FindAncestor<DataGrid>(focusedElement) is DataGrid grid)
+            if (Keyboard.FocusedElement is DependencyObject focusedElement && FindAncestor<System.Windows.Controls.DataGrid>(focusedElement) is System.Windows.Controls.DataGrid grid)
             {
                 if (grid.SelectedItem is Reservation && vm.OpenRequestDetailsCommand.CanExecute(null))
                 {

@@ -64,7 +64,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            Clipboard.SetText(FormatUserDetail(user));
+            System.Windows.Clipboard.SetText(FormatUserDetail(user));
         }
 
         private async void ResetSelectedUser_Click(object sender, RoutedEventArgs e)

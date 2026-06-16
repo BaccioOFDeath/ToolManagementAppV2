@@ -30,7 +30,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            Clipboard.SetText($"{line.Category}: {line.Text}{Environment.NewLine}Next action: {line.ActionHint}");
+            System.Windows.Clipboard.SetText($"{line.Category}: {line.Text}{Environment.NewLine}Next action: {line.ActionHint}");
         }
 
         private void PrintReport_Click(object sender, RoutedEventArgs e)

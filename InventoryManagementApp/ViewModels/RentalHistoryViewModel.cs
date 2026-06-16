@@ -12,7 +12,6 @@ using InventoryManagementApp.Utilities.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Interfaces;
-using RentalModel = InventoryManagementApp.Models.Domain.Rental;
 
 namespace InventoryManagementApp.ViewModels.Rental
 {

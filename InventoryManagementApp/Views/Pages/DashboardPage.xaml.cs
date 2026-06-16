@@ -45,7 +45,7 @@ namespace InventoryManagementApp.Views.Pages
             _loadCts = null;
         }
 
-        private void DashboardPage_PreviewKeyDown(object sender, KeyEventArgs e)
+        private void DashboardPage_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (DataContext is not DashboardViewModel vm)
                 return;
@@ -149,7 +149,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private static void OpenFocusedRow(DashboardViewModel vm)
         {
-            if (Keyboard.FocusedElement is DependencyObject focusedElement && FindAncestor<DataGrid>(focusedElement) is DataGrid grid)
+            if (Keyboard.FocusedElement is DependencyObject focusedElement && FindAncestor<System.Windows.Controls.DataGrid>(focusedElement) is System.Windows.Controls.DataGrid grid)
             {
                 switch (grid.Name)
                 {

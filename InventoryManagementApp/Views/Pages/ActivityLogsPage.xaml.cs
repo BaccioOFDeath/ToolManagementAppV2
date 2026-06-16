@@ -69,7 +69,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            Clipboard.SetText(FormatLogDetail(log));
+            System.Windows.Clipboard.SetText(FormatLogDetail(log));
         }
 
         private void PrintLogs_Click(object sender, RoutedEventArgs e)

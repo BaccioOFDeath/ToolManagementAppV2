@@ -100,7 +100,7 @@ namespace InventoryManagementApp.Views.Pages
                 vm.SelectedItem = item;
         }
 
-        private void ItemSearchPage_PreviewKeyDown(object sender, KeyEventArgs e)
+        private void ItemSearchPage_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (DataContext is not ItemManagementViewModel vm)
                 return;
@@ -530,7 +530,7 @@ namespace InventoryManagementApp.Views.Pages
         private void ShowInfo(string message, string title)
         {
             var dialog = new InfoDialogWindow(message) { Title = title };
-            try { dialog.Owner = Application.Current?.MainWindow; }
+            try { dialog.Owner = System.Windows.Application.Current?.MainWindow; }
             catch { }
             dialog.ShowDialog();
         }

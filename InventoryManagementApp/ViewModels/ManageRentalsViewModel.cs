@@ -15,7 +15,6 @@ using InventoryManagementApp.Utilities.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using RentalModel = InventoryManagementApp.Models.Domain.Rental;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -928,7 +927,7 @@ namespace InventoryManagementApp.ViewModels
         {
             try
             {
-                if (Application.Current is App app)
+                if (System.Windows.Application.Current is App app)
                     return app.Host.Services.GetService<ReservationService>();
             }
             catch
