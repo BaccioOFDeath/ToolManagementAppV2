@@ -377,5 +377,4 @@ Thumbs.db
 *.pdf
 
 # QA automation artifacts
-.qa-run/
-.qa-screenshots/
+
