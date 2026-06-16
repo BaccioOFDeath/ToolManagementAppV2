@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-17 01:11 NZST
+Last audit date/time: 2026-06-17 02:11 NZST
 
 ## Completed workflows
 
@@ -12,6 +12,9 @@ Last audit date/time: 2026-06-17 01:11 NZST
 - Settings now opens with an admin service status panel that summarizes database, email, messaging, backup, branding, and workstation security state with the relevant action buttons available from the same view.
 - QA screenshot capture now has a repository script and latest screenshot set covering login, overview/search, operational pages, reports/activity, import/export, users, settings, and print-label dialog surfaces; the script fails if the expected PNG count is not produced.
 - QA screenshot capture now names the first Settings capture as service status and walks every Settings tab through Backups after the service-status tab was added.
+- Import / Export now uses a compact data workstation layout with separate sections for item data, customer data, backup/image admin work, and run-log review.
+- Import / Export operation logs now support selected-row detail, copy, print, clear, double-click drilldown, and row-correct right-click actions.
+- QA screenshot wrapper validation now requires every expected screenshot folder to contain PNG output and appends the captured file list to the run README.
 
 ## Partially complete workflows
 
@@ -19,6 +22,7 @@ Last audit date/time: 2026-06-17 01:11 NZST
 - Checkout/check-in refresh behavior was improved in the prior audit, but broader runtime UI review is still pending.
 - Customer CSV import already uses a transaction, but customer workflow coverage still needs broader review.
 - Reports page has a compact operational grid, summary panel, print/copy actions, and safe empty unknown-report handling; runtime screenshot and full report generation checks remain pending.
+- Import / Export has been redesigned and wired for log actions, but runtime file-dialog, print, and screenshot checks still need a Windows/.NET workstation.
 
 ## Known broken workflows
 
@@ -32,7 +36,7 @@ Last audit date/time: 2026-06-17 01:11 NZST
 
 ## Validation status
 
-- GitHub connector readback reviewed the Settings QA screenshot harness update, screenshot wrapper, progress note, and completion checklist on the branch.
+- GitHub connector readback reviewed the Import / Export workstation branch files, screenshot wrapper, progress note, and completion checklist.
 - `dotnet --info`: failed because `dotnet` is not installed in this scheduled container.
 - `dotnet restore InventoryManagementApp.sln`: not run because the .NET SDK is unavailable.
 - `dotnet build InventoryManagementApp.sln --no-restore`: not run because the .NET SDK is unavailable.

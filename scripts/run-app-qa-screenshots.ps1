@@ -33,6 +33,15 @@ if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
     $OutputRoot = Join-Path $repoRoot ".qa-screenshots"
 }
 
+$expectedFolders = @(
+    "00-auth",
+    "01-overview",
+    "02-operations",
+    "03-insights",
+    "04-data",
+    "05-admin",
+    "06-dialogs"
+)
 $sessionOutput = Join-Path $OutputRoot "latest"
 $runRoot = Join-Path $repoRoot ".qa-run"
 $runDirectory = Join-Path $runRoot "latest"
@@ -103,8 +112,27 @@ try {
         throw "QA screenshot run produced $($screenshots.Count) PNG file(s); expected at least $ExpectedScreenshotCount."
     }
 
-    Add-Content -Path (Join-Path $sessionOutput "README.md") -Value ""
-    Add-Content -Path (Join-Path $sessionOutput "README.md") -Value ("Captured screenshots: {0}" -f $screenshots.Count)
+    foreach ($folder in $expectedFolders) {
+        $folderPath = Join-Path $sessionOutput $folder
+        if (-not (Test-Path -LiteralPath $folderPath)) {
+            throw "QA screenshot run did not create expected folder '$folder'."
+        }
+
+        $folderScreenshots = @(Get-ChildItem -LiteralPath $folderPath -File -Filter "*.png" -ErrorAction SilentlyContinue)
+        if ($folderScreenshots.Count -eq 0) {
+            throw "QA screenshot folder '$folder' did not contain any PNG files."
+        }
+    }
+
+    $readmePath = Join-Path $sessionOutput "README.md"
+    Add-Content -Path $readmePath -Value ""
+    Add-Content -Path $readmePath -Value ("Captured screenshots: {0}" -f $screenshots.Count)
+    Add-Content -Path $readmePath -Value ""
+    Add-Content -Path $readmePath -Value "Captured files:"
+    foreach ($screenshot in ($screenshots | Sort-Object FullName)) {
+        $relativePath = Resolve-Path -LiteralPath $screenshot.FullName -Relative
+        Add-Content -Path $readmePath -Value ("- `{0}`" -f $relativePath)
+    }
     Write-Step "QA screenshots saved to '$sessionOutput' ($($screenshots.Count) PNG files)."
 }
 finally {
