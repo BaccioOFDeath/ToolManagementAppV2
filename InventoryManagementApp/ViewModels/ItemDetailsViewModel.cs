@@ -1,9 +1,13 @@
 // ViewModels/ItemDetailsViewModel.cs
 using System;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Documents;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Models.Domain;
+using InventoryManagementApp.Services.Reservations;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -13,6 +17,7 @@ namespace InventoryManagementApp.ViewModels
         readonly ICustomerService _customerService;
         readonly IRentalService _rentalService;
         readonly IDialogService _dialogService;
+        readonly ReservationService? _reservationService;
 
         public ItemModel ItemModel { get; }
 
@@ -21,6 +26,8 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand RentOutCommand { get; }
         public IAsyncRelayCommand ToggleCheckOutCommand { get; }
         public IAsyncRelayCommand OpenRentalHistoryCommand { get; }
+        public IAsyncRelayCommand PlaceReservationCommand { get; }
+        public IRelayCommand PrintDetailsCommand { get; }
 
         public string CheckOutButtonText => ItemModel.IsCheckedOut ? "Check In" : "Check Out";
         public string StatusText
@@ -61,6 +68,11 @@ namespace InventoryManagementApp.ViewModels
         public string UpdatedText => ItemModel.UpdatedAt == default ? "Not recorded" : ItemModel.UpdatedAt.ToString("yyyy-MM-dd HH:mm");
         public string PurchasedText => ItemModel.PurchasedDate?.ToString("yyyy-MM-dd") ?? "Not recorded";
         public string PriceText => ItemModel.Price > 0 ? ItemModel.Price.ToString("C") : "Not recorded";
+        public string RequestStatusText => _reservationService == null
+            ? "Requests unavailable in this build."
+            : ItemModel.HasNoOnHand || ItemModel.HasRentedStock || ItemModel.IsCheckedOut
+                ? "Place a request so the next advisor can contact the customer when this item is available."
+                : "Optional: place a future-dated request before handing this item out.";
         public string ConditionSummary
         {
             get
@@ -90,25 +102,35 @@ namespace InventoryManagementApp.ViewModels
             get
             {
                 if (ItemModel.IsCheckedOut)
-                    return "Check in from this window, then review any waiting rental requests from the rentals page.";
+                    return "Check this item back in from here, review its history, or place a request for the next person waiting on it.";
                 if (ItemModel.HasRentedStock || ItemModel.HasNoOnHand)
-                    return "Open rental history or place a request from the rentals workflow if another user needs this item.";
-                return "Check out to a technician, rent to a customer, or open history before handing it out.";
+                    return "Open history to see recent activity, then place a request/hold if another customer or technician needs it.";
+                return "Check out to a technician, rent to a customer, print the details, or place a future request before handing it out.";
             }
         }
 
-        public ItemDetailsViewModel(ItemModel item, IItemService itemService, ICustomerService customerService, IRentalService rentalService, IDialogService dialogService, Action onClose)
+        public ItemDetailsViewModel(
+            ItemModel item,
+            IItemService itemService,
+            ICustomerService customerService,
+            IRentalService rentalService,
+            IDialogService dialogService,
+            Action onClose,
+            ReservationService? reservationService = null)
         {
             ItemModel = item;
             _itemService = itemService;
             _customerService = customerService;
             _rentalService = rentalService;
             _dialogService = dialogService;
+            _reservationService = reservationService;
             CloseCommand = new RelayCommand(onClose);
             EditCommand = new AsyncRelayCommand(EditAsync);
             RentOutCommand = new AsyncRelayCommand(RentOutAsync);
             ToggleCheckOutCommand = new AsyncRelayCommand(ToggleCheckOutAsync);
             OpenRentalHistoryCommand = new AsyncRelayCommand(OpenRentalHistoryAsync);
+            PlaceReservationCommand = new AsyncRelayCommand(PlaceReservationAsync, () => _reservationService != null);
+            PrintDetailsCommand = new RelayCommand(PrintDetails);
         }
 
         async Task EditAsync()
@@ -167,6 +189,134 @@ namespace InventoryManagementApp.ViewModels
             _dialogService.ShowRentalHistory(ItemModel, history);
         }
 
+        async Task PlaceReservationAsync()
+        {
+            if (_reservationService == null)
+            {
+                await _dialogService.ShowInfoAsync("Reservation workflow is not available from this detail window.", "Place Request").ConfigureAwait(false);
+                return;
+            }
+
+            var reservation = new Reservation
+            {
+                ItemID = ItemModel.ItemID,
+                ItemNumber = ItemModel.ItemNumber,
+                ItemName = ItemModel.Name,
+                ReservationDate = DateTime.Now,
+                StartDate = DateTime.Today,
+                EndDate = DateTime.Today.AddDays(1),
+                Quantity = 1,
+                Status = "Pending",
+                Notes = BuildReservationNotes()
+            };
+
+            var accepted = await _dialogService.ShowReservationEditDialogAsync(reservation, isNew: true).ConfigureAwait(false);
+            if (!accepted)
+                return;
+
+            if (reservation.ItemID <= 0)
+                reservation.ItemID = ItemModel.ItemID;
+            if (string.IsNullOrWhiteSpace(reservation.ItemNumber))
+                reservation.ItemNumber = ItemModel.ItemNumber;
+            if (string.IsNullOrWhiteSpace(reservation.ItemName))
+                reservation.ItemName = ItemModel.Name;
+
+            var isAvailable = await _reservationService.CheckAvailabilityAsync(
+                reservation.ItemID,
+                reservation.StartDate,
+                reservation.EndDate,
+                reservation.Quantity).ConfigureAwait(false);
+
+            if (!isAvailable)
+            {
+                var proceed = await _dialogService.ShowConfirmAsync(
+                    "Availability Warning",
+                    "This item may not be available for the selected dates. Create the request anyway so it can be tracked?").ConfigureAwait(false);
+
+                if (!proceed)
+                    return;
+            }
+
+            var reservationId = await _reservationService.CreateReservationAsync(reservation).ConfigureAwait(false);
+            reservation.ReservationID = reservationId;
+            await _dialogService.ShowInfoAsync($"Request #{reservationId} was created for {ItemModel.ItemNumber}.", "Request Created").ConfigureAwait(false);
+        }
+
+        void PrintDetails()
+        {
+            _dialogService.ShowPrintPreview(BuildPrintDocument(), $"Item Details - {ItemModel.ItemNumber}", StatusText);
+        }
+
+        FlowDocument BuildPrintDocument()
+        {
+            var document = new FlowDocument
+            {
+                FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
+                FontSize = 11
+            };
+
+            document.Blocks.Add(new Paragraph(new Run($"Item Details - {ItemModel.ItemNumber}"))
+            {
+                FontSize = 16,
+                FontWeight = FontWeights.SemiBold,
+                Margin = new Thickness(0, 0, 0, 4)
+            });
+            document.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:g} - {ItemModel.Name}"))
+            {
+                FontSize = 10,
+                Margin = new Thickness(0, 0, 0, 10)
+            });
+
+            var table = new Table { CellSpacing = 0 };
+            table.Columns.Add(new TableColumn { Width = new GridLength(130) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(420) });
+            var rows = new TableRowGroup();
+            table.RowGroups.Add(rows);
+
+            AddPrintRow(rows, "Name", ItemModel.Name);
+            AddPrintRow(rows, "Status", StatusText);
+            AddPrintRow(rows, "Availability", AvailabilitySummary);
+            AddPrintRow(rows, "Current holder", HolderSummary);
+            AddPrintRow(rows, "Stock", StockSummary);
+            AddPrintRow(rows, "Out since", CheckedOutSinceText);
+            AddPrintRow(rows, "Time out", TimeOutText);
+            AddPrintRow(rows, "Location", ItemModel.Location);
+            AddPrintRow(rows, "Brand", ItemModel.Brand);
+            AddPrintRow(rows, "Part #", ItemModel.PartNumber);
+            AddPrintRow(rows, "Usage", UsageSummary);
+            AddPrintRow(rows, "Condition", ConditionSummary);
+            AddPrintRow(rows, "Notes", string.IsNullOrWhiteSpace(ItemModel.Notes) ? "No notes recorded" : ItemModel.Notes);
+
+            document.Blocks.Add(table);
+            return document;
+        }
+
+        static void AddPrintRow(TableRowGroup rows, string label, string value)
+        {
+            var row = new TableRow();
+            rows.Rows.Add(row);
+            row.Cells.Add(new TableCell(new Paragraph(new Run(label)) { Margin = new Thickness(2) })
+            {
+                FontWeight = FontWeights.SemiBold,
+                BorderBrush = System.Windows.Media.Brushes.Gray,
+                BorderThickness = new Thickness(0, 0, 0, 0.5),
+                Padding = new Thickness(3, 2, 3, 2)
+            });
+            row.Cells.Add(new TableCell(new Paragraph(new Run(value ?? string.Empty)) { Margin = new Thickness(2) })
+            {
+                BorderBrush = System.Windows.Media.Brushes.Gray,
+                BorderThickness = new Thickness(0, 0, 0, 0.5),
+                Padding = new Thickness(3, 2, 3, 2)
+            });
+        }
+
+        string BuildReservationNotes()
+        {
+            var status = StatusText;
+            var holder = HolderSummary;
+            return $"Requested from item details. Current status: {status}. Current holder: {holder}.";
+        }
+
         void RefreshState()
         {
             OnPropertyChanged(nameof(CheckOutButtonText));
@@ -181,6 +331,7 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(UpdatedText));
             OnPropertyChanged(nameof(PurchasedText));
             OnPropertyChanged(nameof(PriceText));
+            OnPropertyChanged(nameof(RequestStatusText));
             OnPropertyChanged(nameof(ConditionSummary));
             OnPropertyChanged(nameof(NextActionText));
         }
