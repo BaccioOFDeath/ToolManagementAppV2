@@ -1,218 +1,138 @@
-# Feature Architecture Overview
+# InventoryManagementApp Feature Architecture
 
-## New Feature Stack
+InventoryManagementApp is the only active application in this repository. The architecture is a compact .NET 8 WPF desktop application built around MVVM, SQLite persistence, and focused rental inventory workflows.
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                          USER INTERFACE (UI Layer)                   │
-│                           [Ready for XAML]                           │
-└─────────────────────────────────────────────────────────────────────┘
-                                    ▲
-                                    │
-                                    │ Data Binding
-                                    │
-┌─────────────────────────────────────────────────────────────────────┐
-│                       VIEWMODELS (Presentation)                      │
-│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐  │
-│  │  Maintenance     │  │  Calibration     │  │  Reservation     │  │
-│  │  Management      │  │  Management      │  │  Management      │  │
-│  │  ViewModel       │  │  ViewModel       │  │  ViewModel       │  │
-│  │  (270 LOC)       │  │  (234 LOC)       │  │  (340 LOC)       │  │
-│  └──────────────────┘  └──────────────────┘  └──────────────────┘  │
-│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐  │
-│  │  Kit             │  │  Dashboard       │  │  Reports         │  │
-│  │  Management      │  │  ViewModel       │  │  ViewModel       │  │
-│  │  ViewModel       │  │  (Enhanced)      │  │  (Extended)      │  │
-│  │  (390 LOC)       │  │                  │  │                  │  │
-│  └──────────────────┘  └──────────────────┘  └──────────────────┘  │
-└─────────────────────────────────────────────────────────────────────┘
-                                    ▲
-                                    │
-                                    │ Business Logic
-                                    │
-┌─────────────────────────────────────────────────────────────────────┐
-│                        SERVICES (Business Logic)                     │
-│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐  │
-│  │  Maintenance     │  │  Calibration     │  │  Reservation     │  │
-│  │  Service         │  │  Service         │  │  Service         │  │
-│  │  (252 LOC)       │  │  (253 LOC)       │  │  (321 LOC)       │  │
-│  │                  │  │                  │  │                  │  │
-│  │  • Create        │  │  • Create        │  │  • Create        │  │
-│  │  • Read          │  │  • Read          │  │  • Read          │  │
-│  │  • Update        │  │  • Update        │  │  • Update        │  │
-│  │  • Delete        │  │  • Delete        │  │  • Delete        │  │
-│  │  • Complete      │  │  • Get Latest    │  │  • Confirm       │  │
-│  │  • Get Overdue   │  │  • Get Overdue   │  │  • Cancel        │  │
-│  │  • Get Upcoming  │  │  • Get Upcoming  │  │  • Fulfill       │  │
-│  │                  │  │                  │  │  • Check Avail.  │  │
-│  └──────────────────┘  └──────────────────┘  └──────────────────┘  │
-│  ┌──────────────────┐  ┌──────────────────┐                         │
-│  │  Kit             │  │  Report          │                         │
-│  │  Service         │  │  Service         │                         │
-│  │  (283 LOC)       │  │  (Enhanced)      │                         │
-│  │                  │  │                  │                         │
-│  │  • Create Kit    │  │  • 7 New Reports │                         │
-│  │  • Manage Items  │  │  • Enhanced      │                         │
-│  │  • Check Avail.  │  │    Summary       │                         │
-│  └──────────────────┘  └──────────────────┘                         │
-└─────────────────────────────────────────────────────────────────────┘
-                                    ▲
-                                    │
-                                    │ Data Access
-                                    │
-┌─────────────────────────────────────────────────────────────────────┐
-│                      MODELS (Domain Layer)                           │
-│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐  │
-│  │  Maintenance     │  │  Calibration     │  │  Reservation     │  │
-│  │  Record          │  │  Record          │  │                  │  │
-│  │  (112 LOC)       │  │  (120 LOC)       │  │  (127 LOC)       │  │
-│  └──────────────────┘  └──────────────────┘  └──────────────────┘  │
-│  ┌──────────────────┐                                               │
-│  │  Kit / KitItem   │                                               │
-│  │  (123 LOC)       │                                               │
-│  └──────────────────┘                                               │
-└─────────────────────────────────────────────────────────────────────┘
-                                    ▲
-                                    │
-                                    │ Persistence
-                                    │
-┌─────────────────────────────────────────────────────────────────────┐
-│                    DATABASE (SQLite via DatabaseService)             │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │ MaintenanceRecords                                            │  │
-│  │ - MaintenanceID (PK), ItemID (FK), ScheduledDate, Status...  │  │
-│  │ - Indexes: ItemID, ScheduledDate, Status                     │  │
-│  └──────────────────────────────────────────────────────────────┘  │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │ CalibrationRecords                                            │  │
-│  │ - CalibrationID (PK), ItemID (FK), CalibrationDate, Next...  │  │
-│  │ - Indexes: ItemID, NextCalibrationDue                        │  │
-│  └──────────────────────────────────────────────────────────────┘  │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │ Reservations                                                  │  │
-│  │ - ReservationID (PK), ItemID (FK), CustomerID (FK), Dates... │  │
-│  │ - Indexes: ItemID, CustomerID, StartDate/EndDate, Status    │  │
-│  └──────────────────────────────────────────────────────────────┘  │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │ Kits & KitItems                                               │  │
-│  │ - KitID (PK), KitNumber, Name, Category...                   │  │
-│  │ - KitItemID (PK), KitID (FK), ItemID (FK), Quantity...      │  │
-│  │ - Indexes: KitNumber (unique), KitID, ItemID                │  │
-│  └──────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────┘
+## Active Solution
+
+`InventoryManagementApp.sln` references exactly two projects:
+
+- `InventoryManagementApp`: WPF application.
+- `InventoryManagementApp.Tests`: unit and service tests.
+
+No device-management, backend server, or external service application is part of the active solution.
+
+## Architectural Layers
+
+```text
+WPF Views
+  -> ViewModels
+  -> Services
+  -> Models
+  -> SQLite DatabaseService
 ```
 
-## Feature Integration Points
+### Views
 
-### 1. Dashboard Integration
+Views are XAML screens and dialogs designed for dense desktop workflows. They should follow `designprompt.md`: compact spacing, clear labels, tables over cards, obvious task flow, keyboard-friendly behavior, and restrained decoration.
+
+Primary UI areas include:
+
+- Dashboard and navigation.
+- Item management.
+- Customer management.
+- Rental checkout and check-in.
+- Open request handling.
+- Reports and printable documents.
+- Import/export.
+- Settings and rebranding.
+- User and password management.
+
+### ViewModels
+
+ViewModels own presentation state, validation, commands, filtering, selected records, and user-facing workflow coordination. They should remain UI-framework friendly without taking direct dependencies on persistence details beyond injected services.
+
+Expected patterns:
+
+- `ObservableObject` for property notifications.
+- `ObservableCollection<T>` or collection views for visible data.
+- `RelayCommand` and `AsyncRelayCommand` for actions.
+- `CanExecute` rules for workflow buttons.
+- Clear error messages through the dialog service.
+
+### Services
+
+Services contain business behavior and integration boundaries. Existing services should be extended rather than bypassed.
+
+Important service responsibilities include:
+
+- Inventory item persistence and availability changes.
+- Customer persistence.
+- Rental checkout, check-in, overdue detection, and request workflow updates.
+- Email reminder delivery and graceful disablement when SMTP is incomplete.
+- Picking slip and invoice generation.
+- Import/export parsing, validation, and persistence.
+- Settings loading, validation, and terminology updates.
+- User and password handling.
+
+### Models
+
+Models represent InventoryManagementApp domain records such as items, customers, rentals, requests, settings, users, and document data. Model changes should be paired with persistence and test updates when behavior changes.
+
+### Persistence
+
+SQLite persistence is centralized behind `DatabaseService`. Keep schema evolution, queries, and commands in the existing database-service approach.
+
+Persistence rules:
+
+- Use SQLite through `DatabaseService`.
+- Do not introduce another ORM.
+- Keep migrations or schema creation deterministic.
+- Preserve customer, item, rental, settings, and user data during upgrades.
+- Avoid committing database files.
+
+## Workflow Map
+
+```text
+Items
+  -> checkout availability
+  -> rental line data
+  -> picking slips and invoices
+  -> import/export records
+
+Customers
+  -> rental checkout
+  -> reminder recipients
+  -> invoice recipient details
+  -> import/export records
+
+Rentals
+  -> active checkout list
+  -> check-in workflow
+  -> overdue handling
+  -> reminder scheduling
+  -> printed documents
+
+Settings
+  -> terminology and rebranding
+  -> rates and fees
+  -> company document details
+  -> email configuration
 ```
-DashboardViewModel
-    ├── Displays "Overdue Maintenance" count
-    ├── Displays "Overdue Calibrations" count  
-    ├── Displays "Active Reservations" count
-    └── Displays "Active Kits" count
+
+## Validation Expectations
+
+Before committing behavior changes, run:
+
+```bash
+dotnet restore InventoryManagementApp.sln
+dotnet build InventoryManagementApp.sln --no-restore
+dotnet test InventoryManagementApp.sln --no-build
 ```
 
-### 2. Reporting Integration
-```
-ReportService
-    ├── GenerateMaintenanceReport(overdueOnly)
-    ├── GenerateCalibrationReport(overdueOnly)
-    ├── GenerateReservationReport(activeOnly)
-    ├── GenerateKitReport()
-    └── GenerateSummaryReport() [Enhanced with new metrics]
-```
+Run `./scripts/check-banned-words.sh` when available.
 
-### 3. Navigation Flow (Ready for UI)
-```
-MainWindow
-    └── MainViewModel
-        ├── Navigate to Maintenance Management
-        ├── Navigate to Calibration Management
-        ├── Navigate to Reservation Management
-        └── Navigate to Kit Management
-```
+Tests should live in `InventoryManagementApp.Tests` and cover critical behavior for changed services, view models, validation rules, or persistence paths.
 
-## Cross-Feature Relationships
+## Out-of-Scope Systems
 
-```
-Items ──┬── can have ──→ MaintenanceRecords
-        ├── can have ──→ CalibrationRecords
-        ├── can have ──→ Reservations
-        └── can be in ──→ Kits
+The repository should not document or implement unrelated application areas. In particular, do not add or describe:
 
-Customers ──── can make ──→ Reservations
+- Device-management applications or device discovery.
+- SMB or FTP transfer workflows.
+- Backend web services.
+- External database stacks beyond SQLite.
+- Message queues or backend worker platforms.
+- Multi-tenant organization graph authorization.
+- Dismantling, workshop, sales, finance, freight, or environmental recovery modules.
 
-Users ──┬── create ──→ MaintenanceRecords
-        ├── create ──→ CalibrationRecords
-        ├── create ──→ Reservations
-        └── create ──→ Kits
-
-Reservations ──── can link to ──→ Rentals (when fulfilled)
-
-Kits ──── contain ──→ KitItems ──→ Items
-```
-
-## SDAutoOS Backend Integration (apps/server)
-
-- **Migrations & Seeds:** Prisma migrations live in `apps/server/prisma`; run `npm run prisma:status` to review pending changes, `npm run prisma:migrate-dev` to apply locally, and `npm run prisma:seed-org-roles` to preload demo tenants/branches/departments plus hierarchical role definitions. 【F:apps/server/prisma/check-migrations.ts†L8-L34】【F:apps/server/package.json†L6-L12】【F:apps/server/prisma/seed-org-roles.ts†L233-L308】
-- **Tenant & Branch Scoping:** The organization context helper resolves `tenantId`, `userId`, and `branchId` from request headers or legacy `user.branchId`, ensuring guard checks and service lookups always target the correct tenant/branch. Department creation and updates enforce tenant ownership for branches and parent departments. 【F:apps/server/src/modules/organization-hierarchy/organization-context.ts†L5-L33】【F:apps/server/src/modules/organization-hierarchy/services/department.service.ts†L10-L67】
-- **Authorization & Caching:** `OrganizationAccessGuard` relies on `AccessControlService` to fetch permissions derived from department assignments, caching them in Redis for five minutes and invalidating on assignment changes. Missing assignments raise `NotFoundError` to prevent default allow behavior. 【F:apps/server/src/modules/organization-hierarchy/organization-access.guard.ts†L35-L69】【F:apps/server/src/modules/organization-hierarchy/services/access-control.service.ts†L9-L64】
-- **GraphQL & REST Surface:** Department data is available via GraphQL queries/mutations and mirrored REST endpoints, all protected by the organization guard and `manageDepartmentPermission`. GraphQL connections support cursor-based pagination; REST endpoints accept optional `branchId` filters to keep responses branch-aware. 【F:apps/server/src/modules/organization-hierarchy/department.resolver.ts†L18-L90】【F:apps/server/src/modules/organization-hierarchy/controllers/department.controller.ts†L15-L80】
-
-## Testing Coverage
-
-```
-Unit Tests (28 test cases)
-    ├── MaintenanceServiceTests (7 tests)
-    │   ├── Create, Read, Update, Delete
-    │   ├── Get Overdue
-    │   └── Complete Maintenance
-    ├── CalibrationServiceTests (6 tests)
-    │   ├── Create, Read, Update, Delete
-    │   └── Get Overdue
-    ├── ReservationServiceTests (7 tests)
-    │   ├── Create, Read, Update, Delete
-    │   ├── Confirm, Cancel, Fulfill
-    │   └── Check Availability
-    └── KitServiceTests (8 tests)
-        ├── Create, Read, Update, Delete Kit
-        ├── Add, Update, Remove KitItem
-        └── Check Kit Availability
-```
-
-## Implementation Statistics
-
-| Component              | Files | Lines of Code | Description                    |
-|------------------------|-------|---------------|--------------------------------|
-| Domain Models          | 4     | ~480          | Data structures                |
-| Services               | 4     | ~1,100        | Business logic                 |
-| ViewModels             | 4     | ~1,230        | Presentation logic             |
-| Database Schema        | -     | ~100          | Table definitions + indexes    |
-| Report Extensions      | 2     | ~180          | New reports + enhanced metrics |
-| Unit Tests             | 4     | ~460          | Test coverage                  |
-| Documentation          | 2     | ~230          | Summary + architecture docs    |
-| **TOTAL**              | **20**| **~3,780**    | **Production-ready code**      |
-
-## Benefits of This Architecture
-
-1. **Separation of Concerns**: Each layer has clear responsibilities
-2. **Testability**: Services can be tested independently with mocked dependencies
-3. **Maintainability**: Changes to one layer don't ripple to others
-4. **Extensibility**: New features can follow the same pattern
-5. **MVVM Compliance**: ViewModels don't know about UI, UI binds to ViewModels
-6. **Reusability**: Services can be used by multiple ViewModels
-7. **Performance**: Database indexes optimize common queries
-8. **Integration**: New features integrate seamlessly with existing infrastructure
-
-## Ready for UI Integration
-
-To complete the UI layer, create XAML files for:
-- MaintenancePage.xaml → MaintenanceManagementViewModel
-- CalibrationPage.xaml → CalibrationManagementViewModel
-- ReservationPage.xaml → ReservationManagementViewModel
-- KitManagementPage.xaml → KitManagementViewModel
-
-Plus edit dialogs for each feature area.
-
-All business logic, data access, and presentation logic is complete and tested!
+Historical references to those areas should be removed unless they are clearly marked as changelog history and do not imply active repository scope.
