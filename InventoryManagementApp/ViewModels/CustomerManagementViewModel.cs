@@ -21,10 +21,32 @@ namespace InventoryManagementApp.ViewModels
 
         public ObservableCollection<CustomerModel> Customers { get; } = new();
 
-        public string CustomerResultsSummary => $"{Customers.Count} customer{(Customers.Count == 1 ? string.Empty : "s")} shown";
+        public string CustomerResultsSummary
+        {
+            get
+            {
+                var baseSummary = $"{Customers.Count} customer{(Customers.Count == 1 ? string.Empty : "s")} shown";
+                return string.IsNullOrWhiteSpace(CustomerSearchTerm)
+                    ? baseSummary
+                    : $"{baseSummary} for \"{CustomerSearchTerm.Trim()}\"";
+            }
+        }
+
         public string SelectedCustomerSummary => SelectedCustomer == null
-            ? "Select or double-click a customer row to view contact details, print a customer sheet, edit, or delete."
-            : $"{ValueOrNotRecorded(SelectedCustomer.Company)} | {ValueOrNotRecorded(SelectedCustomer.Contact)} | {ValueOrNotRecorded(SelectedCustomer.Phone)} | {ValueOrNotRecorded(SelectedCustomer.Email)}";
+            ? "Select or double-click a customer row to view contact details, copy a handoff, print a customer sheet, edit, or delete."
+            : $"Ready: {ValueOrNotRecorded(SelectedCustomer.Company)} | {ValueOrNotRecorded(SelectedCustomer.Contact)} | {ValueOrNotRecorded(SelectedCustomer.Phone)} | {ValueOrNotRecorded(SelectedCustomer.Email)}";
+
+        public string CustomerContactSummary => SelectedCustomer == null
+            ? "Select a customer to see phone, mobile, and email contact details."
+            : $"Phone: {ValueOrNotRecorded(SelectedCustomer.Phone)} | Mobile: {ValueOrNotRecorded(SelectedCustomer.Mobile)} | Email: {ValueOrNotRecorded(SelectedCustomer.Email)}";
+
+        public string CustomerAddressSummary => SelectedCustomer == null
+            ? "No address is selected yet."
+            : ValueOrNotRecorded(SelectedCustomer.Address);
+
+        public string CustomerOperationsSummary => SelectedCustomer == null
+            ? "Choose a customer before starting a rental, reservation, delivery promise, or printed handoff."
+            : "Verify this contact, then use Rentals or Requests to review open activity before promising availability or collection times.";
 
         private CustomerModel? _selectedCustomer;
         public CustomerModel? SelectedCustomer
@@ -39,7 +61,11 @@ namespace InventoryManagementApp.ViewModels
                     ((AsyncRelayCommand)EditCustomerCommand).NotifyCanExecuteChanged();
                     OpenCustomerDetailsCommand.NotifyCanExecuteChanged();
                     PrintSelectedCustomerCommand.NotifyCanExecuteChanged();
+                    CopySelectedCustomerCommand.NotifyCanExecuteChanged();
                     OnPropertyChanged(nameof(SelectedCustomerSummary));
+                    OnPropertyChanged(nameof(CustomerContactSummary));
+                    OnPropertyChanged(nameof(CustomerAddressSummary));
+                    OnPropertyChanged(nameof(CustomerOperationsSummary));
 
                     if (value != null)
                     {
@@ -75,7 +101,11 @@ namespace InventoryManagementApp.ViewModels
         public string CustomerSearchTerm
         {
             get => _customerSearchTerm;
-            set => SetProperty(ref _customerSearchTerm, value);
+            set
+            {
+                if (SetProperty(ref _customerSearchTerm, value))
+                    OnPropertyChanged(nameof(CustomerResultsSummary));
+            }
         }
 
         public IAsyncRelayCommand AddCustomerCommand { get; }
@@ -89,6 +119,7 @@ namespace InventoryManagementApp.ViewModels
         public IRelayCommand OpenCustomerDetailsCommand { get; }
         public IRelayCommand PrintCustomerDirectoryCommand { get; }
         public IRelayCommand PrintSelectedCustomerCommand { get; }
+        public IRelayCommand CopySelectedCustomerCommand { get; }
 
         public CustomerManagementViewModel(ICustomerService customerService, IDialogService dialogService)
         {
@@ -105,6 +136,7 @@ namespace InventoryManagementApp.ViewModels
             OpenCustomerDetailsCommand = new RelayCommand(OpenCustomerDetails, () => SelectedCustomer != null);
             PrintCustomerDirectoryCommand = new RelayCommand(PrintCustomerDirectory);
             PrintSelectedCustomerCommand = new RelayCommand(PrintSelectedCustomer, () => SelectedCustomer != null);
+            CopySelectedCustomerCommand = new RelayCommand(CopySelectedCustomer, () => SelectedCustomer != null);
         }
 
         public async Task LoadCustomersAsync()
@@ -113,8 +145,10 @@ namespace InventoryManagementApp.ViewModels
 
             try
             {
+                var preferredCustomerId = SelectedCustomer?.CustomerID;
                 var all = await _customerService.GetAllCustomersAsync();
                 Customers.ReplaceRange(all);
+                SelectBestCustomerAfterRefresh(preferredCustomerId);
                 OnPropertyChanged(nameof(CustomerResultsSummary));
             }
             catch (Exception ex)
@@ -133,7 +167,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 await _customerService.AddCustomerAsync(customer);
                 await LoadCustomersAsync();
-                ClearNewCustomerFields();
+                SelectBestCustomerAfterRefresh(customer.CustomerID);
             }
             catch (UnauthorizedAccessException)
             {
@@ -148,9 +182,10 @@ namespace InventoryManagementApp.ViewModels
         async Task UpdateCustomerAsync()
         {
             if (SelectedCustomer == null || _customerService == null || _dialogService == null) return;
+            var selectedId = SelectedCustomer.CustomerID;
             var updated = new CustomerModel
             {
-                CustomerID = SelectedCustomer.CustomerID,
+                CustomerID = selectedId,
                 Company = NewCustomerName,
                 Email = NewCustomerEmail,
                 Contact = NewCustomerContact,
@@ -163,6 +198,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 await _customerService.UpdateCustomerAsync(updated);
                 await LoadCustomersAsync();
+                SelectBestCustomerAfterRefresh(selectedId);
             }
             catch (UnauthorizedAccessException)
             {
@@ -180,6 +216,7 @@ namespace InventoryManagementApp.ViewModels
 
             try
             {
+                var preferredCustomerId = SelectedCustomer?.CustomerID;
                 var all = await _customerService.GetAllCustomersAsync();
                 if (!string.IsNullOrWhiteSpace(CustomerSearchTerm))
                 {
@@ -194,6 +231,7 @@ namespace InventoryManagementApp.ViewModels
                         .ToList();
                 }
                 Customers.ReplaceRange(all);
+                SelectBestCustomerAfterRefresh(preferredCustomerId);
                 OnPropertyChanged(nameof(CustomerResultsSummary));
             }
             catch (Exception ex)
@@ -254,6 +292,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 await _customerService.UpdateCustomerAsync(edited);
                 await LoadCustomersAsync();
+                SelectBestCustomerAfterRefresh(edited.CustomerID);
             }
             catch (UnauthorizedAccessException)
             {
@@ -271,20 +310,25 @@ namespace InventoryManagementApp.ViewModels
                 return;
 
             var customer = SelectedCustomer;
-            var details = new StringBuilder();
-            details.AppendLine($"Customer #: {customer.CustomerID}");
-            details.AppendLine($"Company: {ValueOrNotRecorded(customer.Company)}");
-            details.AppendLine($"Primary contact: {ValueOrNotRecorded(customer.Contact)}");
-            details.AppendLine();
-            details.AppendLine($"Phone: {ValueOrNotRecorded(customer.Phone)}");
-            details.AppendLine($"Mobile: {ValueOrNotRecorded(customer.Mobile)}");
-            details.AppendLine($"Email: {ValueOrNotRecorded(customer.Email)}");
-            details.AppendLine();
-            details.AppendLine($"Address: {ValueOrNotRecorded(customer.Address)}");
-            details.AppendLine();
-            details.AppendLine("Next steps: edit the contact, print a customer sheet, then use rentals or requests to review open activity for this customer.");
+            var details = CreateCustomerHandoffText(customer);
 
-            _dialogService.ShowInfo(details.ToString(), $"Customer Details - {ValueOrNotRecorded(customer.Company)}");
+            _dialogService.ShowInfo(details, $"Customer Details - {ValueOrNotRecorded(customer.Company)}");
+        }
+
+        void CopySelectedCustomer()
+        {
+            if (SelectedCustomer == null || _dialogService == null)
+                return;
+
+            try
+            {
+                Clipboard.SetText(CreateCustomerHandoffText(SelectedCustomer));
+                _dialogService.ShowInfo("Customer contact handoff copied to the clipboard.", "Customer Handoff");
+            }
+            catch (Exception ex)
+            {
+                _dialogService.ShowInfo($"Failed to copy customer handoff: {ex.Message}", "Copy Failed");
+            }
         }
 
         void PrintCustomerDirectory()
@@ -359,6 +403,36 @@ namespace InventoryManagementApp.ViewModels
             {
                 _dialogService.ShowInfo($"Failed to print customer sheet: {ex.Message}", "Print Failed");
             }
+        }
+
+        void SelectBestCustomerAfterRefresh(int? preferredCustomerId = null)
+        {
+            if (Customers.Count == 0)
+            {
+                SelectedCustomer = null;
+                return;
+            }
+
+            SelectedCustomer = preferredCustomerId.HasValue
+                ? Customers.FirstOrDefault(c => c.CustomerID == preferredCustomerId.Value) ?? Customers.FirstOrDefault()
+                : Customers.FirstOrDefault();
+        }
+
+        static string CreateCustomerHandoffText(CustomerModel customer)
+        {
+            var details = new StringBuilder();
+            details.AppendLine($"Customer #: {customer.CustomerID}");
+            details.AppendLine($"Company: {ValueOrNotRecorded(customer.Company)}");
+            details.AppendLine($"Primary contact: {ValueOrNotRecorded(customer.Contact)}");
+            details.AppendLine();
+            details.AppendLine($"Phone: {ValueOrNotRecorded(customer.Phone)}");
+            details.AppendLine($"Mobile: {ValueOrNotRecorded(customer.Mobile)}");
+            details.AppendLine($"Email: {ValueOrNotRecorded(customer.Email)}");
+            details.AppendLine();
+            details.AppendLine($"Address: {ValueOrNotRecorded(customer.Address)}");
+            details.AppendLine();
+            details.AppendLine("Next steps: verify the contact, then use Rentals or Requests to review open activity before promising availability or collection times.");
+            return details.ToString();
         }
 
         static FlowDocument CreateCustomerDocument(string title, double fontSize = 16)
