@@ -26,9 +26,14 @@ public class NullSafetyTests
     public async Task ReportsViewModel_RunReportCommand_SafeWithUnknownReport()
     {
         var vm = new ReportsViewModel(new ReportService(null!, null!, null!, null!, null!));
+        vm.SelectedReport = "Unknown Report";
+
         await vm.RunReportCommand.ExecuteAsync(null);
-        Assert.NotNull(vm.ReportResults);
-        Assert.True(vm.ReportResults.Columns.Contains("Line"));
+
+        Assert.Empty(vm.ReportLines);
+        Assert.Equal("Unknown Report", vm.ReportTitle);
+        Assert.Equal("The report returned no detail rows.", vm.ReportSummary);
+        Assert.Equal("Unknown Report completed with 0 line(s).", vm.ReportStatus);
     }
 
     [Fact]
