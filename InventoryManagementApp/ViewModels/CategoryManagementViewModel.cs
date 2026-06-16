@@ -1,14 +1,16 @@
-﻿// ViewModels/CategoryManagementViewModel.cs
+// ViewModels/CategoryManagementViewModel.cs
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using InventoryManagementApp.Services.Categories;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using WpfMessageBox = System.Windows.MessageBox;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -19,9 +21,11 @@ namespace InventoryManagementApp.ViewModels
         private int _selectedInventoryId;
         private CategoryItem? _selectedCategory;
         private string _categoryName = "";
+        private string _searchText = "";
         private bool _isBusy;
 
         public ObservableCollection<CategoryItem> Categories { get; } = new();
+        public ObservableCollection<CategoryItem> FilteredCategories { get; } = new();
 
         public int SelectedInventoryId
         {
@@ -44,6 +48,11 @@ namespace InventoryManagementApp.ViewModels
                 _selectedCategory = value;
                 OnPropertyChanged();
                 CategoryName = value?.Name ?? "";
+                OnPropertyChanged(nameof(SelectedCategoryTitle));
+                OnPropertyChanged(nameof(SelectedCategorySubtitle));
+                OnPropertyChanged(nameof(SelectedCategoryDetail));
+                OnPropertyChanged(nameof(SelectedCategoryNextAction));
+                OnPropertyChanged(nameof(SelectedCategorySummary));
                 _saveCommand.RaiseCanExecuteChanged();
                 _deleteCommand.RaiseCanExecuteChanged();
             }
@@ -62,21 +71,60 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                if (_searchText == value) return;
+                _searchText = value;
+                OnPropertyChanged();
+                ApplyFilter();
+                _clearSearchCommand.RaiseCanExecuteChanged();
+            }
+        }
+
         public bool IsBusy
         {
             get => _isBusy;
             private set { if (_isBusy == value) return; _isBusy = value; OnPropertyChanged(); }
         }
 
+        public string CategoryResultsSummary => string.IsNullOrWhiteSpace(SearchText)
+            ? $"{FilteredCategories.Count} {(FilteredCategories.Count == 1 ? "category" : "categories")} shown"
+            : $"{FilteredCategories.Count} of {Categories.Count} categor{(FilteredCategories.Count == 1 ? "y" : "ies")} match \"{SearchText.Trim()}\"";
+
+        public string SelectedCategoryTitle => SelectedCategory == null
+            ? "No category selected"
+            : SelectedCategory.Name;
+
+        public string SelectedCategorySubtitle => SelectedCategory == null
+            ? "Select or double-click a category row."
+            : $"Category #{SelectedCategory.CategoryID}";
+
+        public string SelectedCategoryDetail => SelectedCategory == null
+            ? "Choose a category to rename, delete, copy, print, or review before assigning inventory records."
+            : $"Category #{SelectedCategory.CategoryID} is named \"{SelectedCategory.Name}\". Use this directory to keep advisor search filters and inventory setup tidy.";
+
+        public string SelectedCategoryNextAction => SelectedCategory == null
+            ? "Create a category, filter the list, or select a row to continue."
+            : "Natural next step: confirm the name matches how technicians and advisors search, then use inventory item setup to assign matching records.";
+
+        public string SelectedCategorySummary => SelectedCategory == null
+            ? "Select or double-click a category row to view details, copy it, print the directory, rename it, or delete it."
+            : $"Selected: #{SelectedCategory.CategoryID} | {SelectedCategory.Name}";
+
         private readonly AsyncCommand _addCommand;
         private readonly AsyncCommand _saveCommand;
         private readonly AsyncCommand _deleteCommand;
         private readonly AsyncCommand _refreshCommand;
+        private readonly AsyncCommand _clearSearchCommand;
 
         public ICommand AddCommand => _addCommand;
         public ICommand SaveCommand => _saveCommand;
         public ICommand DeleteCommand => _deleteCommand;
         public ICommand RefreshCommand => _refreshCommand;
+        public ICommand ClearSearchCommand => _clearSearchCommand;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -88,6 +136,7 @@ namespace InventoryManagementApp.ViewModels
             _saveCommand = new AsyncCommand(SaveAsync, () => SelectedCategory != null && !string.IsNullOrWhiteSpace(CategoryName));
             _deleteCommand = new AsyncCommand(DeleteAsync, () => SelectedCategory != null);
             _refreshCommand = new AsyncCommand(LoadAsync);
+            _clearSearchCommand = new AsyncCommand(ClearSearchAsync, () => !string.IsNullOrWhiteSpace(SearchText));
         }
 
         private async void LoadCategoriesAsync()
@@ -114,16 +163,43 @@ namespace InventoryManagementApp.ViewModels
             IsBusy = true;
             try
             {
+                var selectedId = SelectedCategory?.CategoryID;
                 var list = await _service.GetCategoriesForInventoryAsync(SelectedInventoryId);
                 Categories.Clear();
                 foreach (var c in list) Categories.Add(new CategoryItem { CategoryID = c.CategoryID, Name = c.Name });
-                if (SelectedCategory != null)
-                {
-                    var match = Categories.FirstOrDefault(x => x.CategoryID == SelectedCategory.CategoryID);
-                    SelectedCategory = match;
-                }
+                ApplyFilter(selectedId);
             }
             finally { IsBusy = false; }
+        }
+
+        private void ApplyFilter(int? preferredSelectedId = null)
+        {
+            var search = SearchText.Trim();
+            var currentId = preferredSelectedId ?? SelectedCategory?.CategoryID;
+            var filtered = Categories
+                .Where(c => string.IsNullOrWhiteSpace(search)
+                    || c.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
+                    || c.CategoryID.ToString().Contains(search, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(c => c.Name)
+                .ThenBy(c => c.CategoryID)
+                .ToList();
+
+            FilteredCategories.Clear();
+            foreach (var category in filtered)
+                FilteredCategories.Add(category);
+
+            SelectedCategory = currentId.HasValue
+                ? FilteredCategories.FirstOrDefault(c => c.CategoryID == currentId.Value)
+                : FilteredCategories.FirstOrDefault();
+
+            OnPropertyChanged(nameof(CategoryResultsSummary));
+        }
+
+        private async Task ClearSearchAsync()
+        {
+            SearchText = "";
+            ApplyFilter();
+            await Task.CompletedTask;
         }
 
         private async Task AddAsync()
@@ -139,7 +215,8 @@ namespace InventoryManagementApp.ViewModels
                 return;
             }
             await LoadAsync();
-            SelectedCategory = Categories.FirstOrDefault(x => x.CategoryID == id);
+            SelectedCategory = FilteredCategories.FirstOrDefault(x => x.CategoryID == id)
+                ?? Categories.FirstOrDefault(x => x.CategoryID == id);
         }
 
         private async Task SaveAsync()
@@ -152,20 +229,29 @@ namespace InventoryManagementApp.ViewModels
             {
                 var item = Categories.FirstOrDefault(x => x.CategoryID == SelectedCategory.CategoryID);
                 if (item != null) item.Name = name;
+                ApplyFilter(SelectedCategory.CategoryID);
             }
         }
 
         private async Task DeleteAsync()
         {
             if (SelectedCategory == null) return;
-            var id = SelectedCategory.CategoryID;
+            var category = SelectedCategory;
+            var confirmed = WpfMessageBox.Show(
+                $"Delete category \"{category.Name}\"?",
+                "Delete Category",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) == MessageBoxResult.Yes;
+            if (!confirmed) return;
+
+            var id = category.CategoryID;
             var ok = await _service.DeleteCategoryAsync(id);
             if (ok)
             {
                 var item = Categories.FirstOrDefault(x => x.CategoryID == id);
                 if (item != null) Categories.Remove(item);
                 CategoryName = "";
-                SelectedCategory = null;
+                ApplyFilter();
             }
         }
 
