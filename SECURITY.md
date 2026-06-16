@@ -68,10 +68,10 @@ When deploying the Inventory Management Application, follow these security best 
 - Review user access permissions regularly
 
 #### 6. Application Security
-- Review logs regularly for failed login attempts
+- Review logs regularly for failed login attempts and lockout events
 - Monitor for unusual user activity patterns
 - Keep audit logs of administrative actions
-- Implement account lockout after repeated failed logins
+- Use the built-in 5-attempt account lockout to slow repeated password guessing
 - Use the latest version of the application
 
 ### Known Security Considerations
@@ -92,6 +92,7 @@ When deploying the Inventory Management Application, follow these security best 
 - Passwords are hashed using PBKDF2-SHA256 with 100,000+ iterations
 - Legacy password hashes are automatically upgraded on login
 - Default/temporary passwords trigger automatic expiration
+- Five failed password attempts lock the account for 15 minutes; successful login or password reset clears the counter
 - No session timeout is enforced by default (consider implementing for high-security deployments)
 
 ### Security Features
@@ -102,6 +103,7 @@ The application includes the following built-in security features:
 - ✅ Configurable password iteration count
 - ✅ Password complexity requirements
 - ✅ Automatic password expiration for weak passwords
+- ✅ Temporary account lockout after repeated failed logins
 - ✅ User authentication and authorization
 - ✅ Role-based access control (admin vs. regular users)
 - ✅ Activity logging for audit trails
@@ -128,5 +130,5 @@ If you have questions about security but have not discovered a vulnerability, pl
 
 ---
 
-**Last Updated:** 2025-11-04  
+**Last Updated:** 2026-06-16  
 **Application Version:** 1.0.0
