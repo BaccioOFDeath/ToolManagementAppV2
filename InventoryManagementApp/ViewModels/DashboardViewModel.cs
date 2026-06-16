@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Data;
@@ -34,6 +35,11 @@ namespace InventoryManagementApp.ViewModels
         readonly IRelayCommand _openRentalsCommand;
         readonly IRelayCommand _openImportExportCommand;
         readonly ILogger<DashboardViewModel> _logger;
+        ItemModel? _selectedCommonlyUsedItem;
+        ItemModel? _selectedCheckedOutItem;
+        ItemModel? _selectedIncompleteItem;
+        RentalModel? _selectedRental;
+        ActivityLog? _selectedActivity;
 
         public ObservableCollection<StatCard> StatCards { get; } = new();
         public ObservableCollection<ActivityLog> RecentActivity { get; } = new();
@@ -42,12 +48,77 @@ namespace InventoryManagementApp.ViewModels
         public ObservableCollection<ItemModel> CommonlyUsedItems { get; } = new();
         public ObservableCollection<ItemModel> IncompleteItems { get; } = new();
 
+        public ItemModel? SelectedCommonlyUsedItem
+        {
+            get => _selectedCommonlyUsedItem;
+            set
+            {
+                if (SetProperty(ref _selectedCommonlyUsedItem, value))
+                    UpdateSelectedRecordSummary();
+            }
+        }
+
+        public ItemModel? SelectedCheckedOutItem
+        {
+            get => _selectedCheckedOutItem;
+            set
+            {
+                if (SetProperty(ref _selectedCheckedOutItem, value))
+                    UpdateSelectedRecordSummary();
+            }
+        }
+
+        public ItemModel? SelectedIncompleteItem
+        {
+            get => _selectedIncompleteItem;
+            set
+            {
+                if (SetProperty(ref _selectedIncompleteItem, value))
+                    UpdateSelectedRecordSummary();
+            }
+        }
+
+        public RentalModel? SelectedRental
+        {
+            get => _selectedRental;
+            set
+            {
+                if (SetProperty(ref _selectedRental, value))
+                    UpdateSelectedRecordSummary();
+            }
+        }
+
+        public ActivityLog? SelectedActivity
+        {
+            get => _selectedActivity;
+            set
+            {
+                if (SetProperty(ref _selectedActivity, value))
+                    UpdateSelectedRecordSummary();
+            }
+        }
+
+        public string OperationsSummary =>
+            $"{CheckedOutItems.Count} checked out | {RentedItems.Count} active rentals | {IncompleteItems.Count} with issues | {RecentActivity.Count} recent activity rows";
+
+        public string SelectedRecordSummary { get; private set; } = "Select or double-click a row to open the related workflow.";
+
         public IRelayCommand NewItemCommand { get; }
+        public IRelayCommand OpenItemsCommand { get; }
         public IRelayCommand OpenRentalsCommand { get; }
         public IRelayCommand OpenImportExportCommand { get; }
+        public IRelayCommand OpenSelectedCommonItemCommand { get; }
+        public IRelayCommand OpenSelectedCheckedOutItemCommand { get; }
+        public IRelayCommand OpenSelectedIncompleteItemCommand { get; }
+        public IRelayCommand OpenSelectedRentalCommand { get; }
+        public IRelayCommand OpenActivityDestinationCommand { get; }
         public IAsyncRelayCommand PrintCheckedOutItemsCommand { get; }
+        public IAsyncRelayCommand PrintDashboardSnapshotCommand { get; }
         public IAsyncRelayCommand<ItemModel> CheckInItemCommand { get; }
         public IAsyncRelayCommand<RentalModel> ReturnRentalCommand { get; }
+        public IAsyncRelayCommand ToggleSelectedCommonItemCommand { get; }
+        public IAsyncRelayCommand CheckInSelectedItemCommand { get; }
+        public IAsyncRelayCommand ReturnSelectedRentalCommand { get; }
 
         public DashboardViewModel(IItemService itemService,
                                   IRentalService rentalService,
@@ -77,27 +148,22 @@ namespace InventoryManagementApp.ViewModels
             _openImportExportCommand = openImportExportCommand ?? throw new ArgumentNullException(nameof(openImportExportCommand));
             _logger = logger ?? NullLogger<DashboardViewModel>.Instance;
 
-            NewItemCommand = new RelayCommand(() =>
-            {
-                try { _openManageItemsCommand.Execute(null); }
-                catch (Exception ex) { _logger.LogError(ex, "Failed to open manage {ItemLabelPlural} page", LabelProvider.Instance.ItemLabelPlural.ToLower()); }
-            });
-
-            OpenRentalsCommand = new RelayCommand(() =>
-            {
-                try { _openRentalsCommand.Execute(null); }
-                catch (Exception ex) { _logger.LogError(ex, "Failed to open rentals page"); }
-            });
-
-            OpenImportExportCommand = new RelayCommand(() =>
-            {
-                try { _openImportExportCommand.Execute(null); }
-                catch (Exception ex) { _logger.LogError(ex, "Failed to open import/export page"); }
-            });
-
+            NewItemCommand = new RelayCommand(OpenItemsWorkflow);
+            OpenItemsCommand = new RelayCommand(OpenItemsWorkflow);
+            OpenRentalsCommand = new RelayCommand(OpenRentalsWorkflow);
+            OpenImportExportCommand = new RelayCommand(OpenImportExportWorkflow);
+            OpenSelectedCommonItemCommand = new RelayCommand(OpenItemsWorkflow);
+            OpenSelectedCheckedOutItemCommand = new RelayCommand(OpenItemsWorkflow);
+            OpenSelectedIncompleteItemCommand = new RelayCommand(OpenItemsWorkflow);
+            OpenSelectedRentalCommand = new RelayCommand(OpenRentalsWorkflow);
+            OpenActivityDestinationCommand = new RelayCommand(OpenActivityDestination);
             PrintCheckedOutItemsCommand = new AsyncRelayCommand(PrintCheckedOutItemsAsync);
+            PrintDashboardSnapshotCommand = new AsyncRelayCommand(PrintDashboardSnapshotAsync);
             CheckInItemCommand = new AsyncRelayCommand<ItemModel>(CheckInItemAsync);
             ReturnRentalCommand = new AsyncRelayCommand<RentalModel>(ReturnRentalAsync);
+            ToggleSelectedCommonItemCommand = new AsyncRelayCommand(ToggleSelectedCommonItemAsync);
+            CheckInSelectedItemCommand = new AsyncRelayCommand(CheckInSelectedItemAsync);
+            ReturnSelectedRentalCommand = new AsyncRelayCommand(ReturnSelectedRentalAsync);
         }
 
         public Task LoadAsync(CancellationToken cancellationToken)
@@ -115,7 +181,6 @@ namespace InventoryManagementApp.ViewModels
             {
                 StatCards.Clear();
                 
-                // Load stats in parallel
                 var itemCount = await _itemService.CountItemsAsync(new ItemFilter(null), cancellationToken).ConfigureAwait(false);
                 var rentalCount = await _rentalService.CountActiveRentalsAsync().ConfigureAwait(false);
                 var customerCount = await _customerService.CountCustomersAsync(cancellationToken).ConfigureAwait(false);
@@ -156,7 +221,6 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (OperationCanceledException)
             {
-                // Swallow cancellations quietly.
             }
             catch (Exception ex)
             {
@@ -177,10 +241,10 @@ namespace InventoryManagementApp.ViewModels
                 }
                 foreach (var log in result.Value)
                     RecentActivity.Add(log);
+                OnPropertyChanged(nameof(OperationsSummary));
             }
             catch (OperationCanceledException)
             {
-                // Swallow cancellations quietly.
             }
             catch (Exception ex)
             {
@@ -196,6 +260,7 @@ namespace InventoryManagementApp.ViewModels
                 var items = await _itemService.GetCheckedOutItemsAsync(token).ConfigureAwait(false);
                 foreach (var item in items)
                     CheckedOutItems.Add(item);
+                OnPropertyChanged(nameof(OperationsSummary));
             }
             catch (OperationCanceledException)
             {
@@ -215,6 +280,7 @@ namespace InventoryManagementApp.ViewModels
                 var rentals = await _rentalService.GetActiveRentalsAsync().ConfigureAwait(false);
                 foreach (var rental in rentals)
                     RentedItems.Add(rental);
+                OnPropertyChanged(nameof(OperationsSummary));
             }
             catch (OperationCanceledException)
             {
@@ -232,7 +298,12 @@ namespace InventoryManagementApp.ViewModels
             {
                 var result = await _itemService.ToggleItemCheckOutStatusAsync(item.ItemID, token).ConfigureAwait(false);
                 if (result)
+                {
                     CheckedOutItems.Remove(item);
+                    item.IsCheckedOut = !item.IsCheckedOut;
+                    OnPropertyChanged(nameof(OperationsSummary));
+                    UpdateSelectedRecordSummary();
+                }
             }
             catch (OperationCanceledException)
             {
@@ -250,6 +321,8 @@ namespace InventoryManagementApp.ViewModels
             {
                 await _rentalService.ReturnItemAsync(rental.RentalID, DateTime.Today).ConfigureAwait(false);
                 RentedItems.Remove(rental);
+                OnPropertyChanged(nameof(OperationsSummary));
+                UpdateSelectedRecordSummary();
             }
             catch (OperationCanceledException)
             {
@@ -286,6 +359,7 @@ namespace InventoryManagementApp.ViewModels
                 var items = await _itemService.GetIncompleteItemsAsync(token).ConfigureAwait(false);
                 foreach (var item in items)
                     IncompleteItems.Add(item);
+                OnPropertyChanged(nameof(OperationsSummary));
             }
             catch (OperationCanceledException)
             {
@@ -294,6 +368,74 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to load incomplete items");
             }
+        }
+
+        private async Task ToggleSelectedCommonItemAsync()
+        {
+            if (SelectedCommonlyUsedItem != null)
+                await CheckInItemAsync(SelectedCommonlyUsedItem, CancellationToken.None).ConfigureAwait(false);
+        }
+
+        private async Task CheckInSelectedItemAsync()
+        {
+            if (SelectedCheckedOutItem != null)
+                await CheckInItemAsync(SelectedCheckedOutItem, CancellationToken.None).ConfigureAwait(false);
+        }
+
+        private async Task ReturnSelectedRentalAsync()
+        {
+            if (SelectedRental != null)
+                await ReturnRentalAsync(SelectedRental, CancellationToken.None).ConfigureAwait(false);
+        }
+
+        private void OpenItemsWorkflow()
+        {
+            try { _openManageItemsCommand.Execute(null); }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to open manage {ItemLabelPlural} page", LabelProvider.Instance.ItemLabelPlural.ToLower()); }
+        }
+
+        private void OpenRentalsWorkflow()
+        {
+            try { _openRentalsCommand.Execute(null); }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to open rentals page"); }
+        }
+
+        private void OpenImportExportWorkflow()
+        {
+            try { _openImportExportCommand.Execute(null); }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to open import/export page"); }
+        }
+
+        private void OpenActivityDestination()
+        {
+            var action = SelectedActivity?.Action ?? string.Empty;
+            if (action.Contains("rental", StringComparison.OrdinalIgnoreCase) || action.Contains("return", StringComparison.OrdinalIgnoreCase))
+                OpenRentalsWorkflow();
+            else
+                OpenItemsWorkflow();
+        }
+
+        private void UpdateSelectedRecordSummary()
+        {
+            SelectedRecordSummary = SelectedCommonlyUsedItem != null
+                ? DescribeItem("Common item", SelectedCommonlyUsedItem)
+                : SelectedCheckedOutItem != null
+                    ? DescribeItem("Checked out", SelectedCheckedOutItem)
+                    : SelectedIncompleteItem != null
+                        ? DescribeItem("Issue", SelectedIncompleteItem)
+                        : SelectedRental != null
+                            ? $"Rental: {SelectedRental.ItemNumber} for {SelectedRental.CustomerName} | due {SelectedRental.DueDate:yyyy-MM-dd}"
+                            : SelectedActivity != null
+                                ? $"Activity: {SelectedActivity.Timestamp:yyyy-MM-dd HH:mm} | {SelectedActivity.UserName} | {SelectedActivity.Action}"
+                                : "Select or double-click a row to open the related workflow.";
+            OnPropertyChanged(nameof(SelectedRecordSummary));
+        }
+
+        private static string DescribeItem(string prefix, ItemModel item)
+        {
+            var status = item.IsCheckedOut ? "checked out" : "available";
+            var issue = item.IsIncomplete ? " | issue noted" : string.Empty;
+            return $"{prefix}: {item.ItemNumber} - {item.Name} | {item.Location} | {status}{issue}";
         }
 
         private async Task PrintCheckedOutItemsAsync()
@@ -317,7 +459,49 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
+        private async Task PrintDashboardSnapshotAsync()
+        {
+            try
+            {
+                var currentUser = await _userService.GetCurrentUserAsync().ConfigureAwait(false);
+                var userName = currentUser?.UserName ?? "Unknown";
+                var doc = GenerateDashboardSnapshotDocument(userName);
+
+                var printDialog = new System.Windows.Controls.PrintDialog();
+                if (printDialog.ShowDialog() == true)
+                {
+                    var paginator = ((System.Windows.Documents.IDocumentPaginatorSource)doc).DocumentPaginator;
+                    printDialog.PrintDocument(paginator, $"Dashboard Snapshot - {DateTime.Now:yyyy-MM-dd HH:mm}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to print dashboard snapshot");
+            }
+        }
+
         private System.Windows.Documents.FlowDocument GenerateCheckedOutItemsDocument(string userName)
+        {
+            var doc = CreatePrintDocument("Checked Out Items", userName);
+            AddItemTable(doc, CheckedOutItems, "Checked-out inventory", includeHolder: true);
+            AddTotal(doc, $"Total Items: {CheckedOutItems.Count}");
+            return doc;
+        }
+
+        private System.Windows.Documents.FlowDocument GenerateDashboardSnapshotDocument(string userName)
+        {
+            var doc = CreatePrintDocument("Dashboard Operations Snapshot", userName);
+
+            AddSummaryParagraph(doc, OperationsSummary);
+            AddItemTable(doc, CommonlyUsedItems.Take(10), "Commonly used items", includeUsage: true);
+            AddItemTable(doc, CheckedOutItems.Take(25), "Checked-out items", includeHolder: true);
+            AddRentalTable(doc, RentedItems.Take(25), "Active rentals");
+            AddItemTable(doc, IncompleteItems.Take(15), "Items with issues", includeNotes: true);
+
+            return doc;
+        }
+
+        private System.Windows.Documents.FlowDocument CreatePrintDocument(string title, string userName)
         {
             var doc = new System.Windows.Documents.FlowDocument
             {
@@ -326,7 +510,7 @@ namespace InventoryManagementApp.ViewModels
                 FontSize = 12
             };
 
-            doc.Blocks.Add(new System.Windows.Documents.Paragraph(new System.Windows.Documents.Bold(new System.Windows.Documents.Run("Checked Out Items")))
+            doc.Blocks.Add(new System.Windows.Documents.Paragraph(new System.Windows.Documents.Bold(new System.Windows.Documents.Run(title)))
             {
                 FontSize = 20,
                 TextAlignment = System.Windows.TextAlignment.Center,
@@ -345,54 +529,121 @@ namespace InventoryManagementApp.ViewModels
                 Margin = new System.Windows.Thickness(0, 0, 0, 20)
             });
 
-            var table = new System.Windows.Documents.Table();
-            table.CellSpacing = 0;
-            table.BorderBrush = System.Windows.Media.Brushes.Black;
-            table.BorderThickness = new System.Windows.Thickness(1);
+            return doc;
+        }
 
-            table.Columns.Add(new System.Windows.Documents.TableColumn { Width = new System.Windows.GridLength(120) });
-            table.Columns.Add(new System.Windows.Documents.TableColumn { Width = new System.Windows.GridLength(200) });
-            table.Columns.Add(new System.Windows.Documents.TableColumn { Width = new System.Windows.GridLength(100) });
-            table.Columns.Add(new System.Windows.Documents.TableColumn { Width = new System.Windows.GridLength(120) });
+        private static void AddSummaryParagraph(System.Windows.Documents.FlowDocument doc, string summary)
+        {
+            doc.Blocks.Add(new System.Windows.Documents.Paragraph(new System.Windows.Documents.Run(summary))
+            {
+                FontSize = 12,
+                FontWeight = System.Windows.FontWeights.Bold,
+                Margin = new System.Windows.Thickness(0, 0, 0, 12)
+            });
+        }
 
-            var headerGroup = new System.Windows.Documents.TableRowGroup();
-            var headerRow = new System.Windows.Documents.TableRow();
-            headerRow.Background = System.Windows.Media.Brushes.LightGray;
-            
-            AddTableCell(headerRow, "Item Number", true);
+        private void AddItemTable(System.Windows.Documents.FlowDocument doc, IEnumerable<ItemModel> items, string title, bool includeHolder = false, bool includeUsage = false, bool includeNotes = false)
+        {
+            var itemList = items.ToList();
+            AddSectionTitle(doc, title);
+
+            var table = CreateTable(4);
+            var headerRow = CreateHeaderRow();
+            AddTableCell(headerRow, "Item #", true);
             AddTableCell(headerRow, "Name", true);
-            AddTableCell(headerRow, "Location", true);
-            AddTableCell(headerRow, "Checked Out", true);
-            headerGroup.Rows.Add(headerRow);
-            table.RowGroups.Add(headerGroup);
+            AddTableCell(headerRow, includeHolder ? "Holder" : includeUsage ? "Use" : "Location", true);
+            AddTableCell(headerRow, includeNotes ? "Notes" : "Status", true);
+            table.RowGroups[0].Rows.Add(headerRow);
 
-            var dataGroup = new System.Windows.Documents.TableRowGroup();
-            foreach (var item in CheckedOutItems)
+            foreach (var item in itemList)
             {
                 var row = new System.Windows.Documents.TableRow();
                 AddTableCell(row, item.ItemNumber);
                 AddTableCell(row, item.Name);
-                AddTableCell(row, item.Location);
-                AddTableCell(row, item.CheckedOutTime?.ToString("yyyy-MM-dd HH:mm") ?? "");
-                dataGroup.Rows.Add(row);
+                AddTableCell(row, includeHolder ? item.CheckedOutBy : includeUsage ? item.CheckoutCount.ToString() : item.Location);
+                AddTableCell(row, includeNotes ? item.MissingComponentsNotes : (item.IsCheckedOut ? "Checked out" : "Available"));
+                table.RowGroups[1].Rows.Add(row);
             }
-            table.RowGroups.Add(dataGroup);
 
             doc.Blocks.Add(table);
+            AddTotal(doc, $"Rows: {itemList.Count}");
+        }
 
-            doc.Blocks.Add(new System.Windows.Documents.Paragraph(new System.Windows.Documents.Run($"\nTotal Items: {CheckedOutItems.Count}"))
+        private void AddRentalTable(System.Windows.Documents.FlowDocument doc, IEnumerable<RentalModel> rentals, string title)
+        {
+            var rentalList = rentals.ToList();
+            AddSectionTitle(doc, title);
+
+            var table = CreateTable(4);
+            var headerRow = CreateHeaderRow();
+            AddTableCell(headerRow, "Item #", true);
+            AddTableCell(headerRow, "Customer", true);
+            AddTableCell(headerRow, "Start", true);
+            AddTableCell(headerRow, "Due", true);
+            table.RowGroups[0].Rows.Add(headerRow);
+
+            foreach (var rental in rentalList)
+            {
+                var row = new System.Windows.Documents.TableRow();
+                AddTableCell(row, rental.ItemNumber);
+                AddTableCell(row, rental.CustomerName);
+                AddTableCell(row, rental.RentalDate.ToString("yyyy-MM-dd"));
+                AddTableCell(row, rental.DueDate.ToString("yyyy-MM-dd"));
+                table.RowGroups[1].Rows.Add(row);
+            }
+
+            doc.Blocks.Add(table);
+            AddTotal(doc, $"Rows: {rentalList.Count}");
+        }
+
+        private static void AddSectionTitle(System.Windows.Documents.FlowDocument doc, string title)
+        {
+            doc.Blocks.Add(new System.Windows.Documents.Paragraph(new System.Windows.Documents.Bold(new System.Windows.Documents.Run(title)))
+            {
+                FontSize = 14,
+                Margin = new System.Windows.Thickness(0, 12, 0, 6)
+            });
+        }
+
+        private static System.Windows.Documents.Table CreateTable(int columnCount)
+        {
+            var table = new System.Windows.Documents.Table
+            {
+                CellSpacing = 0,
+                BorderBrush = System.Windows.Media.Brushes.Black,
+                BorderThickness = new System.Windows.Thickness(1),
+                Margin = new System.Windows.Thickness(0, 0, 0, 6)
+            };
+
+            for (var i = 0; i < columnCount; i++)
+                table.Columns.Add(new System.Windows.Documents.TableColumn { Width = new System.Windows.GridLength(1, System.Windows.GridUnitType.Star) });
+
+            table.RowGroups.Add(new System.Windows.Documents.TableRowGroup());
+            table.RowGroups.Add(new System.Windows.Documents.TableRowGroup());
+            return table;
+        }
+
+        private static System.Windows.Documents.TableRow CreateHeaderRow()
+        {
+            return new System.Windows.Documents.TableRow
+            {
+                Background = System.Windows.Media.Brushes.LightGray
+            };
+        }
+
+        private static void AddTotal(System.Windows.Documents.FlowDocument doc, string text)
+        {
+            doc.Blocks.Add(new System.Windows.Documents.Paragraph(new System.Windows.Documents.Run(text))
             {
                 FontSize = 12,
                 FontWeight = System.Windows.FontWeights.Bold,
-                Margin = new System.Windows.Thickness(0, 20, 0, 0)
+                Margin = new System.Windows.Thickness(0, 4, 0, 8)
             });
-
-            return doc;
         }
 
-        private void AddTableCell(System.Windows.Documents.TableRow row, string text, bool isHeader = false)
+        private void AddTableCell(System.Windows.Documents.TableRow row, string? text, bool isHeader = false)
         {
-            var cell = new System.Windows.Documents.TableCell(new System.Windows.Documents.Paragraph(new System.Windows.Documents.Run(text)))
+            var cell = new System.Windows.Documents.TableCell(new System.Windows.Documents.Paragraph(new System.Windows.Documents.Run(text ?? string.Empty)))
             {
                 BorderBrush = System.Windows.Media.Brushes.Black,
                 BorderThickness = new System.Windows.Thickness(1),
