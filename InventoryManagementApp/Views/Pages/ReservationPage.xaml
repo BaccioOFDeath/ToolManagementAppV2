@@ -1,77 +1,210 @@
 <Page x:Class="InventoryManagementApp.Views.Pages.ReservationPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Background="{DynamicResource BackgroundBrush}">
+      Background="{DynamicResource BackgroundBrush}"
+      Focusable="True">
     <Grid Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Border Style="{StaticResource ToolbarCard}">
-            <DockPanel LastChildFill="False">
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-                    <Button Style="{StaticResource PrimaryButton}" Content="Add" Command="{Binding AddReservationCommand}" Margin="0,0,8,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditReservationCommand}" Margin="0,0,8,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Delete" Command="{Binding DeleteReservationCommand}" Margin="0,0,8,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Confirm" Command="{Binding ConfirmReservationCommand}" Margin="0,0,8,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Cancel" Command="{Binding CancelReservationCommand}" Margin="0,0,8,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Fulfill" Command="{Binding FulfillReservationCommand}" Margin="0,0,8,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Refresh" Command="{Binding RefreshCommand}"/>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
-                    <TextBox Width="180" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
-                    <ComboBox Width="150" ItemsSource="{Binding FilterOptions}" SelectedItem="{Binding SelectedFilter}"/>
-                </StackPanel>
+            <DockPanel LastChildFill="True">
+                <WrapPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                    <TextBlock Text="Reservations" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,4"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Add" Command="{Binding AddReservationCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Confirm" Command="{Binding ConfirmReservationCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Fulfill" Command="{Binding FulfillReservationCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Edit" Command="{Binding EditReservationCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Cancel" Command="{Binding CancelReservationCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteReservationCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Copy" Command="{Binding CopyReservationHandoffCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintReservationHandoffCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Print List" Command="{Binding PrintReservationDirectoryCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Refresh" Command="{Binding RefreshCommand}" Margin="0,0,4,4"/>
+                </WrapPanel>
+                <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <TextBlock Text="Find" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,4"/>
+                    <TextBox Width="190"
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Search reservation number, item, customer, status, or notes"
+                             Margin="0,0,4,4"/>
+                    <ComboBox Width="150"
+                              ItemsSource="{Binding FilterOptions}"
+                              SelectedItem="{Binding SelectedFilter}"
+                              Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearReservationSearchCommand}" Margin="0,0,4,4"/>
+                </WrapPanel>
             </DockPanel>
         </Border>
 
-        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" Margin="0,6,0,0">
-            <Grid>
-                <DataGrid ItemsSource="{Binding FilteredReservations}"
-                          SelectedItem="{Binding SelectedReservation}"
-                          AutoGenerateColumns="False"
-                          IsReadOnly="True"
-                          Style="{StaticResource VirtualizedDataGridStyle}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Reservation #" Binding="{Binding ReservationID}" Width="120"/>
-                        <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="140"/>
-                        <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="200"/>
-                        <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="200"/>
-                        <DataGridTextColumn Header="Start" Binding="{Binding StartDate, StringFormat={}{0:yyyy-MM-dd}}" Width="140"/>
-                        <DataGridTextColumn Header="End" Binding="{Binding EndDate, StringFormat={}{0:yyyy-MM-dd}}" Width="140"/>
-                        <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="80"/>
-                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120"/>
-                    </DataGrid.Columns>
-                    <DataGrid.ContextMenu>
-                        <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
-                                    DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                            <MenuItem Header="Add" Command="{Binding AddReservationCommand}"/>
-                            <MenuItem Header="Edit" Command="{Binding EditReservationCommand}"/>
-                            <MenuItem Header="Delete" Command="{Binding DeleteReservationCommand}"/>
-                            <MenuItem Header="Confirm" Command="{Binding ConfirmReservationCommand}"/>
-                            <MenuItem Header="Cancel" Command="{Binding CancelReservationCommand}"/>
-                            <MenuItem Header="Fulfill" Command="{Binding FulfillReservationCommand}"/>
-                        </ContextMenu>
-                    </DataGrid.ContextMenu>
-                </DataGrid>
-                <TextBlock Text="No reservations"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           FontSize="16"
-                           FontWeight="SemiBold">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding FilteredReservations.Count}" Value="0">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
-            </Grid>
+        <Grid Grid.Row="1" Margin="0,6,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" MinWidth="520"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="1.35*" MinWidth="280"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                        <DockPanel>
+                            <TextBlock Text="01 Hold Directory" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
+                            <TextBlock Text="{Binding ReservationResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                        </DockPanel>
+                    </Border>
+
+                    <WrapPanel Grid.Row="1" Margin="6,5,6,4">
+                        <Button Style="{StaticResource GhostButton}" Content="Active" Command="{Binding ShowActiveReservationsCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Pending" Command="{Binding ShowPendingReservationsCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Confirmed" Command="{Binding ShowConfirmedReservationsCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Upcoming" Command="{Binding ShowUpcomingReservationsCommand}" Margin="0,0,4,4"/>
+                    </WrapPanel>
+
+                    <DataGrid x:Name="ReservationGrid"
+                              Grid.Row="2"
+                              ItemsSource="{Binding FilteredReservations}"
+                              SelectedItem="{Binding SelectedReservation, Mode=TwoWay}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              SelectionMode="Single"
+                              Style="{StaticResource VirtualizedDataGridStyle}">
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                                <EventSetter Event="MouseDoubleClick" Handler="ReservationRow_MouseDoubleClick"/>
+                                <EventSetter Event="PreviewMouseRightButtonDown" Handler="ReservationRow_PreviewMouseRightButtonDown"/>
+                            </Style>
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Hold #" Binding="{Binding ReservationID}" Width="80"/>
+                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="115"/>
+                            <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="1.45*"/>
+                            <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="1.35*"/>
+                            <DataGridTextColumn Header="Start" Binding="{Binding StartDate, StringFormat={}{0:yyyy-MM-dd}}" Width="105"/>
+                            <DataGridTextColumn Header="End" Binding="{Binding EndDate, StringFormat={}{0:yyyy-MM-dd}}" Width="105"/>
+                            <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="55"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="105"/>
+                        </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
+                                        DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                <MenuItem Header="Open Details" Command="{Binding OpenReservationDetailsCommand}"/>
+                                <MenuItem Header="Copy Handoff" Command="{Binding CopyReservationHandoffCommand}"/>
+                                <MenuItem Header="Print Handoff" Command="{Binding PrintReservationHandoffCommand}"/>
+                                <Separator/>
+                                <MenuItem Header="Add" Command="{Binding AddReservationCommand}"/>
+                                <MenuItem Header="Edit" Command="{Binding EditReservationCommand}"/>
+                                <MenuItem Header="Confirm" Command="{Binding ConfirmReservationCommand}"/>
+                                <MenuItem Header="Cancel" Command="{Binding CancelReservationCommand}"/>
+                                <MenuItem Header="Fulfill" Command="{Binding FulfillReservationCommand}"/>
+                                <Separator/>
+                                <MenuItem Header="Print Current Results" Command="{Binding PrintReservationDirectoryCommand}"/>
+                                <MenuItem Header="Delete" Command="{Binding DeleteReservationCommand}"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                    </DataGrid>
+
+                    <TextBlock Grid.Row="2"
+                               Text="No reservations match this filter"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               FontSize="13"
+                               FontWeight="SemiBold">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding FilteredReservations.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+            </Border>
+
+            <GridSplitter Grid.Column="1"
+                          Width="6"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Background="{DynamicResource BorderBrushBase}"/>
+
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="8">
+                <DockPanel LastChildFill="True">
+                    <Border DockPanel.Dock="Top"
+                            Background="{DynamicResource SurfaceAltBrush}"
+                            BorderBrush="{DynamicResource BorderBrushAlt}"
+                            BorderThickness="1"
+                            Padding="6"
+                            Margin="0,0,0,6">
+                        <StackPanel>
+                            <TextBlock Text="Selected Hold" Style="{StaticResource SectionHeader}"/>
+                            <TextBlock Text="{Binding SelectedReservationTitle}"
+                                       Style="{StaticResource PageTitleTextBlock}"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding SelectedReservationSubtitle}"
+                                       FontSize="11"
+                                       Margin="0,2,0,0"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                        <TextBlock Text="Timing" Style="{StaticResource SectionHeader}"/>
+                        <TextBlock Text="{Binding SelectedReservationTiming}" TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                        <TextBlock Text="Next Action" Style="{StaticResource SectionHeader}"/>
+                        <TextBlock Text="{Binding SelectedReservationNextAction}" TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                        <TextBlock Text="Shelf Checklist" Style="{StaticResource SectionHeader}"/>
+                        <TextBlock Text="{Binding SelectedReservationShelfChecklist}" TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <StackPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
+                        <TextBlock Text="Actions" Style="{StaticResource SectionHeader}"/>
+                        <UniformGrid Columns="2">
+                            <Button Style="{StaticResource PrimaryButton}" Content="Confirm" Command="{Binding ConfirmReservationCommand}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource PrimaryButton}" Content="Fulfill" Command="{Binding FulfillReservationCommand}" Margin="0,0,0,4"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Details" Command="{Binding OpenReservationDetailsCommand}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Copy" Command="{Binding CopyReservationHandoffCommand}" Margin="0,0,0,4"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintReservationHandoffCommand}" Margin="0,0,4,0"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Edit" Command="{Binding EditReservationCommand}"/>
+                        </UniformGrid>
+                    </StackPanel>
+
+                    <Border BorderBrush="{DynamicResource BorderBrushAlt}"
+                            BorderThickness="1"
+                            Background="{DynamicResource TextBoxBackgroundBrush}"
+                            Padding="6">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <TextBlock Text="{Binding SelectedReservationDetail}" TextWrapping="Wrap"/>
+                        </ScrollViewer>
+                    </Border>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="2" Style="{StaticResource ToolbarCard}" Margin="0,4,0,0">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Style="{StaticResource PrimaryButton}" Content="Add Hold" Command="{Binding AddReservationCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Print List" Command="{Binding PrintReservationDirectoryCommand}"/>
+                </StackPanel>
+                <TextBlock Text="{Binding SelectedReservationSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="2,0,10,0"/>
+            </DockPanel>
         </Border>
     </Grid>
 </Page>
