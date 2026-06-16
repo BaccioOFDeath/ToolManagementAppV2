@@ -200,8 +200,17 @@ try {
     }
 
     $dimensionFailures = @()
-    foreach ($screenshot in $screenshots) {
+    $screenshotDimensions = @()
+    foreach ($screenshot in ($screenshots | Sort-Object FullName)) {
         $dimensions = Get-PngDimensions -File $screenshot
+        $relativePath = Resolve-Path -LiteralPath $screenshot.FullName -Relative
+        $screenshotDimensions += [pscustomobject]@{
+            Path = $relativePath
+            Width = $dimensions.Width
+            Height = $dimensions.Height
+            Bytes = $screenshot.Length
+        }
+
         if ($dimensions.Width -lt $minimumScreenshotWidth -or $dimensions.Height -lt $minimumScreenshotHeight) {
             $dimensionFailures += "{0} ({1}x{2})" -f $screenshot.FullName, $dimensions.Width, $dimensions.Height
         }
@@ -221,6 +230,11 @@ try {
     foreach ($screenshot in ($screenshots | Sort-Object FullName)) {
         $relativePath = Resolve-Path -LiteralPath $screenshot.FullName -Relative
         Add-Content -Path $readmePath -Value ("- `{0}`" -f $relativePath)
+    }
+    Add-Content -Path $readmePath -Value ""
+    Add-Content -Path $readmePath -Value "Capture dimensions:"
+    foreach ($capture in $screenshotDimensions) {
+        Add-Content -Path $readmePath -Value ("- `{0}` - {1}x{2}, {3} bytes" -f $capture.Path, $capture.Width, $capture.Height, $capture.Bytes)
     }
     Write-Step "QA screenshots saved to '$sessionOutput' ($($screenshots.Count) PNG files)."
 }
