@@ -11,6 +11,7 @@ namespace InventoryManagementApp.Views.Pages
         {
             InitializeComponent();
             Loaded += CalibrationPage_Loaded;
+            PreviewKeyDown += CalibrationPage_PreviewKeyDown;
         }
 
         private async void CalibrationPage_Loaded(object sender, RoutedEventArgs e)
@@ -18,6 +19,48 @@ namespace InventoryManagementApp.Views.Pages
             if (DataContext is CalibrationManagementViewModel vm)
             {
                 await vm.LoadCalibrationCommand.ExecuteAsync(null);
+            }
+        }
+
+        private void CalibrationPage_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (DataContext is not CalibrationManagementViewModel vm)
+            {
+                return;
+            }
+
+            if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control && e.Key == Key.F)
+            {
+                SearchBox.Focus();
+                SearchBox.SelectAll();
+                e.Handled = true;
+                return;
+            }
+
+            if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control && e.Key == Key.P)
+            {
+                if (vm.PrintCalibrationListCommand.CanExecute(null))
+                {
+                    vm.PrintCalibrationListCommand.Execute(null);
+                    e.Handled = true;
+                }
+                return;
+            }
+
+            if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control && e.Key == Key.C)
+            {
+                if (vm.CopySelectedCalibrationCommand.CanExecute(null))
+                {
+                    vm.CopySelectedCalibrationCommand.Execute(null);
+                    e.Handled = true;
+                }
+                return;
+            }
+
+            if (e.Key == Key.Enter && vm.OpenCalibrationDetailsCommand.CanExecute(null))
+            {
+                vm.OpenCalibrationDetailsCommand.Execute(null);
+                e.Handled = true;
             }
         }
 
@@ -33,8 +76,8 @@ namespace InventoryManagementApp.Views.Pages
         {
             if (sender is DataGridRow row && !row.IsSelected)
             {
+                row.Focus();
                 row.IsSelected = true;
-                e.Handled = true;
             }
         }
     }
