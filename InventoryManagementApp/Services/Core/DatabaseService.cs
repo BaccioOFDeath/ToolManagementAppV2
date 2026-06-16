@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Interfaces;
+using System.Linq;
 
 namespace InventoryManagementApp.Services.Core
 {
@@ -146,7 +147,9 @@ namespace InventoryManagementApp.Services.Core
                     Role TEXT,
                     IsActive INTEGER NOT NULL DEFAULT 1,
                     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    PasswordExpired INTEGER NOT NULL DEFAULT 0
+                    PasswordExpired INTEGER NOT NULL DEFAULT 0,
+                    FailedLoginAttempts INTEGER NOT NULL DEFAULT 0,
+                    LockoutEndUtc DATETIME
                 );
                 CREATE TABLE IF NOT EXISTS Customers (
                     CustomerID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -253,6 +256,8 @@ namespace InventoryManagementApp.Services.Core
                 );";
             using var cmd = new SqliteCommand(sql, conn);
             cmd.ExecuteNonQuery();
+            EnsureColumn("Users", "FailedLoginAttempts", "INTEGER", "0");
+            EnsureColumn("Users", "LockoutEndUtc", "DATETIME");
             EnsureIndex(conn, "Items", "ItemNumber", true);
             EnsureIndex(conn, "Items", "NameDescription");
             EnsureIndex(conn, "Items", "Brand");

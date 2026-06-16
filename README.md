@@ -85,6 +85,7 @@ Password handling enforces these requirements:
 - Minimum 8 characters.
 - At least one uppercase letter, one lowercase letter, and one digit.
 - Known default passwords are expired and must be changed.
+- Accounts temporarily lock for 15 minutes after 5 failed password attempts.
 
 SQLite database files can contain customer and rental data. Use appropriate file permissions and regular backups in production.
 

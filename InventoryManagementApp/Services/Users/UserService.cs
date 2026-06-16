@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.Data.Sqlite;
 using System.Data;
 using System.Threading;
@@ -25,6 +25,8 @@ namespace InventoryManagementApp.Services.Users
         private readonly ILogger<UserService> _logger;
         private readonly IAuthorizationService _auth;
         private readonly ActivityLogService? _activityLog;
+        private const int MaxFailedLoginAttempts = 5;
+        private static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UserService"/> class.
@@ -42,7 +44,6 @@ namespace InventoryManagementApp.Services.Users
             _logger = logger ?? NullLogger<UserService>.Instance;
             _activityLog = activityLogService;
         }
-
 
         /// <summary>
         /// Parses a value to UTC DateTime, handling various input formats and timezones.
@@ -114,15 +115,16 @@ namespace InventoryManagementApp.Services.Users
                 Role = GetString("Role"),
                 IsActive = HasColumn("IsActive") && rdr["IsActive"] != DBNull.Value && Convert.ToInt32(rdr["IsActive"]) == 1,
                 CreatedAt = createdAt,
-                PasswordExpired = HasColumn("PasswordExpired") && rdr["PasswordExpired"] != DBNull.Value && Convert.ToInt32(rdr["PasswordExpired"]) == 1
+                PasswordExpired = HasColumn("PasswordExpired") && rdr["PasswordExpired"] != DBNull.Value && Convert.ToInt32(rdr["PasswordExpired"]) == 1,
+                FailedLoginAttempts = HasColumn("FailedLoginAttempts") && rdr["FailedLoginAttempts"] != DBNull.Value ? Convert.ToInt32(rdr["FailedLoginAttempts"]) : 0,
+                LockoutEndUtc = ParseToUtcNullable(HasColumn("LockoutEndUtc") ? rdr["LockoutEndUtc"] : DBNull.Value)
             };
         }
-
 
         public async Task<List<User>> GetAllUsersAsync(CancellationToken cancellationToken = default)
         {
             using var conn = _dbService.CreateConnection();
-            const string sql = "SELECT UserID, UserName, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired FROM Users";
+            const string sql = "SELECT UserID, UserName, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired, FailedLoginAttempts, LockoutEndUtc FROM Users";
             return await SqliteHelper.ExecuteReaderAsync(conn, sql, MapUser, cancellationToken: cancellationToken);
         }
 
@@ -160,6 +162,19 @@ namespace InventoryManagementApp.Services.Users
             if (u == null) return (AuthenticationResult.IncorrectPassword, null);
             if (!u.IsActive) return (AuthenticationResult.Inactive, null);
 
+            if (IsLockoutActive(u))
+            {
+                _logger.LogWarning("Locked account login attempt for user {UserID}", u.UserID);
+                return (AuthenticationResult.LockedOut, u);
+            }
+
+            if (u.LockoutEndUtc.HasValue && u.LockoutEndUtc.Value <= DateTime.UtcNow)
+            {
+                await ClearLoginFailureStateAsync(conn, u.UserID).ConfigureAwait(false);
+                u.FailedLoginAttempts = 0;
+                u.LockoutEndUtc = null;
+            }
+
             bool success;
             if (string.IsNullOrWhiteSpace(u.PasswordSalt) && SecurityHelper.IsSha256Hash(u.PasswordHash))
             {
@@ -170,10 +185,10 @@ namespace InventoryManagementApp.Services.Users
                     var upgradedResult = await SecurityHelper.HashPasswordAsync(password).ConfigureAwait(false);
                     var p = new[]
                     {
-                new SqliteParameter("@Pwd", upgradedResult.hash),
-                new SqliteParameter("@Salt", upgradedResult.salt),
-                new SqliteParameter("@ID", u.UserID)
-            };
+                        new SqliteParameter("@Pwd", upgradedResult.hash),
+                        new SqliteParameter("@Salt", upgradedResult.salt),
+                        new SqliteParameter("@ID", u.UserID)
+                    };
                     await SqliteHelper.ExecuteNonQueryAsync(conn, "UPDATE Users SET PasswordHash=@Pwd, PasswordSalt=@Salt WHERE UserID=@ID", p);
                     u.PasswordHash = upgradedResult.hash;
                     u.PasswordSalt = upgradedResult.salt;
@@ -186,13 +201,61 @@ namespace InventoryManagementApp.Services.Users
 
             if (success)
             {
+                await ClearLoginFailureStateAsync(conn, u.UserID).ConfigureAwait(false);
+                u.FailedLoginAttempts = 0;
+                u.LockoutEndUtc = null;
                 if (_activityLog != null)
                     await _activityLog.LogActionAsync(u.UserID, u.UserName ?? string.Empty, "User login").ConfigureAwait(false);
                 return (AuthenticationResult.Success, u);
             }
-            return (AuthenticationResult.IncorrectPassword, null);
+
+            var locked = await RecordFailedLoginAsync(conn, u).ConfigureAwait(false);
+            return locked ? (AuthenticationResult.LockedOut, u) : (AuthenticationResult.IncorrectPassword, null);
         }
 
+        static bool IsLockoutActive(User user)
+            => user.LockoutEndUtc.HasValue && user.LockoutEndUtc.Value > DateTime.UtcNow;
+
+        async Task<bool> RecordFailedLoginAsync(SqliteConnection conn, User user)
+        {
+            var failedAttempts = Math.Max(0, user.FailedLoginAttempts) + 1;
+            DateTime? lockoutEndUtc = null;
+            if (failedAttempts >= MaxFailedLoginAttempts)
+            {
+                failedAttempts = MaxFailedLoginAttempts;
+                lockoutEndUtc = DateTime.UtcNow.Add(LockoutDuration);
+            }
+
+            var p = new[]
+            {
+                new SqliteParameter("@Attempts", failedAttempts),
+                new SqliteParameter("@LockoutEndUtc", (object?)lockoutEndUtc ?? DBNull.Value),
+                new SqliteParameter("@ID", user.UserID)
+            };
+            await SqliteHelper.ExecuteNonQueryAsync(conn,
+                "UPDATE Users SET FailedLoginAttempts=@Attempts, LockoutEndUtc=@LockoutEndUtc WHERE UserID=@ID",
+                p).ConfigureAwait(false);
+
+            user.FailedLoginAttempts = failedAttempts;
+            user.LockoutEndUtc = lockoutEndUtc;
+
+            if (lockoutEndUtc.HasValue)
+            {
+                _logger.LogWarning("User {UserID} locked out until {LockoutEndUtc} after failed login attempts", user.UserID, lockoutEndUtc.Value);
+                if (_activityLog != null)
+                    await _activityLog.LogActionAsync(user.UserID, user.UserName ?? string.Empty, "User account locked after failed logins").ConfigureAwait(false);
+            }
+
+            return lockoutEndUtc.HasValue;
+        }
+
+        static Task ClearLoginFailureStateAsync(SqliteConnection conn, int userID)
+        {
+            var p = new[] { new SqliteParameter("@ID", userID) };
+            return SqliteHelper.ExecuteNonQueryAsync(conn,
+                "UPDATE Users SET FailedLoginAttempts=0, LockoutEndUtc=NULL WHERE UserID=@ID",
+                p);
+        }
 
         public async Task<User?> GetCurrentUserAsync()
         {
@@ -262,6 +325,8 @@ namespace InventoryManagementApp.Services.Users
             }
             user.PasswordHash = hashed;
             user.PasswordSalt = salt;
+            user.FailedLoginAttempts = 0;
+            user.LockoutEndUtc = null;
         }
 
         public async Task UpdateUserAsync(User user)
@@ -335,7 +400,7 @@ namespace InventoryManagementApp.Services.Users
             if (!PasswordValidator.IsValid(newPassword, out var error))
                 throw new ArgumentException(error, nameof(newPassword));
 
-            var sql = "UPDATE Users SET PasswordHash=@Pwd, PasswordSalt=@Salt, PasswordExpired=@Expired WHERE UserID=@ID";
+            var sql = "UPDATE Users SET PasswordHash=@Pwd, PasswordSalt=@Salt, PasswordExpired=@Expired, FailedLoginAttempts=0, LockoutEndUtc=NULL WHERE UserID=@ID";
             var result = await SecurityHelper.HashPasswordAsync(newPassword).ConfigureAwait(false);
             string hashed = result.hash;
             string salt = result.salt;
@@ -378,6 +443,5 @@ namespace InventoryManagementApp.Services.Users
             await DeleteUserInternalAsync(userID);
             return true;
         }
-
     }
 }

@@ -9,6 +9,7 @@ This checklist ensures the Inventory Management Application is ready for product
 - [x] Password hashing using PBKDF2-SHA256 with 100,000+ iterations
 - [x] Default admin password expires on first login
 - [x] User authentication and authorization system
+- [x] Account lockout after repeated failed password attempts
 - [x] Database permissions and access control
 - [x] No hardcoded credentials in source code
 - [x] SSL/TLS support for SMTP email
@@ -122,7 +123,7 @@ For enhanced security in production:
 - [ ] Regular security updates for .NET runtime
 - [ ] Periodic password rotation policy
 - [ ] Audit logging for sensitive operations
-- [ ] Implement rate limiting for login attempts
+- [x] Implement rate limiting for login attempts through account lockout
 - [ ] Use HTTPS if exposing any web services
 
 ## 📊 Ongoing Maintenance
@@ -162,5 +163,5 @@ If issues arise during deployment:
 
 ---
 
-**Last Updated:** 2025-11-04  
+**Last Updated:** 2026-06-16  
 **Application Version:** 1.0.0
