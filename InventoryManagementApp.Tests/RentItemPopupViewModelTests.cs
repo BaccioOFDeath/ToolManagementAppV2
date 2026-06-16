@@ -29,6 +29,19 @@ namespace InventoryManagementApp.Tests
             Assert.Same(newCustomer, cs.AddedCustomer);
         }
 
+        [Fact]
+        public void CheckOutCommand_BecomesExecutableWhenCustomerIsSelected()
+        {
+            var customer = new CustomerModel { CustomerID = 1, Company = "Customer" };
+            var vm = new RentItemPopupViewModel(new ItemModel(), new[] { customer }, new RecordingCustomerService(), new StubDialogService());
+
+            Assert.False(vm.CheckOutCommand.CanExecute(null));
+
+            vm.SelectedCustomer = customer;
+
+            Assert.True(vm.CheckOutCommand.CanExecute(null));
+        }
+
         private sealed class RecordingCustomerService : ICustomerService
         {
             public CustomerModel? AddedCustomer { get; private set; }
