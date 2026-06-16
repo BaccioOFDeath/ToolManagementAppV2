@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace InventoryManagementApp.Models.Domain
@@ -16,14 +17,22 @@ namespace InventoryManagementApp.Models.Domain
         public string ItemNumber
         {
             get => _itemNumber;
-            set => SetProperty(ref _itemNumber, value);
+            set
+            {
+                if (SetProperty(ref _itemNumber, value))
+                    OnPropertyChanged(nameof(SearchIdentityLine));
+            }
         }
 
         private string _partNumber = string.Empty;
         public string PartNumber
         {
             get => _partNumber;
-            set => SetProperty(ref _partNumber, value);
+            set
+            {
+                if (SetProperty(ref _partNumber, value))
+                    OnPropertyChanged(nameof(SearchIdentityLine));
+            }
         }
 
         private string _name = string.Empty;
@@ -37,14 +46,25 @@ namespace InventoryManagementApp.Models.Domain
         public string Brand
         {
             get => _brand;
-            set => SetProperty(ref _brand, value);
+            set
+            {
+                if (SetProperty(ref _brand, value))
+                    OnPropertyChanged(nameof(SearchIdentityLine));
+            }
         }
 
         private string _location = string.Empty;
         public string Location
         {
             get => _location;
-            set => SetProperty(ref _location, value);
+            set
+            {
+                if (SetProperty(ref _location, value))
+                {
+                    OnPropertyChanged(nameof(AvailabilityDetail));
+                    OnPropertyChanged(nameof(SearchLocationLine));
+                }
+            }
         }
 
         private decimal _price;
@@ -66,6 +86,7 @@ namespace InventoryManagementApp.Models.Domain
                 {
                     OnPropertyChanged(nameof(OnHand));
                     OnPropertyChanged(nameof(HasNoOnHand));
+                    NotifyAvailabilityChanged();
                 }
             }
         }
@@ -81,6 +102,7 @@ namespace InventoryManagementApp.Models.Domain
                 if (SetProperty(ref _rentedQuantity, value))
                 {
                     OnPropertyChanged(nameof(HasRentedStock));
+                    NotifyAvailabilityChanged();
                 }
             }
         }
@@ -123,7 +145,11 @@ namespace InventoryManagementApp.Models.Domain
         public string Keywords
         {
             get => _keywords;
-            set => SetProperty(ref _keywords, value);
+            set
+            {
+                if (SetProperty(ref _keywords, value))
+                    OnPropertyChanged(nameof(SearchLocationLine));
+            }
         }
 
         private bool _isPowered;
@@ -137,21 +163,33 @@ namespace InventoryManagementApp.Models.Domain
         public bool IsCheckedOut
         {
             get => _isCheckedOut;
-            set => SetProperty(ref _isCheckedOut, value);
+            set
+            {
+                if (SetProperty(ref _isCheckedOut, value))
+                    NotifyAvailabilityChanged();
+            }
         }
 
         private string _checkedOutBy = string.Empty;
         public string CheckedOutBy
         {
             get => _checkedOutBy;
-            set => SetProperty(ref _checkedOutBy, value);
+            set
+            {
+                if (SetProperty(ref _checkedOutBy, value))
+                    NotifyAvailabilityChanged();
+            }
         }
 
         private DateTime? _checkedOutTime;
         public DateTime? CheckedOutTime
         {
             get => _checkedOutTime;
-            set => SetProperty(ref _checkedOutTime, value);
+            set
+            {
+                if (SetProperty(ref _checkedOutTime, value))
+                    NotifyAvailabilityChanged();
+            }
         }
 
         private string _checkedInBy = string.Empty;
@@ -179,28 +217,44 @@ namespace InventoryManagementApp.Models.Domain
         public DateTime UpdatedAt
         {
             get => _updatedAt;
-            set => SetProperty(ref _updatedAt, value);
+            set
+            {
+                if (SetProperty(ref _updatedAt, value))
+                    OnPropertyChanged(nameof(ActivitySummary));
+            }
         }
 
         private bool _isIncomplete;
         public bool IsIncomplete
         {
             get => _isIncomplete;
-            set => SetProperty(ref _isIncomplete, value);
+            set
+            {
+                if (SetProperty(ref _isIncomplete, value))
+                    NotifyAvailabilityChanged();
+            }
         }
 
         private string _missingComponentsNotes = string.Empty;
         public string MissingComponentsNotes
         {
             get => _missingComponentsNotes;
-            set => SetProperty(ref _missingComponentsNotes, value);
+            set
+            {
+                if (SetProperty(ref _missingComponentsNotes, value))
+                    OnPropertyChanged(nameof(AvailabilityDetail));
+            }
         }
 
         private string _issuesNotes = string.Empty;
         public string IssuesNotes
         {
             get => _issuesNotes;
-            set => SetProperty(ref _issuesNotes, value);
+            set
+            {
+                if (SetProperty(ref _issuesNotes, value))
+                    OnPropertyChanged(nameof(AvailabilityDetail));
+            }
         }
 
         private int _checkoutCount;
@@ -216,6 +270,110 @@ namespace InventoryManagementApp.Models.Domain
 
         public bool HasRentedStock => RentedQuantity > 0;
 
+        public bool IsUnavailable => IsIncomplete || IsCheckedOut || HasRentedStock || HasNoOnHand;
+
+        public string AvailabilityStatus
+        {
+            get
+            {
+                if (IsIncomplete)
+                    return "Incomplete";
+                if (IsCheckedOut)
+                    return "Checked Out";
+                if (HasRentedStock)
+                    return "Rented";
+                if (HasNoOnHand)
+                    return "Unavailable";
+                return "Available";
+            }
+        }
+
+        public string AvailabilityDetail
+        {
+            get
+            {
+                if (IsIncomplete)
+                    return FirstNonEmpty(MissingComponentsNotes, IssuesNotes, "Item is marked incomplete. Review details before issuing.");
+                if (IsCheckedOut)
+                    return $"Out to {HolderDisplay}{OutSinceSuffix}";
+                if (HasRentedStock)
+                    return $"{RentedQuantity} rented, {QuantityOnHand} on hand. Open rental or request details if unavailable.";
+                if (HasNoOnHand)
+                    return "No on-hand stock. Place a request or check current holder/history.";
+                return string.IsNullOrWhiteSpace(Location)
+                    ? $"{QuantityOnHand} on hand. Location not recorded."
+                    : $"{QuantityOnHand} on hand at {Location}.";
+            }
+        }
+
+        public string HolderDisplay => string.IsNullOrWhiteSpace(CheckedOutBy) ? "holder not recorded" : CheckedOutBy;
+
+        public string OutSinceDisplay => CheckedOutTime.HasValue ? CheckedOutTime.Value.ToString("yyyy-MM-dd HH:mm") : "Not recorded";
+
+        public string StockSummary => $"On hand: {QuantityOnHand} | Rented: {RentedQuantity}";
+
+        public string ActivitySummary
+        {
+            get
+            {
+                if (IsCheckedOut && CheckedOutTime.HasValue)
+                    return $"Out since {CheckedOutTime.Value:yyyy-MM-dd HH:mm}";
+                if (UpdatedAt != default)
+                    return $"Updated {UpdatedAt:yyyy-MM-dd}";
+                return "No recent activity recorded";
+            }
+        }
+
+        public string SearchIdentityLine => JoinParts(
+            FormatPart("Item #", ItemNumber),
+            FormatPart("Part #", PartNumber),
+            FormatPart("Brand", Brand));
+
+        public string SearchLocationLine => JoinParts(
+            FormatPart("Location", Location),
+            FormatPart("Keywords", Keywords));
+
         public string Purchased => PurchasedDate?.ToString("yyyy-MM-dd") ?? string.Empty;
+
+        private string OutSinceSuffix => CheckedOutTime.HasValue ? $" since {CheckedOutTime.Value:yyyy-MM-dd HH:mm}" : string.Empty;
+
+        private void NotifyAvailabilityChanged()
+        {
+            OnPropertyChanged(nameof(IsUnavailable));
+            OnPropertyChanged(nameof(AvailabilityStatus));
+            OnPropertyChanged(nameof(AvailabilityDetail));
+            OnPropertyChanged(nameof(HolderDisplay));
+            OnPropertyChanged(nameof(OutSinceDisplay));
+            OnPropertyChanged(nameof(StockSummary));
+            OnPropertyChanged(nameof(ActivitySummary));
+        }
+
+        private static string FirstNonEmpty(params string[] values)
+        {
+            foreach (var value in values)
+            {
+                if (!string.IsNullOrWhiteSpace(value))
+                    return value;
+            }
+
+            return string.Empty;
+        }
+
+        private static string FormatPart(string label, string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? string.Empty : $"{label} {value}";
+        }
+
+        private static string JoinParts(params string[] parts)
+        {
+            var filtered = new List<string>();
+            foreach (var part in parts)
+            {
+                if (!string.IsNullOrWhiteSpace(part))
+                    filtered.Add(part);
+            }
+
+            return string.Join(" | ", filtered);
+        }
     }
 }
