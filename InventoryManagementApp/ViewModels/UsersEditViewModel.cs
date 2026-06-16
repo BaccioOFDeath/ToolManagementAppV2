@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 using Application = System.Windows.Application;
@@ -48,6 +49,7 @@ namespace InventoryManagementApp.ViewModels
         public UsersEditViewModel(User user, IFileDialogService fileDialog, Func<Task> onSave, Action onCancel)
         {
             EditingUser = user ?? new User();
+            EditingUser.PropertyChanged += EditingUser_PropertyChanged;
             _fileDialog = fileDialog;
             Title = (EditingUser.UserID == 0) ? "Add User" : "Edit User";
             BrowseImageCommand = new RelayCommand(BrowseImage);
@@ -74,6 +76,12 @@ namespace InventoryManagementApp.ViewModels
                 NotifyAllPermissionProperties();
             });
             ClearPermissionsCommand = new RelayCommand(() => ApplyPreset(Array.Empty<string>()));
+        }
+
+        void EditingUser_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(User.IsAdmin) || e.PropertyName == nameof(User.Permissions))
+                NotifyAllPermissionProperties();
         }
 
         bool Has(string permissionKey) => EditingUser.HasPermission(permissionKey);
