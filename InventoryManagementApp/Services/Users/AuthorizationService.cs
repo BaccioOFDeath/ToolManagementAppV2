@@ -2,6 +2,7 @@ using System;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Models.Domain;
 
 namespace InventoryManagementApp.Services.Users
 {
@@ -16,15 +17,25 @@ namespace InventoryManagementApp.Services.Users
             _logger = logger ?? NullLogger<AuthorizationService>.Instance;
         }
 
-        public bool IsAdmin => _userContext.IsAdmin;
+        public bool IsAdmin => HasElevatedAccess();
 
         public void EnsureAdmin()
         {
-            if (!_userContext.IsAdmin)
+            if (!HasElevatedAccess())
             {
                 _logger.LogWarning("Unauthorized access attempt by {User}", _userContext.UserName);
                 throw new UnauthorizedAccessException("Admin privileges required.");
             }
+        }
+
+        bool HasElevatedAccess()
+        {
+            var user = _userContext.CurrentUser;
+            return user?.IsAdmin == true || user?.HasAnyPermission(
+                User.PermissionManageItems,
+                User.PermissionImportExport,
+                User.PermissionManageUsers,
+                User.PermissionSettings) == true;
         }
     }
 }

@@ -24,10 +24,6 @@ namespace InventoryManagementApp.Views.Pages
             InitializeComponent();
         }
 
-        /// <summary>
-        /// Convenience accessor for the strongly typed view model.
-        /// Returns null if the DataContext is not correctly set.
-        /// </summary>
         public UserManagementViewModel? ViewModel =>
             DataContext as UserManagementViewModel;
 
@@ -105,13 +101,15 @@ namespace InventoryManagementApp.Views.Pages
                    $"Role: {ResolveRole(user)}{Environment.NewLine}" +
                    $"Active: {FormatBool(user.IsActive)}{Environment.NewLine}" +
                    $"Admin: {FormatBool(user.IsAdmin)}{Environment.NewLine}" +
+                   $"Access: {ValueOrDash(user.AccessSummary)}{Environment.NewLine}" +
+                   $"Lockout: {ValueOrDash(user.LockoutStatus)}{Environment.NewLine}" +
                    $"Password expired: {FormatBool(user.PasswordExpired)}{Environment.NewLine}" +
                    $"Created: {FormatDate(user.CreatedAt)}{Environment.NewLine}{Environment.NewLine}" +
                    $"Email: {ValueOrDash(user.Email)}{Environment.NewLine}" +
                    $"Phone: {ValueOrDash(user.Phone)}{Environment.NewLine}" +
                    $"Mobile: {ValueOrDash(user.Mobile)}{Environment.NewLine}" +
                    $"Address: {ValueOrDash(user.Address)}{Environment.NewLine}{Environment.NewLine}" +
-                   "Next steps: edit profile details, upload a current photo, reset the password if the user is blocked, or review activity logs for recent account actions.";
+                   "Next steps: edit profile details, tick the app sections this user can access, upload a current photo, reset the password if the user is blocked, or review activity logs for recent account actions.";
         }
 
         private static FlowDocument BuildPrintDocument(IReadOnlyCollection<UserModel> users, string summary)
@@ -135,7 +133,7 @@ namespace InventoryManagementApp.Views.Pages
             });
 
             var table = new Table { CellSpacing = 0 };
-            foreach (var width in new[] { 55.0, 140.0, 95.0, 210.0, 115.0, 115.0, 70.0 })
+            foreach (var width in new[] { 55.0, 130.0, 95.0, 250.0, 190.0, 90.0, 80.0 })
                 table.Columns.Add(new TableColumn { Width = new GridLength(width) });
 
             var rowGroup = new TableRowGroup();
@@ -146,9 +144,9 @@ namespace InventoryManagementApp.Views.Pages
             AddCell(header, "ID");
             AddCell(header, "User");
             AddCell(header, "Role");
+            AddCell(header, "Access");
             AddCell(header, "Email");
-            AddCell(header, "Phone");
-            AddCell(header, "Mobile");
+            AddCell(header, "Lockout");
             AddCell(header, "Active");
 
             foreach (var user in users)
@@ -158,9 +156,9 @@ namespace InventoryManagementApp.Views.Pages
                 AddCell(row, user.UserID.ToString());
                 AddCell(row, user.UserName);
                 AddCell(row, ResolveRole(user));
+                AddCell(row, user.AccessSummary);
                 AddCell(row, user.Email);
-                AddCell(row, user.Phone);
-                AddCell(row, user.Mobile);
+                AddCell(row, user.LockoutStatus);
                 AddCell(row, FormatBool(user.IsActive));
             }
 

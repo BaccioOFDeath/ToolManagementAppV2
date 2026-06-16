@@ -103,12 +103,13 @@
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
                             <DataGridTextColumn Header="Username" Binding="{Binding UserName}" Width="*"/>
-                            <DataGridTextColumn Header="Role" Binding="{Binding IsAdmin, Converter={StaticResource BooleanToAdminConverter}}" Width="110"/>
-                            <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="210"/>
-                            <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="125"/>
-                            <DataGridTextColumn Header="Mobile" Binding="{Binding Mobile}" Width="125"/>
+                            <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="135"/>
+                            <DataGridTextColumn Header="Access" Binding="{Binding AccessSummary}" Width="2*"/>
+                            <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="190"/>
+                            <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="115"/>
+                            <DataGridTextColumn Header="Mobile" Binding="{Binding Mobile}" Width="115"/>
                             <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive}" Width="72"/>
-                            <DataGridTextColumn Header="Created" Binding="{Binding CreatedAt, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat={}{0:yyyy-MM-dd}, TargetNullValue=''}" Width="112"/>
+                            <DataGridTextColumn Header="Lockout" Binding="{Binding LockoutStatus}" Width="130"/>
                         </DataGrid.Columns>
                     </DataGrid>
 
@@ -158,7 +159,7 @@
                                 <TextBlock Text="{Binding SelectedUser.UserName, TargetNullValue='Select a user'}"
                                            Style="{StaticResource PageTitleTextBlock}"
                                            TextWrapping="Wrap"/>
-                                <TextBlock Text="{Binding SelectedUser.Role, TargetNullValue='Choose a row to see contact and admin actions'}"
+                                <TextBlock Text="{Binding SelectedUser.Role, TargetNullValue='Choose a row to see contact and access rights'}"
                                            FontSize="11"
                                            Margin="0,2,0,0"
                                            TextWrapping="Wrap"/>
@@ -173,7 +174,13 @@
                             <TextBlock Text="{Binding SelectedUser.IsAdmin, StringFormat='Admin: {0}', TargetNullValue='Admin: -'}" Margin="0,0,0,2"/>
                             <TextBlock Text="{Binding SelectedUser.CreatedAt, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat='Created: {0:yyyy-MM-dd}', TargetNullValue='Created: -'}" Margin="0,0,8,2"/>
                             <TextBlock Text="{Binding SelectedUser.PasswordExpired, StringFormat='Password expired: {0}', TargetNullValue='Password expired: -'}" Margin="0,0,0,2"/>
+                            <TextBlock Text="{Binding SelectedUser.LockoutStatus, StringFormat='Lockout: {0}', TargetNullValue='Lockout: -'}" Margin="0,0,8,2"/>
                         </UniformGrid>
+                    </StackPanel>
+
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                        <TextBlock Text="Access" Style="{StaticResource SectionHeader}"/>
+                        <TextBlock Text="{Binding SelectedUser.AccessSummary, TargetNullValue='Select a user to review app access'}" TextWrapping="Wrap"/>
                     </StackPanel>
 
                     <StackPanel DockPanel.Dock="Top" Margin="0,0,0,6">
@@ -198,7 +205,7 @@
                             BorderThickness="1"
                             Background="{DynamicResource TextBoxBackgroundBrush}"
                             Padding="6">
-                        <TextBlock Text="Admin path: double-click a user to open the detail sheet, edit from the toolbar, reset a password when a technician is blocked at login, or print the filtered directory for audit checks."
+                        <TextBlock Text="Admin path: edit a user to tick the exact app sections they can access, reset a password when a technician is blocked at login, or print the filtered directory for audit checks."
                                    TextWrapping="Wrap"/>
                     </Border>
                 </DockPanel>
