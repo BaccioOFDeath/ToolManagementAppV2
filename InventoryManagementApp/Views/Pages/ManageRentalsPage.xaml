@@ -177,47 +177,79 @@
                         <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
                             <TextBlock Text="03 Open Requests" Style="{StaticResource SectionHeader}" Margin="0"/>
                             <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenRequestDetailsCommand}" Margin="8,0,4,0"/>
-                            <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintRequestsCommand}"/>
+                            <Button Style="{StaticResource PrimaryButton}" Content="Confirm" Command="{Binding ConfirmRequestCommand}" Margin="0,0,4,0"/>
+                            <Button Style="{StaticResource PrimaryButton}" Content="Cancel" Command="{Binding CancelRequestCommand}" Margin="0,0,4,0"/>
+                            <Button Style="{StaticResource PrimaryButton}" Content="Print Request" Command="{Binding PrintRequestCommand}" Margin="0,0,4,0"/>
+                            <Button Style="{StaticResource PrimaryButton}" Content="Print Queue" Command="{Binding PrintRequestsCommand}"/>
                         </StackPanel>
                         <TextBlock Text="{Binding RequestSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
                     </DockPanel>
                 </Border>
-                <DataGrid Grid.Row="1" ItemsSource="{Binding PendingRequests}" SelectedItem="{Binding SelectedRequest}" SelectionMode="Single" IsReadOnly="True" AutoGenerateColumns="False" Style="{StaticResource VirtualizedDataGridStyle}">
-                    <DataGrid.RowStyle>
-                        <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
-                            <EventSetter Event="MouseDoubleClick" Handler="RequestRow_MouseDoubleClick"/>
-                            <EventSetter Event="PreviewMouseRightButtonDown" Handler="RequestRow_PreviewMouseRightButtonDown"/>
-                        </Style>
-                    </DataGrid.RowStyle>
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="120"/>
-                        <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="180"/>
-                        <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="220"/>
-                        <DataGridTextColumn Header="Requested" Binding="{Binding ReservationDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="145"/>
-                        <DataGridTextColumn Header="Needed From" Binding="{Binding StartDate, StringFormat={}{0:yyyy-MM-dd}}" Width="120"/>
-                        <DataGridTextColumn Header="Needed Until" Binding="{Binding EndDate, StringFormat={}{0:yyyy-MM-dd}}" Width="120"/>
-                        <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="110"/>
-                        <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="*"/>
-                    </DataGrid.Columns>
-                    <DataGrid.ContextMenu>
-                        <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                            <MenuItem Header="Open Request Details" Command="{Binding OpenRequestDetailsCommand}"/>
-                            <MenuItem Header="Print Requests" Command="{Binding PrintRequestsCommand}"/>
-                        </ContextMenu>
-                    </DataGrid.ContextMenu>
-                </DataGrid>
-                <TextBlock Grid.Row="1" Text="No open requests for unavailable items" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding PendingRequests.Count}" Value="0">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="6"/>
+                        <ColumnDefinition Width="310"/>
+                    </Grid.ColumnDefinitions>
+                    <DataGrid Grid.Column="0" ItemsSource="{Binding PendingRequests}" SelectedItem="{Binding SelectedRequest}" SelectionMode="Single" IsReadOnly="True" AutoGenerateColumns="False" Style="{StaticResource VirtualizedDataGridStyle}">
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                                <EventSetter Event="MouseDoubleClick" Handler="RequestRow_MouseDoubleClick"/>
+                                <EventSetter Event="PreviewMouseRightButtonDown" Handler="RequestRow_PreviewMouseRightButtonDown"/>
+                            </Style>
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="110"/>
+                            <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="170"/>
+                            <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="190"/>
+                            <DataGridTextColumn Header="Requested" Binding="{Binding ReservationDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="135"/>
+                            <DataGridTextColumn Header="Needed From" Binding="{Binding StartDate, StringFormat={}{0:yyyy-MM-dd}}" Width="115"/>
+                            <DataGridTextColumn Header="Needed Until" Binding="{Binding EndDate, StringFormat={}{0:yyyy-MM-dd}}" Width="115"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="100"/>
+                            <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="*"/>
+                        </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                <MenuItem Header="Open Request Details" Command="{Binding OpenRequestDetailsCommand}"/>
+                                <MenuItem Header="Confirm Request" Command="{Binding ConfirmRequestCommand}"/>
+                                <MenuItem Header="Cancel Request" Command="{Binding CancelRequestCommand}"/>
+                                <Separator/>
+                                <MenuItem Header="Print Request" Command="{Binding PrintRequestCommand}"/>
+                                <MenuItem Header="Print Request Queue" Command="{Binding PrintRequestsCommand}"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                    </DataGrid>
+                    <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
+                    <Border Grid.Column="2" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1,0,0,0" Padding="8">
+                        <StackPanel>
+                            <TextBlock Text="Selected Request" Style="{StaticResource SectionHeader}" Margin="0,0,0,6"/>
+                            <TextBlock Text="{Binding SelectedRequestSummary}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                            <TextBlock Text="{Binding SelectedRequestDateLine}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                            <TextBlock Text="Current Holder" Style="{StaticResource LabelTextBlock}" Margin="0,4,0,2"/>
+                            <TextBlock Text="{Binding SelectedRequestHolderLine}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                            <TextBlock Text="Next Action" Style="{StaticResource LabelTextBlock}" Margin="0,4,0,2"/>
+                            <TextBlock Text="{Binding SelectedRequestNextAction}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                            <UniformGrid Columns="2" Margin="0,4,0,0">
+                                <Button Style="{StaticResource PrimaryButton}" Content="Confirm" Command="{Binding ConfirmRequestCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Cancel" Command="{Binding CancelRequestCommand}" Margin="0,0,0,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Details" Command="{Binding OpenRequestDetailsCommand}" Margin="0,0,4,0"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintRequestCommand}"/>
+                            </UniformGrid>
+                        </StackPanel>
+                    </Border>
+                    <TextBlock Grid.Column="0" Text="No open requests for unavailable items" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding PendingRequests.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
             </Grid>
         </Border>
 
