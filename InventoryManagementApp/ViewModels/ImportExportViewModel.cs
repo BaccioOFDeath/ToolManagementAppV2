@@ -36,8 +36,48 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand ImportCustomersCommand { get; }
         public IAsyncRelayCommand ExportCustomersCommand { get; }
         public IAsyncRelayCommand OpenImageImportMappingWindowCommand { get; }
+        public IRelayCommand ClearImportExportLogsCommand { get; }
 
         public bool IsCurrentUserAdmin => _userContext.IsAdmin;
+        public bool HasLogEntries => ImportExportLogs.Count > 0;
+        public string LogSummary => HasLogEntries
+            ? $"{ImportExportLogs.Count} operation log entr{(ImportExportLogs.Count == 1 ? "y" : "ies")} recorded this session."
+            : "No import, export, image, or backup operations have been run in this session.";
+
+        public string ItemDataSummary =>
+            $"Import {LabelProvider.Instance.ItemLabelPlural} from CSV with mapping, JSON, or XML. Export the current item catalog to CSV, JSON, or XML.";
+
+        public string CustomerDataSummary =>
+            "Import customers from mapped CSV, JSON, or XML. Export the customer directory to CSV, JSON, or XML for advisor handoff or cleanup.";
+
+        public string ImageImportSummary => IsCurrentUserAdmin
+            ? $"Admin image import is available for matching photos to {LabelProvider.Instance.ItemLabelPlural}."
+            : $"Image import is admin-only. Ask an admin to map photos to {LabelProvider.Instance.ItemLabelPlural}.";
+
+        public string BackupSummary =>
+            "Create a database backup before large imports, bulk cleanup, or workstation changes.";
+
+        private string? _selectedImportExportLog;
+        public string? SelectedImportExportLog
+        {
+            get => _selectedImportExportLog;
+            set
+            {
+                if (SetProperty(ref _selectedImportExportLog, value))
+                {
+                    OnPropertyChanged(nameof(SelectedLogTitle));
+                    OnPropertyChanged(nameof(SelectedLogDetail));
+                }
+            }
+        }
+
+        public string SelectedLogTitle => string.IsNullOrWhiteSpace(SelectedImportExportLog)
+            ? "No operation selected"
+            : "Selected operation";
+
+        public string SelectedLogDetail => string.IsNullOrWhiteSpace(SelectedImportExportLog)
+            ? "Run an import, export, image import, or backup action. Select a log row to copy or print the exact result."
+            : SelectedImportExportLog;
 
         /// <summary>
         /// Command that triggers an asynchronous database backup.
@@ -74,8 +114,17 @@ namespace InventoryManagementApp.ViewModels
             _logger = logger ?? NullLogger<ImportExportViewModel>.Instance;
             OpenImageImportMappingWindowCommand = openImageImportMappingWindowCommand ?? new AsyncRelayCommand(ct => Task.CompletedTask);
             _userContext = userContext ?? new DummyUserContext();
-            _userContext.UserChanged += (_, _) => OnPropertyChanged(nameof(IsCurrentUserAdmin));
+            _userContext.UserChanged += (_, _) =>
+            {
+                OnPropertyChanged(nameof(IsCurrentUserAdmin));
+                OnPropertyChanged(nameof(ImageImportSummary));
+            };
             _rentalConfigService = rentalConfigService;
+            ImportExportLogs.CollectionChanged += (_, _) =>
+            {
+                OnPropertyChanged(nameof(HasLogEntries));
+                OnPropertyChanged(nameof(LogSummary));
+            };
             
             // Initialize importers and exporters
             _itemImporters = new List<IDataImporter<ItemModel>>
@@ -107,6 +156,7 @@ namespace InventoryManagementApp.ViewModels
             ImportCustomersCommand = new AsyncRelayCommand(ct => ImportCustomersAsync(ct));
             ExportCustomersCommand = new AsyncRelayCommand(ct => ExportCustomersAsync(ct));
             BackupDatabaseCommand = new AsyncRelayCommand(ct => BackupDatabaseAsync(ct));
+            ClearImportExportLogsCommand = new RelayCommand(ClearImportExportLogs, () => HasLogEntries);
         }
 
         private sealed class DummyUserContext : IUserContext
@@ -127,6 +177,20 @@ namespace InventoryManagementApp.ViewModels
             public bool IsAdmin => false;
             public string UserName => string.Empty;
             public string Role => string.Empty;
+        }
+
+        void AddLog(string message)
+        {
+            ImportExportLogs.Add(message);
+            SelectedImportExportLog = message;
+            ClearImportExportLogsCommand.NotifyCanExecuteChanged();
+        }
+
+        void ClearImportExportLogs()
+        {
+            ImportExportLogs.Clear();
+            SelectedImportExportLog = null;
+            ClearImportExportLogsCommand.NotifyCanExecuteChanged();
         }
 
         async Task ImportItemsAsync(CancellationToken cancellationToken)
@@ -165,7 +229,7 @@ namespace InventoryManagementApp.ViewModels
                     {
                         var singular = LabelProvider.Instance.ItemLabelSingular;
                         var errorMessage = $"Mapping for {singular} number is required.";
-                        ImportExportLogs.Add(errorMessage);
+                        AddLog(errorMessage);
                         _logger.LogWarning("Import aborted: missing {ItemLabelSingular} number mapping", singular);
                         await _dialogService.ShowInfoAsync(errorMessage, $"Import {plural}");
                         return;
@@ -181,7 +245,7 @@ namespace InventoryManagementApp.ViewModels
                     if (importer == null)
                     {
                         var errorMessage = $"No importer found for file type: {extension}";
-                        ImportExportLogs.Add(errorMessage);
+                        AddLog(errorMessage);
                         await _dialogService.ShowInfoAsync(errorMessage, $"Import {plural}");
                         return;
                     }
@@ -191,11 +255,11 @@ namespace InventoryManagementApp.ViewModels
                 }
                 
                 var successMessage = $"Successfully imported {plural} from {path}.";
-                ImportExportLogs.Add(successMessage);
+                AddLog(successMessage);
                 if (skippedRows.Any())
                 {
                     var skippedMessage = $"Skipped rows: {string.Join(", ", skippedRows)}";
-                    ImportExportLogs.Add(skippedMessage);
+                    AddLog(skippedMessage);
                     successMessage += $" {skippedMessage}";
                 }
                 await _dialogService.ShowInfoAsync(successMessage, $"Import {plural}");
@@ -203,14 +267,14 @@ namespace InventoryManagementApp.ViewModels
             catch (OperationCanceledException)
             {
                 var plural = LabelProvider.Instance.ItemLabelPlural;
-                ImportExportLogs.Add($"{plural} import was cancelled.");
+                AddLog($"{plural} import was cancelled.");
                 await _dialogService.ShowInfoAsync($"{plural} import was cancelled.", $"Import {plural}");
             }
             catch (Exception ex)
             {
                 var plural = LabelProvider.Instance.ItemLabelPlural;
                 _logger.LogError(ex, "Failed to import {ItemLabelPlural} from {Path}", plural, path);
-                ImportExportLogs.Add($"Failed to import {plural} from {path}: {ex.Message}");
+                AddLog($"Failed to import {plural} from {path}: {ex.Message}");
                 await _dialogService.ShowInfoAsync($"Failed to import {plural} from {path}: {ex.Message}", $"Import {plural}");
             }
         }
@@ -234,23 +298,23 @@ namespace InventoryManagementApp.ViewModels
                 if (exporter == null)
                 {
                     var errorMessage = $"No exporter found for file type: {extension}";
-                    ImportExportLogs.Add(errorMessage);
+                    AddLog(errorMessage);
                     return;
                 }
                 
                 await _itemService.ExportItemsAsync(path, exporter, cancellationToken);
-                ImportExportLogs.Add($"Successfully exported {plural} to {path} ({exporter.FormatName} format).");
+                AddLog($"Successfully exported {plural} to {path} ({exporter.FormatName} format).");
             }
             catch (OperationCanceledException)
             {
                 var plural = LabelProvider.Instance.ItemLabelPlural;
-                ImportExportLogs.Add($"{plural} export was cancelled.");
+                AddLog($"{plural} export was cancelled.");
             }
             catch (Exception ex)
             {
                 var plural = LabelProvider.Instance.ItemLabelPlural;
                 _logger.LogError(ex, "Failed to export {ItemLabelPlural} to {Path}", plural, path);
-                ImportExportLogs.Add($"Failed to export {plural} to {path}: {ex.Message}");
+                AddLog($"Failed to export {plural} to {path}: {ex.Message}");
             }
         }
 
@@ -279,9 +343,9 @@ namespace InventoryManagementApp.ViewModels
                     if (map == null)
                         return;
                     var result = await _customerService.ImportCustomersFromCsvAsync(path, map, cancellationToken);
-                    ImportExportLogs.Add($"Successfully imported customers from {path}. Imported {result.ImportedCount} customers.");
+                    AddLog($"Successfully imported customers from {path}. Imported {result.ImportedCount} customers.");
                     foreach (var msg in result.SkippedRows)
-                        ImportExportLogs.Add($"Skipped {msg}");
+                        AddLog($"Skipped {msg}");
                 }
                 else
                 {
@@ -290,23 +354,23 @@ namespace InventoryManagementApp.ViewModels
                     if (importer == null)
                     {
                         var errorMessage = $"No importer found for file type: {extension}";
-                        ImportExportLogs.Add(errorMessage);
+                        AddLog(errorMessage);
                         await _dialogService.ShowInfoAsync(errorMessage, "Import Customers");
                         return;
                     }
                     
                     var importedCount = await _customerService.ImportCustomersAsync(path, importer, cancellationToken);
-                    ImportExportLogs.Add($"Successfully imported {importedCount} customers from {path} ({importer.FormatName} format).");
+                    AddLog($"Successfully imported {importedCount} customers from {path} ({importer.FormatName} format).");
                 }
             }
             catch (OperationCanceledException)
             {
-                ImportExportLogs.Add("Customer import was cancelled.");
+                AddLog("Customer import was cancelled.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to import customers from {Path}", path);
-                ImportExportLogs.Add($"Failed to import customers from {path}: {ex.Message}");
+                AddLog($"Failed to import customers from {path}: {ex.Message}");
             }
         }
 
@@ -328,21 +392,21 @@ namespace InventoryManagementApp.ViewModels
                 if (exporter == null)
                 {
                     var errorMessage = $"No exporter found for file type: {extension}";
-                    ImportExportLogs.Add(errorMessage);
+                    AddLog(errorMessage);
                     return;
                 }
                 
                 await _customerService.ExportCustomersAsync(path, exporter, cancellationToken);
-                ImportExportLogs.Add($"Successfully exported customers to {path} ({exporter.FormatName} format).");
+                AddLog($"Successfully exported customers to {path} ({exporter.FormatName} format).");
             }
             catch (OperationCanceledException)
             {
-                ImportExportLogs.Add("Customer export was cancelled.");
+                AddLog("Customer export was cancelled.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to export customers to {Path}", path);
-                ImportExportLogs.Add($"Failed to export customers to {path}: {ex.Message}");
+                AddLog($"Failed to export customers to {path}: {ex.Message}");
             }
         }
 
@@ -364,16 +428,16 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 await _databaseService.BackupDatabaseAsync(path, cancellationToken);
-                ImportExportLogs.Add($"Successfully backed up database to {path}.");
+                AddLog($"Successfully backed up database to {path}.");
             }
             catch (OperationCanceledException)
             {
-                ImportExportLogs.Add("Database backup was cancelled.");
+                AddLog("Database backup was cancelled.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to backup database to {Path}", path);
-                ImportExportLogs.Add($"Failed to backup database to {path}: {ex.Message}");
+                AddLog($"Failed to backup database to {path}: {ex.Message}");
             }
         }
     }
