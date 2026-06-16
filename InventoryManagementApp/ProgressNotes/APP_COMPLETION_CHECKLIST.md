@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-17 07:42 NZST
+Last audit date/time: 2026-06-17 07:48 NZST
 
 ## Completed workflows
 
@@ -22,6 +22,7 @@ Last audit date/time: 2026-06-17 07:42 NZST
 - Maintenance now uses a two-pane technician workbench with schedule backlog context, selected work-order detail, timing, next action, bench checklist, quick overdue/upcoming/scheduled filters, copy handoff, print actions, stable useful selection, and null-safe search across legacy/imported records.
 - QA screenshot wrapper validation now rejects expected PNG captures that are too small in pixel dimensions, catching failed or cropped screenshots beyond file-size checks.
 - Calibration now uses a two-pane technician bench with certificate handoff details, timing and next-action guidance, shelf-release checklist, quick overdue/due-soon/current filters, copy handoff, print actions, stable useful selection, null-safe expanded search, and row-correct context menus.
+- QA screenshot manifests now list each captured PNG with dimensions and byte size so future screenshot reviews can spot cropped or suspicious captures faster.
 
 ## Partially complete workflows
 
@@ -46,7 +47,7 @@ Last audit date/time: 2026-06-17 07:42 NZST
 
 ## Validation status
 
-- GitHub connector readback reviewed the Calibration workbench branch files, progress note, and completion checklist.
+- GitHub connector readback reviewed the Calibration workbench branch files, screenshot wrapper, progress note, and completion checklist.
 - `CalibrationPage.xaml` was parsed locally as well-formed XML from the generated branch content.
 - `dotnet --info`: failed because `dotnet` is not installed in this scheduled container.
 - `dotnet restore InventoryManagementApp.sln`: not run because the .NET SDK is unavailable.
