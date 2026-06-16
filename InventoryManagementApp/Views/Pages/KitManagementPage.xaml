@@ -107,6 +107,7 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
@@ -115,15 +116,15 @@
                             <TextBlock Text="{Binding KitItemsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
                         </DockPanel>
                     </Border>
-                    <DockPanel Grid.Row="1" LastChildFill="True">
-                        <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
-                            <StackPanel Orientation="Horizontal">
-                                <Button Style="{StaticResource PrimaryButton}" Content="Add Item" Command="{Binding AddKitItemCommand}" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Edit Item" Command="{Binding EditKitItemCommand}" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Remove Item" Command="{Binding RemoveKitItemCommand}" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Reload Items" Command="{Binding ViewKitItemsCommand}"/>
-                            </StackPanel>
-                        </Border>
+                    <Border Grid.Row="1" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource PrimaryButton}" Content="Add Item" Command="{Binding AddKitItemCommand}" Margin="0,0,4,0"/>
+                            <Button Style="{StaticResource PrimaryButton}" Content="Edit Item" Command="{Binding EditKitItemCommand}" Margin="0,0,4,0"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Remove Item" Command="{Binding RemoveKitItemCommand}" Margin="0,0,4,0"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Reload Items" Command="{Binding ViewKitItemsCommand}"/>
+                        </StackPanel>
+                    </Border>
+                    <Grid Grid.Row="2">
                         <DataGrid x:Name="KitItemsGrid"
                                   ItemsSource="{Binding KitItems}"
                                   SelectedItem="{Binding SelectedKitItem}"
@@ -164,7 +165,7 @@
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
-                    </DockPanel>
+                    </Grid>
                 </Grid>
             </Border>
 
