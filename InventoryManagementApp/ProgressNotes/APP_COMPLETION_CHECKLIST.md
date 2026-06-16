@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-17 07:48 NZST
+Last audit date/time: 2026-06-17 08:11 NZST
 
 ## Completed workflows
 
@@ -23,6 +23,7 @@ Last audit date/time: 2026-06-17 07:48 NZST
 - QA screenshot wrapper validation now rejects expected PNG captures that are too small in pixel dimensions, catching failed or cropped screenshots beyond file-size checks.
 - Calibration now uses a two-pane technician bench with certificate handoff details, timing and next-action guidance, shelf-release checklist, quick overdue/due-soon/current filters, copy handoff, print actions, stable useful selection, null-safe expanded search, and row-correct context menus.
 - QA screenshot manifests now list each captured PNG with dimensions and byte size so future screenshot reviews can spot cropped or suspicious captures faster.
+- Admin user management now supports durable checkbox permissions, advisor/technician/admin presets, access summaries in the directory/detail/copy/print flows, and permission-based navigation visibility for operations, insights, data, and admin sections.
 
 ## Partially complete workflows
 
@@ -34,6 +35,7 @@ Last audit date/time: 2026-06-17 07:48 NZST
 - Customers now have a completed desktop workflow surface, but runtime add/edit/delete/print/copy validation still needs a Windows/.NET workstation.
 - Maintenance now has a completed desktop workflow surface, but runtime add/edit/complete/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
 - Calibration now has a completed desktop workflow surface, but runtime add/edit/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
+- User permission editing now has a completed persistence/UI/navigation pass, but runtime login-as-each-role and screenshot validation still need a Windows/.NET workstation.
 
 ## Known broken workflows
 
@@ -47,9 +49,9 @@ Last audit date/time: 2026-06-17 07:48 NZST
 
 ## Validation status
 
-- GitHub connector readback reviewed the Calibration workbench branch files, screenshot wrapper, progress note, and completion checklist.
-- `CalibrationPage.xaml` was parsed locally as well-formed XML from the generated branch content.
-- `dotnet --info`: failed because `dotnet` is not installed in this scheduled container.
+- GitHub connector readback reviewed the user permission branch files, including user model/database/service changes, editor XAML/view model, user directory, navigation gating, progress note, and completion checklist.
+- The branch was replayed onto the current `master` after `master` moved during the run; the final branch is ahead of `master` and not behind.
+- `dotnet --info`: not run because `dotnet` is not installed in this scheduled container.
 - `dotnet restore InventoryManagementApp.sln`: not run because the .NET SDK is unavailable.
 - `dotnet build InventoryManagementApp.sln --no-restore`: not run because the .NET SDK is unavailable.
 - `dotnet test InventoryManagementApp.sln --no-build`: not run because the .NET SDK is unavailable.
