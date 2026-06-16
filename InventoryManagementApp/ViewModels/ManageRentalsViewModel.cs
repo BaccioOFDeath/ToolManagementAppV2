@@ -34,6 +34,40 @@ namespace InventoryManagementApp.ViewModels
         public string SearchSummary => $"{Rentals.Count} result{(Rentals.Count == 1 ? string.Empty : "s")} shown";
         public string CheckedOutSummary => $"{ActiveRentals.Count} item{(ActiveRentals.Count == 1 ? string.Empty : "s")} currently checked out";
         public string RequestSummary => $"{PendingRequests.Count} open request{(PendingRequests.Count == 1 ? string.Empty : "s")}";
+        public string SelectedRequestSummary => SelectedRequest == null
+            ? "Select a request to see customer, holder, and next action."
+            : $"{ValueOrNotRecorded(SelectedRequest.ItemNumber)} | {ValueOrNotRecorded(SelectedRequest.CustomerName)} | {SelectedRequest.StatusDisplay}";
+        public string SelectedRequestDateLine => SelectedRequest == null
+            ? "No request selected."
+            : $"Requested {FormatDate(SelectedRequest.ReservationDate)} | Needed {SelectedRequest.StartDate:yyyy-MM-dd} to {SelectedRequest.EndDate:yyyy-MM-dd}";
+        public string SelectedRequestHolderLine
+        {
+            get
+            {
+                if (SelectedRequest == null)
+                    return "Select a request to inspect current availability.";
+
+                var activeRental = FindActiveRentalForRequest(SelectedRequest);
+                return activeRental == null
+                    ? "No active checkout found for this item. It may be ready to pick or rent."
+                    : $"Currently out to {ValueOrNotRecorded(activeRental.CustomerName)}; due back {activeRental.DueDate:yyyy-MM-dd HH:mm}.";
+            }
+        }
+        public string SelectedRequestNextAction
+        {
+            get
+            {
+                if (SelectedRequest == null)
+                    return "Next action: choose a request from the queue.";
+                if (_reservationService == null || SelectedRequest.ReservationID <= 0)
+                    return "Next action: open details or print this request; durable status changes are not available in this session.";
+                if (string.Equals(SelectedRequest.Status, "Pending", StringComparison.OrdinalIgnoreCase))
+                    return "Next action: confirm the hold, contact the current holder, or cancel it if the customer no longer needs it.";
+                if (string.Equals(SelectedRequest.Status, "Confirmed", StringComparison.OrdinalIgnoreCase))
+                    return "Next action: watch for check-in, pick the item, then complete the rental from the normal rental workflow.";
+                return "Next action: review the request details and history before changing it.";
+            }
+        }
 
         private string _searchText = string.Empty;
         public string SearchText
@@ -111,6 +145,13 @@ namespace InventoryManagementApp.ViewModels
                 if (SetProperty(ref _selectedRequest, value))
                 {
                     OpenRequestDetailsCommand.NotifyCanExecuteChanged();
+                    ConfirmRequestCommand.NotifyCanExecuteChanged();
+                    CancelRequestCommand.NotifyCanExecuteChanged();
+                    PrintRequestCommand.NotifyCanExecuteChanged();
+                    OnPropertyChanged(nameof(SelectedRequestSummary));
+                    OnPropertyChanged(nameof(SelectedRequestDateLine));
+                    OnPropertyChanged(nameof(SelectedRequestHolderLine));
+                    OnPropertyChanged(nameof(SelectedRequestNextAction));
                 }
             }
         }
@@ -130,6 +171,9 @@ namespace InventoryManagementApp.ViewModels
         public IRelayCommand OpenRentalDetailsCommand { get; }
         public IAsyncRelayCommand PlaceRequestCommand { get; }
         public IRelayCommand OpenRequestDetailsCommand { get; }
+        public IAsyncRelayCommand ConfirmRequestCommand { get; }
+        public IAsyncRelayCommand CancelRequestCommand { get; }
+        public IRelayCommand PrintRequestCommand { get; }
         public IRelayCommand PrintRentalCommand { get; }
         public IRelayCommand PrintSearchResultsCommand { get; }
         public IRelayCommand PrintCheckedOutCommand { get; }
@@ -165,6 +209,9 @@ namespace InventoryManagementApp.ViewModels
             OpenRentalDetailsCommand = new RelayCommand(OpenRentalDetails, () => SelectedRental != null);
             PlaceRequestCommand = new AsyncRelayCommand(PlaceRequestAsync, CanPlaceRequestForSelectedRental);
             OpenRequestDetailsCommand = new RelayCommand(OpenRequestDetails, () => SelectedRequest != null);
+            ConfirmRequestCommand = new AsyncRelayCommand(ConfirmRequestAsync, CanUpdateSelectedRequest);
+            CancelRequestCommand = new AsyncRelayCommand(CancelRequestAsync, CanUpdateSelectedRequest);
+            PrintRequestCommand = new RelayCommand(PrintRequest, () => SelectedRequest != null);
             PrintRentalCommand = new RelayCommand(PrintRental, () => SelectedRental != null);
             PrintSearchResultsCommand = new RelayCommand(PrintSearchResults);
             PrintCheckedOutCommand = new RelayCommand(PrintCheckedOut);
@@ -206,9 +253,11 @@ namespace InventoryManagementApp.ViewModels
 
             try
             {
+                var selectedRequestId = SelectedRequest?.ReservationID;
                 var requests = await _reservationService.GetActiveReservationsAsync();
                 PendingRequests.ReplaceRange(requests);
-                SelectedRequest = PendingRequests.FirstOrDefault(r => SelectedRequest?.ReservationID == r.ReservationID);
+                SelectedRequest = PendingRequests.FirstOrDefault(r => selectedRequestId.HasValue && r.ReservationID == selectedRequestId.Value)
+                    ?? PendingRequests.FirstOrDefault();
             }
             catch (Exception ex)
             {
@@ -474,12 +523,111 @@ namespace InventoryManagementApp.ViewModels
             details.AppendLine($"Requested: {FormatDate(request.ReservationDate)}");
             details.AppendLine($"Needed from: {FormatDate(request.StartDate)}");
             details.AppendLine($"Needed until: {FormatDate(request.EndDate)}");
+            details.AppendLine($"Current holder: {SelectedRequestHolderLine}");
             details.AppendLine();
             details.AppendLine($"Notes: {ValueOrNotRecorded(request.Notes)}");
             details.AppendLine();
-            details.AppendLine("Next steps: contact the current holder, monitor check-in, then fulfill or update this reservation when availability opens.");
+            details.AppendLine(SelectedRequestNextAction);
 
             _dialogService.ShowInfo(details.ToString(), $"Request Details - {request.ItemNumber}");
+        }
+
+        async Task ConfirmRequestAsync()
+        {
+            if (SelectedRequest == null || _reservationService == null)
+                return;
+
+            var requestId = SelectedRequest.ReservationID;
+            try
+            {
+                IsLoading = true;
+                var updated = await _reservationService.ConfirmReservationAsync(requestId);
+                if (!updated)
+                {
+                    await _dialogService.ShowInfoAsync("The selected request could not be confirmed. It may have been removed or changed by another user.", "Confirm Request");
+                    return;
+                }
+
+                await LoadPendingRequestsAsync();
+                await _dialogService.ShowInfoAsync("Request confirmed and remains in the open request queue.", "Confirm Request");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to confirm request {ReservationID}", requestId);
+                await _dialogService.ShowInfoAsync($"Failed to confirm request: {ex.Message}", "Error");
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        async Task CancelRequestAsync()
+        {
+            if (SelectedRequest == null || _reservationService == null)
+                return;
+
+            var request = SelectedRequest;
+            var confirmed = await _dialogService.ShowConfirmAsync("Cancel Request", $"Cancel request #{request.ReservationID} for item {request.ItemNumber}?");
+            if (!confirmed)
+                return;
+
+            try
+            {
+                IsLoading = true;
+                var updated = await _reservationService.CancelReservationAsync(request.ReservationID);
+                if (!updated)
+                {
+                    await _dialogService.ShowInfoAsync("The selected request could not be cancelled. It may have been removed or changed by another user.", "Cancel Request");
+                    return;
+                }
+
+                await LoadPendingRequestsAsync();
+                await _dialogService.ShowInfoAsync("Request cancelled and removed from the open request queue.", "Cancel Request");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to cancel request {ReservationID}", request.ReservationID);
+                await _dialogService.ShowInfoAsync($"Failed to cancel request: {ex.Message}", "Error");
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        void PrintRequest()
+        {
+            if (SelectedRequest == null)
+                return;
+
+            try
+            {
+                var request = SelectedRequest;
+                var doc = CreateRentalDocument("Request Information");
+                var table = CreateKeyValueTable();
+                var group = table.RowGroups[0];
+                AddKeyValueRow(group, "Request #:", request.ReservationID > 0 ? request.ReservationID.ToString() : "Not saved");
+                AddKeyValueRow(group, "Item #:", request.ItemNumber);
+                AddKeyValueRow(group, "Item:", request.ItemName);
+                AddKeyValueRow(group, "Customer:", request.CustomerName);
+                AddKeyValueRow(group, "Status:", request.StatusDisplay);
+                AddKeyValueRow(group, "Quantity:", request.Quantity.ToString());
+                AddKeyValueRow(group, "Requested:", FormatDate(request.ReservationDate));
+                AddKeyValueRow(group, "Needed From:", request.StartDate.ToString("yyyy-MM-dd"));
+                AddKeyValueRow(group, "Needed Until:", request.EndDate.ToString("yyyy-MM-dd"));
+                AddKeyValueRow(group, "Current Holder:", SelectedRequestHolderLine);
+                AddKeyValueRow(group, "Next Action:", SelectedRequestNextAction);
+                AddKeyValueRow(group, "Notes:", request.Notes);
+                doc.Blocks.Add(table);
+
+                _dialogService.ShowPrintPreview(doc, $"Request {request.ReservationID}", string.Empty);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to print request {ReservationID}", SelectedRequest?.ReservationID);
+                _dialogService.ShowInfo($"Failed to print request: {ex.Message}", "Error");
+            }
         }
 
         void PrintRental()
@@ -737,11 +885,26 @@ namespace InventoryManagementApp.ViewModels
         {
             ActiveRentals.ReplaceRange(_allRentals.Where(IsRentalActive));
             OnPropertyChanged(nameof(CheckedOutSummary));
+            OnPropertyChanged(nameof(SelectedRequestHolderLine));
+            OnPropertyChanged(nameof(SelectedRequestNextAction));
         }
 
         bool CanReturnSelectedRental() => SelectedRental != null && IsRentalActive(SelectedRental);
 
         bool CanPlaceRequestForSelectedRental() => SelectedRental != null && IsRentalActive(SelectedRental);
+
+        bool CanUpdateSelectedRequest() => SelectedRequest != null
+            && SelectedRequest.ReservationID > 0
+            && SelectedRequest.IsActive
+            && _reservationService != null;
+
+        RentalModel? FindActiveRentalForRequest(Reservation? request)
+        {
+            if (request == null)
+                return null;
+
+            return ActiveRentals.FirstOrDefault(r => r.ItemID == request.ItemID);
+        }
 
         static bool IsRentalActive(RentalModel rental)
         {
