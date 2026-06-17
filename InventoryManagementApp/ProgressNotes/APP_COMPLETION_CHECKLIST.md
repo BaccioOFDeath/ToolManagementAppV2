@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-17 22:32 NZST
+Last audit date/time: 2026-06-17 23:11 NZST
 
 ## Completed workflows
 
@@ -37,6 +37,7 @@ Last audit date/time: 2026-06-17 22:32 NZST
 - Dashboard footer context now follows the most recently selected dashboard row type, with regression coverage for activity and rental selections replacing stale older row summaries.
 - Dashboard row-specific actions now disable until the matching row type is selected, Open Related no longer falls through to the item workflow with no activity selected, and successful check-in/return/reload flows clear stale dashboard selections.
 - Shared visual hierarchy polish now loads after the desktop shell resources, lifting common cards, toolbar/action strips, pane headers, summary cards, primary buttons, and dense grid headers so repeated workbench surfaces have stronger hierarchy without editing each page one by one.
+- Login now has a more deliberate two-panel workstation entry surface with branded company context, role/access guidance, profile count, and stronger user cards while keeping the existing account-selection command flow intact.
 
 ## Partially complete workflows
 
@@ -49,11 +50,12 @@ Last audit date/time: 2026-06-17 22:32 NZST
 - Calibration now has a completed desktop workflow surface, but runtime add/edit/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
 - User permission editing now has a completed persistence/UI/navigation/editor-summary pass, impact review, and matching service-layer permission guards, but runtime login-as-each-role and screenshot validation still needs a Windows/.NET workstation.
 - Reservations now have a completed desktop workflow surface, but runtime add/edit/confirm/cancel/fulfill/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
-- Rentals now have a completed desktop workflow surface, but runtime check-in/extend/request/delete/print/document and screenshot validation still need a Windows/.NET workstation.
+- Rentals now have a completed desktop workflow surface, but runtime check-in/extend/request/delete/print/document and screenshot validation still needs a Windows/.NET workstation.
 - Categories now have a completed desktop workflow surface, but runtime create/rename/delete/filter/print/copy and screenshot validation still needs a Windows/.NET workstation.
 - Shell workflow guidance and responsive header behavior have been implemented, but runtime narrow/wide workstation screenshot review still needs a Windows/.NET workstation.
 - Dashboard activity drilldown, footer context, and selected-action state have been tightened, but runtime dashboard interaction and screenshot validation still need a Windows/.NET workstation.
 - Shared visual hierarchy polish is in place across common shell resources, but runtime screenshot review still needs to confirm the new surface shadow, accent dividers, primary-action emphasis, and denser grid headers look right across light/dark themes and narrow workstations.
+- Auth entry polish is in place for the main login account-selection surface, but password/change-password/reset prompts and runtime auth screenshot review still need follow-up.
 
 ## Known broken workflows
 
@@ -63,10 +65,10 @@ Last audit date/time: 2026-06-17 22:32 NZST
 
 ## Next recommended target
 
-- Run the enhanced Windows QA screenshot capture and review the generated checklist/index after the shared polish pass, then continue with targeted work on the strongest remaining feedback: login/auth dialogs, Settings database/branding/backup pages, and print preview document styling.
+- Continue targeted auth polish on password, change-password, and password-reset prompts, then move to the strongest remaining Settings feedback: database, branding, and backup pages. Run the enhanced Windows QA screenshot capture when a Windows/.NET workstation is available.
 
 ## Validation status
 
-- GitHub connector readback reviewed the shared polish resource, `App.xaml` merge order, `ToDo.md` progress log, and this checklist update on `master`.
-- Local XAML parsing, `dotnet --info`, `dotnet restore`, `dotnet build`, `dotnet test`, and `scripts/run-app-qa-screenshots.ps1` were not run because this scheduled Linux container lacks the .NET SDK and Windows/WPF runtime, and direct local clone/raw fetches remain blocked by the network tunnel.
+- GitHub connector readback reviewed the auth entry XAML, existing login code-behind, `ToDo.md` progress log, and this checklist update on the branch before merge.
+- Local XAML parsing, `dotnet --info`, `dotnet restore`, `dotnet build`, `dotnet test`, WPF screenshots, and local banned-word checks were not run because this scheduled Linux container lacks the .NET SDK and Windows/WPF runtime, and direct local clone/raw fetches remain blocked by the network tunnel.
 - Did not run unrelated tests, per instruction.
