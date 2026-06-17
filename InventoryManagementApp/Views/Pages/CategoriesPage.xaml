@@ -26,6 +26,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="12,10">
@@ -312,10 +313,9 @@
             </DockPanel>
         </Border>
 
-        <ProgressBar Grid.Row="3"
+        <ProgressBar Grid.Row="4"
                      IsIndeterminate="True"
                      Margin="0,4,0,0"
-                     VerticalAlignment="Bottom"
                      Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
     </Grid>
 </Page>
