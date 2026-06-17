@@ -125,7 +125,7 @@ $expectedScreenshotFiles = @(
     "05-admin\07-settings-branding.png",
     "05-admin\08-settings-messaging.png",
     "05-admin\09-settings-backups.png",
-    "06-dialogs\01-print-labels.png"
+    "06-dialogs\01-print-labels.png",
     "06-dialogs\02-info-dialog.png",
     "06-dialogs\03-confirm-dialog.png",
     "06-dialogs\04-input-dialog.png",
