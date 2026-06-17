@@ -105,3 +105,6 @@ Overall: the UI is operationally competent and consistent, but most screens stil
 43-import-export-log-preview.png: readable and useful; could look much more trustworthy with better print hierarchy.
 44-user-directory-preview.png: clear summary, though cramped lines and minimal formatting reduce polish.
 45-reports-preview.png: good concise operational snapshot; like the other print previews, it works but does not feel designed.
+
+Also please make sure all buttons are aligned as when switching throught the screen shots you can see movements of buttons that could be in the same place between screens and make sure there is a footer status bar on every page to make it feel more complete that hight is set, this status bar could have scrolling info from right to left.
+
