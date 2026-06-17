@@ -86,8 +86,58 @@ namespace InventoryManagementApp.ViewModels
         public string CurrentPageTitle
         {
             get => _currentPageTitle;
-            private set => SetProperty(ref _currentPageTitle, value);
+            private set
+            {
+                if (SetProperty(ref _currentPageTitle, value))
+                    RefreshShellWorkflow();
+            }
         }
+
+        private string _currentWorkflowGuide = "Search or open a dashboard view to start the workflow.";
+        public string CurrentWorkflowGuide
+        {
+            get => _currentWorkflowGuide;
+            private set => SetProperty(ref _currentWorkflowGuide, value);
+        }
+
+        private string _currentWorkflowPrimaryActionText = string.Empty;
+        public string CurrentWorkflowPrimaryActionText
+        {
+            get => _currentWorkflowPrimaryActionText;
+            private set => SetProperty(ref _currentWorkflowPrimaryActionText, value);
+        }
+
+        private string _currentWorkflowSecondaryActionText = string.Empty;
+        public string CurrentWorkflowSecondaryActionText
+        {
+            get => _currentWorkflowSecondaryActionText;
+            private set => SetProperty(ref _currentWorkflowSecondaryActionText, value);
+        }
+
+        private IAsyncRelayCommand? _currentWorkflowPrimaryCommand;
+        public IAsyncRelayCommand? CurrentWorkflowPrimaryCommand
+        {
+            get => _currentWorkflowPrimaryCommand;
+            private set
+            {
+                if (SetProperty(ref _currentWorkflowPrimaryCommand, value))
+                    OnPropertyChanged(nameof(HasCurrentWorkflowPrimaryAction));
+            }
+        }
+
+        private IAsyncRelayCommand? _currentWorkflowSecondaryCommand;
+        public IAsyncRelayCommand? CurrentWorkflowSecondaryCommand
+        {
+            get => _currentWorkflowSecondaryCommand;
+            private set
+            {
+                if (SetProperty(ref _currentWorkflowSecondaryCommand, value))
+                    OnPropertyChanged(nameof(HasCurrentWorkflowSecondaryAction));
+            }
+        }
+
+        public bool HasCurrentWorkflowPrimaryAction => CurrentWorkflowPrimaryCommand != null && !string.IsNullOrWhiteSpace(CurrentWorkflowPrimaryActionText);
+        public bool HasCurrentWorkflowSecondaryAction => CurrentWorkflowSecondaryCommand != null && !string.IsNullOrWhiteSpace(CurrentWorkflowSecondaryActionText);
 
         private string _currentNavSectionTitle = "Overview";
         public string CurrentNavSectionTitle
@@ -244,6 +294,7 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(IsAdminSectionVisible));
             OnPropertyChanged(nameof(IsDataSectionVisible));
             SetNavSection(SelectedNavSectionKey);
+            RefreshShellWorkflow();
         }
 
         void CloseNonMainWindows()
@@ -829,6 +880,142 @@ namespace InventoryManagementApp.ViewModels
             _globalSearchDebounceTimer.Stop();
         }
 
+        void RefreshShellWorkflow()
+        {
+            var title = CurrentPageTitle ?? string.Empty;
+            var lowerTitle = title.ToLowerInvariant();
+            var itemLabelPlural = LabelProvider.Instance.ItemLabelPlural;
+
+            if (lowerTitle.Contains("search"))
+            {
+                SetWorkflow(
+                    $"Find an item, open details, then move to Rentals or Reservations when the shelf status requires an advisor handoff.",
+                    "Open Rentals", Can(User.PermissionRentals) ? OpenRentalsCommand : null,
+                    "Dashboard", OpenDashboardCommand);
+            }
+            else if (lowerTitle.Contains("dashboard"))
+            {
+                SetWorkflow(
+                    "Review live workload, then drill into the operations page that owns the selected issue or activity.",
+                    $"Manage {itemLabelPlural}", Can(User.PermissionManageItems) ? OpenManageItemsCommand : null,
+                    "Reports", Can(User.PermissionReports) ? OpenReportsCommand : null);
+            }
+            else if (lowerTitle.Contains("rental"))
+            {
+                SetWorkflow(
+                    "Complete checkout, check-in, extension, request, document, and open-request follow-up from this rental desk.",
+                    "Customers", Can(User.PermissionCustomers) ? OpenCustomersCommand : null,
+                    "Reservations", Can(User.PermissionReservations) ? OpenReservationsCommand : null);
+            }
+            else if (lowerTitle.Contains("customer"))
+            {
+                SetWorkflow(
+                    "Confirm contact and address details, then continue to Rentals or Reservations for the customer handoff.",
+                    "Rentals", Can(User.PermissionRentals) ? OpenRentalsCommand : null,
+                    "Reservations", Can(User.PermissionReservations) ? OpenReservationsCommand : null);
+            }
+            else if (lowerTitle.Contains("reservation"))
+            {
+                SetWorkflow(
+                    "Track holds from request through confirmation, shelf pickup, fulfillment, cancellation, or printed handoff.",
+                    "Rentals", Can(User.PermissionRentals) ? OpenRentalsCommand : null,
+                    $"Search {itemLabelPlural}", OpenSearchItemsCommand);
+            }
+            else if (lowerTitle.Contains("maintenance"))
+            {
+                SetWorkflow(
+                    "Work the technician backlog, complete bench actions, and return ready items to the shelf workflow.",
+                    "Calibration", Can(User.PermissionCalibration) ? OpenCalibrationCommand : null,
+                    $"Search {itemLabelPlural}", OpenSearchItemsCommand);
+            }
+            else if (lowerTitle.Contains("calibration"))
+            {
+                SetWorkflow(
+                    "Review due certificates, complete shelf-release checks, and use Maintenance for repair follow-up.",
+                    "Maintenance", Can(User.PermissionMaintenance) ? OpenMaintenanceCommand : null,
+                    $"Search {itemLabelPlural}", OpenSearchItemsCommand);
+            }
+            else if (lowerTitle.Contains("kit"))
+            {
+                SetWorkflow(
+                    "Audit kit membership and availability, then jump to item search or rentals for pickup work.",
+                    $"Search {itemLabelPlural}", OpenSearchItemsCommand,
+                    "Rentals", Can(User.PermissionRentals) ? OpenRentalsCommand : null);
+            }
+            else if (lowerTitle.Contains("categor"))
+            {
+                SetWorkflow(
+                    "Keep category setup aligned with item records so operational filters and reports stay useful.",
+                    $"Manage {itemLabelPlural}", Can(User.PermissionManageItems) ? OpenManageItemsCommand : null,
+                    "Reports", Can(User.PermissionReports) ? OpenReportsCommand : null);
+            }
+            else if (lowerTitle.Contains("report"))
+            {
+                SetWorkflow(
+                    "Use report rows as a triage launch point, then open the source workflow that owns the result.",
+                    "Dashboard", OpenDashboardCommand,
+                    "Activity Logs", Can(User.PermissionActivityLogs) ? OpenActivityLogsCommand : null);
+            }
+            else if (lowerTitle.Contains("activity"))
+            {
+                SetWorkflow(
+                    "Audit who changed what, copy evidence, then open Reports or Settings when follow-up is needed.",
+                    "Reports", Can(User.PermissionReports) ? OpenReportsCommand : null,
+                    "Settings", Can(User.PermissionSettings) ? OpenSettingsCommand : null);
+            }
+            else if (lowerTitle.Contains("import") || lowerTitle.Contains("export"))
+            {
+                SetWorkflow(
+                    "Run item, customer, backup, and image data work, then review reports to confirm the operational result.",
+                    "Reports", Can(User.PermissionReports) ? OpenReportsCommand : null,
+                    $"Manage {itemLabelPlural}", Can(User.PermissionManageItems) ? OpenManageItemsCommand : null);
+            }
+            else if (lowerTitle.Contains("user"))
+            {
+                SetWorkflow(
+                    "Manage users, passwords, lockouts, photos, and permission sets, then verify service access in Settings when required.",
+                    "Settings", Can(User.PermissionSettings) ? OpenSettingsCommand : null,
+                    "Activity Logs", Can(User.PermissionActivityLogs) ? OpenActivityLogsCommand : null);
+            }
+            else if (lowerTitle.Contains("setting"))
+            {
+                SetWorkflow(
+                    "Review service status and adjust workstation, label, backup, messaging, branding, email, and database configuration.",
+                    "Users", Can(User.PermissionManageUsers) ? OpenUsersCommand : null,
+                    "Import / Export", Can(User.PermissionImportExport) ? OpenImportExportCommand : null);
+            }
+            else if (lowerTitle.Contains("manage") && lowerTitle.Contains(itemLabelPlural.ToLowerInvariant()))
+            {
+                SetWorkflow(
+                    "Maintain item records, photos, stock, shelf state, and repair flags before the desk or technician workflows use them.",
+                    "Rentals", Can(User.PermissionRentals) ? OpenRentalsCommand : null,
+                    "Categories", Can(User.PermissionCategories) ? OpenCategoriesCommand : null);
+            }
+            else
+            {
+                SetWorkflow(
+                    $"Use {CurrentNavSectionTitle} navigation to continue the workflow; related actions appear here when a page is open.",
+                    $"Search {itemLabelPlural}", OpenSearchItemsCommand,
+                    "Dashboard", OpenDashboardCommand);
+            }
+        }
+
+        void SetWorkflow(
+            string guide,
+            string primaryText,
+            IAsyncRelayCommand? primaryCommand,
+            string secondaryText,
+            IAsyncRelayCommand? secondaryCommand)
+        {
+            CurrentWorkflowGuide = guide;
+            CurrentWorkflowPrimaryActionText = primaryCommand == null ? string.Empty : primaryText;
+            CurrentWorkflowPrimaryCommand = primaryCommand;
+            CurrentWorkflowSecondaryActionText = secondaryCommand == null ? string.Empty : secondaryText;
+            CurrentWorkflowSecondaryCommand = secondaryCommand;
+            OnPropertyChanged(nameof(HasCurrentWorkflowPrimaryAction));
+            OnPropertyChanged(nameof(HasCurrentWorkflowSecondaryAction));
+        }
+
         void SetNavSection(string key)
         {
             var items = BuildNavItems(key);
@@ -864,6 +1051,8 @@ namespace InventoryManagementApp.ViewModels
             CurrentNavItems.Clear();
             foreach (var item in items)
                 CurrentNavItems.Add(item);
+
+            RefreshShellWorkflow();
         }
 
         List<NavItem> BuildNavItems(string key)
