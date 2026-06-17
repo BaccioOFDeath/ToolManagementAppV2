@@ -47,8 +47,9 @@ namespace InventoryManagementApp.Tests
 
                     var grid = Assert.IsType<Grid>(page.Content);
                     Assert.Equal(5, grid.RowDefinitions.Count);
+                    page.UpdateLayout();
 
-                    var buttons = FindVisualChildren<Button>(page).ToList();
+                    var buttons = FindDescendants<Button>(page.Content as DependencyObject ?? page).ToList();
 
                     Button checkIn = Assert.Single(buttons.Where(b => Equals("Check In", b.Content)));
                     Button extend = Assert.Single(buttons.Where(b => Equals("Extend", b.Content)));
@@ -86,6 +87,24 @@ namespace InventoryManagementApp.Tests
 
                 foreach (var descendant in FindVisualChildren<T>(child))
                     yield return descendant;
+            }
+        }
+
+        private static IEnumerable<T> FindDescendants<T>(DependencyObject root) where T : DependencyObject
+        {
+            if (root is T match)
+                yield return match;
+
+            foreach (var visualChild in FindVisualChildren<T>(root))
+                yield return visualChild;
+
+            if (root is FrameworkElement element)
+            {
+                foreach (var child in LogicalTreeHelper.GetChildren(element).OfType<DependencyObject>())
+                {
+                    foreach (var descendant in FindDescendants<T>(child))
+                        yield return descendant;
+                }
             }
         }
 
