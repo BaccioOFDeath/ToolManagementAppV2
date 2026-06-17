@@ -1,6 +1,7 @@
 Please update the ui this is each screen shot photo and feedback on each. this prompt will run every hour so keep track of what has been done. once complete just carry out polish passes..
 
 Progress log:
+- 2026-06-18 03:11 NZST: Polished the Settings Database, Branding, and Backups tabs. `SettingsPage` now gives connection setup a readiness panel, gives branding a larger logo/app identity preview, and gives backups a recovery-focused destination layout while preserving existing bindings, commands, tab structure, password-box names, and code-behind handlers. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-18-settings-admin-polish.md`.
 - 2026-06-18 02:11 NZST: Polished the Dashboard KPI and activity surface. `DashboardPage` now has a stronger command-center header, more prominent stat cards, a four-part priority strip for checked-out items/rentals/issues/activity, clearer operational pane captions, and visible recent-activity destination context while preserving existing grid names, commands, bindings, context menus, and keyboard paths. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-18-dashboard-kpi-activity-polish.md`.
 - 2026-06-18 01:11 NZST: Polished the Search Tools results and intelligence surface. `ItemSearchPage` now gives the search results and checked-out panes stronger pane headers, expands the intelligence area, adds a session-pulse summary strip, clarifies repeat/open/print/clear actions, and gives recent-search and unavailable-demand tables roomier scanning while preserving existing grid names, click handlers, bindings, and keyboard paths. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-18-search-intelligence-polish.md`.
 - 2026-06-18 00:11 NZST: Polished the first-run setup wizard onboarding surface. `SetupWizardWindow` now has a stronger launch header, setup checklist, guided field descriptions, framed company-logo preview, ready-check validation area, and a `Complete Setup` action while preserving existing setup commands and password bindings. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-18-setup-wizard-onboarding-polish.md`.
@@ -41,13 +42,13 @@ Overall: the UI is operationally competent and consistent, but most screens stil
 01-users.png: useful layout, but the user detail boxes on the right feel empty and under-styled.
 02-users-narrow.png: still works in a tighter width, which is good; however, it becomes visually cramped quickly.
 03-settings-service-status.png: this is one of the better admin screens because grouped panels create some rhythm.
-04-settings-database.png: weakest settings page visually; it looks more like an unfinished scaffold than a finished screen.
+04-settings-database.png: weakest settings page visually; it looks more like an unfinished scaffold than a finished screen. Status: first-pass polish complete in `InventoryManagementApp/Views/Pages/SettingsPage.xaml`; runtime screenshot review still needed.
 05-settings-general.png: clear form layout and good explanatory notes; still needs stronger typography and contrast hierarchy.
 06-settings-item-display.png: practical bulk-edit page, but it is visually too austere for such a central configuration area.
 07-settings-email.png: functional and readable; one of the more form-complete screens, though still plain.
-08-settings-branding.png: ironically this branding page least conveys brand; the logo area and spacing feel temporary.
+08-settings-branding.png: ironically this branding page least conveys brand; the logo area and spacing feel temporary. Status: first-pass polish complete in `InventoryManagementApp/Views/Pages/SettingsPage.xaml`; runtime screenshot review still needed.
 09-settings-messaging.png: simple and understandable, but visually extremely minimal.
-10-settings-backups.png: backup path UI works, but the screen feels empty and not especially trustworthy-looking.
+10-settings-backups.png: backup path UI works, but the screen feels empty and not especially trustworthy-looking. Status: first-pass polish complete in `InventoryManagementApp/Views/Pages/SettingsPage.xaml`; runtime screenshot review still needed.
 06-dialogs 01-10
 01-print-labels.png: straightforward and usable, but too plain for a modal that triggers output.
 02-info-dialog.png: readable, but oversized empty space makes it feel low-polish.
