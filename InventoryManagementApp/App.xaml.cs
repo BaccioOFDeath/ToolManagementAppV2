@@ -623,6 +623,33 @@ namespace InventoryManagementApp
             await CaptureStandaloneWindowAsync(mainWindow, new KitEditWindow(CreateSampleKit(), isNew: false), Path.Combine(dialogsDir, "16-kit-edit.png"), runLogPath, "Kit edit window");
             await CaptureStandaloneWindowAsync(mainWindow, new KitItemEditWindow(CreateSampleKitItem(), isNew: false), Path.Combine(dialogsDir, "17-kit-item-edit.png"), runLogPath, "Kit item edit window");
             await CaptureStandaloneWindowAsync(mainWindow, CreateUsersEditWindow(Host.Services), Path.Combine(dialogsDir, "18-users-edit.png"), runLogPath, "Users edit window");
+            await CaptureStandaloneWindowAsync(mainWindow, CreateRentItemPopupWindow(Host.Services), Path.Combine(dialogsDir, "19-rent-item-popup.png"), runLogPath, "Rent item popup");
+            await CaptureStandaloneWindowAsync(mainWindow, CreateChangePasswordWindow(), Path.Combine(dialogsDir, "20-change-password.png"), runLogPath, "Change password window");
+            await CaptureStandaloneWindowAsync(mainWindow, CreatePasswordPromptWindow(Host.Services), Path.Combine(dialogsDir, "21-password-prompt.png"), runLogPath, "Password prompt window");
+            await CaptureStandaloneWindowAsync(mainWindow, CreatePasswordPromptWindow(Host.Services), Path.Combine(dialogsDir, "22-password-reset-prompt.png"), runLogPath, "Password reset prompt window", PreparePasswordResetPromptAsync);
+            await CaptureStandaloneWindowAsync(mainWindow, CreateSetupWizardWindow(Host.Services), Path.Combine(dialogsDir, "23-setup-wizard.png"), runLogPath, "Setup wizard window");
+            await CaptureStandaloneWindowAsync(mainWindow, CreateActivityDetailDialog(), Path.Combine(dialogsDir, "24-activity-detail-dialog.png"), runLogPath, "Activity detail dialog");
+            await CaptureStandaloneWindowAsync(mainWindow, CreateCategoryDetailDialog(), Path.Combine(dialogsDir, "25-category-detail-dialog.png"), runLogPath, "Category detail dialog");
+            await CaptureStandaloneWindowAsync(mainWindow, CreateImportExportResultDialog(), Path.Combine(dialogsDir, "26-import-export-result-dialog.png"), runLogPath, "Import export result dialog");
+            await CaptureStandaloneWindowAsync(mainWindow, CreateUserDetailDialog(), Path.Combine(dialogsDir, "27-user-detail-dialog.png"), runLogPath, "User detail dialog");
+            await CapturePrintPreviewWindowAsync(mainWindow, CreateItemSearchPreviewDocument(), Path.Combine(dialogsDir, "28-item-search-preview.png"), runLogPath, "Item search preview", "Item Search Intelligence");
+            await CapturePrintPreviewWindowAsync(mainWindow, CreateDashboardPreviewDocument(), Path.Combine(dialogsDir, "29-dashboard-preview.png"), runLogPath, "Dashboard preview", "Dashboard Snapshot");
+            await CapturePrintPreviewWindowAsync(mainWindow, CreateCustomerDirectoryPreviewDocument(), Path.Combine(dialogsDir, "30-customer-directory-preview.png"), runLogPath, "Customer directory preview", "Customer Directory");
+            await CapturePrintPreviewWindowAsync(mainWindow, CreateItemDetailsPreviewDocument(), Path.Combine(dialogsDir, "31-item-details-preview.png"), runLogPath, "Item details preview", "Item Details - TL-101");
+            await CapturePrintPreviewWindowAsync(mainWindow, CreateRentalRequestPreviewDocument(), Path.Combine(dialogsDir, "32-rental-request-preview.png"), runLogPath, "Rental request preview", "Request 9103");
+            await CapturePrintPreviewWindowAsync(mainWindow, CreateRentalPickingSlipPreviewDocument(), Path.Combine(dialogsDir, "33-rental-picking-slip-preview.png"), runLogPath, "Rental picking slip preview", "Picking Slip - Rental 4128");
+            await CapturePrintPreviewWindowAsync(mainWindow, CreateRentalInvoicePreviewDocument(), Path.Combine(dialogsDir, "34-rental-invoice-preview.png"), runLogPath, "Rental invoice preview", "Invoice - Rental 4128");
+            await CapturePrintPreviewWindowAsync(mainWindow, CreateMaintenanceSchedulePreviewDocument(), Path.Combine(dialogsDir, "35-maintenance-schedule-preview.png"), runLogPath, "Maintenance schedule preview", "Maintenance Schedule");
+            await CapturePrintPreviewWindowAsync(mainWindow, CreateCalibrationDuePreviewDocument(), Path.Combine(dialogsDir, "36-calibration-due-preview.png"), runLogPath, "Calibration due preview", "Calibration Due Report");
+            await CapturePrintPreviewWindowAsync(mainWindow, CreateReservationHandoffPreviewDocument(), Path.Combine(dialogsDir, "37-reservation-handoff-preview.png"), runLogPath, "Reservation handoff preview", "Reservation 9103");
+            await CapturePrintPreviewWindowAsync(mainWindow, CreateReservationDirectoryPreviewDocument(), Path.Combine(dialogsDir, "38-reservation-directory-preview.png"), runLogPath, "Reservation directory preview", "Reservation Directory");
+            await CapturePrintPreviewWindowAsync(mainWindow, CreateKitDirectoryPreviewDocument(), Path.Combine(dialogsDir, "39-kit-directory-preview.png"), runLogPath, "Kit directory preview", "Kit Directory");
+            await CapturePrintPreviewWindowAsync(mainWindow, CreateCategoryDirectoryPreviewDocument(), Path.Combine(dialogsDir, "40-category-directory-preview.png"), runLogPath, "Category directory preview", "Category Directory");
+            await CapturePrintPreviewWindowAsync(mainWindow, CreateCategorySheetPreviewDocument(), Path.Combine(dialogsDir, "41-category-sheet-preview.png"), runLogPath, "Category sheet preview", "Category Sheet - Diagnostics");
+            await CapturePrintPreviewWindowAsync(mainWindow, CreateActivityLogsPreviewDocument(), Path.Combine(dialogsDir, "42-activity-logs-preview.png"), runLogPath, "Activity logs preview", "Activity Logs");
+            await CapturePrintPreviewWindowAsync(mainWindow, CreateImportExportLogPreviewDocument(), Path.Combine(dialogsDir, "43-import-export-log-preview.png"), runLogPath, "Import export log preview", "Import / Export Log");
+            await CapturePrintPreviewWindowAsync(mainWindow, CreateUserDirectoryPreviewDocument(), Path.Combine(dialogsDir, "44-user-directory-preview.png"), runLogPath, "User directory preview", "User Directory");
+            await CapturePrintPreviewWindowAsync(mainWindow, CreateReportsPreviewDocument(), Path.Combine(dialogsDir, "45-reports-preview.png"), runLogPath, "Reports preview", "Active Rentals");
         }
 
         static string EnsureCaptureDirectory(string root, string folderName)
@@ -803,7 +830,7 @@ namespace InventoryManagementApp
             }, DispatcherPriority.Render);
         }
 
-        static async Task CaptureStandaloneWindowAsync(Window owner, Window window, string filePath, string runLogPath, string label)
+        static async Task CaptureStandaloneWindowAsync(Window owner, Window window, string filePath, string runLogPath, string label, Func<Window, Task>? afterShowAsync = null)
         {
             File.AppendAllText(runLogPath, $"{DateTime.Now:O} Opening {label}.{Environment.NewLine}");
             await owner.Dispatcher.InvokeAsync(() =>
@@ -816,13 +843,15 @@ namespace InventoryManagementApp
             }, DispatcherPriority.Background);
 
             await WaitForUiAsync(window.Dispatcher);
+            if (afterShowAsync != null)
+                await afterShowAsync(window);
             await Task.Delay(300);
             await CaptureWindowAsync(window, filePath);
             await owner.Dispatcher.InvokeAsync(window.Close, DispatcherPriority.Background);
             File.AppendAllText(runLogPath, $"{DateTime.Now:O} Captured {label}.{Environment.NewLine}");
         }
 
-        static async Task CapturePrintPreviewWindowAsync(Window owner, FlowDocument document, string filePath, string runLogPath, string label)
+        static async Task CapturePrintPreviewWindowAsync(Window owner, FlowDocument document, string filePath, string runLogPath, string label, string previewTitle = "QA Preview", string description = "")
         {
             File.AppendAllText(runLogPath, $"{DateTime.Now:O} Opening {label}.{Environment.NewLine}");
             var previewWindow = new PrintPreviewWindow();
@@ -830,7 +859,7 @@ namespace InventoryManagementApp
             previewWindow.Owner = owner;
             previewWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
-            var showTask = owner.Dispatcher.InvokeAsync(() => previewWindow.ShowPreview(document, "QA Preview", string.Empty), DispatcherPriority.Background).Task;
+            var showTask = owner.Dispatcher.InvokeAsync(() => previewWindow.ShowPreview(document, previewTitle, description), DispatcherPriority.Background).Task;
             await WaitForWindowVisibleAsync(previewWindow);
             await Task.Delay(300);
             await CaptureWindowAsync(previewWindow, filePath);
@@ -857,6 +886,10 @@ namespace InventoryManagementApp
         {
             const double minimumWidth = 720;
             const double minimumHeight = 420;
+
+            window.SizeToContent = SizeToContent.Manual;
+            window.MinWidth = minimumWidth;
+            window.MinHeight = minimumHeight;
 
             if (double.IsNaN(window.Width) || window.Width < minimumWidth)
                 window.Width = minimumWidth;
@@ -948,6 +981,112 @@ namespace InventoryManagementApp
             return new ImportMappingWindow(headers, properties, new[] { "ItemNumber", "Name" });
         }
 
+        static RentItemPopupWindow CreateRentItemPopupWindow(IServiceProvider services)
+        {
+            var customers = new[]
+            {
+                CreateSampleCustomer(),
+                new CustomerModel
+                {
+                    CustomerID = 18,
+                    Company = "Auckland Fleet Service",
+                    Contact = "Jordan Patel",
+                    Email = "advisor@aucklandfleet.example.com",
+                    Phone = "09 555 0118",
+                    Mobile = "021 555 0118",
+                    Address = "42 Workshop Drive, Auckland"
+                }
+            };
+
+            var viewModel = ActivatorUtilities.CreateInstance<RentItemPopupViewModel>(services, CreateSampleItem(), customers);
+            viewModel.CustomerSearchText = "North";
+            viewModel.SelectedCustomer = viewModel.FilteredCustomers.FirstOrDefault();
+            viewModel.RentalDays = 5;
+            return new RentItemPopupWindow { DataContext = viewModel, Title = "Checkout Tool" };
+        }
+
+        static ChangePasswordWindow CreateChangePasswordWindow()
+        {
+            var window = new ChangePasswordWindow();
+            if (window.DataContext is ChangePasswordViewModel vm)
+            {
+                vm.NewPassword = "AdminQ123!";
+                vm.ConfirmPassword = "AdminQ123!";
+            }
+
+            return window;
+        }
+
+        static PasswordPromptWindow CreatePasswordPromptWindow(IServiceProvider services)
+        {
+            var window = ActivatorUtilities.CreateInstance<PasswordPromptWindow>(services);
+            window.SelectedUser = CreateSampleAdminUser();
+            window.ValidatePassword = password => password == "AdminQ123!";
+            return window;
+        }
+
+        static SetupWizardWindow CreateSetupWizardWindow(IServiceProvider services)
+        {
+            var window = ActivatorUtilities.CreateInstance<SetupWizardWindow>(services);
+            if (window.DataContext is SetupWizardViewModel vm)
+            {
+                vm.ApplicationName = "QA Inventory";
+                vm.ItemLabelSingular = "Tool";
+                vm.ItemLabelPlural = "Tools";
+                vm.CompanyLogoPath = @"C:\Branding\qa-logo.png";
+                vm.NewPassword = "AdminQ123!";
+                vm.ConfirmPassword = "AdminQ123!";
+            }
+
+            return window;
+        }
+
+        static InfoDialogWindow CreateActivityDetailDialog()
+            => CreateDetailDialog(
+                "Activity Detail",
+                $"Timestamp: {DateTime.Today.AddHours(8):g}{Environment.NewLine}" +
+                "User: qa.tech (ID 2)" + Environment.NewLine +
+                "Type: Rental" + Environment.NewLine +
+                "Action: Checked out Scan Tool TL-101 to North Harbour Motors");
+
+        static InfoDialogWindow CreateCategoryDetailDialog()
+            => CreateDetailDialog(
+                "Category Detail - Diagnostics",
+                "Category #: 15" + Environment.NewLine +
+                "Name: Diagnostics" + Environment.NewLine +
+                "Directory label: Workshop Diagnostics" + Environment.NewLine + Environment.NewLine +
+                "Admin handoff: confirm the category name matches staff language, assign matching inventory records, review search and filter coverage, and remove obsolete duplicates.");
+
+        static InfoDialogWindow CreateImportExportResultDialog()
+            => CreateDetailDialog(
+                "Import / Export Result",
+                "Items import completed." + Environment.NewLine +
+                "42 row(s) processed." + Environment.NewLine +
+                "2 warning(s): missing optional brand, trimmed duplicate whitespace." + Environment.NewLine +
+                "0 critical error(s).");
+
+        static InfoDialogWindow CreateUserDetailDialog()
+            => CreateDetailDialog(
+                "User Detail - qa.tech",
+                "User #: 2" + Environment.NewLine +
+                "Name: qa.tech" + Environment.NewLine +
+                "Role: Workshop Staff" + Environment.NewLine +
+                "Active: Yes" + Environment.NewLine +
+                "Admin: No" + Environment.NewLine +
+                "Access: Rentals / checkout, Customers, Maintenance, Calibration, Activity logs" + Environment.NewLine +
+                "Lockout: Ready" + Environment.NewLine +
+                "Password expired: No" + Environment.NewLine + Environment.NewLine +
+                "Next steps: edit profile details, review permissions, upload a current photo, reset the password if blocked, or inspect recent account activity.");
+
+        static InfoDialogWindow CreateDetailDialog(string title, string message)
+        {
+            var window = new InfoDialogWindow(message)
+            {
+                Title = title
+            };
+            return window;
+        }
+
         static FlowDocument CreateSamplePrintPreviewDocument()
         {
             var document = new FlowDocument
@@ -962,6 +1101,228 @@ namespace InventoryManagementApp
                 Margin = new Thickness(0, 0, 0, 10)
             });
             document.Blocks.Add(new Paragraph(new Run("This preview represents the printable surfaces shown by report, handoff, and summary buttons across the application.")));
+            return document;
+        }
+
+        static FlowDocument CreateItemSearchPreviewDocument()
+            => CreatePreviewDocument(
+                "Item Search Intelligence",
+                "Search term: scan tool",
+                new[]
+                {
+                    "Top result: TL-101 Scan Tool | Available | Bay 2 - Shelf A",
+                    "Recent searches show repeat demand from diagnostics and fleet teams.",
+                    "Unavailable demand suggests ordering one additional unit before next month."
+                });
+
+        static FlowDocument CreateDashboardPreviewDocument()
+            => CreatePreviewDocument(
+                "Dashboard Snapshot",
+                "Printed for qa.tech",
+                new[]
+                {
+                    "Checked out today: 6 items",
+                    "Returns due in 48 hours: 3 rentals",
+                    "Incomplete items: 2 records need serial or location updates"
+                });
+
+        static FlowDocument CreateCustomerDirectoryPreviewDocument()
+            => CreatePreviewDocument(
+                "Customer Directory",
+                "Visible customers: 2",
+                new[]
+                {
+                    "North Harbour Motors | Casey Morgan | 09 555 0190",
+                    "Auckland Fleet Service | Jordan Patel | 09 555 0118"
+                });
+
+        static FlowDocument CreateItemDetailsPreviewDocument()
+            => CreatePreviewDocument(
+                "Item Details - TL-101",
+                "Scan Tool | Launch | Bay 2 - Shelf A",
+                new[]
+                {
+                    "Part number: SCAN-101",
+                    "Quantity on hand: 2",
+                    "Notes: Bi-directional diagnostic scanner with charger and leads."
+                });
+
+        static FlowDocument CreateRentalRequestPreviewDocument()
+            => CreatePreviewDocument(
+                "Request 9103",
+                "Reservation request handoff",
+                new[]
+                {
+                    "Customer: North Harbour Motors",
+                    "Requested item: TL-101 Scan Tool",
+                    "Start: " + DateTime.Today.AddDays(1).ToString("yyyy-MM-dd") + " | End: " + DateTime.Today.AddDays(4).ToString("yyyy-MM-dd")
+                });
+
+        static FlowDocument CreateRentalPickingSlipPreviewDocument()
+            => CreatePreviewDocument(
+                "Picking Slip - Rental 4128",
+                "Advisor handoff before checkout",
+                new[]
+                {
+                    "Item: TL-101 Scan Tool",
+                    "Customer: Auckland Fleet Service",
+                    "Verify charger, leads, and carry case before release."
+                });
+
+        static FlowDocument CreateRentalInvoicePreviewDocument()
+            => CreatePreviewDocument(
+                "Invoice - Rental 4128",
+                "Customer billing summary",
+                new[]
+                {
+                    "Rental charge: $85.00",
+                    "Accessory pack: $15.00",
+                    "Tax: $15.00 | Total: $115.00"
+                });
+
+        static FlowDocument CreateMaintenanceSchedulePreviewDocument()
+            => CreatePreviewDocument(
+                "Maintenance Schedule",
+                "Upcoming maintenance workload",
+                new[]
+                {
+                    "TL-101 Scan Tool | Routine | Scheduled in 4 days",
+                    "TL-204 Torque Wrench | Inspection | Scheduled in 9 days"
+                });
+
+        static FlowDocument CreateCalibrationDuePreviewDocument()
+            => CreatePreviewDocument(
+                "Calibration Due Report",
+                "Current calibration follow-up",
+                new[]
+                {
+                    "TL-204 Torque Wrench | Due " + DateTime.Today.AddMonths(2).ToString("yyyy-MM-dd"),
+                    "TL-318 Pressure Gauge | Overdue by 6 days"
+                });
+
+        static FlowDocument CreateReservationHandoffPreviewDocument()
+            => CreatePreviewDocument(
+                "Reservation 9103",
+                "Reservation handoff checklist",
+                new[]
+                {
+                    "Customer: North Harbour Motors",
+                    "Status: Confirmed",
+                    "Call before pickup after lunch and verify accessories."
+                });
+
+        static FlowDocument CreateReservationDirectoryPreviewDocument()
+            => CreatePreviewDocument(
+                "Reservation Directory",
+                "Visible reservations: 2",
+                new[]
+                {
+                    "9103 | TL-101 Scan Tool | Confirmed | North Harbour Motors",
+                    "9104 | TL-204 Torque Wrench | Pending | Auckland Fleet Service"
+                });
+
+        static FlowDocument CreateKitDirectoryPreviewDocument()
+            => CreatePreviewDocument(
+                "Kit Directory",
+                "Visible kits: 1",
+                new[]
+                {
+                    "KIT-640 Diagnostics Starter Kit",
+                    "Contents: scan tool, charger, adapter pack"
+                });
+
+        static FlowDocument CreateCategoryDirectoryPreviewDocument()
+            => CreatePreviewDocument(
+                "Category Directory",
+                "Visible categories: 2",
+                new[]
+                {
+                    "15 | Diagnostics | Verify assignment and search coverage",
+                    "21 | Torque Tools | Review calibration workflow alignment"
+                });
+
+        static FlowDocument CreateCategorySheetPreviewDocument()
+            => CreatePreviewDocument(
+                "Category Sheet - Diagnostics",
+                "Printed category checklist",
+                new[]
+                {
+                    "[ ] Name matches staff language",
+                    "[ ] Matching inventory records are assigned",
+                    "[ ] Search and filter coverage has been checked"
+                });
+
+        static FlowDocument CreateActivityLogsPreviewDocument()
+            => CreatePreviewDocument(
+                "Activity Logs",
+                "Visible rows: 3",
+                new[]
+                {
+                    "08:00 qa.tech | Checked out Scan Tool TL-101",
+                    "09:15 admin | Updated backup retention settings",
+                    "10:42 qa.tech | Confirmed reservation 9103"
+                });
+
+        static FlowDocument CreateImportExportLogPreviewDocument()
+            => CreatePreviewDocument(
+                "Import / Export Operation Log",
+                "Most recent 3 operations",
+                new[]
+                {
+                    "1. Items import completed with 2 warnings",
+                    "2. Customers export completed successfully",
+                    "3. Database backup saved to nightly archive"
+                });
+
+        static FlowDocument CreateUserDirectoryPreviewDocument()
+            => CreatePreviewDocument(
+                "User Directory",
+                "Visible users: 2",
+                new[]
+                {
+                    "2 | qa.tech | Workshop Staff | Rentals / checkout, Maintenance, Activity logs",
+                    "1 | admin | Admin | Full admin access"
+                });
+
+        static FlowDocument CreateReportsPreviewDocument()
+            => CreatePreviewDocument(
+                "Active Rentals",
+                "Last run just now - 3 actionable rows",
+                new[]
+                {
+                    "Rental: TL-101 checked out to North Harbour Motors | Next action: confirm due-back date",
+                    "Overdue: TL-318 Pressure Gauge late by 2 days | Next action: follow up with customer",
+                    "Request: reservation 9103 waiting on final pickup confirmation"
+                });
+
+        static FlowDocument CreatePreviewDocument(string title, string subtitle, IEnumerable<string> lines)
+        {
+            var document = new FlowDocument
+            {
+                PagePadding = new Thickness(32),
+                FontFamily = new FontFamily("Segoe UI"),
+                FontSize = 12
+            };
+
+            document.Blocks.Add(new Paragraph(new Bold(new Run(title)))
+            {
+                FontSize = 20,
+                Margin = new Thickness(0, 0, 0, 8)
+            });
+            document.Blocks.Add(new Paragraph(new Run(subtitle))
+            {
+                FontSize = 11,
+                Margin = new Thickness(0, 0, 0, 12)
+            });
+
+            foreach (var line in lines)
+            {
+                document.Blocks.Add(new Paragraph(new Run(line))
+                {
+                    Margin = new Thickness(0, 0, 0, 6)
+                });
+            }
+
             return document;
         }
 
@@ -1076,6 +1437,41 @@ namespace InventoryManagementApp
             Mobile = "021 555 0190",
             Address = "17 Foundry Road, Auckland"
         };
+
+        static User CreateSampleAdminUser() => new()
+        {
+            UserID = 1,
+            UserName = "admin",
+            Role = "Administrator",
+            Email = "admin@example.com",
+            IsAdmin = true,
+            IsActive = true,
+            PasswordExpired = false,
+            FailedLoginAttempts = 2,
+            Permissions = User.BuildPermissions(User.PermissionLabels.Keys)
+        };
+
+        static async Task PreparePasswordResetPromptAsync(Window window)
+        {
+            await window.Dispatcher.InvokeAsync(() =>
+            {
+                if (window is not PasswordPromptWindow prompt)
+                    return;
+
+                var errorText = prompt.FindName("ErrorTextBlock") as TextBlock;
+                if (errorText != null)
+                {
+                    errorText.Text = "Incorrect password. Please try again.";
+                    errorText.Visibility = Visibility.Visible;
+                }
+
+                var forgotPasswordButton = prompt.FindName("ForgotPasswordButton") as FrameworkElement;
+                if (forgotPasswordButton != null)
+                    forgotPasswordButton.Visibility = Visibility.Visible;
+            }, DispatcherPriority.Background);
+
+            await WaitForUiAsync(window.Dispatcher);
+        }
 
         internal void HandleDispatcherException(Exception ex, DispatcherUnhandledExceptionEventArgs? e = null)
         {
