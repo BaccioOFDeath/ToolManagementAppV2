@@ -758,7 +758,6 @@ namespace InventoryManagementApp.ViewModels
             SelectOverviewSectionCommand = new RelayCommand(async () =>
             {
                 SetNavSection(NavSectionKeys.Overview);
-                IsSidebarOpen = false;
                 await OpenSearchItemsCommand.ExecuteAsync(null);
             });
             SelectOperationsSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Operations));
@@ -1024,10 +1023,8 @@ namespace InventoryManagementApp.ViewModels
                 items = BuildNavItems(key);
             }
 
-            if (!IsSidebarOpen && key != NavSectionKeys.Overview)
+            if (!IsSidebarOpen)
                 IsSidebarOpen = true;
-            if (key == NavSectionKeys.Overview)
-                IsSidebarOpen = false;
 
             SelectedNavSectionKey = key;
             IsOverviewSelected = key == NavSectionKeys.Overview;

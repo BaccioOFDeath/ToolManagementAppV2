@@ -8,7 +8,7 @@
         Background="{DynamicResource BackgroundBrush}">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="214" MinWidth="190" MaxWidth="230"/>
+            <ColumnDefinition x:Name="LeftNavColumn" Width="214" MinWidth="0" MaxWidth="230"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
@@ -23,20 +23,28 @@
                 BorderBrush="{DynamicResource BorderBrushBase}"
                 BorderThickness="0,0,0,1"
                 Padding="8,5">
-            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <StackPanel Width="250" MinWidth="210" VerticalAlignment="Center" Margin="0,0,10,4">
-                    <TextBlock Text="{Binding WindowTitle}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Text="Workshop inventory and rental control" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
-                </StackPanel>
-                <pages:SearchBar Width="420"
-                                 MinWidth="260"
-                                 HorizontalAlignment="Left"
-                                 VerticalAlignment="Center"
-                                 Margin="0,0,10,4"
-                                 Text="{Binding GlobalSearchText}"
-                                 SearchCommand="{Binding GlobalSearchCommand}"
-                                 SearchLabel=""/>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,4">
+            <Grid VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <DockPanel Grid.Column="0" LastChildFill="False" Margin="0,0,14,0">
+                    <StackPanel DockPanel.Dock="Left" Width="250" MinWidth="210" VerticalAlignment="Center" Margin="0,0,10,0">
+                        <TextBlock Text="{Binding WindowTitle}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="Workshop inventory and rental control" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                    <pages:SearchBar DockPanel.Dock="Left"
+                                     Width="420"
+                                     MinWidth="260"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Center"
+                                     Text="{Binding GlobalSearchText}"
+                                     SearchCommand="{Binding GlobalSearchCommand}"
+                                     SearchLabel=""/>
+                </DockPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
                     <Border Width="26" Height="26" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Margin="0,0,6,0">
                         <controls:UserAvatar UserName="{Binding CurrentUserName}"
                                               UserPhotoPath="{Binding CurrentUserPhotoPath}"
@@ -47,10 +55,9 @@
                         <TextBlock Text="{Binding CurrentUserName}" FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                         <TextBlock Text="{Binding CurrentUserRole}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
-                    <Button Style="{StaticResource GhostButton}" Content="Switch User" Command="{Binding SwitchUserCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Exit" Command="{Binding ExitCommand}"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Switch User" Command="{Binding SwitchUserCommand}"/>
                 </StackPanel>
-            </WrapPanel>
+            </Grid>
         </Border>
 
         <Border Grid.Row="1" Grid.ColumnSpan="2"
@@ -67,11 +74,14 @@
             </WrapPanel>
         </Border>
 
-        <Border Grid.Row="2" Grid.RowSpan="2" Grid.Column="0"
+        <Border x:Name="LeftNavPanel"
+                Grid.Row="2" Grid.RowSpan="2" Grid.Column="0"
                 Background="{DynamicResource SurfaceBrush}"
                 BorderBrush="{DynamicResource BorderBrushBase}"
                 BorderThickness="0,0,1,0"
-                Padding="6">
+                Padding="6"
+                MouseEnter="LeftNavPanel_MouseEnter"
+                MouseLeave="LeftNavPanel_MouseLeave">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
