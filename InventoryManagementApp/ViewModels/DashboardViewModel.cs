@@ -22,6 +22,16 @@ namespace InventoryManagementApp.ViewModels
 {
     public class DashboardViewModel : ObservableObject
     {
+        enum DashboardRecordKind
+        {
+            None,
+            CommonItem,
+            CheckedOutItem,
+            IncompleteItem,
+            Rental,
+            Activity
+        }
+
         readonly IItemService _itemService;
         readonly IRentalService _rentalService;
         readonly ICustomerService _customerService;
@@ -40,6 +50,7 @@ namespace InventoryManagementApp.ViewModels
         ItemModel? _selectedIncompleteItem;
         RentalModel? _selectedRental;
         ActivityLog? _selectedActivity;
+        DashboardRecordKind _selectedRecordKind = DashboardRecordKind.None;
 
         public ObservableCollection<StatCard> StatCards { get; } = new();
         public ObservableCollection<ActivityLog> RecentActivity { get; } = new();
@@ -54,7 +65,11 @@ namespace InventoryManagementApp.ViewModels
             set
             {
                 if (SetProperty(ref _selectedCommonlyUsedItem, value))
+                {
+                    if (value != null)
+                        _selectedRecordKind = DashboardRecordKind.CommonItem;
                     UpdateSelectedRecordSummary();
+                }
             }
         }
 
@@ -64,7 +79,11 @@ namespace InventoryManagementApp.ViewModels
             set
             {
                 if (SetProperty(ref _selectedCheckedOutItem, value))
+                {
+                    if (value != null)
+                        _selectedRecordKind = DashboardRecordKind.CheckedOutItem;
                     UpdateSelectedRecordSummary();
+                }
             }
         }
 
@@ -74,7 +93,11 @@ namespace InventoryManagementApp.ViewModels
             set
             {
                 if (SetProperty(ref _selectedIncompleteItem, value))
+                {
+                    if (value != null)
+                        _selectedRecordKind = DashboardRecordKind.IncompleteItem;
                     UpdateSelectedRecordSummary();
+                }
             }
         }
 
@@ -84,7 +107,11 @@ namespace InventoryManagementApp.ViewModels
             set
             {
                 if (SetProperty(ref _selectedRental, value))
+                {
+                    if (value != null)
+                        _selectedRecordKind = DashboardRecordKind.Rental;
                     UpdateSelectedRecordSummary();
+                }
             }
         }
 
@@ -94,7 +121,11 @@ namespace InventoryManagementApp.ViewModels
             set
             {
                 if (SetProperty(ref _selectedActivity, value))
+                {
+                    if (value != null)
+                        _selectedRecordKind = DashboardRecordKind.Activity;
                     UpdateSelectedRecordSummary();
+                }
             }
         }
 
@@ -426,18 +457,33 @@ namespace InventoryManagementApp.ViewModels
 
         private void UpdateSelectedRecordSummary()
         {
-            SelectedRecordSummary = SelectedCommonlyUsedItem != null
-                ? DescribeItem("Common item", SelectedCommonlyUsedItem)
-                : SelectedCheckedOutItem != null
-                    ? DescribeItem("Checked out", SelectedCheckedOutItem)
-                    : SelectedIncompleteItem != null
-                        ? DescribeItem("Issue", SelectedIncompleteItem)
-                        : SelectedRental != null
-                            ? $"Rental: {SelectedRental.ItemNumber} for {SelectedRental.CustomerName} | due {SelectedRental.DueDate:yyyy-MM-dd}"
-                            : SelectedActivity != null
-                                ? DescribeActivity(SelectedActivity)
-                                : "Select or double-click a row to open the related workflow.";
+            SelectedRecordSummary = _selectedRecordKind switch
+            {
+                DashboardRecordKind.CommonItem when SelectedCommonlyUsedItem != null => DescribeItem("Common item", SelectedCommonlyUsedItem),
+                DashboardRecordKind.CheckedOutItem when SelectedCheckedOutItem != null => DescribeItem("Checked out", SelectedCheckedOutItem),
+                DashboardRecordKind.IncompleteItem when SelectedIncompleteItem != null => DescribeItem("Issue", SelectedIncompleteItem),
+                DashboardRecordKind.Rental when SelectedRental != null => $"Rental: {SelectedRental.ItemNumber} for {SelectedRental.CustomerName} | due {SelectedRental.DueDate:yyyy-MM-dd}",
+                DashboardRecordKind.Activity when SelectedActivity != null => DescribeActivity(SelectedActivity),
+                _ => BuildFallbackSelectedRecordSummary()
+            };
             OnPropertyChanged(nameof(SelectedRecordSummary));
+        }
+
+        private string BuildFallbackSelectedRecordSummary()
+        {
+            if (SelectedCommonlyUsedItem != null)
+                return DescribeItem("Common item", SelectedCommonlyUsedItem);
+            if (SelectedCheckedOutItem != null)
+                return DescribeItem("Checked out", SelectedCheckedOutItem);
+            if (SelectedIncompleteItem != null)
+                return DescribeItem("Issue", SelectedIncompleteItem);
+            if (SelectedRental != null)
+                return $"Rental: {SelectedRental.ItemNumber} for {SelectedRental.CustomerName} | due {SelectedRental.DueDate:yyyy-MM-dd}";
+            if (SelectedActivity != null)
+                return DescribeActivity(SelectedActivity);
+
+            _selectedRecordKind = DashboardRecordKind.None;
+            return "Select or double-click a row to open the related workflow.";
         }
 
         private static string DescribeItem(string prefix, ItemModel item)
