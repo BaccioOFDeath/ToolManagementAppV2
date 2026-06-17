@@ -8,43 +8,101 @@
     <Grid Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}">
+        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="12,10" Margin="0,0,0,8">
             <DockPanel LastChildFill="True">
-                <WrapPanel DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,8,0">
+                <StackPanel DockPanel.Dock="Left" MinWidth="250" Margin="0,0,14,0" VerticalAlignment="Center">
+                    <TextBlock Text="Dashboard Command Center" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="Live workload, demand, and exception signals for the next counter action."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"
+                               Margin="0,2,0,0"/>
+                </StackPanel>
+
+                <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0">
                     <TextBlock Text="Actions" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="New Item" Command="{Binding NewItemCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Open Items" Command="{Binding OpenItemsCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Open Rentals" Command="{Binding OpenRentalsCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Print Snapshot" Command="{Binding PrintDashboardSnapshotCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Import / Export" Command="{Binding OpenImportExportCommand}"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="New Item" Command="{Binding NewItemCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Open Items" Command="{Binding OpenItemsCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Open Rentals" Command="{Binding OpenRentalsCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Print Snapshot" Command="{Binding PrintDashboardSnapshotCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Import / Export" Command="{Binding OpenImportExportCommand}" Margin="0,0,0,4"/>
                 </WrapPanel>
-                <ItemsControl DockPanel.Dock="Right"
-                              ItemsSource="{Binding StatCards}"
-                              ItemTemplate="{StaticResource StatCardTemplate}"
-                              ItemsPanel="{StaticResource WrapPanelItems}"/>
+
+                <ItemsControl ItemsSource="{Binding StatCards}" Margin="0,0,8,0">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource DesktopSummaryCard}" MinWidth="118" Margin="0,0,8,6" Padding="12,8">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Value}"
+                                               FontSize="22"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding Title}"
+                                               Style="{StaticResource CaptionTextBlock}"
+                                               TextWrapping="Wrap"
+                                               Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </DockPanel>
         </Border>
 
-        <Grid Grid.Row="1">
+        <Border Grid.Row="1" Style="{StaticResource DesktopNoteCard}" Padding="10" Margin="0,0,0,8">
+            <UniformGrid Columns="4">
+                <StackPanel Margin="0,0,10,0">
+                    <TextBlock Text="Checked out" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="{Binding CheckedOutItems.Count}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
+                    <TextBlock Text="Return or inspect handoffs before the end of shift." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                </StackPanel>
+                <StackPanel Margin="0,0,10,0">
+                    <TextBlock Text="Active rentals" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="{Binding RentedItems.Count}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
+                    <TextBlock Text="Review due dates and customer commitments." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                </StackPanel>
+                <StackPanel Margin="0,0,10,0">
+                    <TextBlock Text="Items with issues" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="{Binding IncompleteItems.Count}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource WarningBrush}"/>
+                    <TextBlock Text="Prioritize missing parts and incomplete records." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="Activity rows" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="{Binding RecentActivity.Count}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
+                    <TextBlock Text="Open related workflows from the latest audit trail." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                </StackPanel>
+            </UniformGrid>
+        </Border>
+
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="2*" MinWidth="520"/>
+                <ColumnDefinition Width="*" MinWidth="360"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource Card}" Padding="0" Margin="0,0,6,6">
+            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource Card}" Padding="0" Margin="0,0,8,8">
                 <DockPanel>
                     <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}" Margin="0">
                         <DockPanel LastChildFill="False">
-                            <TextBlock Text="Commonly Used Items" Style="{StaticResource SubheadingTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                            <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                                <TextBlock Text="Commonly Used Items" Style="{StaticResource SubheadingTextBlock}"/>
+                                <TextBlock Text="High-frequency counter items and their current shelf state." Style="{StaticResource CaptionTextBlock}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
                                 <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedCommonItemCommand}" Margin="0,0,4,0"/>
                                 <Button Style="{StaticResource GhostButton}" Content="Check Out / In" Command="{Binding ToggleSelectedCommonItemCommand}"/>
                             </StackPanel>
@@ -102,12 +160,15 @@
                 </DockPanel>
             </Border>
 
-            <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource Card}" Padding="0" Margin="0,0,0,6">
+            <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource Card}" Padding="0" Margin="0,0,0,8">
                 <DockPanel>
                     <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}" Margin="0">
                         <DockPanel LastChildFill="False">
-                            <TextBlock Text="Active Rentals" Style="{StaticResource SubheadingTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                            <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                                <TextBlock Text="Active Rentals" Style="{StaticResource SubheadingTextBlock}"/>
+                                <TextBlock Text="Due dates and customer commitments needing desk follow-up." Style="{StaticResource CaptionTextBlock}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
                                 <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedRentalCommand}" Margin="0,0,4,0"/>
                                 <Button Style="{StaticResource GhostButton}" Content="Return" Command="{Binding ReturnSelectedRentalCommand}"/>
                             </StackPanel>
@@ -139,12 +200,15 @@
                 </DockPanel>
             </Border>
 
-            <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource Card}" Padding="0" Margin="0,0,6,0">
+            <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource Card}" Padding="0" Margin="0,0,8,0">
                 <DockPanel>
                     <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}" Margin="0">
                         <DockPanel LastChildFill="False">
-                            <TextBlock Text="Checked-Out Items" Style="{StaticResource SubheadingTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                            <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                                <TextBlock Text="Checked-Out Items" Style="{StaticResource SubheadingTextBlock}"/>
+                                <TextBlock Text="Items currently away from the shelf with holder and timing context." Style="{StaticResource CaptionTextBlock}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
                                 <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedCheckedOutItemCommand}" Margin="0,0,4,0"/>
                                 <Button Style="{StaticResource GhostButton}" Content="Check In" Command="{Binding CheckInSelectedItemCommand}" Margin="0,0,4,0"/>
                                 <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintCheckedOutItemsCommand}"/>
@@ -186,9 +250,15 @@
                         <DockPanel>
                             <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}" Margin="0">
                                 <DockPanel LastChildFill="False">
-                                    <TextBlock Text="Audit Trail" Style="{StaticResource SubheadingTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                                    <Button Style="{StaticResource GhostButton}" Content="Open Related" Command="{Binding OpenActivityDestinationCommand}" DockPanel.Dock="Right"/>
+                                    <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                                        <TextBlock Text="Audit Trail" Style="{StaticResource SubheadingTextBlock}"/>
+                                        <TextBlock Text="Open the workflow implied by the selected activity row." Style="{StaticResource CaptionTextBlock}"/>
+                                    </StackPanel>
+                                    <Button Style="{StaticResource GhostButton}" Content="Open Related" Command="{Binding OpenActivityDestinationCommand}" DockPanel.Dock="Right" VerticalAlignment="Center"/>
                                 </DockPanel>
+                            </Border>
+                            <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneSubheader}" Margin="0">
+                                <TextBlock Text="{Binding SelectedRecordSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                             </Border>
                             <DataGrid x:Name="RecentActivityGrid"
                                       ItemsSource="{Binding RecentActivity}"
@@ -218,8 +288,11 @@
                         <DockPanel>
                             <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}" Margin="0">
                                 <DockPanel LastChildFill="False">
-                                    <TextBlock Text="Needs Attention" Style="{StaticResource SubheadingTextBlock}" DockPanel.Dock="Left"/>
-                                    <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedIncompleteItemCommand}" DockPanel.Dock="Right"/>
+                                    <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                                        <TextBlock Text="Needs Attention" Style="{StaticResource SubheadingTextBlock}"/>
+                                        <TextBlock Text="Incomplete records and missing-component notes for follow-up." Style="{StaticResource CaptionTextBlock}"/>
+                                    </StackPanel>
+                                    <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedIncompleteItemCommand}" DockPanel.Dock="Right" VerticalAlignment="Center"/>
                                 </DockPanel>
                             </Border>
                             <DataGrid x:Name="IncompleteItemsGrid"
@@ -250,10 +323,10 @@
             </Border>
         </Grid>
 
-        <Border Grid.Row="2" Style="{StaticResource ToolbarCard}" Margin="0,6,0,0">
-            <DockPanel LastChildFill="False">
-                <TextBlock Text="{Binding OperationsSummary}" Style="{StaticResource CaptionTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                <TextBlock Text="{Binding SelectedRecordSummary}" Style="{StaticResource CaptionTextBlock}" DockPanel.Dock="Right" VerticalAlignment="Center"/>
+        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,8,0,0">
+            <DockPanel LastChildFill="True">
+                <TextBlock Text="{Binding OperationsSummary}" Style="{StaticResource CaptionTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <TextBlock Text="{Binding SelectedRecordSummary}" Style="{StaticResource CaptionTextBlock}" DockPanel.Dock="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
             </DockPanel>
         </Border>
     </Grid>
