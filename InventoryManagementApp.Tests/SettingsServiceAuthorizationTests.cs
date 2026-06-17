@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Services.Core;
@@ -11,7 +12,11 @@ public class SettingsServiceAuthorizationTests
     private sealed class NonAdminAuthorizationService : IAuthorizationService
     {
         public bool IsAdmin => false;
+        public bool HasPermission(string permissionKey) => false;
+        public bool HasAnyPermission(params string[] permissionKeys) => false;
         public void EnsureAdmin() => throw new UnauthorizedAccessException();
+        public void EnsurePermission(string permissionKey) => throw new UnauthorizedAccessException();
+        public void EnsureAnyPermission(params string[] permissionKeys) => throw new UnauthorizedAccessException();
     }
 
     [Fact]
@@ -28,4 +33,3 @@ public class SettingsServiceAuthorizationTests
         Assert.Null(await settings.GetSettingAsync("ItemDetailVisibility"));
     }
 }
-
