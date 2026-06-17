@@ -197,7 +197,7 @@ namespace InventoryManagementApp.ViewModels
             private set => SetProperty(ref _isAdminSelected, value);
         }
 
-        private bool _isSidebarOpen = true;
+        private bool _isSidebarOpen;
         public bool IsSidebarOpen
         {
             get => _isSidebarOpen;
@@ -292,7 +292,7 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(HasCurrentUser));
             OnPropertyChanged(nameof(IsAdminSectionVisible));
             OnPropertyChanged(nameof(IsDataSectionVisible));
-            SetNavSection(SelectedNavSectionKey);
+            SetNavSection(SelectedNavSectionKey, openSidebar: IsSidebarOpen);
             RefreshShellWorkflow();
         }
 
@@ -757,15 +757,15 @@ namespace InventoryManagementApp.ViewModels
 
             SelectOverviewSectionCommand = new RelayCommand(async () =>
             {
-                SetNavSection(NavSectionKeys.Overview);
+                SetNavSection(NavSectionKeys.Overview, openSidebar: true);
                 await OpenSearchItemsCommand.ExecuteAsync(null);
             });
-            SelectOperationsSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Operations));
-            SelectInsightsSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Insights));
-            SelectDataSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Data));
-            SelectAdminSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Admin));
+            SelectOperationsSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Operations, openSidebar: true));
+            SelectInsightsSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Insights, openSidebar: true));
+            SelectDataSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Data, openSidebar: true));
+            SelectAdminSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Admin, openSidebar: true));
 
-            SetNavSection(NavSectionKeys.Overview);
+            SetNavSection(NavSectionKeys.Overview, openSidebar: false);
             _ = OpenSearchItemsCommand.ExecuteAsync(null);
         }
 
@@ -1014,7 +1014,7 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(HasCurrentWorkflowSecondaryAction));
         }
 
-        void SetNavSection(string key)
+        void SetNavSection(string key, bool openSidebar = false)
         {
             var items = BuildNavItems(key);
             if (items.Count == 0 && key != NavSectionKeys.Overview)
@@ -1023,7 +1023,7 @@ namespace InventoryManagementApp.ViewModels
                 items = BuildNavItems(key);
             }
 
-            if (!IsSidebarOpen)
+            if (openSidebar && !IsSidebarOpen)
                 IsSidebarOpen = true;
 
             SelectedNavSectionKey = key;

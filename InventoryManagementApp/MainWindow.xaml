@@ -44,19 +44,25 @@
                                      SearchLabel=""/>
                 </DockPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
-                    <Border Width="26" Height="26" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Margin="0,0,6,0">
-                        <controls:UserAvatar UserName="{Binding CurrentUserName}"
-                                              UserPhotoPath="{Binding CurrentUserPhotoPath}"
-                                              Foreground="{Binding CurrentUserInitialsBrush}"
-                                              FontSize="13"/>
-                    </Border>
-                    <StackPanel Width="132" Margin="0,0,8,0" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding CurrentUserName}" FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Text="{Binding CurrentUserRole}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                <Button Grid.Column="1"
+                        Style="{StaticResource GhostButton}"
+                        Command="{Binding SwitchUserCommand}"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        ToolTip="Switch user">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="26" Height="26" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Margin="0,0,6,0">
+                            <controls:UserAvatar UserName="{Binding CurrentUserName}"
+                                                  UserPhotoPath="{Binding CurrentUserPhotoPath}"
+                                                  Foreground="{Binding CurrentUserInitialsBrush}"
+                                                  FontSize="13"/>
+                        </Border>
+                        <StackPanel Width="132" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding CurrentUserName}" FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding CurrentUserRole}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
                     </StackPanel>
-                    <Button Style="{StaticResource GhostButton}" Content="Switch User" Command="{Binding SwitchUserCommand}"/>
-                </StackPanel>
+                </Button>
             </Grid>
         </Border>
 
