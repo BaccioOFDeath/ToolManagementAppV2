@@ -7,10 +7,6 @@
         Title="{Binding WindowTitle}" Width="1280" Height="800" MinWidth="1040" MinHeight="620" WindowStartupLocation="CenterScreen"
         Background="{DynamicResource BackgroundBrush}">
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition x:Name="LeftNavColumn" Width="214" MinWidth="0" MaxWidth="230"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -18,7 +14,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Grid.ColumnSpan="2"
+        <Border Grid.Row="0"
                 Background="{DynamicResource SurfaceBrush}"
                 BorderBrush="{DynamicResource BorderBrushBase}"
                 BorderThickness="0,0,0,1"
@@ -66,85 +62,42 @@
             </Grid>
         </Border>
 
-        <Border Grid.Row="1" Grid.ColumnSpan="2"
+        <Border Grid.Row="1"
                 Background="{DynamicResource SurfaceAltBrush}"
                 BorderBrush="{DynamicResource BorderBrushBase}"
                 BorderThickness="0,0,0,1"
-                Padding="6,3">
-            <WrapPanel Orientation="Horizontal">
-                <ToggleButton Style="{StaticResource SectionToggleButton}" Content="Overview" Command="{Binding SelectOverviewSectionCommand}" IsChecked="{Binding IsOverviewSelected, Mode=OneWay}"/>
-                <ToggleButton Style="{StaticResource SectionToggleButton}" Content="Operations" Command="{Binding SelectOperationsSectionCommand}" IsChecked="{Binding IsOperationsSelected, Mode=OneWay}"/>
-                <ToggleButton Style="{StaticResource SectionToggleButton}" Content="Insights" Command="{Binding SelectInsightsSectionCommand}" IsChecked="{Binding IsInsightsSelected, Mode=OneWay}"/>
-                <ToggleButton Style="{StaticResource SectionToggleButton}" Content="Data" Command="{Binding SelectDataSectionCommand}" IsChecked="{Binding IsDataSelected, Mode=OneWay}" Visibility="{Binding IsDataSectionVisible, Converter={StaticResource BoolToVis}}"/>
-                <ToggleButton Style="{StaticResource SectionToggleButton}" Content="Admin" Command="{Binding SelectAdminSectionCommand}" IsChecked="{Binding IsAdminSelected, Mode=OneWay}" Visibility="{Binding IsAdminSectionVisible, Converter={StaticResource BoolToVis}}"/>
-            </WrapPanel>
+                Padding="4,3">
+            <Menu Style="{StaticResource SectionMenu}">
+                <MenuItem Header="Overview" Style="{StaticResource SectionMenuItem}" Command="{Binding SelectOverviewSectionCommand}">
+                    <MenuItem Header="Search Tools" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenSearchItemsCommand}"/>
+                    <MenuItem Header="Dashboard" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenDashboardCommand}"/>
+                </MenuItem>
+                <MenuItem Header="Operations" Style="{StaticResource SectionMenuItem}" Command="{Binding SelectOperationsSectionCommand}" Visibility="{Binding IsOperationsSectionVisible, Converter={StaticResource BoolToVis}}">
+                    <MenuItem Header="Tools" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenManageItemsCommand}" Visibility="{Binding CanManageItems, Converter={StaticResource BoolToVis}}"/>
+                    <MenuItem Header="Rentals" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenRentalsCommand}" Visibility="{Binding CanUseRentals, Converter={StaticResource BoolToVis}}"/>
+                    <MenuItem Header="Customers" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenCustomersCommand}" Visibility="{Binding CanUseCustomers, Converter={StaticResource BoolToVis}}"/>
+                    <MenuItem Header="Maintenance" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenMaintenanceCommand}" Visibility="{Binding CanUseMaintenance, Converter={StaticResource BoolToVis}}"/>
+                    <MenuItem Header="Calibration" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenCalibrationCommand}" Visibility="{Binding CanUseCalibration, Converter={StaticResource BoolToVis}}"/>
+                    <MenuItem Header="Reservations" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenReservationsCommand}" Visibility="{Binding CanUseReservations, Converter={StaticResource BoolToVis}}"/>
+                    <MenuItem Header="Kits" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenKitManagementCommand}" Visibility="{Binding CanUseKits, Converter={StaticResource BoolToVis}}"/>
+                    <MenuItem Header="Categories" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenCategoriesCommand}" Visibility="{Binding CanUseCategories, Converter={StaticResource BoolToVis}}"/>
+                    <MenuItem Header="Print Labels" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenPrintLabelWindowCommand}" Visibility="{Binding CanPrintLabels, Converter={StaticResource BoolToVis}}"/>
+                </MenuItem>
+                <MenuItem Header="Insights" Style="{StaticResource SectionMenuItem}" Command="{Binding SelectInsightsSectionCommand}" Visibility="{Binding IsInsightsSectionVisible, Converter={StaticResource BoolToVis}}">
+                    <MenuItem Header="Reports" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenReportsCommand}" Visibility="{Binding CanUseReports, Converter={StaticResource BoolToVis}}"/>
+                    <MenuItem Header="Activity Logs" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenActivityLogsCommand}" Visibility="{Binding CanUseActivityLogs, Converter={StaticResource BoolToVis}}"/>
+                </MenuItem>
+                <MenuItem Header="Data" Style="{StaticResource SectionMenuItem}" Command="{Binding SelectDataSectionCommand}" Visibility="{Binding IsDataSectionVisible, Converter={StaticResource BoolToVis}}">
+                    <MenuItem Header="Import / Export" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenImportExportCommand}" Visibility="{Binding CanUseImportExport, Converter={StaticResource BoolToVis}}"/>
+                </MenuItem>
+                <MenuItem Header="Admin" Style="{StaticResource SectionMenuItem}" Command="{Binding SelectAdminSectionCommand}" Visibility="{Binding IsAdminSectionVisible, Converter={StaticResource BoolToVis}}">
+                    <MenuItem Header="Users" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenUsersCommand}" Visibility="{Binding CanManageUsers, Converter={StaticResource BoolToVis}}"/>
+                    <MenuItem Header="Settings" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenSettingsCommand}" Visibility="{Binding CanUseSettings, Converter={StaticResource BoolToVis}}"/>
+                </MenuItem>
+            </Menu>
         </Border>
 
-        <Border x:Name="LeftNavPanel"
-                Grid.Row="2" Grid.RowSpan="2" Grid.Column="0"
-                Background="{DynamicResource SurfaceBrush}"
-                BorderBrush="{DynamicResource BorderBrushBase}"
-                BorderThickness="0,0,1,0"
-                Padding="6"
-                MouseEnter="LeftNavPanel_MouseEnter"
-                MouseLeave="LeftNavPanel_MouseLeave">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <Border Background="{DynamicResource SurfaceAltBrush}"
-                        BorderBrush="{DynamicResource BorderBrushAlt}"
-                        BorderThickness="1"
-                        Padding="6"
-                        Margin="0,0,0,4">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="{Binding CurrentNavSectionIconGlyph}"
-                                   Width="28"
-                                   Height="28"
-                                   FontFamily="Segoe MDL2 Assets"
-                                   FontSize="18"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"
-                                   TextAlignment="Center"
-                                   Foreground="{DynamicResource ForegroundMutedBrush}"/>
-                        <StackPanel Grid.Column="1" Margin="6,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="Sections" Style="{StaticResource PageTitleTextBlock}"/>
-                            <TextBlock Text="{Binding CurrentNavSectionTitle}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-                <ScrollViewer Grid.Row="1" PreviewMouseWheel="LeftNavScrollViewer_PreviewMouseWheel">
-                    <ItemsControl ItemsSource="{Binding CurrentNavItems}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button Style="{StaticResource NavButton}" Command="{Binding Command}">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="28"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="{Binding DisplayNumber, StringFormat={}{0:00}}"
-                                                   Foreground="{DynamicResource ForegroundMutedBrush}"
-                                                   TextWrapping="NoWrap"/>
-                                        <TextBlock Grid.Column="1"
-                                                   Text="{Binding Title}"
-                                                   TextWrapping="NoWrap"
-                                                   TextTrimming="CharacterEllipsis"/>
-                                    </Grid>
-                                </Button>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-            </Grid>
-        </Border>
-
-        <Border Grid.Row="2" Grid.Column="1"
+        <Border Grid.Row="2"
                 Background="{DynamicResource SurfaceBrush}"
                 BorderBrush="{DynamicResource BorderBrushBase}"
                 BorderThickness="0,0,0,1"
@@ -173,7 +126,6 @@
         </Border>
 
         <Frame Grid.Row="3"
-               Grid.Column="1"
                Name="MainFrame"
                NavigationUIVisibility="Hidden"
                JournalOwnership="OwnsJournal"

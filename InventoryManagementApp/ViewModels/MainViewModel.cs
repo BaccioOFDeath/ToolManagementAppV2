@@ -235,6 +235,31 @@ namespace InventoryManagementApp.ViewModels
 
         public bool IsAdminSectionVisible => CanAny(User.PermissionManageUsers, User.PermissionSettings);
         public bool IsDataSectionVisible => Can(User.PermissionImportExport);
+        public bool IsOperationsSectionVisible => CanAny(
+            User.PermissionManageItems,
+            User.PermissionRentals,
+            User.PermissionCustomers,
+            User.PermissionMaintenance,
+            User.PermissionCalibration,
+            User.PermissionReservations,
+            User.PermissionKits,
+            User.PermissionCategories,
+            User.PermissionPrintLabels);
+        public bool IsInsightsSectionVisible => CanAny(User.PermissionReports, User.PermissionActivityLogs);
+        public bool CanManageItems => Can(User.PermissionManageItems);
+        public bool CanUseRentals => Can(User.PermissionRentals);
+        public bool CanUseCustomers => Can(User.PermissionCustomers);
+        public bool CanUseMaintenance => Can(User.PermissionMaintenance);
+        public bool CanUseCalibration => Can(User.PermissionCalibration);
+        public bool CanUseReservations => Can(User.PermissionReservations);
+        public bool CanUseKits => Can(User.PermissionKits);
+        public bool CanUseCategories => Can(User.PermissionCategories);
+        public bool CanPrintLabels => Can(User.PermissionPrintLabels);
+        public bool CanUseReports => Can(User.PermissionReports);
+        public bool CanUseActivityLogs => Can(User.PermissionActivityLogs);
+        public bool CanUseImportExport => Can(User.PermissionImportExport);
+        public bool CanManageUsers => Can(User.PermissionManageUsers);
+        public bool CanUseSettings => Can(User.PermissionSettings);
 
         public ObservableCollection<NavItem> CurrentNavItems { get; } = new();
 
@@ -292,6 +317,22 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(HasCurrentUser));
             OnPropertyChanged(nameof(IsAdminSectionVisible));
             OnPropertyChanged(nameof(IsDataSectionVisible));
+            OnPropertyChanged(nameof(IsOperationsSectionVisible));
+            OnPropertyChanged(nameof(IsInsightsSectionVisible));
+            OnPropertyChanged(nameof(CanManageItems));
+            OnPropertyChanged(nameof(CanUseRentals));
+            OnPropertyChanged(nameof(CanUseCustomers));
+            OnPropertyChanged(nameof(CanUseMaintenance));
+            OnPropertyChanged(nameof(CanUseCalibration));
+            OnPropertyChanged(nameof(CanUseReservations));
+            OnPropertyChanged(nameof(CanUseKits));
+            OnPropertyChanged(nameof(CanUseCategories));
+            OnPropertyChanged(nameof(CanPrintLabels));
+            OnPropertyChanged(nameof(CanUseReports));
+            OnPropertyChanged(nameof(CanUseActivityLogs));
+            OnPropertyChanged(nameof(CanUseImportExport));
+            OnPropertyChanged(nameof(CanManageUsers));
+            OnPropertyChanged(nameof(CanUseSettings));
             SetNavSection(SelectedNavSectionKey, openSidebar: IsSidebarOpen);
             RefreshShellWorkflow();
         }
@@ -753,12 +794,12 @@ namespace InventoryManagementApp.ViewModels
 
             SelectOverviewSectionCommand = new RelayCommand(() =>
             {
-                SetNavSection(NavSectionKeys.Overview, openSidebar: true);
+                SetNavSection(NavSectionKeys.Overview);
             });
-            SelectOperationsSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Operations, openSidebar: true));
-            SelectInsightsSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Insights, openSidebar: true));
-            SelectDataSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Data, openSidebar: true));
-            SelectAdminSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Admin, openSidebar: true));
+            SelectOperationsSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Operations));
+            SelectInsightsSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Insights));
+            SelectDataSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Data));
+            SelectAdminSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Admin));
 
             SetNavSection(NavSectionKeys.Overview, openSidebar: false);
             _ = OpenDashboardCommand.ExecuteAsync(null);
