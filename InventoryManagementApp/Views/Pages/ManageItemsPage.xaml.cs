@@ -14,6 +14,7 @@ namespace InventoryManagementApp.Views.Pages
     public partial class ManageItemsPage : Page
     {
         private CancellationTokenSource _loadCts = new();
+        private bool _isLoadedForCurrentLifetime;
 
         public ManageItemsPage()
         {
@@ -84,6 +85,11 @@ namespace InventoryManagementApp.Views.Pages
 
         private async void ManageItemsPage_Loaded(object sender, RoutedEventArgs e)
         {
+            if (_isLoadedForCurrentLifetime)
+                return;
+
+            _isLoadedForCurrentLifetime = true;
+
             if (DataContext is not ItemsViewModel vm)
             {
                 vm = ((App)Application.Current).Host.Services.GetRequiredService<ItemsViewModel>();
@@ -103,6 +109,7 @@ namespace InventoryManagementApp.Views.Pages
         private void ManageItemsPage_Unloaded(object sender, RoutedEventArgs e)
         {
             _loadCts.Cancel();
+            _isLoadedForCurrentLifetime = false;
             if (DataContext is ItemsViewModel vm)
             {
                 vm.Dispose();

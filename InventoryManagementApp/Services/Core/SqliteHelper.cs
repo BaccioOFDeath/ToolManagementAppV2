@@ -76,6 +76,11 @@ namespace InventoryManagementApp.Services.Core
         {
             using var conn = new SqliteConnection(connStr);
             conn.Open();
+            return ColumnExists(conn, table, column);
+        }
+
+        public static bool ColumnExists(SqliteConnection conn, string table, string column)
+        {
             using var cmd = new SqliteCommand($"PRAGMA table_info({table})", conn);
             using var rdr = cmd.ExecuteReader();
             while (rdr.Read())

@@ -51,8 +51,7 @@ namespace InventoryManagementApp.Tests
                     var app = new App(host);
                     var page = new ManageItemsPage();
                     var vm = (ItemsViewModel)page.DataContext;
-                    var method = typeof(ManageItemsPage).GetMethod("ManageItemsPage_Loaded", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    method!.Invoke(page, new object[] { page, new RoutedEventArgs() });
+                    page.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent, page));
                     WaitForCondition(() => vm.Items.Count > 0, TimeSpan.FromSeconds(5));
                     Assert.Equal(2, vm.Items.Count);
                     Assert.Equal(1, vm.Items[0].ItemID);
@@ -94,8 +93,7 @@ namespace InventoryManagementApp.Tests
                     WpfTestHelper.ShutdownApplication();
                     var app = new App(host);
                     var page = new ManageItemsPage();
-                    var method = typeof(ManageItemsPage).GetMethod("ManageItemsPage_Loaded", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    method!.Invoke(page, new object[] { page, new RoutedEventArgs() });
+                    page.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent, page));
                     page.UpdateLayout();
                     var dataGrid = FindDescendant<DataGrid>(page.Content as DependencyObject ?? page) ?? throw new InvalidOperationException("DataGrid not found");
                     foreach (var col in dataGrid.Columns)

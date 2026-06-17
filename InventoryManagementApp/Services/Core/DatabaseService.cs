@@ -18,6 +18,7 @@ namespace InventoryManagementApp.Services.Core
     {
         public string ConnectionString { get; }
         private readonly ILogger<DatabaseService> _logger;
+        private readonly SqliteConnection? _keepAliveConnection;
         bool _disposed;
         
         private const int DefaultTimeoutSeconds = 5;
@@ -46,13 +47,28 @@ namespace InventoryManagementApp.Services.Core
             }
             var builder = new SqliteConnectionStringBuilder
             {
-                DataSource = dbPath,
                 Pooling = true,
                 Cache = SqliteCacheMode.Shared,
                 DefaultTimeout = DefaultTimeoutSeconds
             };
+
+            if (isInMemory)
+            {
+                builder.DataSource = $"InventoryManagementApp_{Guid.NewGuid():N}";
+                builder.Mode = SqliteOpenMode.Memory;
+            }
+            else
+            {
+                builder.DataSource = dbPath;
+            }
+
             ConnectionString = builder.ToString();
             _logger = logger ?? NullLogger<DatabaseService>.Instance;
+            if (isInMemory)
+            {
+                _keepAliveConnection = new SqliteConnection(ConnectionString);
+                _keepAliveConnection.Open();
+            }
             ConfigureDatabase();
             InitializeDatabase();
         }
@@ -74,6 +90,7 @@ namespace InventoryManagementApp.Services.Core
             if (_disposed) return;
             if (disposing)
             {
+                _keepAliveConnection?.Dispose();
                 SqliteConnection.ClearAllPools();
             }
             _disposed = true;
@@ -257,9 +274,9 @@ namespace InventoryManagementApp.Services.Core
                 );";
             using var cmd = new SqliteCommand(sql, conn);
             cmd.ExecuteNonQuery();
-            EnsureColumn("Users", "FailedLoginAttempts", "INTEGER", "0");
-            EnsureColumn("Users", "LockoutEndUtc", "DATETIME");
-            EnsureColumn("Users", "Permissions", "TEXT");
+            EnsureColumn(conn, "Users", "FailedLoginAttempts", "INTEGER", "0");
+            EnsureColumn(conn, "Users", "LockoutEndUtc", "DATETIME");
+            EnsureColumn(conn, "Users", "Permissions", "TEXT");
             EnsureIndex(conn, "Items", "ItemNumber", true);
             EnsureIndex(conn, "Items", "NameDescription");
             EnsureIndex(conn, "Items", "Brand");
@@ -317,10 +334,15 @@ namespace InventoryManagementApp.Services.Core
 
         internal void EnsureColumn(string table, string column, string type, string? defaultValue = null)
         {
-            if (SqliteHelper.ColumnExists(ConnectionString, table, column)) return;
+            using var conn = CreateConnection();
+            EnsureColumn(conn, table, column, type, defaultValue);
+        }
+
+        internal void EnsureColumn(SqliteConnection conn, string table, string column, string type, string? defaultValue = null)
+        {
+            if (SqliteHelper.ColumnExists(conn, table, column)) return;
             try
             {
-                using var conn = CreateConnection();
                 var defaultClause = defaultValue != null ? $" NOT NULL DEFAULT {defaultValue}" : string.Empty;
                 using var alter = new SqliteCommand($"ALTER TABLE {table} ADD COLUMN {column} {type}{defaultClause}", conn);
                 alter.ExecuteNonQuery();

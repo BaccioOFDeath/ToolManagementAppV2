@@ -114,7 +114,7 @@ namespace InventoryManagementApp.ViewModels
                 new SortOption(SortField.UpdatedAt, SortDirection.Descending, "Updated Desc")
             });
             if (SortOptions.Count > 0)
-                SelectedSortOption = SortOptions[0];
+                selectedSortOption = SortOptions[0];
             VisibleFields = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => true);
             _memoryBudget.SteadyExceeded += OnSteadyExceeded;
             _memoryBudget.PeakExceeded += OnPeakExceeded;
