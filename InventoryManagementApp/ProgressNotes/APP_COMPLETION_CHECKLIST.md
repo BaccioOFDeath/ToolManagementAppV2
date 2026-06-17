@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-18 02:11 NZST
+Last audit date/time: 2026-06-18 03:11 NZST
 
 ## Completed workflows
 
@@ -10,6 +10,7 @@ Last audit date/time: 2026-06-18 02:11 NZST
 - Reports ViewModel now keeps `ReportResults` as a compatibility alias for `ReportLines`, protecting older tests/bindings while the reports page uses the newer dense report grid.
 - Item edit saves now clone all operational fields, show clear validation/database failure messages, and keep the selected row stable when a save fails.
 - Settings now opens with an admin service status panel that summarizes database, email, messaging, backup, branding, and workstation security state with the relevant action buttons available from the same view.
+- Settings Database, Branding, and Backups tabs now have stronger admin polish: connection-readiness guidance, a larger brand/logo identity preview, and a recovery-focused backup destination layout while preserving the existing commands and bindings.
 - QA screenshot capture now has a repository script and latest screenshot set covering login, overview/search, operational pages, reports/activity, import/export, users, settings, and print-label dialog surfaces; the script fails if the expected PNG count is not produced.
 - QA screenshot capture now names the first Settings capture as service status and walks every Settings tab through Backups after the service-status tab was added.
 - Import / Export now uses a compact data workstation layout with separate sections for item data, customer data, backup/image admin work, and run-log review.
@@ -50,7 +51,7 @@ Last audit date/time: 2026-06-18 02:11 NZST
 - Kits now have a completed desktop workflow surface, but runtime add/edit/item-membership dialog validation still needs a Windows/.NET workstation.
 - Customers now have a completed desktop workflow surface, but runtime add/edit/delete/print/copy validation still need a Windows/.NET workstation.
 - Maintenance now has a completed desktop workflow surface, but runtime add/edit/complete/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
-- Calibration now has a completed desktop workflow surface, but runtime add/edit/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
+- Calibration now has a completed desktop workflow surface, but runtime add/edit/delete/print/copy and screenshot validation still needs a Windows/.NET workstation.
 - User permission editing now has a completed persistence/UI/navigation/editor-summary pass, impact review, and matching service-layer permission guards, but runtime login-as-each-role and screenshot validation still needs a Windows/.NET workstation.
 - Reservations now have a completed desktop workflow surface, but runtime add/edit/confirm/cancel/fulfill/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
 - Rentals now have a completed desktop workflow surface, but runtime check-in/extend/request/delete/print/document and screenshot validation still needs a Windows/.NET workstation.
@@ -58,8 +59,9 @@ Last audit date/time: 2026-06-18 02:11 NZST
 - Shell workflow guidance and responsive header behavior have been implemented, but runtime narrow/wide workstation screenshot review still needs a Windows/.NET workstation.
 - Dashboard command-center, KPI, activity drilldown, footer context, and selected-action polish are in place, but runtime dashboard interaction and screenshot validation still need a Windows/.NET workstation.
 - Shared visual hierarchy polish is in place across common shell resources, but runtime screenshot review still needs to confirm the new surface shadow, accent dividers, primary-action emphasis, and denser grid headers look right across light/dark themes and narrow workstations.
-- Auth entry and setup wizard polish are in place for login, password prompt, change-password, and onboarding surfaces, but password-reset prompt, Settings database/branding/backups, and runtime auth/setup screenshot review still need follow-up.
+- Auth entry and setup wizard polish are in place for login, password prompt, change-password, and onboarding surfaces, but password-reset prompt and runtime auth/setup screenshot review still need follow-up.
 - Search Tools first-pass polish is in place for results, checked-out items, recent searches, and unavailable-demand intelligence, but runtime screenshot review still needs to confirm the new right-pane width, summary strip, and action wrapping at standard and narrow workstation sizes.
+- Settings Database, Branding, and Backups first-pass polish is in place, but runtime settings screenshot review still needs to confirm the new connection, logo preview, and recovery panels at standard and narrow admin workstation sizes.
 
 ## Known broken workflows
 
@@ -69,10 +71,10 @@ Last audit date/time: 2026-06-18 02:11 NZST
 
 ## Next recommended target
 
-- Continue targeted UI polish on Settings database/branding/backups, password-reset prompt, and print-preview document styling. Run the enhanced Windows QA screenshot capture when a Windows/.NET workstation is available.
+- Continue targeted UI polish on password-reset prompt and print-preview document styling. Run the enhanced Windows QA screenshot capture when a Windows/.NET workstation is available.
 
 ## Validation status
 
-- GitHub connector readback reviewed the Dashboard XAML, ToDo progress log, and this checklist update.
+- GitHub connector readback reviewed the Settings XAML, ToDo progress log, and this checklist update.
 - Local XAML parsing, `dotnet --info`, `dotnet restore`, `dotnet build`, `dotnet test`, WPF screenshots, and local banned-word checks were not run because this scheduled Linux container lacks the .NET SDK and Windows/WPF runtime, and direct local clone/raw fetches remain blocked by the network tunnel.
 - Did not run unrelated tests, per instruction.

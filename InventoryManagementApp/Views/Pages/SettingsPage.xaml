@@ -159,19 +159,67 @@
                 <Border Style="{StaticResource DesktopContentPane}">
                     <DockPanel>
                         <Border DockPanel.Dock="Top" Style="{StaticResource DesktopSectionActionStrip}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="Actions" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Test" Command="{Binding TestDbCommand}"/>
-                            </StackPanel>
+                            <DockPanel LastChildFill="False">
+                                <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                                    <TextBlock Text="Database Connection" Style="{StaticResource SubheadingTextBlock}"/>
+                                    <TextBlock Text="Review the workstation data source before changing live inventory records." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Content="Test Connection" Command="{Binding TestDbCommand}" VerticalAlignment="Center"/>
+                            </DockPanel>
                         </Border>
-                        <Grid Style="{StaticResource DesktopSettingsForm}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="170"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Connection String" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                            <TextBox Grid.Column="1" Text="{Binding ConnectionString}" Margin="6,0,0,0"/>
-                        </Grid>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <Grid Margin="14" VerticalAlignment="Top">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*" MinWidth="420"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="1.2*" MinWidth="260"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Style="{StaticResource DesktopInsetCard}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="170"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Connection string" Style="{StaticResource PageTitleTextBlock}" Margin="0,0,0,4"/>
+                                        <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="Use the exact SQLite or server connection path this workstation should trust. Test before closing Settings." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                                        <TextBlock Grid.Row="2" Text="Connection String" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ConnectionString}" Margin="8,0,0,8" TextWrapping="Wrap" MinHeight="64" AcceptsReturn="True"/>
+                                        <Button Grid.Row="3" Grid.Column="1" Style="{StaticResource PrimaryButton}" Content="Test Connection" Command="{Binding TestDbCommand}" Margin="8,0,0,0"/>
+                                    </Grid>
+                                </Border>
+
+                                <StackPanel Grid.Column="2">
+                                    <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,12">
+                                        <StackPanel>
+                                            <TextBlock Text="Current source" Style="{StaticResource SectionHeader}"/>
+                                            <TextBlock Text="{Binding ConnectionString}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="72"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,12">
+                                        <StackPanel>
+                                            <TextBlock Text="Before changing" Style="{StaticResource SectionHeader}"/>
+                                            <TextBlock Text="Confirm backups are pointed at a safe folder, then test the new connection while no one is mid-rental or import." TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Style="{StaticResource DesktopSummaryCard}">
+                                        <StackPanel>
+                                            <TextBlock Text="What this affects" Style="{StaticResource SectionHeader}"/>
+                                            <TextBlock Text="Inventory, rentals, reservations, customers, settings, audit history, and generated reports all depend on this data source." TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
+                        </ScrollViewer>
                     </DockPanel>
                 </Border>
             </TabItem>
@@ -330,29 +378,81 @@
 
             <TabItem Style="{StaticResource DesktopSectionListTabItem}" Header="06 Branding">
                 <Border Style="{StaticResource DesktopContentPane}">
-                    <Grid Style="{StaticResource DesktopSettingsForm}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="170"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <TextBlock Text="Application Name" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                        <TextBox Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding ApplicationName}" Margin="6,0,0,4"/>
-                        <TextBlock Grid.Row="1" Text="Company Logo" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="6,0,0,0">
-                            <Border Width="44" Height="44" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Margin="0,0,6,0">
-                                <Image Width="44" Height="44" Source="{Binding CompanyLogoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=logo}" Stretch="Uniform" ClipToBounds="True"/>
-                            </Border>
-                            <TextBlock Text="{Binding CompanyLogoPath}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                        </StackPanel>
-                        <Button Grid.Row="1" Grid.Column="2" Style="{StaticResource PrimaryButton}" Content="Change Logo" Command="{Binding BrowseCompanyLogoCommand}" Margin="6,0,4,0"/>
-                        <Button Grid.Row="1" Grid.Column="3" Style="{StaticResource PrimaryButton}" Content="Save Logo" Command="{Binding SaveCompanyLogoCommand}"/>
-                    </Grid>
+                    <DockPanel>
+                        <Border DockPanel.Dock="Top" Style="{StaticResource DesktopSectionActionStrip}">
+                            <DockPanel LastChildFill="False">
+                                <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                                    <TextBlock Text="Brand Identity" Style="{StaticResource SubheadingTextBlock}"/>
+                                    <TextBlock Text="Shape the app title, logo, and visible workstation identity used across the shell and output previews." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Change Logo" Command="{Binding BrowseCompanyLogoCommand}" Margin="0,0,4,0"/>
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Save Logo" Command="{Binding SaveCompanyLogoCommand}"/>
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <Grid Margin="14" VerticalAlignment="Top">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.35*" MinWidth="320"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="2*" MinWidth="420"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <Border Style="{StaticResource DesktopSummaryCard}" Padding="18" Margin="0,0,0,12">
+                                        <StackPanel HorizontalAlignment="Stretch">
+                                            <Border Width="112" Height="112" HorizontalAlignment="Left" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1,1,1,3" Margin="0,0,0,12">
+                                                <Image Source="{Binding CompanyLogoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=logo}" Stretch="Uniform" ClipToBounds="True" Margin="10"/>
+                                            </Border>
+                                            <TextBlock Text="{Binding ApplicationName}" Style="{StaticResource HeadingTextBlock}" TextWrapping="Wrap"/>
+                                            <TextBlock Text="Current workstation brand" Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,10"/>
+                                            <TextBlock Text="{Binding CompanyLogoPath}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="80"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Style="{StaticResource DesktopNoteCard}">
+                                        <StackPanel>
+                                            <TextBlock Text="Branding checklist" Style="{StaticResource SectionHeader}"/>
+                                            <TextBlock Text="Use a clear square logo, keep the app name short enough for the header, and save after browsing so the shell and setup flow stay aligned." TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+
+                                <Border Grid.Column="2" Style="{StaticResource DesktopInsetCard}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="170"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Grid.Row="0" Grid.ColumnSpan="3" Text="Brand setup" Style="{StaticResource PageTitleTextBlock}" Margin="0,0,0,4"/>
+                                        <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Text="These values are the first things staff see at sign-in and the visual cue customers see in printed handoffs." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+                                        <TextBlock Grid.Row="2" Text="Application Name" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding ApplicationName}" Margin="8,0,0,8"/>
+
+                                        <TextBlock Grid.Row="3" Text="Company Logo" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding CompanyLogoPath}" Margin="8,0,6,8" IsReadOnly="True"/>
+                                        <Button Grid.Row="3" Grid.Column="2" Style="{StaticResource GhostButton}" Content="Browse" Command="{Binding BrowseCompanyLogoCommand}" Margin="0,0,0,8"/>
+
+                                        <StackPanel Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="8,0,0,0">
+                                            <Button Style="{StaticResource PrimaryButton}" Content="Save Logo" Command="{Binding SaveCompanyLogoCommand}" Margin="0,0,4,0"/>
+                                            <Button Style="{StaticResource GhostButton}" Content="Choose Another" Command="{Binding BrowseCompanyLogoCommand}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </ScrollViewer>
+                    </DockPanel>
                 </Border>
             </TabItem>
 
@@ -390,21 +490,74 @@
                 <Border Style="{StaticResource DesktopContentPane}">
                     <DockPanel>
                         <Border DockPanel.Dock="Top" Style="{StaticResource DesktopSectionActionStrip}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="Actions" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Save" Command="{Binding SaveBackupSettingsCommand}"/>
-                            </StackPanel>
+                            <DockPanel LastChildFill="False">
+                                <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                                    <TextBlock Text="Backup and Recovery Folder" Style="{StaticResource SubheadingTextBlock}"/>
+                                    <TextBlock Text="Choose where exports and recovery files should land before staff start end-of-day work." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button Style="{StaticResource GhostButton}" Content="Browse" Command="{Binding BrowseBackupDirectoryCommand}" Margin="0,0,4,0"/>
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Save Backup" Command="{Binding SaveBackupSettingsCommand}"/>
+                                </StackPanel>
+                            </DockPanel>
                         </Border>
-                        <Grid Style="{StaticResource DesktopSettingsForm}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="170"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Backup Folder" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                            <TextBox Grid.Column="1" Text="{Binding BackupDirectory}" Margin="6,0,4,0"/>
-                            <Button Grid.Column="2" Style="{StaticResource PrimaryButton}" Content="Browse" Command="{Binding BrowseBackupDirectoryCommand}"/>
-                        </Grid>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <Grid Margin="14" VerticalAlignment="Top">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*" MinWidth="420"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="1.1*" MinWidth="260"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Style="{StaticResource DesktopInsetCard}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="170"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Grid.Row="0" Grid.ColumnSpan="3" Text="Recovery destination" Style="{StaticResource PageTitleTextBlock}" Margin="0,0,0,4"/>
+                                        <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Text="Pick a stable folder that is included in your normal workstation or network backup routine." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+                                        <TextBlock Grid.Row="2" Text="Backup Folder" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding BackupDirectory}" Margin="8,0,6,8"/>
+                                        <Button Grid.Row="2" Grid.Column="2" Style="{StaticResource GhostButton}" Content="Browse" Command="{Binding BrowseBackupDirectoryCommand}" Margin="0,0,0,8"/>
+
+                                        <Button Grid.Row="3" Grid.Column="1" Style="{StaticResource PrimaryButton}" Content="Save Backup Settings" Command="{Binding SaveBackupSettingsCommand}" Margin="8,0,0,0"/>
+                                    </Grid>
+                                </Border>
+
+                                <StackPanel Grid.Column="2">
+                                    <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,12">
+                                        <StackPanel>
+                                            <TextBlock Text="Current backup folder" Style="{StaticResource SectionHeader}"/>
+                                            <TextBlock Text="{Binding BackupDirectory}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="88"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,12">
+                                        <StackPanel>
+                                            <TextBlock Text="Recovery confidence" Style="{StaticResource SectionHeader}"/>
+                                            <TextBlock Text="A visible, named backup destination makes export runs easier to verify and reduces the chance of staff saving recovery data to a temporary folder." TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Style="{StaticResource DesktopSummaryCard}">
+                                        <StackPanel>
+                                            <TextBlock Text="After saving" Style="{StaticResource SectionHeader}"/>
+                                            <TextBlock Text="Run an export or image backup from Import / Export and confirm the file appears in this folder during Windows QA." TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
+                        </ScrollViewer>
                     </DockPanel>
                 </Border>
             </TabItem>
