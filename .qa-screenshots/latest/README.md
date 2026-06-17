@@ -1,6 +1,6 @@
 # QA Screenshot Run
 
-Generated: 2026-06-17 18:59:10
+Generated: 2026-06-17 19:02:31
 
 Folders:
 - `00-auth` login and authentication flow
@@ -29,19 +29,19 @@ Captured files:
 - 01-overview\01-search-tools-results.png - 1280x800, 46873 bytes
 - 01-overview\02-search-tools-recent-searches.png - 1280x800, 46873 bytes
 - 01-overview\03-search-tools-unavailable-demand.png - 1280x800, 46873 bytes
-- 01-overview\04-dashboard-summary.png - 1280x800, 56387 bytes
-- 01-overview\05-dashboard-recent-activity.png - 1280x800, 56387 bytes
-- 01-overview\06-dashboard-items-with-issues.png - 1280x800, 55642 bytes
-- 02-operations\01-manage-tools.png - 1280x800, 39526 bytes
+- 01-overview\04-dashboard-summary.png - 1280x800, 56261 bytes
+- 01-overview\05-dashboard-recent-activity.png - 1280x800, 56261 bytes
+- 01-overview\06-dashboard-items-with-issues.png - 1280x800, 55599 bytes
+- 02-operations\01-manage-tools.png - 1280x800, 41663 bytes
 - 02-operations\02-rentals.png - 1280x800, 81143 bytes
-- 02-operations\03-customers.png - 1280x800, 69445 bytes
-- 02-operations\04-maintenance.png - 1280x800, 78059 bytes
-- 02-operations\05-calibration.png - 1280x800, 76129 bytes
-- 02-operations\06-reservations.png - 1280x800, 74456 bytes
-- 02-operations\07-kits.png - 1280x800, 73753 bytes
+- 02-operations\03-customers.png - 1280x800, 69822 bytes
+- 02-operations\04-maintenance.png - 1280x800, 78897 bytes
+- 02-operations\05-calibration.png - 1280x800, 76191 bytes
+- 02-operations\06-reservations.png - 1280x800, 74973 bytes
+- 02-operations\07-kits.png - 1280x800, 75508 bytes
 - 02-operations\08-categories.png - 1280x800, 82543 bytes
 - 03-insights\01-reports.png - 1280x800, 50877 bytes
-- 03-insights\02-activity-logs.png - 1280x800, 45638 bytes
+- 03-insights\02-activity-logs.png - 1280x800, 45917 bytes
 - 04-data\01-import-export-overview.png - 1280x800, 78598 bytes
 - 04-data\02-import-export-item-data.png - 1280x800, 59262 bytes
 - 04-data\03-import-export-customers.png - 1280x800, 57060 bytes
@@ -60,7 +60,7 @@ Captured files:
 - 06-dialogs\02-info-dialog.png - 720x420, 6968 bytes
 - 06-dialogs\03-confirm-dialog.png - 720x420, 5980 bytes
 - 06-dialogs\04-input-dialog.png - 720x420, 5424 bytes
-- 06-dialogs\05-item-details.png - 780x580, 45541 bytes
+- 06-dialogs\05-item-details.png - 780x580, 45533 bytes
 - 06-dialogs\06-item-edit.png - 760x820, 27011 bytes
 - 06-dialogs\07-customer-edit.png - 720x420, 10613 bytes
 - 06-dialogs\08-rental-history.png - 1120x640, 27860 bytes
