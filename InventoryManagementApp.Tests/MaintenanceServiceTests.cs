@@ -20,6 +20,7 @@ namespace InventoryManagementApp.Tests
         {
             var testDbPath = $"test_maintenance_{Guid.NewGuid()}.db";
             _databaseService = new DatabaseService(testDbPath);
+            SeedRequiredData();
             _userContextMock = new Mock<IUserContext>();
             _userContextMock.Setup(x => x.CurrentUser).Returns(new User { UserID = 1, UserName = "TestUser" });
             _maintenanceService = new MaintenanceService(_databaseService, _userContextMock.Object);
@@ -28,6 +29,16 @@ namespace InventoryManagementApp.Tests
         public void Dispose()
         {
             _databaseService?.Dispose();
+        }
+
+        private void SeedRequiredData()
+        {
+            using var conn = _databaseService.CreateConnection();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                INSERT INTO Users (UserID, UserName, IsAdmin, IsActive) VALUES (1, 'TestUser', 0, 1);
+                INSERT INTO Items (ItemID, ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsRentalItem, IsPowered) VALUES (1, 'ITEM-001', 'Seed Item', 1, 0, 0, 0);";
+            cmd.ExecuteNonQuery();
         }
 
         [Fact]
