@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-17 17:49 NZST
+Last audit date/time: 2026-06-17 18:11 NZST
 
 ## Completed workflows
 
@@ -28,6 +28,7 @@ Last audit date/time: 2026-06-17 17:49 NZST
 - Admin user permission editing now shows live access-result, allowed-area, hidden/blocked, operational-impact, guarded-action, and next-step summaries beside the checkbox permissions, with a scrollable layout for shorter admin screens.
 - Service-layer authorization now matches checkbox permissions more closely: user administration requires Manage users, settings writes require Settings, inventory edits require Manage items, and bulk/image imports require Import / export while full admins keep all-access rights.
 - Reservations now use a two-pane advisor workbench with hold directory, quick status filters, selected-hold detail, timing, next action, shelf checklist, copy handoff, print handoff, printable filtered directory, stable useful selection, null-safe expanded search, and row-correct double-click/right-click actions.
+- Reservations now have a wrapping two-row action/search toolbar, tighter grid columns, smaller detail title sizing, selected-hold summary visibility, row-correct context menu handling, and keyboard paths for search, add, details, copy/print handoff, confirm, fulfill, and cancel.
 - QA screenshot review now produces a browser-friendly `index.html` gallery grouped by app area and fails when unexpected PNG captures appear without updating the expected screenshot manifest.
 - Rentals now use a rental desk workbench with a main rental directory, selected-rental advisor handoff, customer/timing/shelf context, check-in/extend/request/document actions, open request queue, row-correct context menus, wrapping toolbar actions, and a compact footer for repeated desk work.
 - Categories now use an admin workbench layout with a directory pane, selected-category handoff, next action, setup checklist, name review, status feedback, row-correct context menus, keyboard shortcuts, printable directory output, and printable selected-category sheets.
@@ -44,7 +45,7 @@ Last audit date/time: 2026-06-17 17:49 NZST
 - Maintenance now has a completed desktop workflow surface, but runtime add/edit/complete/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
 - Calibration now has a completed desktop workflow surface, but runtime add/edit/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
 - User permission editing now has a completed persistence/UI/navigation/editor-summary pass, impact review, and matching service-layer permission guards, but runtime login-as-each-role and screenshot validation still needs a Windows/.NET workstation.
-- Reservations now have a completed desktop workflow surface, but runtime add/edit/confirm/cancel/fulfill/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
+- Reservations now have a completed desktop workflow surface and keyboard/responsive polish pass, but runtime add/edit/confirm/cancel/fulfill/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
 - Rentals now have a completed desktop workflow surface, but runtime check-in/extend/request/delete/print/document and screenshot validation still need a Windows/.NET workstation.
 - Categories now have a completed desktop workflow surface, but runtime create/rename/delete/filter/print/copy and screenshot validation still need a Windows/.NET workstation.
 - Shell workflow guidance and responsive header behavior have been implemented, but runtime narrow/wide workstation screenshot review still needs a Windows/.NET workstation.
@@ -57,10 +58,10 @@ Last audit date/time: 2026-06-17 17:49 NZST
 
 ## Next recommended target
 
-- Run the enhanced Windows QA screenshot capture and review the generated checklist/index for any remaining cramped shell/page combinations, especially at narrow workstation widths.
+- Run the enhanced Windows QA screenshot capture and review the generated checklist/index for any remaining cramped shell/page combinations, especially the Reservations and Rentals workbenches at narrow workstation widths.
 
 ## Validation status
 
-- GitHub connector readback reviewed the shell workflow guidance branch and progress note.
+- GitHub connector readback reviewed the reservation workbench XAML/code-behind branch and progress note.
 - Local XAML parsing, `dotnet --info`, `dotnet restore`, `dotnet build`, `dotnet test`, and `scripts/run-app-qa-screenshots.ps1` were not run because this scheduled Linux container lacks the .NET SDK and Windows/WPF runtime, and direct local clone/raw fetches remain blocked by the network tunnel.
 - Did not run unrelated tests, per instruction.
