@@ -4,6 +4,7 @@ global using System.Linq;
 global using System.Threading;
 global using System.Threading.Tasks;
 global using InventoryManagementApp.Data;
+global using InventoryManagementApp.Services.Core;
 global using InventoryManagementApp.Models.ImportExport;
 global using Microsoft.Extensions.DependencyInjection;
 global using ItemModel = InventoryManagementApp.Models.Domain.ItemModel;
