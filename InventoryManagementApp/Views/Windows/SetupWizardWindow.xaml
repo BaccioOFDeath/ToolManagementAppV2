@@ -3,10 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
         Title="Initial Setup"
-        Width="760"
-        Height="640"
-        MinWidth="680"
-        MinHeight="560"
+        Width="820"
+        Height="660"
+        MinWidth="720"
+        MinHeight="590"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource BackgroundBrush}">
     <Grid Margin="18">
@@ -17,76 +17,179 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,12">
-            <StackPanel>
-                <TextBlock Text="Prepare the workstation" Style="{StaticResource PageTitleTextBlock}"/>
-                <TextBlock Text="Set the shared app name, item labels, company branding, and the initial admin password before anyone starts using the desk." Style="{StaticResource CaptionTextBlock}" Margin="0,4,0,0"/>
-            </StackPanel>
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Left">
+                    <TextBlock Text="Prepare the workstation" Style="{StaticResource PageTitleTextBlock}"/>
+                    <TextBlock Text="Set the workspace name, item language, brand mark, and first administrator password before the desk goes live."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,0"/>
+                </StackPanel>
+                <Border DockPanel.Dock="Right"
+                        Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource AccentBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="10,6"
+                        Margin="14,0,0,0"
+                        VerticalAlignment="Center">
+                    <TextBlock Text="First-run setup" Style="{StaticResource LabelTextBlock}"/>
+                </Border>
+            </DockPanel>
         </Border>
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2.1*"/>
+                <ColumnDefinition Width="1.05*"/>
                 <ColumnDefinition Width="14"/>
-                <ColumnDefinition Width="1.1*"/>
+                <ColumnDefinition Width="2.1*"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="14">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="190"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
+            <Border Grid.Column="0" Style="{StaticResource DesktopSummaryCard}" Padding="16">
+                <StackPanel>
+                    <TextBlock Text="Setup checklist" Style="{StaticResource SectionHeader}"/>
+                    <TextBlock Text="These choices shape the names, branding, and access rules every workstation user sees."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,14"/>
 
-                    <TextBlock Text="Application Name" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                    <TextBox Grid.Column="1" Text="{Binding ApplicationName}" Margin="8,0,0,10"/>
+                    <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,10">
+                        <StackPanel>
+                            <TextBlock Text="1. Name the workspace" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="Use the shop, department, or company name operators recognize." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
 
-                    <TextBlock Grid.Row="1" Text="Item Label Singular" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ItemLabelSingular}" Margin="8,0,0,10"/>
+                    <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,10">
+                        <StackPanel>
+                            <TextBlock Text="2. Confirm item language" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="The singular and plural labels appear across search, rentals, reports, and printed handoffs." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
 
-                    <TextBlock Grid.Row="2" Text="Item Label Plural" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ItemLabelPlural}" Margin="8,0,0,10"/>
+                    <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,10">
+                        <StackPanel>
+                            <TextBlock Text="3. Add brand context" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="A clear logo makes login, documents, and previews feel like the right system." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
 
-                    <TextBlock Grid.Row="3" Text="Admin Password" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                    <PasswordBox Grid.Row="3" Grid.Column="1" x:Name="NewPasswordBox" PasswordChanged="NewPasswordBox_PasswordChanged" Margin="8,0,0,10"/>
-
-                    <TextBlock Grid.Row="4" Text="Confirm Password" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                    <PasswordBox Grid.Row="4" Grid.Column="1" x:Name="ConfirmPasswordBox" PasswordChanged="ConfirmPasswordBox_PasswordChanged" Margin="8,0,0,0"/>
-                </Grid>
+                    <Border Style="{StaticResource DesktopNoteCard}">
+                        <StackPanel>
+                            <TextBlock Text="4. Protect admin access" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="The first password unlocks setup, users, settings, and other sensitive work." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
             </Border>
 
-            <StackPanel Grid.Column="2">
-                <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,12">
-                    <StackPanel>
-                        <TextBlock Text="Branding" Style="{StaticResource SectionHeader}"/>
-                        <Border Width="92" Height="92" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Margin="0,0,0,10">
-                            <Image Source="{Binding CompanyLogoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=logo}" Stretch="Uniform"/>
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Style="{StaticResource Card}" Padding="0">
+                    <DockPanel>
+                        <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}" Margin="0">
+                            <StackPanel>
+                                <TextBlock Text="Workspace details" Style="{StaticResource SubheadingTextBlock}"/>
+                                <TextBlock Text="Complete each field, then save setup to open the app with the finished identity."
+                                           Style="{StaticResource CaptionTextBlock}"
+                                           TextWrapping="Wrap"
+                                           Margin="0,3,0,0"/>
+                            </StackPanel>
                         </Border>
-                        <TextBlock Text="{Binding CompanyLogoPath}" TextWrapping="Wrap" Margin="0,0,0,10"/>
-                        <Button Content="Browse Logo" Command="{Binding BrowseCompanyLogoCommand}" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"/>
-                    </StackPanel>
+
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <Grid Margin="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0" Margin="0,0,0,12">
+                                    <TextBlock Text="Application name" Style="{StaticResource LabelTextBlock}"/>
+                                    <TextBlock Text="Shown in the shell, login, and reports." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                </StackPanel>
+                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ApplicationName}" Margin="10,2,0,12"/>
+
+                                <StackPanel Grid.Row="1" Margin="0,0,0,12">
+                                    <TextBlock Text="Item label" Style="{StaticResource LabelTextBlock}"/>
+                                    <TextBlock Text="Singular wording for one asset." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                </StackPanel>
+                                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ItemLabelSingular}" Margin="10,2,0,12"/>
+
+                                <StackPanel Grid.Row="2" Margin="0,0,0,12">
+                                    <TextBlock Text="Items label" Style="{StaticResource LabelTextBlock}"/>
+                                    <TextBlock Text="Plural wording for lists and reports." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                </StackPanel>
+                                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ItemLabelPlural}" Margin="10,2,0,12"/>
+
+                                <StackPanel Grid.Row="3" Margin="0,0,0,12">
+                                    <TextBlock Text="Admin password" Style="{StaticResource LabelTextBlock}"/>
+                                    <TextBlock Text="Use a memorable secure password for the first admin." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                </StackPanel>
+                                <PasswordBox Grid.Row="3" Grid.Column="1" x:Name="NewPasswordBox" PasswordChanged="NewPasswordBox_PasswordChanged" Margin="10,2,0,12"/>
+
+                                <StackPanel Grid.Row="4" Margin="0,0,0,12">
+                                    <TextBlock Text="Confirm password" Style="{StaticResource LabelTextBlock}"/>
+                                    <TextBlock Text="Re-enter it to prevent lockout before setup completes." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                </StackPanel>
+                                <PasswordBox Grid.Row="4" Grid.Column="1" x:Name="ConfirmPasswordBox" PasswordChanged="ConfirmPasswordBox_PasswordChanged" Margin="10,2,0,12"/>
+
+                                <Border Grid.Row="5" Grid.ColumnSpan="2" Style="{StaticResource DesktopNoteCard}" Margin="0,4,0,0">
+                                    <DockPanel LastChildFill="True">
+                                        <Border DockPanel.Dock="Left"
+                                                Width="88"
+                                                Height="88"
+                                                Background="{DynamicResource SurfaceBrush}"
+                                                BorderBrush="{DynamicResource AccentBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="4"
+                                                Margin="0,0,14,0">
+                                            <Image Source="{Binding CompanyLogoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=logo}" Stretch="Uniform" Margin="8"/>
+                                        </Border>
+                                        <StackPanel>
+                                            <TextBlock Text="Company logo" Style="{StaticResource LabelTextBlock}"/>
+                                            <TextBlock Text="{Binding CompanyLogoPath, TargetNullValue='No custom logo selected yet.'}" TextWrapping="Wrap" Style="{StaticResource CaptionTextBlock}" Margin="0,4,0,10"/>
+                                            <Button Content="Browse Logo" Command="{Binding BrowseCompanyLogoCommand}" Style="{StaticResource GhostButton}" HorizontalAlignment="Left"/>
+                                        </StackPanel>
+                                    </DockPanel>
+                                </Border>
+                            </Grid>
+                        </ScrollViewer>
+                    </DockPanel>
                 </Border>
 
-                <Border Style="{StaticResource DesktopSummaryCard}">
-                    <StackPanel>
-                        <TextBlock Text="Validation" Style="{StaticResource SectionHeader}"/>
-                        <TextBlock Text="{Binding ValidationMessage, TargetNullValue='Choose a name, set labels, and enter the matching admin password to continue.'}" Style="{StaticResource ErrorTextBlock}" TextWrapping="Wrap"/>
-                    </StackPanel>
+                <Border Grid.Row="1" Style="{StaticResource DesktopSummaryCard}" Margin="0,12,0,0">
+                    <DockPanel LastChildFill="True">
+                        <StackPanel DockPanel.Dock="Left" Width="150" Margin="0,0,12,0">
+                            <TextBlock Text="Ready check" Style="{StaticResource SectionHeader}"/>
+                            <TextBlock Text="Setup can finish once the required values pass validation." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                        <TextBlock Text="{Binding ValidationMessage, TargetNullValue='Choose a name, set labels, and enter the matching admin password to continue.'}"
+                                   Style="{StaticResource ErrorTextBlock}"
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Center"/>
+                    </DockPanel>
                 </Border>
-            </StackPanel>
+            </Grid>
         </Grid>
 
         <controls:DialogButtonBar Grid.Row="2"
                                   Margin="0,12,0,0"
                                   LeftButtonText="Cancel"
                                   LeftCommand="{Binding CancelCommand}"
-                                  RightButtonText="OK"
+                                  RightButtonText="Complete Setup"
                                   RightCommand="{Binding SaveCommand}"/>
     </Grid>
 </Window>
