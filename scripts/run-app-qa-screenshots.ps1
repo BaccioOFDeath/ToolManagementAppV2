@@ -8,7 +8,7 @@ param(
     [string]$ItemLabelPlural = "Tools",
     [string]$AdminPassword = "AdminQ123",
     [string]$OutputRoot = "",
-    [int]$ExpectedScreenshotCount = 32,
+    [int]$ExpectedScreenshotCount = 49,
     [switch]$SkipBuild,
     [switch]$KeepRunDirectory
 )
@@ -122,6 +122,23 @@ $expectedScreenshotFiles = @(
     "05-admin\08-settings-messaging.png",
     "05-admin\09-settings-backups.png",
     "06-dialogs\01-print-labels.png"
+    "06-dialogs\02-info-dialog.png",
+    "06-dialogs\03-confirm-dialog.png",
+    "06-dialogs\04-input-dialog.png",
+    "06-dialogs\05-item-details.png",
+    "06-dialogs\06-item-edit.png",
+    "06-dialogs\07-customer-edit.png",
+    "06-dialogs\08-rental-history.png",
+    "06-dialogs\09-rentals-filter.png",
+    "06-dialogs\10-import-mapping.png",
+    "06-dialogs\11-image-import-mapping.png",
+    "06-dialogs\12-print-preview.png",
+    "06-dialogs\13-maintenance-edit.png",
+    "06-dialogs\14-calibration-edit.png",
+    "06-dialogs\15-reservation-edit.png",
+    "06-dialogs\16-kit-edit.png",
+    "06-dialogs\17-kit-item-edit.png",
+    "06-dialogs\18-users-edit.png"
 )
 $reviewChecklist = @(
     "Header, search, and signed-in user controls wrap without overlapping or clipping.",

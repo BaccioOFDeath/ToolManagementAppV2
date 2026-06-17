@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Threading;
 using System.Linq;
 using System.Collections.Generic;
@@ -27,6 +28,7 @@ using InventoryManagementApp.Services.Calibration;
 using InventoryManagementApp.Services.Reservations;
 using InventoryManagementApp.Services.Kits;
 using InventoryManagementApp.ViewModels;
+using InventoryManagementApp.ViewModels.Rental;
 using InventoryManagementApp.Utilities.Helpers;
 using InventoryManagementApp.Views.Pages;
 using InventoryManagementApp.Views.Windows;
@@ -456,7 +458,7 @@ namespace InventoryManagementApp
                 $"- `03-insights` reporting and activity surfaces{Environment.NewLine}" +
                 $"- `04-data` import and export surfaces{Environment.NewLine}" +
                 $"- `05-admin` user and settings administration{Environment.NewLine}" +
-                $"- `06-dialogs` standalone windows and dialogs{Environment.NewLine}");
+                $"- `06-dialogs` standalone windows, dialogs, edit forms, and previews opened by major buttons{Environment.NewLine}");
             void LogStep(string message) =>
                 File.AppendAllText(runLogPath, $"{DateTime.Now:O} {message}{Environment.NewLine}");
 
@@ -603,6 +605,24 @@ namespace InventoryManagementApp
             printLabelWindow.Close();
             await Task.Delay(200);
             LogStep("Captured print labels window.");
+
+            await CaptureStandaloneWindowAsync(mainWindow, CreateInfoDialogWindow(), Path.Combine(dialogsDir, "02-info-dialog.png"), runLogPath, "Info dialog");
+            await CaptureStandaloneWindowAsync(mainWindow, CreateConfirmDialogWindow(), Path.Combine(dialogsDir, "03-confirm-dialog.png"), runLogPath, "Confirm dialog");
+            await CaptureStandaloneWindowAsync(mainWindow, CreateInputDialogWindow(), Path.Combine(dialogsDir, "04-input-dialog.png"), runLogPath, "Input dialog");
+            await CaptureStandaloneWindowAsync(mainWindow, ActivatorUtilities.CreateInstance<ItemDetailsWindow>(Host.Services, CreateSampleItem()), Path.Combine(dialogsDir, "05-item-details.png"), runLogPath, "Item details window");
+            await CaptureStandaloneWindowAsync(mainWindow, CreateItemEditWindow(Host.Services), Path.Combine(dialogsDir, "06-item-edit.png"), runLogPath, "Item edit window");
+            await CaptureStandaloneWindowAsync(mainWindow, CreateCustomerEditWindow(), Path.Combine(dialogsDir, "07-customer-edit.png"), runLogPath, "Customer edit window");
+            await CaptureStandaloneWindowAsync(mainWindow, CreateRentalHistoryWindow(Host.Services), Path.Combine(dialogsDir, "08-rental-history.png"), runLogPath, "Rental history window");
+            await CaptureStandaloneWindowAsync(mainWindow, CreateRentalsFilterWindow(mainViewModel.ManageRentals), Path.Combine(dialogsDir, "09-rentals-filter.png"), runLogPath, "Rentals filter window");
+            await CaptureStandaloneWindowAsync(mainWindow, CreateImportMappingWindow(), Path.Combine(dialogsDir, "10-import-mapping.png"), runLogPath, "Import mapping window");
+            await CaptureStandaloneWindowAsync(mainWindow, new ImageImportMappingWindow(), Path.Combine(dialogsDir, "11-image-import-mapping.png"), runLogPath, "Image import mapping window");
+            await CapturePrintPreviewWindowAsync(mainWindow, CreateSamplePrintPreviewDocument(), Path.Combine(dialogsDir, "12-print-preview.png"), runLogPath, "Print preview window");
+            await CaptureStandaloneWindowAsync(mainWindow, new MaintenanceEditWindow(CreateSampleMaintenanceRecord(), isNew: false), Path.Combine(dialogsDir, "13-maintenance-edit.png"), runLogPath, "Maintenance edit window");
+            await CaptureStandaloneWindowAsync(mainWindow, new CalibrationEditWindow(CreateSampleCalibrationRecord(), isNew: false), Path.Combine(dialogsDir, "14-calibration-edit.png"), runLogPath, "Calibration edit window");
+            await CaptureStandaloneWindowAsync(mainWindow, ActivatorUtilities.CreateInstance<ReservationEditWindow>(Host.Services, CreateSampleReservation(), false), Path.Combine(dialogsDir, "15-reservation-edit.png"), runLogPath, "Reservation edit window");
+            await CaptureStandaloneWindowAsync(mainWindow, new KitEditWindow(CreateSampleKit(), isNew: false), Path.Combine(dialogsDir, "16-kit-edit.png"), runLogPath, "Kit edit window");
+            await CaptureStandaloneWindowAsync(mainWindow, new KitItemEditWindow(CreateSampleKitItem(), isNew: false), Path.Combine(dialogsDir, "17-kit-item-edit.png"), runLogPath, "Kit item edit window");
+            await CaptureStandaloneWindowAsync(mainWindow, CreateUsersEditWindow(Host.Services), Path.Combine(dialogsDir, "18-users-edit.png"), runLogPath, "Users edit window");
         }
 
         static string EnsureCaptureDirectory(string root, string folderName)
@@ -782,6 +802,280 @@ namespace InventoryManagementApp
                 encoder.Save(stream);
             }, DispatcherPriority.Render);
         }
+
+        static async Task CaptureStandaloneWindowAsync(Window owner, Window window, string filePath, string runLogPath, string label)
+        {
+            File.AppendAllText(runLogPath, $"{DateTime.Now:O} Opening {label}.{Environment.NewLine}");
+            await owner.Dispatcher.InvokeAsync(() =>
+            {
+                PrepareWindowForCapture(window);
+                window.Owner = owner;
+                window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                window.Show();
+                window.Activate();
+            }, DispatcherPriority.Background);
+
+            await WaitForUiAsync(window.Dispatcher);
+            await Task.Delay(300);
+            await CaptureWindowAsync(window, filePath);
+            await owner.Dispatcher.InvokeAsync(window.Close, DispatcherPriority.Background);
+            File.AppendAllText(runLogPath, $"{DateTime.Now:O} Captured {label}.{Environment.NewLine}");
+        }
+
+        static async Task CapturePrintPreviewWindowAsync(Window owner, FlowDocument document, string filePath, string runLogPath, string label)
+        {
+            File.AppendAllText(runLogPath, $"{DateTime.Now:O} Opening {label}.{Environment.NewLine}");
+            var previewWindow = new PrintPreviewWindow();
+            PrepareWindowForCapture(previewWindow);
+            previewWindow.Owner = owner;
+            previewWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+
+            var showTask = owner.Dispatcher.InvokeAsync(() => previewWindow.ShowPreview(document, "QA Preview", string.Empty), DispatcherPriority.Background).Task;
+            await WaitForWindowVisibleAsync(previewWindow);
+            await Task.Delay(300);
+            await CaptureWindowAsync(previewWindow, filePath);
+            await owner.Dispatcher.InvokeAsync(previewWindow.Close, DispatcherPriority.Background);
+            await showTask;
+            File.AppendAllText(runLogPath, $"{DateTime.Now:O} Captured {label}.{Environment.NewLine}");
+        }
+
+        static async Task WaitForWindowVisibleAsync(Window window, int timeoutMs = 10000)
+        {
+            var started = Environment.TickCount64;
+            while (!window.IsVisible)
+            {
+                if (Environment.TickCount64 - started > timeoutMs)
+                    throw new TimeoutException($"Timed out waiting for window '{window.GetType().Name}' to become visible.");
+
+                await Task.Delay(50);
+            }
+
+            await WaitForUiAsync(window.Dispatcher);
+        }
+
+        static void PrepareWindowForCapture(Window window)
+        {
+            const double minimumWidth = 720;
+            const double minimumHeight = 420;
+
+            if (double.IsNaN(window.Width) || window.Width < minimumWidth)
+                window.Width = minimumWidth;
+
+            if (double.IsNaN(window.Height) || window.Height < minimumHeight)
+                window.Height = minimumHeight;
+        }
+
+        static InfoDialogWindow CreateInfoDialogWindow()
+        {
+            var window = new InfoDialogWindow("This screenshot captures the standard informational dialog shown by copy, detail, and validation actions throughout the app.")
+            {
+                Title = "QA Info Dialog"
+            };
+            return window;
+        }
+
+        static ConfirmDialogWindow CreateConfirmDialogWindow()
+        {
+            var window = new ConfirmDialogWindow("This screenshot captures the confirmation dialog used before destructive or irreversible actions.")
+            {
+                Title = "QA Confirm Dialog"
+            };
+            return window;
+        }
+
+        static InputDialogWindow CreateInputDialogWindow() => new("QA Input", "Enter the value that completes this workflow step.", true);
+
+        static ItemEditWindow CreateItemEditWindow(IServiceProvider services)
+            => ActivatorUtilities.CreateInstance<ItemEditWindow>(
+                services,
+                CreateSampleItem(),
+                (Action)(() => { }),
+                (Action)(() => { }));
+
+        static CustomerEditWindow CreateCustomerEditWindow()
+            => new(CreateSampleCustomer(), () => { }, () => { });
+
+        static RentalHistoryWindow CreateRentalHistoryWindow(IServiceProvider services)
+        {
+            var item = CreateSampleItem();
+            var history = new[]
+            {
+                new RentalModel
+                {
+                    RentalID = 4101,
+                    ItemID = item.ItemID,
+                    ItemNumber = item.ItemNumber,
+                    ItemLocation = item.Location,
+                    CustomerName = "North Harbour Motors",
+                    RentalDate = DateTime.Today.AddDays(-14),
+                    DueDate = DateTime.Today.AddDays(-7),
+                    ReturnDate = DateTime.Today.AddDays(-8),
+                    Status = "Returned"
+                },
+                new RentalModel
+                {
+                    RentalID = 4128,
+                    ItemID = item.ItemID,
+                    ItemNumber = item.ItemNumber,
+                    ItemLocation = item.Location,
+                    CustomerName = "Auckland Fleet Service",
+                    RentalDate = DateTime.Today.AddDays(-2),
+                    DueDate = DateTime.Today.AddDays(3),
+                    Status = "Rented"
+                }
+            };
+
+            var vm = ActivatorUtilities.CreateInstance<RentalHistoryViewModel>(services, item, history);
+            vm.SelectedEntry = vm.History.FirstOrDefault();
+            return new RentalHistoryWindow(vm);
+        }
+
+        static RentalsFilterWindow CreateRentalsFilterWindow(ManageRentalsViewModel viewModel)
+        {
+            viewModel.FilterFrom = DateTime.Today.AddDays(-7);
+            viewModel.FilterTo = DateTime.Today.AddDays(7);
+            viewModel.SelectedStatus = "Rented";
+            return new RentalsFilterWindow
+            {
+                DataContext = viewModel
+            };
+        }
+
+        static ImportMappingWindow CreateImportMappingWindow()
+        {
+            var headers = new[] { "Tool Number", "Tool Name", "Location", "Category" };
+            var properties = new[] { "ItemNumber", "Name", "Location", "Category" };
+            return new ImportMappingWindow(headers, properties, new[] { "ItemNumber", "Name" });
+        }
+
+        static FlowDocument CreateSamplePrintPreviewDocument()
+        {
+            var document = new FlowDocument
+            {
+                PagePadding = new Thickness(32),
+                FontFamily = new FontFamily("Segoe UI"),
+                FontSize = 12
+            };
+            document.Blocks.Add(new Paragraph(new Bold(new Run("QA Print Preview")))
+            {
+                FontSize = 20,
+                Margin = new Thickness(0, 0, 0, 10)
+            });
+            document.Blocks.Add(new Paragraph(new Run("This preview represents the printable surfaces shown by report, handoff, and summary buttons across the application.")));
+            return document;
+        }
+
+        static MaintenanceRecord CreateSampleMaintenanceRecord() => new()
+        {
+            MaintenanceID = 7201,
+            ItemID = 101,
+            ItemNumber = "TL-101",
+            ItemName = "Scan Tool",
+            MaintenanceType = "Routine",
+            Description = "Annual inspection and battery replacement",
+            ScheduledDate = DateTime.Today.AddDays(4),
+            Status = "Scheduled",
+            PerformedBy = "Workshop QA",
+            Notes = "Prepare charger and calibration check before release.",
+            Cost = 149.95m
+        };
+
+        static CalibrationRecord CreateSampleCalibrationRecord() => new()
+        {
+            CalibrationID = 8302,
+            ItemID = 102,
+            ItemNumber = "TL-204",
+            ItemName = "Torque Wrench",
+            CalibrationDate = DateTime.Today.AddMonths(-10),
+            NextCalibrationDue = DateTime.Today.AddMonths(2),
+            CalibratedBy = "Metro Calibrations",
+            CertificateNumber = "CAL-2026-0042",
+            Standard = "ISO 6789",
+            Result = "Pass",
+            Notes = "Stored in cabinet B after verification.",
+            Cost = 89.50m
+        };
+
+        static Reservation CreateSampleReservation() => new()
+        {
+            ReservationID = 9103,
+            ItemID = 101,
+            CustomerID = 12,
+            ItemNumber = "TL-101",
+            ItemName = "Scan Tool",
+            CustomerName = "North Harbour Motors",
+            ReservationDate = DateTime.Today.AddDays(-1),
+            StartDate = DateTime.Today.AddDays(1),
+            EndDate = DateTime.Today.AddDays(4),
+            Quantity = 1,
+            Status = "Confirmed",
+            Notes = "Call before pickup after lunch."
+        };
+
+        static Kit CreateSampleKit() => new()
+        {
+            KitID = 640,
+            KitNumber = "KIT-640",
+            Name = "Diagnostics Starter Kit",
+            Category = "Electronics",
+            Description = "Handheld scan tool, charger, and adapter pack.",
+            IsActive = true,
+            UpdatedAt = DateTime.Now.AddDays(-2)
+        };
+
+        static KitItem CreateSampleKitItem() => new()
+        {
+            KitItemID = 641,
+            KitID = 640,
+            ItemID = 101,
+            ItemNumber = "TL-101",
+            ItemName = "Scan Tool",
+            Quantity = 1,
+            IsOptional = false
+        };
+
+        static UsersEditWindow CreateUsersEditWindow(IServiceProvider services)
+            => ActivatorUtilities.CreateInstance<UsersEditWindow>(
+                services,
+                new User
+                {
+                    UserID = 2,
+                    UserName = "qa.tech",
+                    Role = "Workshop Staff",
+                    Email = "qa.tech@example.com",
+                    Phone = "09 555 0101",
+                    Mobile = "021 555 0101",
+                    Address = "17 Tool Lane",
+                    IsActive = true,
+                    IsAdmin = false,
+                    Permissions = User.BuildPermissions(User.DefaultUserPermissions)
+                },
+                (Func<Task>)(() => Task.CompletedTask),
+                (Action)(() => { }));
+
+        static ItemModel CreateSampleItem() => new()
+        {
+            ItemID = 101,
+            ItemNumber = "TL-101",
+            PartNumber = "SCAN-101",
+            Name = "Scan Tool",
+            Brand = "Launch",
+            Location = "Bay 2 - Shelf A",
+            Notes = "Bi-directional diagnostic scanner with charger and leads.",
+            QuantityOnHand = 2,
+            UpdatedAt = DateTime.Now.AddDays(-1)
+        };
+
+        static CustomerModel CreateSampleCustomer() => new()
+        {
+            CustomerID = 12,
+            Company = "North Harbour Motors",
+            Contact = "Casey Morgan",
+            Email = "service@northharbour.example.com",
+            Phone = "09 555 0190",
+            Mobile = "021 555 0190",
+            Address = "17 Foundry Road, Auckland"
+        };
 
         internal void HandleDispatcherException(Exception ex, DispatcherUnhandledExceptionEventArgs? e = null)
         {
