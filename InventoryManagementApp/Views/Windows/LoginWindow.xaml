@@ -8,7 +8,8 @@
         mc:Ignorable="av"
         x:Class="InventoryManagementApp.Views.Windows.LoginWindow"
         Title="{Binding WindowTitle}"
-        Width="900" Height="560"
+        Width="940" Height="580"
+        MinWidth="820" MinHeight="520"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
         Background="{DynamicResource BackgroundBrush}">
@@ -17,68 +18,130 @@
         <KeyBinding Key="Enter" Command="{Binding SelectUserCommand}" CommandParameter="{Binding SelectedUser}"/>
     </Window.InputBindings>
 
-    <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <Grid Margin="14">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="14"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        <!-- Header -->
-        <Border Style="{StaticResource ToolbarCard}">
-            <DockPanel LastChildFill="False">
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-                    <Image Source="{Binding CompanyLogo}" Width="32" Height="32" Margin="0,0,8,0"/>
-                    <TextBlock Text="{Binding WindowTitle}" Style="{StaticResource HeadingTextBlock}" VerticalAlignment="Center"/>
+        <Border Grid.Column="0" Style="{StaticResource DesktopSummaryCard}" Padding="18">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel>
+                    <Border Width="88" Height="88"
+                            HorizontalAlignment="Left"
+                            Background="{DynamicResource SurfaceBrush}"
+                            BorderBrush="{DynamicResource BorderBrushAlt}"
+                            BorderThickness="1"
+                            Padding="10"
+                            Margin="0,0,0,16">
+                        <Image Source="{Binding CompanyLogo}" Stretch="Uniform"/>
+                    </Border>
+                    <TextBlock Text="{Binding WindowTitle}" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Choose your profile to open the right workbench, permissions, and daily queues." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,8,0,0"/>
                 </StackPanel>
-                <TextBlock DockPanel.Dock="Right" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" 
-                           Text="Select your account to continue"/>
-            </DockPanel>
+
+                <Border Grid.Row="1" Style="{StaticResource DesktopNoteCard}" Margin="0,18,0,18">
+                    <StackPanel>
+                        <TextBlock Text="Ready For" Style="{StaticResource SectionHeader}"/>
+                        <TextBlock Text="Rental desk handoffs" Style="{StaticResource CaptionTextBlock}" Margin="0,8,0,0"/>
+                        <TextBlock Text="Technician and advisor queues" Style="{StaticResource CaptionTextBlock}" Margin="0,4,0,0"/>
+                        <TextBlock Text="Inventory, reports, and admin controls" Style="{StaticResource CaptionTextBlock}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Grid.Row="2"
+                           Text="Press Enter after selecting a user, or click a profile card to continue."
+                           Style="{StaticResource CaptionTextBlock}"
+                           TextWrapping="Wrap"/>
+            </Grid>
         </Border>
 
-        <!-- Users -->
-        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="8">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <ItemsControl x:Name="UsersListBox"
-                              ItemsSource="{Binding Users}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" IsItemsHost="True"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Button Command="{Binding DataContext.SelectUserCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
-                                    CommandParameter="{Binding}"
-                                    Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand">
-                                <Grid Width="120" Margin="4">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="78"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-                                    <Border Background="{DynamicResource SurfaceAltBrush}"
-                                            CornerRadius="{StaticResource RadiusSmall}"
-                                            BorderBrush="{DynamicResource BorderBrushAlt}"
-                                            BorderThickness="1"
-                                            ClipToBounds="True">
-                                        <controls:UserAvatar UserName="{Binding UserName}"
-                                                            UserPhotoPath="{Binding UserPhotoPath}"
-                                                            Foreground="{Binding InitialsBrush}"
-                                                            FontSize="40"/>
+        <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Border Style="{StaticResource DesktopPaneHeader}">
+                    <DockPanel LastChildFill="False">
+                        <StackPanel DockPanel.Dock="Left">
+                            <TextBlock Text="Select Account" Style="{StaticResource SectionHeader}"/>
+                            <TextBlock Text="Profiles appear with saved photos or initials." Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <TextBlock DockPanel.Dock="Right"
+                                   Text="Secure workstation sign-in"
+                                   Style="{StaticResource CaptionTextBlock}"
+                                   VerticalAlignment="Center"/>
+                    </DockPanel>
+                </Border>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="12">
+                    <ItemsControl x:Name="UsersListBox"
+                                  ItemsSource="{Binding Users}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" IsItemsHost="True"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Command="{Binding DataContext.SelectUserCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                        CommandParameter="{Binding}"
+                                        Padding="0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Cursor="Hand"
+                                        ToolTip="Sign in with this profile">
+                                    <Border Width="142"
+                                            MinHeight="154"
+                                            Margin="5"
+                                            Style="{StaticResource DesktopInsetCard}"
+                                            Padding="10">
+                                        <StackPanel>
+                                            <Border Height="92"
+                                                    Background="{DynamicResource SurfaceAltBrush}"
+                                                    CornerRadius="{StaticResource RadiusSmall}"
+                                                    BorderBrush="{DynamicResource BorderBrushAlt}"
+                                                    BorderThickness="1"
+                                                    ClipToBounds="True">
+                                                <controls:UserAvatar UserName="{Binding UserName}"
+                                                                    UserPhotoPath="{Binding UserPhotoPath}"
+                                                                    Foreground="{Binding InitialsBrush}"
+                                                                    FontSize="44"/>
+                                            </Border>
+                                            <TextBlock Text="{Binding UserName}"
+                                                       HorizontalAlignment="Center"
+                                                       TextAlignment="Center"
+                                                       TextWrapping="Wrap"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       MaxWidth="120"
+                                                       Margin="0,8,0,0"
+                                                       FontWeight="SemiBold"/>
+                                            <TextBlock Text="Open profile"
+                                                       HorizontalAlignment="Center"
+                                                       Style="{StaticResource CaptionTextBlock}"
+                                                       Margin="0,3,0,0"/>
+                                        </StackPanel>
                                     </Border>
-                                    <TextBlock Grid.Row="1"
-                                               Text="{Binding UserName}"
-                                               HorizontalAlignment="Center"
-                                               TextAlignment="Center"
-                                               TextWrapping="Wrap"
-                                               MaxWidth="112"
-                                               Margin="0,6,0,0"
-                                               Style="{StaticResource CaptionTextBlock}"/>
-                                </Grid>
-                            </Button>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <Border Grid.Row="2" Style="{StaticResource DesktopPaneSubheader}">
+                    <TextBlock Text="Need access changed? Ask an admin to update profile permissions from Users." Style="{StaticResource CaptionTextBlock}"/>
+                </Border>
+            </Grid>
         </Border>
     </Grid>
 </Window>
