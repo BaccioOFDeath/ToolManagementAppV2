@@ -75,14 +75,12 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="110" MinWidth="82"/>
-                            <DataGridTextColumn Header="Name" Binding="{Binding ItemName}" Width="2*" MinWidth="120"/>
-                            <DataGridTextColumn Header="Type" Binding="{Binding MaintenanceType}" Width="120" MinWidth="70"/>
-                            <DataGridTextColumn Header="Scheduled" Binding="{Binding ScheduledDate, StringFormat={}{0:yyyy-MM-dd}}" Width="110"/>
-                            <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="105"/>
-                            <DataGridTextColumn Header="Performed By" Binding="{Binding PerformedBy}" Width="140" MinWidth="105"/>
-                            <DataGridTextColumn Header="Completed" Binding="{Binding CompletedDate, StringFormat={}{0:yyyy-MM-dd}}" Width="110" MinWidth="92"/>
-                            <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="2*" MinWidth="120"/>
+                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="92"/>
+                            <DataGridTextColumn Header="Name" Binding="{Binding ItemName}" Width="1.5*"/>
+                            <DataGridTextColumn Header="Type" Binding="{Binding MaintenanceType}" Width="96"/>
+                            <DataGridTextColumn Header="Scheduled" Binding="{Binding ScheduledDate, StringFormat={}{0:yyyy-MM-dd}}" Width="98"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="88"/>
+                            <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="1.5*"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"

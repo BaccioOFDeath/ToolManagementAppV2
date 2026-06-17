@@ -74,15 +74,12 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="110" MinWidth="82"/>
-                            <DataGridTextColumn Header="Name" Binding="{Binding ItemName}" Width="2*" MinWidth="120"/>
-                            <DataGridTextColumn Header="Calibrated" Binding="{Binding CalibrationDate, StringFormat={}{0:yyyy-MM-dd}}" Width="110" MinWidth="92"/>
-                            <DataGridTextColumn Header="Next Due" Binding="{Binding NextCalibrationDue, StringFormat={}{0:yyyy-MM-dd}}" Width="110" MinWidth="88"/>
-                            <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="95"/>
-                            <DataGridTextColumn Header="By" Binding="{Binding CalibratedBy}" Width="120"/>
-                            <DataGridTextColumn Header="Certificate" Binding="{Binding CertificateNumber}" Width="135" MinWidth="90"/>
-                            <DataGridTextColumn Header="Result" Binding="{Binding Result}" Width="85"/>
-                            <DataGridTextColumn Header="Standard" Binding="{Binding Standard}" Width="125"/>
+                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="92"/>
+                            <DataGridTextColumn Header="Name" Binding="{Binding ItemName}" Width="1.5*"/>
+                            <DataGridTextColumn Header="Calibrated" Binding="{Binding CalibrationDate, StringFormat={}{0:yyyy-MM-dd}}" Width="100"/>
+                            <DataGridTextColumn Header="Due" Binding="{Binding NextCalibrationDue, StringFormat={}{0:yyyy-MM-dd}}" Width="90"/>
+                            <DataGridTextColumn Header="Certificate" Binding="{Binding CertificateNumber}" Width="112"/>
+                            <DataGridTextColumn Header="Result" Binding="{Binding Result}" Width="80"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"

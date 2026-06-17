@@ -102,14 +102,11 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Rental" Binding="{Binding RentalID}" Width="70"/>
-                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="120"/>
-                            <DataGridTextColumn Header="Location" Binding="{Binding ItemLocation}" Width="150"/>
+                            <DataGridTextColumn Header="ID" Binding="{Binding RentalID}" Width="52"/>
+                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="105"/>
                             <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="2*"/>
-                            <DataGridTextColumn Header="Checked Out" Binding="{Binding RentalDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="145"/>
-                            <DataGridTextColumn Header="Due Back" Binding="{Binding DueDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="145"/>
-                            <DataGridTextColumn Header="Returned" Binding="{Binding ReturnDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="145"/>
-                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="105"/>
+                            <DataGridTextColumn Header="Due Back" Binding="{Binding DueDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="130"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="95"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
@@ -248,9 +245,9 @@
                             <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="115" MinWidth="82"/>
                             <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="170" MinWidth="120"/>
                             <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="190" MinWidth="140"/>
-                            <DataGridTextColumn Header="Requested" Binding="{Binding ReservationDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="135" MinWidth="92"/>
-                            <DataGridTextColumn Header="Needed From" Binding="{Binding StartDate, StringFormat={}{0:yyyy-MM-dd}}" Width="125" MinWidth="104"/>
-                            <DataGridTextColumn Header="Needed Until" Binding="{Binding EndDate, StringFormat={}{0:yyyy-MM-dd}}" Width="125" MinWidth="106"/>
+                            <DataGridTextColumn Header="Requested" Binding="{Binding ReservationDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="125" MinWidth="92"/>
+                            <DataGridTextColumn Header="From" Binding="{Binding StartDate, StringFormat={}{0:yyyy-MM-dd}}" Width="96" MinWidth="76"/>
+                            <DataGridTextColumn Header="Until" Binding="{Binding EndDate, StringFormat={}{0:yyyy-MM-dd}}" Width="96" MinWidth="76"/>
                             <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="105" MinWidth="78"/>
                             <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="*" MinWidth="140"/>
                         </DataGrid.Columns>
