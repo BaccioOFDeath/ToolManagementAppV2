@@ -24,7 +24,7 @@ namespace InventoryManagementApp.Utilities
             var enabled = false;
             var outputDirectory = string.Empty;
             var applicationName = "QA Inventory";
-            var itemLabelSingular = "Tool";
+            var itemLabelSingular = "Item";
             var itemLabelPlural = "Tools";
             var adminPassword = "AdminQ123";
             var narrowWindowWidth = 1040d;

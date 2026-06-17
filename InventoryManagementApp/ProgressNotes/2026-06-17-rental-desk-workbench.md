@@ -10,7 +10,7 @@
 
 ## Why it matters
 
-Advisors renting a tool out and technicians checking it back in should not have to jump between grids or scan a long toolbar to find the next step. The rental page now matches the newer Maintenance, Calibration, Customers, and Reservations workbench style: select the operational record, review the handoff, act, then review the request queue before the item goes back to the shelf.
+Advisors renting a item out and technicians checking it back in should not have to jump between grids or scan a long toolbar to find the next step. The rental page now matches the newer Maintenance, Calibration, Customers, and Reservations workbench style: select the operational record, review the handoff, act, then review the request queue before the item goes back to the shelf.
 
 ## Validation
 

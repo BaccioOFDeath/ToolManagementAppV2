@@ -115,6 +115,9 @@ namespace InventoryManagementApp.Services.Rentals
 
         DateTime ParseDateOrDefault(object? value, string field)
         {
+            if (value is DateTime dateTime)
+                return dateTime.Kind == DateTimeKind.Utc ? dateTime.ToLocalTime() : dateTime;
+
             var text = value?.ToString();
             if (DateTime.TryParse(text, CultureInfo.InvariantCulture,
                     DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var dt))
@@ -125,6 +128,9 @@ namespace InventoryManagementApp.Services.Rentals
 
         DateTime? ParseNullableDate(object? value, string field)
         {
+            if (value is DateTime dateTime)
+                return dateTime.Kind == DateTimeKind.Utc ? dateTime.ToLocalTime() : dateTime;
+
             var text = value?.ToString();
             if (DateTime.TryParse(text, CultureInfo.InvariantCulture,
                     DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var dt))

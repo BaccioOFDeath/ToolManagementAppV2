@@ -69,8 +69,8 @@ namespace InventoryManagementApp.ViewModels
         }
 
         public string SelectedCalibrationBenchChecklist => SelectedRecord == null
-            ? "Select a certificate first, then verify the item tag, certificate number, due date, result, and shelf release status before the tool is issued."
-            : "Verify item tag and location, confirm certificate number and standard, check due date/result, update missing notes if needed, and keep the printed or copied handoff with the tool.";
+            ? "Select a certificate first, then verify the item tag, certificate number, due date, result, and shelf release status before the item is issued."
+            : "Verify item tag and location, confirm certificate number and standard, check due date/result, update missing notes if needed, and keep the printed or copied handoff with the item.";
 
         private CalibrationRecord? _selectedRecord;
         public CalibrationRecord? SelectedRecord

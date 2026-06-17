@@ -4,7 +4,7 @@ param(
     [string]$Configuration = "Debug",
     [string]$Framework = "net10.0-windows",
     [string]$ApplicationName = "QA Inventory",
-    [string]$ItemLabelSingular = "Tool",
+    [string]$ItemLabelSingular = "Item",
     [string]$ItemLabelPlural = "Tools",
     [string]$AdminPassword = "AdminQ123",
     [string]$OutputRoot = "",

@@ -170,7 +170,7 @@ namespace InventoryManagementApp.ViewModels
             if (Has(User.PermissionCategories))
                 yield return "Category setup: can organize item categories used by the operational pages.";
             if (Has(User.PermissionPrintLabels))
-                yield return "Label station: can open the print-label workflow for shelf and tool labeling.";
+                yield return "Label station: can open the print-label workflow for shelf and item labeling.";
             if (Has(User.PermissionReports) || Has(User.PermissionActivityLogs))
                 yield return "Insights: can review reports or audit activity when those boxes are ticked.";
             if (Has(User.PermissionImportExport))

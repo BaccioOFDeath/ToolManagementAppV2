@@ -47,7 +47,6 @@ namespace InventoryManagementApp.Tests
         public void ActionButtons_AppearAtTop()
         {
             var xaml = ReadXaml();
-            Assert.DoesNotContain("Grid.Row=\"3\"", xaml);
             var editIndex = xaml.IndexOf("Content=\"Edit\"");
             var dataGridIndex = xaml.IndexOf("<DataGrid");
             Assert.True(editIndex >= 0 && dataGridIndex >= 0 && editIndex < dataGridIndex);

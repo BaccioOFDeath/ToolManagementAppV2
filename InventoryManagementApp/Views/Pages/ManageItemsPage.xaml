@@ -91,7 +91,7 @@
                 <StackPanel>
                     <TextBlock Text="Selected Item" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding SelectedItem.Name, TargetNullValue=No item selected}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Text="{Binding SelectedItem.AvailabilityDetail, TargetNullValue=Select a row to review availability and next actions.}" Style="{StaticResource DirectoryDetailText}"/>
+                    <TextBlock Text="{Binding SelectedItem.AvailabilityDetail, TargetNullValue='Select a row to review availability and next actions.'}" Style="{StaticResource DirectoryDetailText}"/>
                 </StackPanel>
             </Border>
         </Grid>
@@ -260,7 +260,7 @@
                                 <StackPanel>
                                     <TextBlock Text="Availability" Style="{StaticResource LabelTextBlock}"/>
                                     <TextBlock Text="{Binding SelectedItem.AvailabilityStatus, TargetNullValue=Not selected}" Style="{StaticResource HeadingTextBlock}"/>
-                                    <TextBlock Text="{Binding SelectedItem.AvailabilityDetail, TargetNullValue=Select an item to review stock, holder, and next-step context.}" Style="{StaticResource DirectoryDetailText}"/>
+                                    <TextBlock Text="{Binding SelectedItem.AvailabilityDetail, TargetNullValue='Select an item to review stock, holder, and next-step context.'}" Style="{StaticResource DirectoryDetailText}"/>
                                 </StackPanel>
                             </Border>
 

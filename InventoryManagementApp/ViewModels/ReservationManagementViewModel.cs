@@ -56,7 +56,7 @@ namespace InventoryManagementApp.ViewModels
                 return SelectedReservation.Status switch
                 {
                     "Pending" => "Confirm the hold when the item is available, or edit the dates/customer before committing stock.",
-                    "Confirmed" when SelectedReservation.StartDate.Date <= DateTime.Now.Date => "Collect the tool from the shelf, start the rental checkout, then fulfill this reservation with the Rental ID.",
+                    "Confirmed" when SelectedReservation.StartDate.Date <= DateTime.Now.Date => "Collect the item from the shelf, start the rental checkout, then fulfill this reservation with the Rental ID.",
                     "Confirmed" => "Keep this hold staged for the start date, print/copy the handoff, or cancel if the customer no longer needs it.",
                     "Fulfilled" => "Reservation is complete. Use the linked Rental ID for checkout, return, invoice, or history review.",
                     "Cancelled" => "Reservation is cancelled. Keep it for audit history or delete it if it was entered in error.",

@@ -1063,7 +1063,7 @@ namespace InventoryManagementApp
 
         static ImportMappingWindow CreateImportMappingWindow()
         {
-            var headers = new[] { "Tool Number", "Tool Name", "Location", "Category" };
+            var headers = new[] { "Item Number", "Item Name", "Location", "Category" };
             var properties = new[] { "ItemNumber", "Name", "Location", "Category" };
             return new ImportMappingWindow(headers, properties, new[] { "ItemNumber", "Name" });
         }
@@ -1089,7 +1089,7 @@ namespace InventoryManagementApp
             viewModel.CustomerSearchText = "North";
             viewModel.SelectedCustomer = viewModel.FilteredCustomers.FirstOrDefault();
             viewModel.RentalDays = 5;
-            return new RentItemPopupWindow { DataContext = viewModel, Title = "Checkout Tool" };
+            return new RentItemPopupWindow { DataContext = viewModel, Title = "Checkout Item" };
         }
 
         static ChangePasswordWindow CreateChangePasswordWindow()
@@ -1118,7 +1118,7 @@ namespace InventoryManagementApp
             if (window.DataContext is SetupWizardViewModel vm)
             {
                 vm.ApplicationName = "QA Inventory";
-                vm.ItemLabelSingular = "Tool";
+                vm.ItemLabelSingular = "Item";
                 vm.ItemLabelPlural = "Tools";
                 vm.CompanyLogoPath = @"C:\Branding\qa-logo.png";
                 vm.NewPassword = "AdminQ123!";
@@ -1134,7 +1134,7 @@ namespace InventoryManagementApp
                 $"Timestamp: {DateTime.Today.AddHours(8):g}{Environment.NewLine}" +
                 "User: qa.tech (ID 2)" + Environment.NewLine +
                 "Type: Rental" + Environment.NewLine +
-                "Action: Checked out Scan Tool TL-101 to North Harbour Motors");
+                "Action: Checked out Scan Item TL-101 to North Harbour Motors");
 
         static InfoDialogWindow CreateCategoryDetailDialog()
             => CreateDetailDialog(
@@ -1194,10 +1194,10 @@ namespace InventoryManagementApp
         static FlowDocument CreateItemSearchPreviewDocument()
             => CreatePreviewDocument(
                 "Item Search Intelligence",
-                "Search term: scan tool",
+                "Search term: scan item",
                 new[]
                 {
-                    "Top result: TL-101 Scan Tool | Available | Bay 2 - Shelf A",
+                    "Top result: TL-101 Scan Item | Available | Bay 2 - Shelf A",
                     "Recent searches show repeat demand from diagnostics and fleet teams.",
                     "Unavailable demand suggests ordering one additional unit before next month."
                 });
@@ -1226,7 +1226,7 @@ namespace InventoryManagementApp
         static FlowDocument CreateItemDetailsPreviewDocument()
             => CreatePreviewDocument(
                 "Item Details - TL-101",
-                "Scan Tool | Launch | Bay 2 - Shelf A",
+                "Scan Item | Launch | Bay 2 - Shelf A",
                 new[]
                 {
                     "Part number: SCAN-101",
@@ -1241,7 +1241,7 @@ namespace InventoryManagementApp
                 new[]
                 {
                     "Customer: North Harbour Motors",
-                    "Requested item: TL-101 Scan Tool",
+                    "Requested item: TL-101 Scan Item",
                     "Start: " + DateTime.Today.AddDays(1).ToString("yyyy-MM-dd") + " | End: " + DateTime.Today.AddDays(4).ToString("yyyy-MM-dd")
                 });
 
@@ -1251,7 +1251,7 @@ namespace InventoryManagementApp
                 "Advisor handoff before checkout",
                 new[]
                 {
-                    "Item: TL-101 Scan Tool",
+                    "Item: TL-101 Scan Item",
                     "Customer: Auckland Fleet Service",
                     "Verify charger, leads, and carry case before release."
                 });
@@ -1273,7 +1273,7 @@ namespace InventoryManagementApp
                 "Upcoming maintenance workload",
                 new[]
                 {
-                    "TL-101 Scan Tool | Routine | Scheduled in 4 days",
+                    "TL-101 Scan Item | Routine | Scheduled in 4 days",
                     "TL-204 Torque Wrench | Inspection | Scheduled in 9 days"
                 });
 
@@ -1304,7 +1304,7 @@ namespace InventoryManagementApp
                 "Visible reservations: 2",
                 new[]
                 {
-                    "9103 | TL-101 Scan Tool | Confirmed | North Harbour Motors",
+                    "9103 | TL-101 Scan Item | Confirmed | North Harbour Motors",
                     "9104 | TL-204 Torque Wrench | Pending | Auckland Fleet Service"
                 });
 
@@ -1315,7 +1315,7 @@ namespace InventoryManagementApp
                 new[]
                 {
                     "KIT-640 Diagnostics Starter Kit",
-                    "Contents: scan tool, charger, adapter pack"
+                    "Contents: scan item, charger, adapter pack"
                 });
 
         static FlowDocument CreateCategoryDirectoryPreviewDocument()
@@ -1345,7 +1345,7 @@ namespace InventoryManagementApp
                 "Visible rows: 3",
                 new[]
                 {
-                    "08:00 qa.tech | Checked out Scan Tool TL-101",
+                    "08:00 qa.tech | Checked out Scan Item TL-101",
                     "09:15 admin | Updated backup retention settings",
                     "10:42 qa.tech | Confirmed reservation 9103"
                 });
@@ -1418,7 +1418,7 @@ namespace InventoryManagementApp
             MaintenanceID = 7201,
             ItemID = 101,
             ItemNumber = "TL-101",
-            ItemName = "Scan Tool",
+            ItemName = "Scan Item",
             MaintenanceType = "Routine",
             Description = "Annual inspection and battery replacement",
             ScheduledDate = DateTime.Today.AddDays(4),
@@ -1450,7 +1450,7 @@ namespace InventoryManagementApp
             ItemID = 101,
             CustomerID = 12,
             ItemNumber = "TL-101",
-            ItemName = "Scan Tool",
+            ItemName = "Scan Item",
             CustomerName = "North Harbour Motors",
             ReservationDate = DateTime.Today.AddDays(-1),
             StartDate = DateTime.Today.AddDays(1),
@@ -1466,7 +1466,7 @@ namespace InventoryManagementApp
             KitNumber = "KIT-640",
             Name = "Diagnostics Starter Kit",
             Category = "Electronics",
-            Description = "Handheld scan tool, charger, and adapter pack.",
+            Description = "Handheld scan item, charger, and adapter pack.",
             IsActive = true,
             UpdatedAt = DateTime.Now.AddDays(-2)
         };
@@ -1477,7 +1477,7 @@ namespace InventoryManagementApp
             KitID = 640,
             ItemID = 101,
             ItemNumber = "TL-101",
-            ItemName = "Scan Tool",
+            ItemName = "Scan Item",
             Quantity = 1,
             IsOptional = false
         };
@@ -1493,7 +1493,7 @@ namespace InventoryManagementApp
                     Email = "qa.tech@example.com",
                     Phone = "09 555 0101",
                     Mobile = "021 555 0101",
-                    Address = "17 Tool Lane",
+                    Address = "17 Item Lane",
                     IsActive = true,
                     IsAdmin = false,
                     Permissions = User.BuildPermissions(User.DefaultUserPermissions)
@@ -1506,7 +1506,7 @@ namespace InventoryManagementApp
             ItemID = 101,
             ItemNumber = "TL-101",
             PartNumber = "SCAN-101",
-            Name = "Scan Tool",
+            Name = "Scan Item",
             Brand = "Launch",
             Location = "Bay 2 - Shelf A",
             Notes = "Bi-directional diagnostic scanner with charger and leads.",

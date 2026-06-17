@@ -6,7 +6,7 @@ Use this prompt for the agent that improves the app every hour.
 
 Inspect InventoryManagementApp as a real workshop user would. Do not only inspect code. Run the app, move through every visible screen, capture screenshots, identify anything incomplete, broken, confusing, unprofessional, or not wired end to end, then fix the highest-impact issue safely with tests.
 
-The app must feel like a high-quality early WinForms desktop tool: native controls, compact spacing, clear labels, strong hierarchy, tables over cards, minimal decoration, high information density, obvious workflows, fast interaction, no trendy web-app styling.
+The app must feel like a high-quality early WinForms desktop item: native controls, compact spacing, clear labels, strong hierarchy, tables over cards, minimal decoration, high information density, obvious workflows, fast interaction, no trendy web-app styling.
 
 ## Required loop every run
 

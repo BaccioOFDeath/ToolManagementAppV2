@@ -51,7 +51,7 @@
                                        FontSize="22"
                                        TextWrapping="Wrap"
                                        Margin="0,18,0,0"/>
-                            <TextBlock Text="Secure workstation access for tool inventory, rentals, service work, and admin tasks."
+                            <TextBlock Text="Secure workstation access for item inventory, rentals, service work, and admin tasks."
                                        Style="{StaticResource DialogMessageTextBlock}"
                                        Foreground="{DynamicResource ForegroundMutedBrush}"
                                        Margin="0,8,0,0"/>

@@ -75,8 +75,8 @@ namespace InventoryManagementApp.ViewModels
         }
 
         public string SelectedMaintenanceBenchChecklist => SelectedRecord == null
-            ? "Select work first, then verify the tool tag, confirm service notes, complete or edit the record, and print/copy the handoff before releasing the item."
-            : "Verify item tag and location, capture who performed the work, record cost/notes, mark complete when finished, and keep the printed or copied handoff with the tool.";
+            ? "Select work first, then verify the item tag, confirm service notes, complete or edit the record, and print/copy the handoff before releasing the item."
+            : "Verify item tag and location, capture who performed the work, record cost/notes, mark complete when finished, and keep the printed or copied handoff with the item.";
 
         private MaintenanceRecord? _selectedRecord;
         public MaintenanceRecord? SelectedRecord
