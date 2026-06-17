@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.Sqlite;
+using Microsoft.Data.Sqlite;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +9,7 @@ using System.Globalization;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
+using InventoryManagementApp.Models.Domain;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Services.Users;
@@ -49,17 +50,17 @@ namespace InventoryManagementApp.Services.Settings
         }
 
         /// <summary>
-        /// Saves a setting to the database. Requires admin privileges.
+        /// Saves a setting to the database. Requires settings permission.
         /// </summary>
         /// <param name="key">The setting key.</param>
         /// <param name="value">The setting value.</param>
         /// <param name="cancellationToken">Cancellation token for the operation.</param>
         /// <exception cref="ArgumentException">Thrown if key is null or whitespace.</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown if user lacks admin privileges.</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown if user lacks settings permission.</exception>
         /// <exception cref="InvalidOperationException">Thrown if the database operation fails.</exception>
         public async Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default)
         {
-            _auth.EnsureAdmin();
+            _auth.EnsurePermission(User.PermissionSettings);
             if (string.IsNullOrWhiteSpace(key))
                 throw new ArgumentException("Key cannot be null or empty.", nameof(key));
 
@@ -173,7 +174,7 @@ namespace InventoryManagementApp.Services.Settings
         /// </exception>
         public async Task UpdateSettingsAsync(Dictionary<string, string> settings, CancellationToken cancellationToken = default)
         {
-            _auth.EnsureAdmin();
+            _auth.EnsurePermission(User.PermissionSettings);
             if (settings == null)
                 throw new ArgumentNullException(nameof(settings));
 
@@ -220,7 +221,7 @@ namespace InventoryManagementApp.Services.Settings
 
         public async Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default)
         {
-            _auth.EnsureAdmin();
+            _auth.EnsurePermission(User.PermissionSettings);
             try
             {
                 const string sql = "DELETE FROM Settings WHERE Key = @Key";
@@ -271,7 +272,7 @@ namespace InventoryManagementApp.Services.Settings
 
         public async Task SavePasswordIterationsAsync(int iterations, CancellationToken cancellationToken = default)
         {
-            _auth.EnsureAdmin();
+            _auth.EnsurePermission(User.PermissionSettings);
             if (iterations <= 0)
                 throw new ArgumentOutOfRangeException(nameof(iterations));
             await SaveSettingAsync(PasswordIterationsKey, iterations.ToString(), cancellationToken).ConfigureAwait(false);
@@ -285,7 +286,7 @@ namespace InventoryManagementApp.Services.Settings
 
         public async Task SaveAutoLogoutMinutesAsync(int minutes, CancellationToken cancellationToken = default)
         {
-            _auth.EnsureAdmin();
+            _auth.EnsurePermission(User.PermissionSettings);
             if (minutes < 0)
                 throw new ArgumentOutOfRangeException(nameof(minutes));
             await SaveSettingAsync(AutoLogoutMinutesKey, minutes.ToString(), cancellationToken).ConfigureAwait(false);
@@ -299,7 +300,7 @@ namespace InventoryManagementApp.Services.Settings
 
         public async Task SaveItemLabelSingularAsync(string label, CancellationToken cancellationToken = default)
         {
-            _auth.EnsureAdmin();
+            _auth.EnsurePermission(User.PermissionSettings);
             await SaveSettingAsync(ItemLabelSingularKey, label, cancellationToken).ConfigureAwait(false);
         }
 
@@ -311,7 +312,7 @@ namespace InventoryManagementApp.Services.Settings
 
         public async Task SaveItemLabelPluralAsync(string label, CancellationToken cancellationToken = default)
         {
-            _auth.EnsureAdmin();
+            _auth.EnsurePermission(User.PermissionSettings);
             await SaveSettingAsync(ItemLabelPluralKey, label, cancellationToken).ConfigureAwait(false);
         }
 
@@ -335,7 +336,7 @@ namespace InventoryManagementApp.Services.Settings
             else
             {
                 visibility = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => true);
-                if (_auth.IsAdmin)
+                if (_auth.HasPermission(User.PermissionSettings))
                 {
                     await SaveItemDetailVisibilityAsync(visibility, cancellationToken).ConfigureAwait(false);
                 }
@@ -345,7 +346,7 @@ namespace InventoryManagementApp.Services.Settings
 
         public async Task SaveItemDetailVisibilityAsync(IDictionary<ItemDetailField, bool> visibility, CancellationToken cancellationToken = default)
         {
-            _auth.EnsureAdmin();
+            _auth.EnsurePermission(User.PermissionSettings);
             var dict = visibility.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value);
             var json = JsonSerializer.Serialize(dict);
             await SaveSettingAsync(ItemDetailVisibilityKey, json, cancellationToken).ConfigureAwait(false);
@@ -366,7 +367,7 @@ namespace InventoryManagementApp.Services.Settings
 
         public async Task SaveItemCardSizeAsync(double size, CancellationToken cancellationToken = default)
         {
-            _auth.EnsureAdmin();
+            _auth.EnsurePermission(User.PermissionSettings);
             if (size <= 0.2)
                 throw new ArgumentOutOfRangeException(nameof(size));
             var value = size.ToString("0.###", CultureInfo.InvariantCulture);
