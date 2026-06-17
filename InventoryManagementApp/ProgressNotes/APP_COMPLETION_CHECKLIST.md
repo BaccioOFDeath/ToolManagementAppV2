@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-18 01:11 NZST
+Last audit date/time: 2026-06-18 02:11 NZST
 
 ## Completed workflows
 
@@ -36,6 +36,7 @@ Last audit date/time: 2026-06-18 01:11 NZST
 - Dashboard recent activity now has a visible Open Related action, row-correct related-workflow context menu, activity-type routing to Rentals or Import / Export where available, and selected-row footer destination context.
 - Dashboard footer context now follows the most recently selected dashboard row type, with regression coverage for activity and rental selections replacing stale dashboard summary context.
 - Dashboard row-specific actions now disable until the matching row type is selected, Open Related no longer falls through to the item workflow with no activity selected, and successful check-in/return/reload flows clear stale dashboard selections.
+- Dashboard KPI and activity polish now gives the overview page a stronger command-center header, prominent stat cards, a four-part priority strip, clearer pane captions, and visible recent-activity destination context while preserving existing row and command behavior.
 - Shared visual hierarchy polish now loads after the desktop shell resources, lifting common cards, toolbar/action strips, pane headers, summary cards, primary buttons, and dense grid headers so repeated workbench surfaces have stronger hierarchy without editing each page one by one.
 - Auth entry surfaces now have a more deliberate first impression: login uses a two-panel workstation entry with branded context and stronger user cards, while password prompt and change-password dialogs use secure-access framing, clearer field guidance, wider inputs, and stronger action labels.
 - The setup wizard now presents first-run onboarding with a stronger launch header, setup checklist, guided field descriptions, framed logo preview, ready-check validation, and a `Complete Setup` action while preserving the existing setup command flow.
@@ -55,7 +56,7 @@ Last audit date/time: 2026-06-18 01:11 NZST
 - Rentals now have a completed desktop workflow surface, but runtime check-in/extend/request/delete/print/document and screenshot validation still needs a Windows/.NET workstation.
 - Categories now have a completed desktop workflow surface, but runtime create/rename/delete/filter/print/copy and screenshot validation still needs a Windows/.NET workstation.
 - Shell workflow guidance and responsive header behavior have been implemented, but runtime narrow/wide workstation screenshot review still needs a Windows/.NET workstation.
-- Dashboard activity drilldown, footer context, and selected-action state have been tightened, but runtime dashboard interaction and screenshot validation still need a Windows/.NET workstation.
+- Dashboard command-center, KPI, activity drilldown, footer context, and selected-action polish are in place, but runtime dashboard interaction and screenshot validation still need a Windows/.NET workstation.
 - Shared visual hierarchy polish is in place across common shell resources, but runtime screenshot review still needs to confirm the new surface shadow, accent dividers, primary-action emphasis, and denser grid headers look right across light/dark themes and narrow workstations.
 - Auth entry and setup wizard polish are in place for login, password prompt, change-password, and onboarding surfaces, but password-reset prompt, Settings database/branding/backups, and runtime auth/setup screenshot review still need follow-up.
 - Search Tools first-pass polish is in place for results, checked-out items, recent searches, and unavailable-demand intelligence, but runtime screenshot review still needs to confirm the new right-pane width, summary strip, and action wrapping at standard and narrow workstation sizes.
@@ -68,10 +69,10 @@ Last audit date/time: 2026-06-18 01:11 NZST
 
 ## Next recommended target
 
-- Continue targeted UI polish on Dashboard KPI/activity surfaces, Settings database/branding/backups, and print-preview document styling. Run the enhanced Windows QA screenshot capture when a Windows/.NET workstation is available.
+- Continue targeted UI polish on Settings database/branding/backups, password-reset prompt, and print-preview document styling. Run the enhanced Windows QA screenshot capture when a Windows/.NET workstation is available.
 
 ## Validation status
 
-- GitHub connector readback reviewed the Search Tools XAML, ToDo progress log, and this checklist update.
+- GitHub connector readback reviewed the Dashboard XAML, ToDo progress log, and this checklist update.
 - Local XAML parsing, `dotnet --info`, `dotnet restore`, `dotnet build`, `dotnet test`, WPF screenshots, and local banned-word checks were not run because this scheduled Linux container lacks the .NET SDK and Windows/WPF runtime, and direct local clone/raw fetches remain blocked by the network tunnel.
 - Did not run unrelated tests, per instruction.
