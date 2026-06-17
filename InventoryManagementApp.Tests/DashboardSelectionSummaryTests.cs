@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Interfaces;
@@ -61,10 +63,85 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("Reservation created", vm.SelectedRecordSummary);
         }
 
-        private static DashboardViewModel CreateViewModel(DatabaseService db)
+        [Fact]
+        public void OpenActivityDestinationCommand_IsDisabledUntilActivityIsSelected()
+        {
+            using var db = new DatabaseService(":memory:");
+            var vm = CreateViewModel(db);
+
+            Assert.False(vm.HasSelectedActivity);
+            Assert.False(vm.OpenActivityDestinationCommand.CanExecute(null));
+
+            vm.SelectedActivity = new ActivityLog
+            {
+                Timestamp = new DateTime(2026, 6, 17, 10, 0, 0),
+                UserName = "Taylor",
+                Action = "Rental returned"
+            };
+
+            Assert.True(vm.HasSelectedActivity);
+            Assert.True(vm.OpenActivityDestinationCommand.CanExecute(null));
+        }
+
+        [Fact]
+        public void SelectedActionCommands_ClearCanExecuteWhenSelectionIsCleared()
+        {
+            using var db = new DatabaseService(":memory:");
+            var vm = CreateViewModel(db);
+
+            vm.SelectedCheckedOutItem = new ItemModel
+            {
+                ItemID = 14,
+                ItemNumber = "CORD-14",
+                Name = "Extension cord",
+                Location = "Bay 2",
+                IsCheckedOut = true
+            };
+
+            Assert.True(vm.HasSelectedCheckedOutItem);
+            Assert.True(vm.OpenSelectedCheckedOutItemCommand.CanExecute(null));
+            Assert.True(vm.CheckInSelectedItemCommand.CanExecute(null));
+
+            vm.SelectedCheckedOutItem = null;
+
+            Assert.False(vm.HasSelectedCheckedOutItem);
+            Assert.False(vm.OpenSelectedCheckedOutItemCommand.CanExecute(null));
+            Assert.False(vm.CheckInSelectedItemCommand.CanExecute(null));
+            Assert.Equal("Select or double-click a row to open the related workflow.", vm.SelectedRecordSummary);
+        }
+
+        [Fact]
+        public async Task CheckInSelectedItemCommand_ClearsReturnedRowSelection()
+        {
+            using var db = new DatabaseService(":memory:");
+            var itemService = new Mock<IItemService>();
+            itemService.Setup(service => service.ToggleItemCheckOutStatusAsync(42, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+            var vm = CreateViewModel(db, itemService: itemService.Object);
+            var item = new ItemModel
+            {
+                ItemID = 42,
+                ItemNumber = "PUMP-42",
+                Name = "Transfer pump",
+                Location = "Rental shelf",
+                IsCheckedOut = true
+            };
+
+            vm.CheckedOutItems.Add(item);
+            vm.SelectedCheckedOutItem = item;
+
+            await vm.CheckInSelectedItemCommand.ExecuteAsync(null);
+
+            Assert.Null(vm.SelectedCheckedOutItem);
+            Assert.DoesNotContain(item, vm.CheckedOutItems);
+            Assert.False(vm.CheckInSelectedItemCommand.CanExecute(null));
+            Assert.Equal("Select or double-click a row to open the related workflow.", vm.SelectedRecordSummary);
+        }
+
+        private static DashboardViewModel CreateViewModel(DatabaseService db, IItemService? itemService = null)
         {
             return new DashboardViewModel(
-                Mock.Of<IItemService>(),
+                itemService ?? Mock.Of<IItemService>(),
                 Mock.Of<IRentalService>(),
                 Mock.Of<ICustomerService>(),
                 Mock.Of<IUserService>(),
