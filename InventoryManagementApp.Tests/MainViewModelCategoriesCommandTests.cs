@@ -42,6 +42,10 @@ namespace InventoryManagementApp.Tests
                         .ConfigureServices(s =>
                         {
                             s.AddSingleton<IDatabaseService>(db);
+                            s.AddSingleton<IDialogService, StubDialogService>();
+                            s.AddSingleton<IFileDialogService, StubFileDialogService>();
+                            s.AddSingleton<ISettingsService, StubSettingsService>();
+                            s.AddSingleton<IThemeService, StubThemeService>();
                             s.AddSingleton<CategoriesService>();
                             s.AddTransient<CategoryManagementViewModel>();
                         })
