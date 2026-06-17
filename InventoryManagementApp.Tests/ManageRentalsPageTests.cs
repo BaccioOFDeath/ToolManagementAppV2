@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Media3D;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -95,8 +96,11 @@ namespace InventoryManagementApp.Tests
             if (root is T match)
                 yield return match;
 
-            foreach (var visualChild in FindVisualChildren<T>(root))
-                yield return visualChild;
+            if (root is Visual or Visual3D)
+            {
+                foreach (var visualChild in FindVisualChildren<T>(root))
+                    yield return visualChild;
+            }
 
             if (root is FrameworkElement element)
             {
