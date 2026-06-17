@@ -33,7 +33,7 @@ public class NullSafetyTests
         Assert.Empty(vm.ReportLines);
         Assert.Equal("Unknown Report", vm.ReportTitle);
         Assert.Equal("The report returned no detail rows.", vm.ReportSummary);
-        Assert.Equal("Unknown Report completed with 0 line(s).", vm.ReportStatus);
+        Assert.Equal("Unknown Report completed with no rows to action.", vm.ReportStatus);
     }
 
     [Fact]

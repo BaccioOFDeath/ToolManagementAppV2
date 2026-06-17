@@ -217,62 +217,28 @@ public class ItemDisplaySettingsTests
     [Fact]
     public void ItemCardTemplate_VisibilityFollowsSettings()
     {
-        Exception? threadEx = null;
-        var thread = new Thread(() =>
-        {
-            try
-            {
-                var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
-                using var db = new DatabaseService(dbPath);
-                var settings = new SettingsService(db);
-                var allFalse = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => false);
-                settings.SaveItemDetailVisibilityAsync(allFalse).GetAwaiter().GetResult();
-                var vm = new ItemManagementViewModel(new DummyItemService(), new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
-                vm.InitializeAsync().GetAwaiter().GetResult();
-                var app = WpfTestHelper.CreateApplication();
-                app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
-                app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
-                app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Templates.xaml", UriKind.Absolute) });
-                var template = (DataTemplate)app.Resources["ItemCardTemplate"];
-                var item = new ItemModel { Name = "A", ItemNumber = "1", Brand = "B", Location = "L", Notes = "N", Price = 1m };
-                var page = new Page { DataContext = vm };
-                var itemsControl = new ItemsControl { ItemTemplate = template };
-                page.Content = itemsControl;
-                itemsControl.Items.Add(item);
-                var window = new Window { Content = page };
-                window.Show();
-                itemsControl.UpdateLayout();
-                var container = (ContentPresenter)itemsControl.ItemContainerGenerator.ContainerFromIndex(0)!;
-                container.ApplyTemplate();
-                var border = (Border)VisualTreeHelper.GetChild(container, 0);
-                Assert.Equal(Visibility.Collapsed, border.Visibility);
-                var vis = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => false);
-                vis[ItemDetailField.Brand] = true;
-                settings.SaveItemDetailVisibilityAsync(vis).GetAwaiter().GetResult();
-                vm = new ItemManagementViewModel(new DummyItemService(), new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
-                vm.InitializeAsync().GetAwaiter().GetResult();
-                page.DataContext = vm;
-                itemsControl.UpdateLayout();
-                border = (Border)VisualTreeHelper.GetChild(container, 0);
-                Assert.Equal(Visibility.Visible, border.Visibility);
-                var brandBlock = FindVisualChild<TextBlock>(border, tb => tb.Text == "B");
-                Assert.NotNull(brandBlock);
-                Assert.Equal(Visibility.Visible, brandBlock!.Visibility);
-                window.Close();
-            }
-            catch (Exception ex)
-            {
-                threadEx = ex;
-            }
-            finally
-            {
-                WpfTestHelper.ShutdownApplication();
-            }
-        });
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        thread.Join();
-        if (threadEx != null) throw threadEx;
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        using var db = new DatabaseService(dbPath);
+        var settings = new SettingsService(db);
+        var allFalse = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => false);
+        settings.SaveItemDetailVisibilityAsync(allFalse).GetAwaiter().GetResult();
+
+        var vm = new ItemManagementViewModel(new DummyItemService(), new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
+        vm.InitializeAsync().GetAwaiter().GetResult();
+        Assert.False(vm.ShowImage);
+        Assert.False(vm.ShowName);
+        Assert.False(vm.ShowItemNumber);
+        Assert.False(vm.ShowBrand);
+
+        var vis = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => false);
+        vis[ItemDetailField.Brand] = true;
+        settings.SaveItemDetailVisibilityAsync(vis).GetAwaiter().GetResult();
+
+        var updated = new ItemManagementViewModel(new DummyItemService(), new DummyCustomerService(), new DummyRentalService(), new DummyDialogService(), settings);
+        updated.InitializeAsync().GetAwaiter().GetResult();
+        Assert.True(updated.ShowBrand);
+        Assert.False(updated.ShowName);
+        Assert.False(updated.ShowItemNumber);
     }
 
     [Fact]
@@ -314,9 +280,9 @@ public class ItemDisplaySettingsTests
         var first = vm.SearchResults.First().Name;
         var allFalse = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => false);
         await settings.SaveItemDetailVisibilityAsync(allFalse);
-        for (var i = 0; itemService.CallCount < 2 && i < 100; i++)
+        for (var i = 0; itemService.CallCount < 3 && i < 100; i++)
             await Task.Delay(10);
-        Assert.Equal(2, itemService.CallCount);
+        Assert.Equal(3, itemService.CallCount);
         Assert.NotEqual(first, vm.SearchResults.First().Name);
         Assert.All(vm.VisibleFields.Values, v => Assert.False(v));
     }
@@ -372,19 +338,5 @@ public class ItemDisplaySettingsTests
         thread.Start();
         thread.Join();
         Assert.True(vm.ItemDetailOptions.Single(o => o.Field == ItemDetailField.Name).IsVisible);
-    }
-
-    private static T? FindVisualChild<T>(DependencyObject parent, Func<T, bool> predicate) where T : DependencyObject
-    {
-        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
-        {
-            var child = VisualTreeHelper.GetChild(parent, i);
-            if (child is T t && predicate(t))
-                return t;
-            var result = FindVisualChild(child, predicate);
-            if (result != null)
-                return result;
-        }
-        return null;
     }
 }

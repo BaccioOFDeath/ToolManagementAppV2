@@ -30,6 +30,23 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void Convert_AbsoluteExistingPath_ReturnsTrue()
+        {
+            var tempFile = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.txt");
+            File.WriteAllText(tempFile, "test");
+            try
+            {
+                var converter = new ExistingFilePathToBoolConverter();
+                var result = converter.Convert(tempFile, typeof(bool), null, CultureInfo.InvariantCulture);
+                Assert.True(result is bool b && b);
+            }
+            finally
+            {
+                try { File.Delete(tempFile); } catch { }
+            }
+        }
+
+        [Fact]
         public void Convert_RelativeMissingPath_ReturnsFalse()
         {
             var relative = Path.Combine("nonexistent", "file.txt");

@@ -4,6 +4,10 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Collections.Generic;
+using InventoryManagementApp.Data;
+using InventoryManagementApp.Models.Domain;
+using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Services.Items;
 using Xunit;
 
@@ -71,10 +75,31 @@ namespace InventoryManagementApp.Tests
 
         class TestItemService : ItemService
         {
-            public TestItemService() : base(null!, null!) { }
+            public TestItemService() : base(new DatabaseService(Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.db")), new StubItemRepository()) { }
 
             public Task InvokeCopyFileAsync(string src, string dest, int maxW, int maxH)
                 => CopyFileAsync(src, dest, maxW, maxH, CancellationToken.None);
+        }
+
+        class StubItemRepository : IItemRepository
+        {
+            public Task<int> CountAsync(ItemFilter filter, CancellationToken cancellationToken) => Task.FromResult(0);
+            public Task DeleteAsync(int itemID, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task<ItemModel?> GetByIdAsync(int id, CancellationToken cancellationToken) => Task.FromResult<ItemModel?>(null);
+            public Task<List<ItemModel>> GetCheckedOutItemsAsync(CancellationToken cancellationToken) => Task.FromResult(new List<ItemModel>());
+            public Task<List<ItemModel>> GetIncompleteItemsAsync(CancellationToken cancellationToken) => Task.FromResult(new List<ItemModel>());
+            public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken) => Task.FromResult(new List<ItemModel>());
+            public Task<List<ItemModel>> GetMostCommonlyUsedItemsAsync(int limit, CancellationToken cancellationToken) => Task.FromResult(new List<ItemModel>());
+            public async IAsyncEnumerable<ItemModel> GetPageAsync(ItemFilter filter, ItemPage page, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
+            {
+                await Task.CompletedTask;
+                yield break;
+            }
+            public Task<int> InsertAsync(ItemModel item, CancellationToken cancellationToken) => Task.FromResult(0);
+            public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task<bool> ToggleCheckOutStatusAsync(int itemID, string currentUser, bool isAdmin, CancellationToken cancellationToken) => Task.FromResult(false);
+            public Task UpdateAsync(ItemModel item, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken) => Task.CompletedTask;
         }
     }
 }

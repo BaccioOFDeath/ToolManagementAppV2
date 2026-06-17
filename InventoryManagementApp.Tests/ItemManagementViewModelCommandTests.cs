@@ -40,7 +40,10 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public async Task ToggleCheckOutCommand_TogglesItem()
         {
-            var itemService = new RecordingToggleItemService();
+            var itemService = new RecordingToggleItemService
+            {
+                GetItemResult = new ItemModel { ItemID = 1, QuantityOnHand = 3, IsCheckedOut = false }
+            };
             var dialog = new RecordingDialogService();
             var rental = new RecordingRentalService();
             var customer = new RecordingCustomerService();
@@ -123,6 +126,8 @@ namespace InventoryManagementApp.Tests
                 GetItemResult = new ItemModel
                 {
                     ItemID = 4,
+                    QuantityOnHand = 2,
+                    IsCheckedOut = false,
                     CheckedOutBy = "Alex",
                     CheckedOutTime = new DateTime(2026, 4, 28, 10, 0, 0)
                 }
@@ -340,6 +345,14 @@ namespace InventoryManagementApp.Tests
             public Task<bool> ToggleItemCheckOutStatusAsync(int itemID, CancellationToken cancellationToken = default)
             {
                 ToggleCalled = true;
+                if (GetItemResult != null)
+                {
+                    var checkedOut = !GetItemResult.IsCheckedOut;
+                    GetItemResult.IsCheckedOut = checkedOut;
+                    GetItemResult.QuantityOnHand += checkedOut ? -1 : 1;
+                    if (checkedOut && string.IsNullOrWhiteSpace(GetItemResult.CheckedOutBy))
+                        GetItemResult.CheckedOutBy = "Alex";
+                }
                 return Task.FromResult(true);
             }
             public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());

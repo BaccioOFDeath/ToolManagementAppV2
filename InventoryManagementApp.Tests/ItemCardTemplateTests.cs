@@ -26,8 +26,8 @@ namespace InventoryManagementApp.Tests
                 .ToList();
 
             Assert.Contains("{Binding Name}", texts);
+            Assert.Contains("{Binding ItemNumber}", texts);
             Assert.DoesNotContain("{Binding Notes}", texts);
-            Assert.DoesNotContain("{Binding ItemNumber}", texts);
             Assert.DoesNotContain("{Binding Location, StringFormat=Location: {0}}", texts);
             Assert.DoesNotContain("{Binding OnHand, StringFormat=On Hand: {0}}", texts);
 
@@ -39,6 +39,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("{Binding HasNoOnHand}", triggers);
             Assert.Contains("{Binding HasRentedStock}", triggers);
             Assert.Contains("{Binding IsCheckedOut}", triggers);
+            Assert.Contains("{Binding IsIncomplete}", triggers);
         }
     }
 }

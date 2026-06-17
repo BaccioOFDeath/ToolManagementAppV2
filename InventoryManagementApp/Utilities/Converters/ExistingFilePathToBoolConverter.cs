@@ -31,6 +31,9 @@ namespace InventoryManagementApp.Utilities.Converters
             if (string.IsNullOrWhiteSpace(path))
                 return false;
 
+            if (Path.IsPathRooted(path))
+                return File.Exists(path);
+
             var absPath = Helpers.PathHelper.GetAbsolutePath(path, false);
             return !string.IsNullOrWhiteSpace(absPath) && File.Exists(absPath);
         }

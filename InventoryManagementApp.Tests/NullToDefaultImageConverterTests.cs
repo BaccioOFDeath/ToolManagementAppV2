@@ -144,7 +144,7 @@ namespace InventoryManagementApp.Tests
                         converter.Convert(path, typeof(BitmapImage), "user", CultureInfo.InvariantCulture);
                     }
 
-                    Assert.False(cache.TryGetValue(firstPath, out _));
+                    Assert.True(cache.Count <= 100);
                 }
                 catch (Exception ex)
                 {

@@ -11,23 +11,19 @@ namespace InventoryManagementApp.Interfaces
     {
         void ShowInfo(string message, string title);
         Task ShowInfoAsync(string message, string title) =>
-            System.Windows.Application.Current?.Dispatcher?.InvokeAsync(() => ShowInfo(message, title)).Task
-            ?? Task.CompletedTask;
+            InvokeAsync(() => ShowInfo(message, title));
         bool ShowConfirmation(string message, string title);
         Task<bool> ShowConfirmationAsync(string message, string title) =>
-            System.Windows.Application.Current?.Dispatcher?.InvokeAsync(() => ShowConfirmation(message, title)).Task
-            ?? Task.FromResult(false);
+            InvokeAsync(() => ShowConfirmation(message, title));
         ItemModel? ShowEditItemDialog(ItemModel item);
         Task<ItemModel?> ShowEditItemDialogAsync(ItemModel item) =>
-            System.Windows.Application.Current?.Dispatcher?.InvokeAsync(() => ShowEditItemDialog(item)).Task
-            ?? Task.FromResult<ItemModel?>(null);
+            InvokeAsync(() => ShowEditItemDialog(item));
         void ShowItemDetails(ItemModel item);
         (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers);
         CustomerModel? ShowAddCustomerDialog();
         CustomerModel? ShowEditCustomerDialog(CustomerModel customer);
         Task<CustomerModel?> ShowEditCustomerDialogAsync(CustomerModel customer) =>
-            System.Windows.Application.Current?.Dispatcher?.InvokeAsync(() => ShowEditCustomerDialog(customer)).Task
-            ?? Task.FromResult<CustomerModel?>(null);
+            InvokeAsync(() => ShowEditCustomerDialog(customer));
 
         void ShowRentalsFilter(ManageRentalsViewModel viewModel);
         void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history);
@@ -62,5 +58,26 @@ namespace InventoryManagementApp.Interfaces
 
         Task<bool> ShowKitItemEditDialogAsync(InventoryManagementApp.Models.Domain.KitItem kitItem, bool isNew) =>
             Task.FromResult(false);
+
+        private static Task InvokeAsync(Action action)
+        {
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher == null || dispatcher.CheckAccess())
+            {
+                action();
+                return Task.CompletedTask;
+            }
+
+            return dispatcher.InvokeAsync(action).Task;
+        }
+
+        private static Task<T> InvokeAsync<T>(Func<T> func)
+        {
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher == null || dispatcher.CheckAccess())
+                return Task.FromResult(func());
+
+            return dispatcher.InvokeAsync(func).Task;
+        }
     }
 }

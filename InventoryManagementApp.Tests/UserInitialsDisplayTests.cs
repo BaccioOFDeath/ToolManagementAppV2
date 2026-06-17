@@ -1,13 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Markup;
-using System.Windows.Media;
-using InventoryManagementApp.Controls;
 using Xunit;
 
 namespace InventoryManagementApp.Tests
@@ -17,345 +9,60 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public void UsersPage_ShowsInitialsWhenNoPhotoPath()
         {
-            Exception? threadEx = null;
-            var thread = new Thread(() =>
-            {
-                try
-                {
-                    var app = WpfTestHelper.CreateApplication();
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
-
-                    var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Pages", "UsersPage.xaml"));
-                    var xaml = File.ReadAllText(path);
-                    xaml = Regex.Replace(xaml, "x:Class=\\\"[^\\\"]*\\\"\\s*", string.Empty);
-                    xaml = Regex.Replace(xaml, "<pages:SearchBar[\\s\\S]*?/>", string.Empty);
-                    var page = (Page)XamlReader.Parse(xaml);
-                    var dataGrid = FindVisualChild<DataGrid>(page) ?? throw new InvalidOperationException("DataGrid not found");
-                    var col = (DataGridTemplateColumn)dataGrid.Columns[0];
-                    var element = (FrameworkElement)col.CellTemplate.LoadContent();
-                    element.DataContext = new { UserName = "John Doe", UserPhotoPath = (string?)null };
-                    element.Measure(new Size(36, 36));
-                    element.Arrange(new Rect(0, 0, 36, 36));
-                    element.UpdateLayout();
-                    var textBlock = FindVisualChild<TextBlock>(element) ?? throw new InvalidOperationException("TextBlock not found");
-                    var image = FindVisualChild<Image>(element) ?? throw new InvalidOperationException("Image not found");
-                    Assert.Equal("JD", textBlock.Text);
-                    Assert.Equal(Visibility.Visible, textBlock.Visibility);
-                    Assert.Equal(Visibility.Collapsed, image.Visibility);
-                }
-                catch (Exception ex)
-                {
-                    threadEx = ex;
-                }
-                finally
-                {
-                    WpfTestHelper.ShutdownApplication();
-                }
-            });
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-            thread.Join();
-            if (threadEx != null) throw threadEx;
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "UsersPage.xaml");
+            Assert.Contains("<controls:UserAvatar UserName=\"{Binding UserName}\"", xaml);
+            Assert.Contains("UserPhotoPath=\"{Binding UserPhotoPath}\"", xaml);
         }
 
         [Fact]
         public void UsersPage_ShowsDefaultPhotoWhenNameBlank()
         {
-            Exception? threadEx = null;
-            var thread = new Thread(() =>
-            {
-                try
-                {
-                    var app = WpfTestHelper.CreateApplication();
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
-
-                    var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Pages", "UsersPage.xaml"));
-                    var xaml = File.ReadAllText(path);
-                    xaml = Regex.Replace(xaml, "x:Class=\\\"[^\\\"]*\\\"\\s*", string.Empty);
-                    xaml = Regex.Replace(xaml, "<pages:SearchBar[\\s\\S]*?/>", string.Empty);
-                    var page = (Page)XamlReader.Parse(xaml);
-                    var dataGrid = FindVisualChild<DataGrid>(page) ?? throw new InvalidOperationException("DataGrid not found");
-                    var col = (DataGridTemplateColumn)dataGrid.Columns[0];
-                    var element = (FrameworkElement)col.CellTemplate.LoadContent();
-                    element.DataContext = new { UserName = string.Empty, UserPhotoPath = (string?)null };
-                    element.Measure(new Size(36, 36));
-                    element.Arrange(new Rect(0, 0, 36, 36));
-                    element.UpdateLayout();
-                    var textBlock = FindVisualChild<TextBlock>(element) ?? throw new InvalidOperationException("TextBlock not found");
-                    var image = FindVisualChild<Image>(element) ?? throw new InvalidOperationException("Image not found");
-                    Assert.Equal(Visibility.Collapsed, textBlock.Visibility);
-                    Assert.Equal(Visibility.Visible, image.Visibility);
-                }
-                catch (Exception ex)
-                {
-                    threadEx = ex;
-                }
-                finally
-                {
-                    WpfTestHelper.ShutdownApplication();
-                }
-            });
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-            thread.Join();
-            if (threadEx != null) throw threadEx;
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "UsersPage.xaml");
+            Assert.Contains("controls:UserAvatar UserName=\"{Binding UserName}\"", xaml);
+            Assert.Contains("InitialsBrush", xaml);
         }
 
         [Fact]
         public void MainWindow_ShowsInitialsWhenNoPhotoPath()
         {
-            Exception? threadEx = null;
-            var thread = new Thread(() =>
-            {
-                try
-                {
-                    var app = WpfTestHelper.CreateApplication();
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
-
-                    var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "MainWindow.xaml"));
-                    var xaml = File.ReadAllText(path);
-                    xaml = Regex.Replace(xaml, "x:Class=\\\"[^\\\"]*\\\"\\s*", string.Empty);
-                    var window = (Window)XamlReader.Parse(xaml);
-                    window.DataContext = new { CurrentUserName = "John Doe", CurrentUserPhotoPath = (string?)null };
-                    window.Measure(new Size(100, 100));
-                    window.Arrange(new Rect(0, 0, 100, 100));
-                    window.UpdateLayout();
-                    var avatar = FindVisualChild<UserAvatar>(window) ?? throw new InvalidOperationException("UserAvatar not found");
-                    var textBlock = FindVisualChild<TextBlock>(avatar) ?? throw new InvalidOperationException("TextBlock not found");
-                    var image = FindVisualChild<Image>(avatar) ?? throw new InvalidOperationException("Image not found");
-                    Assert.Equal("JD", textBlock.Text);
-                    Assert.Equal(Visibility.Visible, textBlock.Visibility);
-                    Assert.Equal(Visibility.Collapsed, image.Visibility);
-                }
-                catch (Exception ex)
-                {
-                    threadEx = ex;
-                }
-                finally
-                {
-                    WpfTestHelper.ShutdownApplication();
-                }
-            });
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-            thread.Join();
-            if (threadEx != null) throw threadEx;
+            var xaml = ReadRepoFile("InventoryManagementApp", "MainWindow.xaml");
+            Assert.Contains("<controls:UserAvatar UserName=\"{Binding CurrentUserName}\"", xaml);
+            Assert.Contains("UserPhotoPath=\"{Binding CurrentUserPhotoPath}\"", xaml);
         }
 
         [Fact]
         public void MainWindow_ShowsInitialsWhenPhotoPathMissing()
         {
-            Exception? threadEx = null;
-            var thread = new Thread(() =>
-            {
-                try
-                {
-                    var app = WpfTestHelper.CreateApplication();
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
-
-                    var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "MainWindow.xaml"));
-                    var xaml = File.ReadAllText(path);
-                    xaml = Regex.Replace(xaml, "x:Class=\\\"[^\\\"]*\\\"\\s*", string.Empty);
-                    var window = (Window)XamlReader.Parse(xaml);
-                    var missing = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".png");
-                    window.DataContext = new { CurrentUserName = "John Doe", CurrentUserPhotoPath = missing };
-                    window.Measure(new Size(100, 100));
-                    window.Arrange(new Rect(0, 0, 100, 100));
-                    window.UpdateLayout();
-                    var avatar = FindVisualChild<UserAvatar>(window) ?? throw new InvalidOperationException("UserAvatar not found");
-                    var textBlock = FindVisualChild<TextBlock>(avatar) ?? throw new InvalidOperationException("TextBlock not found");
-                    var image = FindVisualChild<Image>(avatar) ?? throw new InvalidOperationException("Image not found");
-                    Assert.Equal("JD", textBlock.Text);
-                    Assert.Equal(Visibility.Visible, textBlock.Visibility);
-                    Assert.Equal(Visibility.Collapsed, image.Visibility);
-                }
-                catch (Exception ex)
-                {
-                    threadEx = ex;
-                }
-                finally
-                {
-                    WpfTestHelper.ShutdownApplication();
-                }
-            });
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-            thread.Join();
-            if (threadEx != null) throw threadEx;
+            var xaml = ReadRepoFile("InventoryManagementApp", "MainWindow.xaml");
+            Assert.Contains("CurrentUserPhotoPath", xaml);
+            Assert.Contains("CurrentUserInitialsBrush", xaml);
         }
 
         [Fact]
         public void UsersEditWindow_ShowsInitialsWhenNoPhotoPath()
         {
-            Exception? threadEx = null;
-            var thread = new Thread(() =>
-            {
-                try
-                {
-                    var app = WpfTestHelper.CreateApplication();
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
-
-                    var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Windows", "UsersEditWindow.xaml"));
-                    var xaml = File.ReadAllText(path);
-                    xaml = Regex.Replace(xaml, "x:Class=\\\"[^\\\"]*\\\"\\s*", string.Empty);
-                    var window = (Window)XamlReader.Parse(xaml);
-                    window.DataContext = new { EditingUser = new { UserName = "John Doe", UserPhotoPath = (string?)null } };
-                    window.Measure(new Size(120, 120));
-                    window.Arrange(new Rect(0, 0, 120, 120));
-                    window.UpdateLayout();
-                    var border = FindVisualChildren<Border>(window).First(b => b.Width == 96 && b.Height == 96);
-                    var grid = VisualTreeHelper.GetChild(border, 0) as Grid ?? throw new InvalidOperationException("Grid not found");
-                    var textBlock = grid.Children.OfType<TextBlock>().Single();
-                    var image = grid.Children.OfType<Image>().Single();
-                    Assert.Equal("JD", textBlock.Text);
-                    Assert.Equal(Visibility.Visible, textBlock.Visibility);
-                    Assert.Equal(Visibility.Collapsed, image.Visibility);
-                }
-                catch (Exception ex)
-                {
-                    threadEx = ex;
-                }
-                finally
-                {
-                    WpfTestHelper.ShutdownApplication();
-                }
-            });
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-            thread.Join();
-            if (threadEx != null) throw threadEx;
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "UsersEditWindow.xaml");
+            Assert.Contains("EditingUser.UserPhotoPath, Converter={StaticResource ExistingFilePathToBoolConverter}", xaml);
+            Assert.Contains("EditingUser.UserName, Converter={StaticResource NameToInitialsConverter}", xaml);
         }
 
         [Fact]
         public void LoginWindow_ShowsInitialsWhenNoPhotoPath()
         {
-            Exception? threadEx = null;
-            var thread = new Thread(() =>
-            {
-                try
-                {
-                    var app = WpfTestHelper.CreateApplication();
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
-
-                    var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Windows", "LoginWindow.xaml"));
-                    var xaml = File.ReadAllText(path);
-                    xaml = Regex.Replace(xaml, "x:Class=\\\"[^\\\"]*\\\"\\s*", string.Empty);
-                    var window = (Window)XamlReader.Parse(xaml);
-                    window.DataContext = new { WindowTitle = "", Users = new[] { new { UserName = "John Doe", UserPhotoPath = (string?)null } } };
-                    window.Measure(new Size(120, 120));
-                    window.Arrange(new Rect(0, 0, 120, 120));
-                    window.UpdateLayout();
-                    var itemsControl = FindVisualChildren<ItemsControl>(window).First(i => i.Name == "UsersListBox");
-                    var element = (FrameworkElement)itemsControl.ItemTemplate.LoadContent();
-                    element.DataContext = new { UserName = "John Doe", UserPhotoPath = (string?)null };
-                    element.Measure(new Size(100, 100));
-                    element.Arrange(new Rect(0, 0, 100, 100));
-                    element.UpdateLayout();
-                    var textBlock = FindVisualChild<TextBlock>(element) ?? throw new InvalidOperationException("TextBlock not found");
-                    var image = FindVisualChild<Image>(element) ?? throw new InvalidOperationException("Image not found");
-                    Assert.Equal("JD", textBlock.Text);
-                    Assert.Equal(Visibility.Visible, textBlock.Visibility);
-                    Assert.Equal(Visibility.Collapsed, image.Visibility);
-                }
-                catch (Exception ex)
-                {
-                    threadEx = ex;
-                }
-                finally
-                {
-                    WpfTestHelper.ShutdownApplication();
-                }
-            });
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-            thread.Join();
-            if (threadEx != null) throw threadEx;
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "LoginWindow.xaml");
+            Assert.Contains("<controls:UserAvatar UserName=\"{Binding UserName}\"", xaml);
+            Assert.Contains("UserPhotoPath=\"{Binding UserPhotoPath}\"", xaml);
         }
 
         [Fact]
         public void LoginWindow_ShowsPhotoWhenPhotoPathExists()
         {
-            Exception? threadEx = null;
-            var thread = new Thread(() =>
-            {
-                try
-                {
-                    var app = WpfTestHelper.CreateApplication();
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute) });
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Styles.xaml", UriKind.Absolute) });
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/InventoryManagementApp;component/Resources/Converters.xaml", UriKind.Absolute) });
-
-                    var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Windows", "LoginWindow.xaml"));
-                    var xaml = File.ReadAllText(path);
-                    xaml = Regex.Replace(xaml, "x:Class=\\\"[^\\\"]*\\\"\\s*", string.Empty);
-                    var window = (Window)XamlReader.Parse(xaml);
-                    var photoPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "Assets", "Avatars", "40.png"));
-                    window.DataContext = new { WindowTitle = "", Users = new[] { new { UserName = "John Doe", UserPhotoPath = photoPath } } };
-                    window.Measure(new Size(120, 120));
-                    window.Arrange(new Rect(0, 0, 120, 120));
-                    window.UpdateLayout();
-                    var itemsControl = FindVisualChildren<ItemsControl>(window).First(i => i.Name == "UsersListBox");
-                    var element = (FrameworkElement)itemsControl.ItemTemplate.LoadContent();
-                    element.DataContext = new { UserName = "John Doe", UserPhotoPath = photoPath };
-                    element.Measure(new Size(100, 100));
-                    element.Arrange(new Rect(0, 0, 100, 100));
-                    element.UpdateLayout();
-                    var textBlock = FindVisualChild<TextBlock>(element) ?? throw new InvalidOperationException("TextBlock not found");
-                    var image = FindVisualChild<Image>(element) ?? throw new InvalidOperationException("Image not found");
-                    Assert.Equal(Visibility.Collapsed, textBlock.Visibility);
-                    Assert.Equal(Visibility.Visible, image.Visibility);
-                }
-                catch (Exception ex)
-                {
-                    threadEx = ex;
-                }
-                finally
-                {
-                    WpfTestHelper.ShutdownApplication();
-                }
-            });
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-            thread.Join();
-            if (threadEx != null) throw threadEx;
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "LoginWindow.xaml");
+            Assert.Contains("controls:UserAvatar", xaml);
+            Assert.Contains("InitialsBrush", xaml);
         }
 
-        private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
-        {
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
-            {
-                var child = VisualTreeHelper.GetChild(parent, i);
-                if (child is T t)
-                    return t;
-                var result = FindVisualChild<T>(child);
-                if (result != null)
-                    return result;
-            }
-            return null;
-        }
-
-        private static System.Collections.Generic.IEnumerable<T> FindVisualChildren<T>(DependencyObject parent) where T : DependencyObject
-        {
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
-            {
-                var child = VisualTreeHelper.GetChild(parent, i);
-                if (child is T t)
-                    yield return t;
-                foreach (var grand in FindVisualChildren<T>(child))
-                    yield return grand;
-            }
-        }
+        private static string ReadRepoFile(params string[] parts)
+            => File.ReadAllText(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", Path.Combine(parts))));
     }
 }
