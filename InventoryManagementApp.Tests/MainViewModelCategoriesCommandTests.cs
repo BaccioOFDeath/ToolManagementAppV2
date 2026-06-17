@@ -183,6 +183,83 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void SwitchingToGuestUser_ReturnsToDashboard()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    using var db = new DatabaseService(":memory:");
+                    new MigrationRunner(db).Migrate();
+                    var host = Host.CreateDefaultBuilder()
+                        .ConfigureServices(s =>
+                        {
+                            s.AddSingleton<IDatabaseService>(db);
+                            s.AddSingleton<IDialogService, StubDialogService>();
+                            s.AddSingleton<IFileDialogService, StubFileDialogService>();
+                            s.AddSingleton<ISettingsService, StubSettingsService>();
+                            s.AddSingleton<IThemeService, StubThemeService>();
+                            s.AddSingleton<CategoriesService>();
+                            s.AddTransient<CategoryManagementViewModel>();
+                        })
+                        .Build();
+
+                    WpfTestHelper.ShutdownApplication();
+                    var app = new App(host);
+
+                    var userContext = new StubUserContext
+                    {
+                        CurrentUser = new User { UserID = 1, UserName = "Admin", IsAdmin = true, Role = "Admin" }
+                    };
+                    var maintenanceService = new MaintenanceService(db, userContext);
+                    var calibrationService = new CalibrationService(db, userContext);
+                    var reservationService = new ReservationService(db, userContext);
+                    var kitService = new KitService(db, userContext);
+
+                    var vm = new MainViewModel(
+                        new StubItemService(),
+                        new StubUserService(),
+                        userContext,
+                        new StubCustomerService(),
+                        new StubRentalService(),
+                        new StubFileDialogService(),
+                        new ActivityLogService(db),
+                        new StubSettingsService(),
+                        new StubThemeService(),
+                        new StubDatabaseBackupService(),
+                        new StubDialogService(),
+                        maintenanceService,
+                        calibrationService,
+                        reservationService,
+                        kitService,
+                        null,
+                        NullLogger<MainViewModel>.Instance,
+                        () => Task.FromResult(true),
+                        new StubDispatcherTimer(),
+                        new StubDispatcherTimer());
+
+                    vm.OpenCategoriesCommand.ExecuteAsync(null).GetAwaiter().GetResult();
+                    Assert.IsType<CategoriesPage>(vm.CurrentPage);
+
+                    userContext.CurrentUser = new User { UserID = 2, UserName = "Guest", Role = "Guest" };
+
+                    Assert.IsType<DashboardPage>(vm.CurrentPage);
+
+                    WpfTestHelper.ShutdownApplication();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
+        [Fact]
         public void OpenCategoriesCommand_NavigatesToCategoriesPage()
         {
             Exception? threadEx = null;
@@ -376,7 +453,16 @@ namespace InventoryManagementApp.Tests
 
         private sealed class StubUserContext : IUserContext
         {
-            public User? CurrentUser { get; set; }
+            private User? _currentUser;
+            public User? CurrentUser
+            {
+                get => _currentUser;
+                set
+                {
+                    _currentUser = value;
+                    UserChanged?.Invoke(this, value);
+                }
+            }
             public event EventHandler<User?>? UserChanged;
             public bool IsAdmin => CurrentUser?.IsAdmin == true;
             public string UserName => CurrentUser?.UserName ?? "admin";

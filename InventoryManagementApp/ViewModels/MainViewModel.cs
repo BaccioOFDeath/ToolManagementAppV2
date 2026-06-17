@@ -433,7 +433,7 @@ namespace InventoryManagementApp.ViewModels
                 return login.ShowDialog() == true;
             });
 
-            _userContextChangedHandler = (_, _) => RefreshCurrentUser();
+            _userContextChangedHandler = (_, _) => OnCurrentUserChanged();
             _userContext.UserChanged += _userContextChangedHandler;
 
             OpenImageImportMappingWindowCommand = new AsyncRelayCommand(ct => OpenImageImportMappingWindowAsync(ct));
@@ -872,6 +872,17 @@ namespace InventoryManagementApp.ViewModels
                 await OpenCategoriesCommand.ExecuteAsync(null);
             else if (CanPrintLabels)
                 await OpenPrintLabelWindowCommand.ExecuteAsync(null);
+        }
+
+        void OnCurrentUserChanged()
+        {
+            RefreshCurrentUser();
+
+            if (_userContext.CurrentUser != null && IsGuestUser && CurrentPage?.DataContext is not DashboardViewModel)
+            {
+                SetNavSection(NavSectionKeys.Overview);
+                _ = OpenDashboardCommand.ExecuteAsync(null);
+            }
         }
 
         void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
