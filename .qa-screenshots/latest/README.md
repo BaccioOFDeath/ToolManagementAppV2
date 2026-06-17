@@ -1,6 +1,6 @@
 # QA Screenshot Run
 
-Generated: 2026-06-17 19:25:12
+Generated: 2026-06-17 19:35:43
 
 Folders:
 - `00-auth` login and authentication flow
@@ -26,22 +26,22 @@ Review checklist:
 
 Captured files:
 - 00-auth\01-login-window.png - 900x560, 7851 bytes
-- 01-overview\01-search-tools-results.png - 1280x800, 53087 bytes
-- 01-overview\02-search-tools-recent-searches.png - 1280x800, 53087 bytes
+- 01-overview\01-search-tools-results.png - 1280x800, 53084 bytes
+- 01-overview\02-search-tools-recent-searches.png - 1280x800, 53084 bytes
 - 01-overview\03-search-tools-unavailable-demand.png - 1280x800, 53511 bytes
-- 01-overview\04-dashboard-summary.png - 1280x800, 55992 bytes
-- 01-overview\05-dashboard-recent-activity.png - 1280x800, 55992 bytes
-- 01-overview\06-dashboard-items-with-issues.png - 1280x800, 55221 bytes
-- 02-operations\01-manage-tools.png - 1280x800, 41322 bytes
-- 02-operations\02-rentals.png - 1280x800, 81938 bytes
-- 02-operations\03-customers.png - 1280x800, 69742 bytes
-- 02-operations\04-maintenance.png - 1280x800, 79132 bytes
-- 02-operations\05-calibration.png - 1280x800, 76848 bytes
-- 02-operations\06-reservations.png - 1280x800, 74678 bytes
-- 02-operations\07-kits.png - 1280x800, 74664 bytes
-- 02-operations\08-categories.png - 1280x800, 83129 bytes
-- 03-insights\01-reports.png - 1280x800, 50787 bytes
-- 03-insights\02-activity-logs.png - 1280x800, 45482 bytes
+- 01-overview\04-dashboard-summary.png - 1280x800, 55911 bytes
+- 01-overview\05-dashboard-recent-activity.png - 1280x800, 55911 bytes
+- 01-overview\06-dashboard-items-with-issues.png - 1280x800, 55135 bytes
+- 02-operations\01-manage-tools.png - 1280x800, 41319 bytes
+- 02-operations\02-rentals.png - 1280x800, 81716 bytes
+- 02-operations\03-customers.png - 1280x800, 70289 bytes
+- 02-operations\04-maintenance.png - 1280x800, 78492 bytes
+- 02-operations\05-calibration.png - 1280x800, 75928 bytes
+- 02-operations\06-reservations.png - 1280x800, 74491 bytes
+- 02-operations\07-kits.png - 1280x800, 74661 bytes
+- 02-operations\08-categories.png - 1280x800, 82745 bytes
+- 03-insights\01-reports.png - 1280x800, 50766 bytes
+- 03-insights\02-activity-logs.png - 1280x800, 45415 bytes
 - 04-data\01-import-export-overview.png - 1280x800, 77176 bytes
 - 04-data\02-import-export-item-data.png - 1280x800, 57202 bytes
 - 04-data\03-import-export-customers.png - 1280x800, 55071 bytes
@@ -56,16 +56,16 @@ Captured files:
 - 05-admin\07-settings-branding.png - 1280x800, 43326 bytes
 - 05-admin\08-settings-messaging.png - 1280x800, 44624 bytes
 - 05-admin\09-settings-backups.png - 1280x800, 43341 bytes
-- 06-dialogs\01-print-labels.png - 720x420, 7791 bytes
+- 06-dialogs\01-print-labels.png - 720x420, 7792 bytes
 - 06-dialogs\02-info-dialog.png - 720x420, 6967 bytes
 - 06-dialogs\03-confirm-dialog.png - 720x420, 5980 bytes
 - 06-dialogs\04-input-dialog.png - 720x420, 5389 bytes
-- 06-dialogs\05-item-details.png - 780x580, 45164 bytes
+- 06-dialogs\05-item-details.png - 780x580, 45182 bytes
 - 06-dialogs\06-item-edit.png - 760x820, 27854 bytes
 - 06-dialogs\07-customer-edit.png - 720x420, 10604 bytes
 - 06-dialogs\08-rental-history.png - 1120x640, 27880 bytes
 - 06-dialogs\09-rentals-filter.png - 720x420, 8684 bytes
-- 06-dialogs\10-import-mapping.png - 1040x620, 12080 bytes
+- 06-dialogs\10-import-mapping.png - 1040x620, 12081 bytes
 - 06-dialogs\11-image-import-mapping.png - 720x420, 6455 bytes
 - 06-dialogs\12-print-preview.png - 1200x800, 16801 bytes
 - 06-dialogs\13-maintenance-edit.png - 720x430, 18701 bytes

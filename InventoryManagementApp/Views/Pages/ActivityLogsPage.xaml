@@ -136,15 +136,16 @@
 
                     <StackPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
                         <TextBlock Text="Actions" Style="{StaticResource SectionHeader}"/>
-                        <UniformGrid Columns="2">
+                        <WrapPanel>
                             <Button Style="{StaticResource GhostButton}"
                                     Content="Open"
                                     Click="OpenSelectedLog_Click"
-                                    Margin="0,0,4,0"/>
+                                    Margin="0,0,4,4"/>
                             <Button Style="{StaticResource GhostButton}"
                                     Content="Copy"
-                                    Click="CopySelectedLog_Click"/>
-                        </UniformGrid>
+                                    Click="CopySelectedLog_Click"
+                                    Margin="0,0,4,4"/>
+                        </WrapPanel>
                     </StackPanel>
 
                     <Border Style="{StaticResource DesktopNoteCard}">

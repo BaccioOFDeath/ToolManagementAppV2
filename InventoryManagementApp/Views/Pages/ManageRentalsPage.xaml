@@ -181,14 +181,14 @@
                             <TextBlock Text="{Binding SelectedRental.ItemLocation, StringFormat='Shelf: {0}', TargetNullValue='Shelf: Not recorded'}" TextWrapping="Wrap" Margin="0,0,0,2"/>
                             <TextBlock Text="Confirm the item number, collect or return it from the listed shelf, print the pick slip or invoice when needed, then check it in or extend it before ending the customer handoff." TextWrapping="Wrap" Margin="0,0,0,14"/>
 
-                            <UniformGrid Columns="2" Margin="0,0,0,8">
+                            <WrapPanel Margin="0,0,0,8">
                                 <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Extend" Command="{Binding ExtendCommand}" Margin="4,0,0,4"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Request" Command="{Binding PlaceRequestCommand}" Margin="0,4,4,4"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenRentalDetailsCommand}" Margin="4,4,0,4"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Pick Slip" Command="{Binding PrintPickingSlipCommand}" Margin="0,4,4,0"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Invoice" Command="{Binding PrintInvoiceCommand}" Margin="4,4,0,0"/>
-                            </UniformGrid>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Extend" Command="{Binding ExtendCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Request" Command="{Binding PlaceRequestCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenRentalDetailsCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Pick Slip" Command="{Binding PrintPickingSlipCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Invoice" Command="{Binding PrintInvoiceCommand}" Margin="0,0,4,4"/>
+                            </WrapPanel>
 
                             <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="8" Margin="0,6,0,0">
                                 <StackPanel>
@@ -245,14 +245,14 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="110"/>
-                            <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="170"/>
-                            <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="190"/>
-                            <DataGridTextColumn Header="Requested" Binding="{Binding ReservationDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="135"/>
-                            <DataGridTextColumn Header="Needed From" Binding="{Binding StartDate, StringFormat={}{0:yyyy-MM-dd}}" Width="115"/>
-                            <DataGridTextColumn Header="Needed Until" Binding="{Binding EndDate, StringFormat={}{0:yyyy-MM-dd}}" Width="115"/>
-                            <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="100"/>
-                            <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="*"/>
+                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="115" MinWidth="82"/>
+                            <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="170" MinWidth="120"/>
+                            <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="190" MinWidth="140"/>
+                            <DataGridTextColumn Header="Requested" Binding="{Binding ReservationDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="135" MinWidth="92"/>
+                            <DataGridTextColumn Header="Needed From" Binding="{Binding StartDate, StringFormat={}{0:yyyy-MM-dd}}" Width="125" MinWidth="104"/>
+                            <DataGridTextColumn Header="Needed Until" Binding="{Binding EndDate, StringFormat={}{0:yyyy-MM-dd}}" Width="125" MinWidth="106"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="105" MinWidth="78"/>
+                            <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="*" MinWidth="140"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">

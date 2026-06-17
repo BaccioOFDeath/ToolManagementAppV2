@@ -91,14 +91,14 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Hold #" Binding="{Binding ReservationID}" Width="68"/>
-                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="96"/>
-                            <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="1.3*"/>
-                            <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="1.2*"/>
+                            <DataGridTextColumn Header="Hold #" Binding="{Binding ReservationID}" Width="76" MinWidth="68"/>
+                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="96" MinWidth="82"/>
+                            <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="1.3*" MinWidth="120"/>
+                            <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="1.2*" MinWidth="120"/>
                             <DataGridTextColumn Header="Start" Binding="{Binding StartDate, StringFormat={}{0:yyyy-MM-dd}}" Width="92"/>
                             <DataGridTextColumn Header="End" Binding="{Binding EndDate, StringFormat={}{0:yyyy-MM-dd}}" Width="92"/>
-                            <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="48"/>
-                            <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="96"/>
+                            <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="54" MinWidth="44"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="96" MinWidth="76"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
@@ -180,14 +180,14 @@
 
                     <StackPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
                         <TextBlock Text="Actions" Style="{StaticResource SectionHeader}"/>
-                        <UniformGrid Columns="2">
+                        <WrapPanel>
                             <Button Style="{StaticResource PrimaryButton}" Content="Confirm" Command="{Binding ConfirmReservationCommand}" Margin="0,0,4,4"/>
-                            <Button Style="{StaticResource PrimaryButton}" Content="Fulfill" Command="{Binding FulfillReservationCommand}" Margin="0,0,0,4"/>
+                            <Button Style="{StaticResource PrimaryButton}" Content="Fulfill" Command="{Binding FulfillReservationCommand}" Margin="0,0,4,4"/>
                             <Button Style="{StaticResource GhostButton}" Content="Details" Command="{Binding OpenReservationDetailsCommand}" Margin="0,0,4,4"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Copy" Command="{Binding CopyReservationHandoffCommand}" Margin="0,0,0,4"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintReservationHandoffCommand}" Margin="0,0,4,0"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Edit" Command="{Binding EditReservationCommand}"/>
-                        </UniformGrid>
+                            <Button Style="{StaticResource GhostButton}" Content="Copy" Command="{Binding CopyReservationHandoffCommand}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintReservationHandoffCommand}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Edit" Command="{Binding EditReservationCommand}" Margin="0,0,4,4"/>
+                        </WrapPanel>
                     </StackPanel>
 
                     <Border Style="{StaticResource DesktopNoteCard}">

@@ -67,12 +67,12 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Company" Binding="{Binding Company}" Width="2*"/>
-                            <DataGridTextColumn Header="Contact" Binding="{Binding Contact}" Width="170"/>
+                            <DataGridTextColumn Header="Company" Binding="{Binding Company}" Width="2*" MinWidth="140"/>
+                            <DataGridTextColumn Header="Contact" Binding="{Binding Contact}" Width="170" MinWidth="95"/>
                             <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="120"/>
                             <DataGridTextColumn Header="Mobile" Binding="{Binding Mobile}" Width="120"/>
                             <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="210"/>
-                            <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="2*"/>
+                            <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="2*" MinWidth="130"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
@@ -130,12 +130,12 @@
                             <TextBlock Text="Operational next step" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
                             <TextBlock Text="{Binding CustomerOperationsSummary}" TextWrapping="Wrap" Margin="0,0,0,14"/>
 
-                            <UniformGrid Columns="2" Margin="0,0,0,8">
+                            <WrapPanel Margin="0,0,0,8">
                                 <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenCustomerDetailsCommand}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditCustomerCommand}" Margin="4,0,0,4"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Copy" Command="{Binding CopySelectedCustomerCommand}" Margin="0,4,4,0"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintSelectedCustomerCommand}" Margin="4,4,0,0"/>
-                            </UniformGrid>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditCustomerCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Copy" Command="{Binding CopySelectedCustomerCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintSelectedCustomerCommand}" Margin="0,0,4,4"/>
+                            </WrapPanel>
 
                             <Border Style="{StaticResource DesktopNoteCard}" Margin="0,6,0,0">
                                 <StackPanel>

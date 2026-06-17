@@ -14,7 +14,7 @@
 
         <Border Grid.Row="0" Style="{StaticResource ToolbarCard}">
             <DockPanel LastChildFill="False">
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Top">
                     <TextBlock Text="Actions" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="New Item" Command="{Binding NewItemCommand}" Margin="0,0,4,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Open Items" Command="{Binding OpenItemsCommand}" Margin="0,0,4,0"/>

@@ -74,13 +74,13 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="110"/>
-                            <DataGridTextColumn Header="Name" Binding="{Binding ItemName}" Width="2*"/>
-                            <DataGridTextColumn Header="Calibrated" Binding="{Binding CalibrationDate, StringFormat={}{0:yyyy-MM-dd}}" Width="105"/>
-                            <DataGridTextColumn Header="Next Due" Binding="{Binding NextCalibrationDue, StringFormat={}{0:yyyy-MM-dd}}" Width="105"/>
+                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="110" MinWidth="82"/>
+                            <DataGridTextColumn Header="Name" Binding="{Binding ItemName}" Width="2*" MinWidth="120"/>
+                            <DataGridTextColumn Header="Calibrated" Binding="{Binding CalibrationDate, StringFormat={}{0:yyyy-MM-dd}}" Width="110" MinWidth="92"/>
+                            <DataGridTextColumn Header="Next Due" Binding="{Binding NextCalibrationDue, StringFormat={}{0:yyyy-MM-dd}}" Width="110" MinWidth="88"/>
                             <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="95"/>
                             <DataGridTextColumn Header="By" Binding="{Binding CalibratedBy}" Width="120"/>
-                            <DataGridTextColumn Header="Certificate" Binding="{Binding CertificateNumber}" Width="135"/>
+                            <DataGridTextColumn Header="Certificate" Binding="{Binding CertificateNumber}" Width="135" MinWidth="90"/>
                             <DataGridTextColumn Header="Result" Binding="{Binding Result}" Width="85"/>
                             <DataGridTextColumn Header="Standard" Binding="{Binding Standard}" Width="125"/>
                         </DataGrid.Columns>
@@ -147,12 +147,12 @@
                             <TextBlock Text="Next action" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
                             <TextBlock Text="{Binding SelectedCalibrationNextAction}" TextWrapping="Wrap" Margin="0,0,0,14"/>
 
-                            <UniformGrid Columns="2" Margin="0,0,0,8">
+                            <WrapPanel Margin="0,0,0,8">
                                 <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenCalibrationDetailsCommand}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditCalibrationCommand}" Margin="4,0,0,4"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Copy" Command="{Binding CopySelectedCalibrationCommand}" Margin="0,4,4,0"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintSelectedCalibrationCommand}" Margin="4,4,0,0"/>
-                            </UniformGrid>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditCalibrationCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Copy" Command="{Binding CopySelectedCalibrationCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintSelectedCalibrationCommand}" Margin="0,0,4,4"/>
+                            </WrapPanel>
 
                             <Border Style="{StaticResource DesktopNoteCard}" Margin="0,6,0,0">
                                 <StackPanel>

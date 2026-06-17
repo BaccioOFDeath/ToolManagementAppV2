@@ -75,14 +75,14 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="110"/>
-                            <DataGridTextColumn Header="Name" Binding="{Binding ItemName}" Width="2*"/>
-                            <DataGridTextColumn Header="Type" Binding="{Binding MaintenanceType}" Width="120"/>
+                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="110" MinWidth="82"/>
+                            <DataGridTextColumn Header="Name" Binding="{Binding ItemName}" Width="2*" MinWidth="120"/>
+                            <DataGridTextColumn Header="Type" Binding="{Binding MaintenanceType}" Width="120" MinWidth="70"/>
                             <DataGridTextColumn Header="Scheduled" Binding="{Binding ScheduledDate, StringFormat={}{0:yyyy-MM-dd}}" Width="110"/>
                             <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="105"/>
-                            <DataGridTextColumn Header="Performed By" Binding="{Binding PerformedBy}" Width="135"/>
-                            <DataGridTextColumn Header="Completed" Binding="{Binding CompletedDate, StringFormat={}{0:yyyy-MM-dd}}" Width="110"/>
-                            <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="2*"/>
+                            <DataGridTextColumn Header="Performed By" Binding="{Binding PerformedBy}" Width="140" MinWidth="105"/>
+                            <DataGridTextColumn Header="Completed" Binding="{Binding CompletedDate, StringFormat={}{0:yyyy-MM-dd}}" Width="110" MinWidth="92"/>
+                            <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="2*" MinWidth="120"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
@@ -148,12 +148,12 @@
                             <TextBlock Text="Next action" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
                             <TextBlock Text="{Binding SelectedMaintenanceNextAction}" TextWrapping="Wrap" Margin="0,0,0,14"/>
 
-                            <UniformGrid Columns="2" Margin="0,0,0,8">
+                            <WrapPanel Margin="0,0,0,8">
                                 <Button Style="{StaticResource PrimaryButton}" Content="Complete" Command="{Binding CompleteMaintenanceCommand}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditMaintenanceCommand}" Margin="4,0,0,4"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Copy" Command="{Binding CopySelectedMaintenanceCommand}" Margin="0,4,4,0"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintSelectedMaintenanceCommand}" Margin="4,4,0,0"/>
-                            </UniformGrid>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditMaintenanceCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Copy" Command="{Binding CopySelectedMaintenanceCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintSelectedMaintenanceCommand}" Margin="0,0,4,4"/>
+                            </WrapPanel>
 
                             <Border Style="{StaticResource DesktopNoteCard}" Margin="0,6,0,0">
                                 <StackPanel>

@@ -202,7 +202,7 @@
                             </StackPanel>
                         </Border>
 
-                        <UniformGrid Columns="2">
+                        <WrapPanel>
                             <Button Style="{StaticResource PrimaryButton}"
                                     Content="Open"
                                     Click="OpenCategoryDetail_Click"
@@ -210,15 +210,16 @@
                             <Button Style="{StaticResource GhostButton}"
                                     Content="Copy"
                                     Click="CopyCategory_Click"
-                                    Margin="0,0,0,4"/>
+                                    Margin="0,0,4,4"/>
                             <Button Style="{StaticResource GhostButton}"
                                     Content="Print Sheet"
                                     Click="PrintSelectedCategory_Click"
-                                    Margin="0,0,4,0"/>
+                                    Margin="0,0,4,4"/>
                             <Button Style="{StaticResource GhostButton}"
                                     Content="Refresh"
-                                    Command="{Binding RefreshCommand}"/>
-                        </UniformGrid>
+                                    Command="{Binding RefreshCommand}"
+                                    Margin="0,0,4,4"/>
+                        </WrapPanel>
                     </StackPanel>
                 </ScrollViewer>
             </Border>

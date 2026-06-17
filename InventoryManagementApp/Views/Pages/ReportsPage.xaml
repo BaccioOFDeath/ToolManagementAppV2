@@ -122,10 +122,10 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
                         <TextBlock Text="Selected Row Handoff" Style="{StaticResource SectionHeader}"/>
-                        <UniformGrid Grid.Row="1" Columns="2" Margin="0,4,0,5">
-                            <Button Style="{StaticResource PrimaryButton}" Content="Open Source" Click="OpenSourcePage_Click" Margin="0,0,4,0"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedRow_Click"/>
-                        </UniformGrid>
+                        <WrapPanel Grid.Row="1" Margin="0,4,0,5">
+                            <Button Style="{StaticResource PrimaryButton}" Content="Open Source" Click="OpenSourcePage_Click" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedRow_Click" Margin="0,0,4,4"/>
+                        </WrapPanel>
                         <TextBox Grid.Row="2"
                                  Text="{Binding SelectedLineHandoff, Mode=OneWay}"
                                  IsReadOnly="True"
