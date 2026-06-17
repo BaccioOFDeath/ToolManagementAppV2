@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-17 21:11 NZST
+Last audit date/time: 2026-06-17 22:11 NZST
 
 ## Completed workflows
 
@@ -35,6 +35,7 @@ Last audit date/time: 2026-06-17 21:11 NZST
 - The main header now wraps search, user identity, and session actions more safely on narrower workstations, and the screenshot review gallery now includes a visual/workflow checklist for future QA passes.
 - Dashboard recent activity now has a visible Open Related action, row-correct related-workflow context menu, activity-type routing to Rentals or Import / Export where available, and selected-row footer destination context.
 - Dashboard footer context now follows the most recently selected dashboard row type, with regression coverage for activity and rental selections replacing stale older row summaries.
+- Dashboard row-specific actions now disable until the matching row type is selected, Open Related no longer falls through to the item workflow with no activity selected, and successful check-in/return/reload flows clear stale dashboard selections.
 
 ## Partially complete workflows
 
@@ -50,7 +51,7 @@ Last audit date/time: 2026-06-17 21:11 NZST
 - Rentals now have a completed desktop workflow surface, but runtime check-in/extend/request/delete/print/document and screenshot validation still need a Windows/.NET workstation.
 - Categories now have a completed desktop workflow surface, but runtime create/rename/delete/filter/print/copy and screenshot validation still needs a Windows/.NET workstation.
 - Shell workflow guidance and responsive header behavior have been implemented, but runtime narrow/wide workstation screenshot review still needs a Windows/.NET workstation.
-- Dashboard activity drilldown and footer context have been tightened, but runtime dashboard interaction and screenshot validation still need a Windows/.NET workstation.
+- Dashboard activity drilldown, footer context, and selected-action state have been tightened, but runtime dashboard interaction and screenshot validation still need a Windows/.NET workstation.
 
 ## Known broken workflows
 
@@ -64,6 +65,6 @@ Last audit date/time: 2026-06-17 21:11 NZST
 
 ## Validation status
 
-- GitHub connector readback reviewed the dashboard selection summary branch and focused regression test additions.
+- GitHub connector readback reviewed the dashboard selected-action state changes and focused regression test additions.
 - Local XAML parsing, `dotnet --info`, `dotnet restore`, `dotnet build`, `dotnet test`, and `scripts/run-app-qa-screenshots.ps1` were not run because this scheduled Linux container lacks the .NET SDK and Windows/WPF runtime, and direct local clone/raw fetches remain blocked by the network tunnel.
 - Did not run unrelated tests, per instruction.
