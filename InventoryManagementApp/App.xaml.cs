@@ -51,10 +51,17 @@ namespace InventoryManagementApp
         private readonly ILogger<App> _logger;
         private readonly IDialogService _dialogService;
 
-        public App() : this(BuildHost()) { }
+        public App() : this(BuildHost(), initializeApplicationResources: false) { }
 
-        internal App(IHost host)
+        internal App(IHost host) : this(host, initializeApplicationResources: true) { }
+
+        App(IHost host, bool initializeApplicationResources)
         {
+            if (initializeApplicationResources)
+            {
+                InitializeComponent();
+            }
+
             Host = host;
             _logger = Host.Services.GetRequiredService<ILogger<App>>();
             _dialogService = Host.Services.GetRequiredService<IDialogService>();

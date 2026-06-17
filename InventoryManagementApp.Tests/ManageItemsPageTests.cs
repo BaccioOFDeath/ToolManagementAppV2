@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -52,7 +53,7 @@ namespace InventoryManagementApp.Tests
                     var vm = (ItemsViewModel)page.DataContext;
                     var method = typeof(ManageItemsPage).GetMethod("ManageItemsPage_Loaded", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                     method!.Invoke(page, new object[] { page, new RoutedEventArgs() });
-                    SpinWait.SpinUntil(() => vm.Items.Count > 0, TimeSpan.FromSeconds(5));
+                    WaitForCondition(() => vm.Items.Count > 0, TimeSpan.FromSeconds(5));
                     Assert.Equal(2, vm.Items.Count);
                     Assert.Equal(1, vm.Items[0].ItemID);
                     Assert.Equal(2, vm.Items[1].ItemID);
@@ -95,7 +96,8 @@ namespace InventoryManagementApp.Tests
                     var page = new ManageItemsPage();
                     var method = typeof(ManageItemsPage).GetMethod("ManageItemsPage_Loaded", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                     method!.Invoke(page, new object[] { page, new RoutedEventArgs() });
-                    var dataGrid = FindVisualChild<DataGrid>(page) ?? throw new InvalidOperationException("DataGrid not found");
+                    page.UpdateLayout();
+                    var dataGrid = FindDescendant<DataGrid>(page.Content as DependencyObject ?? page) ?? throw new InvalidOperationException("DataGrid not found");
                     foreach (var col in dataGrid.Columns)
                         Assert.Equal(Visibility.Visible, col.Visibility);
                     Assert.Contains(dataGrid.Columns, c => Equals("Part #", c.Header));
@@ -125,6 +127,42 @@ namespace InventoryManagementApp.Tests
                     return result;
             }
             return null;
+        }
+
+        private static T? FindDescendant<T>(DependencyObject root) where T : DependencyObject
+        {
+            if (root is T match)
+                return match;
+
+            var visualMatch = FindVisualChild<T>(root);
+            if (visualMatch != null)
+                return visualMatch;
+
+            if (root is FrameworkElement element)
+            {
+                foreach (var child in LogicalTreeHelper.GetChildren(element).OfType<DependencyObject>())
+                {
+                    var descendant = FindDescendant<T>(child);
+                    if (descendant != null)
+                        return descendant;
+                }
+            }
+
+            return null;
+        }
+
+        private static void WaitForCondition(Func<bool> condition, TimeSpan timeout)
+        {
+            var deadline = DateTime.UtcNow + timeout;
+            while (!condition())
+            {
+                if (DateTime.UtcNow >= deadline)
+                    return;
+
+                var frame = new DispatcherFrame();
+                _ = Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() => frame.Continue = false));
+                Dispatcher.PushFrame(frame);
+            }
         }
 
         private sealed class StubItemService : IItemService

@@ -7,12 +7,14 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Media;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Views.Pages;
 using InventoryManagementApp.ViewModels;
 using Xunit;
@@ -44,19 +46,15 @@ namespace InventoryManagementApp.Tests
                     page.DataContext = vm;
 
                     var grid = Assert.IsType<Grid>(page.Content);
-                    Assert.Equal(3, grid.RowDefinitions.Count);
-                    Assert.Empty(grid.Children.OfType<StackPanel>());
+                    Assert.Equal(5, grid.RowDefinitions.Count);
 
-                    var toolbarBorder = Assert.IsType<Border>(grid.Children[0]);
-                    var dock = Assert.IsType<DockPanel>(toolbarBorder.Child);
-                    var leftStack = Assert.IsType<StackPanel>(dock.Children[0]);
-                    var buttons = leftStack.Children.OfType<Button>().ToList();
+                    var buttons = FindVisualChildren<Button>(page).ToList();
 
-                    Button checkIn = Assert.Single(buttons.Where(b => (string)b.Content == "Check In"));
-                    Button extend = Assert.Single(buttons.Where(b => (string)b.Content == "Extend"));
-                    Button history = Assert.Single(buttons.Where(b => (string)b.Content == "History"));
-                    Button print = Assert.Single(buttons.Where(b => (string)b.Content == "Print"));
-                    Button delete = Assert.Single(buttons.Where(b => (string)b.Content == "Delete"));
+                    Button checkIn = Assert.Single(buttons.Where(b => Equals("Check In", b.Content)));
+                    Button extend = Assert.Single(buttons.Where(b => Equals("Extend", b.Content)));
+                    Button history = Assert.Single(buttons.Where(b => Equals("History", b.Content)));
+                    Button print = Assert.Single(buttons.Where(b => Equals("Print Rental", b.Content)));
+                    Button delete = Assert.Single(buttons.Where(b => Equals("Delete", b.Content)));
 
                     Assert.Same(vm.CheckInCommand, checkIn.Command);
                     Assert.Same(vm.ExtendCommand, extend.Command);
@@ -77,23 +75,56 @@ namespace InventoryManagementApp.Tests
             if (threadEx != null) throw threadEx;
         }
 
+        private static IEnumerable<T> FindVisualChildren<T>(DependencyObject parent) where T : DependencyObject
+        {
+            var count = VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < count; i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T match)
+                    yield return match;
+
+                foreach (var descendant in FindVisualChildren<T>(child))
+                    yield return descendant;
+            }
+        }
+
         private sealed class StubViewModel
         {
             public ObservableCollection<RentalModel> Rentals { get; } = new();
+            public ObservableCollection<Reservation> PendingRequests { get; } = new();
             public string SearchText { get; set; } = string.Empty;
+            public string SearchSummary { get; set; } = string.Empty;
+            public string CheckedOutSummary { get; set; } = string.Empty;
+            public string RequestSummary { get; set; } = string.Empty;
+            public string SelectedRequestSummary { get; set; } = string.Empty;
+            public string SelectedRequestDateLine { get; set; } = string.Empty;
+            public string SelectedRequestHolderLine { get; set; } = string.Empty;
+            public string SelectedRequestNextAction { get; set; } = string.Empty;
             public DateTime? FilterFrom { get; set; }
             public DateTime? FilterTo { get; set; }
             public ObservableCollection<string> StatusOptions { get; } = new(new[] { "All", "Rented", "Returned" });
             public string SelectedStatus { get; set; } = "All";
             public bool IsLoading { get; set; }
-            public ICommand ApplyFilterCommand { get; } = new DummyCommand();
             public ICommand ClearFilterCommand { get; } = new DummyCommand();
             public ICommand CheckInCommand { get; } = new DummyCommand();
             public ICommand ExtendCommand { get; } = new DummyCommand();
+            public ICommand PlaceRequestCommand { get; } = new DummyCommand();
+            public ICommand OpenRentalDetailsCommand { get; } = new DummyCommand();
             public ICommand OpenHistoryCommand { get; } = new DummyCommand();
+            public ICommand PrintPickingSlipCommand { get; } = new DummyCommand();
+            public ICommand PrintInvoiceCommand { get; } = new DummyCommand();
             public ICommand PrintRentalCommand { get; } = new DummyCommand();
+            public ICommand PrintSearchResultsCommand { get; } = new DummyCommand();
+            public ICommand PrintCheckedOutCommand { get; } = new DummyCommand();
+            public ICommand PrintRequestsCommand { get; } = new DummyCommand();
             public ICommand DeleteRentalCommand { get; } = new DummyCommand();
+            public ICommand OpenRequestDetailsCommand { get; } = new DummyCommand();
+            public ICommand ConfirmRequestCommand { get; } = new DummyCommand();
+            public ICommand CancelRequestCommand { get; } = new DummyCommand();
+            public ICommand PrintRequestCommand { get; } = new DummyCommand();
             public RentalModel? SelectedRental { get; set; }
+            public Reservation? SelectedRequest { get; set; }
         }
 
         private sealed class DummyCommand : ICommand
