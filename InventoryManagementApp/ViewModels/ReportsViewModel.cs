@@ -42,7 +42,12 @@ namespace InventoryManagementApp.ViewModels
             set
             {
                 if (SetProperty(ref _selectedReportLine, value))
+                {
                     OnPropertyChanged(nameof(SelectedLineDetail));
+                    OnPropertyChanged(nameof(SelectedLineDestination));
+                    OnPropertyChanged(nameof(SelectedLineDestinationKey));
+                    OnPropertyChanged(nameof(SelectedLineHandoff));
+                }
             }
         }
 
@@ -98,7 +103,19 @@ namespace InventoryManagementApp.ViewModels
 
         public string LastRunText => LastRunAt.HasValue ? LastRunAt.Value.ToString("g") : "Not run";
         public int ReportLineCount => ReportLines.Count;
+        public string ReportOperatorPath => string.IsNullOrWhiteSpace(SelectedReport)
+            ? "Choose a report, run it, then open the source page from any row that needs follow-up."
+            : $"Run {SelectedReport}, select a row, then open {BuildDestinationName(SelectedReport, SelectedReportLine?.Category)} to continue the workflow.";
         public string SelectedLineDetail => SelectedReportLine?.Text ?? "Select or double-click a report row to inspect the detail.";
+        public string SelectedLineDestination => SelectedReportLine == null
+            ? BuildDestinationName(SelectedReport, null)
+            : SelectedReportLine.DestinationName;
+        public string SelectedLineDestinationKey => SelectedReportLine == null
+            ? BuildDestinationKey(SelectedReport, null)
+            : SelectedReportLine.DestinationKey;
+        public string SelectedLineHandoff => SelectedReportLine == null
+            ? "No report row selected."
+            : $"{SelectedReportLine.Category}: {SelectedReportLine.Text}{Environment.NewLine}Next action: {SelectedReportLine.ActionHint}{Environment.NewLine}Destination: {SelectedReportLine.DestinationName}";
 
         public IAsyncRelayCommand RunReportCommand { get; }
         public IRelayCommand ClearReportCommand { get; }
@@ -171,6 +188,7 @@ namespace InventoryManagementApp.ViewModels
                 ReportStatus = "Report failed.";
                 LastRunAt = DateTime.Now;
                 OnPropertyChanged(nameof(ReportLineCount));
+                OnPropertyChanged(nameof(ReportOperatorPath));
                 ClearReportCommand.NotifyCanExecuteChanged();
             }
             finally
@@ -196,13 +214,25 @@ namespace InventoryManagementApp.ViewModels
             var detailLines = lines.Skip(1).ToList();
             for (var i = 0; i < detailLines.Count; i++)
             {
-                ReportLines.Add(new ReportLine(i + 1, ClassifyLine(detailLines[i]), detailLines[i], BuildActionHint(detailLines[i])));
+                var category = ClassifyLine(detailLines[i]);
+                ReportLines.Add(new ReportLine(
+                    i + 1,
+                    category,
+                    detailLines[i],
+                    BuildActionHint(detailLines[i]),
+                    BuildDestinationKey(SelectedReport, category),
+                    BuildDestinationName(SelectedReport, category)));
             }
 
             LastRunAt = DateTime.Now;
             ReportSummary = BuildSummary(detailLines);
-            ReportStatus = $"{SelectedReport} completed with {ReportLines.Count} line(s).";
+            ReportStatus = ReportLines.Count == 0
+                ? $"{SelectedReport} completed with no rows to action."
+                : $"{SelectedReport} completed with {ReportLines.Count} line(s). Select a row or open the source page.";
+            if (ReportLines.Count > 0)
+                SelectedReportLine = ReportLines[0];
             OnPropertyChanged(nameof(ReportLineCount));
+            OnPropertyChanged(nameof(ReportOperatorPath));
             ClearReportCommand.NotifyCanExecuteChanged();
         }
 
@@ -216,6 +246,7 @@ namespace InventoryManagementApp.ViewModels
             ReportStatus = "Report cleared.";
             LastRunAt = null;
             OnPropertyChanged(nameof(ReportLineCount));
+            OnPropertyChanged(nameof(ReportOperatorPath));
             ClearReportCommand.NotifyCanExecuteChanged();
         }
 
@@ -229,6 +260,7 @@ namespace InventoryManagementApp.ViewModels
                 "Overdue Maintenance" => "Items requiring maintenance attention before further checkout.",
                 "Overdue Calibrations" => "Calibrations that should be handled before field use.",
                 "Activity Log" => "Recent inventory activity for operational review.",
+                "Users" => "Admin access, lockout, and account review output.",
                 _ => $"Operational output for {reportName}."
             };
         }
@@ -256,24 +288,70 @@ namespace InventoryManagementApp.ViewModels
                 return "Maintenance";
             if (ContainsAny(line, "calibration", "calibrated"))
                 return "Calibration";
+            if (ContainsAny(line, "kit", "bundle"))
+                return "Kit";
             if (ContainsAny(line, "item", "equipment", "inventory", "stock"))
                 return "Inventory";
-            if (ContainsAny(line, "customer", "technician", "advisor", "user"))
-                return "Person";
+            if (ContainsAny(line, "customer"))
+                return "Customer";
+            if (ContainsAny(line, "technician", "advisor", "user", "lockout", "password", "permission"))
+                return "User";
             return "Detail";
         }
 
         private static string BuildActionHint(string line)
         {
             if (ContainsAny(line, "overdue", "late"))
-                return "Open the related rental or item record and follow up.";
+                return "Open the related rental, maintenance, or calibration workflow and follow up.";
             if (ContainsAny(line, "reservation", "request", "hold"))
                 return "Check availability and contact the waiting user or customer.";
             if (ContainsAny(line, "maintenance", "repair", "calibration"))
                 return "Review the item before it is rented or checked out again.";
             if (ContainsAny(line, "checked out", "rented", "rental"))
                 return "Confirm holder, due-back date, and return status.";
+            if (ContainsAny(line, "user", "permission", "password", "lockout"))
+                return "Open Users and verify access, account state, or reset needs.";
             return "Use the source page to drill into the related record.";
+        }
+
+        private static string BuildDestinationKey(string reportName, string? category)
+        {
+            if (ContainsAny(reportName, "Activity"))
+                return "ActivityLogs";
+            if (ContainsAny(reportName, "Customer") || string.Equals(category, "Customer", StringComparison.OrdinalIgnoreCase))
+                return "Customers";
+            if (ContainsAny(reportName, "User") || string.Equals(category, "User", StringComparison.OrdinalIgnoreCase))
+                return "Users";
+            if (ContainsAny(reportName, "Rental") || string.Equals(category, "Rental", StringComparison.OrdinalIgnoreCase))
+                return "Rentals";
+            if (ContainsAny(reportName, "Reservation") || string.Equals(category, "Request", StringComparison.OrdinalIgnoreCase))
+                return "Reservations";
+            if (ContainsAny(reportName, "Maintenance") || string.Equals(category, "Maintenance", StringComparison.OrdinalIgnoreCase))
+                return "Maintenance";
+            if (ContainsAny(reportName, "Calibration") || string.Equals(category, "Calibration", StringComparison.OrdinalIgnoreCase))
+                return "Calibration";
+            if (ContainsAny(reportName, "Kit") || string.Equals(category, "Kit", StringComparison.OrdinalIgnoreCase))
+                return "Kits";
+            if (ContainsAny(reportName, "Inventory", "Rented Items") || string.Equals(category, "Inventory", StringComparison.OrdinalIgnoreCase) || string.Equals(category, "Overdue", StringComparison.OrdinalIgnoreCase))
+                return "Items";
+            return "Dashboard";
+        }
+
+        private static string BuildDestinationName(string reportName, string? category)
+        {
+            return BuildDestinationKey(reportName, category) switch
+            {
+                "ActivityLogs" => "Activity Logs",
+                "Customers" => "Customers",
+                "Users" => "Users",
+                "Rentals" => "Rentals",
+                "Reservations" => "Reservations",
+                "Maintenance" => "Maintenance",
+                "Calibration" => "Calibration",
+                "Kits" => "Kits",
+                "Items" => "Items",
+                _ => "Dashboard"
+            };
         }
 
         private static bool ContainsAny(string text, params string[] terms)
@@ -284,17 +362,21 @@ namespace InventoryManagementApp.ViewModels
 
     public sealed class ReportLine
     {
-        public ReportLine(int number, string category, string text, string actionHint)
+        public ReportLine(int number, string category, string text, string actionHint, string destinationKey, string destinationName)
         {
             Number = number;
             Category = category;
             Text = text;
             ActionHint = actionHint;
+            DestinationKey = destinationKey;
+            DestinationName = destinationName;
         }
 
         public int Number { get; }
         public string Category { get; }
         public string Text { get; }
         public string ActionHint { get; }
+        public string DestinationKey { get; }
+        public string DestinationName { get; }
     }
 }
