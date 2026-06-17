@@ -1,6 +1,7 @@
 Please update the ui this is each screen shot photo and feedback on each. this prompt will run every hour so keep track of what has been done. once complete just carry out polish passes..
 
 Progress log:
+- 2026-06-18 00:11 NZST: Polished the first-run setup wizard onboarding surface. `SetupWizardWindow` now has a stronger launch header, setup checklist, guided field descriptions, framed company-logo preview, ready-check validation area, and a `Complete Setup` action while preserving existing setup commands and password bindings. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-18-setup-wizard-onboarding-polish.md`.
 - 2026-06-17 23:11 NZST: Polished the auth entry surface and sensitive password dialogs. The login account-selection surface now has a deliberate two-panel workstation entry layout with branded company context, role/access guidance, profile count, and stronger user cards. `PasswordPromptWindow` and `ChangePasswordWindow` now use secure-access framing, clearer field guidance, wider password inputs, and stronger action labels while preserving the existing command paths. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-17-auth-entry-polish.md`.
 - 2026-06-17 22:32 NZST: Added a shared visual hierarchy polish layer (`InventoryManagementApp/Resources/PolishedVisualHierarchy.xaml`) and loaded it in `App.xaml`. This targets the repeated flat/box-heavy feedback by improving common cards, toolbar/action strips, pane headers, summary cards, primary buttons, and dense grid headers across the app. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-17-shared-visual-hierarchy-polish.md`.
 
@@ -70,7 +71,7 @@ Overall: the UI is operationally competent and consistent, but most screens stil
 06-dialogs 21-30
 21-password-prompt.png: clear, but visually weak for a sensitive auth step. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/PasswordPromptWindow.xaml`; runtime screenshot review still needed.
 22-password-reset-prompt.png: the reset affordance is good; the red error copy helps, but the whole screen still feels unstyled.
-23-setup-wizard.png: good structure, but it does not feel like an onboarding experience yet.
+23-setup-wizard.png: good structure, but it does not feel like an onboarding experience yet. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/SetupWizardWindow.xaml`; runtime screenshot review still needed.
 24-activity-detail-dialog.png: clear and simple, though very plain.
 25-category-detail-dialog.png: readable and specific; still closer to a system dialog than a polished detail sheet.
 26-import-export-result-dialog.png: good concise result summary; visually generic.
