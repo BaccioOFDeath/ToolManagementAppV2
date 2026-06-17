@@ -4,14 +4,15 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
         xmlns:pages="clr-namespace:InventoryManagementApp.Views.Pages"
-        Title="{Binding WindowTitle}" Width="1280" Height="800" WindowStartupLocation="CenterScreen"
+        Title="{Binding WindowTitle}" Width="1280" Height="800" MinWidth="920" MinHeight="620" WindowStartupLocation="CenterScreen"
         Background="{DynamicResource BackgroundBrush}">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="214"/>
+            <ColumnDefinition Width="214" MinWidth="190" MaxWidth="230"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -22,39 +23,34 @@
                 BorderBrush="{DynamicResource BorderBrushBase}"
                 BorderThickness="0,0,0,1"
                 Padding="8,5">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="260"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="{Binding WindowTitle}" Style="{StaticResource HeadingTextBlock}"/>
-                    <TextBlock Text="Workshop inventory and rental control" Style="{StaticResource CaptionTextBlock}"/>
+            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Width="250" MinWidth="210" VerticalAlignment="Center" Margin="0,0,10,4">
+                    <TextBlock Text="{Binding WindowTitle}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="Workshop inventory and rental control" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
-                <pages:SearchBar Grid.Column="1"
-                                 Width="460"
+                <pages:SearchBar Width="420"
+                                 MinWidth="260"
                                  HorizontalAlignment="Left"
                                  VerticalAlignment="Center"
-                                 Margin="10,0,0,0"
+                                 Margin="0,0,10,4"
                                  Text="{Binding GlobalSearchText}"
                                  SearchCommand="{Binding GlobalSearchCommand}"
                                  SearchLabel=""/>
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,4">
                     <Border Width="26" Height="26" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Margin="0,0,6,0">
                         <controls:UserAvatar UserName="{Binding CurrentUserName}"
                                               UserPhotoPath="{Binding CurrentUserPhotoPath}"
                                               Foreground="{Binding CurrentUserInitialsBrush}"
                                               FontSize="13"/>
                     </Border>
-                    <StackPanel Margin="0,0,8,0" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding CurrentUserName}" FontWeight="SemiBold" TextWrapping="NoWrap"/>
-                        <TextBlock Text="{Binding CurrentUserRole}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap"/>
+                    <StackPanel Width="132" Margin="0,0,8,0" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding CurrentUserName}" FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding CurrentUserRole}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                     <Button Style="{StaticResource GhostButton}" Content="Switch User" Command="{Binding SwitchUserCommand}" Margin="0,0,4,0"/>
                     <Button Style="{StaticResource GhostButton}" Content="Exit" Command="{Binding ExitCommand}"/>
                 </StackPanel>
-            </Grid>
+            </WrapPanel>
         </Border>
 
         <Border Grid.Row="1" Grid.ColumnSpan="2"
@@ -71,7 +67,7 @@
             </WrapPanel>
         </Border>
 
-        <Border Grid.Row="2" Grid.Column="0"
+        <Border Grid.Row="2" Grid.RowSpan="2" Grid.Column="0"
                 Background="{DynamicResource SurfaceBrush}"
                 BorderBrush="{DynamicResource BorderBrushBase}"
                 BorderThickness="0,0,1,0"
@@ -102,7 +98,7 @@
                                    Foreground="{DynamicResource ForegroundMutedBrush}"/>
                         <StackPanel Grid.Column="1" Margin="6,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Sections" Style="{StaticResource PageTitleTextBlock}"/>
-                            <TextBlock Text="{Binding CurrentNavSectionTitle}" Style="{StaticResource CaptionTextBlock}"/>
+                            <TextBlock Text="{Binding CurrentNavSectionTitle}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -132,7 +128,35 @@
             </Grid>
         </Border>
 
-        <Frame Grid.Row="2"
+        <Border Grid.Row="2" Grid.Column="1"
+                Background="{DynamicResource SurfaceBrush}"
+                BorderBrush="{DynamicResource BorderBrushBase}"
+                BorderThickness="0,0,0,1"
+                Padding="8,6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
+                    <TextBlock Text="{Binding CurrentPageTitle}" Style="{StaticResource PageTitleTextBlock}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{Binding CurrentWorkflowGuide}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                </StackPanel>
+                <WrapPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Style="{StaticResource GhostButton}"
+                            Content="{Binding CurrentWorkflowPrimaryActionText}"
+                            Command="{Binding CurrentWorkflowPrimaryCommand}"
+                            Visibility="{Binding HasCurrentWorkflowPrimaryAction, Converter={StaticResource BoolToVis}}"
+                            Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource GhostButton}"
+                            Content="{Binding CurrentWorkflowSecondaryActionText}"
+                            Command="{Binding CurrentWorkflowSecondaryCommand}"
+                            Visibility="{Binding HasCurrentWorkflowSecondaryAction, Converter={StaticResource BoolToVis}}"/>
+                </WrapPanel>
+            </Grid>
+        </Border>
+
+        <Frame Grid.Row="3"
                Grid.Column="1"
                Name="MainFrame"
                NavigationUIVisibility="Hidden"
