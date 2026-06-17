@@ -408,11 +408,20 @@ namespace InventoryManagementApp.ViewModels
 
         private void OpenActivityDestination()
         {
-            var action = SelectedActivity?.Action ?? string.Empty;
-            if (action.Contains("rental", StringComparison.OrdinalIgnoreCase) || action.Contains("return", StringComparison.OrdinalIgnoreCase))
-                OpenRentalsWorkflow();
-            else
-                OpenItemsWorkflow();
+            var destination = ActivityLogsViewModel.BuildDestinationKey(SelectedActivity?.Action);
+            switch (destination)
+            {
+                case "Rentals":
+                case "Reservations":
+                    OpenRentalsWorkflow();
+                    break;
+                case "ImportExport":
+                    OpenImportExportWorkflow();
+                    break;
+                default:
+                    OpenItemsWorkflow();
+                    break;
+            }
         }
 
         private void UpdateSelectedRecordSummary()
@@ -426,7 +435,7 @@ namespace InventoryManagementApp.ViewModels
                         : SelectedRental != null
                             ? $"Rental: {SelectedRental.ItemNumber} for {SelectedRental.CustomerName} | due {SelectedRental.DueDate:yyyy-MM-dd}"
                             : SelectedActivity != null
-                                ? $"Activity: {SelectedActivity.Timestamp:yyyy-MM-dd HH:mm} | {SelectedActivity.UserName} | {SelectedActivity.Action}"
+                                ? DescribeActivity(SelectedActivity)
                                 : "Select or double-click a row to open the related workflow.";
             OnPropertyChanged(nameof(SelectedRecordSummary));
         }
@@ -436,6 +445,12 @@ namespace InventoryManagementApp.ViewModels
             var status = item.IsCheckedOut ? "checked out" : "available";
             var issue = item.IsIncomplete ? " | issue noted" : string.Empty;
             return $"{prefix}: {item.ItemNumber} - {item.Name} | {item.Location} | {status}{issue}";
+        }
+
+        private static string DescribeActivity(ActivityLog activity)
+        {
+            var destination = ActivityLogsViewModel.BuildDestinationName(ActivityLogsViewModel.BuildDestinationKey(activity.Action));
+            return $"Activity: {activity.Timestamp:yyyy-MM-dd HH:mm} | {activity.UserName} | open {destination} | {activity.Action}";
         }
 
         private async Task PrintCheckedOutItemsAsync()
