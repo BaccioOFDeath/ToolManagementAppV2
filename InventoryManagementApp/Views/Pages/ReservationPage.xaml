@@ -3,55 +3,123 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="{DynamicResource BackgroundBrush}"
       Focusable="True">
+    <Page.Resources>
+        <Style x:Key="ReservationStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="MinHeight" Value="76"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+        </Style>
+        <Style x:Key="ReservationDetailCard" TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+        <Style x:Key="ReservationDetailText" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlock}">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,2,0,0"/>
+        </Style>
+    </Page.Resources>
+
     <Grid Margin="0">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource ToolbarCard}">
+        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="12,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" MinWidth="380"/>
+                    <ColumnDefinition Width="14"/>
+                    <ColumnDefinition Width="3*" MinWidth="540"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Reservations Workbench" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    <TextBlock Text="Stage customer holds, confirm availability, prepare shelf pickup, and move ready reservations into rentals from one operations surface."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"
+                               Margin="0,3,0,0"/>
+                </StackPanel>
+                <UniformGrid Grid.Column="2" Columns="4">
+                    <Border Style="{StaticResource ReservationStatCard}">
+                        <StackPanel>
+                            <TextBlock Text="DIRECTORY" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding ReservationResultsSummary}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource ReservationStatCard}">
+                        <StackPanel>
+                            <TextBlock Text="FILTER" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding SelectedFilter}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource ReservationStatCard}">
+                        <StackPanel>
+                            <TextBlock Text="SELECTED" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding SelectedReservation.ReservationID, StringFormat=Hold #{0}, TargetNullValue='No hold selected', FallbackValue='No hold selected'}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource DesktopSummaryCard}" Padding="12,10" MinHeight="76">
+                        <StackPanel>
+                            <TextBlock Text="HANDOFF" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="Copy / print ready" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1" Style="{StaticResource ToolbarCard}" Padding="10,8">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <WrapPanel Grid.Row="0" VerticalAlignment="Center">
-                    <TextBlock Text="Reservations" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,4"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Add" Command="{Binding AddReservationCommand}" Margin="0,0,4,4" ToolTip="Create a new hold"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Confirm" Command="{Binding ConfirmReservationCommand}" Margin="0,0,4,4" ToolTip="Confirm the selected pending hold"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Fulfill" Command="{Binding FulfillReservationCommand}" Margin="0,0,4,4" ToolTip="Complete the selected confirmed hold with a rental ID"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Edit" Command="{Binding EditReservationCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Cancel" Command="{Binding CancelReservationCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteReservationCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Copy" Command="{Binding CopyReservationHandoffCommand}" Margin="0,0,4,4" ToolTip="Copy selected hold handoff"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintReservationHandoffCommand}" Margin="0,0,4,4" ToolTip="Print selected hold handoff"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Print List" Command="{Binding PrintReservationDirectoryCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Refresh" Command="{Binding RefreshCommand}" Margin="0,0,4,4"/>
-                </WrapPanel>
-                <WrapPanel Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,2,0,0">
-                    <TextBlock Text="Find" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,4"/>
-                    <TextBox Width="230"
-                             MinWidth="150"
-                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                             ToolTip="Search reservation number, item, customer, status, or notes"
-                             Margin="0,0,4,4"/>
-                    <ComboBox Width="160"
-                              MinWidth="130"
-                              ItemsSource="{Binding FilterOptions}"
-                              SelectedItem="{Binding SelectedFilter}"
-                              Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearReservationSearchCommand}" Margin="0,0,4,4"/>
-                    <TextBlock Text="{Binding SelectedReservationSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="8,0,0,4"/>
-                </WrapPanel>
+                <DockPanel LastChildFill="True">
+                    <TextBlock Text="Hold actions" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <WrapPanel>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Add Hold" Command="{Binding AddReservationCommand}" Margin="0,0,4,4" ToolTip="Create a new hold"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Confirm" Command="{Binding ConfirmReservationCommand}" Margin="0,0,4,4" ToolTip="Confirm the selected pending hold"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Fulfill" Command="{Binding FulfillReservationCommand}" Margin="0,0,4,4" ToolTip="Complete the selected confirmed hold with a rental ID"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Details" Command="{Binding OpenReservationDetailsCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Edit" Command="{Binding EditReservationCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Cancel" Command="{Binding CancelReservationCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Command="{Binding CopyReservationHandoffCommand}" Margin="0,0,4,4" ToolTip="Copy selected hold handoff"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Print Handoff" Command="{Binding PrintReservationHandoffCommand}" Margin="0,0,4,4" ToolTip="Print selected hold handoff"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteReservationCommand}" Margin="0,0,4,4"/>
+                    </WrapPanel>
+                </DockPanel>
+                <DockPanel Grid.Row="1" LastChildFill="True" Margin="0,4,0,0">
+                    <TextBlock Text="Find and filter" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <WrapPanel>
+                        <TextBox Width="250"
+                                 MinWidth="150"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Search reservation number, item, customer, status, or notes"
+                                 Margin="0,0,6,4"/>
+                        <ComboBox Width="175"
+                                  MinWidth="130"
+                                  ItemsSource="{Binding FilterOptions}"
+                                  SelectedItem="{Binding SelectedFilter}"
+                                  Margin="0,0,6,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Active" Command="{Binding ShowActiveReservationsCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Pending" Command="{Binding ShowPendingReservationsCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Confirmed" Command="{Binding ShowConfirmedReservationsCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Upcoming" Command="{Binding ShowUpcomingReservationsCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearReservationSearchCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Refresh" Command="{Binding RefreshCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Print List" Command="{Binding PrintReservationDirectoryCommand}" Margin="0,0,4,4"/>
+                    </WrapPanel>
+                </DockPanel>
             </Grid>
         </Border>
 
-        <Grid Grid.Row="1" Margin="0,6,0,0">
+        <Grid Grid.Row="2" Margin="0,6,0,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2.5*" MinWidth="430"/>
-                <ColumnDefinition Width="4"/>
-                <ColumnDefinition Width="1.15*" MinWidth="300"/>
+                <ColumnDefinition Width="2.45*" MinWidth="620"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="430" MinWidth="390"/>
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
@@ -64,17 +132,19 @@
 
                     <Border Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel>
-                            <TextBlock Text="01 Hold Directory" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
-                            <TextBlock Text="{Binding ReservationResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" TextWrapping="Wrap"/>
+                            <StackPanel DockPanel.Dock="Left">
+                                <TextBlock Text="01 Hold Directory" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                <TextBlock Text="Sorts staged holds by start date, then customer for pickup planning" Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding ReservationResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </DockPanel>
                     </Border>
 
-                    <WrapPanel Grid.Row="1" Margin="8,8,8,6">
-                        <Button Style="{StaticResource GhostButton}" Content="Active" Command="{Binding ShowActiveReservationsCommand}" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Pending" Command="{Binding ShowPendingReservationsCommand}" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Confirmed" Command="{Binding ShowConfirmedReservationsCommand}" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Upcoming" Command="{Binding ShowUpcomingReservationsCommand}" Margin="0,0,4,4"/>
-                    </WrapPanel>
+                    <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
+                        <DockPanel LastChildFill="True">
+                            <TextBlock Text="{Binding SelectedReservationSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,10,0"/>
+                        </DockPanel>
+                    </Border>
 
                     <DataGrid x:Name="ReservationGrid"
                               Grid.Row="2"
@@ -91,14 +161,48 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Hold #" Binding="{Binding ReservationID}" Width="76" MinWidth="68"/>
-                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="96" MinWidth="82"/>
-                            <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="1.3*" MinWidth="120"/>
-                            <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="1.2*" MinWidth="120"/>
-                            <DataGridTextColumn Header="Start" Binding="{Binding StartDate, StringFormat={}{0:yyyy-MM-dd}}" Width="92"/>
-                            <DataGridTextColumn Header="End" Binding="{Binding EndDate, StringFormat={}{0:yyyy-MM-dd}}" Width="92"/>
-                            <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="54" MinWidth="44"/>
-                            <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="96" MinWidth="76"/>
+                            <DataGridTemplateColumn Header="Hold" Width="1.25*" MinWidth="155">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="2,3">
+                                            <TextBlock Text="{Binding ReservationID, StringFormat=Hold #{0}}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding StatusDisplay}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Customer" Width="1.7*" MinWidth="170">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="2,3">
+                                            <TextBlock Text="{Binding CustomerName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding Quantity, StringFormat=Qty {0}}" Style="{StaticResource CaptionTextBlock}" Margin="0,1,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Item" Width="2*" MinWidth="200">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="2,3">
+                                            <TextBlock Text="{Binding ItemName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Window" Width="170" MinWidth="150">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="2,3">
+                                            <TextBlock Text="{Binding StartDate, StringFormat={}{0:yyyy-MM-dd}}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding EndDate, StringFormat=to {0:yyyy-MM-dd}}" Style="{StaticResource CaptionTextBlock}" Margin="0,1,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Rental ID" Binding="{Binding RentalID}" Width="92" MinWidth="76"/>
+                            <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="1.35*" MinWidth="160"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
@@ -119,14 +223,9 @@
                         </DataGrid.ContextMenu>
                     </DataGrid>
 
-                    <TextBlock Grid.Row="2"
-                               Text="No reservations match this filter"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               FontSize="13"
-                               FontWeight="SemiBold">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
+                    <Border Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="370" Padding="16">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding FilteredReservations.Count}" Value="0">
@@ -134,72 +233,100 @@
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                        </Border.Style>
+                        <StackPanel>
+                            <TextBlock Text="No reservations match this filter" FontSize="14" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/>
+                            <TextBlock Text="Clear search, switch the status filter, or add a new hold to restart the reservation queue."
+                                       Style="{StaticResource CaptionTextBlock}"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </Border>
 
             <GridSplitter Grid.Column="1"
-                          Width="4"
+                          Width="8"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch"
                           Background="{DynamicResource BorderBrushBase}"/>
 
-            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12">
-                <DockPanel LastChildFill="True">
-                    <Border DockPanel.Dock="Top"
-                            Style="{StaticResource DesktopSummaryCard}"
-                            Margin="0,0,0,6">
-                        <StackPanel>
-                            <TextBlock Text="Selected Hold" Style="{StaticResource SectionHeader}"/>
-                            <TextBlock Text="{Binding SelectedReservationTitle}"
-                                       FontSize="15"
-                                       FontWeight="SemiBold"
-                                       TextWrapping="Wrap"/>
-                            <TextBlock Text="{Binding SelectedReservationSubtitle}"
-                                       FontSize="11"
-                                       Margin="0,2,0,0"
-                                       TextWrapping="Wrap"/>
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Border Style="{StaticResource DesktopPaneHeader}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Left">
+                                <TextBlock Text="02 Pickup Handoff" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                <TextBlock Text="Selected hold, dates, next action, and shelf checklist" Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="Ready to copy" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                        </DockPanel>
+                    </Border>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="12,12,12,4">
+                            <Border Style="{StaticResource ReservationDetailCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Selected Hold" Style="{StaticResource LabelTextBlock}"/>
+                                    <TextBlock Text="{Binding SelectedReservationTitle}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                    <TextBlock Text="{Binding SelectedReservationSubtitle}" Style="{StaticResource ReservationDetailText}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource ReservationDetailCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Timing" Style="{StaticResource LabelTextBlock}"/>
+                                    <TextBlock Text="{Binding SelectedReservationTiming}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource ReservationDetailCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Next Action" Style="{StaticResource LabelTextBlock}"/>
+                                    <TextBlock Text="{Binding SelectedReservationNextAction}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource ReservationDetailCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Shelf Checklist" Style="{StaticResource LabelTextBlock}"/>
+                                    <TextBlock Text="{Binding SelectedReservationShelfChecklist}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource ReservationDetailCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Handoff Text" Style="{StaticResource LabelTextBlock}"/>
+                                    <TextBlock Text="{Binding SelectedReservationDetail}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
+                    </ScrollViewer>
+
+                    <Border Grid.Row="2" Style="{StaticResource DesktopPaneSubheader}" Padding="10,8">
+                        <DockPanel LastChildFill="True">
+                            <TextBlock Text="Handoff actions" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <WrapPanel>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Confirm" Command="{Binding ConfirmReservationCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Fulfill" Command="{Binding FulfillReservationCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Details" Command="{Binding OpenReservationDetailsCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Copy" Command="{Binding CopyReservationHandoffCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintReservationHandoffCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Edit" Command="{Binding EditReservationCommand}" Margin="0,0,4,4"/>
+                            </WrapPanel>
+                        </DockPanel>
                     </Border>
-
-                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,6">
-                        <TextBlock Text="Timing" Style="{StaticResource SectionHeader}"/>
-                        <TextBlock Text="{Binding SelectedReservationTiming}" TextWrapping="Wrap"/>
-                    </StackPanel>
-
-                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,6">
-                        <TextBlock Text="Next Action" Style="{StaticResource SectionHeader}"/>
-                        <TextBlock Text="{Binding SelectedReservationNextAction}" TextWrapping="Wrap"/>
-                    </StackPanel>
-
-                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,6">
-                        <TextBlock Text="Shelf Checklist" Style="{StaticResource SectionHeader}"/>
-                        <TextBlock Text="{Binding SelectedReservationShelfChecklist}" TextWrapping="Wrap"/>
-                    </StackPanel>
-
-                    <StackPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
-                        <TextBlock Text="Actions" Style="{StaticResource SectionHeader}"/>
-                        <WrapPanel>
-                            <Button Style="{StaticResource PrimaryButton}" Content="Confirm" Command="{Binding ConfirmReservationCommand}" Margin="0,0,4,4"/>
-                            <Button Style="{StaticResource PrimaryButton}" Content="Fulfill" Command="{Binding FulfillReservationCommand}" Margin="0,0,4,4"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Details" Command="{Binding OpenReservationDetailsCommand}" Margin="0,0,4,4"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Copy" Command="{Binding CopyReservationHandoffCommand}" Margin="0,0,4,4"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintReservationHandoffCommand}" Margin="0,0,4,4"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Edit" Command="{Binding EditReservationCommand}" Margin="0,0,4,4"/>
-                        </WrapPanel>
-                    </StackPanel>
-
-                    <Border Style="{StaticResource DesktopNoteCard}">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <TextBlock Text="{Binding SelectedReservationDetail}" TextWrapping="Wrap"/>
-                        </ScrollViewer>
-                    </Border>
-                </DockPanel>
+                </Grid>
             </Border>
         </Grid>
 
-        <Border Grid.Row="2" Style="{StaticResource ToolbarCard}" Margin="0,4,0,0">
+        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,4,0,0" Padding="10,7">
             <DockPanel LastChildFill="True">
                 <WrapPanel DockPanel.Dock="Right">
                     <Button Style="{StaticResource PrimaryButton}" Content="Add Hold" Command="{Binding AddReservationCommand}" Margin="0,0,4,4"/>
