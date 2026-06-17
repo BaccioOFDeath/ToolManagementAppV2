@@ -683,7 +683,6 @@ namespace InventoryManagementApp.ViewModels
 
             SwitchUserCommand = new AsyncRelayCommand(async () =>
                 {
-                    var previousUser = _userContext.CurrentUser;
                     _userContext.CurrentUser = null;
                     RefreshCurrentUser();
                     CloseNonMainWindows();
@@ -705,16 +704,13 @@ namespace InventoryManagementApp.ViewModels
                     }
                     else
                     {
-                        _userContext.CurrentUser = previousUser;
-                        _logger.LogWarning("Switch user cancelled.");
-                        _dialogService.ShowInfo("Switch user cancelled.", "Switch User");
+                        _logger.LogInformation("Login cancelled after signing out.");
                     }
                 }
                 catch (Exception ex)
                 {
-                    _userContext.CurrentUser = previousUser;
-                    _logger.LogError(ex, "Switch user failed.");
-                    _dialogService.ShowInfo("Failed to switch user.", "Switch User");
+                    _logger.LogError(ex, "Login failed after signing out.");
+                    _dialogService.ShowInfo("Signed out, but failed to open the login window.", "Switch User");
                     throw;
                 }
             });

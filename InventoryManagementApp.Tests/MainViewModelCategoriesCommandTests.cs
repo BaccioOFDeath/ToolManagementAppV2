@@ -102,6 +102,86 @@ namespace InventoryManagementApp.Tests
             if (threadEx != null) throw threadEx;
         }
 
+        [Fact]
+        public void SwitchUserCommand_CancelledLogin_LeavesUserSignedOut()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    using var db = new DatabaseService(":memory:");
+                    new MigrationRunner(db).Migrate();
+                    var host = Host.CreateDefaultBuilder()
+                        .ConfigureServices(s =>
+                        {
+                            s.AddSingleton<IDatabaseService>(db);
+                            s.AddSingleton<IDialogService, StubDialogService>();
+                            s.AddSingleton<IFileDialogService, StubFileDialogService>();
+                            s.AddSingleton<ISettingsService, StubSettingsService>();
+                            s.AddSingleton<IThemeService, StubThemeService>();
+                            s.AddSingleton<CategoriesService>();
+                            s.AddTransient<CategoryManagementViewModel>();
+                        })
+                        .Build();
+
+                    WpfTestHelper.ShutdownApplication();
+                    var app = new App(host);
+
+                    var userContext = new StubUserContext
+                    {
+                        CurrentUser = new User { UserID = 1, UserName = "Existing User", IsAdmin = true }
+                    };
+                    var maintenanceService = new MaintenanceService(db, userContext);
+                    var calibrationService = new CalibrationService(db, userContext);
+                    var reservationService = new ReservationService(db, userContext);
+                    var kitService = new KitService(db, userContext);
+                    var loginShown = false;
+
+                    var vm = new MainViewModel(
+                        new StubItemService(),
+                        new StubUserService(),
+                        userContext,
+                        new StubCustomerService(),
+                        new StubRentalService(),
+                        new StubFileDialogService(),
+                        new ActivityLogService(db),
+                        new StubSettingsService(),
+                        new StubThemeService(),
+                        new StubDatabaseBackupService(),
+                        new StubDialogService(),
+                        maintenanceService,
+                        calibrationService,
+                        reservationService,
+                        kitService,
+                        null,
+                        NullLogger<MainViewModel>.Instance,
+                        () =>
+                        {
+                            loginShown = true;
+                            return Task.FromResult(false);
+                        },
+                        new StubDispatcherTimer(),
+                        new StubDispatcherTimer());
+
+                    vm.SwitchUserCommand.ExecuteAsync(null).GetAwaiter().GetResult();
+
+                    Assert.True(loginShown);
+                    Assert.Null(userContext.CurrentUser);
+
+                    WpfTestHelper.ShutdownApplication();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
         private sealed class StubItemService : IItemService
         {
             public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
