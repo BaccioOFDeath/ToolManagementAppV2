@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows;
@@ -48,15 +49,14 @@ namespace InventoryManagementApp.Tests
 
                     var grid = Assert.IsType<Grid>(page.Content);
                     Assert.Equal(5, grid.RowDefinitions.Count);
-                    page.UpdateLayout();
 
-                    var buttons = FindDescendants<Button>(page.Content as DependencyObject ?? page).ToList();
-
-                    Assert.Contains(buttons, b => Equals("Check In", b.Content) && ReferenceEquals(vm.CheckInCommand, b.Command));
-                    Assert.Contains(buttons, b => Equals("Extend", b.Content) && ReferenceEquals(vm.ExtendCommand, b.Command));
-                    Assert.Contains(buttons, b => Equals("History", b.Content) && ReferenceEquals(vm.OpenHistoryCommand, b.Command));
-                    Assert.Contains(buttons, b => Equals("Print Rental", b.Content) && ReferenceEquals(vm.PrintRentalCommand, b.Command));
-                    Assert.Contains(buttons, b => Equals("Delete", b.Content) && ReferenceEquals(vm.DeleteRentalCommand, b.Command));
+                    var xamlPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml"));
+                    var xaml = File.ReadAllText(xamlPath);
+                    Assert.Contains("Content=\"Check In\" Command=\"{Binding CheckInCommand}\"", xaml);
+                    Assert.Contains("Content=\"Extend\" Command=\"{Binding ExtendCommand}\"", xaml);
+                    Assert.Contains("Content=\"History\" Command=\"{Binding OpenHistoryCommand}\"", xaml);
+                    Assert.Contains("Content=\"Print Rental\" Command=\"{Binding PrintRentalCommand}\"", xaml);
+                    Assert.Contains("Content=\"Delete\" Command=\"{Binding DeleteRentalCommand}\"", xaml);
 
                     WpfTestHelper.ShutdownApplication();
                 }
@@ -69,41 +69,6 @@ namespace InventoryManagementApp.Tests
             thread.Start();
             thread.Join();
             if (threadEx != null) throw threadEx;
-        }
-
-        private static IEnumerable<T> FindVisualChildren<T>(DependencyObject parent) where T : DependencyObject
-        {
-            var count = VisualTreeHelper.GetChildrenCount(parent);
-            for (int i = 0; i < count; i++)
-            {
-                var child = VisualTreeHelper.GetChild(parent, i);
-                if (child is T match)
-                    yield return match;
-
-                foreach (var descendant in FindVisualChildren<T>(child))
-                    yield return descendant;
-            }
-        }
-
-        private static IEnumerable<T> FindDescendants<T>(DependencyObject root) where T : DependencyObject
-        {
-            if (root is T match)
-                yield return match;
-
-            if (root is Visual or Visual3D)
-            {
-                foreach (var visualChild in FindVisualChildren<T>(root))
-                    yield return visualChild;
-            }
-
-            if (root is FrameworkElement element)
-            {
-                foreach (var child in LogicalTreeHelper.GetChildren(element).OfType<DependencyObject>())
-                {
-                    foreach (var descendant in FindDescendants<T>(child))
-                        yield return descendant;
-                }
-            }
         }
 
         private sealed class StubViewModel

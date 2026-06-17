@@ -37,6 +37,7 @@ namespace InventoryManagementApp.Tests
                 try
                 {
                     using var db = new DatabaseService(":memory:");
+                    new MigrationRunner(db).Migrate();
                     var host = Host.CreateDefaultBuilder()
                         .ConfigureServices(s =>
                         {
