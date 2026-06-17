@@ -2,43 +2,103 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="{DynamicResource BackgroundBrush}">
+    <Page.Resources>
+        <Style x:Key="KitStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="MinHeight" Value="76"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+        </Style>
+    </Page.Resources>
+
     <Grid Margin="0">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource ToolbarCard}">
-            <DockPanel LastChildFill="False">
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-                    <TextBlock Text="Kit Actions" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Add Kit" Command="{Binding AddKitCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenKitDetailsCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditKitCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Check Availability" Command="{Binding CheckAvailabilityCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Print Kit" Command="{Binding PrintSelectedKitCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteKitCommand}"/>
+        <Border Style="{StaticResource ToolbarCard}" Padding="12,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" MinWidth="380"/>
+                    <ColumnDefinition Width="14"/>
+                    <ColumnDefinition Width="3*" MinWidth="520"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Kit Workbench" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    <TextBlock Text="Build reusable item sets, maintain membership, confirm availability, and print kit handoffs from one operations surface."
+                               Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
-                    <TextBlock Text="Filter" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <TextBox Width="220" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0" ToolTip="Search kit number, name, category, or description"/>
-                    <ComboBox Width="140" ItemsSource="{Binding FilterOptions}" SelectedItem="{Binding SelectedFilter}" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearSearchCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Refresh" Command="{Binding RefreshCommand}"/>
-                </StackPanel>
-            </DockPanel>
+                <UniformGrid Grid.Column="2" Columns="4">
+                    <Border Style="{StaticResource KitStatCard}">
+                        <StackPanel>
+                            <TextBlock Text="DIRECTORY" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding KitResultsSummary}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource KitStatCard}">
+                        <StackPanel>
+                            <TextBlock Text="MEMBERSHIP" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding KitItemsSummary}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource KitStatCard}">
+                        <StackPanel>
+                            <TextBlock Text="SELECTED" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding SelectedKit.KitNumber, TargetNullValue='No kit selected', FallbackValue='No kit selected'}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource DesktopSummaryCard}" Padding="12,10" MinHeight="76">
+                        <StackPanel>
+                            <TextBlock Text="AVAILABILITY" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="Check before promise" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+            </Grid>
         </Border>
 
-        <Grid Grid.Row="1" Margin="0,6,0,0">
+        <Border Grid.Row="1" Style="{StaticResource ToolbarCard}" Padding="10,8">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <DockPanel LastChildFill="True">
+                    <TextBlock Text="Kit actions" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <WrapPanel>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Add Kit" Command="{Binding AddKitCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenKitDetailsCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditKitCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Check Availability" Command="{Binding CheckAvailabilityCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Copy" Command="{Binding CopySelectedKitCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Print Kit" Command="{Binding PrintSelectedKitCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Print Directory" Command="{Binding PrintKitListCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteKitCommand}" Margin="0,0,4,4"/>
+                    </WrapPanel>
+                </DockPanel>
+                <DockPanel Grid.Row="1" LastChildFill="True" Margin="0,4,0,0">
+                    <TextBlock Text="Find and filter" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <WrapPanel>
+                        <TextBox Width="260" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,4" ToolTip="Search kit number, name, category, or description"/>
+                        <ComboBox Width="150" ItemsSource="{Binding FilterOptions}" SelectedItem="{Binding SelectedFilter}" Margin="0,0,6,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearSearchCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Refresh" Command="{Binding RefreshCommand}" Margin="0,0,4,4"/>
+                    </WrapPanel>
+                </DockPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2" Margin="0,0,0,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2.1*"/>
-                <ColumnDefinition Width="6"/>
-                <ColumnDefinition Width="1.1*"/>
+                <ColumnDefinition Width="2.05*" MinWidth="620"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="440" MinWidth="380"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="1.1*"/>
-                <RowDefinition Height="6"/>
+                <RowDefinition Height="1.05*"/>
+                <RowDefinition Height="8"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
@@ -46,22 +106,22 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <Border Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel>
-                            <TextBlock Text="01 Kit Directory" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
-                            <TextBlock Text="{Binding KitResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                            <StackPanel DockPanel.Dock="Left">
+                                <TextBlock Text="01 Kit Directory" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                <TextBlock Text="Search the reusable kit catalog before editing membership or promising availability." Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding KitResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </DockPanel>
                     </Border>
-                    <DataGrid x:Name="KitsGrid"
-                              Grid.Row="1"
-                              ItemsSource="{Binding FilteredKits}"
-                              SelectedItem="{Binding SelectedKit}"
-                              AutoGenerateColumns="False"
-                              IsReadOnly="True"
-                              SelectionMode="Single"
-                              Style="{StaticResource VirtualizedDataGridStyle}">
+                    <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
+                        <TextBlock Text="Select a kit to load required and optional item lines, then check availability or print a handoff sheet." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                    </Border>
+                    <DataGrid x:Name="KitsGrid" Grid.Row="2" ItemsSource="{Binding FilteredKits}" SelectedItem="{Binding SelectedKit}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" Style="{StaticResource VirtualizedDataGridStyle}">
                         <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
                                 <EventSetter Event="MouseDoubleClick" Handler="KitRow_MouseDoubleClick"/>
@@ -69,12 +129,28 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Kit #" Binding="{Binding KitNumber}" Width="120"/>
-                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*"/>
-                            <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="150"/>
-                            <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive}" Width="80"/>
-                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2*"/>
-                            <DataGridTextColumn Header="Updated" Binding="{Binding UpdatedAt, StringFormat={}{0:yyyy-MM-dd}}" Width="110"/>
+                            <DataGridTemplateColumn Header="Kit" Width="2*" MinWidth="210">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="2,3">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding KitNumber}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Category" Width="1.2*" MinWidth="150">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="2,3">
+                                            <TextBlock Text="{Binding Category}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding IsActive, StringFormat=Active: {0}}" Style="{StaticResource CaptionTextBlock}" Margin="0,1,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2*" MinWidth="210"/>
+                            <DataGridTextColumn Header="Updated" Binding="{Binding UpdatedAt, StringFormat={}{0:yyyy-MM-dd}}" Width="118" MinWidth="96"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
@@ -88,20 +164,24 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </DataGrid>
-                    <TextBlock Grid.Row="1" Text="No kits match this filter" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
+                    <Border Grid.Row="2" Width="320" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding FilteredKits.Count}" Value="0">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding FilteredKits.Count}" Value="0"><Setter Property="Visibility" Value="Visible"/></DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                        </Border.Style>
+                        <StackPanel>
+                            <TextBlock Text="No kits match this filter" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                            <TextBlock Text="Adjust the search or status filter, or add a new reusable kit." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </Border>
+
+            <GridSplitter Grid.Row="0" Grid.RowSpan="3" Grid.Column="1" Width="8" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
 
             <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource Card}" Padding="0">
                 <Grid>
@@ -112,26 +192,23 @@
                     </Grid.RowDefinitions>
                     <Border Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel>
-                            <TextBlock Text="02 Kit Item Membership" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
-                            <TextBlock Text="{Binding KitItemsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                            <StackPanel DockPanel.Dock="Left">
+                                <TextBlock Text="02 Kit Item Membership" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                <TextBlock Text="Maintain required quantities and optional lines for the selected kit." Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding KitItemsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </DockPanel>
                     </Border>
                     <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
-                        <StackPanel Orientation="Horizontal">
-                            <Button Style="{StaticResource PrimaryButton}" Content="Add Item" Command="{Binding AddKitItemCommand}" Margin="0,0,4,0"/>
-                            <Button Style="{StaticResource PrimaryButton}" Content="Edit Item" Command="{Binding EditKitItemCommand}" Margin="0,0,4,0"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Remove Item" Command="{Binding RemoveKitItemCommand}" Margin="0,0,4,0"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Reload Items" Command="{Binding ViewKitItemsCommand}"/>
-                        </StackPanel>
+                        <WrapPanel>
+                            <Button Style="{StaticResource PrimaryButton}" Content="Add Item" Command="{Binding AddKitItemCommand}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource PrimaryButton}" Content="Edit Item" Command="{Binding EditKitItemCommand}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Remove Item" Command="{Binding RemoveKitItemCommand}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Reload Items" Command="{Binding ViewKitItemsCommand}" Margin="0,0,0,4"/>
+                        </WrapPanel>
                     </Border>
                     <Grid Grid.Row="2">
-                        <DataGrid x:Name="KitItemsGrid"
-                                  ItemsSource="{Binding KitItems}"
-                                  SelectedItem="{Binding SelectedKitItem}"
-                                  AutoGenerateColumns="False"
-                                  IsReadOnly="True"
-                                  SelectionMode="Single"
-                                  Style="{StaticResource VirtualizedDataGridStyle}">
+                        <DataGrid x:Name="KitItemsGrid" ItemsSource="{Binding KitItems}" SelectedItem="{Binding SelectedKitItem}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" Style="{StaticResource VirtualizedDataGridStyle}">
                             <DataGrid.RowStyle>
                                 <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
                                     <EventSetter Event="MouseDoubleClick" Handler="KitItemRow_MouseDoubleClick"/>
@@ -139,10 +216,26 @@
                                 </Style>
                             </DataGrid.RowStyle>
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="130"/>
-                                <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="2*"/>
-                                <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="80"/>
-                                <DataGridCheckBoxColumn Header="Optional" Binding="{Binding IsOptional}" Width="100"/>
+                                <DataGridTemplateColumn Header="Item" Width="2*" MinWidth="230">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Margin="2,3">
+                                                <TextBlock Text="{Binding ItemName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Quantity" Width="140" MinWidth="110">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Margin="2,3">
+                                                <TextBlock Text="{Binding Quantity}" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding IsOptional, StringFormat=Optional: {0}}" Style="{StaticResource CaptionTextBlock}" Margin="0,1,0,0"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                             </DataGrid.Columns>
                             <DataGrid.ContextMenu>
                                 <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
@@ -153,18 +246,20 @@
                                 </ContextMenu>
                             </DataGrid.ContextMenu>
                         </DataGrid>
-                        <TextBlock Text="No items assigned to this kit" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
+                        <Border Width="320" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Border.Style>
+                                <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                     <Setter Property="Visibility" Value="Collapsed"/>
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding KitItems.Count}" Value="0">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding KitItems.Count}" Value="0"><Setter Property="Visibility" Value="Visible"/></DataTrigger>
                                     </Style.Triggers>
                                 </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                            </Border.Style>
+                            <StackPanel>
+                                <TextBlock Text="No items assigned to this kit" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                <TextBlock Text="Add required and optional item lines so availability checks and printed handoffs have enough detail." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
                     </Grid>
                 </Grid>
             </Border>
@@ -177,36 +272,24 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Border Style="{StaticResource DesktopPaneHeader}">
-                        <TextBlock Text="03 Selected Kit" Style="{StaticResource SectionHeader}" Margin="0"/>
+                        <StackPanel>
+                            <TextBlock Text="03 Selected Kit Handoff" Style="{StaticResource SectionHeader}" Margin="0"/>
+                            <TextBlock Text="Availability, membership, and print actions for the selected kit." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                        </StackPanel>
                     </Border>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="12">
                         <StackPanel>
-                            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,8">
-                                <TextBlock Text="{Binding SelectedKitSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
-                            </Border>
-                            <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,0,8">
-                                <StackPanel>
-                                    <TextBlock Text="Kit Detail" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
-                                    <TextBlock Text="{Binding SelectedKitDetail}" TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </Border>
-                            <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,0,8">
-                                <StackPanel>
-                                    <TextBlock Text="Availability" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
-                                    <TextBlock Text="{Binding SelectedKitAvailabilitySummary}" TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </Border>
-                            <Border Style="{StaticResource DesktopInsetCard}">
-                                <StackPanel>
-                                    <TextBlock Text="Selected Item" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
-                                    <TextBlock Text="{Binding SelectedKitItemSummary}" TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </Border>
+                            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,10"><StackPanel><TextBlock Text="Selected kit" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/><TextBlock Text="{Binding SelectedKitSummary}" FontWeight="SemiBold" TextWrapping="Wrap"/></StackPanel></Border>
+                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,10"><StackPanel><TextBlock Text="Kit detail" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/><TextBlock Text="{Binding SelectedKitDetail}" TextWrapping="Wrap"/></StackPanel></Border>
+                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,10"><StackPanel><TextBlock Text="Availability promise" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/><TextBlock Text="{Binding SelectedKitAvailabilitySummary}" TextWrapping="Wrap"/></StackPanel></Border>
+                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,10"><StackPanel><TextBlock Text="Selected item line" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/><TextBlock Text="{Binding SelectedKitItemSummary}" TextWrapping="Wrap"/></StackPanel></Border>
+                            <Border Style="{StaticResource DesktopNoteCard}"><StackPanel><TextBlock Text="Desk checklist" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/><TextBlock Text="Confirm active status, review required quantities, run availability, then print or copy the kit handoff." TextWrapping="Wrap"/></StackPanel></Border>
                         </StackPanel>
                     </ScrollViewer>
                     <Border Grid.Row="2" Style="{StaticResource DesktopPaneSubheader}" BorderThickness="0,1,0,0">
                         <WrapPanel>
                             <Button Style="{StaticResource PrimaryButton}" Content="Check Availability" Command="{Binding CheckAvailabilityCommand}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenKitDetailsCommand}" Margin="0,0,4,4"/>
                             <Button Style="{StaticResource GhostButton}" Content="Copy" Command="{Binding CopySelectedKitCommand}" Margin="0,0,4,4"/>
                             <Button Style="{StaticResource GhostButton}" Content="Print Kit" Command="{Binding PrintSelectedKitCommand}" Margin="0,0,4,4"/>
                             <Button Style="{StaticResource GhostButton}" Content="Print Directory" Command="{Binding PrintKitListCommand}" Margin="0,0,4,4"/>
@@ -216,13 +299,13 @@
             </Border>
         </Grid>
 
-        <Border Grid.Row="2" Style="{StaticResource ToolbarCard}" Margin="0,4,0,0">
+        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,4,0,0">
             <DockPanel LastChildFill="True">
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <Button Style="{StaticResource PrimaryButton}" Content="Add Item" Command="{Binding AddKitItemCommand}" Margin="0,0,4,0"/>
                     <Button Style="{StaticResource GhostButton}" Content="Print Directory" Command="{Binding PrintKitListCommand}"/>
                 </StackPanel>
-                <TextBlock Text="{Binding SelectedKitSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="2,0,10,0"/>
+                <TextBlock Text="{Binding SelectedKitSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="2,0,10,0" TextWrapping="Wrap"/>
             </DockPanel>
         </Border>
     </Grid>
