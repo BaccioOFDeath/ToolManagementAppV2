@@ -18,217 +18,268 @@ public class ItemServiceCsvImportTests
     public async Task ImportItemsFromCsv_UsesBoundedMemoryForLargeFiles()
     {
         var csvPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
-        await using var writer = new StreamWriter(csvPath);
-        await writer.WriteLineAsync("ItemNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowered");
-        for (int i = 0; i < 10000; i++)
-            await writer.WriteLineAsync($"NUM{i},Name{i},Loc,Brand,Part,Supplier,2020-01-01,Note,1,0");
-        await writer.FlushAsync();
-
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
-        await using var db = new DatabaseService(dbPath);
-        new MigrationRunner(db).Migrate();
-        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
-        var service = new ItemService(db, repository);
-        var map = new Dictionary<string, string> { ["ItemNumber"] = "ItemNumber" };
+        try
+        {
+            await using (var writer = new StreamWriter(csvPath))
+            {
+                await writer.WriteLineAsync("ItemNumber,NameDescription,Location,Brand,PartNumber,Supplier,PurchasedDate,Notes,AvailableQuantity,IsPowered");
+                for (int i = 0; i < 10000; i++)
+                    await writer.WriteLineAsync($"NUM{i},Name{i},Loc,Brand,Part,Supplier,2020-01-01,Note,1,0");
+                await writer.FlushAsync();
+            }
 
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        GC.Collect();
-        var before = GC.GetTotalMemory(true);
-        var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
-        var after = GC.GetTotalMemory(true);
+            await using (var db = new DatabaseService(dbPath))
+            {
+                new MigrationRunner(db).Migrate();
+                var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+                var service = new ItemService(db, repository);
+                var map = new Dictionary<string, string> { ["ItemNumber"] = "ItemNumber" };
 
-        Assert.Empty(invalid);
-        Assert.True(after - before < 80_000_000);
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+                var before = GC.GetTotalMemory(true);
+                var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
+                var after = GC.GetTotalMemory(true);
 
-        File.Delete(csvPath);
-        File.Delete(dbPath);
+                Assert.Empty(invalid);
+                Assert.True(after - before < 80_000_000);
+            }
+        }
+        finally
+        {
+            File.Delete(csvPath);
+            File.Delete(dbPath);
+        }
     }
 
     [Fact]
     public async Task ImportItemsFromCsv_PopulatesNames()
     {
         var csvPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
-        await File.WriteAllTextAsync(csvPath, "ItemNumber,NameDescription\nNUM1,ItemName");
-
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
-        await using var db = new DatabaseService(dbPath);
-        new MigrationRunner(db).Migrate();
-        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
-        var service = new ItemService(db, repository);
-
-        var map = new Dictionary<string, string>
+        try
         {
-            ["ItemNumber"] = "ItemNumber",
-            [nameof(ItemImportDto.Name)] = "NameDescription"
-        };
+            await File.WriteAllTextAsync(csvPath, "ItemNumber,NameDescription\nNUM1,ItemName");
 
-        var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
-        Assert.Empty(invalid);
+            await using (var db = new DatabaseService(dbPath))
+            {
+                new MigrationRunner(db).Migrate();
+                var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+                var service = new ItemService(db, repository);
 
-        using var conn = db.CreateConnection();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT NameDescription FROM Items WHERE ItemNumber='NUM1'";
-        var name = cmd.ExecuteScalar()?.ToString();
-        Assert.Equal("ItemName", name);
+                var map = new Dictionary<string, string>
+                {
+                    ["ItemNumber"] = "ItemNumber",
+                    [nameof(ItemImportDto.Name)] = "NameDescription"
+                };
 
-        File.Delete(csvPath);
-        File.Delete(dbPath);
+                var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
+                Assert.Empty(invalid);
+
+                using var conn = db.CreateConnection();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT NameDescription FROM Items WHERE ItemNumber='NUM1'";
+                var name = cmd.ExecuteScalar()?.ToString();
+                Assert.Equal("ItemName", name);
+            }
+        }
+        finally
+        {
+            File.Delete(csvPath);
+            File.Delete(dbPath);
+        }
     }
 
     [Fact]
     public async Task ImportItemsFromCsv_PopulatesKeywords()
     {
         var csvPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
-        await File.WriteAllTextAsync(csvPath, "ItemNumber,Keywords\nNUM1,tag1 tag2");
-
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
-        await using var db = new DatabaseService(dbPath);
-        new MigrationRunner(db).Migrate();
-        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
-        var service = new ItemService(db, repository);
-
-        var map = new Dictionary<string, string>
+        try
         {
-            ["ItemNumber"] = "ItemNumber",
-            [nameof(ItemImportDto.Keywords)] = "Keywords"
-        };
+            await File.WriteAllTextAsync(csvPath, "ItemNumber,Keywords\nNUM1,tag1 tag2");
 
-        var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
-        Assert.Empty(invalid);
+            await using (var db = new DatabaseService(dbPath))
+            {
+                new MigrationRunner(db).Migrate();
+                var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+                var service = new ItemService(db, repository);
 
-        using var conn = db.CreateConnection();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT Keywords FROM Items WHERE ItemNumber='NUM1'";
-        var keywords = cmd.ExecuteScalar()?.ToString();
-        Assert.Equal("tag1 tag2", keywords);
+                var map = new Dictionary<string, string>
+                {
+                    ["ItemNumber"] = "ItemNumber",
+                    [nameof(ItemImportDto.Keywords)] = "Keywords"
+                };
 
-        File.Delete(csvPath);
-        File.Delete(dbPath);
+                var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
+                Assert.Empty(invalid);
+
+                using var conn = db.CreateConnection();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT Keywords FROM Items WHERE ItemNumber='NUM1'";
+                var keywords = cmd.ExecuteScalar()?.ToString();
+                Assert.Equal("tag1 tag2", keywords);
+            }
+        }
+        finally
+        {
+            File.Delete(csvPath);
+            File.Delete(dbPath);
+        }
     }
 
     [Fact]
     public async Task ImportItemsFromCsv_DefaultsMissingColumns()
     {
         var csvPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
-        await File.WriteAllTextAsync(csvPath, "ItemNumber\nNUM1");
-
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
-        await using var db = new DatabaseService(dbPath);
-        new MigrationRunner(db).Migrate();
-        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
-        var service = new ItemService(db, repository);
-
-        var map = new Dictionary<string, string>
+        try
         {
-            ["ItemNumber"] = "ItemNumber"
-        };
+            await File.WriteAllTextAsync(csvPath, "ItemNumber\nNUM1");
 
-        var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
-        Assert.Empty(invalid);
+            await using (var db = new DatabaseService(dbPath))
+            {
+                new MigrationRunner(db).Migrate();
+                var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+                var service = new ItemService(db, repository);
 
-        using var conn = db.CreateConnection();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT NameDescription, Location FROM Items WHERE ItemNumber='NUM1'";
-        using var reader = cmd.ExecuteReader();
-        Assert.True(reader.Read());
-        Assert.Equal(string.Empty, reader.GetString(0));
-        Assert.Equal(string.Empty, reader.GetString(1));
+                var map = new Dictionary<string, string>
+                {
+                    ["ItemNumber"] = "ItemNumber"
+                };
 
-        File.Delete(csvPath);
-        File.Delete(dbPath);
+                var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
+                Assert.Empty(invalid);
+
+                using var conn = db.CreateConnection();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT NameDescription, Location FROM Items WHERE ItemNumber='NUM1'";
+                using var reader = cmd.ExecuteReader();
+                Assert.True(reader.Read());
+                Assert.Equal(string.Empty, reader.GetString(0));
+                Assert.Equal(string.Empty, reader.GetString(1));
+            }
+        }
+        finally
+        {
+            File.Delete(csvPath);
+            File.Delete(dbPath);
+        }
     }
 
     [Fact]
     public async Task ImportItemsFromCsv_SkipsRowsWithMissingMappedFields()
     {
         var csvPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
-        await File.WriteAllTextAsync(csvPath, "ItemNumber\nNUM1");
-
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
-        await using var db = new DatabaseService(dbPath);
-        new MigrationRunner(db).Migrate();
-        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
-        var service = new ItemService(db, repository);
-
-        var map = new Dictionary<string, string>
+        try
         {
-            ["ItemNumber"] = "ItemNumber",
-            [nameof(ItemImportDto.Name)] = "NameDescription"
-        };
+            await File.WriteAllTextAsync(csvPath, "ItemNumber\nNUM1");
 
-        var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
-        Assert.Contains(2, invalid);
+            await using (var db = new DatabaseService(dbPath))
+            {
+                new MigrationRunner(db).Migrate();
+                var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+                var service = new ItemService(db, repository);
 
-        using var conn = db.CreateConnection();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT COUNT(*) FROM Items";
-        var count = Convert.ToInt32(cmd.ExecuteScalar());
-        Assert.Equal(0, count);
+                var map = new Dictionary<string, string>
+                {
+                    ["ItemNumber"] = "ItemNumber",
+                    [nameof(ItemImportDto.Name)] = "NameDescription"
+                };
 
-        File.Delete(csvPath);
-        File.Delete(dbPath);
+                var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
+                Assert.Contains(2, invalid);
+
+                using var conn = db.CreateConnection();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT COUNT(*) FROM Items";
+                var count = Convert.ToInt32(cmd.ExecuteScalar());
+                Assert.Equal(0, count);
+            }
+        }
+        finally
+        {
+            File.Delete(csvPath);
+            File.Delete(dbPath);
+        }
     }
 
     [Fact]
     public async Task ImportItemsFromCsv_SkipsDuplicateItemNumbers()
     {
         var csvPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
-        await File.WriteAllTextAsync(csvPath, "ItemNumber,NameDescription\nNUM1,Existing\nNUM1,Duplicate");
-
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
-        await using var db = new DatabaseService(dbPath);
-        new MigrationRunner(db).Migrate();
-        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
-        var service = new ItemService(db, repository);
-
-        var map = new Dictionary<string, string>
+        try
         {
-            ["ItemNumber"] = "ItemNumber",
-            [nameof(ItemImportDto.Name)] = "NameDescription"
-        };
+            await File.WriteAllTextAsync(csvPath, "ItemNumber,NameDescription\nNUM1,Existing\nNUM1,Duplicate");
 
-        var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
-        Assert.Contains(3, invalid);
+            await using (var db = new DatabaseService(dbPath))
+            {
+                new MigrationRunner(db).Migrate();
+                var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+                var service = new ItemService(db, repository);
 
-        using var conn = db.CreateConnection();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT COUNT(*) FROM Items WHERE ItemNumber='NUM1'";
-        var count = Convert.ToInt32(cmd.ExecuteScalar());
-        Assert.Equal(1, count);
+                var map = new Dictionary<string, string>
+                {
+                    ["ItemNumber"] = "ItemNumber",
+                    [nameof(ItemImportDto.Name)] = "NameDescription"
+                };
 
-        File.Delete(csvPath);
-        File.Delete(dbPath);
+                var invalid = await service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None);
+                Assert.Contains(3, invalid);
+
+                using var conn = db.CreateConnection();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT COUNT(*) FROM Items WHERE ItemNumber='NUM1'";
+                var count = Convert.ToInt32(cmd.ExecuteScalar());
+                Assert.Equal(1, count);
+            }
+        }
+        finally
+        {
+            File.Delete(csvPath);
+            File.Delete(dbPath);
+        }
     }
 
     [Fact]
     public async Task ImportItemsFromCsv_RollsBackInsertedRowsWhenInsertFails()
     {
         var csvPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
-        await File.WriteAllTextAsync(csvPath, "ItemNumber,NameDescription\nNUM1,First\nNUM2,Second");
-
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
-        await using var db = new DatabaseService(dbPath);
-        new MigrationRunner(db).Migrate();
-        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
-        var service = new FailingInsertItemService(db, repository, failOnInsertAttempt: 2);
-
-        var map = new Dictionary<string, string>
+        try
         {
-            ["ItemNumber"] = "ItemNumber",
-            [nameof(ItemImportDto.Name)] = "NameDescription"
-        };
+            await File.WriteAllTextAsync(csvPath, "ItemNumber,NameDescription\nNUM1,First\nNUM2,Second");
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None));
+            await using (var db = new DatabaseService(dbPath))
+            {
+                new MigrationRunner(db).Migrate();
+                var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+                var service = new FailingInsertItemService(db, repository, failOnInsertAttempt: 2);
 
-        using var conn = db.CreateConnection();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT COUNT(*) FROM Items";
-        var count = Convert.ToInt32(cmd.ExecuteScalar());
-        Assert.Equal(0, count);
+                var map = new Dictionary<string, string>
+                {
+                    ["ItemNumber"] = "ItemNumber",
+                    [nameof(ItemImportDto.Name)] = "NameDescription"
+                };
 
-        File.Delete(csvPath);
-        File.Delete(dbPath);
+                await Assert.ThrowsAsync<InvalidOperationException>(() => service.ImportItemsFromCsvAsync(csvPath, map, CancellationToken.None));
+
+                using var conn = db.CreateConnection();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT COUNT(*) FROM Items";
+                var count = Convert.ToInt32(cmd.ExecuteScalar());
+                Assert.Equal(0, count);
+            }
+        }
+        finally
+        {
+            File.Delete(csvPath);
+            File.Delete(dbPath);
+        }
     }
 
     private sealed class FailingInsertItemService : ItemService

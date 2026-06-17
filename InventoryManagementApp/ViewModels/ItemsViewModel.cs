@@ -242,7 +242,7 @@ namespace InventoryManagementApp.ViewModels
                 await Task.Delay(300, token).ConfigureAwait(false);
                 using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, _loadCts.Token);
                 var firstPage = await LoadPageAsync(1, linked.Token).ConfigureAwait(false);
-                Application.Current.Dispatcher.Invoke(() => Items.ResetWith(firstPage));
+                InvokeOnUiThread(() => Items.ResetWith(firstPage));
                 await _settingsService.SaveSettingAsync("LastFilter", Filter, token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
@@ -252,17 +252,17 @@ namespace InventoryManagementApp.ViewModels
         }
 
         private void OnSteadyExceeded(object? sender, EventArgs e) =>
-            Application.Current.Dispatcher.Invoke(() => Items.TrimToWindow(PageSize * 3));
+            InvokeOnUiThread(() => Items.TrimToWindow(PageSize * 3));
 
         private void OnPeakExceeded(object? sender, EventArgs e) =>
-            Application.Current.Dispatcher.Invoke(Items.Reset);
+            InvokeOnUiThread(Items.Reset);
 
         partial void OnSelectedSortOptionChanged(SortOption value) => _ = ApplySortAsync(value);
 
         private async Task ApplySortAsync(SortOption value)
         {
             var firstPage = await LoadPageAsync(1, _loadCts.Token).ConfigureAwait(false);
-            Application.Current.Dispatcher.Invoke(() => Items.ResetWith(firstPage));
+            InvokeOnUiThread(() => Items.ResetWith(firstPage));
             await _settingsService.SaveSettingAsync("LastSort", $"{value.Field}|{value.Direction}").ConfigureAwait(false);
         }
 
@@ -271,9 +271,9 @@ namespace InventoryManagementApp.ViewModels
         private async Task ApplyPageSizeAsync(int value)
         {
             Items.PageSize = value;
-            Application.Current.Dispatcher.Invoke(() => Items.TrimToWindow(value * 3));
+            InvokeOnUiThread(() => Items.TrimToWindow(value * 3));
             var firstPage = await LoadPageAsync(1, _loadCts.Token).ConfigureAwait(false);
-            Application.Current.Dispatcher.Invoke(() => Items.ResetWith(firstPage));
+            InvokeOnUiThread(() => Items.ResetWith(firstPage));
             await _settingsService.SaveSettingAsync("PageSize", value.ToString()).ConfigureAwait(false);
         }
 
@@ -392,7 +392,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 await _itemService.AddItemAsync(item, ct).ConfigureAwait(false);
-                Application.Current.Dispatcher.Invoke(Items.Reset);
+            InvokeOnUiThread(Items.Reset);
                 await Items.LoadMoreAsync(ct).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
@@ -421,13 +421,13 @@ namespace InventoryManagementApp.ViewModels
                 foreach (var item in toRemove)
                 {
                     await _itemService.DeleteItemAsync(item.ItemID, ct).ConfigureAwait(false);
-                    await Application.Current.Dispatcher.InvokeAsync(() => Items.Remove(item));
+                    await InvokeOnUiThreadAsync(() => Items.Remove(item)).ConfigureAwait(false);
                 }
-                await Application.Current.Dispatcher.InvokeAsync(() =>
+                await InvokeOnUiThreadAsync(() =>
                 {
                     if (SelectedItem != null && toRemove.Contains(SelectedItem))
                         SelectedItem = null;
-                });
+                }).ConfigureAwait(false);
             }
             catch (UnauthorizedAccessException)
             {
@@ -498,11 +498,36 @@ namespace InventoryManagementApp.ViewModels
             _memoryBudget.PeakExceeded -= OnPeakExceeded;
             foreach (var item in Items)
                 item.PropertyChanged -= Item_PropertyChanged;
-            Application.Current.Dispatcher.Invoke(Items.Reset);
+            var dispatcher = Application.Current?.Dispatcher;
+            if (dispatcher == null || dispatcher.CheckAccess())
+                Items.Reset();
+            else
+                dispatcher.Invoke(Items.Reset);
             _filterCts.Cancel();
             _filterCts.Dispose();
             _loadCts.Cancel();
             _loadCts.Dispose();
+        }
+
+        private static void InvokeOnUiThread(Action action)
+        {
+            var dispatcher = Application.Current?.Dispatcher;
+            if (dispatcher == null || dispatcher.CheckAccess())
+                action();
+            else
+                dispatcher.Invoke(action);
+        }
+
+        private static Task InvokeOnUiThreadAsync(Action action)
+        {
+            var dispatcher = Application.Current?.Dispatcher;
+            if (dispatcher == null || dispatcher.CheckAccess())
+            {
+                action();
+                return Task.CompletedTask;
+            }
+
+            return dispatcher.InvokeAsync(action).Task;
         }
     }
 
@@ -548,11 +573,20 @@ namespace InventoryManagementApp.ViewModels
                 var next = _page + 1;
                 var items = await _loader(next, ct).ConfigureAwait(false);
                 var result = items.ToList();
-                await Application.Current.Dispatcher.InvokeAsync(() =>
+                var dispatcher = Application.Current?.Dispatcher;
+                if (dispatcher == null || dispatcher.CheckAccess())
                 {
                     foreach (var item in result)
                         Add(item);
-                });
+                }
+                else
+                {
+                    await dispatcher.InvokeAsync(() =>
+                    {
+                        foreach (var item in result)
+                            Add(item);
+                    });
+                }
                 _page = next;
                 if (result.Count < _pageSize)
                     HasMoreItems = false;
