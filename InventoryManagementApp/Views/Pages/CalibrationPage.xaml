@@ -5,36 +5,94 @@
     <Grid Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource ToolbarCard}">
-            <DockPanel LastChildFill="False">
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-                    <TextBlock Text="Calibration workflow" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Add Record" Command="{Binding AddCalibrationCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenCalibrationDetailsCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditCalibrationCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Copy Handoff" Command="{Binding CopySelectedCalibrationCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Print Record" Command="{Binding PrintSelectedCalibrationCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteCalibrationCommand}"/>
+        <Border Style="{StaticResource ToolbarCard}" Padding="12,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" MinWidth="380"/>
+                    <ColumnDefinition Width="14"/>
+                    <ColumnDefinition Width="3*" MinWidth="520"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Calibration Workbench" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    <TextBlock Text="Track certificate readiness, overdue renewals, shelf-release status, and technician handoffs from one calibration register."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"
+                               Margin="0,3,0,0"/>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
-                    <TextBlock Text="Find certificate" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <TextBox Width="220" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0" ToolTip="Search item number, name, certificate, calibrated by, standard, result, or notes"/>
-                    <ComboBox Width="150" ItemsSource="{Binding FilterOptions}" SelectedItem="{Binding SelectedFilter}" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearSearchCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Refresh" Command="{Binding RefreshCommand}"/>
-                </StackPanel>
-            </DockPanel>
+
+                <UniformGrid Grid.Column="2" Columns="4">
+                    <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="REGISTER" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding CalibrationResultsSummary}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="DUE STATE" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding CalibrationBacklogSummary}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="SELECTED" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding SelectedRecord.StatusDisplay, TargetNullValue='No certificate selected', FallbackValue='No certificate selected'}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource DesktopSummaryCard}">
+                        <StackPanel>
+                            <TextBlock Text="RELEASE" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="Verify before issue" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+            </Grid>
         </Border>
 
-        <Grid Grid.Row="1" Margin="0,6,0,0">
+        <Border Grid.Row="1" Style="{StaticResource ToolbarCard}" Padding="10,8">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <DockPanel LastChildFill="True">
+                    <TextBlock Text="Certificate actions" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <WrapPanel>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Add Record" Command="{Binding AddCalibrationCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenCalibrationDetailsCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditCalibrationCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Command="{Binding CopySelectedCalibrationCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Print Record" Command="{Binding PrintSelectedCalibrationCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteCalibrationCommand}" Margin="0,0,4,4"/>
+                    </WrapPanel>
+                </DockPanel>
+                <DockPanel Grid.Row="1" LastChildFill="True" Margin="0,4,0,0">
+                    <TextBlock Text="Find and filter" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <WrapPanel>
+                        <TextBox Width="250" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,4" ToolTip="Search item number, name, certificate, calibrated by, standard, result, or notes"/>
+                        <ComboBox Width="175" ItemsSource="{Binding FilterOptions}" SelectedItem="{Binding SelectedFilter}" Margin="0,0,6,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Overdue" Command="{Binding ShowOverdueCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Due Soon" Command="{Binding ShowDueSoonCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Current" Command="{Binding ShowCurrentCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearSearchCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Refresh" Command="{Binding RefreshCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Print Due" Command="{Binding PrintCalibrationListCommand}" Margin="0,0,4,4"/>
+                    </WrapPanel>
+                </DockPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2" Margin="0,6,0,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*" MinWidth="610"/>
+                <ColumnDefinition Width="2*" MinWidth="630"/>
                 <ColumnDefinition Width="8"/>
-                <ColumnDefinition Width="430" MinWidth="380"/>
+                <ColumnDefinition Width="440" MinWidth="390"/>
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
@@ -46,17 +104,15 @@
                     </Grid.RowDefinitions>
                     <Border Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel>
-                            <TextBlock Text="01 Calibration Register" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
-                            <TextBlock Text="{Binding CalibrationResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                            <StackPanel DockPanel.Dock="Left">
+                                <TextBlock Text="01 Calibration Register" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                <TextBlock Text="Prioritizes overdue and due-soon certificates before current shelf-ready items" Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding CalibrationResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                         </DockPanel>
                     </Border>
                     <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
                         <DockPanel LastChildFill="True">
-                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                <Button Style="{StaticResource GhostButton}" Content="Overdue" Command="{Binding ShowOverdueCommand}" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Due Soon" Command="{Binding ShowDueSoonCommand}" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Current" Command="{Binding ShowCurrentCommand}"/>
-                            </StackPanel>
                             <TextBlock Text="{Binding CalibrationBacklogSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,10,0"/>
                         </DockPanel>
                     </Border>
@@ -74,12 +130,47 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="92"/>
-                            <DataGridTextColumn Header="Name" Binding="{Binding ItemName}" Width="1.5*"/>
-                            <DataGridTextColumn Header="Calibrated" Binding="{Binding CalibrationDate, StringFormat={}{0:yyyy-MM-dd}}" Width="100"/>
-                            <DataGridTextColumn Header="Due" Binding="{Binding NextCalibrationDue, StringFormat={}{0:yyyy-MM-dd}}" Width="90"/>
-                            <DataGridTextColumn Header="Certificate" Binding="{Binding CertificateNumber}" Width="112"/>
-                            <DataGridTextColumn Header="Result" Binding="{Binding Result}" Width="80"/>
+                            <DataGridTemplateColumn Header="Certificate item" Width="2.1*" MinWidth="220">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="2,3">
+                                            <TextBlock Text="{Binding ItemName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Due window" Width="170">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="2,3">
+                                            <TextBlock Text="{Binding NextCalibrationDue, StringFormat={}{0:yyyy-MM-dd}}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding StatusDisplay}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Certificate" Width="2*" MinWidth="210">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="2,3">
+                                            <TextBlock Text="{Binding CertificateNumber}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding Standard}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Last calibration" Width="170">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="2,3">
+                                            <TextBlock Text="{Binding CalibrationDate, StringFormat={}{0:yyyy-MM-dd}}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding CalibratedBy, TargetNullValue='Calibrator not set', FallbackValue='Calibrator not set'}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Result" Binding="{Binding Result}" Width="90"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
@@ -94,14 +185,9 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </DataGrid>
-                    <TextBlock Grid.Row="2"
-                               Text="No calibration records match this filter"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               FontSize="13"
-                               FontWeight="SemiBold">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
+                    <Border Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="380" Padding="16">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding FilteredCalibrationRecords.Count}" Value="0">
@@ -109,8 +195,16 @@
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                        </Border.Style>
+                        <StackPanel>
+                            <TextBlock Text="No calibration records match this filter" FontSize="14" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/>
+                            <TextBlock Text="Clear search, switch the due-state filter, or add a certificate record to rebuild the calibration queue."
+                                       Style="{StaticResource CaptionTextBlock}"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </Border>
 
@@ -123,40 +217,61 @@
                     </Grid.RowDefinitions>
                     <Border Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel>
-                            <TextBlock Text="02 Certificate Handoff" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
-                            <TextBlock Text="Selected calibration" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                            <StackPanel DockPanel.Dock="Left">
+                                <TextBlock Text="02 Certificate Handoff" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                <TextBlock Text="Selected certificate, release timing, and shelf checklist" Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="Issue-ready check" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                         </DockPanel>
                     </Border>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                         <StackPanel Margin="14">
-                            <TextBlock Text="{Binding SelectedRecord.ItemName, TargetNullValue='No calibration selected', FallbackValue='No calibration selected'}"
-                                       FontSize="18"
-                                       FontWeight="SemiBold"
-                                       TextWrapping="Wrap"/>
-                            <TextBlock Text="{Binding SelectedRecordSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,10"/>
+                            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="SELECTED CERTIFICATE" Style="{StaticResource LabelTextBlock}"/>
+                                    <TextBlock Text="{Binding SelectedRecord.ItemName, TargetNullValue='No calibration selected', FallbackValue='No calibration selected'}"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               TextWrapping="Wrap"
+                                               Margin="0,3,0,0"/>
+                                    <TextBlock Text="{Binding SelectedRecordSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Border>
 
-                            <TextBlock Text="Certificate" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
-                            <TextBlock Text="{Binding SelectedCalibrationDetail}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="Certificate" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{Binding SelectedCalibrationDetail}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
 
-                            <TextBlock Text="Timing" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
-                            <TextBlock Text="{Binding SelectedCalibrationTimingSummary}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="Timing and owner" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{Binding SelectedCalibrationTimingSummary}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
 
-                            <TextBlock Text="Next action" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
-                            <TextBlock Text="{Binding SelectedCalibrationNextAction}" TextWrapping="Wrap" Margin="0,0,0,14"/>
+                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="Next action" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{Binding SelectedCalibrationNextAction}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
 
-                            <WrapPanel Margin="0,0,0,8">
-                                <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenCalibrationDetailsCommand}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditCalibrationCommand}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Copy" Command="{Binding CopySelectedCalibrationCommand}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintSelectedCalibrationCommand}" Margin="0,0,4,4"/>
-                            </WrapPanel>
-
-                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,6,0,0">
+                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,10">
                                 <StackPanel>
                                     <TextBlock Text="Shelf release checklist" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
                                     <TextBlock Text="{Binding SelectedCalibrationBenchChecklist}" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Border>
+
+                            <WrapPanel Margin="0,0,0,8">
+                                <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenCalibrationDetailsCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditCalibrationCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Copy" Command="{Binding CopySelectedCalibrationCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintSelectedCalibrationCommand}" Margin="0,0,4,4"/>
+                            </WrapPanel>
                         </StackPanel>
                     </ScrollViewer>
                     <Border Grid.Row="2" Style="{StaticResource DesktopPaneSubheader}" BorderThickness="0,1,0,0">
@@ -170,7 +285,7 @@
             </Border>
         </Grid>
 
-        <Border Grid.Row="2" Style="{StaticResource ToolbarCard}" Margin="0,4,0,0">
+        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,4,0,0">
             <DockPanel LastChildFill="True">
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <Button Style="{StaticResource PrimaryButton}" Content="Copy Handoff" Command="{Binding CopySelectedCalibrationCommand}" Margin="0,0,4,0"/>
