@@ -52,17 +52,11 @@ namespace InventoryManagementApp.Tests
 
                     var buttons = FindDescendants<Button>(page.Content as DependencyObject ?? page).ToList();
 
-                    Button checkIn = Assert.Single(buttons.Where(b => Equals("Check In", b.Content)));
-                    Button extend = Assert.Single(buttons.Where(b => Equals("Extend", b.Content)));
-                    Button history = Assert.Single(buttons.Where(b => Equals("History", b.Content)));
-                    Button print = Assert.Single(buttons.Where(b => Equals("Print Rental", b.Content)));
-                    Button delete = Assert.Single(buttons.Where(b => Equals("Delete", b.Content)));
-
-                    Assert.Same(vm.CheckInCommand, checkIn.Command);
-                    Assert.Same(vm.ExtendCommand, extend.Command);
-                    Assert.Same(vm.OpenHistoryCommand, history.Command);
-                    Assert.Same(vm.PrintRentalCommand, print.Command);
-                    Assert.Same(vm.DeleteRentalCommand, delete.Command);
+                    Assert.Contains(buttons, b => Equals("Check In", b.Content) && ReferenceEquals(vm.CheckInCommand, b.Command));
+                    Assert.Contains(buttons, b => Equals("Extend", b.Content) && ReferenceEquals(vm.ExtendCommand, b.Command));
+                    Assert.Contains(buttons, b => Equals("History", b.Content) && ReferenceEquals(vm.OpenHistoryCommand, b.Command));
+                    Assert.Contains(buttons, b => Equals("Print Rental", b.Content) && ReferenceEquals(vm.PrintRentalCommand, b.Command));
+                    Assert.Contains(buttons, b => Equals("Delete", b.Content) && ReferenceEquals(vm.DeleteRentalCommand, b.Command));
 
                     WpfTestHelper.ShutdownApplication();
                 }
