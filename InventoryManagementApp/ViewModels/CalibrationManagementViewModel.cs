@@ -373,7 +373,7 @@ namespace InventoryManagementApp.ViewModels
 
             try
             {
-                Clipboard.SetText(handoff.ToString());
+                System.Windows.Clipboard.SetText(handoff.ToString());
                 _dialogService.ShowInfo("Calibration handoff copied to the clipboard.", "Copied");
             }
             catch (Exception ex)

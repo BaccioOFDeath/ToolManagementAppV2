@@ -23,7 +23,7 @@ namespace InventoryManagementApp.Views.Pages
             }
         }
 
-        private async void KitManagementPage_PreviewKeyDown(object sender, KeyEventArgs e)
+        private async void KitManagementPage_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (DataContext is not KitManagementViewModel vm)
                 return;
@@ -73,7 +73,7 @@ namespace InventoryManagementApp.Views.Pages
             if (sender is DataGridRow row)
             {
                 row.IsSelected = true;
-                var dataGrid = FindParent<DataGrid>(row);
+                var dataGrid = FindParent<System.Windows.Controls.DataGrid>(row);
                 if (dataGrid != null)
                     dataGrid.SelectedItem = row.Item;
             }

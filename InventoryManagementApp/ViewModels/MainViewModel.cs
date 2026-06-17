@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using Forms = System.Windows.Forms;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Services;
@@ -791,15 +790,15 @@ namespace InventoryManagementApp.ViewModels
 
         async Task OpenImageImportMappingWindowAsync(CancellationToken cancellationToken)
         {
-            using var dlg = new Forms.FolderBrowserDialog();
-            if (dlg.ShowDialog() != Forms.DialogResult.OK)
+            var dlg = new Microsoft.Win32.OpenFolderDialog();
+            if (dlg.ShowDialog() != true)
                 return;
             var selector = _dialogService.ShowImageImportMapping();
             if (selector != null)
             {
                 var progress = new Progress<ImageImportProgress>(p =>
                     _logger.LogInformation("Imported {Processed}/{Total} images", p.Processed, p.Total));
-                var result = await _itemService.ImportItemImagesAsync(dlg.SelectedPath, selector, progress, cancellationToken);
+                var result = await _itemService.ImportItemImagesAsync(dlg.FolderName, selector, progress, cancellationToken);
                 _dialogService.ShowInfo(
                     $"Imported {result.ImportedCount} images. Unmatched: {result.UnmatchedFiles.Count}, Conflicts: {result.ConflictingFiles.Count}",
                     "Import Images");

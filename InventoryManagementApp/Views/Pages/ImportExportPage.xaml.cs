@@ -51,7 +51,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            Clipboard.SetText(log);
+            System.Windows.Clipboard.SetText(log);
         }
 
         private void PrintLogs_Click(object sender, RoutedEventArgs e)

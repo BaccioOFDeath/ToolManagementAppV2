@@ -208,7 +208,11 @@ namespace InventoryManagementApp.Tests
         private sealed class FailingAuthorizationService : IAuthorizationService
         {
             public bool IsAdmin => false;
+            public bool HasPermission(string permissionKey) => false;
+            public bool HasAnyPermission(params string[] permissionKeys) => false;
             public void EnsureAdmin() => throw new InvalidOperationException("Authorization should be bypassed during setup");
+            public void EnsurePermission(string permissionKey) => throw new InvalidOperationException("Authorization should be bypassed during setup");
+            public void EnsureAnyPermission(params string[] permissionKeys) => throw new InvalidOperationException("Authorization should be bypassed during setup");
         }
 
         private sealed class StubThemeService : IThemeService

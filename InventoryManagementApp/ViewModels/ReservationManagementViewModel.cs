@@ -418,7 +418,7 @@ namespace InventoryManagementApp.ViewModels
 
             try
             {
-                Clipboard.SetText(CreateReservationHandoffText(SelectedReservation));
+                System.Windows.Clipboard.SetText(CreateReservationHandoffText(SelectedReservation));
                 _dialogService.ShowInfo("Reservation handoff copied to the clipboard.", "Reservation Handoff");
             }
             catch (Exception ex)

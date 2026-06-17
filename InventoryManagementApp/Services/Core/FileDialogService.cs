@@ -1,5 +1,4 @@
 using System;
-using System.Windows.Forms;
 using Microsoft.Win32;
 using InventoryManagementApp.Interfaces;
 
@@ -35,12 +34,11 @@ namespace InventoryManagementApp.Services.Core
 
         public string? BrowseFolder(string? initialDirectory = null)
         {
-            using var dlg = new FolderBrowserDialog
+            var dlg = new OpenFolderDialog
             {
-                SelectedPath = initialDirectory ?? string.Empty,
-                ShowNewFolderButton = true
+                InitialDirectory = initialDirectory ?? string.Empty
             };
-            return dlg.ShowDialog() == DialogResult.OK ? dlg.SelectedPath : null;
+            return dlg.ShowDialog() == true ? dlg.FolderName : null;
         }
     }
 }

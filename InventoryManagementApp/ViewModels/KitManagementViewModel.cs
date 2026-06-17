@@ -435,7 +435,7 @@ namespace InventoryManagementApp.ViewModels
 
             try
             {
-                Clipboard.SetText(BuildSelectedKitDetails());
+                System.Windows.Clipboard.SetText(BuildSelectedKitDetails());
                 _dialogService.ShowInfo("Kit details copied to the clipboard.", "Copy Kit Details");
             }
             catch (Exception ex)
@@ -623,7 +623,7 @@ namespace InventoryManagementApp.ViewModels
             var doc = new FlowDocument
             {
                 PagePadding = new Thickness(36),
-                FontFamily = new FontFamily("Calibri"),
+                FontFamily = new System.Windows.Media.FontFamily("Calibri"),
                 FontSize = fontSize
             };
 
@@ -667,7 +667,7 @@ namespace InventoryManagementApp.ViewModels
                 };
                 var cell = new TableCell(paragraph)
                 {
-                    BorderBrush = Brushes.Gray,
+                    BorderBrush = System.Windows.Media.Brushes.Gray,
                     BorderThickness = new Thickness(0.5),
                     Padding = new Thickness(2)
                 };

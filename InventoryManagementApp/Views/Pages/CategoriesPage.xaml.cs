@@ -31,7 +31,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private CategoryManagementViewModel? ViewModel => DataContext as CategoryManagementViewModel;
 
-        private void Page_PreviewKeyDown(object sender, KeyEventArgs e)
+        private void Page_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (ViewModel == null) return;
 
@@ -88,7 +88,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private static bool IsTextInputFocused()
         {
-            return Keyboard.FocusedElement is TextBoxBase or PasswordBox or ComboBox;
+            return Keyboard.FocusedElement is System.Windows.Controls.Primitives.TextBoxBase or PasswordBox or System.Windows.Controls.ComboBox;
         }
 
         private void CategoryRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)

@@ -322,7 +322,7 @@ namespace InventoryManagementApp.ViewModels
 
             try
             {
-                Clipboard.SetText(CreateCustomerHandoffText(SelectedCustomer));
+                System.Windows.Clipboard.SetText(CreateCustomerHandoffText(SelectedCustomer));
                 _dialogService.ShowInfo("Customer contact handoff copied to the clipboard.", "Customer Handoff");
             }
             catch (Exception ex)
