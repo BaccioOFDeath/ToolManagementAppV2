@@ -72,7 +72,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C && vm.CopyReservationHandoffCommand.CanExecute(null))
+            if (!IsTextInputFocused() && Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C && vm.CopyReservationHandoffCommand.CanExecute(null))
             {
                 vm.CopyReservationHandoffCommand.Execute(null);
                 e.Handled = true;
@@ -132,6 +132,11 @@ namespace InventoryManagementApp.Views.Pages
 
             row.IsSelected = true;
             row.Focus();
+        }
+
+        private static bool IsTextInputFocused()
+        {
+            return Keyboard.FocusedElement is TextBoxBase or PasswordBox;
         }
 
         private static T? FindAncestor<T>(DependencyObject? current) where T : DependencyObject
