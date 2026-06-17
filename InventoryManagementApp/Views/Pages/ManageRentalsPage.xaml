@@ -4,8 +4,21 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="{DynamicResource BackgroundBrush}"
       Focusable="True">
-    <Grid Margin="0">
+    <Page.Resources>
+        <Style x:Key="RentalStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="MinHeight" Value="76"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+        </Style>
+        <Style x:Key="RentalDetailText" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlock}">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,2,0,0"/>
+        </Style>
+    </Page.Resources>
+
+    <Grid Margin="4">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="2*"/>
             <RowDefinition Height="8"/>
@@ -13,53 +26,63 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource ToolbarCard}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <DockPanel Grid.Row="0" LastChildFill="True" Margin="0,0,0,8">
-                    <TextBlock DockPanel.Dock="Right"
-                               Text="Checkout, check-in, desk documents, and request follow-up stay in one flow."
-                               Style="{StaticResource CaptionTextBlock}"
-                               VerticalAlignment="Center"
-                               TextWrapping="Wrap"
-                               Margin="12,0,0,0"/>
-                    <WrapPanel VerticalAlignment="Center">
-                        <TextBlock Text="Rental workflow" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenRentalDetailsCommand}" Margin="0,0,6,6"/>
-                        <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,6,6"/>
-                        <Button Style="{StaticResource PrimaryButton}" Content="Extend" Command="{Binding ExtendCommand}" Margin="0,0,6,6"/>
-                        <Button Style="{StaticResource PrimaryButton}" Content="Request" Command="{Binding PlaceRequestCommand}" Margin="0,0,6,6"/>
-                        <Button Style="{StaticResource GhostButton}" Content="History" Command="{Binding OpenHistoryCommand}" Margin="0,0,6,6"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Pick Slip" Command="{Binding PrintPickingSlipCommand}" Margin="0,0,6,6"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Invoice" Command="{Binding PrintInvoiceCommand}" Margin="0,0,6,6"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Print Rental" Command="{Binding PrintRentalCommand}" Margin="0,0,6,6"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Print List" Command="{Binding PrintSearchResultsCommand}" Margin="0,0,6,6"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteRentalCommand}" Margin="0,0,0,6"/>
-                    </WrapPanel>
-                </DockPanel>
-
-                <Border Grid.Row="1"
-                        Background="{DynamicResource SurfaceBrush}"
-                        BorderBrush="{DynamicResource BorderBrushAlt}"
-                        BorderThickness="1"
-                        Padding="10,8">
-                    <WrapPanel>
-                        <TextBlock Text="Find rental" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,10,8"/>
-                        <TextBox x:Name="SearchTextBox" Width="260" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,8" ToolTip="Search item number, location, or customer"/>
-                        <DatePicker SelectedDate="{Binding FilterFrom, UpdateSourceTrigger=PropertyChanged}" Width="140" Margin="0,0,8,8"/>
-                        <DatePicker SelectedDate="{Binding FilterTo, UpdateSourceTrigger=PropertyChanged}" Width="140" Margin="0,0,8,8"/>
-                        <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus, UpdateSourceTrigger=PropertyChanged}" Width="124" Margin="0,0,8,8"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearFilterCommand}"/>
-                    </WrapPanel>
-                </Border>
-            </Grid>
+        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}">
+            <DockPanel LastChildFill="False">
+                <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                    <TextBlock Text="Rentals" Style="{StaticResource PageTitleTextBlock}"/>
+                    <TextBlock Text="Run active checkouts, returns, customer documents, and follow-up requests from one rental desk." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                </StackPanel>
+                <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0,0,0">
+                    <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenRentalDetailsCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Extend" Command="{Binding ExtendCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Request" Command="{Binding PlaceRequestCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Pick Slip" Command="{Binding PrintPickingSlipCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Invoice" Command="{Binding PrintInvoiceCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="History" Command="{Binding OpenHistoryCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteRentalCommand}" Margin="0,0,0,6"/>
+                </WrapPanel>
+            </DockPanel>
         </Border>
 
-        <Grid Grid.Row="1" Margin="0,6,0,0">
+        <Grid Grid.Row="1" Margin="0,0,0,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="1.25*"/>
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Style="{StaticResource RentalStatCard}">
+                <StackPanel>
+                    <TextBlock Text="Filtered Rentals" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="{Binding Rentals.Count}" Style="{StaticResource HeadingTextBlock}"/>
+                    <TextBlock Text="Rows matching the current search, date range, and status" Style="{StaticResource RentalDetailText}"/>
+                </StackPanel>
+            </Border>
+            <Border Grid.Column="1" Style="{StaticResource RentalStatCard}">
+                <StackPanel>
+                    <TextBlock Text="Checked Out" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="{Binding ActiveRentals.Count}" Style="{StaticResource HeadingTextBlock}"/>
+                    <TextBlock Text="Active customer handoffs that still need return or extension" Style="{StaticResource RentalDetailText}"/>
+                </StackPanel>
+            </Border>
+            <Border Grid.Column="2" Style="{StaticResource RentalStatCard}">
+                <StackPanel>
+                    <TextBlock Text="Open Requests" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="{Binding PendingRequests.Count}" Style="{StaticResource HeadingTextBlock}"/>
+                    <TextBlock Text="Customer holds waiting for advisor follow-up" Style="{StaticResource RentalDetailText}"/>
+                </StackPanel>
+            </Border>
+            <Border Grid.Column="3" Style="{StaticResource RentalStatCard}" Margin="0">
+                <StackPanel>
+                    <TextBlock Text="Selected Rental" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="{Binding SelectedRental.ItemNumber, TargetNullValue=No rental selected}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{Binding SelectedRental.CustomerName, StringFormat='Customer: {0}', TargetNullValue='Select a row to review customer, timing, and document actions.'}" Style="{StaticResource RentalDetailText}"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="2" Margin="0,0,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1.7*" MinWidth="460"/>
                 <ColumnDefinition Width="8"/>
@@ -73,19 +96,31 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="8,6">
-                        <DockPanel>
-                            <TextBlock Text="01 Rental Desk" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
-                            <TextBlock Text="{Binding SearchSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                    <Border Style="{StaticResource DesktopPaneHeader}">
+                        <DockPanel LastChildFill="False">
+                            <StackPanel DockPanel.Dock="Left">
+                                <TextBlock Text="Rental Desk" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                <TextBlock Text="Search, return, extend, document, or inspect the selected rental." Style="{StaticResource CaptionTextBlock}"/>
+                            </StackPanel>
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding SearchSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="12,0,0,0"/>
                         </DockPanel>
                     </Border>
-                    <Border Grid.Row="1" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="8,6">
-                        <DockPanel LastChildFill="True">
-                            <WrapPanel DockPanel.Dock="Right">
-                                <Button Style="{StaticResource GhostButton}" Content="Print Checked Out" Command="{Binding PrintCheckedOutCommand}" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Print Requests" Command="{Binding PrintRequestsCommand}"/>
+                    <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
+                        <DockPanel LastChildFill="False">
+                            <WrapPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                                <TextBlock Text="Find" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,6"/>
+                                <TextBox x:Name="SearchTextBox" Width="250" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,6" ToolTip="Search item number, location, or customer"/>
+                                <TextBlock Text="From" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="2,0,6,6"/>
+                                <DatePicker SelectedDate="{Binding FilterFrom, UpdateSourceTrigger=PropertyChanged}" Width="132" Margin="0,0,8,6"/>
+                                <TextBlock Text="To" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="2,0,6,6"/>
+                                <DatePicker SelectedDate="{Binding FilterTo, UpdateSourceTrigger=PropertyChanged}" Width="132" Margin="0,0,8,6"/>
+                                <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus, UpdateSourceTrigger=PropertyChanged}" Width="118" Margin="0,0,8,6"/>
                             </WrapPanel>
-                            <TextBlock Text="{Binding CheckedOutSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,10,0"/>
+                            <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0">
+                                <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearFilterCommand}" Margin="0,0,4,6"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Print List" Command="{Binding PrintSearchResultsCommand}" Margin="0,0,4,6"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Print Checked Out" Command="{Binding PrintCheckedOutCommand}" Margin="0,0,0,6"/>
+                            </WrapPanel>
                         </DockPanel>
                     </Border>
                     <DataGrid Grid.Row="2"
@@ -125,9 +160,9 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </DataGrid>
-                    <TextBlock Grid.Row="2" Text="No rental records match this search" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
+                    <Border Grid.Row="2" Width="300" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding Rentals.Count}" Value="0">
@@ -135,8 +170,12 @@
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                        </Border.Style>
+                        <StackPanel>
+                            <TextBlock Text="No rentals found" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                            <TextBlock Text="Adjust the search, date range, or status filter to find an active or returned rental." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </Border>
 
@@ -149,9 +188,12 @@
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="8,6">
-                        <DockPanel>
-                            <TextBlock Text="02 Advisor Handoff" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
+                    <Border Style="{StaticResource DesktopPaneHeader}">
+                        <DockPanel LastChildFill="False">
+                            <StackPanel DockPanel.Dock="Left">
+                                <TextBlock Text="Advisor Handoff" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                <TextBlock Text="Selected rental context, customer contact, timing, shelf, and documents." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                            </StackPanel>
                         </DockPanel>
                     </Border>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
@@ -162,20 +204,32 @@
                                        TextWrapping="Wrap"/>
                             <TextBlock Text="{Binding SelectedRental.Status, StringFormat='Status: {0}', TargetNullValue='Choose a rental to see check-in and billing actions'}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,10"/>
 
-                            <TextBlock Text="Customer" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
-                            <TextBlock Text="{Binding SelectedRental.CustomerName, TargetNullValue='No customer selected'}" TextWrapping="Wrap" Margin="0,0,0,2"/>
-                            <TextBlock Text="{Binding SelectedRental.CustomerContact, StringFormat='Contact: {0}', TargetNullValue='Contact: Not recorded'}" TextWrapping="Wrap" Margin="0,0,0,2"/>
-                            <TextBlock Text="{Binding SelectedRental.CustomerPhone, StringFormat='Phone: {0}', TargetNullValue='Phone: Not recorded'}" TextWrapping="Wrap" Margin="0,0,0,2"/>
-                            <TextBlock Text="{Binding SelectedRental.CustomerEmail, StringFormat='Email: {0}', TargetNullValue='Email: Not recorded'}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="Customer" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
+                                    <TextBlock Text="{Binding SelectedRental.CustomerName, TargetNullValue='No customer selected'}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,2"/>
+                                    <TextBlock Text="{Binding SelectedRental.CustomerContact, StringFormat='Contact: {0}', TargetNullValue='Contact: Not recorded'}" TextWrapping="Wrap" Margin="0,0,0,2"/>
+                                    <TextBlock Text="{Binding SelectedRental.CustomerPhone, StringFormat='Phone: {0}', TargetNullValue='Phone: Not recorded'}" TextWrapping="Wrap" Margin="0,0,0,2"/>
+                                    <TextBlock Text="{Binding SelectedRental.CustomerEmail, StringFormat='Email: {0}', TargetNullValue='Email: Not recorded'}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
 
-                            <TextBlock Text="Timing" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
-                            <TextBlock Text="{Binding SelectedRental.RentalDate, StringFormat='Checked out: {0:yyyy-MM-dd HH:mm}', TargetNullValue='Checked out: -'}" TextWrapping="Wrap" Margin="0,0,0,2"/>
-                            <TextBlock Text="{Binding SelectedRental.DueDate, StringFormat='Due back: {0:yyyy-MM-dd HH:mm}', TargetNullValue='Due back: -'}" TextWrapping="Wrap" Margin="0,0,0,2"/>
-                            <TextBlock Text="{Binding SelectedRental.ReturnDate, StringFormat='Returned: {0:yyyy-MM-dd HH:mm}', TargetNullValue='Returned: Not returned yet'}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="Timing" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
+                                    <TextBlock Text="{Binding SelectedRental.RentalDate, StringFormat='Checked out: {0:yyyy-MM-dd HH:mm}', TargetNullValue='Checked out: -'}" TextWrapping="Wrap" Margin="0,0,0,2"/>
+                                    <TextBlock Text="{Binding SelectedRental.DueDate, StringFormat='Due back: {0:yyyy-MM-dd HH:mm}', TargetNullValue='Due back: -'}" TextWrapping="Wrap" Margin="0,0,0,2"/>
+                                    <TextBlock Text="{Binding SelectedRental.ReturnDate, StringFormat='Returned: {0:yyyy-MM-dd HH:mm}', TargetNullValue='Returned: Not returned yet'}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
 
-                            <TextBlock Text="Shelf and documents" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
-                            <TextBlock Text="{Binding SelectedRental.ItemLocation, StringFormat='Shelf: {0}', TargetNullValue='Shelf: Not recorded'}" TextWrapping="Wrap" Margin="0,0,0,2"/>
-                            <TextBlock Text="Confirm the item number, collect or return it from the listed shelf, print the pick slip or invoice when needed, then check it in or extend it before ending the customer handoff." TextWrapping="Wrap" Margin="0,0,0,14"/>
+                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="Shelf and documents" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
+                                    <TextBlock Text="{Binding SelectedRental.ItemLocation, StringFormat='Shelf: {0}', TargetNullValue='Shelf: Not recorded'}" TextWrapping="Wrap" Margin="0,0,0,2"/>
+                                    <TextBlock Text="Confirm the item number, collect or return it from the listed shelf, print the pick slip or invoice when needed, then check it in or extend it before ending the customer handoff." TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
 
                             <WrapPanel Margin="0,0,0,8">
                                 <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,4,4"/>
@@ -186,7 +240,7 @@
                                 <Button Style="{StaticResource GhostButton}" Content="Invoice" Command="{Binding PrintInvoiceCommand}" Margin="0,0,4,4"/>
                             </WrapPanel>
 
-                            <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="8" Margin="0,6,0,0">
+                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,6,0,0">
                                 <StackPanel>
                                     <TextBlock Text="Desk checklist" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
                                     <TextBlock Text="For checkout: confirm customer, item number, due date, and print documents. For check-in: inspect condition, check in the rental, then review open requests for the same item before returning it to the shelf." TextWrapping="Wrap"/>
@@ -194,7 +248,7 @@
                             </Border>
                         </StackPanel>
                     </ScrollViewer>
-                    <Border Grid.Row="2" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,1,0,0" Padding="8,6">
+                    <Border Grid.Row="2" Style="{StaticResource DesktopPaneSubheader}">
                         <UniformGrid Columns="2">
                             <Button Style="{StaticResource GhostButton}" Content="History" Command="{Binding OpenHistoryCommand}" Margin="0,0,4,4"/>
                             <Button Style="{StaticResource GhostButton}" Content="Print Rental" Command="{Binding PrintRentalCommand}" Margin="0,0,0,4"/>
@@ -206,25 +260,27 @@
             </Border>
         </Grid>
 
-        <GridSplitter Grid.Row="2" Height="8" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
+        <GridSplitter Grid.Row="3" Height="8" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
 
-        <Border Grid.Row="3" Style="{StaticResource Card}" Padding="0">
+        <Border Grid.Row="4" Style="{StaticResource Card}" Padding="0">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="8,6">
-                    <DockPanel>
-                        <WrapPanel DockPanel.Dock="Left">
-                            <TextBlock Text="03 Open Request Queue" Style="{StaticResource SectionHeader}" Margin="0" VerticalAlignment="Center"/>
-                            <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenRequestDetailsCommand}" Margin="8,0,4,0"/>
-                            <Button Style="{StaticResource PrimaryButton}" Content="Confirm" Command="{Binding ConfirmRequestCommand}" Margin="0,0,4,0"/>
-                            <Button Style="{StaticResource PrimaryButton}" Content="Cancel" Command="{Binding CancelRequestCommand}" Margin="0,0,4,0"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Print Request" Command="{Binding PrintRequestCommand}" Margin="0,0,4,0"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Print Queue" Command="{Binding PrintRequestsCommand}"/>
+                <Border Style="{StaticResource DesktopPaneHeader}">
+                    <DockPanel LastChildFill="False">
+                        <StackPanel DockPanel.Dock="Left">
+                            <TextBlock Text="Open Request Queue" Style="{StaticResource SectionHeader}" Margin="0"/>
+                            <TextBlock Text="Confirm, cancel, print, and route customer holds tied to unavailable rental items." Style="{StaticResource CaptionTextBlock}"/>
+                        </StackPanel>
+                        <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0">
+                            <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenRequestDetailsCommand}" Margin="0,0,4,6"/>
+                            <Button Style="{StaticResource PrimaryButton}" Content="Confirm" Command="{Binding ConfirmRequestCommand}" Margin="0,0,4,6"/>
+                            <Button Style="{StaticResource PrimaryButton}" Content="Cancel" Command="{Binding CancelRequestCommand}" Margin="0,0,4,6"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Print Request" Command="{Binding PrintRequestCommand}" Margin="0,0,4,6"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Print Queue" Command="{Binding PrintRequestsCommand}" Margin="0,0,0,6"/>
                         </WrapPanel>
-                        <TextBlock Text="{Binding RequestSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                     </DockPanel>
                 </Border>
                 <Grid Grid.Row="1">
@@ -266,12 +322,26 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <StackPanel>
                                 <TextBlock Text="Selected Request" Style="{StaticResource SectionHeader}" Margin="0,0,0,6"/>
-                                <TextBlock Text="{Binding SelectedRequestSummary}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,6"/>
-                                <TextBlock Text="{Binding SelectedRequestDateLine}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,8"/>
-                                <TextBlock Text="Current Holder" Style="{StaticResource LabelTextBlock}" Margin="0,4,0,2"/>
-                                <TextBlock Text="{Binding SelectedRequestHolderLine}" TextWrapping="Wrap" Margin="0,0,0,8"/>
-                                <TextBlock Text="Next Action" Style="{StaticResource LabelTextBlock}" Margin="0,4,0,2"/>
-                                <TextBlock Text="{Binding SelectedRequestNextAction}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                <TextBlock Text="{Binding RequestSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="Request handoff" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
+                                        <TextBlock Text="{Binding SelectedRequestSummary}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                        <TextBlock Text="{Binding SelectedRequestDateLine}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="Current holder" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,2"/>
+                                        <TextBlock Text="{Binding SelectedRequestHolderLine}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="Next action" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,2"/>
+                                        <TextBlock Text="{Binding SelectedRequestNextAction}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
                                 <UniformGrid Columns="2" Margin="0,4,0,0">
                                     <Button Style="{StaticResource PrimaryButton}" Content="Confirm" Command="{Binding ConfirmRequestCommand}" Margin="0,0,4,4"/>
                                     <Button Style="{StaticResource PrimaryButton}" Content="Cancel" Command="{Binding CancelRequestCommand}" Margin="0,0,0,4"/>
@@ -281,9 +351,9 @@
                             </StackPanel>
                         </ScrollViewer>
                     </Border>
-                    <TextBlock Grid.Column="0" Text="No open requests for unavailable items" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
+                    <Border Grid.Column="0" Width="320" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding PendingRequests.Count}" Value="0">
@@ -291,13 +361,17 @@
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                        </Border.Style>
+                        <StackPanel>
+                            <TextBlock Text="No open requests" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                            <TextBlock Text="Requests placed from active unavailable rentals will appear here for confirm, cancel, print, and customer follow-up actions." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </Grid>
         </Border>
 
-        <Border Grid.Row="4" Style="{StaticResource ToolbarCard}" Margin="0,4,0,0">
+        <Border Grid.Row="5" Style="{StaticResource ToolbarCard}" Margin="0,4,0,0">
             <DockPanel LastChildFill="True">
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,4,0"/>
@@ -307,6 +381,6 @@
             </DockPanel>
         </Border>
 
-        <ProgressBar Grid.Row="4" IsIndeterminate="True" Height="4" VerticalAlignment="Top" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
+        <ProgressBar Grid.Row="5" IsIndeterminate="True" Height="4" VerticalAlignment="Top" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
     </Grid>
 </Page>
