@@ -46,6 +46,11 @@
             <Setter Property="Stretch" Value="UniformToFill"/>
             <Setter Property="SnapsToDevicePixels" Value="True"/>
         </Style>
+        <Style x:Key="InsightStatCard" TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="MinHeight" Value="58"/>
+        </Style>
     </Page.Resources>
 
     <Grid Margin="4">
@@ -84,8 +89,8 @@
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*" MinWidth="560"/>
-                <ColumnDefinition Width="4"/>
-                <ColumnDefinition Width="*" MinWidth="380"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="1.25*" MinWidth="430"/>
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
@@ -94,13 +99,13 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Margin="0" BorderThickness="0,0,0,1">
+                    <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}" Margin="0" BorderThickness="0,0,0,2">
                         <DockPanel LastChildFill="True">
                             <TextBlock Text="Search Results" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0"/>
                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                                <Button Content="Details" Command="{Binding ViewDetailsCommand}" Margin="0,0,4,0"/>
-                                <Button Content="Rent Out" Command="{Binding OpenRentalsCommand}" Margin="0,0,4,0"/>
-                                <Button Content="Check Out / In" Command="{Binding ToggleCheckOutCommand}" CommandParameter="{Binding SelectedItem}"/>
+                                <Button Content="Details" Command="{Binding ViewDetailsCommand}" Style="{StaticResource GhostButton}" Margin="0,0,4,0"/>
+                                <Button Content="Rent Out" Command="{Binding OpenRentalsCommand}" Style="{StaticResource GhostButton}" Margin="0,0,4,0"/>
+                                <Button Content="Check Out / In" Command="{Binding ToggleCheckOutCommand}" CommandParameter="{Binding SelectedItem}" Style="{StaticResource GhostButton}"/>
                             </StackPanel>
                             <TextBlock Text="Rows include photo, stock, holder, and location; double-click for full details." Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="10,0,0,0"/>
                         </DockPanel>
@@ -213,13 +218,13 @@
                 </Grid>
             </Border>
 
-            <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushAlt}"/>
+            <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushAlt}"/>
 
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="1.35*" MinHeight="190"/>
-                    <RowDefinition Height="4"/>
-                    <RowDefinition Height="*" MinHeight="175"/>
+                    <RowDefinition Height="1.25*" MinHeight="190"/>
+                    <RowDefinition Height="6"/>
+                    <RowDefinition Height="*" MinHeight="230"/>
                 </Grid.RowDefinitions>
 
                 <Border Grid.Row="0" Style="{StaticResource Card}" Padding="0">
@@ -228,12 +233,12 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Margin="0" BorderThickness="0,0,0,1">
+                        <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}" Margin="0" BorderThickness="0,0,0,2">
                             <DockPanel LastChildFill="True">
                                 <TextBlock Text="Currently Checked Out" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0"/>
                                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                                    <Button Content="Print" Click="PrintCheckedOut_Click" Margin="0,0,4,0"/>
-                                    <Button Content="Details" Command="{Binding ViewDetailsCommand}"/>
+                                    <Button Content="Print" Click="PrintCheckedOut_Click" Style="{StaticResource GhostButton}" Margin="0,0,4,0"/>
+                                    <Button Content="Details" Command="{Binding ViewDetailsCommand}" Style="{StaticResource GhostButton}"/>
                                 </StackPanel>
                                 <TextBlock Text="Visible while searching; double-click to inspect or check back in." Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="10,0,0,0"/>
                             </DockPanel>
@@ -299,33 +304,65 @@
                     </Grid>
                 </Border>
 
-                <GridSplitter Grid.Row="1" Height="4" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushAlt}"/>
+                <GridSplitter Grid.Row="1" Height="6" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushAlt}"/>
 
                 <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Margin="0" BorderThickness="0,0,0,1">
+                        <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}" Margin="0" BorderThickness="0,0,0,2">
                             <DockPanel LastChildFill="True">
-                                <TextBlock Text="Search Intelligence" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0"/>
-                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                                    <Button Content="Repeat" Click="RepeatSelectedSearch_Click" ToolTip="Run the selected recent search again" Margin="0,0,4,0"/>
-                                    <Button Content="Open" Click="OpenDemandItem_Click" ToolTip="Open the selected unavailable item" Margin="0,0,4,0"/>
-                                    <Button Content="Print" Click="PrintSearchIntelligence_Click" ToolTip="Print recent searches and unavailable demand" Margin="0,0,4,0"/>
-                                    <Button Content="Clear" Click="ClearSearchIntelligence_Click" ToolTip="Clear this session's search intelligence"/>
+                                <StackPanel DockPanel.Dock="Left">
+                                    <TextBlock Text="Search Intelligence" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                    <TextBlock Text="Recent searches and unavailable demand signals stay visible while the team works the counter." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
                                 </StackPanel>
-                                <TextBlock x:Name="SearchIntelligenceSummaryText" Text="No search activity yet" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                <WrapPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10,0,0,0">
+                                    <Button Content="Repeat Search" Click="RepeatSelectedSearch_Click" ToolTip="Run the selected recent search again" Style="{StaticResource GhostButton}" Margin="0,0,4,4"/>
+                                    <Button Content="Open Item" Click="OpenDemandItem_Click" ToolTip="Open the selected unavailable item" Style="{StaticResource GhostButton}" Margin="0,0,4,4"/>
+                                    <Button Content="Print" Click="PrintSearchIntelligence_Click" ToolTip="Print recent searches and unavailable demand" Style="{StaticResource GhostButton}" Margin="0,0,4,4"/>
+                                    <Button Content="Clear" Click="ClearSearchIntelligence_Click" ToolTip="Clear this session's search intelligence" Style="{StaticResource GhostButton}" Margin="0,0,0,4"/>
+                                </WrapPanel>
                             </DockPanel>
                         </Border>
-                        <TabControl Grid.Row="1" Margin="0" Padding="0">
+
+                        <Border Grid.Row="1" Style="{StaticResource DesktopSectionActionStrip}" Margin="0" BorderThickness="0,0,0,1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.7*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Style="{StaticResource InsightStatCard}">
+                                    <StackPanel>
+                                        <TextBlock Text="Session Pulse" Style="{StaticResource LabelTextBlock}"/>
+                                        <TextBlock x:Name="SearchIntelligenceSummaryText" Text="No search activity yet" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="1" Style="{StaticResource InsightStatCard}">
+                                    <StackPanel>
+                                        <TextBlock Text="Recent Searches" Style="{StaticResource LabelTextBlock}"/>
+                                        <TextBlock Text="Repeat common lookups without retyping." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="2" Style="{StaticResource InsightStatCard}" Margin="0">
+                                    <StackPanel>
+                                        <TextBlock Text="Unavailable Demand" Style="{StaticResource LabelTextBlock}"/>
+                                        <TextBlock Text="Spot items customers wanted but could not take." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <TabControl Grid.Row="2" Margin="0" Padding="0">
                             <TabItem Header="Recent Searches">
                                 <DataGrid x:Name="RecentSearchGrid"
                                           Style="{StaticResource VirtualizedDataGridStyle}"
                                           AutoGenerateColumns="False"
                                           IsReadOnly="True"
-                                          RowHeight="26"
+                                          RowHeight="30"
                                           MouseDoubleClick="RecentSearchGrid_MouseDoubleClick">
                                     <DataGrid.ContextMenu>
                                         <ContextMenu>
@@ -336,11 +373,11 @@
                                         </ContextMenu>
                                     </DataGrid.ContextMenu>
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Search" Binding="{Binding Term}" Width="*"/>
-                                        <DataGridTextColumn Header="Brand" Binding="{Binding Category}" Width="82"/>
-                                        <DataGridTextColumn Header="Results" Binding="{Binding ResultCount}" Width="58"/>
-                                        <DataGridTextColumn Header="Unavailable" Binding="{Binding UnavailableCount}" Width="82"/>
-                                        <DataGridTextColumn Header="Last" Binding="{Binding LastSearched, StringFormat={}{0:HH:mm}}" Width="54"/>
+                                        <DataGridTextColumn Header="Search" Binding="{Binding Term}" Width="1.4*"/>
+                                        <DataGridTextColumn Header="Brand" Binding="{Binding Category}" Width="90"/>
+                                        <DataGridTextColumn Header="Results" Binding="{Binding ResultCount}" Width="64"/>
+                                        <DataGridTextColumn Header="Unavailable" Binding="{Binding UnavailableCount}" Width="90"/>
+                                        <DataGridTextColumn Header="Last" Binding="{Binding LastSearched, StringFormat={}{0:HH:mm}}" Width="64"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </TabItem>
@@ -349,7 +386,7 @@
                                           Style="{StaticResource VirtualizedDataGridStyle}"
                                           AutoGenerateColumns="False"
                                           IsReadOnly="True"
-                                          RowHeight="32"
+                                          RowHeight="36"
                                           MouseDoubleClick="UnavailableDemandGrid_MouseDoubleClick">
                                     <DataGrid.ContextMenu>
                                         <ContextMenu>
@@ -360,14 +397,14 @@
                                         </ContextMenu>
                                     </DataGrid.ContextMenu>
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="76"/>
-                                        <DataGridTextColumn Header="Item" Binding="{Binding Name}" Width="1.4*"/>
-                                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="82"/>
-                                        <DataGridTextColumn Header="Hits" Binding="{Binding HitCount}" Width="42"/>
-                                        <DataGridTextColumn Header="Holder" Binding="{Binding Holder}" Width="86"/>
-                                        <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="78"/>
-                                        <DataGridTextColumn Header="Last" Binding="{Binding LastSearched, StringFormat={}{0:HH:mm}}" Width="50"/>
-                                        <DataGridTextColumn Header="Terms" Binding="{Binding SearchTerms}" Width="120"/>
+                                        <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="82"/>
+                                        <DataGridTextColumn Header="Item" Binding="{Binding Name}" Width="1.6*"/>
+                                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="88"/>
+                                        <DataGridTextColumn Header="Hits" Binding="{Binding HitCount}" Width="48"/>
+                                        <DataGridTextColumn Header="Holder" Binding="{Binding Holder}" Width="96"/>
+                                        <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="90"/>
+                                        <DataGridTextColumn Header="Last" Binding="{Binding LastSearched, StringFormat={}{0:HH:mm}}" Width="60"/>
+                                        <DataGridTextColumn Header="Terms" Binding="{Binding SearchTerms}" Width="140"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </TabItem>

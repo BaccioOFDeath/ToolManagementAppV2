@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-18 00:11 NZST
+Last audit date/time: 2026-06-18 01:11 NZST
 
 ## Completed workflows
 
@@ -39,6 +39,7 @@ Last audit date/time: 2026-06-18 00:11 NZST
 - Shared visual hierarchy polish now loads after the desktop shell resources, lifting common cards, toolbar/action strips, pane headers, summary cards, primary buttons, and dense grid headers so repeated workbench surfaces have stronger hierarchy without editing each page one by one.
 - Auth entry surfaces now have a more deliberate first impression: login uses a two-panel workstation entry with branded context and stronger user cards, while password prompt and change-password dialogs use secure-access framing, clearer field guidance, wider inputs, and stronger action labels.
 - The setup wizard now presents first-run onboarding with a stronger launch header, setup checklist, guided field descriptions, framed logo preview, ready-check validation, and a `Complete Setup` action while preserving the existing setup command flow.
+- Search Tools now gives search results, checked-out items, recent searches, and unavailable demand stronger pane headers, clearer action affordances, a session-pulse summary strip, and roomier intelligence tables while preserving the existing command and keyboard paths.
 
 ## Partially complete workflows
 
@@ -57,6 +58,7 @@ Last audit date/time: 2026-06-18 00:11 NZST
 - Dashboard activity drilldown, footer context, and selected-action state have been tightened, but runtime dashboard interaction and screenshot validation still need a Windows/.NET workstation.
 - Shared visual hierarchy polish is in place across common shell resources, but runtime screenshot review still needs to confirm the new surface shadow, accent dividers, primary-action emphasis, and denser grid headers look right across light/dark themes and narrow workstations.
 - Auth entry and setup wizard polish are in place for login, password prompt, change-password, and onboarding surfaces, but password-reset prompt, Settings database/branding/backups, and runtime auth/setup screenshot review still need follow-up.
+- Search Tools first-pass polish is in place for results, checked-out items, recent searches, and unavailable-demand intelligence, but runtime screenshot review still needs to confirm the new right-pane width, summary strip, and action wrapping at standard and narrow workstation sizes.
 
 ## Known broken workflows
 
@@ -66,10 +68,10 @@ Last audit date/time: 2026-06-18 00:11 NZST
 
 ## Next recommended target
 
-- Continue targeted UI polish on Settings database/branding/backups and print-preview document styling. Run the enhanced Windows QA screenshot capture when a Windows/.NET workstation is available.
+- Continue targeted UI polish on Dashboard KPI/activity surfaces, Settings database/branding/backups, and print-preview document styling. Run the enhanced Windows QA screenshot capture when a Windows/.NET workstation is available.
 
 ## Validation status
 
-- GitHub connector readback reviewed the setup wizard onboarding polish, ToDo progress log, and this checklist update.
+- GitHub connector readback reviewed the Search Tools XAML, ToDo progress log, and this checklist update.
 - Local XAML parsing, `dotnet --info`, `dotnet restore`, `dotnet build`, `dotnet test`, WPF screenshots, and local banned-word checks were not run because this scheduled Linux container lacks the .NET SDK and Windows/WPF runtime, and direct local clone/raw fetches remain blocked by the network tunnel.
 - Did not run unrelated tests, per instruction.
