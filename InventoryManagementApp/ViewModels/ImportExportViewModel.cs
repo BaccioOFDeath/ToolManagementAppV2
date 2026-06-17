@@ -38,7 +38,8 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand OpenImageImportMappingWindowCommand { get; }
         public IRelayCommand ClearImportExportLogsCommand { get; }
 
-        public bool IsCurrentUserAdmin => _userContext.IsAdmin;
+        public bool CanImportImages => _userContext.IsAdmin || _userContext.CurrentUser?.HasPermission(User.PermissionImportExport) == true;
+        public bool IsCurrentUserAdmin => CanImportImages;
         public bool HasLogEntries => ImportExportLogs.Count > 0;
         public string LogSummary => HasLogEntries
             ? $"{ImportExportLogs.Count} operation log entr{(ImportExportLogs.Count == 1 ? "y" : "ies")} recorded this session."
@@ -50,9 +51,9 @@ namespace InventoryManagementApp.ViewModels
         public string CustomerDataSummary =>
             "Import customers from mapped CSV, JSON, or XML. Export the customer directory to CSV, JSON, or XML for advisor handoff or cleanup.";
 
-        public string ImageImportSummary => IsCurrentUserAdmin
-            ? $"Admin image import is available for matching photos to {LabelProvider.Instance.ItemLabelPlural}."
-            : $"Image import is admin-only. Ask an admin to map photos to {LabelProvider.Instance.ItemLabelPlural}.";
+        public string ImageImportSummary => CanImportImages
+            ? $"Image import is available for matching photos to {LabelProvider.Instance.ItemLabelPlural}."
+            : $"Image import requires the {User.PermissionLabels[User.PermissionImportExport]} permission. Ask an admin to grant it before mapping photos to {LabelProvider.Instance.ItemLabelPlural}.";
 
         public string BackupSummary =>
             "Create a database backup before large imports, bulk cleanup, or workstation changes.";
@@ -116,6 +117,7 @@ namespace InventoryManagementApp.ViewModels
             _userContext = userContext ?? new DummyUserContext();
             _userContext.UserChanged += (_, _) =>
             {
+                OnPropertyChanged(nameof(CanImportImages));
                 OnPropertyChanged(nameof(IsCurrentUserAdmin));
                 OnPropertyChanged(nameof(ImageImportSummary));
             };
