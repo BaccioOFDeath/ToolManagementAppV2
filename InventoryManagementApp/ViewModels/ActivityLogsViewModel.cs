@@ -69,6 +69,11 @@ namespace InventoryManagementApp.ViewModels
                     OnPropertyChanged(nameof(SelectedLogDetail));
                     OnPropertyChanged(nameof(SelectedLogActionGroup));
                     OnPropertyChanged(nameof(SelectedLogTimestamp));
+                    OnPropertyChanged(nameof(SelectedLogDestinationKey));
+                    OnPropertyChanged(nameof(SelectedLogDestinationName));
+                    OnPropertyChanged(nameof(SelectedLogNextAction));
+                    OnPropertyChanged(nameof(SelectedLogHandoff));
+                    OnPropertyChanged(nameof(SelectedLogOperatorPath));
                 }
             }
         }
@@ -95,9 +100,27 @@ namespace InventoryManagementApp.ViewModels
         public int TotalLogCount => Logs.Count;
         public int FilteredLogCount => FilteredLogs.Count;
 
+        public string ActivitySummary
+        {
+            get
+            {
+                if (FilteredLogs.Count == 0)
+                    return "No matching activity rows. Clear filters or refresh to review recent operations.";
+
+                var groups = FilteredLogs
+                    .GroupBy(log => ClassifyAction(log.Action))
+                    .OrderByDescending(group => group.Count())
+                    .ThenBy(group => group.Key)
+                    .Take(3)
+                    .Select(group => $"{group.Key}: {group.Count()}");
+
+                return $"{FilteredLogs.Count} visible of {Logs.Count} loaded. Top activity: {string.Join(", ", groups)}.";
+            }
+        }
+
         public string SelectedLogTitle => SelectedLog == null
             ? "No activity row selected"
-            : $"{SelectedLog.UserName} - {SelectedLogActionGroup}";
+            : $"{SafeText(SelectedLog.UserName, "Unknown user")} - {SelectedLogActionGroup}";
 
         public string SelectedLogActionGroup => SelectedLog == null
             ? "No action"
@@ -109,7 +132,30 @@ namespace InventoryManagementApp.ViewModels
 
         public string SelectedLogDetail => SelectedLog == null
             ? "Select or double-click a row to inspect the full activity text."
-            : SelectedLog.Action;
+            : SafeText(SelectedLog.Action, "No activity detail was recorded.");
+
+        public string SelectedLogDestinationKey => SelectedLog == null
+            ? "Dashboard"
+            : BuildDestinationKey(SelectedLog.Action);
+
+        public string SelectedLogDestinationName => BuildDestinationName(SelectedLogDestinationKey);
+
+        public string SelectedLogNextAction => SelectedLog == null
+            ? "Select a row, then open the related page or copy a handoff for follow-up."
+            : BuildNextAction(SelectedLog.Action);
+
+        public string SelectedLogHandoff => SelectedLog == null
+            ? "No activity row selected."
+            : $"Activity: {SafeText(SelectedLog.Action, "No activity detail was recorded.")}{Environment.NewLine}" +
+              $"User: {SafeText(SelectedLog.UserName, "Unknown user")} (ID {SelectedLog.UserID}){Environment.NewLine}" +
+              $"When: {SelectedLog.Timestamp:g}{Environment.NewLine}" +
+              $"Type: {SelectedLogActionGroup}{Environment.NewLine}" +
+              $"Next action: {SelectedLogNextAction}{Environment.NewLine}" +
+              $"Destination: {SelectedLogDestinationName}";
+
+        public string SelectedLogOperatorPath => SelectedLog == null
+            ? "Select a row to see where the audit trail should take you next."
+            : $"Open {SelectedLogDestinationName} to continue the workflow from this audit event.";
 
         public IAsyncRelayCommand RefreshCommand { get; }
         public IRelayCommand ClearFiltersCommand { get; }
@@ -200,8 +246,10 @@ namespace InventoryManagementApp.ViewModels
                 (SelectedUserFilter == AllUsersFilter || string.Equals(log.UserName, SelectedUserFilter, StringComparison.OrdinalIgnoreCase)) &&
                 (SelectedActionFilter == AllActionsFilter || string.Equals(ClassifyAction(log.Action), SelectedActionFilter, StringComparison.OrdinalIgnoreCase)) &&
                 (string.IsNullOrWhiteSpace(search) ||
-                    log.UserName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                    log.Action.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    SafeText(log.UserName).Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    SafeText(log.Action).Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    ClassifyAction(log.Action).Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    BuildDestinationName(BuildDestinationKey(log.Action)).Contains(search, StringComparison.OrdinalIgnoreCase) ||
                     log.Timestamp.ToString("g").Contains(search, StringComparison.OrdinalIgnoreCase)))
                 .ToList();
 
@@ -215,6 +263,7 @@ namespace InventoryManagementApp.ViewModels
 
             OnPropertyChanged(nameof(TotalLogCount));
             OnPropertyChanged(nameof(FilteredLogCount));
+            OnPropertyChanged(nameof(ActivitySummary));
             ClearFiltersCommand.NotifyCanExecuteChanged();
 
             StatusMessage = HasActiveFilter()
@@ -222,26 +271,86 @@ namespace InventoryManagementApp.ViewModels
                 : $"{Logs.Count} recent activity row(s) visible.";
         }
 
-        public static string ClassifyAction(string action)
+        public static string ClassifyAction(string? action)
         {
+            if (string.IsNullOrWhiteSpace(action))
+                return "System";
             if (ContainsAny(action, "checkout", "checked out", "rent", "rental", "returned", "check in", "checked in"))
                 return "Checkout / Rental";
             if (ContainsAny(action, "request", "reservation", "hold"))
                 return "Request / Hold";
-            if (ContainsAny(action, "maintenance", "repair", "calibration"))
+            if (ContainsAny(action, "calibration", "calibrated"))
+                return "Calibration";
+            if (ContainsAny(action, "maintenance", "repair"))
                 return "Maintenance";
             if (ContainsAny(action, "import", "export", "backup"))
                 return "Import / Export";
-            if (ContainsAny(action, "user", "password", "login", "role", "permission"))
+            if (ContainsAny(action, "user", "password", "login", "role", "permission", "lockout"))
                 return "User / Admin";
-            if (ContainsAny(action, "item", "equipment", "inventory", "stock", "category"))
+            if (ContainsAny(action, "item", "equipment", "inventory", "stock", "category", "kit"))
                 return "Inventory";
             return "System";
         }
 
-        private static bool ContainsAny(string text, params string[] terms)
+        public static string BuildDestinationKey(string? action)
         {
+            return ClassifyAction(action) switch
+            {
+                "Checkout / Rental" => "Rentals",
+                "Request / Hold" => "Reservations",
+                "Calibration" => "Calibration",
+                "Maintenance" => "Maintenance",
+                "Import / Export" => "ImportExport",
+                "User / Admin" => "Users",
+                "Inventory" => ContainsAny(action, "category") ? "Categories" :
+                    ContainsAny(action, "kit") ? "Kits" : "Items",
+                _ => "Dashboard"
+            };
+        }
+
+        public static string BuildDestinationName(string destinationKey)
+        {
+            return destinationKey switch
+            {
+                "Rentals" => "Rentals",
+                "Reservations" => "Reservations",
+                "Calibration" => "Calibration",
+                "Maintenance" => "Maintenance",
+                "ImportExport" => "Import / Export",
+                "Users" => "Users",
+                "Categories" => "Categories",
+                "Kits" => "Kits",
+                "Items" => "Items",
+                _ => "Dashboard"
+            };
+        }
+
+        public static string BuildNextAction(string? action)
+        {
+            return ClassifyAction(action) switch
+            {
+                "Checkout / Rental" => "Confirm holder, due-back date, return state, and any shelf pickup notes.",
+                "Request / Hold" => "Check availability, contact the requester, then confirm, fulfill, or cancel the hold.",
+                "Calibration" => "Review certificate timing before the item is released for field use.",
+                "Maintenance" => "Review the maintenance record and complete or schedule the work before reuse.",
+                "Import / Export" => "Open the data workstation and verify the import/export result or backup output.",
+                "User / Admin" => "Open Users and verify account state, lockout, password, role, or permissions.",
+                "Inventory" => "Open the related inventory workbench and verify item, kit, stock, or category setup.",
+                _ => "Open the dashboard or source page and decide whether operational follow-up is needed."
+            };
+        }
+
+        private static bool ContainsAny(string? text, params string[] terms)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return false;
+
             return terms.Any(term => text.Contains(term, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static string SafeText(string? text, string fallback = "")
+        {
+            return string.IsNullOrWhiteSpace(text) ? fallback : text;
         }
     }
 }
