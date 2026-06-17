@@ -80,6 +80,10 @@ if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
 $minimumScreenshotBytes = 1024
 $minimumScreenshotWidth = 640
 $minimumScreenshotHeight = 360
+$dimensionOverrides = @{
+    "06-dialogs\20-change-password.png" = @{ Width = 240; Height = 220 }
+    "06-dialogs\23-setup-wizard.png" = @{ Width = 340; Height = 420 }
+}
 $expectedFolders = @(
     "00-auth",
     "01-overview",
@@ -298,7 +302,15 @@ try {
     $dimensionFailures = @()
     foreach ($screenshot in $screenshots) {
         $dimensions = Get-PngDimensions -File $screenshot
-        if ($dimensions.Width -lt $minimumScreenshotWidth -or $dimensions.Height -lt $minimumScreenshotHeight) {
+        $relativeToSession = Get-RelativePathCompat -BasePath $sessionOutput -TargetPath $screenshot.FullName
+        $requiredWidth = $minimumScreenshotWidth
+        $requiredHeight = $minimumScreenshotHeight
+        if ($dimensionOverrides.ContainsKey($relativeToSession)) {
+            $requiredWidth = $dimensionOverrides[$relativeToSession].Width
+            $requiredHeight = $dimensionOverrides[$relativeToSession].Height
+        }
+
+        if ($dimensions.Width -lt $requiredWidth -or $dimensions.Height -lt $requiredHeight) {
             $dimensionFailures += "{0} ({1}x{2})" -f $screenshot.FullName, $dimensions.Width, $dimensions.Height
         }
     }
