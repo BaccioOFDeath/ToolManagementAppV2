@@ -38,6 +38,7 @@ using InventoryManagementApp.Services.Categories;
 using InventoryManagementApp.Services.Notifications;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using CommunityToolkit.Mvvm.Input;
 
 namespace InventoryManagementApp
 {
@@ -502,12 +503,18 @@ namespace InventoryManagementApp
             await Task.Delay(400);
 
             var itemSlug = options.BuildItemSlug();
-            await CaptureWindowAsync(mainWindow, Path.Combine(overviewDir, $"01-search-{itemSlug}-results.png"));
-            LogStep("Captured overview search page.");
+            await CaptureSectionPageAsync(
+                mainWindow,
+                mainViewModel,
+                mainViewModel.SelectOverviewSectionCommand,
+                mainViewModel.OpenSearchItemsCommand,
+                Path.Combine(overviewDir, $"01-search-{itemSlug}-results.png"),
+                runLogPath,
+                "Overview search");
 
             await CaptureSelectedTabPageAsync(
                 mainWindow,
-                mainViewModel.OpenSearchItemsCommand.ExecuteAsync(null),
+                OpenSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectOverviewSectionCommand, mainViewModel.OpenSearchItemsCommand),
                 Path.Combine(overviewDir, $"02-search-{itemSlug}-recent-searches.png"),
                 runLogPath,
                 "Search intelligence recent searches",
@@ -515,17 +522,24 @@ namespace InventoryManagementApp
                 tabIndex: 0);
             await CaptureSelectedTabPageAsync(
                 mainWindow,
-                mainViewModel.OpenSearchItemsCommand.ExecuteAsync(null),
+                OpenSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectOverviewSectionCommand, mainViewModel.OpenSearchItemsCommand),
                 Path.Combine(overviewDir, $"03-search-{itemSlug}-unavailable-demand.png"),
                 runLogPath,
                 "Search intelligence unavailable demand",
                 tabControlIndex: 0,
                 tabIndex: 1);
 
-            await CapturePageAsync(mainWindow, mainViewModel.OpenDashboardCommand.ExecuteAsync(null), Path.Combine(overviewDir, "04-dashboard-summary.png"), runLogPath, "Dashboard summary");
+            await CaptureSectionPageAsync(
+                mainWindow,
+                mainViewModel,
+                mainViewModel.SelectOverviewSectionCommand,
+                mainViewModel.OpenDashboardCommand,
+                Path.Combine(overviewDir, "04-dashboard-summary.png"),
+                runLogPath,
+                "Dashboard summary");
             await CaptureSelectedTabPageAsync(
                 mainWindow,
-                mainViewModel.OpenDashboardCommand.ExecuteAsync(null),
+                OpenSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectOverviewSectionCommand, mainViewModel.OpenDashboardCommand),
                 Path.Combine(overviewDir, "05-dashboard-recent-activity.png"),
                 runLogPath,
                 "Dashboard recent activity",
@@ -533,34 +547,45 @@ namespace InventoryManagementApp
                 tabIndex: 0);
             await CaptureSelectedTabPageAsync(
                 mainWindow,
-                mainViewModel.OpenDashboardCommand.ExecuteAsync(null),
+                OpenSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectOverviewSectionCommand, mainViewModel.OpenDashboardCommand),
                 Path.Combine(overviewDir, "06-dashboard-items-with-issues.png"),
                 runLogPath,
                 "Dashboard items with issues",
                 tabControlIndex: 0,
                 tabIndex: 1);
 
-            await CapturePageAsync(mainWindow, mainViewModel.OpenManageItemsCommand.ExecuteAsync(null), Path.Combine(operationsDir, $"01-manage-{itemSlug}.png"), runLogPath, "Manage items");
-            await CapturePageAsync(mainWindow, mainViewModel.OpenRentalsCommand.ExecuteAsync(null), Path.Combine(operationsDir, "02-rentals.png"), runLogPath, "Rentals");
-            await CapturePageAsync(mainWindow, mainViewModel.OpenCustomersCommand.ExecuteAsync(null), Path.Combine(operationsDir, "03-customers.png"), runLogPath, "Customers");
-            await CapturePageAsync(mainWindow, mainViewModel.OpenMaintenanceCommand.ExecuteAsync(null), Path.Combine(operationsDir, "04-maintenance.png"), runLogPath, "Maintenance");
-            await CapturePageAsync(mainWindow, mainViewModel.OpenCalibrationCommand.ExecuteAsync(null), Path.Combine(operationsDir, "05-calibration.png"), runLogPath, "Calibration");
-            await CapturePageAsync(mainWindow, mainViewModel.OpenReservationsCommand.ExecuteAsync(null), Path.Combine(operationsDir, "06-reservations.png"), runLogPath, "Reservations");
-            await CapturePageAsync(mainWindow, mainViewModel.OpenKitManagementCommand.ExecuteAsync(null), Path.Combine(operationsDir, "07-kits.png"), runLogPath, "Kits");
-            await CapturePageAsync(mainWindow, mainViewModel.OpenCategoriesCommand.ExecuteAsync(null), Path.Combine(operationsDir, "08-categories.png"), runLogPath, "Categories");
+            await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectOperationsSectionCommand, mainViewModel.OpenManageItemsCommand, Path.Combine(operationsDir, $"01-manage-{itemSlug}.png"), runLogPath, "Manage items");
+            await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectOperationsSectionCommand, mainViewModel.OpenRentalsCommand, Path.Combine(operationsDir, "02-rentals.png"), runLogPath, "Rentals");
+            await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectOperationsSectionCommand, mainViewModel.OpenCustomersCommand, Path.Combine(operationsDir, "03-customers.png"), runLogPath, "Customers");
+            await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectOperationsSectionCommand, mainViewModel.OpenMaintenanceCommand, Path.Combine(operationsDir, "04-maintenance.png"), runLogPath, "Maintenance");
+            await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectOperationsSectionCommand, mainViewModel.OpenCalibrationCommand, Path.Combine(operationsDir, "05-calibration.png"), runLogPath, "Calibration");
+            await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectOperationsSectionCommand, mainViewModel.OpenReservationsCommand, Path.Combine(operationsDir, "06-reservations.png"), runLogPath, "Reservations");
+            await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectOperationsSectionCommand, mainViewModel.OpenKitManagementCommand, Path.Combine(operationsDir, "07-kits.png"), runLogPath, "Kits");
+            await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectOperationsSectionCommand, mainViewModel.OpenCategoriesCommand, Path.Combine(operationsDir, "08-categories.png"), runLogPath, "Categories");
 
-            await CapturePageAsync(mainWindow, mainViewModel.OpenReportsCommand.ExecuteAsync(null), Path.Combine(insightsDir, "01-reports.png"), runLogPath, "Reports");
-            await CapturePageAsync(mainWindow, mainViewModel.OpenActivityLogsCommand.ExecuteAsync(null), Path.Combine(insightsDir, "02-activity-logs.png"), runLogPath, "Activity logs");
+            await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectInsightsSectionCommand, mainViewModel.OpenReportsCommand, Path.Combine(insightsDir, "01-reports.png"), runLogPath, "Reports");
+            await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectInsightsSectionCommand, mainViewModel.OpenActivityLogsCommand, Path.Combine(insightsDir, "02-activity-logs.png"), runLogPath, "Activity logs");
 
-            await CapturePageAsync(mainWindow, mainViewModel.OpenImportExportCommand.ExecuteAsync(null), Path.Combine(dataDir, "01-import-export.png"), runLogPath, "Import export");
+            await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectDataSectionCommand, mainViewModel.OpenImportExportCommand, Path.Combine(dataDir, "01-import-export-overview.png"), runLogPath, "Import export overview");
+            for (var tabIndex = 1; tabIndex <= 4; tabIndex++)
+            {
+                await CaptureSelectedTabPageAsync(
+                    mainWindow,
+                    OpenSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectDataSectionCommand, mainViewModel.OpenImportExportCommand),
+                    Path.Combine(dataDir, $"{tabIndex + 1:00}-import-export-{GetImportExportTabSlug(tabIndex)}.png"),
+                    runLogPath,
+                    $"Import export {GetImportExportTabSlug(tabIndex)}",
+                    tabControlIndex: 0,
+                    tabIndex: tabIndex);
+            }
 
-            await CapturePageAsync(mainWindow, mainViewModel.OpenUsersCommand.ExecuteAsync(null), Path.Combine(adminDir, "01-users.png"), runLogPath, "Users");
-            await CapturePageAsync(mainWindow, mainViewModel.OpenSettingsCommand.ExecuteAsync(null), Path.Combine(adminDir, "02-settings-service-status.png"), runLogPath, "Settings service status");
+            await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectAdminSectionCommand, mainViewModel.OpenUsersCommand, Path.Combine(adminDir, "01-users.png"), runLogPath, "Users");
+            await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectAdminSectionCommand, mainViewModel.OpenSettingsCommand, Path.Combine(adminDir, "02-settings-service-status.png"), runLogPath, "Settings service status");
             for (var tabIndex = 1; tabIndex <= 7; tabIndex++)
             {
                 await CaptureSelectedTabPageAsync(
                     mainWindow,
-                    mainViewModel.OpenSettingsCommand.ExecuteAsync(null),
+                    OpenSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectAdminSectionCommand, mainViewModel.OpenSettingsCommand),
                     Path.Combine(adminDir, $"{tabIndex + 2:00}-settings-{GetSettingsTabSlug(tabIndex)}.png"),
                     runLogPath,
                     $"Settings {GetSettingsTabSlug(tabIndex)}",
@@ -598,6 +623,61 @@ namespace InventoryManagementApp
             7 => "backups",
             _ => $"tab-{tabIndex + 1:00}"
         };
+
+        static string GetImportExportTabSlug(int tabIndex) => tabIndex switch
+        {
+            1 => "item-data",
+            2 => "customers",
+            3 => "backup-images",
+            4 => "run-log",
+            _ => $"tab-{tabIndex + 1:00}"
+        };
+
+        static async Task CaptureSectionPageAsync(
+            MainWindow mainWindow,
+            MainViewModel mainViewModel,
+            IRelayCommand sectionCommand,
+            IAsyncRelayCommand pageCommand,
+            string filePath,
+            string runLogPath,
+            string label)
+        {
+            await CapturePageAsync(
+                mainWindow,
+                OpenSectionPageAsync(mainWindow, mainViewModel, sectionCommand, pageCommand),
+                filePath,
+                runLogPath,
+                label);
+        }
+
+        static async Task OpenSectionPageAsync(
+            MainWindow mainWindow,
+            MainViewModel mainViewModel,
+            IRelayCommand sectionCommand,
+            IAsyncRelayCommand pageCommand)
+        {
+            await SelectSectionAsync(mainWindow, mainViewModel, sectionCommand);
+            await pageCommand.ExecuteAsync(null);
+        }
+
+        static async Task SelectSectionAsync(
+            MainWindow mainWindow,
+            MainViewModel mainViewModel,
+            IRelayCommand sectionCommand)
+        {
+            await mainWindow.Dispatcher.InvokeAsync(() =>
+            {
+                if (!sectionCommand.CanExecute(null))
+                    throw new InvalidOperationException("Unable to execute the requested navigation section command.");
+
+                sectionCommand.Execute(null);
+                mainWindow.UpdateLayout();
+            }, DispatcherPriority.Background);
+
+            await WaitForUiAsync(mainWindow.Dispatcher);
+            await Task.Delay(250);
+            await mainWindow.Dispatcher.InvokeAsync(mainWindow.UpdateLayout, DispatcherPriority.Background);
+        }
 
         static async Task CapturePageAsync(MainWindow mainWindow, Task commandTask, string filePath, string runLogPath, string label)
         {

@@ -8,7 +8,7 @@ param(
     [string]$ItemLabelPlural = "Tools",
     [string]$AdminPassword = "AdminQ123",
     [string]$OutputRoot = "",
-    [int]$ExpectedScreenshotCount = 28,
+    [int]$ExpectedScreenshotCount = 32,
     [switch]$SkipBuild,
     [switch]$KeepRunDirectory
 )
@@ -54,6 +54,24 @@ function Convert-ToHtmlAttribute {
     return [System.Net.WebUtility]::HtmlEncode($Value)
 }
 
+function Get-RelativePathCompat {
+    param(
+        [Parameter(Mandatory = $true)][string]$BasePath,
+        [Parameter(Mandatory = $true)][string]$TargetPath
+    )
+
+    $baseFullPath = [System.IO.Path]::GetFullPath($BasePath)
+    if (-not $baseFullPath.EndsWith([System.IO.Path]::DirectorySeparatorChar)) {
+        $baseFullPath += [System.IO.Path]::DirectorySeparatorChar
+    }
+
+    $targetFullPath = [System.IO.Path]::GetFullPath($TargetPath)
+    $baseUri = [System.Uri]::new($baseFullPath)
+    $targetUri = [System.Uri]::new($targetFullPath)
+    $relativeUri = $baseUri.MakeRelativeUri($targetUri)
+    return [System.Uri]::UnescapeDataString($relativeUri.ToString()).Replace('/', [System.IO.Path]::DirectorySeparatorChar)
+}
+
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
     $OutputRoot = Join-Path $repoRoot ".qa-screenshots"
@@ -89,7 +107,11 @@ $expectedScreenshotFiles = @(
     "02-operations\08-categories.png",
     "03-insights\01-reports.png",
     "03-insights\02-activity-logs.png",
-    "04-data\01-import-export.png",
+    "04-data\01-import-export-overview.png",
+    "04-data\02-import-export-item-data.png",
+    "04-data\03-import-export-customers.png",
+    "04-data\04-import-export-backup-images.png",
+    "04-data\05-import-export-run-log.png",
     "05-admin\01-users.png",
     "05-admin\02-settings-service-status.png",
     "05-admin\03-settings-database.png",
@@ -213,7 +235,7 @@ try {
 
     $unexpectedScreenshots = @()
     foreach ($screenshot in $screenshots) {
-        $relativeToSession = [System.IO.Path]::GetRelativePath($sessionOutput, $screenshot.FullName)
+        $relativeToSession = Get-RelativePathCompat -BasePath $sessionOutput -TargetPath $screenshot.FullName
         if (-not $expectedScreenshotSet.Contains($relativeToSession)) {
             $unexpectedScreenshots += $relativeToSession
         }
@@ -243,7 +265,7 @@ try {
 
     $captureRows = @()
     foreach ($screenshot in ($screenshots | Sort-Object FullName)) {
-        $relativePath = [System.IO.Path]::GetRelativePath($sessionOutput, $screenshot.FullName)
+        $relativePath = Get-RelativePathCompat -BasePath $sessionOutput -TargetPath $screenshot.FullName
         $relativeWebPath = $relativePath -replace '\\', '/'
         $dimensions = Get-PngDimensions -File $screenshot
         $captureRows += [pscustomobject]@{
