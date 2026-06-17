@@ -101,6 +101,15 @@ $expectedScreenshotFiles = @(
     "05-admin\09-settings-backups.png",
     "06-dialogs\01-print-labels.png"
 )
+$reviewChecklist = @(
+    "Header, search, and signed-in user controls wrap without overlapping or clipping.",
+    "The workflow guidance strip matches the active page and offers useful related jumps.",
+    "Each capture shows a clear selected-row or empty-state path to the next action.",
+    "Toolbar and context actions remain reachable on narrow and wide workstations.",
+    "Text in grids, handoff panels, and buttons fits its container without hiding important values.",
+    "Admin-only pages explain what the setting or permission change affects before saving.",
+    "Technician and advisor flows can be completed from the current page or one visible drill-down."
+)
 $expectedScreenshotSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 foreach ($expectedFile in $expectedScreenshotFiles) {
     [void]$expectedScreenshotSet.Add($expectedFile)
@@ -253,6 +262,11 @@ try {
     Add-Content -Path $readmePath -Value ("Minimum PNG size checked: {0} bytes" -f $minimumScreenshotBytes)
     Add-Content -Path $readmePath -Value ("Minimum PNG dimensions checked: {0}x{1}" -f $minimumScreenshotWidth, $minimumScreenshotHeight)
     Add-Content -Path $readmePath -Value ""
+    Add-Content -Path $readmePath -Value "Review checklist:"
+    foreach ($reviewItem in $reviewChecklist) {
+        Add-Content -Path $readmePath -Value ("- {0}" -f $reviewItem)
+    }
+    Add-Content -Path $readmePath -Value ""
     Add-Content -Path $readmePath -Value "Captured files:"
     foreach ($capture in $captureRows) {
         Add-Content -Path $readmePath -Value ("- `{0}` - {1}x{2}, {3} bytes" -f $capture.Path, $capture.Width, $capture.Height, $capture.Bytes)
@@ -267,12 +281,17 @@ try {
     $html.Add('<meta name="viewport" content="width=device-width, initial-scale=1">'.Replace('\"', '"'))
     $html.Add('<title>QA Screenshot Review</title>')
     $html.Add('<style>')
-    $html.Add('body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#f5f7fa;color:#17202a;}header{position:sticky;top:0;background:#ffffff;border-bottom:1px solid #d8dee8;padding:14px 20px;z-index:1;}h1{font-size:20px;margin:0 0 4px;}p{margin:0;color:#526071;}main{padding:20px;}section{margin:0 0 28px;}h2{font-size:16px;margin:0 0 10px;} .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;}figure{margin:0;background:#fff;border:1px solid #d8dee8;border-radius:6px;overflow:hidden;}img{display:block;width:100%;height:auto;background:#eef2f6;}figcaption{padding:8px 10px;font-size:12px;color:#526071;line-height:1.35;}code{color:#17202a;font-weight:600;} .meta{display:block;margin-top:3px;}@media (max-width:520px){main{padding:12px}.grid{grid-template-columns:1fr;}}')
+    $html.Add('body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#f5f7fa;color:#17202a;}header{position:sticky;top:0;background:#ffffff;border-bottom:1px solid #d8dee8;padding:14px 20px;z-index:1;}h1{font-size:20px;margin:0 0 4px;}p{margin:0;color:#526071;}main{padding:20px;}section{margin:0 0 28px;}h2{font-size:16px;margin:0 0 10px;}.review{background:#fff;border:1px solid #d8dee8;border-radius:6px;padding:12px;margin:0 0 22px;}.review ul{margin:8px 0 0;padding-left:20px;color:#344154;line-height:1.45;}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;}figure{margin:0;background:#fff;border:1px solid #d8dee8;border-radius:6px;overflow:hidden;}img{display:block;width:100%;height:auto;background:#eef2f6;}figcaption{padding:8px 10px;font-size:12px;color:#526071;line-height:1.35;}code{color:#17202a;font-weight:600;}.meta{display:block;margin-top:3px;}@media (max-width:520px){main{padding:12px}.grid{grid-template-columns:1fr;}}')
     $html.Add('</style>')
     $html.Add('</head>')
     $html.Add('<body>')
     $html.Add("<header><h1>QA Screenshot Review</h1><p>Generated $(Convert-ToHtmlAttribute (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) | $($captureRows.Count) captures | minimum $minimumScreenshotWidth x $minimumScreenshotHeight px and $minimumScreenshotBytes bytes</p></header>")
     $html.Add('<main>')
+    $html.Add('<section class="review"><h2>Visual and workflow checklist</h2><ul>'.Replace('\"', '"'))
+    foreach ($reviewItem in $reviewChecklist) {
+        $html.Add("<li>$(Convert-ToHtmlAttribute $reviewItem)</li>")
+    }
+    $html.Add('</ul></section>')
     foreach ($folder in $expectedFolders) {
         $folderCaptures = @($captureRows | Where-Object { $_.Folder -eq $folder })
         if ($folderCaptures.Count -eq 0) { continue }
