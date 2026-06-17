@@ -233,6 +233,20 @@ namespace InventoryManagementApp.ViewModels
 
         public MediaBrush? CurrentUserInitialsBrush => _userContext.CurrentUser?.InitialsBrush;
 
+        public bool IsGuestUser
+        {
+            get
+            {
+                var currentUser = _userContext.CurrentUser;
+                return currentUser == null
+                    || string.Equals(_userContext.UserName, "Guest", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(currentUser.UserName, "Guest", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(currentUser.Role, "Guest", StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
+        public bool CanUseSearchTools => !IsGuestUser;
+
         public bool IsAdminSectionVisible => CanAny(User.PermissionManageUsers, User.PermissionSettings);
         public bool IsDataSectionVisible => Can(User.PermissionImportExport);
         public bool IsOperationsSectionVisible => CanAny(
@@ -287,9 +301,9 @@ namespace InventoryManagementApp.ViewModels
 
         public ItemModel? SelectedItem => ItemManagement.SelectedItem;
 
-        bool Can(string permissionKey) => _userContext.CurrentUser?.HasPermission(permissionKey) == true;
+        bool Can(string permissionKey) => !IsGuestUser && _userContext.CurrentUser?.HasPermission(permissionKey) == true;
 
-        bool CanAny(params string[] permissionKeys) => _userContext.CurrentUser?.HasAnyPermission(permissionKeys) == true;
+        bool CanAny(params string[] permissionKeys) => !IsGuestUser && _userContext.CurrentUser?.HasAnyPermission(permissionKeys) == true;
 
         void CancelCurrentPageLoad()
         {
@@ -315,6 +329,8 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(CurrentUserPhotoPath));
             OnPropertyChanged(nameof(CurrentUserInitialsBrush));
             OnPropertyChanged(nameof(HasCurrentUser));
+            OnPropertyChanged(nameof(IsGuestUser));
+            OnPropertyChanged(nameof(CanUseSearchTools));
             OnPropertyChanged(nameof(IsAdminSectionVisible));
             OnPropertyChanged(nameof(IsDataSectionVisible));
             OnPropertyChanged(nameof(IsOperationsSectionVisible));
@@ -531,6 +547,12 @@ namespace InventoryManagementApp.ViewModels
 
             OpenSearchItemsCommand = new AsyncRelayCommand(async () =>
             {
+                if (IsGuestUser)
+                {
+                    await OpenDashboardCommand.ExecuteAsync(null);
+                    return;
+                }
+
                 var plural = LabelProvider.Instance.ItemLabelPlural;
                 var page = new ItemSearchPage { DataContext = ItemManagement, Title = $"Search {plural}" };
                 try
@@ -567,6 +589,7 @@ namespace InventoryManagementApp.ViewModels
                 try
                 {
                     await UserManagement.LoadUsersAsync();
+                    UserManagement.SelectedUser = UserManagement.Users.FirstOrDefault();
                     var page = new UsersPage(UserManagement) { Title = "Manage Users" };
                     CurrentPage = page;
                 }
@@ -795,14 +818,60 @@ namespace InventoryManagementApp.ViewModels
             SelectOverviewSectionCommand = new RelayCommand(() =>
             {
                 SetNavSection(NavSectionKeys.Overview);
+                _ = OpenDashboardCommand.ExecuteAsync(null);
             });
-            SelectOperationsSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Operations));
-            SelectInsightsSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Insights));
-            SelectDataSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Data));
-            SelectAdminSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Admin));
+            SelectOperationsSectionCommand = new RelayCommand(() =>
+            {
+                SetNavSection(NavSectionKeys.Operations);
+                _ = OpenOperationsDefaultAsync();
+            });
+            SelectInsightsSectionCommand = new RelayCommand(() =>
+            {
+                SetNavSection(NavSectionKeys.Insights);
+                if (CanUseReports)
+                    _ = OpenReportsCommand.ExecuteAsync(null);
+                else if (CanUseActivityLogs)
+                    _ = OpenActivityLogsCommand.ExecuteAsync(null);
+            });
+            SelectDataSectionCommand = new RelayCommand(() =>
+            {
+                SetNavSection(NavSectionKeys.Data);
+                if (CanUseImportExport)
+                    _ = OpenImportExportCommand.ExecuteAsync(null);
+            });
+            SelectAdminSectionCommand = new RelayCommand(() =>
+            {
+                SetNavSection(NavSectionKeys.Admin);
+                if (CanManageUsers)
+                    _ = OpenUsersCommand.ExecuteAsync(null);
+                else if (CanUseSettings)
+                    _ = OpenSettingsCommand.ExecuteAsync(null);
+            });
 
             SetNavSection(NavSectionKeys.Overview, openSidebar: false);
             _ = OpenDashboardCommand.ExecuteAsync(null);
+        }
+
+        async Task OpenOperationsDefaultAsync()
+        {
+            if (CanUseMaintenance)
+                await OpenMaintenanceCommand.ExecuteAsync(null);
+            else if (CanManageItems)
+                await OpenManageItemsCommand.ExecuteAsync(null);
+            else if (CanUseRentals)
+                await OpenRentalsCommand.ExecuteAsync(null);
+            else if (CanUseCustomers)
+                await OpenCustomersCommand.ExecuteAsync(null);
+            else if (CanUseCalibration)
+                await OpenCalibrationCommand.ExecuteAsync(null);
+            else if (CanUseReservations)
+                await OpenReservationsCommand.ExecuteAsync(null);
+            else if (CanUseKits)
+                await OpenKitManagementCommand.ExecuteAsync(null);
+            else if (CanUseCategories)
+                await OpenCategoriesCommand.ExecuteAsync(null);
+            else if (CanPrintLabels)
+                await OpenPrintLabelWindowCommand.ExecuteAsync(null);
         }
 
         void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -902,6 +971,17 @@ namespace InventoryManagementApp.ViewModels
 
         async Task GlobalSearchAsync(CancellationToken cancellationToken)
         {
+            if (IsGuestUser)
+            {
+                if (!string.IsNullOrWhiteSpace(GlobalSearchText))
+                    GlobalSearchText = string.Empty;
+
+                if (CurrentPage?.DataContext is not DashboardViewModel)
+                    await OpenDashboardCommand.ExecuteAsync(null);
+
+                return;
+            }
+
             ItemManagement.SearchText = GlobalSearchText;
             if (string.IsNullOrWhiteSpace(GlobalSearchText))
             {
@@ -1103,8 +1183,9 @@ namespace InventoryManagementApp.ViewModels
             switch (key)
             {
                 case NavSectionKeys.Overview:
-                    items.Add(new NavItem($"Search {itemsPlural}", OpenSearchItemsCommand));
                     items.Add(new NavItem("Dashboard", OpenDashboardCommand));
+                    if (CanUseSearchTools)
+                        items.Add(new NavItem($"Search {itemsPlural}", OpenSearchItemsCommand));
                     break;
                 case NavSectionKeys.Operations:
                     if (Can(User.PermissionManageItems))

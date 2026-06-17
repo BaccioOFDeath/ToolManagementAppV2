@@ -37,7 +37,8 @@
                                      VerticalAlignment="Center"
                                      Text="{Binding GlobalSearchText}"
                                      SearchCommand="{Binding GlobalSearchCommand}"
-                                     SearchLabel=""/>
+                                     SearchLabel=""
+                                     Visibility="{Binding CanUseSearchTools, Converter={StaticResource BoolToVis}}"/>
                 </DockPanel>
 
                 <Button Grid.Column="1"
@@ -68,11 +69,11 @@
                 BorderThickness="0,0,0,1"
                 Padding="4,3">
             <Menu Style="{StaticResource SectionMenu}">
-                <MenuItem Header="Overview" Style="{StaticResource SectionMenuItem}" Command="{Binding SelectOverviewSectionCommand}">
-                    <MenuItem Header="Search Tools" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenSearchItemsCommand}"/>
+                <MenuItem Header="Overview" Style="{StaticResource SectionMenuItem}" PreviewMouseLeftButtonDown="SectionMenuItem_PreviewMouseLeftButtonDown">
                     <MenuItem Header="Dashboard" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenDashboardCommand}"/>
+                    <MenuItem Header="Search Tools" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenSearchItemsCommand}" Visibility="{Binding CanUseSearchTools, Converter={StaticResource BoolToVis}}"/>
                 </MenuItem>
-                <MenuItem Header="Operations" Style="{StaticResource SectionMenuItem}" Command="{Binding SelectOperationsSectionCommand}" Visibility="{Binding IsOperationsSectionVisible, Converter={StaticResource BoolToVis}}">
+                <MenuItem Header="Operations" Style="{StaticResource SectionMenuItem}" PreviewMouseLeftButtonDown="SectionMenuItem_PreviewMouseLeftButtonDown" Visibility="{Binding IsOperationsSectionVisible, Converter={StaticResource BoolToVis}}">
                     <MenuItem Header="Tools" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenManageItemsCommand}" Visibility="{Binding CanManageItems, Converter={StaticResource BoolToVis}}"/>
                     <MenuItem Header="Rentals" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenRentalsCommand}" Visibility="{Binding CanUseRentals, Converter={StaticResource BoolToVis}}"/>
                     <MenuItem Header="Customers" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenCustomersCommand}" Visibility="{Binding CanUseCustomers, Converter={StaticResource BoolToVis}}"/>
@@ -83,14 +84,14 @@
                     <MenuItem Header="Categories" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenCategoriesCommand}" Visibility="{Binding CanUseCategories, Converter={StaticResource BoolToVis}}"/>
                     <MenuItem Header="Print Labels" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenPrintLabelWindowCommand}" Visibility="{Binding CanPrintLabels, Converter={StaticResource BoolToVis}}"/>
                 </MenuItem>
-                <MenuItem Header="Insights" Style="{StaticResource SectionMenuItem}" Command="{Binding SelectInsightsSectionCommand}" Visibility="{Binding IsInsightsSectionVisible, Converter={StaticResource BoolToVis}}">
+                <MenuItem Header="Insights" Style="{StaticResource SectionMenuItem}" PreviewMouseLeftButtonDown="SectionMenuItem_PreviewMouseLeftButtonDown" Visibility="{Binding IsInsightsSectionVisible, Converter={StaticResource BoolToVis}}">
                     <MenuItem Header="Reports" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenReportsCommand}" Visibility="{Binding CanUseReports, Converter={StaticResource BoolToVis}}"/>
                     <MenuItem Header="Activity Logs" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenActivityLogsCommand}" Visibility="{Binding CanUseActivityLogs, Converter={StaticResource BoolToVis}}"/>
                 </MenuItem>
-                <MenuItem Header="Data" Style="{StaticResource SectionMenuItem}" Command="{Binding SelectDataSectionCommand}" Visibility="{Binding IsDataSectionVisible, Converter={StaticResource BoolToVis}}">
+                <MenuItem Header="Data" Style="{StaticResource SectionMenuItem}" PreviewMouseLeftButtonDown="SectionMenuItem_PreviewMouseLeftButtonDown" Visibility="{Binding IsDataSectionVisible, Converter={StaticResource BoolToVis}}">
                     <MenuItem Header="Import / Export" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenImportExportCommand}" Visibility="{Binding CanUseImportExport, Converter={StaticResource BoolToVis}}"/>
                 </MenuItem>
-                <MenuItem Header="Admin" Style="{StaticResource SectionMenuItem}" Command="{Binding SelectAdminSectionCommand}" Visibility="{Binding IsAdminSectionVisible, Converter={StaticResource BoolToVis}}">
+                <MenuItem Header="Admin" Style="{StaticResource SectionMenuItem}" PreviewMouseLeftButtonDown="SectionMenuItem_PreviewMouseLeftButtonDown" Visibility="{Binding IsAdminSectionVisible, Converter={StaticResource BoolToVis}}">
                     <MenuItem Header="Users" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenUsersCommand}" Visibility="{Binding CanManageUsers, Converter={StaticResource BoolToVis}}"/>
                     <MenuItem Header="Settings" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenSettingsCommand}" Visibility="{Binding CanUseSettings, Converter={StaticResource BoolToVis}}"/>
                 </MenuItem>

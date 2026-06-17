@@ -46,6 +46,17 @@ namespace InventoryManagementApp.Services.Users
 
         public string UserName => CurrentUser?.UserName ?? "Guest";
 
-        public string Role => IsAdmin ? "Admin" : "User";
+        public string Role
+        {
+            get
+            {
+                if (IsAdmin)
+                    return "Admin";
+
+                return string.IsNullOrWhiteSpace(CurrentUser?.Role)
+                    ? "User"
+                    : CurrentUser.Role;
+            }
+        }
     }
 }

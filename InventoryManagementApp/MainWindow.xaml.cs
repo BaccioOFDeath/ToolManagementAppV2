@@ -2,6 +2,9 @@
 using System;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using InventoryManagementApp.Utilities.Extensions;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.ViewModels;
@@ -55,6 +58,44 @@ namespace InventoryManagementApp
             {
                 vm.IsSidebarOpen = false;
             }
+        }
+
+        void SectionMenuItem_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is not MenuItem menuItem || DataContext is not MainViewModel vm)
+                return;
+
+            if (FindSourceMenuItem(e.OriginalSource as DependencyObject) != menuItem)
+                return;
+
+            var command = menuItem.Header?.ToString() switch
+            {
+                "Overview" => vm.SelectOverviewSectionCommand,
+                "Operations" => vm.SelectOperationsSectionCommand,
+                "Insights" => vm.SelectInsightsSectionCommand,
+                "Data" => vm.SelectDataSectionCommand,
+                "Admin" => vm.SelectAdminSectionCommand,
+                _ => null
+            };
+
+            if (command?.CanExecute(null) == true)
+                command.Execute(null);
+
+            menuItem.IsSubmenuOpen = true;
+            e.Handled = true;
+        }
+
+        static MenuItem? FindSourceMenuItem(DependencyObject? source)
+        {
+            while (source != null)
+            {
+                if (source is MenuItem item)
+                    return item;
+
+                source = VisualTreeHelper.GetParent(source);
+            }
+
+            return null;
         }
     }
 }
