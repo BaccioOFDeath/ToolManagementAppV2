@@ -50,7 +50,7 @@
         <TabControl Grid.Row="1" Style="{StaticResource DesktopSectionListTabControl}">
             <TabItem Style="{StaticResource DesktopSectionListTabItem}" Header="01 Overview">
                 <Border Style="{StaticResource DesktopContentPane}">
-                    <Grid Margin="14">
+                    <Grid Margin="14" VerticalAlignment="Top">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
@@ -58,7 +58,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,8">

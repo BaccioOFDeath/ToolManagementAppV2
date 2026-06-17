@@ -3,15 +3,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
         <Button Style="{StaticResource GhostButton}"
-                Width="92"
+                Width="82"
                 Content="{Binding LeftButtonText, RelativeSource={RelativeSource AncestorType=UserControl}}"
                 Command="{Binding LeftCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                 IsCancel="True"/>
         <Button Style="{StaticResource PrimaryButton}"
-                Width="92"
+                Width="82"
                 Content="{Binding RightButtonText, RelativeSource={RelativeSource AncestorType=UserControl}}"
                 Command="{Binding RightCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                Margin="8,0,0,0"
+                Margin="6,0,0,0"
                 IsDefault="True"/>
     </StackPanel>
 </UserControl>

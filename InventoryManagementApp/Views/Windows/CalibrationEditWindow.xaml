@@ -3,57 +3,76 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:InventoryManagementApp.Views.Controls"
         Title="Calibration"
-        Width="640"
-        Height="520"
+        Width="680"
+        Height="410"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
-    <Grid Margin="16">
+    <Grid Margin="14">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="160"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Margin="0,0,0,8">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Left">
+                    <TextBlock Text="Calibration record" Style="{StaticResource PageTitleTextBlock}"/>
+                    <TextBlock Text="Record certificate details, due dates, result, and verification notes." Style="{StaticResource CaptionTextBlock}"/>
+                </StackPanel>
+                <TextBlock DockPanel.Dock="Right"
+                           Text="{Binding CalibrationRecord.Result}"
+                           Style="{StaticResource CaptionTextBlock}"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
 
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Item #" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,8"/>
-            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding CalibrationRecord.ItemNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="118"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="18"/>
+                    <ColumnDefinition Width="118"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="Item Name" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,8"/>
-            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding CalibrationRecord.ItemName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Item #" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding CalibrationRecord.ItemNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                <TextBlock Grid.Row="0" Grid.Column="3" Text="Item Name" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                <TextBox Grid.Row="0" Grid.Column="4" Text="{Binding CalibrationRecord.ItemName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Calibration Date" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,8"/>
-            <DatePicker Grid.Row="2" Grid.Column="1" SelectedDate="{Binding CalibrationRecord.CalibrationDate}" Margin="0,0,0,8"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Calibration Date" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                <DatePicker Grid.Row="1" Grid.Column="1" SelectedDate="{Binding CalibrationRecord.CalibrationDate}" Margin="0,0,0,8"/>
+                <TextBlock Grid.Row="1" Grid.Column="3" Text="Next Due" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                <DatePicker Grid.Row="1" Grid.Column="4" SelectedDate="{Binding CalibrationRecord.NextCalibrationDue}" Margin="0,0,0,8"/>
 
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="Next Due" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,8"/>
-            <DatePicker Grid.Row="3" Grid.Column="1" SelectedDate="{Binding CalibrationRecord.NextCalibrationDue}" Margin="0,0,0,8"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Calibrated By" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding CalibrationRecord.CalibratedBy, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                <TextBlock Grid.Row="2" Grid.Column="3" Text="Certificate #" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                <TextBox Grid.Row="2" Grid.Column="4" Text="{Binding CalibrationRecord.CertificateNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-            <TextBlock Grid.Row="4" Grid.Column="0" Text="Calibrated By" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,8"/>
-            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding CalibrationRecord.CalibratedBy, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Result" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                <ComboBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding ResultOptions}" SelectedItem="{Binding CalibrationRecord.Result}" Margin="0,0,0,8"/>
 
-            <TextBlock Grid.Row="5" Grid.Column="0" Text="Certificate #" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,8"/>
-            <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding CalibrationRecord.CertificateNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                <TextBlock Grid.Row="3" Grid.Column="3" Grid.ColumnSpan="2" Text="Notes" Style="{StaticResource SectionHeader}" Margin="0,4,0,8"/>
+                <TextBox Grid.Row="4"
+                         Grid.ColumnSpan="5"
+                         Text="{Binding CalibrationRecord.Notes, UpdateSourceTrigger=PropertyChanged}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto"/>
+            </Grid>
+        </Border>
 
-            <TextBlock Grid.Row="6" Grid.Column="0" Text="Result" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,8"/>
-            <ComboBox Grid.Row="6" Grid.Column="1" ItemsSource="{Binding ResultOptions}" SelectedItem="{Binding CalibrationRecord.Result}" Margin="0,0,0,8"/>
-
-            <TextBlock Grid.Row="7" Grid.Column="0" Text="Notes" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,0"/>
-            <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding CalibrationRecord.Notes, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="80"/>
-        </Grid>
-
-        <controls:SaveCancelBar Grid.Row="1"/>
+        <controls:SaveCancelBar Grid.Row="2"/>
     </Grid>
 </Window>

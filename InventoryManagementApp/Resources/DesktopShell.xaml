@@ -3,8 +3,8 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Thickness x:Key="PagePadding">4</Thickness>
     <Thickness x:Key="CardPadding">6</Thickness>
-    <Thickness x:Key="ToolbarPadding">4</Thickness>
-    <Thickness x:Key="ControlPadding">6,1</Thickness>
+    <Thickness x:Key="ToolbarPadding">5,4</Thickness>
+    <Thickness x:Key="ControlPadding">5,1</Thickness>
 
     <Style x:Key="PageTitleTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
         <Setter Property="FontSize" Value="14"/>
@@ -50,13 +50,13 @@
         <Setter Property="Background" Value="{DynamicResource BtnBg}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BtnBorder}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="6,1"/>
+        <Setter Property="Padding" Value="4,1"/>
         <Setter Property="FontWeight" Value="Normal"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="HorizontalContentAlignment" Value="Center"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="MinHeight" Value="24"/>
-        <Setter Property="MinWidth" Value="72"/>
+        <Setter Property="MinHeight" Value="21"/>
+        <Setter Property="MinWidth" Value="52"/>
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
         <Setter Property="Template">
@@ -93,7 +93,7 @@
     </Style>
 
     <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="MinWidth" Value="78"/>
+        <Setter Property="MinWidth" Value="58"/>
         <Setter Property="HorizontalAlignment" Value="Left"/>
         <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
@@ -105,19 +105,19 @@
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
-        <Setter Property="MinWidth" Value="72"/>
+        <Setter Property="MinWidth" Value="54"/>
     </Style>
 
     <Style x:Key="NavButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Margin" Value="0,0,0,2"/>
-        <Setter Property="MinHeight" Value="26"/>
+        <Setter Property="MinHeight" Value="24"/>
         <Setter Property="HorizontalAlignment" Value="Stretch"/>
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="Background" Value="{DynamicResource BtnBg}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BtnBorder}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="8,2"/>
+        <Setter Property="Padding" Value="7,2"/>
         <Setter Property="HorizontalContentAlignment" Value="Left"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
@@ -127,8 +127,8 @@
         <Setter Property="Background" Value="{DynamicResource BtnBg}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BtnBorder}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="10,2"/>
-        <Setter Property="MinHeight" Value="25"/>
+        <Setter Property="Padding" Value="9,2"/>
+        <Setter Property="MinHeight" Value="24"/>
         <Setter Property="Margin" Value="0,0,2,0"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -276,8 +276,8 @@
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="1,1,1,0"/>
-        <Setter Property="Padding" Value="10,3"/>
-        <Setter Property="MinHeight" Value="25"/>
+        <Setter Property="Padding" Value="8,2"/>
+        <Setter Property="MinHeight" Value="24"/>
         <Setter Property="Margin" Value="0,0,2,0"/>
         <Style.Triggers>
             <Trigger Property="IsSelected" Value="True">

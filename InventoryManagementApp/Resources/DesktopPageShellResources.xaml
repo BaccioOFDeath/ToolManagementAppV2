@@ -10,10 +10,12 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TabControl">
-                    <Grid KeyboardNavigation.TabNavigation="Local">
+                    <Grid KeyboardNavigation.TabNavigation="Local"
+                          VerticalAlignment="Stretch"
+                          MinHeight="{Binding ActualHeight, RelativeSource={RelativeSource TemplatedParent}}">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="220"/>
-                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="198"/>
+                            <ColumnDefinition Width="8"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Border Grid.Column="0"
@@ -30,6 +32,8 @@
                         <ContentPresenter Grid.Column="2"
                                           x:Name="PART_SelectedContentHost"
                                           ContentSource="SelectedContent"
+                                          HorizontalAlignment="Stretch"
+                                          VerticalAlignment="Stretch"
                                           Margin="0"
                                           SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                     </Grid>
@@ -39,12 +43,12 @@
     </Style>
 
     <Style x:Key="DesktopSectionListTabItem" TargetType="TabItem" BasedOn="{StaticResource {x:Type TabItem}}">
-        <Setter Property="Width" Value="206"/>
-        <Setter Property="MinHeight" Value="34"/>
-        <Setter Property="Padding" Value="12,5"/>
-        <Setter Property="Margin" Value="0,0,0,6"/>
+        <Setter Property="Width" Value="184"/>
+        <Setter Property="MinHeight" Value="30"/>
+        <Setter Property="Padding" Value="10,4"/>
+        <Setter Property="Margin" Value="0,0,0,4"/>
         <Setter Property="HorizontalContentAlignment" Value="Left"/>
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
         <Setter Property="FontSize" Value="12"/>
     </Style>
 
@@ -57,39 +61,39 @@
         <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="0,0,0,1"/>
-        <Setter Property="Padding" Value="10,8"/>
+        <Setter Property="Padding" Value="8,6"/>
     </Style>
 
     <Style x:Key="DesktopSettingsForm" TargetType="Grid">
-        <Setter Property="Margin" Value="14"/>
+        <Setter Property="Margin" Value="10"/>
     </Style>
 
     <Style x:Key="DesktopSettingsCheckList" TargetType="ItemsControl">
-        <Setter Property="Margin" Value="14,10,14,14"/>
+        <Setter Property="Margin" Value="10"/>
     </Style>
 
     <Style x:Key="DesktopSummaryCard" TargetType="Border" BasedOn="{StaticResource Card}">
         <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
-        <Setter Property="Padding" Value="12"/>
+        <Setter Property="Padding" Value="10"/>
     </Style>
 
     <Style x:Key="DesktopInsetCard" TargetType="Border" BasedOn="{StaticResource Card}">
-        <Setter Property="Padding" Value="12"/>
+        <Setter Property="Padding" Value="10"/>
     </Style>
 
     <Style x:Key="DesktopPaneHeader" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="0,0,0,1"/>
-        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="Padding" Value="7,5"/>
     </Style>
 
     <Style x:Key="DesktopPaneSubheader" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="0,0,0,1"/>
-        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="Padding" Value="7,5"/>
     </Style>
 
     <Style x:Key="DesktopNoteCard" TargetType="Border" BasedOn="{StaticResource DesktopInsetCard}">

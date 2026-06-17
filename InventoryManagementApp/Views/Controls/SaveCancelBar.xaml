@@ -1,8 +1,8 @@
 <UserControl x:Class="InventoryManagementApp.Views.Controls.SaveCancelBar"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-        <Button Style="{StaticResource PrimaryButton}" Width="92" Content="Save" Command="{Binding SaveCommand}" Margin="0,0,8,0"/>
-        <Button Style="{StaticResource GhostButton}" Width="92" Content="Cancel" Command="{Binding CancelCommand}"/>
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+        <Button Style="{StaticResource PrimaryButton}" Width="82" Content="Save" Command="{Binding SaveCommand}" Margin="0,0,6,0"/>
+        <Button Style="{StaticResource GhostButton}" Width="82" Content="Cancel" Command="{Binding CancelCommand}"/>
     </StackPanel>
 </UserControl>

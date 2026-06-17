@@ -179,7 +179,7 @@
             <TabItem Style="{StaticResource DesktopSectionListTabItem}" Header="03 General">
                 <Border Style="{StaticResource DesktopContentPane}">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <Grid Margin="14">
+                        <Grid Margin="14" VerticalAlignment="Top">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="2.1*"/>
                                 <ColumnDefinition Width="12"/>
