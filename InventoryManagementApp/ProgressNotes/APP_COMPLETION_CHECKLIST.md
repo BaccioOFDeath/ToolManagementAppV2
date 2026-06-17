@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-17 16:11 NZST
+Last audit date/time: 2026-06-17 17:11 NZST
 
 ## Completed workflows
 
@@ -25,7 +25,7 @@ Last audit date/time: 2026-06-17 16:11 NZST
 - Calibration now uses a two-pane technician bench with certificate handoff details, timing and next-action guidance, shelf-release checklist, quick overdue/due-soon/current filters, copy handoff, print actions, stable useful selection, null-safe expanded search, and row-correct context menus.
 - QA screenshot manifests now list each captured PNG with dimensions and byte size so future screenshot reviews can spot cropped or suspicious captures faster.
 - Admin user management now supports durable checkbox permissions, advisor/technician/admin presets, access summaries in the directory/detail/copy/print flows, and permission-based navigation visibility for operations, insights, data, and admin sections.
-- Admin user permission editing now shows live access-result, allowed-area, and hidden/blocked summaries beside the checkbox permissions, with a scrollable layout for shorter admin screens.
+- Admin user permission editing now shows live access-result, allowed-area, hidden/blocked, operational-impact, guarded-action, and next-step summaries beside the checkbox permissions, with a scrollable layout for shorter admin screens.
 - Service-layer authorization now matches checkbox permissions more closely: user administration requires Manage users, settings writes require Settings, inventory edits require Manage items, and bulk/image imports require Import / export while full admins keep all-access rights.
 - Reservations now use a two-pane advisor workbench with hold directory, quick status filters, selected-hold detail, timing, next action, shelf checklist, copy handoff, print handoff, printable filtered directory, stable useful selection, null-safe expanded search, and row-correct double-click/right-click actions.
 - QA screenshot review now produces a browser-friendly `index.html` gallery grouped by app area and fails when unexpected PNG captures appear without updating the expected screenshot manifest.
@@ -41,7 +41,7 @@ Last audit date/time: 2026-06-17 16:11 NZST
 - Customers now have a completed desktop workflow surface, but runtime add/edit/delete/print/copy validation still needs a Windows/.NET workstation.
 - Maintenance now has a completed desktop workflow surface, but runtime add/edit/complete/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
 - Calibration now has a completed desktop workflow surface, but runtime add/edit/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
-- User permission editing now has a completed persistence/UI/navigation/editor-summary pass and matching service-layer permission guards, but runtime login-as-each-role and screenshot validation still needs a Windows/.NET workstation.
+- User permission editing now has a completed persistence/UI/navigation/editor-summary pass, impact review, and matching service-layer permission guards, but runtime login-as-each-role and screenshot validation still needs a Windows/.NET workstation.
 - Reservations now have a completed desktop workflow surface, but runtime add/edit/confirm/cancel/fulfill/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
 - Rentals now have a completed desktop workflow surface, but runtime check-in/extend/request/delete/print/document and screenshot validation still need a Windows/.NET workstation.
 - Categories now have a completed desktop workflow surface, but runtime create/rename/delete/filter/print/copy and screenshot validation still need a Windows/.NET workstation.
@@ -58,6 +58,6 @@ Last audit date/time: 2026-06-17 16:11 NZST
 
 ## Validation status
 
-- GitHub connector readback reviewed the Import / Export permission UI change and progress note.
+- GitHub connector readback reviewed the admin permission impact review branch.
 - Local XAML parsing, `dotnet --info`, `dotnet restore`, `dotnet build`, `dotnet test`, and `scripts/run-app-qa-screenshots.ps1` were not run because this scheduled Linux container lacks the .NET SDK and Windows/WPF runtime, and direct local clone/raw fetches remain blocked by the network tunnel.
 - Did not run unrelated tests, per instruction.
