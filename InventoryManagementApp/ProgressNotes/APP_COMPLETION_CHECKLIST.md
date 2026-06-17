@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-17 17:11 NZST
+Last audit date/time: 2026-06-17 17:49 NZST
 
 ## Completed workflows
 
@@ -31,6 +31,8 @@ Last audit date/time: 2026-06-17 17:11 NZST
 - QA screenshot review now produces a browser-friendly `index.html` gallery grouped by app area and fails when unexpected PNG captures appear without updating the expected screenshot manifest.
 - Rentals now use a rental desk workbench with a main rental directory, selected-rental advisor handoff, customer/timing/shelf context, check-in/extend/request/document actions, open request queue, row-correct context menus, wrapping toolbar actions, and a compact footer for repeated desk work.
 - Categories now use an admin workbench layout with a directory pane, selected-category handoff, next action, setup checklist, name review, status feedback, row-correct context menus, keyboard shortcuts, printable directory output, and printable selected-category sheets.
+- The main shell now shows page-aware workflow guidance and permission-aware quick jumps so technicians, advisors, data users, and admins can drill to the next related workbench without hunting through the app.
+- The main header now wraps search, user identity, and session actions more safely on narrower workstations, and the screenshot review gallery now includes a visual/workflow checklist for future QA passes.
 
 ## Partially complete workflows
 
@@ -45,6 +47,7 @@ Last audit date/time: 2026-06-17 17:11 NZST
 - Reservations now have a completed desktop workflow surface, but runtime add/edit/confirm/cancel/fulfill/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
 - Rentals now have a completed desktop workflow surface, but runtime check-in/extend/request/delete/print/document and screenshot validation still need a Windows/.NET workstation.
 - Categories now have a completed desktop workflow surface, but runtime create/rename/delete/filter/print/copy and screenshot validation still need a Windows/.NET workstation.
+- Shell workflow guidance and responsive header behavior have been implemented, but runtime narrow/wide workstation screenshot review still needs a Windows/.NET workstation.
 
 ## Known broken workflows
 
@@ -54,10 +57,10 @@ Last audit date/time: 2026-06-17 17:11 NZST
 
 ## Next recommended target
 
-- Continue the end-to-end workflow audit from a technician/advisor/admin perspective, with the next useful pass focused on using the new screenshot review index to identify any cramped or inconsistent pages after a Windows QA capture run.
+- Run the enhanced Windows QA screenshot capture and review the generated checklist/index for any remaining cramped shell/page combinations, especially at narrow workstation widths.
 
 ## Validation status
 
-- GitHub connector readback reviewed the admin permission impact review branch.
+- GitHub connector readback reviewed the shell workflow guidance branch and progress note.
 - Local XAML parsing, `dotnet --info`, `dotnet restore`, `dotnet build`, `dotnet test`, and `scripts/run-app-qa-screenshots.ps1` were not run because this scheduled Linux container lacks the .NET SDK and Windows/WPF runtime, and direct local clone/raw fetches remain blocked by the network tunnel.
 - Did not run unrelated tests, per instruction.
