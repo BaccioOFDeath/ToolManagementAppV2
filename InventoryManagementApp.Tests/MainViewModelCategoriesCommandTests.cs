@@ -51,6 +51,9 @@ namespace InventoryManagementApp.Tests
                         })
                         .Build();
 
+                    _ = host.Services.GetRequiredService<ILogger<App>>();
+                    _ = host.Services.GetRequiredService<IDialogService>();
+
                     WpfTestHelper.ShutdownApplication();
                     var app = new App(host);
 
