@@ -17,7 +17,6 @@
             <Setter Property="Margin" Value="0,2,0,0"/>
         </Style>
         <Style x:Key="AvailabilityTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-            <Setter Property="Text" Value="{Binding AvailabilityStatus}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
             <Style.Triggers>
@@ -179,7 +178,7 @@
                             <DataGridTemplateColumn Header="Status" Width="130">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Style="{StaticResource AvailabilityTextBlock}" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Style="{StaticResource AvailabilityTextBlock}" Text="{Binding AvailabilityStatus}" TextTrimming="CharacterEllipsis"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
@@ -207,7 +206,7 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </DataGrid>
-                    <Border Grid.Row="2" Style="{StaticResource DesktopNoteCard}" Width="300" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Border Grid.Row="2" Width="300" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Border.Style>
                             <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
