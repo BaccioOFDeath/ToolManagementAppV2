@@ -11,30 +11,32 @@
         </Grid.RowDefinitions>
 
         <Border Style="{StaticResource ToolbarCard}">
-            <DockPanel LastChildFill="False">
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+            <DockPanel LastChildFill="True">
+                <WrapPanel DockPanel.Dock="Left" VerticalAlignment="Center">
                     <TextBlock Text="Report" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                     <ComboBox Width="230"
+                              MinWidth="180"
                               ItemsSource="{Binding ReportTypes}"
                               SelectedItem="{Binding SelectedReport}"
                               ItemContainerStyle="{StaticResource DropdownItemStyle}"
                               ToolTip="Choose the report to run"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Run" Command="{Binding RunReportCommand}" Margin="6,0,0,0"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Open Source Page" Click="OpenSourcePage_Click" Margin="4,0,0,0"/>
                     <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearReportCommand}" Margin="4,0,0,0"/>
-                </StackPanel>
+                </WrapPanel>
 
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
+                <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <Button Style="{StaticResource PrimaryButton}" Content="Print Report" Click="PrintReport_Click" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Copy Row" Click="CopySelectedRow_Click"/>
-                </StackPanel>
+                    <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedRow_Click"/>
+                </WrapPanel>
             </DockPanel>
         </Border>
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2.7*"/>
+                <ColumnDefinition Width="2.55*" MinWidth="440"/>
                 <ColumnDefinition Width="4"/>
-                <ColumnDefinition Width="1.15*"/>
+                <ColumnDefinition Width="1.25*" MinWidth="300"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -55,12 +57,12 @@
                                    TextWrapping="Wrap"
                                    Foreground="{DynamicResource MutedForegroundBrush}"/>
                     </StackPanel>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <WrapPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <TextBlock Text="Rows:" Style="{StaticResource LabelTextBlock}" Margin="0,0,4,0"/>
                         <TextBlock Text="{Binding ReportLineCount}" Margin="0,0,12,0"/>
                         <TextBlock Text="Last Run:" Style="{StaticResource LabelTextBlock}" Margin="0,0,4,0"/>
                         <TextBlock Text="{Binding LastRunText}"/>
-                    </StackPanel>
+                    </WrapPanel>
                 </Grid>
             </Border>
 
@@ -70,19 +72,24 @@
                           SelectedItem="{Binding SelectedReportLine, Mode=TwoWay}"
                           IsReadOnly="True"
                           AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          SelectionMode="Single"
                           MouseDoubleClick="ReportGrid_MouseDoubleClick"
+                          PreviewMouseRightButtonDown="ReportGrid_PreviewMouseRightButtonDown"
                           Style="{StaticResource VirtualizedDataGridStyle}">
                     <DataGrid.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Header="Copy Selected Row" Click="CopySelectedRow_Click"/>
+                            <MenuItem Header="Open Source Page" Click="OpenSourcePage_Click"/>
+                            <MenuItem Header="Copy Handoff" Click="CopySelectedRow_Click"/>
                             <MenuItem Header="Print Report" Click="PrintReport_Click"/>
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="#" Binding="{Binding Number}" Width="50"/>
-                        <DataGridTextColumn Header="Type" Binding="{Binding Category}" Width="110"/>
+                        <DataGridTextColumn Header="#" Binding="{Binding Number}" Width="46"/>
+                        <DataGridTextColumn Header="Type" Binding="{Binding Category}" Width="105"/>
+                        <DataGridTextColumn Header="Destination" Binding="{Binding DestinationName}" Width="130"/>
                         <DataGridTextColumn Header="Report Detail" Binding="{Binding Text}" Width="*"/>
-                        <DataGridTextColumn Header="Next Action" Binding="{Binding ActionHint}" Width="260"/>
+                        <DataGridTextColumn Header="Next Action" Binding="{Binding ActionHint}" Width="250"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </Border>
@@ -111,11 +118,16 @@
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <TextBlock Text="Selected Row Detail" Style="{StaticResource SectionHeader}"/>
-                        <TextBox Grid.Row="1"
-                                 Text="{Binding SelectedLineDetail, Mode=OneWay}"
+                        <TextBlock Text="Selected Row Handoff" Style="{StaticResource SectionHeader}"/>
+                        <UniformGrid Grid.Row="1" Columns="2" Margin="0,4,0,5">
+                            <Button Style="{StaticResource PrimaryButton}" Content="Open Source" Click="OpenSourcePage_Click" Margin="0,0,4,0"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedRow_Click"/>
+                        </UniformGrid>
+                        <TextBox Grid.Row="2"
+                                 Text="{Binding SelectedLineHandoff, Mode=OneWay}"
                                  IsReadOnly="True"
                                  TextWrapping="Wrap"
                                  AcceptsReturn="True"
@@ -126,9 +138,14 @@
 
                 <Border Grid.Row="2" Style="{StaticResource ToolbarCard}" Margin="0,4,0,0">
                     <StackPanel>
-                        <TextBlock Text="Operator path" Style="{StaticResource SectionHeader}"/>
-                        <TextBlock Text="Double-click a row or use the context menu to copy details for follow-up. Use the source page named by the report type to open the related item, rental, customer, request, maintenance, or calibration record."
+                        <TextBlock Text="Operator Path" Style="{StaticResource SectionHeader}"/>
+                        <TextBlock Text="{Binding ReportOperatorPath}"
                                    FontSize="11"
+                                   TextWrapping="Wrap"
+                                   Foreground="{DynamicResource MutedForegroundBrush}"/>
+                        <TextBlock Text="{Binding SelectedLineDestination, StringFormat=Destination: {0}}"
+                                   FontSize="11"
+                                   Margin="0,5,0,0"
                                    TextWrapping="Wrap"
                                    Foreground="{DynamicResource MutedForegroundBrush}"/>
                     </StackPanel>
@@ -142,7 +159,7 @@
                          DockPanel.Dock="Right"
                          IsIndeterminate="True"
                          Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
-            <TextBlock Text="{Binding ReportStatus}" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding ReportStatus}" VerticalAlignment="Center" TextWrapping="Wrap"/>
         </DockPanel>
     </Grid>
 </Page>
