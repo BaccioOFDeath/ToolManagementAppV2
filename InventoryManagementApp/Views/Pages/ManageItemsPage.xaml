@@ -34,10 +34,18 @@
         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <DataGrid ItemsSource="{Binding Items}"
+                <Border Style="{StaticResource DesktopPaneHeader}">
+                    <DockPanel>
+                        <TextBlock Text="Inventory Directory" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
+                        <TextBlock Text="{Binding Filter, StringFormat='Current filter: {0}', TargetNullValue='Current filter: All items'}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                    </DockPanel>
+                </Border>
+                <DataGrid Grid.Row="1"
+                          ItemsSource="{Binding Items}"
                           SelectedItem="{Binding SelectedItem}"
                           SelectionMode="Extended"
                           IsReadOnly="False"
@@ -74,7 +82,8 @@
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                 </DataGrid>
-                <TextBlock Text="No matching records"
+                <TextBlock Grid.Row="1"
+                           Text="No matching records"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
                            FontSize="13"
@@ -90,7 +99,7 @@
                         </Style>
                     </TextBlock.Style>
                 </TextBlock>
-                <ProgressBar Grid.Row="1"
+                <ProgressBar Grid.Row="2"
                              IsIndeterminate="True"
                              Height="4"
                              Margin="0,4,0,0"

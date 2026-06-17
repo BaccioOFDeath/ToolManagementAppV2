@@ -139,13 +139,10 @@
                           VerticalAlignment="Stretch"
                           Background="{DynamicResource BorderBrushBase}"/>
 
-            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="8">
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12">
                 <DockPanel LastChildFill="True">
                     <Border DockPanel.Dock="Top"
-                            Background="{DynamicResource SurfaceAltBrush}"
-                            BorderBrush="{DynamicResource BorderBrushAlt}"
-                            BorderThickness="1"
-                            Padding="6"
+                            Style="{StaticResource DesktopSummaryCard}"
                             Margin="0,0,0,6">
                         <DockPanel>
                             <Grid DockPanel.Dock="Left" Width="48" Height="48" Margin="0,0,8,0">
@@ -168,27 +165,35 @@
                     </Border>
 
                     <StackPanel DockPanel.Dock="Top" Margin="0,0,0,6">
-                        <TextBlock Text="Status" Style="{StaticResource SectionHeader}"/>
-                        <UniformGrid Columns="2" Margin="0,2,0,0">
-                            <TextBlock Text="{Binding SelectedUser.IsActive, StringFormat='Active: {0}', TargetNullValue='Active: -'}" Margin="0,0,8,2"/>
-                            <TextBlock Text="{Binding SelectedUser.IsAdmin, StringFormat='Admin: {0}', TargetNullValue='Admin: -'}" Margin="0,0,0,2"/>
-                            <TextBlock Text="{Binding SelectedUser.CreatedAt, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat='Created: {0:yyyy-MM-dd}', TargetNullValue='Created: -'}" Margin="0,0,8,2"/>
-                            <TextBlock Text="{Binding SelectedUser.PasswordExpired, StringFormat='Password expired: {0}', TargetNullValue='Password expired: -'}" Margin="0,0,0,2"/>
-                            <TextBlock Text="{Binding SelectedUser.LockoutStatus, StringFormat='Lockout: {0}', TargetNullValue='Lockout: -'}" Margin="0,0,8,2"/>
-                        </UniformGrid>
-                    </StackPanel>
+                        <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,0,6">
+                            <StackPanel>
+                                <TextBlock Text="Status" Style="{StaticResource SectionHeader}"/>
+                                <UniformGrid Columns="2" Margin="0,2,0,0">
+                                    <TextBlock Text="{Binding SelectedUser.IsActive, StringFormat='Active: {0}', TargetNullValue='Active: -'}" Margin="0,0,8,2"/>
+                                    <TextBlock Text="{Binding SelectedUser.IsAdmin, StringFormat='Admin: {0}', TargetNullValue='Admin: -'}" Margin="0,0,0,2"/>
+                                    <TextBlock Text="{Binding SelectedUser.CreatedAt, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat='Created: {0:yyyy-MM-dd}', TargetNullValue='Created: -'}" Margin="0,0,8,2"/>
+                                    <TextBlock Text="{Binding SelectedUser.PasswordExpired, StringFormat='Password expired: {0}', TargetNullValue='Password expired: -'}" Margin="0,0,0,2"/>
+                                    <TextBlock Text="{Binding SelectedUser.LockoutStatus, StringFormat='Lockout: {0}', TargetNullValue='Lockout: -'}" Margin="0,0,8,2"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
 
-                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,6">
-                        <TextBlock Text="Access" Style="{StaticResource SectionHeader}"/>
-                        <TextBlock Text="{Binding SelectedUser.AccessSummary, TargetNullValue='Select a user to review app access'}" TextWrapping="Wrap"/>
-                    </StackPanel>
+                        <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,0,6">
+                            <StackPanel>
+                                <TextBlock Text="Access" Style="{StaticResource SectionHeader}"/>
+                                <TextBlock Text="{Binding SelectedUser.AccessSummary, TargetNullValue='Select a user to review app access'}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
 
-                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,6">
-                        <TextBlock Text="Contact" Style="{StaticResource SectionHeader}"/>
-                        <TextBlock Text="{Binding SelectedUser.Email, StringFormat='Email: {0}', TargetNullValue='Email: -'}" TextWrapping="Wrap"/>
-                        <TextBlock Text="{Binding SelectedUser.Phone, StringFormat='Phone: {0}', TargetNullValue='Phone: -'}" TextWrapping="Wrap"/>
-                        <TextBlock Text="{Binding SelectedUser.Mobile, StringFormat='Mobile: {0}', TargetNullValue='Mobile: -'}" TextWrapping="Wrap"/>
-                        <TextBlock Text="{Binding SelectedUser.Address, StringFormat='Address: {0}', TargetNullValue='Address: -'}" TextWrapping="Wrap"/>
+                        <Border Style="{StaticResource DesktopInsetCard}">
+                            <StackPanel>
+                                <TextBlock Text="Contact" Style="{StaticResource SectionHeader}"/>
+                                <TextBlock Text="{Binding SelectedUser.Email, StringFormat='Email: {0}', TargetNullValue='Email: -'}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding SelectedUser.Phone, StringFormat='Phone: {0}', TargetNullValue='Phone: -'}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding SelectedUser.Mobile, StringFormat='Mobile: {0}', TargetNullValue='Mobile: -'}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding SelectedUser.Address, StringFormat='Address: {0}', TargetNullValue='Address: -'}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
 
                     <StackPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
@@ -201,10 +206,8 @@
                         </UniformGrid>
                     </StackPanel>
 
-                    <Border BorderBrush="{DynamicResource BorderBrushAlt}"
-                            BorderThickness="1"
-                            Background="{DynamicResource TextBoxBackgroundBrush}"
-                            Padding="6">
+                    <Border Style="{StaticResource DesktopInsetCard}"
+                            Background="{DynamicResource TextBoxBackgroundBrush}">
                         <TextBlock Text="Admin path: edit a user to tick the exact app sections they can access, reset a password when a technician is blocked at login, or print the filtered directory for audit checks."
                                    TextWrapping="Wrap"/>
                     </Border>

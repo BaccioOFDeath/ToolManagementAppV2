@@ -48,7 +48,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                    <Border Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel>
                             <TextBlock Text="01 Kit Directory" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
                             <TextBlock Text="{Binding KitResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
@@ -110,13 +110,13 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                    <Border Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel>
                             <TextBlock Text="02 Kit Item Membership" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
                             <TextBlock Text="{Binding KitItemsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
                         </DockPanel>
                     </Border>
-                    <Border Grid.Row="1" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                    <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
                         <StackPanel Orientation="Horizontal">
                             <Button Style="{StaticResource PrimaryButton}" Content="Add Item" Command="{Binding AddKitItemCommand}" Margin="0,0,4,0"/>
                             <Button Style="{StaticResource PrimaryButton}" Content="Edit Item" Command="{Binding EditKitItemCommand}" Margin="0,0,4,0"/>
@@ -176,21 +176,35 @@
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                    <Border Style="{StaticResource DesktopPaneHeader}">
                         <TextBlock Text="03 Selected Kit" Style="{StaticResource SectionHeader}" Margin="0"/>
                     </Border>
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="8">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="12">
                         <StackPanel>
-                            <TextBlock Text="{Binding SelectedKitSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,8"/>
-                            <TextBlock Text="Kit Detail" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
-                            <TextBlock Text="{Binding SelectedKitDetail}" TextWrapping="Wrap" Margin="0,0,0,10"/>
-                            <TextBlock Text="Availability" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
-                            <TextBlock Text="{Binding SelectedKitAvailabilitySummary}" TextWrapping="Wrap" Margin="0,0,0,10"/>
-                            <TextBlock Text="Selected Item" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
-                            <TextBlock Text="{Binding SelectedKitItemSummary}" TextWrapping="Wrap"/>
+                            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,8">
+                                <TextBlock Text="{Binding SelectedKitSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                            </Border>
+                            <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="Kit Detail" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
+                                    <TextBlock Text="{Binding SelectedKitDetail}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="Availability" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
+                                    <TextBlock Text="{Binding SelectedKitAvailabilitySummary}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource DesktopInsetCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Selected Item" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
+                                    <TextBlock Text="{Binding SelectedKitItemSummary}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </ScrollViewer>
-                    <Border Grid.Row="2" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,1,0,0" Padding="5,3">
+                    <Border Grid.Row="2" Style="{StaticResource DesktopPaneSubheader}" BorderThickness="0,1,0,0">
                         <WrapPanel>
                             <Button Style="{StaticResource PrimaryButton}" Content="Check Availability" Command="{Binding CheckAvailabilityCommand}" Margin="0,0,4,4"/>
                             <Button Style="{StaticResource GhostButton}" Content="Copy" Command="{Binding CopySelectedKitCommand}" Margin="0,0,4,4"/>

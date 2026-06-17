@@ -47,7 +47,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                    <Border Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel>
                             <TextBlock Text="01 Customer Directory" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
                             <TextBlock Text="{Binding CustomerResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
@@ -107,14 +107,14 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                    <Border Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel>
                             <TextBlock Text="02 Advisor Handoff" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
                             <TextBlock Text="Selected customer" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
                         </DockPanel>
                     </Border>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Margin="10">
+                        <StackPanel Margin="14">
                             <TextBlock Text="{Binding SelectedCustomer.Company, TargetNullValue='No customer selected', FallbackValue='No customer selected'}"
                                        FontSize="18"
                                        FontWeight="SemiBold"
@@ -137,7 +137,7 @@
                                 <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintSelectedCustomerCommand}" Margin="4,4,0,0"/>
                             </UniformGrid>
 
-                            <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="8" Margin="0,6,0,0">
+                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,6,0,0">
                                 <StackPanel>
                                     <TextBlock Text="Desk checklist" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
                                     <TextBlock Text="Confirm the customer, verify the phone or email, print or copy the handoff, then switch to Rentals or Requests before promising availability." TextWrapping="Wrap"/>

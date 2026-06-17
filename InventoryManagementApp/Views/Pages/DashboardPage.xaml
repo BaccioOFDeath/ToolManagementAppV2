@@ -41,7 +41,7 @@
 
             <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource Card}" Padding="0" Margin="0,0,6,6">
                 <DockPanel>
-                    <Border DockPanel.Dock="Top" Style="{StaticResource ToolbarCard}" Margin="0">
+                    <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}" Margin="0">
                         <DockPanel LastChildFill="False">
                             <TextBlock Text="Commonly Used Items" Style="{StaticResource SubheadingTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
@@ -104,7 +104,7 @@
 
             <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource Card}" Padding="0" Margin="0,0,0,6">
                 <DockPanel>
-                    <Border DockPanel.Dock="Top" Style="{StaticResource ToolbarCard}" Margin="0">
+                    <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}" Margin="0">
                         <DockPanel LastChildFill="False">
                             <TextBlock Text="Active Rentals" Style="{StaticResource SubheadingTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
@@ -141,7 +141,7 @@
 
             <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource Card}" Padding="0" Margin="0,0,6,0">
                 <DockPanel>
-                    <Border DockPanel.Dock="Top" Style="{StaticResource ToolbarCard}" Margin="0">
+                    <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}" Margin="0">
                         <DockPanel LastChildFill="False">
                             <TextBlock Text="Checked-Out Items" Style="{StaticResource SubheadingTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
@@ -184,7 +184,7 @@
                 <TabControl>
                     <TabItem Header="Recent Activity">
                         <DockPanel>
-                            <Border DockPanel.Dock="Top" Style="{StaticResource ToolbarCard}" Margin="0">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}" Margin="0">
                                 <TextBlock Text="Audit Trail" Style="{StaticResource SubheadingTextBlock}"/>
                             </Border>
                             <DataGrid x:Name="RecentActivityGrid"
@@ -214,7 +214,7 @@
                     </TabItem>
                     <TabItem Header="Items With Issues">
                         <DockPanel>
-                            <Border DockPanel.Dock="Top" Style="{StaticResource ToolbarCard}" Margin="0">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}" Margin="0">
                                 <DockPanel LastChildFill="False">
                                     <TextBlock Text="Needs Attention" Style="{StaticResource SubheadingTextBlock}" DockPanel.Dock="Left"/>
                                     <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedIncompleteItemCommand}" DockPanel.Dock="Right"/>

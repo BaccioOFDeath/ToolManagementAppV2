@@ -45,13 +45,13 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                    <Border Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel>
                             <TextBlock Text="01 Maintenance Schedule" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
                             <TextBlock Text="{Binding MaintenanceResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
                         </DockPanel>
                     </Border>
-                    <Border Grid.Row="1" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                    <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
                         <DockPanel LastChildFill="True">
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                                 <Button Style="{StaticResource GhostButton}" Content="Overdue" Command="{Binding ShowOverdueCommand}" Margin="0,0,4,0"/>
@@ -125,14 +125,14 @@
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                    <Border Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel>
                             <TextBlock Text="02 Technician Handoff" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
                             <TextBlock Text="Selected work" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
                         </DockPanel>
                     </Border>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Margin="10">
+                        <StackPanel Margin="14">
                             <TextBlock Text="{Binding SelectedRecord.ItemName, TargetNullValue='No maintenance selected', FallbackValue='No maintenance selected'}"
                                        FontSize="18"
                                        FontWeight="SemiBold"
@@ -155,7 +155,7 @@
                                 <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintSelectedMaintenanceCommand}" Margin="4,4,0,0"/>
                             </UniformGrid>
 
-                            <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="8" Margin="0,6,0,0">
+                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,6,0,0">
                                 <StackPanel>
                                     <TextBlock Text="Bench checklist" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
                                     <TextBlock Text="{Binding SelectedMaintenanceBenchChecklist}" TextWrapping="Wrap"/>
@@ -163,7 +163,7 @@
                             </Border>
                         </StackPanel>
                     </ScrollViewer>
-                    <Border Grid.Row="2" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,1,0,0" Padding="5,3">
+                    <Border Grid.Row="2" Style="{StaticResource DesktopPaneSubheader}" BorderThickness="0,1,0,0">
                         <WrapPanel>
                             <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenMaintenanceDetailsCommand}" Margin="0,0,4,4"/>
                             <Button Style="{StaticResource GhostButton}" Content="Print Schedule" Command="{Binding PrintMaintenanceListCommand}" Margin="0,0,4,4"/>

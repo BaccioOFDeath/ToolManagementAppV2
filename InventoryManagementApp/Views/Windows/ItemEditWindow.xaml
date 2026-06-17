@@ -4,89 +4,116 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:InventoryManagementApp.Views.Controls"
         xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
-    Title="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}" Width="620" Height="760" MinHeight="720" WindowStartupLocation="CenterOwner"
+        Title="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}"
+        Width="760"
+        Height="820"
+        MinWidth="700"
+        MinHeight="760"
+        WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
-    <Grid Margin="12">
+    <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="120"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+            <StackPanel>
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2.1*"/>
+                        <ColumnDefinition Width="14"/>
+                        <ColumnDefinition Width="1.05*"/>
+                    </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='{}{0} Number'}" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ItemModel.ItemNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                    <Border Grid.Column="0" Style="{StaticResource Card}" Padding="14">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Name" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ItemModel.Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Core item details" Style="{StaticResource PageTitleTextBlock}" Margin="0,0,0,4"/>
+                            <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="Capture the inventory identity first, then shelf location and supplier information." Style="{StaticResource CaptionTextBlock}" Margin="0,0,0,12"/>
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Brand" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ItemModel.Brand, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="2" Text="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='{}{0} Number'}" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ItemModel.ItemNumber, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,8"/>
 
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Location" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding ItemModel.Location, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="3" Text="Name" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding ItemModel.Name, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,8"/>
 
-                <TextBlock Grid.Row="4" Grid.Column="0" Text="Part #" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding ItemModel.PartNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="4" Text="Brand" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding ItemModel.Brand, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,8"/>
 
-                <TextBlock Grid.Row="5" Grid.Column="0" Text="Supplier" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding ItemModel.Supplier, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                            <TextBlock Grid.Row="5" Text="Location" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding ItemModel.Location, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,8"/>
 
-                <TextBlock Grid.Row="6" Grid.Column="0" Text="Flags" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Top" Margin="0,0,8,8"/>
-                <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,8">
-                    <CheckBox Content="Powered item" IsChecked="{Binding ItemModel.IsPowered}" Margin="0,0,16,0"/>
-                    <CheckBox Content="Available for rental" IsChecked="{Binding ItemModel.IsRentalItem}"/>
-                </StackPanel>
+                            <TextBlock Grid.Row="6" Text="Part #" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding ItemModel.PartNumber, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,8"/>
 
-                <StackPanel Grid.Row="7" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
-                    <Image Width="100" Height="100" Stretch="Uniform"
-                           Source="{Binding ItemModel.ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
-                    <StackPanel Orientation="Vertical" Margin="8,0,0,0">
-                        <Button Content="Browse" Style="{StaticResource PrimaryButton}" Width="92" Command="{Binding BrowseImageCommand}"/>
-                        <Button Content="Remove" Style="{StaticResource GhostButton}" Width="92" Margin="0,4,0,0" Command="{Binding RemoveImageCommand}"/>
+                            <TextBlock Grid.Row="7" Text="Supplier" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding ItemModel.Supplier, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,0"/>
+                        </Grid>
+                    </Border>
+
+                    <StackPanel Grid.Column="2">
+                        <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="Flags" Style="{StaticResource SectionHeader}"/>
+                                <CheckBox Content="Powered item" IsChecked="{Binding ItemModel.IsPowered}" Margin="0,0,0,6"/>
+                                <CheckBox Content="Available for rental" IsChecked="{Binding ItemModel.IsRentalItem}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource DesktopSummaryCard}">
+                            <StackPanel>
+                                <TextBlock Text="Photo" Style="{StaticResource SectionHeader}"/>
+                                <Border Width="150" Height="150" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Margin="0,0,0,10">
+                                    <Image Stretch="Uniform"
+                                           Source="{Binding ItemModel.ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
+                                </Border>
+                                <Button Content="Browse" Style="{StaticResource PrimaryButton}" Command="{Binding BrowseImageCommand}" Margin="0,0,0,6"/>
+                                <Button Content="Remove" Style="{StaticResource GhostButton}" Command="{Binding RemoveImageCommand}"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
-                </StackPanel>
+                </Grid>
 
-                <StackPanel Grid.Row="8" Grid.ColumnSpan="2" Orientation="Vertical" Margin="0,0,0,8">
-                    <TextBlock Text="Notes" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding ItemModel.Notes, UpdateSourceTrigger=PropertyChanged}" Height="72" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
-                </StackPanel>
+                <Border Style="{StaticResource Card}" Padding="14" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Notes" Style="{StaticResource SectionHeader}" Margin="0,0,0,6"/>
+                        <TextBox Text="{Binding ItemModel.Notes, UpdateSourceTrigger=PropertyChanged}" Height="92" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+                    </StackPanel>
+                </Border>
 
-                <StackPanel Grid.Row="9" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
-                    <TextBlock Text="⚠" FontSize="16" Foreground="{DynamicResource ErrorBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                    <CheckBox Content="Mark as Incomplete/Missing Components" IsChecked="{Binding ItemModel.IsIncomplete}" Foreground="{DynamicResource ErrorBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                </StackPanel>
+                <Border Style="{StaticResource Card}" Padding="14" Margin="0,0,0,12">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <TextBlock Text="&#x26A0;" FontSize="16" Foreground="{DynamicResource ErrorBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <CheckBox Content="Mark as Incomplete/Missing Components" IsChecked="{Binding ItemModel.IsIncomplete}" Foreground="{DynamicResource ErrorBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Missing Components" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4" Foreground="{DynamicResource ErrorBrush}"/>
+                        <TextBox Text="{Binding ItemModel.MissingComponentsNotes, UpdateSourceTrigger=PropertyChanged}" Height="84" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" ToolTip="List missing parts or components"/>
+                    </StackPanel>
+                </Border>
 
-                <StackPanel Grid.Row="10" Grid.ColumnSpan="2" Orientation="Vertical" Margin="0,0,0,8">
-                    <TextBlock Text="Missing Components" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4" Foreground="{DynamicResource ErrorBrush}"/>
-                    <TextBox Text="{Binding ItemModel.MissingComponentsNotes, UpdateSourceTrigger=PropertyChanged}" Height="64" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" ToolTip="List missing parts or components"/>
-                </StackPanel>
-
-                <StackPanel Grid.Row="11" Grid.ColumnSpan="2" Orientation="Vertical">
-                    <TextBlock Text="Issues / Problems" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding ItemModel.IssuesNotes, UpdateSourceTrigger=PropertyChanged}" Height="64" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" ToolTip="Describe any issues or problems with this item"/>
-                </StackPanel>
-            </Grid>
+                <Border Style="{StaticResource Card}" Padding="14">
+                    <StackPanel>
+                        <TextBlock Text="Issues / Problems" Style="{StaticResource SectionHeader}" Margin="0,0,0,6"/>
+                        <TextBox Text="{Binding ItemModel.IssuesNotes, UpdateSourceTrigger=PropertyChanged}" Height="84" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" ToolTip="Describe any issues or problems with this item"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
         </ScrollViewer>
 
         <controls:SaveCancelBar Grid.Row="1"/>

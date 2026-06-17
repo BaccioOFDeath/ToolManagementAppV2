@@ -50,7 +50,7 @@
         <TabControl Grid.Row="1" Style="{StaticResource DesktopSectionListTabControl}">
             <TabItem Style="{StaticResource DesktopSectionListTabItem}" Header="01 Overview">
                 <Border Style="{StaticResource DesktopContentPane}">
-                    <Grid Margin="8">
+                    <Grid Margin="14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
@@ -61,7 +61,7 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Background="{DynamicResource SurfaceAltBrush}" Padding="8" Margin="0,0,6,6">
+                        <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,8">
                             <StackPanel>
                                 <TextBlock Text="Item Data" Style="{StaticResource PageTitleTextBlock}"/>
                                 <TextBlock Text="{Binding ItemDataSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,8"/>
@@ -77,7 +77,7 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Grid.Column="1" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Background="{DynamicResource SurfaceAltBrush}" Padding="8" Margin="0,0,0,6">
+                        <Border Grid.Column="1" Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,8">
                             <StackPanel>
                                 <TextBlock Text="Customer Data" Style="{StaticResource PageTitleTextBlock}"/>
                                 <TextBlock Text="{Binding CustomerDataSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,8"/>
@@ -93,7 +93,7 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Grid.Row="1" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Background="{DynamicResource SurfaceAltBrush}" Padding="8" Margin="0,0,6,6">
+                        <Border Grid.Row="1" Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,8">
                             <StackPanel>
                                 <TextBlock Text="Photo Mapping" Style="{StaticResource PageTitleTextBlock}"/>
                                 <TextBlock Text="{Binding ImageImportSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,8"/>
@@ -105,7 +105,7 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Grid.Row="1" Grid.Column="1" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Background="{DynamicResource SurfaceAltBrush}" Padding="8" Margin="0,0,0,6">
+                        <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,8">
                             <StackPanel>
                                 <TextBlock Text="Database Backup" Style="{StaticResource PageTitleTextBlock}"/>
                                 <TextBlock Text="{Binding BackupSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,8"/>
@@ -116,7 +116,7 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Grid.Row="2" Grid.ColumnSpan="2" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Background="{DynamicResource TextBoxBackgroundBrush}" Padding="8">
+                        <Border Grid.Row="2" Grid.ColumnSpan="2" Style="{StaticResource DesktopInsetCard}" Background="{DynamicResource TextBoxBackgroundBrush}">
                             <DockPanel LastChildFill="True">
                                 <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
                                     <TextBlock Text="Current run status" Style="{StaticResource SectionHeader}" Margin="0,0,10,0"/>

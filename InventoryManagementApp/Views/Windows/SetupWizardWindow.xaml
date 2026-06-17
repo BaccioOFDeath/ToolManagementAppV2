@@ -3,46 +3,87 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
         Title="Initial Setup"
-        SizeToContent="WidthAndHeight"
+        Width="760"
+        Height="640"
+        MinWidth="680"
+        MinHeight="560"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource BackgroundBrush}">
-    <Grid Margin="20">
+    <Grid Margin="18">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <TextBlock Grid.Row="0" Text="Application Name" HorizontalAlignment="Center" Style="{StaticResource SubheadingTextBlock}"/>
-        <TextBox Grid.Row="1" Width="200" Text="{Binding ApplicationName}" HorizontalAlignment="Center"/>
-        <TextBlock Grid.Row="2" Text="Item Label Singular" Margin="0,10,0,0" HorizontalAlignment="Center" Style="{StaticResource SubheadingTextBlock}"/>
-        <TextBox Grid.Row="3" Width="200" Text="{Binding ItemLabelSingular}" HorizontalAlignment="Center"/>
-        <TextBlock Grid.Row="4" Text="Item Label Plural" Margin="0,10,0,0" HorizontalAlignment="Center" Style="{StaticResource SubheadingTextBlock}"/>
-        <TextBox Grid.Row="5" Width="200" Text="{Binding ItemLabelPlural}" HorizontalAlignment="Center"/>
-        <TextBlock Grid.Row="6" Text="Company Logo" Margin="0,10,0,0" HorizontalAlignment="Center" Style="{StaticResource SubheadingTextBlock}"/>
-        <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Center">
-            <Border Width="64" Height="64" CornerRadius="6" Background="{DynamicResource SurfaceAltBrush}" Margin="0,0,8,0">
-                <Image Width="64" Height="64" Source="{Binding CompanyLogoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=logo}" Stretch="UniformToFill" ClipToBounds="True"/>
+
+        <Border Grid.Row="0" Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,12">
+            <StackPanel>
+                <TextBlock Text="Prepare the workstation" Style="{StaticResource PageTitleTextBlock}"/>
+                <TextBlock Text="Set the shared app name, item labels, company branding, and the initial admin password before anyone starts using the desk." Style="{StaticResource CaptionTextBlock}" Margin="0,4,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2.1*"/>
+                <ColumnDefinition Width="14"/>
+                <ColumnDefinition Width="1.1*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="14">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="190"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="Application Name" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                    <TextBox Grid.Column="1" Text="{Binding ApplicationName}" Margin="8,0,0,10"/>
+
+                    <TextBlock Grid.Row="1" Text="Item Label Singular" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ItemLabelSingular}" Margin="8,0,0,10"/>
+
+                    <TextBlock Grid.Row="2" Text="Item Label Plural" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ItemLabelPlural}" Margin="8,0,0,10"/>
+
+                    <TextBlock Grid.Row="3" Text="Admin Password" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                    <PasswordBox Grid.Row="3" Grid.Column="1" x:Name="NewPasswordBox" PasswordChanged="NewPasswordBox_PasswordChanged" Margin="8,0,0,10"/>
+
+                    <TextBlock Grid.Row="4" Text="Confirm Password" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                    <PasswordBox Grid.Row="4" Grid.Column="1" x:Name="ConfirmPasswordBox" PasswordChanged="ConfirmPasswordBox_PasswordChanged" Margin="8,0,0,0"/>
+                </Grid>
             </Border>
-            <TextBlock Text="{Binding CompanyLogoPath}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Width="140" Margin="0,0,8,0"/>
-            <Button Content="Browse" Command="{Binding BrowseCompanyLogoCommand}" Style="{StaticResource PrimaryButton}"/>
-        </StackPanel>
-        <TextBlock Grid.Row="8" Text="Admin Password" Margin="0,10,0,0" HorizontalAlignment="Center" Style="{StaticResource SubheadingTextBlock}"/>
-        <PasswordBox Grid.Row="9" x:Name="NewPasswordBox" PasswordChanged="NewPasswordBox_PasswordChanged" Width="140" HorizontalAlignment="Center"/>
-        <TextBlock Grid.Row="10" Text="Confirm Password" Margin="0,10,0,0" HorizontalAlignment="Center" Style="{StaticResource SubheadingTextBlock}"/>
-        <PasswordBox Grid.Row="11" x:Name="ConfirmPasswordBox" PasswordChanged="ConfirmPasswordBox_PasswordChanged" Width="140" HorizontalAlignment="Center"/>
-        <TextBlock Grid.Row="12" Text="{Binding ValidationMessage}" Margin="0,10,0,0" Style="{StaticResource ErrorTextBlock}" HorizontalAlignment="Center"/>
-        <controls:DialogButtonBar Grid.Row="13"
+
+            <StackPanel Grid.Column="2">
+                <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Branding" Style="{StaticResource SectionHeader}"/>
+                        <Border Width="92" Height="92" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Margin="0,0,0,10">
+                            <Image Source="{Binding CompanyLogoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=logo}" Stretch="Uniform"/>
+                        </Border>
+                        <TextBlock Text="{Binding CompanyLogoPath}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                        <Button Content="Browse Logo" Command="{Binding BrowseCompanyLogoCommand}" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource DesktopSummaryCard}">
+                    <StackPanel>
+                        <TextBlock Text="Validation" Style="{StaticResource SectionHeader}"/>
+                        <TextBlock Text="{Binding ValidationMessage, TargetNullValue='Choose a name, set labels, and enter the matching admin password to continue.'}" Style="{StaticResource ErrorTextBlock}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+
+        <controls:DialogButtonBar Grid.Row="2"
+                                  Margin="0,12,0,0"
                                   LeftButtonText="Cancel"
                                   LeftCommand="{Binding CancelCommand}"
                                   RightButtonText="OK"

@@ -112,13 +112,10 @@
                           VerticalAlignment="Stretch"
                           Background="{DynamicResource BorderBrushBase}"/>
 
-            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="8">
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12">
                 <DockPanel LastChildFill="True">
                     <Border DockPanel.Dock="Top"
-                            Background="{DynamicResource SurfaceAltBrush}"
-                            BorderBrush="{DynamicResource BorderBrushAlt}"
-                            BorderThickness="1"
-                            Padding="6"
+                            Style="{StaticResource DesktopSummaryCard}"
                             Margin="0,0,0,6">
                         <StackPanel>
                             <TextBlock Text="Activity Detail" Style="{StaticResource SectionHeader}"/>
@@ -150,10 +147,7 @@
                         </UniformGrid>
                     </StackPanel>
 
-                    <Border BorderBrush="{DynamicResource BorderBrushAlt}"
-                            BorderThickness="1"
-                            Background="{DynamicResource TextBoxBackgroundBrush}"
-                            Padding="6">
+                    <Border Style="{StaticResource DesktopNoteCard}">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <TextBlock Text="{Binding SelectedLogDetail}"
                                        TextWrapping="Wrap"/>

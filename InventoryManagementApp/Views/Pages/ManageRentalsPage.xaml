@@ -14,29 +14,49 @@
         </Grid.RowDefinitions>
 
         <Border Style="{StaticResource ToolbarCard}">
-            <DockPanel LastChildFill="True">
-                <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
-                    <TextBlock Text="Find rental" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <TextBox x:Name="SearchTextBox" Width="210" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,4" ToolTip="Search item number, location, or customer"/>
-                    <DatePicker SelectedDate="{Binding FilterFrom, UpdateSourceTrigger=PropertyChanged}" Width="125" Margin="0,0,6,4"/>
-                    <DatePicker SelectedDate="{Binding FilterTo, UpdateSourceTrigger=PropertyChanged}" Width="125" Margin="0,0,6,4"/>
-                    <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus, UpdateSourceTrigger=PropertyChanged}" Width="110" Margin="0,0,6,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearFilterCommand}" Margin="0,0,0,4"/>
-                </WrapPanel>
-                <WrapPanel VerticalAlignment="Center">
-                    <TextBlock Text="Rental workflow" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenRentalDetailsCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Extend" Command="{Binding ExtendCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Request" Command="{Binding PlaceRequestCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="History" Command="{Binding OpenHistoryCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Pick Slip" Command="{Binding PrintPickingSlipCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Invoice" Command="{Binding PrintInvoiceCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Print Rental" Command="{Binding PrintRentalCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Print List" Command="{Binding PrintSearchResultsCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteRentalCommand}" Margin="0,0,0,4"/>
-                </WrapPanel>
-            </DockPanel>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <DockPanel Grid.Row="0" LastChildFill="True" Margin="0,0,0,8">
+                    <TextBlock DockPanel.Dock="Right"
+                               Text="Checkout, check-in, desk documents, and request follow-up stay in one flow."
+                               Style="{StaticResource CaptionTextBlock}"
+                               VerticalAlignment="Center"
+                               TextWrapping="Wrap"
+                               Margin="12,0,0,0"/>
+                    <WrapPanel VerticalAlignment="Center">
+                        <TextBlock Text="Rental workflow" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenRentalDetailsCommand}" Margin="0,0,6,6"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,6,6"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Extend" Command="{Binding ExtendCommand}" Margin="0,0,6,6"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Request" Command="{Binding PlaceRequestCommand}" Margin="0,0,6,6"/>
+                        <Button Style="{StaticResource GhostButton}" Content="History" Command="{Binding OpenHistoryCommand}" Margin="0,0,6,6"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Pick Slip" Command="{Binding PrintPickingSlipCommand}" Margin="0,0,6,6"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Invoice" Command="{Binding PrintInvoiceCommand}" Margin="0,0,6,6"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Print Rental" Command="{Binding PrintRentalCommand}" Margin="0,0,6,6"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Print List" Command="{Binding PrintSearchResultsCommand}" Margin="0,0,6,6"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteRentalCommand}" Margin="0,0,0,6"/>
+                    </WrapPanel>
+                </DockPanel>
+
+                <Border Grid.Row="1"
+                        Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource BorderBrushAlt}"
+                        BorderThickness="1"
+                        Padding="10,8">
+                    <DockPanel LastChildFill="False">
+                        <TextBlock DockPanel.Dock="Left" Text="Find rental" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBox x:Name="SearchTextBox" Width="260" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" ToolTip="Search item number, location, or customer"/>
+                        <DatePicker SelectedDate="{Binding FilterFrom, UpdateSourceTrigger=PropertyChanged}" Width="140" Margin="0,0,8,0"/>
+                        <DatePicker SelectedDate="{Binding FilterTo, UpdateSourceTrigger=PropertyChanged}" Width="140" Margin="0,0,8,0"/>
+                        <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus, UpdateSourceTrigger=PropertyChanged}" Width="124" Margin="0,0,8,0"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearFilterCommand}"/>
+                    </DockPanel>
+                </Border>
+            </Grid>
         </Border>
 
         <Grid Grid.Row="1" Margin="0,6,0,0">
@@ -53,13 +73,13 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                    <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="8,6">
                         <DockPanel>
                             <TextBlock Text="01 Rental Desk" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
                             <TextBlock Text="{Binding SearchSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
                         </DockPanel>
                     </Border>
-                    <Border Grid.Row="1" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                    <Border Grid.Row="1" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="8,6">
                         <DockPanel LastChildFill="True">
                             <WrapPanel DockPanel.Dock="Right">
                                 <Button Style="{StaticResource GhostButton}" Content="Print Checked Out" Command="{Binding PrintCheckedOutCommand}" Margin="0,0,4,0"/>
@@ -132,14 +152,14 @@
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                    <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="8,6">
                         <DockPanel>
                             <TextBlock Text="02 Advisor Handoff" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
                             <TextBlock Text="Selected rental" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
                         </DockPanel>
                     </Border>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Margin="10">
+                        <StackPanel Margin="14">
                             <TextBlock Text="{Binding SelectedRental.ItemNumber, TargetNullValue='No rental selected', FallbackValue='No rental selected'}"
                                        FontSize="18"
                                        FontWeight="SemiBold"
@@ -178,7 +198,7 @@
                             </Border>
                         </StackPanel>
                     </ScrollViewer>
-                    <Border Grid.Row="2" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,1,0,0" Padding="5,3">
+                    <Border Grid.Row="2" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,1,0,0" Padding="8,6">
                         <WrapPanel>
                             <Button Style="{StaticResource GhostButton}" Content="History" Command="{Binding OpenHistoryCommand}" Margin="0,0,4,4"/>
                             <Button Style="{StaticResource GhostButton}" Content="Print Rental" Command="{Binding PrintRentalCommand}" Margin="0,0,4,4"/>
@@ -198,7 +218,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
+                <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="8,6">
                     <DockPanel>
                         <WrapPanel DockPanel.Dock="Left">
                             <TextBlock Text="03 Open Request Queue" Style="{StaticResource SectionHeader}" Margin="0" VerticalAlignment="Center"/>

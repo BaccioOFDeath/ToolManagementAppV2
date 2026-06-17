@@ -4,7 +4,7 @@
                     xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
                     xmlns:models="clr-namespace:InventoryManagementApp.Models">
     <DataTemplate x:Key="StatCardTemplate">
-        <Border Style="{StaticResource Card}" Padding="6,4" Margin="0,0,4,4" MinWidth="170">
+        <Border Style="{StaticResource DesktopSummaryCard}" Padding="10,8" Margin="0,0,6,6" MinWidth="170">
             <StackPanel>
                 <TextBlock Text="{Binding Title}" Style="{StaticResource LabelTextBlock}"/>
                 <TextBlock Text="{Binding Value}" Style="{StaticResource StatisticValueTextBlock}" Margin="0,2,0,0"/>
