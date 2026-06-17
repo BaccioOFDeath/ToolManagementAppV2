@@ -67,18 +67,18 @@ namespace InventoryManagementApp.Services.Items
         }
 
         /// <summary>
-        /// Adds a new item to the inventory. Requires admin privileges.
+        /// Adds a new item to the inventory. Requires manage-items permission.
         /// </summary>
         /// <param name="item">The item to add.</param>
         /// <param name="cancellationToken">Cancellation token for the operation.</param>
         /// <exception cref="ArgumentNullException">Thrown if item is null.</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown if user lacks admin privileges.</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown if user lacks manage-items permission.</exception>
         public async Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default)
         {
             if (item is null)
                 throw new ArgumentNullException(nameof(item));
             
-            _auth.EnsureAdmin();
+            _auth.EnsurePermission(User.PermissionManageItems);
             await AddItemInternalAsync(item, cancellationToken).ConfigureAwait(false);
             if (_activityLog != null)
             {
@@ -88,18 +88,18 @@ namespace InventoryManagementApp.Services.Items
         }
 
         /// <summary>
-        /// Updates an existing item in the inventory. Requires admin privileges.
+        /// Updates an existing item in the inventory. Requires manage-items permission.
         /// </summary>
         /// <param name="item">The item with updated information.</param>
         /// <param name="cancellationToken">Cancellation token for the operation.</param>
         /// <exception cref="ArgumentNullException">Thrown if item is null.</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown if user lacks admin privileges.</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown if user lacks manage-items permission.</exception>
         public async Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default)
         {
             if (item is null)
                 throw new ArgumentNullException(nameof(item));
             
-            _auth.EnsureAdmin();
+            _auth.EnsurePermission(User.PermissionManageItems);
             await UpdateItemInternalAsync(item, cancellationToken).ConfigureAwait(false);
             if (_activityLog != null)
             {
@@ -109,18 +109,18 @@ namespace InventoryManagementApp.Services.Items
         }
 
         /// <summary>
-        /// Deletes an item from the inventory. Requires admin privileges.
+        /// Deletes an item from the inventory. Requires manage-items permission.
         /// </summary>
         /// <param name="itemID">The ID of the item to delete.</param>
         /// <param name="cancellationToken">Cancellation token for the operation.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown if itemID is less than 1.</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown if user lacks admin privileges.</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown if user lacks manage-items permission.</exception>
         public async Task DeleteItemAsync(int itemID, CancellationToken cancellationToken = default)
         {
             if (itemID < 1)
                 throw new ArgumentOutOfRangeException(nameof(itemID), "Item ID must be greater than 0.");
             
-            _auth.EnsureAdmin();
+            _auth.EnsurePermission(User.PermissionManageItems);
             await DeleteItemInternalAsync(itemID, cancellationToken).ConfigureAwait(false);
             if (_activityLog != null)
             {
@@ -155,13 +155,13 @@ namespace InventoryManagementApp.Services.Items
 
         public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default)
         {
-            _auth.EnsureAdmin();
+            _auth.EnsureAnyPermission(User.PermissionManageItems, User.PermissionImportExport);
             return _repository.UpdateItemImageAsync(itemID, imagePath, cancellationToken);
         }
 
         public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken)
         {
-            _auth.EnsureAdmin();
+            _auth.EnsurePermission(User.PermissionImportExport);
             return ImportItemsFromCsvInternalAsync(filePath, map, cancellationToken);
         }
 
@@ -170,7 +170,7 @@ namespace InventoryManagementApp.Services.Items
 
         public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default)
         {
-            _auth.EnsureAdmin();
+            _auth.EnsurePermission(User.PermissionImportExport);
             return ImportItemImagesInternalAsync(folderPath, keySelector, progress, cancellationToken);
         }
 
@@ -599,7 +599,7 @@ namespace InventoryManagementApp.Services.Items
 
         public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct)
         {
-            _auth.EnsureAdmin();
+            _auth.EnsurePermission(User.PermissionManageItems);
             return _repository.SaveChangesAsync(changes, ct);
         }
 
@@ -615,7 +615,7 @@ namespace InventoryManagementApp.Services.Items
 
         public async Task<List<int>> ImportItemsAsync(string filePath, IDataImporter<ItemModel> importer, CancellationToken cancellationToken = default)
         {
-            _auth.EnsureAdmin();
+            _auth.EnsurePermission(User.PermissionImportExport);
             
             var (items, skippedRows) = await importer.ImportAsync(filePath, cancellationToken).ConfigureAwait(false);
             
