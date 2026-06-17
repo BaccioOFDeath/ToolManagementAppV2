@@ -261,7 +261,7 @@ namespace InventoryManagementApp.Services.Users
             }
             else
             {
-                _auth.EnsureAdmin();
+                _auth.EnsurePermission(User.PermissionManageUsers);
             }
             const string sql = @"
                 INSERT INTO Users
@@ -319,7 +319,7 @@ namespace InventoryManagementApp.Services.Users
 
         public async Task UpdateUserAsync(User user)
         {
-            _auth.EnsureAdmin();
+            _auth.EnsurePermission(User.PermissionManageUsers);
             const string sql = @"
                 UPDATE Users SET
                   UserName      = @UserName,
@@ -384,7 +384,7 @@ namespace InventoryManagementApp.Services.Users
         public async Task<bool> ChangeUserPasswordAsync(int userID, string newPassword)
         {
             if (_context.CurrentUser?.UserID != userID)
-                _auth.EnsureAdmin();
+                _auth.EnsurePermission(User.PermissionManageUsers);
 
             newPassword = (newPassword ?? string.Empty).Trim();
             if (!PasswordValidator.IsValid(newPassword, out var error))
@@ -420,7 +420,7 @@ namespace InventoryManagementApp.Services.Users
 
         public async Task<bool> TryDeleteUserAsync(int userID)
         {
-            _auth.EnsureAdmin();
+            _auth.EnsurePermission(User.PermissionManageUsers);
             var user = await GetUserByIDAsync(userID, CancellationToken.None);
             if (user == null) return false;
             if (user.IsAdmin)
