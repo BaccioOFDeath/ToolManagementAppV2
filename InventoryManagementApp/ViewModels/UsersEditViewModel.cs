@@ -38,6 +38,29 @@ namespace InventoryManagementApp.ViewModels
             ? "Nothing is hidden while Full administrator is ticked."
             : BuildPermissionSummary(GetHiddenPermissionLabels(), "Nothing hidden for the selected permissions.");
 
+        public string WorkflowImpactSummary => EditingUser.IsAdmin
+            ? BuildChecklistSummary(new[]
+            {
+                "All operational, insight, data, and admin workbenches are visible.",
+                "All guarded service actions are available, including settings, users, inventory edits, and imports."
+            }, "")
+            : BuildChecklistSummary(GetWorkflowImpactLines(), "No end-to-end workflow access is assigned yet.");
+
+        public string GuardedActionSummary => EditingUser.IsAdmin
+            ? BuildChecklistSummary(new[]
+            {
+                "Can manage users and reset passwords.",
+                "Can change settings and workstation configuration.",
+                "Can create, update, delete, import, and export inventory data."
+            }, "")
+            : BuildChecklistSummary(GetGuardedActionLines(), "No admin-level guarded actions are assigned.");
+
+        public string AdminNextStepSummary => EditingUser.IsAdmin
+            ? "Save this user as a full administrator only when they should have unrestricted app control."
+            : GetAllowedPermissionLabels().Any()
+                ? "Review the visible sections, operational impact, and guarded actions below before saving this custom access profile."
+                : "Tick at least one section or choose a preset before saving, unless this inactive/no-access account is intentional.";
+
         public bool CanManageItems { get => Has(User.PermissionManageItems); set => Set(User.PermissionManageItems, value); }
         public bool CanUseRentals { get => Has(User.PermissionRentals); set => Set(User.PermissionRentals, value); }
         public bool CanUseCustomers { get => Has(User.PermissionCustomers); set => Set(User.PermissionCustomers, value); }
@@ -130,10 +153,54 @@ namespace InventoryManagementApp.ViewModels
                 .Where(permission => !EditingUser.HasPermission(permission.Key))
                 .Select(permission => permission.Value);
 
+        IEnumerable<string> GetWorkflowImpactLines()
+        {
+            if (Has(User.PermissionManageItems))
+                yield return "Inventory desk: can manage item records and complete stock/status changes.";
+            if (Has(User.PermissionRentals))
+                yield return "Rental desk: can check items out, check them in, extend rentals, and print rental documents.";
+            if (Has(User.PermissionCustomers))
+                yield return "Customer desk: can find customers, maintain contact details, and print handoff sheets.";
+            if (Has(User.PermissionReservations))
+                yield return "Holds desk: can review, confirm, cancel, fulfill, and print reservation handoffs.";
+            if (Has(User.PermissionMaintenance) || Has(User.PermissionCalibration))
+                yield return "Technician bench: can review maintenance/calibration queues and complete shelf-readiness work.";
+            if (Has(User.PermissionKits))
+                yield return "Kit bench: can inspect kit membership, availability, and pick sheets.";
+            if (Has(User.PermissionCategories))
+                yield return "Category setup: can organize item categories used by the operational pages.";
+            if (Has(User.PermissionPrintLabels))
+                yield return "Label station: can open the print-label workflow for shelf and tool labeling.";
+            if (Has(User.PermissionReports) || Has(User.PermissionActivityLogs))
+                yield return "Insights: can review reports or audit activity when those boxes are ticked.";
+            if (Has(User.PermissionImportExport))
+                yield return "Data workstation: can import/export data and run image mapping where allowed.";
+            if (Has(User.PermissionManageUsers) || Has(User.PermissionSettings))
+                yield return "Admin area: can open Users or Settings when the matching admin boxes are ticked.";
+        }
+
+        IEnumerable<string> GetGuardedActionLines()
+        {
+            if (Has(User.PermissionManageUsers))
+                yield return "Manage users: add/edit users, reset passwords, upload photos, and remove accounts.";
+            if (Has(User.PermissionSettings))
+                yield return "Settings: update branding, labels, backups, messaging, email, database, and security options.";
+            if (Has(User.PermissionManageItems))
+                yield return "Manage items: create, update, delete, and save inventory records.";
+            if (Has(User.PermissionImportExport))
+                yield return "Import / export: run bulk data imports/exports and item image imports.";
+        }
+
         static string BuildPermissionSummary(IEnumerable<string> labels, string emptyText)
         {
             var list = labels.ToList();
             return list.Count == 0 ? emptyText : string.Join(", ", list);
+        }
+
+        static string BuildChecklistSummary(IEnumerable<string> lines, string emptyText)
+        {
+            var list = lines.Where(line => !string.IsNullOrWhiteSpace(line)).ToList();
+            return list.Count == 0 ? emptyText : string.Join(Environment.NewLine, list.Select(line => $"- {line}"));
         }
 
         void NotifyAllPermissionProperties()
@@ -156,6 +223,9 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(PermissionStatusSummary));
             OnPropertyChanged(nameof(AllowedPermissionSummary));
             OnPropertyChanged(nameof(HiddenPermissionSummary));
+            OnPropertyChanged(nameof(WorkflowImpactSummary));
+            OnPropertyChanged(nameof(GuardedActionSummary));
+            OnPropertyChanged(nameof(AdminNextStepSummary));
         }
 
         void BrowseImage()
