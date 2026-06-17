@@ -562,6 +562,15 @@ namespace InventoryManagementApp
                 "Dashboard items with issues",
                 tabControlIndex: 0,
                 tabIndex: 1);
+            await CaptureSelectedTabPageAtSizeAsync(
+                mainWindow,
+                OpenSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectOverviewSectionCommand, mainViewModel.OpenDashboardCommand),
+                Path.Combine(overviewDir, "07-dashboard-recent-activity-narrow.png"),
+                runLogPath,
+                "Dashboard recent activity narrow",
+                tabControlIndex: 0,
+                tabIndex: 0,
+                width: options.NarrowWindowWidth);
 
             await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectOperationsSectionCommand, mainViewModel.OpenManageItemsCommand, Path.Combine(operationsDir, $"01-manage-{itemSlug}.png"), runLogPath, "Manage items");
             await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectOperationsSectionCommand, mainViewModel.OpenRentalsCommand, Path.Combine(operationsDir, "02-rentals.png"), runLogPath, "Rentals");
@@ -571,6 +580,13 @@ namespace InventoryManagementApp
             await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectOperationsSectionCommand, mainViewModel.OpenReservationsCommand, Path.Combine(operationsDir, "06-reservations.png"), runLogPath, "Reservations");
             await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectOperationsSectionCommand, mainViewModel.OpenKitManagementCommand, Path.Combine(operationsDir, "07-kits.png"), runLogPath, "Kits");
             await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectOperationsSectionCommand, mainViewModel.OpenCategoriesCommand, Path.Combine(operationsDir, "08-categories.png"), runLogPath, "Categories");
+            await CapturePageAtSizeAsync(
+                mainWindow,
+                OpenSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectOperationsSectionCommand, mainViewModel.OpenRentalsCommand),
+                Path.Combine(operationsDir, "09-rentals-narrow.png"),
+                runLogPath,
+                "Rentals narrow",
+                options.NarrowWindowWidth);
 
             await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectInsightsSectionCommand, mainViewModel.OpenReportsCommand, Path.Combine(insightsDir, "01-reports.png"), runLogPath, "Reports");
             await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectInsightsSectionCommand, mainViewModel.OpenActivityLogsCommand, Path.Combine(insightsDir, "02-activity-logs.png"), runLogPath, "Activity logs");
@@ -589,13 +605,20 @@ namespace InventoryManagementApp
             }
 
             await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectAdminSectionCommand, mainViewModel.OpenUsersCommand, Path.Combine(adminDir, "01-users.png"), runLogPath, "Users");
-            await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectAdminSectionCommand, mainViewModel.OpenSettingsCommand, Path.Combine(adminDir, "02-settings-service-status.png"), runLogPath, "Settings service status");
+            await CapturePageAtSizeAsync(
+                mainWindow,
+                OpenSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectAdminSectionCommand, mainViewModel.OpenUsersCommand),
+                Path.Combine(adminDir, "02-users-narrow.png"),
+                runLogPath,
+                "Users narrow",
+                options.NarrowWindowWidth);
+            await CaptureSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectAdminSectionCommand, mainViewModel.OpenSettingsCommand, Path.Combine(adminDir, "03-settings-service-status.png"), runLogPath, "Settings service status");
             for (var tabIndex = 1; tabIndex <= 7; tabIndex++)
             {
                 await CaptureSelectedTabPageAsync(
                     mainWindow,
                     OpenSectionPageAsync(mainWindow, mainViewModel, mainViewModel.SelectAdminSectionCommand, mainViewModel.OpenSettingsCommand),
-                    Path.Combine(adminDir, $"{tabIndex + 2:00}-settings-{GetSettingsTabSlug(tabIndex)}.png"),
+                    Path.Combine(adminDir, $"{tabIndex + 3:00}-settings-{GetSettingsTabSlug(tabIndex)}.png"),
                     runLogPath,
                     $"Settings {GetSettingsTabSlug(tabIndex)}",
                     tabControlIndex: 0,
@@ -743,6 +766,16 @@ namespace InventoryManagementApp
             File.AppendAllText(runLogPath, $"{DateTime.Now:O} Captured {label}.{Environment.NewLine}");
         }
 
+        static async Task CapturePageAtSizeAsync(MainWindow mainWindow, Task commandTask, string filePath, string runLogPath, string label, double width)
+        {
+            File.AppendAllText(runLogPath, $"{DateTime.Now:O} Opening {label}.{Environment.NewLine}");
+            await commandTask;
+            await WaitForUiAsync(mainWindow.Dispatcher);
+            await Task.Delay(350);
+            await WithMainWindowWidthAsync(mainWindow, width, () => CaptureWindowAsync(mainWindow, filePath));
+            File.AppendAllText(runLogPath, $"{DateTime.Now:O} Captured {label}.{Environment.NewLine}");
+        }
+
         static async Task CaptureSelectedTabPageAsync(
             MainWindow mainWindow,
             Task commandTask,
@@ -759,6 +792,53 @@ namespace InventoryManagementApp
             await Task.Delay(350);
             await CaptureWindowAsync(mainWindow, filePath);
             File.AppendAllText(runLogPath, $"{DateTime.Now:O} Captured {label}.{Environment.NewLine}");
+        }
+
+        static async Task CaptureSelectedTabPageAtSizeAsync(
+            MainWindow mainWindow,
+            Task commandTask,
+            string filePath,
+            string runLogPath,
+            string label,
+            int tabControlIndex,
+            int tabIndex,
+            double width)
+        {
+            File.AppendAllText(runLogPath, $"{DateTime.Now:O} Opening {label}.{Environment.NewLine}");
+            await commandTask;
+            await WaitForUiAsync(mainWindow.Dispatcher);
+            await SelectTabAsync(mainWindow, tabControlIndex, tabIndex);
+            await Task.Delay(350);
+            await WithMainWindowWidthAsync(mainWindow, width, () => CaptureWindowAsync(mainWindow, filePath));
+            File.AppendAllText(runLogPath, $"{DateTime.Now:O} Captured {label}.{Environment.NewLine}");
+        }
+
+        static async Task WithMainWindowWidthAsync(MainWindow mainWindow, double width, Func<Task> captureAsync)
+        {
+            var originalWidth = mainWindow.Width;
+            try
+            {
+                await mainWindow.Dispatcher.InvokeAsync(() =>
+                {
+                    mainWindow.Width = Math.Max(mainWindow.MinWidth, width);
+                    mainWindow.UpdateLayout();
+                }, DispatcherPriority.Background);
+
+                await WaitForUiAsync(mainWindow.Dispatcher);
+                await Task.Delay(250);
+                await captureAsync();
+            }
+            finally
+            {
+                await mainWindow.Dispatcher.InvokeAsync(() =>
+                {
+                    mainWindow.Width = originalWidth;
+                    mainWindow.UpdateLayout();
+                }, DispatcherPriority.Background);
+
+                await WaitForUiAsync(mainWindow.Dispatcher);
+                await Task.Delay(150);
+            }
         }
 
         static async Task SelectTabAsync(MainWindow mainWindow, int tabControlIndex, int tabIndex)

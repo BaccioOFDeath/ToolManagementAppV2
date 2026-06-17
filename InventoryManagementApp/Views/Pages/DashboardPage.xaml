@@ -13,15 +13,15 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Style="{StaticResource ToolbarCard}">
-            <DockPanel LastChildFill="False">
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+            <DockPanel LastChildFill="True">
+                <WrapPanel DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,8,0">
                     <TextBlock Text="Actions" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="New Item" Command="{Binding NewItemCommand}" Margin="0,0,4,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Open Items" Command="{Binding OpenItemsCommand}" Margin="0,0,4,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Open Rentals" Command="{Binding OpenRentalsCommand}" Margin="0,0,4,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Print Snapshot" Command="{Binding PrintDashboardSnapshotCommand}" Margin="0,0,4,0"/>
                     <Button Style="{StaticResource GhostButton}" Content="Import / Export" Command="{Binding OpenImportExportCommand}"/>
-                </StackPanel>
+                </WrapPanel>
                 <ItemsControl DockPanel.Dock="Right"
                               ItemsSource="{Binding StatCards}"
                               ItemTemplate="{StaticResource StatCardTemplate}"
@@ -76,11 +76,11 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="110"/>
+                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="92"/>
                             <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*"/>
-                            <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="130"/>
-                            <DataGridTextColumn Header="Use" Binding="{Binding CheckoutCount}" Width="70"/>
-                            <DataGridTemplateColumn Header="Status" Width="130">
+                            <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="108"/>
+                            <DataGridTextColumn Header="Use" Binding="{Binding CheckoutCount}" Width="54"/>
+                            <DataGridTemplateColumn Header="Status" Width="102">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
@@ -124,9 +124,9 @@
                               MouseDoubleClick="RentedItemsGrid_MouseDoubleClick"
                               PreviewMouseRightButtonDown="DashboardGrid_PreviewMouseRightButtonDown">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="90"/>
+                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="76"/>
                             <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="*"/>
-                            <DataGridTextColumn Header="Due" Binding="{Binding DueDate, StringFormat={}{0:yyyy-MM-dd}}" Width="105"/>
+                            <DataGridTextColumn Header="Due" Binding="{Binding DueDate, StringFormat={}{0:yyyy-MM-dd}}" Width="88"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}">
@@ -162,11 +162,11 @@
                               MouseDoubleClick="CheckedOutItemsGrid_MouseDoubleClick"
                               PreviewMouseRightButtonDown="DashboardGrid_PreviewMouseRightButtonDown">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="110"/>
+                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="92"/>
                             <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*"/>
-                            <DataGridTextColumn Header="Holder" Binding="{Binding CheckedOutBy}" Width="140"/>
-                            <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="130"/>
-                            <DataGridTextColumn Header="Out Since" Binding="{Binding CheckedOutTime, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="140"/>
+                            <DataGridTextColumn Header="Holder" Binding="{Binding CheckedOutBy}" Width="112"/>
+                            <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="104"/>
+                            <DataGridTextColumn Header="Out Since" Binding="{Binding CheckedOutTime, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="118"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}">

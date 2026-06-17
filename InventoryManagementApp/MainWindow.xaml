@@ -4,7 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
         xmlns:pages="clr-namespace:InventoryManagementApp.Views.Pages"
-        Title="{Binding WindowTitle}" Width="1280" Height="800" MinWidth="920" MinHeight="620" WindowStartupLocation="CenterScreen"
+        Title="{Binding WindowTitle}" Width="1280" Height="800" MinWidth="1040" MinHeight="620" WindowStartupLocation="CenterScreen"
         Background="{DynamicResource BackgroundBrush}">
     <Grid>
         <Grid.ColumnDefinitions>

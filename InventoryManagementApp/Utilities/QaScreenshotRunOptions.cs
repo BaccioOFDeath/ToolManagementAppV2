@@ -14,6 +14,7 @@ namespace InventoryManagementApp.Utilities
         public required string ItemLabelPlural { get; init; }
         public required string AdminPassword { get; init; }
         public string AdminUserName { get; init; } = DefaultAdminUserName;
+        public double NarrowWindowWidth { get; init; } = 1040d;
 
         public static QaScreenshotRunOptions? Parse(string[] args)
         {
@@ -26,6 +27,7 @@ namespace InventoryManagementApp.Utilities
             var itemLabelSingular = "Tool";
             var itemLabelPlural = "Tools";
             var adminPassword = "AdminQ123";
+            var narrowWindowWidth = 1040d;
 
             foreach (var arg in args)
             {
@@ -62,6 +64,14 @@ namespace InventoryManagementApp.Utilities
                 if (TryReadValue(arg, "--qa-password=", out var password))
                 {
                     adminPassword = password;
+                    continue;
+                }
+
+                if (TryReadValue(arg, "--qa-narrow-width=", out var narrowWidthText) &&
+                    double.TryParse(narrowWidthText, out var parsedNarrowWidth) &&
+                    parsedNarrowWidth > 0)
+                {
+                    narrowWindowWidth = parsedNarrowWidth;
                 }
             }
 
@@ -77,7 +87,8 @@ namespace InventoryManagementApp.Utilities
                 ApplicationName = applicationName,
                 ItemLabelSingular = itemLabelSingular,
                 ItemLabelPlural = itemLabelPlural,
-                AdminPassword = adminPassword
+                AdminPassword = adminPassword,
+                NarrowWindowWidth = narrowWindowWidth
             };
         }
 
