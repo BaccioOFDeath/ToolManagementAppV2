@@ -1,6 +1,7 @@
 Please update the ui this is each screen shot photo and feedback on each. this prompt will run every hour so keep track of what has been done. once complete just carry out polish passes..
 
 Progress log:
+- 2026-06-18 05:11 NZST: Polished the Rentals workbench. `ManageRentalsPage` now has a stronger rental desk header, filtered/checked-out/request/selected-rental summary cards, a clearer search and document-action strip, carded advisor handoff context, and a stronger open-request queue hierarchy while preserving existing rental/request commands, bindings, double-click handlers, and row-correct context menu hooks. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-18-rentals-workbench-polish.md`.
 - 2026-06-18 04:11 NZST: Polished the Manage Tools item directory. `ManageItemsPage` now has a stronger inventory workbench header, loaded-row/pending-edit/page-size/selected-item summary cards, visible sort and page-size controls, photo/status/activity-rich rows, clearer right-click actions, and a selected-item handoff pane while preserving existing commands, visibility bindings, incremental loading, and row image cleanup. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-18-manage-items-workbench-polish.md`.
 - 2026-06-18 03:11 NZST: Polished the Settings Database, Branding, and Backups tabs. `SettingsPage` now gives connection setup a readiness panel, gives branding a larger logo/app identity preview, and gives backups a recovery-focused destination layout while preserving existing bindings, commands, tab structure, password-box names, and code-behind handlers. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-18-settings-admin-polish.md`.
 - 2026-06-18 02:11 NZST: Polished the Dashboard KPI and activity surface. `DashboardPage` now has a stronger command-center header, more prominent stat cards, a four-part priority strip for checked-out items/rentals/issues/activity, clearer operational pane captions, and visible recent-activity destination context while preserving existing grid names, commands, bindings, context menus, and keyboard paths. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-18-dashboard-kpi-activity-polish.md`.
@@ -22,14 +23,14 @@ Overall: the UI is operationally competent and consistent, but most screens stil
 07-dashboard-recent-activity-narrow.png: adapts better than expected, but the narrower layout makes the already-dense chrome feel even tighter. Status: first-pass polish complete in `InventoryManagementApp/Views/Pages/DashboardPage.xaml`; runtime screenshot review still needed.
 02-operations
 01-manage-tools.png: clear inventory directory screen, but it feels sparse in an unfinished way rather than clean by design. Status: first-pass polish complete in `InventoryManagementApp/Views/Pages/ManageItemsPage.xaml`; runtime screenshot review still needed.
-02-rentals.png: one of the most useful screens structurally; also one of the busiest, and it needs stronger section hierarchy.
+02-rentals.png: one of the most useful screens structurally; also one of the busiest, and it needs stronger section hierarchy. Status: first-pass polish complete in `InventoryManagementApp/Views/Pages/ManageRentalsPage.xaml`; runtime screenshot review still needed.
 03-customers.png: good handoff guidance on the right; the left table and top toolbar still feel visually generic.
 04-maintenance.png: strong workflow framing; the technician handoff panel is useful, but the page is visually very repetitive.
 05-calibration.png: good domain-specific copy and process cues; still too flat to feel premium.
 06-reservations.png: understandable and complete, but the top action band feels crowded and visually undifferentiated.
 07-kits.png: good separation between kit directory, membership, and selected kit; one of the clearer operations screens.
 08-categories.png: the admin handoff content is useful, but the screen needs better visual weight and less empty-white-box feeling.
-09-rentals-narrow.png: still usable, which is a positive; however, the compression exposes how dependent the UI is on thin borders instead of strong hierarchy.
+09-rentals-narrow.png: still usable, which is a positive; however, the compression exposes how dependent the UI is on thin borders instead of strong hierarchy. Status: first-pass polish complete in `InventoryManagementApp/Views/Pages/ManageRentalsPage.xaml`; runtime screenshot review still needed.
 03-insights
 01-reports.png: very clear reporting shell, but visually sterile; it needs stronger emphasis on the report selector and result state.
 02-activity-logs.png: better than the blank reports view because real data gives it life; still reads more like an admin console than a polished product.
