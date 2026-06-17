@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
+using System.Windows.Input;
 using InventoryManagementApp.ViewModels;
 using WpfMessageBox = System.Windows.MessageBox;
 using WpfPrintDialog = System.Windows.Controls.PrintDialog;
@@ -17,9 +19,21 @@ namespace InventoryManagementApp.Views.Pages
             InitializeComponent();
         }
 
-        private void ReportGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void ReportGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            CopySelectedRow_Click(sender, e);
+            OpenSelectedDestination();
+        }
+
+        private void OpenSourcePage_Click(object sender, RoutedEventArgs e)
+        {
+            OpenSelectedDestination();
+        }
+
+        private void ReportGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var row = FindParent<DataGridRow>(e.OriginalSource as DependencyObject);
+            if (row != null && !row.IsSelected)
+                row.IsSelected = true;
         }
 
         private void CopySelectedRow_Click(object sender, RoutedEventArgs e)
@@ -30,7 +44,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            System.Windows.Clipboard.SetText($"{line.Category}: {line.Text}{Environment.NewLine}Next action: {line.ActionHint}");
+            System.Windows.Clipboard.SetText(FormatHandoff(line));
         }
 
         private void PrintReport_Click(object sender, RoutedEventArgs e)
@@ -51,6 +65,67 @@ namespace InventoryManagementApp.Views.Pages
             document.PagePadding = new Thickness(36);
             document.ColumnWidth = printDialog.PrintableAreaWidth;
             printDialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, vm.ReportTitle);
+        }
+
+        private void OpenSelectedDestination()
+        {
+            var line = ReportGrid.SelectedItem as ReportLine;
+            var key = line?.DestinationKey;
+            if (string.IsNullOrWhiteSpace(key) && DataContext is ReportsViewModel vm)
+                key = vm.SelectedLineDestinationKey;
+
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                WpfMessageBox.Show("Run a report and select a row first.", "Reports", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            if (Window.GetWindow(this)?.DataContext is not MainViewModel main)
+            {
+                WpfMessageBox.Show("The destination page is not available from this window.", "Reports", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            switch (key)
+            {
+                case "ActivityLogs":
+                    main.OpenActivityLogsCommand.Execute(null);
+                    break;
+                case "Customers":
+                    main.OpenCustomersCommand.Execute(null);
+                    break;
+                case "Users":
+                    main.OpenUsersCommand.Execute(null);
+                    break;
+                case "Rentals":
+                    main.OpenRentalsCommand.Execute(null);
+                    break;
+                case "Reservations":
+                    main.OpenReservationsCommand.Execute(null);
+                    break;
+                case "Maintenance":
+                    main.OpenMaintenanceCommand.Execute(null);
+                    break;
+                case "Calibration":
+                    main.OpenCalibrationCommand.Execute(null);
+                    break;
+                case "Kits":
+                    main.OpenKitManagementCommand.Execute(null);
+                    break;
+                case "Items":
+                    main.OpenManageItemsCommand.Execute(null);
+                    break;
+                default:
+                    main.OpenDashboardCommand.Execute(null);
+                    break;
+            }
+        }
+
+        private static string FormatHandoff(ReportLine line)
+        {
+            return $"{line.Category}: {line.Text}{Environment.NewLine}" +
+                   $"Next action: {line.ActionHint}{Environment.NewLine}" +
+                   $"Destination: {line.DestinationName}";
         }
 
         private static FlowDocument BuildReportDocument(string title, string summary, string lastRunText, IReadOnlyCollection<ReportLine> lines)
@@ -78,7 +153,7 @@ namespace InventoryManagementApp.Views.Pages
             });
 
             var table = new Table { CellSpacing = 0 };
-            foreach (var width in new[] { 45.0, 95.0, 330.0, 230.0 })
+            foreach (var width in new[] { 45.0, 85.0, 105.0, 300.0, 205.0 })
                 table.Columns.Add(new TableColumn { Width = new GridLength(width) });
 
             var rowGroup = new TableRowGroup();
@@ -88,6 +163,7 @@ namespace InventoryManagementApp.Views.Pages
             rowGroup.Rows.Add(header);
             AddCell(header, "#");
             AddCell(header, "Type");
+            AddCell(header, "Destination");
             AddCell(header, "Report Detail");
             AddCell(header, "Next Action");
 
@@ -97,6 +173,7 @@ namespace InventoryManagementApp.Views.Pages
                 rowGroup.Rows.Add(row);
                 AddCell(row, line.Number.ToString());
                 AddCell(row, line.Category);
+                AddCell(row, line.DestinationName);
                 AddCell(row, line.Text);
                 AddCell(row, line.ActionHint);
             }
@@ -116,6 +193,20 @@ namespace InventoryManagementApp.Views.Pages
                 BorderThickness = new Thickness(0, 0, 0, 0.5),
                 Padding = new Thickness(3, 2, 3, 2)
             });
+        }
+
+        private static T? FindParent<T>(DependencyObject? child) where T : DependencyObject
+        {
+            while (child != null)
+            {
+                if (child is T parent)
+                    return parent;
+                child = child is Popup popup
+                    ? popup.PlacementTarget
+                    : System.Windows.Media.VisualTreeHelper.GetParent(child);
+            }
+
+            return null;
         }
     }
 }
