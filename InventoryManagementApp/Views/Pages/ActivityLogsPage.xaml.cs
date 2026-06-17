@@ -38,7 +38,7 @@ namespace InventoryManagementApp.Views.Pages
             if (sender is DataGridRow row && !row.IsSelected)
             {
                 row.IsSelected = true;
-                e.Handled = true;
+                row.Focus();
             }
         }
 
@@ -59,6 +59,55 @@ namespace InventoryManagementApp.Views.Pages
             }
 
             WpfMessageBox.Show(FormatLogDetail(log), "Activity Detail", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void OpenRelatedPage_Click(object sender, RoutedEventArgs e)
+        {
+            if (ActivityGrid.SelectedItem is not ActivityLog log)
+            {
+                WpfMessageBox.Show("Select an activity row first.", "Activity Logs", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            if (Window.GetWindow(this)?.DataContext is not MainViewModel main)
+            {
+                WpfMessageBox.Show("The related page is not available from this window.", "Activity Logs", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            switch (ActivityLogsViewModel.BuildDestinationKey(log.Action))
+            {
+                case "Rentals":
+                    main.OpenRentalsCommand.Execute(null);
+                    break;
+                case "Reservations":
+                    main.OpenReservationsCommand.Execute(null);
+                    break;
+                case "Calibration":
+                    main.OpenCalibrationCommand.Execute(null);
+                    break;
+                case "Maintenance":
+                    main.OpenMaintenanceCommand.Execute(null);
+                    break;
+                case "ImportExport":
+                    main.OpenImportExportCommand.Execute(null);
+                    break;
+                case "Users":
+                    main.OpenUsersCommand.Execute(null);
+                    break;
+                case "Categories":
+                    main.OpenCategoriesCommand.Execute(null);
+                    break;
+                case "Kits":
+                    main.OpenKitManagementCommand.Execute(null);
+                    break;
+                case "Items":
+                    main.OpenManageItemsCommand.Execute(null);
+                    break;
+                default:
+                    main.OpenDashboardCommand.Execute(null);
+                    break;
+            }
         }
 
         private void CopySelectedLog_Click(object sender, RoutedEventArgs e)
@@ -84,7 +133,7 @@ namespace InventoryManagementApp.Views.Pages
             if (printDialog.ShowDialog() != true)
                 return;
 
-            var document = BuildPrintDocument(vm.FilteredLogs.ToList(), vm.StatusMessage);
+            var document = BuildPrintDocument(vm.FilteredLogs.ToList(), vm.StatusMessage, vm.ActivitySummary);
             document.PageWidth = printDialog.PrintableAreaWidth;
             document.PageHeight = printDialog.PrintableAreaHeight;
             document.PagePadding = new Thickness(36);
@@ -94,13 +143,16 @@ namespace InventoryManagementApp.Views.Pages
 
         private static string FormatLogDetail(ActivityLog log)
         {
+            var destinationKey = ActivityLogsViewModel.BuildDestinationKey(log.Action);
             return $"Timestamp: {log.Timestamp:g}{Environment.NewLine}" +
-                   $"User: {log.UserName} (ID {log.UserID}){Environment.NewLine}" +
+                   $"User: {SafeText(log.UserName, "Unknown user")} (ID {log.UserID}){Environment.NewLine}" +
                    $"Type: {ActivityLogsViewModel.ClassifyAction(log.Action)}{Environment.NewLine}" +
-                   $"Action: {log.Action}";
+                   $"Destination: {ActivityLogsViewModel.BuildDestinationName(destinationKey)}{Environment.NewLine}" +
+                   $"Next action: {ActivityLogsViewModel.BuildNextAction(log.Action)}{Environment.NewLine}" +
+                   $"Action: {SafeText(log.Action, "No activity detail was recorded.")}";
         }
 
-        private static FlowDocument BuildPrintDocument(IReadOnlyCollection<ActivityLog> logs, string summary)
+        private static FlowDocument BuildPrintDocument(IReadOnlyCollection<ActivityLog> logs, string summary, string activitySummary)
         {
             var document = new FlowDocument
             {
@@ -117,11 +169,16 @@ namespace InventoryManagementApp.Views.Pages
             document.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:g} - {summary}"))
             {
                 FontSize = 10,
+                Margin = new Thickness(0, 0, 0, 4)
+            });
+            document.Blocks.Add(new Paragraph(new Run(activitySummary))
+            {
+                FontSize = 10,
                 Margin = new Thickness(0, 0, 0, 10)
             });
 
             var table = new Table { CellSpacing = 0 };
-            foreach (var width in new[] { 125.0, 120.0, 115.0, 420.0 })
+            foreach (var width in new[] { 115.0, 105.0, 100.0, 105.0, 275.0 })
                 table.Columns.Add(new TableColumn { Width = new GridLength(width) });
 
             var rowGroup = new TableRowGroup();
@@ -132,6 +189,7 @@ namespace InventoryManagementApp.Views.Pages
             AddCell(header, "Timestamp");
             AddCell(header, "User");
             AddCell(header, "Type");
+            AddCell(header, "Destination");
             AddCell(header, "Action");
 
             foreach (var log in logs)
@@ -139,9 +197,10 @@ namespace InventoryManagementApp.Views.Pages
                 var row = new TableRow();
                 rowGroup.Rows.Add(row);
                 AddCell(row, log.Timestamp.ToString("g"));
-                AddCell(row, log.UserName);
+                AddCell(row, SafeText(log.UserName, "Unknown user"));
                 AddCell(row, ActivityLogsViewModel.ClassifyAction(log.Action));
-                AddCell(row, log.Action);
+                AddCell(row, ActivityLogsViewModel.BuildDestinationName(ActivityLogsViewModel.BuildDestinationKey(log.Action)));
+                AddCell(row, SafeText(log.Action, "No activity detail was recorded."));
             }
 
             document.Blocks.Add(table);
@@ -159,6 +218,11 @@ namespace InventoryManagementApp.Views.Pages
                 BorderThickness = new Thickness(0, 0, 0, 0.5),
                 Padding = new Thickness(3, 2, 3, 2)
             });
+        }
+
+        private static string SafeText(string? text, string fallback)
+        {
+            return string.IsNullOrWhiteSpace(text) ? fallback : text;
         }
     }
 }
