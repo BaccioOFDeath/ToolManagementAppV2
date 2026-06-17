@@ -16,7 +16,6 @@ namespace InventoryManagementApp
         const double ScrollFactor = 0.20;
         const double OpenSidebarWidth = 214;
         const double ClosedSidebarWidth = 0;
-        static readonly TimeSpan SidebarCloseDelay = TimeSpan.FromSeconds(.5);
         static readonly TimeSpan SidebarAnimationDuration = TimeSpan.FromMilliseconds(950);
 
         readonly IDatabaseService? _ownedDb;
@@ -38,7 +37,7 @@ namespace InventoryManagementApp
         {
             InitializeComponent();
 
-            _sidebarCloseTimer = new DispatcherTimer { Interval = SidebarCloseDelay };
+            _sidebarCloseTimer = new DispatcherTimer { Interval = TimeSpan.Zero };
             _sidebarCloseTimer.Tick += SidebarCloseTimer_Tick;
             _sidebarAnimationTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
             _sidebarAnimationTimer.Tick += SidebarAnimationTimer_Tick;
@@ -90,7 +89,10 @@ namespace InventoryManagementApp
         void LeftNavPanel_MouseLeave(object sender, MouseEventArgs e)
         {
             _sidebarCloseTimer.Stop();
-            _sidebarCloseTimer.Start();
+            if (_mainViewModel != null)
+                _mainViewModel.IsSidebarOpen = false;
+            else
+                SetSidebarWidth(ClosedSidebarWidth);
         }
 
         void SidebarCloseTimer_Tick(object? sender, EventArgs e)
@@ -113,6 +115,13 @@ namespace InventoryManagementApp
 
         void AnimateSidebarTo(double targetWidth)
         {
+            if (targetWidth <= ClosedSidebarWidth)
+            {
+                _sidebarAnimationTimer.Stop();
+                SetSidebarWidth(ClosedSidebarWidth);
+                return;
+            }
+
             var currentWidth = LeftNavColumn.ActualWidth;
             if (double.IsNaN(currentWidth) || currentWidth <= 0 && LeftNavColumn.Width.Value > 0)
                 currentWidth = LeftNavColumn.Width.Value;
@@ -128,7 +137,7 @@ namespace InventoryManagementApp
         {
             var elapsed = DateTime.UtcNow - _sidebarAnimationStartedAt;
             var progress = Math.Clamp(elapsed.TotalMilliseconds / SidebarAnimationDuration.TotalMilliseconds, 0, 1);
-            var eased = EaseInOutCubic(progress);
+            var eased = EaseInOutSine(progress);
             var width = _sidebarAnimationStartWidth + (_sidebarAnimationTargetWidth - _sidebarAnimationStartWidth) * eased;
             SetSidebarWidth(width);
 
@@ -141,15 +150,14 @@ namespace InventoryManagementApp
 
         void SetSidebarWidth(double width)
         {
+            width = Math.Round(Math.Clamp(width, ClosedSidebarWidth, OpenSidebarWidth));
             LeftNavColumn.Width = new GridLength(width);
             LeftNavPanel.Width = width;
             LeftNavPanel.Opacity = width <= 0 ? 0 : Math.Min(1, width / OpenSidebarWidth);
             LeftNavPanel.IsHitTestVisible = width > 1;
         }
 
-        static double EaseInOutCubic(double value)
-            => value < 0.5
-                ? 4 * value * value * value
-                : 1 - Math.Pow(-2 * value + 2, 3) / 2;
+        static double EaseInOutSine(double value)
+            => -(Math.Cos(Math.PI * value) - 1) / 2;
     }
 }

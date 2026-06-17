@@ -700,7 +700,7 @@ namespace InventoryManagementApp.ViewModels
                 {
                     if (await _showLoginWindow())
                     {
-                        await OpenSearchItemsCommand.ExecuteAsync(null);
+                        await OpenDashboardCommand.ExecuteAsync(null);
                     }
                     else
                     {
@@ -751,10 +751,9 @@ namespace InventoryManagementApp.ViewModels
                 }
             });
 
-            SelectOverviewSectionCommand = new RelayCommand(async () =>
+            SelectOverviewSectionCommand = new RelayCommand(() =>
             {
                 SetNavSection(NavSectionKeys.Overview, openSidebar: true);
-                await OpenSearchItemsCommand.ExecuteAsync(null);
             });
             SelectOperationsSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Operations, openSidebar: true));
             SelectInsightsSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Insights, openSidebar: true));
@@ -762,7 +761,7 @@ namespace InventoryManagementApp.ViewModels
             SelectAdminSectionCommand = new RelayCommand(() => SetNavSection(NavSectionKeys.Admin, openSidebar: true));
 
             SetNavSection(NavSectionKeys.Overview, openSidebar: false);
-            _ = OpenSearchItemsCommand.ExecuteAsync(null);
+            _ = OpenDashboardCommand.ExecuteAsync(null);
         }
 
         void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -863,6 +862,14 @@ namespace InventoryManagementApp.ViewModels
         async Task GlobalSearchAsync(CancellationToken cancellationToken)
         {
             ItemManagement.SearchText = GlobalSearchText;
+            if (string.IsNullOrWhiteSpace(GlobalSearchText))
+            {
+                if (CurrentPage?.DataContext is ItemManagementViewModel)
+                    await ItemManagement.SearchCommand.ExecuteAsync(cancellationToken);
+
+                return;
+            }
+
             await OpenSearchItemsCommand.ExecuteAsync(null);
             if (ItemManagement.SearchCommand != null)
                 await ItemManagement.SearchCommand.ExecuteAsync(cancellationToken);

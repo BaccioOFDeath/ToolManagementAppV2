@@ -24,6 +24,11 @@
         <Setter Property="FontFamily" Value="Segoe UI"/>
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="Icon" Value="{DynamicResource WindowIcon}"/>
+        <Setter Property="UseLayoutRounding" Value="True"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+        <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+        <Setter Property="TextOptions.TextHintingMode" Value="Fixed"/>
     </Style>
     <Style TargetType="ScrollViewer">
         <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
@@ -39,6 +44,9 @@
     <Style TargetType="Page">
         <Setter Property="UseLayoutRounding" Value="True"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+        <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+        <Setter Property="TextOptions.TextHintingMode" Value="Fixed"/>
     </Style>
     <Style TargetType="ContentControl">
         <Setter Property="Background" Value="Transparent"/>
@@ -48,6 +56,10 @@
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="TextWrapping" Value="Wrap"/>
         <Setter Property="FontSize" Value="12"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+        <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+        <Setter Property="TextOptions.TextHintingMode" Value="Fixed"/>
     </Style>
     <Style x:Key="ErrorTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
         <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}"/>

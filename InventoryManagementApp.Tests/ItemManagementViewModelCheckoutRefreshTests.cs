@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
@@ -68,6 +69,54 @@ namespace InventoryManagementApp.Tests
             Assert.Equal(9, staleRow.CheckoutCount);
             var checkedOutRow = Assert.Single(vm.CheckedOutItems);
             Assert.Same(staleRow, checkedOutRow);
+        }
+
+        [Fact]
+        public async Task ToggleCheckOutCommand_RefreshesCheckedOutListWhenSearchIsActive()
+        {
+            var searchRow = new ItemModel
+            {
+                ItemID = 99,
+                ItemNumber = "T99",
+                Name = "Search result row",
+                IsCheckedOut = false
+            };
+            var refreshed = new ItemModel
+            {
+                ItemID = 99,
+                ItemNumber = "T99",
+                Name = "Checked out from storage",
+                IsCheckedOut = true,
+                CheckedOutBy = "Alex",
+                CheckedOutTime = new DateTime(2026, 6, 18, 9, 0, 0)
+            };
+
+            var itemService = new Mock<IItemService>();
+            itemService
+                .Setup(s => s.ToggleItemCheckOutStatusAsync(99, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+            itemService
+                .Setup(s => s.GetItemByIDAsync(99, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(refreshed);
+            itemService
+                .Setup(s => s.GetCheckedOutItemsAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<ItemModel> { refreshed });
+
+            var vm = new ItemManagementViewModel(
+                itemService.Object,
+                Mock.Of<ICustomerService>(),
+                Mock.Of<IRentalService>(),
+                Mock.Of<IDialogService>(),
+                Mock.Of<ISettingsService>(),
+                NullLogger<ItemManagementViewModel>.Instance);
+            vm.SearchResults.Add(searchRow);
+
+            await vm.ToggleCheckOutCommand.ExecuteAsync(searchRow);
+
+            var checkedOutRow = Assert.Single(vm.CheckedOutItems);
+            Assert.Equal(99, checkedOutRow.ItemID);
+            Assert.Equal("Checked out from storage", checkedOutRow.Name);
+            Assert.True(searchRow.IsCheckedOut);
         }
     }
 }

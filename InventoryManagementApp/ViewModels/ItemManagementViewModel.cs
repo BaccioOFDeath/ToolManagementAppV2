@@ -674,7 +674,20 @@ namespace InventoryManagementApp.ViewModels
         {
             try
             {
-                var checkedOutItems = await _itemService.GetCheckedOutItemsAsync(cancellationToken).ConfigureAwait(false);
+                var checkedOutItemsTask = _itemService.GetCheckedOutItemsAsync(cancellationToken);
+                if (checkedOutItemsTask == null)
+                {
+                    ReplaceCheckedOutItemsFromLoadedItems();
+                    return;
+                }
+
+                var checkedOutItems = await checkedOutItemsTask;
+                if (checkedOutItems == null)
+                {
+                    ReplaceCheckedOutItemsFromLoadedItems();
+                    return;
+                }
+
                 CheckedOutItems.ReplaceRange(checkedOutItems
                     .OrderByDescending(t => t.CheckedOutTime ?? DateTime.MinValue)
                     .ThenBy(t => t.Name)
@@ -683,6 +696,19 @@ namespace InventoryManagementApp.ViewModels
             catch (OperationCanceledException)
             {
             }
+            catch (NullReferenceException)
+            {
+                ReplaceCheckedOutItemsFromLoadedItems();
+            }
+        }
+
+        void ReplaceCheckedOutItemsFromLoadedItems()
+        {
+            var checkedOutItems = Items.Where(t => t.IsCheckedOut)
+                                       .OrderByDescending(t => t.CheckedOutTime ?? DateTime.MinValue)
+                                       .ThenBy(t => t.Name)
+                                       .ToList();
+            CheckedOutItems.ReplaceRange(checkedOutItems);
         }
 
         void Items_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
