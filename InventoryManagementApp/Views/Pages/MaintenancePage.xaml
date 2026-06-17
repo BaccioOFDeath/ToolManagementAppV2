@@ -5,37 +5,95 @@
     <Grid Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource ToolbarCard}">
-            <DockPanel LastChildFill="False">
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-                    <TextBlock Text="Maintenance workflow" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Add Work" Command="{Binding AddMaintenanceCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenMaintenanceDetailsCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditMaintenanceCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Complete" Command="{Binding CompleteMaintenanceCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Copy Handoff" Command="{Binding CopySelectedMaintenanceCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Print Record" Command="{Binding PrintSelectedMaintenanceCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteMaintenanceCommand}"/>
+        <Border Style="{StaticResource ToolbarCard}" Padding="12,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" MinWidth="380"/>
+                    <ColumnDefinition Width="14"/>
+                    <ColumnDefinition Width="3*" MinWidth="520"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Maintenance Workbench" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    <TextBlock Text="Prioritize overdue service, stage upcoming work, and keep technician handoffs ready from one dense operations surface."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"
+                               Margin="0,3,0,0"/>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
-                    <TextBlock Text="Find work" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <TextBox Width="220" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0" ToolTip="Search item number, name, maintenance type, description, technician, or notes"/>
-                    <ComboBox Width="155" ItemsSource="{Binding FilterOptions}" SelectedItem="{Binding SelectedFilter}" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearSearchCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Refresh" Command="{Binding RefreshCommand}"/>
-                </StackPanel>
-            </DockPanel>
+
+                <UniformGrid Grid.Column="2" Columns="4">
+                    <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="SCHEDULE" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding MaintenanceResultsSummary}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="BACKLOG" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding MaintenanceBacklogSummary}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="SELECTED" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding SelectedRecord.StatusDisplay, TargetNullValue='No work selected', FallbackValue='No work selected'}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource DesktopSummaryCard}">
+                        <StackPanel>
+                            <TextBlock Text="HANDOFF" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="Copy / print ready" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+            </Grid>
         </Border>
 
-        <Grid Grid.Row="1" Margin="0,6,0,0">
+        <Border Grid.Row="1" Style="{StaticResource ToolbarCard}" Padding="10,8">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <DockPanel LastChildFill="True">
+                    <TextBlock Text="Work order actions" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <WrapPanel>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Add Work" Command="{Binding AddMaintenanceCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenMaintenanceDetailsCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditMaintenanceCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Complete" Command="{Binding CompleteMaintenanceCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Command="{Binding CopySelectedMaintenanceCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Print Record" Command="{Binding PrintSelectedMaintenanceCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteMaintenanceCommand}" Margin="0,0,4,4"/>
+                    </WrapPanel>
+                </DockPanel>
+                <DockPanel Grid.Row="1" LastChildFill="True" Margin="0,4,0,0">
+                    <TextBlock Text="Find and filter" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <WrapPanel>
+                        <TextBox Width="250" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,4" ToolTip="Search item number, name, maintenance type, description, technician, or notes"/>
+                        <ComboBox Width="175" ItemsSource="{Binding FilterOptions}" SelectedItem="{Binding SelectedFilter}" Margin="0,0,6,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Overdue" Command="{Binding ShowOverdueCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Upcoming" Command="{Binding ShowUpcomingCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Scheduled" Command="{Binding ShowScheduledCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearSearchCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Refresh" Command="{Binding RefreshCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Print Schedule" Command="{Binding PrintMaintenanceListCommand}" Margin="0,0,4,4"/>
+                    </WrapPanel>
+                </DockPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2" Margin="0,6,0,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*" MinWidth="600"/>
+                <ColumnDefinition Width="2*" MinWidth="620"/>
                 <ColumnDefinition Width="8"/>
-                <ColumnDefinition Width="430" MinWidth="380"/>
+                <ColumnDefinition Width="440" MinWidth="390"/>
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
@@ -47,17 +105,15 @@
                     </Grid.RowDefinitions>
                     <Border Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel>
-                            <TextBlock Text="01 Maintenance Schedule" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
-                            <TextBlock Text="{Binding MaintenanceResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                            <StackPanel DockPanel.Dock="Left">
+                                <TextBlock Text="01 Maintenance Schedule" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                <TextBlock Text="Sorts active work first, then due date and item number" Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding MaintenanceResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                         </DockPanel>
                     </Border>
                     <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
                         <DockPanel LastChildFill="True">
-                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                <Button Style="{StaticResource GhostButton}" Content="Overdue" Command="{Binding ShowOverdueCommand}" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Upcoming" Command="{Binding ShowUpcomingCommand}" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Scheduled" Command="{Binding ShowScheduledCommand}"/>
-                            </StackPanel>
                             <TextBlock Text="{Binding MaintenanceBacklogSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,10,0"/>
                         </DockPanel>
                     </Border>
@@ -75,12 +131,38 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="92"/>
-                            <DataGridTextColumn Header="Name" Binding="{Binding ItemName}" Width="1.5*"/>
-                            <DataGridTextColumn Header="Type" Binding="{Binding MaintenanceType}" Width="96"/>
-                            <DataGridTextColumn Header="Scheduled" Binding="{Binding ScheduledDate, StringFormat={}{0:yyyy-MM-dd}}" Width="98"/>
-                            <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="88"/>
-                            <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="1.5*"/>
+                            <DataGridTemplateColumn Header="Work item" Width="2.1*" MinWidth="220">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="2,3">
+                                            <TextBlock Text="{Binding ItemName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Service" Width="2*" MinWidth="220">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="2,3">
+                                            <TextBlock Text="{Binding MaintenanceType}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding Description}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Timing" Width="150">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="2,3">
+                                            <TextBlock Text="{Binding ScheduledDate, StringFormat={}{0:yyyy-MM-dd}}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding PerformedBy, TargetNullValue='Technician not set', FallbackValue='Technician not set'}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="100"/>
+                            <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="1.5*" MinWidth="180"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
@@ -96,14 +178,9 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </DataGrid>
-                    <TextBlock Grid.Row="2"
-                               Text="No maintenance work matches this filter"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               FontSize="13"
-                               FontWeight="SemiBold">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
+                    <Border Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="360" Padding="16">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding FilteredMaintenanceRecords.Count}" Value="0">
@@ -111,8 +188,16 @@
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                        </Border.Style>
+                        <StackPanel>
+                            <TextBlock Text="No maintenance work matches this filter" FontSize="14" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/>
+                            <TextBlock Text="Clear search, switch the filter, or add a new work order to restart the technician queue."
+                                       Style="{StaticResource CaptionTextBlock}"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </Border>
 
@@ -125,40 +210,61 @@
                     </Grid.RowDefinitions>
                     <Border Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel>
-                            <TextBlock Text="02 Technician Handoff" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
-                            <TextBlock Text="Selected work" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                            <StackPanel DockPanel.Dock="Left">
+                                <TextBlock Text="02 Technician Handoff" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                <TextBlock Text="Selected record, next action, and bench checklist" Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="Ready to copy" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                         </DockPanel>
                     </Border>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                         <StackPanel Margin="14">
-                            <TextBlock Text="{Binding SelectedRecord.ItemName, TargetNullValue='No maintenance selected', FallbackValue='No maintenance selected'}"
-                                       FontSize="18"
-                                       FontWeight="SemiBold"
-                                       TextWrapping="Wrap"/>
-                            <TextBlock Text="{Binding SelectedRecordSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,10"/>
+                            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="SELECTED WORK" Style="{StaticResource LabelTextBlock}"/>
+                                    <TextBlock Text="{Binding SelectedRecord.ItemName, TargetNullValue='No maintenance selected', FallbackValue='No maintenance selected'}"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               TextWrapping="Wrap"
+                                               Margin="0,3,0,0"/>
+                                    <TextBlock Text="{Binding SelectedRecordSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Border>
 
-                            <TextBlock Text="Work order" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
-                            <TextBlock Text="{Binding SelectedMaintenanceDetail}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="Work order" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{Binding SelectedMaintenanceDetail}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
 
-                            <TextBlock Text="Timing" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
-                            <TextBlock Text="{Binding SelectedMaintenanceTimingSummary}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="Timing and owner" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{Binding SelectedMaintenanceTimingSummary}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
 
-                            <TextBlock Text="Next action" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/>
-                            <TextBlock Text="{Binding SelectedMaintenanceNextAction}" TextWrapping="Wrap" Margin="0,0,0,14"/>
+                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="Next action" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{Binding SelectedMaintenanceNextAction}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
 
-                            <WrapPanel Margin="0,0,0,8">
-                                <Button Style="{StaticResource PrimaryButton}" Content="Complete" Command="{Binding CompleteMaintenanceCommand}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditMaintenanceCommand}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Copy" Command="{Binding CopySelectedMaintenanceCommand}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintSelectedMaintenanceCommand}" Margin="0,0,4,4"/>
-                            </WrapPanel>
-
-                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,6,0,0">
+                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,10">
                                 <StackPanel>
                                     <TextBlock Text="Bench checklist" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
                                     <TextBlock Text="{Binding SelectedMaintenanceBenchChecklist}" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Border>
+
+                            <WrapPanel Margin="0,0,0,8">
+                                <Button Style="{StaticResource PrimaryButton}" Content="Complete" Command="{Binding CompleteMaintenanceCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditMaintenanceCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Copy" Command="{Binding CopySelectedMaintenanceCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintSelectedMaintenanceCommand}" Margin="0,0,4,4"/>
+                            </WrapPanel>
                         </StackPanel>
                     </ScrollViewer>
                     <Border Grid.Row="2" Style="{StaticResource DesktopPaneSubheader}" BorderThickness="0,1,0,0">
@@ -173,7 +279,7 @@
             </Border>
         </Grid>
 
-        <Border Grid.Row="2" Style="{StaticResource ToolbarCard}" Margin="0,4,0,0">
+        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,4,0,0">
             <DockPanel LastChildFill="True">
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <Button Style="{StaticResource PrimaryButton}" Content="Complete" Command="{Binding CompleteMaintenanceCommand}" Margin="0,0,4,0"/>
