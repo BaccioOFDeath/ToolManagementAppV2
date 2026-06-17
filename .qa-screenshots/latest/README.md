@@ -1,6 +1,6 @@
 # QA Screenshot Run
 
-Generated: 2026-06-17 20:56:32
+Generated: 2026-06-17 22:28:48
 
 Folders:
 - `00-auth` login and authentication flow
@@ -29,10 +29,10 @@ Captured files:
 - 01-overview\01-search-tools-results.png - 1280x800, 53084 bytes
 - 01-overview\02-search-tools-recent-searches.png - 1280x800, 53084 bytes
 - 01-overview\03-search-tools-unavailable-demand.png - 1280x800, 53511 bytes
-- 01-overview\04-dashboard-summary.png - 1280x800, 57381 bytes
-- 01-overview\05-dashboard-recent-activity.png - 1280x800, 57381 bytes
-- 01-overview\06-dashboard-items-with-issues.png - 1280x800, 55768 bytes
-- 01-overview\07-dashboard-recent-activity-narrow.png - 1040x800, 57504 bytes
+- 01-overview\04-dashboard-summary.png - 1280x800, 57222 bytes
+- 01-overview\05-dashboard-recent-activity.png - 1280x800, 57222 bytes
+- 01-overview\06-dashboard-items-with-issues.png - 1280x800, 55612 bytes
+- 01-overview\07-dashboard-recent-activity-narrow.png - 1040x800, 57324 bytes
 - 02-operations\01-manage-tools.png - 1280x800, 41319 bytes
 - 02-operations\02-rentals.png - 1280x800, 83118 bytes
 - 02-operations\03-customers.png - 1280x800, 70289 bytes
@@ -43,7 +43,7 @@ Captured files:
 - 02-operations\08-categories.png - 1280x800, 82745 bytes
 - 02-operations\09-rentals-narrow.png - 1040x800, 78582 bytes
 - 03-insights\01-reports.png - 1280x800, 50766 bytes
-- 03-insights\02-activity-logs.png - 1280x800, 68038 bytes
+- 03-insights\02-activity-logs.png - 1280x800, 68227 bytes
 - 04-data\01-import-export-overview.png - 1280x800, 77176 bytes
 - 04-data\02-import-export-item-data.png - 1280x800, 57202 bytes
 - 04-data\03-import-export-customers.png - 1280x800, 55071 bytes
@@ -63,12 +63,12 @@ Captured files:
 - 06-dialogs\02-info-dialog.png - 720x420, 6967 bytes
 - 06-dialogs\03-confirm-dialog.png - 720x420, 5980 bytes
 - 06-dialogs\04-input-dialog.png - 720x420, 5389 bytes
-- 06-dialogs\05-item-details.png - 780x580, 45154 bytes
+- 06-dialogs\05-item-details.png - 780x580, 45244 bytes
 - 06-dialogs\06-item-edit.png - 760x820, 27854 bytes
 - 06-dialogs\07-customer-edit.png - 720x420, 10604 bytes
 - 06-dialogs\08-rental-history.png - 1120x640, 27880 bytes
 - 06-dialogs\09-rentals-filter.png - 720x420, 8684 bytes
-- 06-dialogs\10-import-mapping.png - 1040x620, 12081 bytes
+- 06-dialogs\10-import-mapping.png - 1040x620, 12116 bytes
 - 06-dialogs\11-image-import-mapping.png - 720x420, 6455 bytes
 - 06-dialogs\12-print-preview.png - 1200x800, 16801 bytes
 - 06-dialogs\13-maintenance-edit.png - 720x430, 18701 bytes
