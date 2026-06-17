@@ -84,9 +84,10 @@
                     </DockPanel>
                 </Border>
 
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="12">
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl x:Name="UsersListBox"
-                                  ItemsSource="{Binding Users}">
+                                  ItemsSource="{Binding Users}"
+                                  Margin="12">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel Orientation="Horizontal" IsItemsHost="True"/>
