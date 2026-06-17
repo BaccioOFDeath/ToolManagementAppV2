@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -68,6 +69,9 @@ namespace InventoryManagementApp.ViewModels
                 {
                     if (value != null)
                         _selectedRecordKind = DashboardRecordKind.CommonItem;
+                    else if (_selectedRecordKind == DashboardRecordKind.CommonItem)
+                        _selectedRecordKind = DashboardRecordKind.None;
+                    NotifySelectionStateChanged();
                     UpdateSelectedRecordSummary();
                 }
             }
@@ -82,6 +86,9 @@ namespace InventoryManagementApp.ViewModels
                 {
                     if (value != null)
                         _selectedRecordKind = DashboardRecordKind.CheckedOutItem;
+                    else if (_selectedRecordKind == DashboardRecordKind.CheckedOutItem)
+                        _selectedRecordKind = DashboardRecordKind.None;
+                    NotifySelectionStateChanged();
                     UpdateSelectedRecordSummary();
                 }
             }
@@ -96,6 +103,9 @@ namespace InventoryManagementApp.ViewModels
                 {
                     if (value != null)
                         _selectedRecordKind = DashboardRecordKind.IncompleteItem;
+                    else if (_selectedRecordKind == DashboardRecordKind.IncompleteItem)
+                        _selectedRecordKind = DashboardRecordKind.None;
+                    NotifySelectionStateChanged();
                     UpdateSelectedRecordSummary();
                 }
             }
@@ -110,6 +120,9 @@ namespace InventoryManagementApp.ViewModels
                 {
                     if (value != null)
                         _selectedRecordKind = DashboardRecordKind.Rental;
+                    else if (_selectedRecordKind == DashboardRecordKind.Rental)
+                        _selectedRecordKind = DashboardRecordKind.None;
+                    NotifySelectionStateChanged();
                     UpdateSelectedRecordSummary();
                 }
             }
@@ -124,10 +137,19 @@ namespace InventoryManagementApp.ViewModels
                 {
                     if (value != null)
                         _selectedRecordKind = DashboardRecordKind.Activity;
+                    else if (_selectedRecordKind == DashboardRecordKind.Activity)
+                        _selectedRecordKind = DashboardRecordKind.None;
+                    NotifySelectionStateChanged();
                     UpdateSelectedRecordSummary();
                 }
             }
         }
+
+        public bool HasSelectedCommonItem => SelectedCommonlyUsedItem != null;
+        public bool HasSelectedCheckedOutItem => SelectedCheckedOutItem != null;
+        public bool HasSelectedIncompleteItem => SelectedIncompleteItem != null;
+        public bool HasSelectedRental => SelectedRental != null;
+        public bool HasSelectedActivity => SelectedActivity != null;
 
         public string OperationsSummary =>
             $"{CheckedOutItems.Count} checked out | {RentedItems.Count} active rentals | {IncompleteItems.Count} with issues | {RecentActivity.Count} recent activity rows";
@@ -183,18 +205,18 @@ namespace InventoryManagementApp.ViewModels
             OpenItemsCommand = new RelayCommand(OpenItemsWorkflow);
             OpenRentalsCommand = new RelayCommand(OpenRentalsWorkflow);
             OpenImportExportCommand = new RelayCommand(OpenImportExportWorkflow);
-            OpenSelectedCommonItemCommand = new RelayCommand(OpenItemsWorkflow);
-            OpenSelectedCheckedOutItemCommand = new RelayCommand(OpenItemsWorkflow);
-            OpenSelectedIncompleteItemCommand = new RelayCommand(OpenItemsWorkflow);
-            OpenSelectedRentalCommand = new RelayCommand(OpenRentalsWorkflow);
-            OpenActivityDestinationCommand = new RelayCommand(OpenActivityDestination);
+            OpenSelectedCommonItemCommand = new RelayCommand(OpenItemsWorkflow, () => HasSelectedCommonItem);
+            OpenSelectedCheckedOutItemCommand = new RelayCommand(OpenItemsWorkflow, () => HasSelectedCheckedOutItem);
+            OpenSelectedIncompleteItemCommand = new RelayCommand(OpenItemsWorkflow, () => HasSelectedIncompleteItem);
+            OpenSelectedRentalCommand = new RelayCommand(OpenRentalsWorkflow, () => HasSelectedRental);
+            OpenActivityDestinationCommand = new RelayCommand(OpenActivityDestination, () => HasSelectedActivity);
             PrintCheckedOutItemsCommand = new AsyncRelayCommand(PrintCheckedOutItemsAsync);
             PrintDashboardSnapshotCommand = new AsyncRelayCommand(PrintDashboardSnapshotAsync);
-            CheckInItemCommand = new AsyncRelayCommand<ItemModel>(CheckInItemAsync);
-            ReturnRentalCommand = new AsyncRelayCommand<RentalModel>(ReturnRentalAsync);
-            ToggleSelectedCommonItemCommand = new AsyncRelayCommand(ToggleSelectedCommonItemAsync);
-            CheckInSelectedItemCommand = new AsyncRelayCommand(CheckInSelectedItemAsync);
-            ReturnSelectedRentalCommand = new AsyncRelayCommand(ReturnSelectedRentalAsync);
+            CheckInItemCommand = new AsyncRelayCommand<ItemModel>(CheckInItemAsync, item => item != null);
+            ReturnRentalCommand = new AsyncRelayCommand<RentalModel>(ReturnRentalAsync, rental => rental != null);
+            ToggleSelectedCommonItemCommand = new AsyncRelayCommand(ToggleSelectedCommonItemAsync, () => HasSelectedCommonItem);
+            CheckInSelectedItemCommand = new AsyncRelayCommand(CheckInSelectedItemAsync, () => HasSelectedCheckedOutItem);
+            ReturnSelectedRentalCommand = new AsyncRelayCommand(ReturnSelectedRentalAsync, () => HasSelectedRental);
         }
 
         public Task LoadAsync(CancellationToken cancellationToken)
@@ -291,6 +313,7 @@ namespace InventoryManagementApp.ViewModels
                 var items = await _itemService.GetCheckedOutItemsAsync(token).ConfigureAwait(false);
                 foreach (var item in items)
                     CheckedOutItems.Add(item);
+                ClearCheckedOutSelectionIfMissing();
                 OnPropertyChanged(nameof(OperationsSummary));
             }
             catch (OperationCanceledException)
@@ -311,6 +334,7 @@ namespace InventoryManagementApp.ViewModels
                 var rentals = await _rentalService.GetActiveRentalsAsync().ConfigureAwait(false);
                 foreach (var rental in rentals)
                     RentedItems.Add(rental);
+                ClearRentalSelectionIfMissing();
                 OnPropertyChanged(nameof(OperationsSummary));
             }
             catch (OperationCanceledException)
@@ -332,8 +356,11 @@ namespace InventoryManagementApp.ViewModels
                 {
                     CheckedOutItems.Remove(item);
                     item.IsCheckedOut = !item.IsCheckedOut;
+                    if (SelectedCheckedOutItem?.ItemID == item.ItemID)
+                        SelectedCheckedOutItem = null;
+                    else
+                        UpdateSelectedRecordSummary();
                     OnPropertyChanged(nameof(OperationsSummary));
-                    UpdateSelectedRecordSummary();
                 }
             }
             catch (OperationCanceledException)
@@ -352,8 +379,11 @@ namespace InventoryManagementApp.ViewModels
             {
                 await _rentalService.ReturnItemAsync(rental.RentalID, DateTime.Today).ConfigureAwait(false);
                 RentedItems.Remove(rental);
+                if (SelectedRental?.RentalID == rental.RentalID)
+                    SelectedRental = null;
+                else
+                    UpdateSelectedRecordSummary();
                 OnPropertyChanged(nameof(OperationsSummary));
-                UpdateSelectedRecordSummary();
             }
             catch (OperationCanceledException)
             {
@@ -372,6 +402,7 @@ namespace InventoryManagementApp.ViewModels
                 var items = await _itemService.GetMostCommonlyUsedItemsAsync(10, token).ConfigureAwait(false);
                 foreach (var item in items)
                     CommonlyUsedItems.Add(item);
+                ClearCommonSelectionIfMissing();
             }
             catch (OperationCanceledException)
             {
@@ -390,6 +421,7 @@ namespace InventoryManagementApp.ViewModels
                 var items = await _itemService.GetIncompleteItemsAsync(token).ConfigureAwait(false);
                 foreach (var item in items)
                     IncompleteItems.Add(item);
+                ClearIncompleteSelectionIfMissing();
                 OnPropertyChanged(nameof(OperationsSummary));
             }
             catch (OperationCanceledException)
@@ -439,7 +471,10 @@ namespace InventoryManagementApp.ViewModels
 
         private void OpenActivityDestination()
         {
-            var destination = ActivityLogsViewModel.BuildDestinationKey(SelectedActivity?.Action);
+            if (SelectedActivity == null)
+                return;
+
+            var destination = ActivityLogsViewModel.BuildDestinationKey(SelectedActivity.Action);
             switch (destination)
             {
                 case "Rentals":
@@ -484,6 +519,48 @@ namespace InventoryManagementApp.ViewModels
 
             _selectedRecordKind = DashboardRecordKind.None;
             return "Select or double-click a row to open the related workflow.";
+        }
+
+        private void NotifySelectionStateChanged()
+        {
+            OnPropertyChanged(nameof(HasSelectedCommonItem));
+            OnPropertyChanged(nameof(HasSelectedCheckedOutItem));
+            OnPropertyChanged(nameof(HasSelectedIncompleteItem));
+            OnPropertyChanged(nameof(HasSelectedRental));
+            OnPropertyChanged(nameof(HasSelectedActivity));
+
+            OpenSelectedCommonItemCommand.NotifyCanExecuteChanged();
+            OpenSelectedCheckedOutItemCommand.NotifyCanExecuteChanged();
+            OpenSelectedIncompleteItemCommand.NotifyCanExecuteChanged();
+            OpenSelectedRentalCommand.NotifyCanExecuteChanged();
+            OpenActivityDestinationCommand.NotifyCanExecuteChanged();
+            ToggleSelectedCommonItemCommand.NotifyCanExecuteChanged();
+            CheckInSelectedItemCommand.NotifyCanExecuteChanged();
+            ReturnSelectedRentalCommand.NotifyCanExecuteChanged();
+        }
+
+        private void ClearCommonSelectionIfMissing()
+        {
+            if (SelectedCommonlyUsedItem != null && CommonlyUsedItems.All(item => item.ItemID != SelectedCommonlyUsedItem.ItemID))
+                SelectedCommonlyUsedItem = null;
+        }
+
+        private void ClearCheckedOutSelectionIfMissing()
+        {
+            if (SelectedCheckedOutItem != null && CheckedOutItems.All(item => item.ItemID != SelectedCheckedOutItem.ItemID))
+                SelectedCheckedOutItem = null;
+        }
+
+        private void ClearIncompleteSelectionIfMissing()
+        {
+            if (SelectedIncompleteItem != null && IncompleteItems.All(item => item.ItemID != SelectedIncompleteItem.ItemID))
+                SelectedIncompleteItem = null;
+        }
+
+        private void ClearRentalSelectionIfMissing()
+        {
+            if (SelectedRental != null && RentedItems.All(rental => rental.RentalID != SelectedRental.RentalID))
+                SelectedRental = null;
         }
 
         private static string DescribeItem(string prefix, ItemModel item)
