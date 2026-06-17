@@ -277,7 +277,7 @@ namespace InventoryManagementApp.ViewModels
                 Items.ReplaceRange(list);
                 SearchResults.ReplaceRange(list);
                 LoadCategories(Items);
-                RefreshCheckedOutItems();
+                await RefreshCheckedOutItemsAsync(CancellationToken.None);
             }
             finally
             {
@@ -333,7 +333,7 @@ namespace InventoryManagementApp.ViewModels
                 Items.ReplaceRange(list);
                 SearchResults.ReplaceRange(list);
                 LoadCategories(list, suppressSearch: true);
-                RefreshCheckedOutItems();
+                await RefreshCheckedOutItemsAsync(cancellationToken);
             }
             else
             {
@@ -567,7 +567,7 @@ namespace InventoryManagementApp.ViewModels
                 }
 
                 ApplyItemState(item, refreshed);
-                RefreshCheckedOutItems();
+                await RefreshCheckedOutItemsAsync(cancellationToken);
             }
             catch (OperationCanceledException)
             {
@@ -670,13 +670,19 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        void RefreshCheckedOutItems()
+        async Task RefreshCheckedOutItemsAsync(CancellationToken cancellationToken = default)
         {
-            var checkedOutItems = Items.Where(t => t.IsCheckedOut)
-                                       .OrderByDescending(t => t.CheckedOutTime ?? DateTime.MinValue)
-                                       .ThenBy(t => t.Name)
-                                       .ToList();
-            CheckedOutItems.ReplaceRange(checkedOutItems);
+            try
+            {
+                var checkedOutItems = await _itemService.GetCheckedOutItemsAsync(cancellationToken).ConfigureAwait(false);
+                CheckedOutItems.ReplaceRange(checkedOutItems
+                    .OrderByDescending(t => t.CheckedOutTime ?? DateTime.MinValue)
+                    .ThenBy(t => t.Name)
+                    .ToList());
+            }
+            catch (OperationCanceledException)
+            {
+            }
         }
 
         void Items_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -685,7 +691,7 @@ namespace InventoryManagementApp.ViewModels
                 return;
 
             LoadCategories(Items);
-            RefreshCheckedOutItems();
+            _ = RefreshCheckedOutItemsAsync();
         }
 
         void SearchResults_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
