@@ -1,11 +1,12 @@
 Please update the ui this is each screen shot photo and feedback on each. this prompt will run every hour so keep track of what has been done. once complete just carry out polish passes..
 
 Progress log:
+- 2026-06-17 23:11 NZST: Polished the login account-selection surface (`InventoryManagementApp/Views/Windows/LoginWindow.xaml`) into a more deliberate two-panel workstation entry screen with branded company context, role/access guidance, profile count, and stronger user cards while preserving the existing sign-in command path. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-17-auth-entry-polish.md`.
 - 2026-06-17 22:32 NZST: Added a shared visual hierarchy polish layer (`InventoryManagementApp/Resources/PolishedVisualHierarchy.xaml`) and loaded it in `App.xaml`. This targets the repeated flat/box-heavy feedback by improving common cards, toolbar/action strips, pane headers, summary cards, primary buttons, and dense grid headers across the app. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-17-shared-visual-hierarchy-polish.md`.
 
 Overall: the UI is operationally competent and consistent, but most screens still look like a solid internal tool rather than a polished commercial product. The strongest positives are workflow clarity and consistent layout; the main weakness is flat visual hierarchy.
 00-auth
-01-login-window.png: too bare for a first impression; it is clean, but it feels unfinished rather than intentionally minimal.
+01-login-window.png: too bare for a first impression; it is clean, but it feels unfinished rather than intentionally minimal. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/LoginWindow.xaml`; runtime screenshot review still needed.
 01-overview
 01-search-tools-results.png: functional split layout, but the right-side intelligence area feels cramped and visually secondary despite being important.
 02-search-tools-recent-searches.png: same strengths as above; recent-search intelligence is useful, but the screen still feels box-heavy and low-energy.
