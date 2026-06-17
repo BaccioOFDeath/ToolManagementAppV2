@@ -4,78 +4,148 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="{DynamicResource BackgroundBrush}"
       PreviewKeyDown="Page_PreviewKeyDown">
+    <Page.Resources>
+        <Style x:Key="CategoryStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="MinHeight" Value="76"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+        </Style>
+        <Style x:Key="CategoryDetailCard" TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+        <Style x:Key="CategoryDetailText" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlock}">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,2,0,0"/>
+        </Style>
+    </Page.Resources>
+
     <Grid Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource ToolbarCard}">
-            <DockPanel LastChildFill="True">
-                <StackPanel DockPanel.Dock="Left" Margin="0,0,12,0">
-                    <TextBlock Text="Category Setup" Style="{StaticResource SectionHeader}"/>
-                    <TextBlock Text="{Binding CategorySetupSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="12,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" MinWidth="380"/>
+                    <ColumnDefinition Width="14"/>
+                    <ColumnDefinition Width="3*" MinWidth="520"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Category Workbench" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    <TextBlock Text="Shape the category language staff use for item setup, advisor search, printed directories, and clean handoffs between inventory areas."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"
+                               Margin="0,3,0,0"/>
                 </StackPanel>
-
-                <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <Button Style="{StaticResource PrimaryButton}" Content="New" Command="{Binding AddCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Save" Command="{Binding SaveCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Copy" Click="CopyCategory_Click" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Print" Click="PrintCategories_Click" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Refresh" Command="{Binding RefreshCommand}" Margin="0,0,0,4"/>
-                </WrapPanel>
-
-                <Grid MinWidth="320" MaxWidth="620" HorizontalAlignment="Stretch" VerticalAlignment="Center">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" MinWidth="170"/>
-                        <ColumnDefinition Width="8"/>
-                        <ColumnDefinition Width="*" MinWidth="170"/>
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0">
-                        <TextBlock Text="Category name" Style="{StaticResource LabelTextBlock}"/>
-                        <TextBox x:Name="CategoryNameBox"
-                                 Text="{Binding CategoryName, UpdateSourceTrigger=PropertyChanged}"
-                                 ToolTip="Category name"/>
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="2">
-                        <TextBlock Text="Find category" Style="{StaticResource LabelTextBlock}"/>
-                        <TextBox x:Name="FindBox"
-                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                 ToolTip="Filter categories by ID or name"/>
-                    </StackPanel>
-                </Grid>
-            </DockPanel>
+                <UniformGrid Grid.Column="2" Columns="4">
+                    <Border Style="{StaticResource CategoryStatCard}">
+                        <StackPanel>
+                            <TextBlock Text="DIRECTORY" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding CategoryResultsSummary}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource CategoryStatCard}">
+                        <StackPanel>
+                            <TextBlock Text="FILTER" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding CategoryFilterSummary}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource CategoryStatCard}">
+                        <StackPanel>
+                            <TextBlock Text="SELECTED" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding SelectedCategoryTitle}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource DesktopSummaryCard}" Padding="12,10" MinHeight="76">
+                        <StackPanel>
+                            <TextBlock Text="SETUP" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding CategoryNameStatus}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+            </Grid>
         </Border>
 
-        <Grid Grid.Row="1">
+        <Border Grid.Row="1" Style="{StaticResource ToolbarCard}" Padding="10,8">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <DockPanel LastChildFill="True">
+                    <TextBlock Text="Category actions" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <WrapPanel>
+                        <Button Style="{StaticResource PrimaryButton}" Content="New" Command="{Binding AddCommand}" Margin="0,0,4,4" ToolTip="Create and link a new category"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Save" Command="{Binding SaveCommand}" Margin="0,0,4,4" ToolTip="Save the selected category name"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Open" Click="OpenCategoryDetail_Click" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopyCategory_Click" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Print Sheet" Click="PrintSelectedCategory_Click" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Print Directory" Click="PrintCategories_Click" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteCommand}" Margin="0,0,4,4"/>
+                    </WrapPanel>
+                </DockPanel>
+                <DockPanel Grid.Row="1" LastChildFill="True" Margin="0,4,0,0">
+                    <TextBlock Text="Create and filter" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <WrapPanel>
+                        <TextBox x:Name="CategoryNameBox"
+                                 Width="260"
+                                 MinWidth="190"
+                                 Text="{Binding CategoryName, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Category name"
+                                 Margin="0,0,6,4"/>
+                        <TextBox x:Name="FindBox"
+                                 Width="260"
+                                 MinWidth="190"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Filter categories by ID or name"
+                                 Margin="0,0,6,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearSearchCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Refresh" Command="{Binding RefreshCommand}" Margin="0,0,4,4"/>
+                    </WrapPanel>
+                </DockPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2" Margin="0,6,0,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2.2*" MinWidth="420"/>
-                <ColumnDefinition Width="6"/>
-                <ColumnDefinition Width="1.3*" MinWidth="320"/>
+                <ColumnDefinition Width="2.35*" MinWidth="620"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="430" MinWidth="380"/>
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="6,4">
+                    <Border Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel>
-                            <TextBlock Text="01 Category Directory" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
-                            <TextBlock Text="{Binding CategoryResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                            <StackPanel DockPanel.Dock="Left">
+                                <TextBlock Text="01 Category Directory" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                <TextBlock Text="Review the controlled category vocabulary before renaming, printing, or assigning matching inventory records." Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding CategoryResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                        </DockPanel>
+                    </Border>
+
+                    <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
+                        <DockPanel LastChildFill="True">
+                            <TextBlock Text="{Binding CategorySetupSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,10,0"/>
+                            <TextBlock Text="{Binding CategoryFilterSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </DockPanel>
                     </Border>
 
                     <DataGrid x:Name="CategoryGrid"
-                              Grid.Row="1"
+                              Grid.Row="2"
                               ItemsSource="{Binding FilteredCategories}"
                               SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
                               IsReadOnly="True"
@@ -89,10 +159,14 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.ContextMenu>
-                            <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                            <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                                 <MenuItem Header="Open Category Detail" Click="OpenCategoryDetail_Click"/>
                                 <MenuItem Header="Copy Setup Handoff" Click="CopyCategory_Click"/>
                                 <MenuItem Header="Print Selected Sheet" Click="PrintSelectedCategory_Click"/>
+                                <Separator/>
+                                <MenuItem Header="New Category" Command="{Binding AddCommand}"/>
+                                <MenuItem Header="Save Rename" Command="{Binding SaveCommand}"/>
+                                <MenuItem Header="Delete Category" Command="{Binding DeleteCommand}"/>
                                 <Separator/>
                                 <MenuItem Header="Print Current Directory" Click="PrintCategories_Click"/>
                                 <MenuItem Header="Clear Filter" Command="{Binding ClearSearchCommand}"/>
@@ -100,20 +174,33 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="ID" Binding="{Binding CategoryID}" Width="90"/>
-                            <DataGridTextColumn Header="Category" Binding="{Binding Name}" Width="2*"/>
-                            <DataGridTextColumn Header="Directory Label" Binding="{Binding DirectoryLabel}" Width="2*"/>
+                            <DataGridTemplateColumn Header="Category" Width="2.4*" MinWidth="240">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="2,3">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding CategoryID, StringFormat=Category #{0}}" Style="{StaticResource CaptionTextBlock}" Margin="0,1,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Directory Label" Width="2.2*" MinWidth="220">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="2,3">
+                                            <TextBlock Text="{Binding DirectoryLabel}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="Use this label in staff lookup, printed directories, and item setup reviews." Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="ID" Binding="{Binding CategoryID}" Width="90" MinWidth="76"/>
                         </DataGrid.Columns>
                     </DataGrid>
 
-                    <TextBlock Grid.Row="1"
-                               Text="No categories match this filter"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               FontSize="13"
-                               FontWeight="SemiBold">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
+                    <Border Grid.Row="2" Width="340" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding FilteredCategories.Count}" Value="0">
@@ -121,111 +208,96 @@
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                        </Border.Style>
+                        <StackPanel>
+                            <TextBlock Text="No categories match this filter" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                            <TextBlock Text="Clear the search, refresh the directory, or create a category name that matches how staff ask for tools." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
 
-                    <Border Grid.Row="2" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,1,0,0" Padding="6,4">
-                        <DockPanel>
-                            <TextBlock Text="{Binding CategoryFilterSummary}" Style="{StaticResource CaptionTextBlock}" DockPanel.Dock="Left"/>
+                    <Border Grid.Row="3" Style="{StaticResource DesktopPaneSubheader}" BorderThickness="0,1,0,0">
+                        <DockPanel LastChildFill="True">
+                            <TextBlock Text="{Binding SelectedCategorySummary}" Style="{StaticResource CaptionTextBlock}" DockPanel.Dock="Left" TextWrapping="Wrap" Margin="0,0,10,0"/>
                             <Button Style="{StaticResource GhostButton}" Content="Clear Filter" Command="{Binding ClearSearchCommand}" HorizontalAlignment="Right"/>
                         </DockPanel>
                     </Border>
                 </Grid>
             </Border>
 
-            <GridSplitter Grid.Column="1"
-                          Width="6"
-                          HorizontalAlignment="Stretch"
-                          VerticalAlignment="Stretch"
-                          Background="{DynamicResource BorderBrushBase}"/>
+            <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
 
             <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="8">
-                        <Border Background="{DynamicResource SurfaceAltBrush}"
-                                BorderBrush="{DynamicResource BorderBrushAlt}"
-                                BorderThickness="1"
-                                Padding="8"
-                                Margin="0,0,0,8">
-                            <StackPanel>
-                                <TextBlock Text="02 Selected Category" Style="{StaticResource SectionHeader}"/>
-                                <TextBlock Text="{Binding SelectedCategoryTitle}"
-                                           Style="{StaticResource PageTitleTextBlock}"
-                                           TextWrapping="Wrap"/>
-                                <TextBlock Text="{Binding SelectedCategorySubtitle}"
-                                           Style="{StaticResource CaptionTextBlock}"
-                                           TextWrapping="Wrap"/>
-                            </StackPanel>
-                        </Border>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Border Style="{StaticResource DesktopPaneHeader}">
+                        <StackPanel>
+                            <TextBlock Text="02 Setup Handoff" Style="{StaticResource SectionHeader}" Margin="0"/>
+                            <TextBlock Text="Use the selected category card to guide rename, print, and item-assignment decisions." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="8">
+                            <Border Style="{StaticResource CategoryDetailCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Selected Category" Style="{StaticResource LabelTextBlock}"/>
+                                    <TextBlock Text="{Binding SelectedCategoryTitle}" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                    <TextBlock Text="{Binding SelectedCategorySubtitle}" Style="{StaticResource CategoryDetailText}"/>
+                                </StackPanel>
+                            </Border>
 
-                        <Border BorderBrush="{DynamicResource BorderBrushAlt}"
-                                BorderThickness="1"
-                                Background="{DynamicResource TextBoxBackgroundBrush}"
-                                Padding="8"
-                                Margin="0,0,0,8">
-                            <StackPanel>
-                                <TextBlock Text="Admin Handoff" Style="{StaticResource SectionHeader}"/>
-                                <TextBlock Text="{Binding SelectedCategoryHandoff}" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                            </StackPanel>
-                        </Border>
+                            <Border Style="{StaticResource CategoryDetailCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Name Review" Style="{StaticResource SectionHeader}"/>
+                                    <TextBlock Text="{Binding CategoryNameStatus}" Style="{StaticResource CategoryDetailText}"/>
+                                </StackPanel>
+                            </Border>
 
-                        <Border BorderBrush="{DynamicResource BorderBrushAlt}"
-                                BorderThickness="1"
-                                Padding="8"
-                                Margin="0,0,0,8">
-                            <StackPanel>
-                                <TextBlock Text="Next Action" Style="{StaticResource SectionHeader}"/>
-                                <TextBlock Text="{Binding SelectedCategoryNextAction}" TextWrapping="Wrap" Margin="0,2,0,6"/>
-                                <TextBlock Text="Setup Checklist" Style="{StaticResource SectionHeader}"/>
-                                <TextBlock Text="{Binding SelectedCategoryChecklist}" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                            </StackPanel>
-                        </Border>
+                            <Border Style="{StaticResource CategoryDetailCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Next Action" Style="{StaticResource SectionHeader}"/>
+                                    <TextBlock Text="{Binding SelectedCategoryNextAction}" Style="{StaticResource CategoryDetailText}"/>
+                                </StackPanel>
+                            </Border>
 
-                        <Border BorderBrush="{DynamicResource BorderBrushAlt}"
-                                BorderThickness="1"
-                                Background="{DynamicResource TextBoxBackgroundBrush}"
-                                Padding="8"
-                                Margin="0,0,0,8">
-                            <StackPanel>
-                                <TextBlock Text="Name Review" Style="{StaticResource SectionHeader}"/>
-                                <TextBlock Text="{Binding CategoryNameStatus}" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                            </StackPanel>
-                        </Border>
+                            <Border Style="{StaticResource CategoryDetailCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Setup Checklist" Style="{StaticResource SectionHeader}"/>
+                                    <TextBlock Text="{Binding SelectedCategoryChecklist}" Style="{StaticResource CategoryDetailText}"/>
+                                </StackPanel>
+                            </Border>
 
-                        <Border BorderBrush="{DynamicResource BorderBrushAlt}"
-                                BorderThickness="1"
-                                Padding="8"
-                                Margin="0,0,0,8">
-                            <StackPanel>
-                                <TextBlock Text="Category Detail" Style="{StaticResource SectionHeader}"/>
-                                <TextBlock Text="{Binding SelectedCategoryDetail}" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                            </StackPanel>
-                        </Border>
+                            <Border Style="{StaticResource CategoryDetailCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Admin Handoff" Style="{StaticResource SectionHeader}"/>
+                                    <TextBlock Text="{Binding SelectedCategoryHandoff}" Style="{StaticResource CategoryDetailText}"/>
+                                </StackPanel>
+                            </Border>
 
-                        <WrapPanel>
-                            <Button Style="{StaticResource PrimaryButton}"
-                                    Content="Open"
-                                    Click="OpenCategoryDetail_Click"
-                                    Margin="0,0,4,4"/>
-                            <Button Style="{StaticResource GhostButton}"
-                                    Content="Copy"
-                                    Click="CopyCategory_Click"
-                                    Margin="0,0,4,4"/>
-                            <Button Style="{StaticResource GhostButton}"
-                                    Content="Print Sheet"
-                                    Click="PrintSelectedCategory_Click"
-                                    Margin="0,0,4,4"/>
-                            <Button Style="{StaticResource GhostButton}"
-                                    Content="Refresh"
-                                    Command="{Binding RefreshCommand}"
-                                    Margin="0,0,4,4"/>
-                        </WrapPanel>
-                    </StackPanel>
-                </ScrollViewer>
+                            <Border Style="{StaticResource CategoryDetailCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Category Detail" Style="{StaticResource SectionHeader}"/>
+                                    <TextBlock Text="{Binding SelectedCategoryDetail}" Style="{StaticResource CategoryDetailText}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource DesktopInsetCard}" Padding="10" Margin="0,0,0,8">
+                                <WrapPanel>
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Open" Click="OpenCategoryDetail_Click" Margin="0,0,4,4"/>
+                                    <Button Style="{StaticResource GhostButton}" Content="Copy" Click="CopyCategory_Click" Margin="0,0,4,4"/>
+                                    <Button Style="{StaticResource GhostButton}" Content="Print Sheet" Click="PrintSelectedCategory_Click" Margin="0,0,4,4"/>
+                                    <Button Style="{StaticResource GhostButton}" Content="Refresh" Command="{Binding RefreshCommand}" Margin="0,0,4,4"/>
+                                </WrapPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
             </Border>
         </Grid>
 
-        <Border Grid.Row="2" Style="{StaticResource ToolbarCard}" Margin="0,4,0,0">
+        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,6,0,0">
             <DockPanel LastChildFill="True">
                 <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right">
                     <Button Style="{StaticResource PrimaryButton}" Content="Open" Click="OpenCategoryDetail_Click" Margin="0,0,4,4"/>
@@ -243,6 +315,7 @@
         <ProgressBar Grid.Row="3"
                      IsIndeterminate="True"
                      Margin="0,4,0,0"
+                     VerticalAlignment="Bottom"
                      Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
     </Grid>
 </Page>
