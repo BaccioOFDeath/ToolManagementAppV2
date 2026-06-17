@@ -4,8 +4,10 @@ using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Application = System.Windows.Application;
 using MediaBrush = System.Windows.Media.Brush;
@@ -21,6 +23,20 @@ namespace InventoryManagementApp.ViewModels
         private readonly IFileDialogService _fileDialog;
 
         public string AccessSummary => EditingUser.AccessSummary;
+
+        public string PermissionStatusSummary => EditingUser.IsAdmin
+            ? "Full administrator: this user can see every section and use every admin-level action."
+            : GetAllowedPermissionLabels().Any()
+                ? $"Custom access: {EditingUser.UserName} can see {GetAllowedPermissionLabels().Count()} section{(GetAllowedPermissionLabels().Count() == 1 ? string.Empty : "s")}."
+                : "No access assigned: this user can sign in only if they are active, but no app sections will be available.";
+
+        public string AllowedPermissionSummary => EditingUser.IsAdmin
+            ? "Every app section, setting, and guarded action is available."
+            : BuildPermissionSummary(GetAllowedPermissionLabels(), "No app sections assigned.");
+
+        public string HiddenPermissionSummary => EditingUser.IsAdmin
+            ? "Nothing is hidden while Full administrator is ticked."
+            : BuildPermissionSummary(GetHiddenPermissionLabels(), "Nothing hidden for the selected permissions.");
 
         public bool CanManageItems { get => Has(User.PermissionManageItems); set => Set(User.PermissionManageItems, value); }
         public bool CanUseRentals { get => Has(User.PermissionRentals); set => Set(User.PermissionRentals, value); }
@@ -80,7 +96,7 @@ namespace InventoryManagementApp.ViewModels
 
         void EditingUser_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(User.IsAdmin) || e.PropertyName == nameof(User.Permissions))
+            if (e.PropertyName == nameof(User.IsAdmin) || e.PropertyName == nameof(User.Permissions) || e.PropertyName == nameof(User.UserName))
                 NotifyAllPermissionProperties();
         }
 
@@ -89,7 +105,7 @@ namespace InventoryManagementApp.ViewModels
         void Set(string permissionKey, bool allowed)
         {
             EditingUser.SetPermission(permissionKey, allowed);
-            OnPropertyChanged(nameof(AccessSummary));
+            NotifyAllPermissionProperties();
         }
 
         void ApplyPreset(params string[] permissionKeys)
@@ -97,6 +113,27 @@ namespace InventoryManagementApp.ViewModels
             EditingUser.IsAdmin = false;
             EditingUser.Permissions = User.BuildPermissions(permissionKeys);
             NotifyAllPermissionProperties();
+        }
+
+        IEnumerable<string> GetAllowedPermissionLabels()
+        {
+            if (EditingUser.IsAdmin)
+                return User.PermissionLabels.Values;
+
+            return User.PermissionLabels
+                .Where(permission => EditingUser.HasPermission(permission.Key))
+                .Select(permission => permission.Value);
+        }
+
+        IEnumerable<string> GetHiddenPermissionLabels()
+            => User.PermissionLabels
+                .Where(permission => !EditingUser.HasPermission(permission.Key))
+                .Select(permission => permission.Value);
+
+        static string BuildPermissionSummary(IEnumerable<string> labels, string emptyText)
+        {
+            var list = labels.ToList();
+            return list.Count == 0 ? emptyText : string.Join(", ", list);
         }
 
         void NotifyAllPermissionProperties()
@@ -116,6 +153,9 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(CanManageUsers));
             OnPropertyChanged(nameof(CanUseSettings));
             OnPropertyChanged(nameof(AccessSummary));
+            OnPropertyChanged(nameof(PermissionStatusSummary));
+            OnPropertyChanged(nameof(AllowedPermissionSummary));
+            OnPropertyChanged(nameof(HiddenPermissionSummary));
         }
 
         void BrowseImage()
