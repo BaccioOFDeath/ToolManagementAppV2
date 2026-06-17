@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-17 14:11 NZST
+Last audit date/time: 2026-06-17 16:11 NZST
 
 ## Completed workflows
 
@@ -14,6 +14,7 @@ Last audit date/time: 2026-06-17 14:11 NZST
 - QA screenshot capture now names the first Settings capture as service status and walks every Settings tab through Backups after the service-status tab was added.
 - Import / Export now uses a compact data workstation layout with separate sections for item data, customer data, backup/image admin work, and run-log review.
 - Import / Export operation logs now support selected-row detail, copy, print, clear, double-click drilldown, and row-correct right-click actions.
+- Import / Export image mapping now follows the Import / export checkbox permission instead of an outdated full-admin-only UI gate, matching the service-layer import permission guard.
 - QA screenshot wrapper validation now requires every expected screenshot folder to contain PNG output and appends the captured file list to the run README.
 - Kits now use a compact desktop workstation with kit directory, item membership, selected-kit detail, availability guidance, row-correct context menus, double-click drilldown, keyboard shortcuts, copy selected kit details, printable kit directory output, and printable kit pick sheets.
 - QA screenshot wrapper validation now checks for each expected named screenshot file so missing captures fail loudly instead of passing on folder count alone.
@@ -35,7 +36,7 @@ Last audit date/time: 2026-06-17 14:11 NZST
 
 - Item import/export coverage exists, but solution-wide validation still needs to run in an environment with the .NET SDK.
 - Reports page has a compact operational grid, summary panel, print/copy actions, and safe empty unknown-report handling; runtime screenshot and full report generation checks remain pending.
-- Import / Export has been redesigned and wired for log actions, but runtime file-dialog, print, and screenshot checks still need a Windows/.NET workstation.
+- Import / Export has been redesigned and wired for log actions plus permission-matched image mapping, but runtime file-dialog, print, image-mapping, and screenshot checks still need a Windows/.NET workstation.
 - Kits now have a completed desktop workflow surface, but runtime add/edit/item-membership dialog validation still needs a Windows/.NET workstation.
 - Customers now have a completed desktop workflow surface, but runtime add/edit/delete/print/copy validation still needs a Windows/.NET workstation.
 - Maintenance now has a completed desktop workflow surface, but runtime add/edit/complete/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
@@ -57,6 +58,6 @@ Last audit date/time: 2026-06-17 14:11 NZST
 
 ## Validation status
 
-- GitHub connector compare/readback reviewed the permission-specific service guard branch.
+- GitHub connector readback reviewed the Import / Export permission UI change and progress note.
 - Local XAML parsing, `dotnet --info`, `dotnet restore`, `dotnet build`, `dotnet test`, and `scripts/run-app-qa-screenshots.ps1` were not run because this scheduled Linux container lacks the .NET SDK and Windows/WPF runtime, and direct local clone/raw fetches remain blocked by the network tunnel.
 - Did not run unrelated tests, per instruction.
