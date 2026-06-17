@@ -3,6 +3,7 @@
 - Please update the ui this is each screen shot photo and feedback on each. this prompt will run every hour so keep track of what has been done. once complete just carry out polish passes..
 
 Progress log:
+
 - 2026-06-18 09:11 NZST: Polished the Kits workbench. `KitManagementPage` now has a stronger kit operations header, directory/membership/selected/availability summary cards, separated kit actions and filter controls, richer kit and item rows, styled empty states, and carded selected-kit handoff sections while preserving existing kit commands, bindings, double-click handlers, and row-correct context menu hooks. Added XAML contract tests for the updated kit page. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-18-kits-workbench-polish.md`.
 - 2026-06-18 08:11 NZST: Polished the Calibration workbench. `CalibrationPage` now has a stronger calibration register header, certificate-readiness summary cards, separated certificate actions and due-state filters, richer certificate/due/standard/calibrator rows, a styled empty state, and carded shelf-release handoff sections while preserving existing calibration commands, bindings, double-click handlers, and row-correct context menu hooks. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-18-calibration-workbench-polish.md`.
 - 2026-06-18 06:11 NZST: Polished the Customers workbench. `CustomersPage` now has a stronger customer desk header, visible/search/contact/selected-customer summary cards, a denser search and directory-action strip, richer company/contact/phone rows, a styled empty state, and carded advisor handoff sections while preserving existing customer commands, bindings, double-click handlers, and row-correct context menu hooks. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-18-customers-workbench-polish.md`.
@@ -108,4 +109,3 @@ Overall: the UI is operationally competent and consistent, but most screens stil
 45-reports-preview.png: good concise operational snapshot; like the other print previews, it works but does not feel designed.
 
 Also please make sure all buttons are aligned as when switching throught the screen shots you can see movements of buttons that could be in the same place between screens and make sure there is a footer status bar on every page to make it feel more complete that hight is set, this status bar could have scrolling info from right to left.
-
