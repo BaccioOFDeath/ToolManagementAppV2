@@ -57,7 +57,3 @@ The UI should feel stable, direct, and tool-like.
 The app should look intentional rather than template-generated.
 You can also use this shorter version when prompting AI tools:
 “Design this like a high-quality early WinForms desktop application: native-looking controls, compact spacing, clear labels, strong hierarchy, tables over cards, minimal decoration, high information density, obvious workflows, fast interaction, and no trendy web-app styling.”
-If you want, I can turn this into:
-a stricter UI standards doc for your team
-a one-paragraph AI prompt
-a screen-by-screen modernization rubric for your big app
