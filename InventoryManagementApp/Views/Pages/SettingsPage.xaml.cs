@@ -1,5 +1,7 @@
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using InventoryManagementApp.ViewModels;
 using TextBox = System.Windows.Controls.TextBox;
 
@@ -8,6 +10,7 @@ namespace InventoryManagementApp.Views.Pages
     public partial class SettingsPage : Page
     {
         private SettingsViewModel? _settingsViewModel;
+        private bool _themeDesignerTabAdded;
 
         public SettingsPage()
         {
@@ -17,21 +20,74 @@ namespace InventoryManagementApp.Views.Pages
             DataContextChanged += SettingsPage_DataContextChanged;
         }
 
-        private void SettingsPage_Loaded(object sender, System.Windows.RoutedEventArgs e)
+        private void SettingsPage_Loaded(object sender, RoutedEventArgs e)
         {
+            AddThemeDesignerTab();
             AttachViewModel(DataContext as SettingsViewModel);
             SyncSensitiveFieldsFromViewModel();
         }
 
-        private void SettingsPage_Unloaded(object sender, System.Windows.RoutedEventArgs e)
+        private void SettingsPage_Unloaded(object sender, RoutedEventArgs e)
         {
             AttachViewModel(null);
         }
 
-        private void SettingsPage_DataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
+        private void SettingsPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             AttachViewModel(e.NewValue as SettingsViewModel);
             SyncSensitiveFieldsFromViewModel();
+        }
+
+        private void AddThemeDesignerTab()
+        {
+            if (_themeDesignerTabAdded)
+                return;
+
+            var tabControl = FindVisualChild<TabControl>(this);
+            if (tabControl == null)
+                return;
+
+            var tab = new TabItem
+            {
+                Header = "06 Themes",
+                Style = TryFindResource("DesktopSectionListTabItem") as Style,
+                Content = new ThemeDesignerControl()
+            };
+
+            tabControl.Items.Insert(System.Math.Min(5, tabControl.Items.Count), tab);
+            RenumberTabs(tabControl);
+            _themeDesignerTabAdded = true;
+        }
+
+        private static void RenumberTabs(TabControl tabControl)
+        {
+            for (var i = 0; i < tabControl.Items.Count; i++)
+            {
+                if (tabControl.Items[i] is not TabItem item)
+                    continue;
+
+                var header = item.Header?.ToString();
+                if (string.IsNullOrWhiteSpace(header) || header.Length < 4 || !char.IsDigit(header[0]) || !char.IsDigit(header[1]))
+                    continue;
+
+                item.Header = $"{i + 1:00}{header[2..]}";
+            }
+        }
+
+        private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (var i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T typed)
+                    return typed;
+
+                var nested = FindVisualChild<T>(child);
+                if (nested != null)
+                    return nested;
+            }
+
+            return null;
         }
 
         private void AttachViewModel(SettingsViewModel? viewModel)
@@ -79,7 +135,7 @@ namespace InventoryManagementApp.Views.Pages
             }
         }
 
-        private void SmtpPasswordBox_PasswordChanged(object sender, System.Windows.RoutedEventArgs e)
+        private void SmtpPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
         {
             if (_settingsViewModel != null && _settingsViewModel.SmtpPassword != SmtpPasswordBox.Password)
             {
@@ -87,7 +143,7 @@ namespace InventoryManagementApp.Views.Pages
             }
         }
 
-        private void SmsApiKeyBox_PasswordChanged(object sender, System.Windows.RoutedEventArgs e)
+        private void SmsApiKeyBox_PasswordChanged(object sender, RoutedEventArgs e)
         {
             if (_settingsViewModel != null && _settingsViewModel.SmsApiKey != SmsApiKeyBox.Password)
             {
