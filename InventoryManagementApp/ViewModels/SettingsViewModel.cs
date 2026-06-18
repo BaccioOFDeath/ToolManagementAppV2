@@ -994,13 +994,13 @@ namespace InventoryManagementApp.ViewModels
         {
             if (!EmailConfigurationStatus.Equals("Ready to test email delivery.", StringComparison.Ordinal))
             {
-                _dialogService.ShowInfo(EmailConfigurationStatus, "Invalid Configuration");
+                await _dialogService.ShowInfoAsync(EmailConfigurationStatus, "Invalid Configuration").ConfigureAwait(false);
                 return;
             }
 
             if (SmtpHost.Contains("example.com", StringComparison.OrdinalIgnoreCase))
             {
-                _dialogService.ShowInfo("Please enter a valid SMTP host.", "Invalid Configuration");
+                await _dialogService.ShowInfoAsync("Please enter a valid SMTP host.", "Invalid Configuration").ConfigureAwait(false);
                 return;
             }
 
@@ -1020,29 +1020,31 @@ namespace InventoryManagementApp.ViewModels
                 await Task.Run(() =>
                 {
                     // Just verify credentials - this will throw if authentication fails
-                    client.Send(new System.Net.Mail.MailMessage(
+                    using var message = new System.Net.Mail.MailMessage(
                         FromEmail,
                         FromEmail,
                         "Test Connection",
-                        "This is a test message to verify SMTP configuration."));
+                        "This is a test message to verify SMTP configuration.");
+                    message.ReplyToList.Add(FromEmail);
+                    client.Send(message);
                 }, token);
 
-                _dialogService.ShowInfo("Email configuration is valid and test email sent successfully!", "Connection Successful");
+                await _dialogService.ShowInfoAsync("Email configuration is valid and test email sent successfully!", "Connection Successful").ConfigureAwait(false);
             }
             catch (System.Net.Mail.SmtpException ex)
             {
                 _logger.LogWarning(ex, "SMTP test failed.");
-                _dialogService.ShowInfo(BuildSmtpFailureMessage(ex), "Connection Failed");
+                await _dialogService.ShowInfoAsync(BuildSmtpFailureMessage(ex), "Connection Failed").ConfigureAwait(false);
             }
             catch (TimeoutException ex)
             {
                 _logger.LogWarning(ex, "SMTP port check timed out.");
-                _dialogService.ShowInfo($"{ex.Message}\n\nCheck firewall, antivirus, or network filtering for outbound TCP port {SmtpPort}.", "Connection Failed");
+                await _dialogService.ShowInfoAsync($"{ex.Message}\n\nCheck firewall, antivirus, or network filtering for outbound TCP port {SmtpPort}.", "Connection Failed").ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Email test failed.");
-                _dialogService.ShowInfo($"Email test failed: {ex.Message}", "Test Failed");
+                await _dialogService.ShowInfoAsync($"Email test failed: {ex.Message}", "Test Failed").ConfigureAwait(false);
             }
         }
 
