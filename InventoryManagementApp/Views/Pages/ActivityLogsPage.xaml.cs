@@ -7,6 +7,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
+using InventoryManagementApp.Views.Windows;
 using WpfMessageBox = System.Windows.MessageBox;
 using WpfPrintDialog = System.Windows.Controls.PrintDialog;
 
@@ -58,7 +59,14 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            WpfMessageBox.Show(FormatLogDetail(log), "Activity Detail", MessageBoxButton.OK, MessageBoxImage.Information);
+            DetailDialogWindow.ShowDialogFor(
+                Window.GetWindow(this),
+                "Activity Detail",
+                "Activity Detail",
+                FormatLogDetail(log),
+                "Review the selected audit trail, destination, and next action without losing row context.",
+                ActivityLogsViewModel.ClassifyAction(log.Action),
+                "Close returns to Activity Logs with the selected audit row still available for copy, print, or related-page routing.");
         }
 
         private void OpenRelatedPage_Click(object sender, RoutedEventArgs e)

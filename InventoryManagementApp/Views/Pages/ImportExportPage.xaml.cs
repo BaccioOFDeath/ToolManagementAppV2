@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using InventoryManagementApp.ViewModels;
+using InventoryManagementApp.Views.Windows;
 using WpfMessageBox = System.Windows.MessageBox;
 using WpfPrintDialog = System.Windows.Controls.PrintDialog;
 
@@ -40,7 +41,14 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            WpfMessageBox.Show(log, "Import / Export Result", MessageBoxButton.OK, MessageBoxImage.Information);
+            DetailDialogWindow.ShowDialogFor(
+                Window.GetWindow(this),
+                "Import / Export Result",
+                "Import / Export Result",
+                log,
+                "Review the selected operation result before copying, printing, or continuing the data workflow.",
+                "Run Log",
+                "Close returns to the run log with the selected result still available for copy, print, or review.");
         }
 
         private void CopySelectedLog_Click(object sender, RoutedEventArgs e)
