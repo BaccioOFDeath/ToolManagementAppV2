@@ -17,7 +17,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource PageHeaderCard}" Padding="16,14">
+        <Border Style="{StaticResource ToolbarCard}" Padding="16,14">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -26,13 +26,13 @@
                 <StackPanel>
                     <TextBlock Text="Import Mapping Workbench" Style="{StaticResource HeadingTextBlock}"/>
                     <TextBlock Text="Match each application field to the incoming CSV column before the import continues."
-                               Style="{StaticResource MutedTextBlock}"
+                               Style="{StaticResource CaptionTextBlock}"
                                Margin="0,4,0,0"/>
                 </StackPanel>
-                <Border Grid.Column="1" Style="{StaticResource SummaryStatCard}" Padding="12,8" VerticalAlignment="Center">
+                <Border Grid.Column="1" Style="{StaticResource Card}" Padding="12,8" VerticalAlignment="Center">
                     <StackPanel>
-                        <TextBlock Text="Column Review" Style="{StaticResource SummaryStatLabel}"/>
-                        <TextBlock Text="Required fields first" Style="{StaticResource MutedTextBlock}" Margin="0,2,0,0"/>
+                        <TextBlock Text="Column Review" Style="{StaticResource LabelTextBlock}"/>
+                        <TextBlock Text="Required fields first" Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
             </Grid>
@@ -48,21 +48,21 @@
                 <StackPanel>
                     <TextBlock Text="1. Review fields" Style="{StaticResource SectionHeader}"/>
                     <TextBlock Text="Required destination fields should be mapped before optional detail fields."
-                               Style="{StaticResource MutedTextBlock}"
+                               Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,4,12,0"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1">
                     <TextBlock Text="2. Choose CSV columns" Style="{StaticResource SectionHeader}"/>
                     <TextBlock Text="Use the drop-down in each row to pair incoming columns with app fields."
-                               Style="{StaticResource MutedTextBlock}"
+                               Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,4,12,0"/>
                 </StackPanel>
                 <StackPanel Grid.Column="2">
                     <TextBlock Text="3. Confirm mapping" Style="{StaticResource SectionHeader}"/>
                     <TextBlock Text="Cancel returns to data operations; OK accepts the selected mapping."
-                               Style="{StaticResource MutedTextBlock}"
+                               Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,4,0,0"/>
                 </StackPanel>
@@ -75,14 +75,14 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Border Style="{StaticResource PaneHeaderBar}" Padding="12,10">
+                <Border Style="{StaticResource ToolbarCard}" Padding="12,10" Margin="0">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="Field Mapping Table" Style="{StaticResource SectionHeader}"/>
-                        <TextBlock Grid.Column="1" Text="Destination field to CSV column" Style="{StaticResource MutedTextBlock}"/>
+                        <TextBlock Grid.Column="1" Text="Destination field to CSV column" Style="{StaticResource CaptionTextBlock}"/>
                     </Grid>
                 </Border>
                 <DataGrid Grid.Row="1"
@@ -123,8 +123,8 @@
                                   RightButtonText="OK"
                                   RightCommand="{Binding OkCommand}"/>
 
-        <Border Grid.Row="4" Style="{StaticResource StatusFooterBar}" Margin="0,12,0,0">
-            <TextBlock Text="Mapping choices are applied only after OK is selected." Style="{StaticResource MutedTextBlock}"/>
+        <Border Grid.Row="4" Style="{StaticResource ToolbarCard}" Margin="0,12,0,0" Padding="10,7">
+            <TextBlock Text="Mapping choices are applied only after OK is selected." Style="{StaticResource CaptionTextBlock}"/>
         </Border>
     </Grid>
 </Window>
