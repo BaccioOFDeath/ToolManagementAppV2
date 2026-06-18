@@ -53,7 +53,7 @@
             <DockPanel LastChildFill="True">
                 <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
                     <TextBlock Text="Item Detail" Style="{StaticResource PageTitleTextBlock}"/>
-                    <TextBlock Text="{Binding ItemModel.Name, TargetNullValue=Review inventory identity, stock state, notes, and next actions for this item.}"
+                    <TextBlock Text="{Binding ItemModel.Name, TargetNullValue='Review inventory identity, stock state, notes, and next actions for this item.'}"
                                Style="{StaticResource HeadingTextBlock}"
                                TextWrapping="Wrap"/>
                     <TextBlock Text="Use this sheet to decide whether to edit the record, rent it out, place a hold, print details, or inspect rental history."
