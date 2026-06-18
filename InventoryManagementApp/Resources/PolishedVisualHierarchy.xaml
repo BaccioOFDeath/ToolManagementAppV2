@@ -98,4 +98,11 @@
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="1"/>
     </Style>
+
+    <Style x:Key="DataRunLogCard" TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
+        <Setter Property="Padding" Value="12"/>
+        <Setter Property="Margin" Value="0,0,0,8"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="BorderThickness" Value="1,1,1,2"/>
+    </Style>
 </ResourceDictionary>
