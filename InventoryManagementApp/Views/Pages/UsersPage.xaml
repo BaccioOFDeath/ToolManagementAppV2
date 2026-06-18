@@ -5,68 +5,135 @@
       xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
       xmlns:pages="clr-namespace:InventoryManagementApp.Views.Pages"
       Background="{DynamicResource BackgroundBrush}">
+    <Page.Resources>
+        <Style x:Key="UserStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="MinHeight" Value="76"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+        </Style>
+        <Style x:Key="UserDetailText" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlock}">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,2,0,0"/>
+        </Style>
+    </Page.Resources>
 
-    <Grid Margin="0">
+    <Grid Margin="4">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource ToolbarCard}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <TextBlock Grid.Column="0" Grid.Row="0" Text="Find:" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                <pages:SearchBar Grid.Column="1" Grid.Row="0"
-                                 Width="360"
-                                 HorizontalAlignment="Left"
-                                 SearchLabel=""
-                                 Text="{Binding UserSearchText}"
-                                 SearchCommand="{Binding SearchUsersCommand}"
-                                 ClearCommand="{Binding ClearUserSearchCommand}"/>
-
-                <WrapPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" HorizontalAlignment="Right" Margin="0,8,0,0">
-                    <Button Style="{StaticResource PrimaryButton}" Content="Add" Command="{Binding AddUserCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditUserCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Reset Password" Click="ResetSelectedUser_Click" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Upload Photo" Command="{Binding UploadUserPhotoCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Copy" Click="CopySelectedUser_Click" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Print" Click="PrintUsers_Click"/>
+        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="14,12">
+            <DockPanel LastChildFill="False">
+                <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,18,0">
+                    <TextBlock Text="Users Workbench" Style="{StaticResource PageTitleTextBlock}"/>
+                    <TextBlock Text="Manage account access, password recovery, profile photos, and audit-ready user directory output from one admin desk."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"
+                               Margin="0,3,0,0"/>
+                </StackPanel>
+                <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource PrimaryButton}" Content="Add User" Command="{Binding AddUserCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Edit Access" Command="{Binding EditUserCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Reset Password" Click="ResetSelectedUser_Click" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Upload Photo" Command="{Binding UploadUserPhotoCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedUser_Click" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Print Directory" Click="PrintUsers_Click" Margin="0,0,0,6"/>
                 </WrapPanel>
-            </Grid>
+            </DockPanel>
         </Border>
 
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" Margin="0,0,0,6">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*"/>
-                <ColumnDefinition Width="6"/>
-                <ColumnDefinition Width="1.15*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="1.2*"/>
+                <ColumnDefinition Width="1.2*"/>
+                <ColumnDefinition Width="1.35*"/>
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Style="{StaticResource UserStatCard}">
+                <StackPanel>
+                    <TextBlock Text="Visible Users" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="{Binding Users.Count}" Style="{StaticResource HeadingTextBlock}"/>
+                    <TextBlock Text="Rows matching the current account search" Style="{StaticResource UserDetailText}"/>
+                </StackPanel>
+            </Border>
+            <Border Grid.Column="1" Style="{StaticResource UserStatCard}">
+                <StackPanel>
+                    <TextBlock Text="Directory Filter" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="{Binding UserSearchText, TargetNullValue=All accounts}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="Search by user, role, contact, or access summary before printing" Style="{StaticResource UserDetailText}"/>
+                </StackPanel>
+            </Border>
+            <Border Grid.Column="2" Style="{StaticResource UserStatCard}">
+                <StackPanel>
+                    <TextBlock Text="Selected Access" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="{Binding SelectedUser.AccessSummary, TargetNullValue=No account selected}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="Review allowed app areas before editing permissions" Style="{StaticResource UserDetailText}"/>
+                </StackPanel>
+            </Border>
+            <Border Grid.Column="3" Style="{StaticResource UserStatCard}" Margin="0">
+                <StackPanel>
+                    <TextBlock Text="Security State" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="{Binding SelectedUser.LockoutStatus, TargetNullValue=Select a user}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="Password reset, lockout, and active-status context" Style="{StaticResource UserDetailText}"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2.15*" MinWidth="620"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="1.05*" MinWidth="360"/>
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="5,3">
-                        <DockPanel>
-                            <TextBlock Text="01 User Directory" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
-                            <TextBlock Text="{Binding Users.Count, StringFormat='Visible users: {0}'}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                    <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}">
+                        <DockPanel LastChildFill="False">
+                            <StackPanel DockPanel.Dock="Left">
+                                <TextBlock Text="Account Directory" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                <TextBlock Text="Select the exact account before editing access, resetting a password, uploading a photo, or printing directory evidence."
+                                           Style="{StaticResource CaptionTextBlock}"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <TextBlock DockPanel.Dock="Right"
+                                       Text="{Binding Users.Count, StringFormat='Visible: {0}'}"
+                                       Style="{StaticResource CaptionTextBlock}"
+                                       VerticalAlignment="Center"
+                                       Margin="12,0,0,0"/>
+                        </DockPanel>
+                    </Border>
+
+                    <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
+                        <DockPanel LastChildFill="False">
+                            <WrapPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                                <TextBlock Text="Find" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,6"/>
+                                <pages:SearchBar Width="340"
+                                                 SearchLabel="Search"
+                                                 Text="{Binding UserSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                                 SearchCommand="{Binding SearchUsersCommand}"
+                                                 ClearCommand="{Binding ClearUserSearchCommand}"
+                                                 Margin="0,0,8,6"/>
+                            </WrapPanel>
+                            <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0">
+                                <Button Style="{StaticResource PrimaryButton}" Content="Add" Command="{Binding AddUserCommand}" Margin="0,0,4,6"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Clear Filter" Command="{Binding ClearUserSearchCommand}" Margin="0,0,4,6"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Print Directory" Click="PrintUsers_Click" Margin="0,0,0,6"/>
+                            </WrapPanel>
                         </DockPanel>
                     </Border>
 
                     <DataGrid x:Name="UsersDataGrid"
-                              Grid.Row="1"
+                              Grid.Row="2"
                               ItemsSource="{Binding Users}"
                               SelectedItem="{Binding SelectedUser, Mode=TwoWay}"
                               IsReadOnly="True"
@@ -80,51 +147,76 @@
                                 <EventSetter Event="PreviewMouseRightButtonDown" Handler="UserRow_PreviewMouseRightButtonDown"/>
                             </Style>
                         </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="Account" Width="2.1*" MinWidth="210">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <DockPanel Margin="0,4" LastChildFill="True">
+                                            <Grid DockPanel.Dock="Left" Width="34" Height="34" Margin="0,0,8,0" VerticalAlignment="Center">
+                                                <controls:UserAvatar UserName="{Binding UserName}"
+                                                                     UserPhotoPath="{Binding UserPhotoPath}"
+                                                                     Foreground="{Binding InitialsBrush}"
+                                                                     FontSize="14"/>
+                                            </Grid>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding UserName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding Role, TargetNullValue=Role not set}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Access" Width="2.25*" MinWidth="240">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,4">
+                                            <TextBlock Text="{Binding AccessSummary}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding IsAdmin, StringFormat='Admin: {0}'}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Security" Width="1.65*" MinWidth="170">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,4">
+                                            <TextBlock Text="{Binding LockoutStatus}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding PasswordExpired, StringFormat='Password expired: {0}'}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Contact" Width="2*" MinWidth="210">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,4">
+                                            <TextBlock Text="{Binding Email, TargetNullValue=No email recorded}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding Phone, TargetNullValue=No phone recorded}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive}" Width="76"/>
+                            <DataGridTextColumn Header="Mobile" Binding="{Binding Mobile}" Width="125"/>
+                        </DataGrid.Columns>
                         <DataGrid.ContextMenu>
-                            <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                            <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                                 <MenuItem Header="Open User Detail" Click="OpenSelectedUser_Click"/>
-                                <MenuItem Header="Edit User" Command="{Binding EditUserCommand}"/>
+                                <MenuItem Header="Edit User Access" Command="{Binding EditUserCommand}"/>
                                 <MenuItem Header="Reset Password" Click="ResetSelectedUser_Click"/>
                                 <MenuItem Header="Upload Photo" Command="{Binding UploadUserPhotoCommand}"/>
                                 <Separator/>
-                                <MenuItem Header="Copy User Detail" Click="CopySelectedUser_Click"/>
-                                <MenuItem Header="Print Current Results" Click="PrintUsers_Click"/>
+                                <MenuItem Header="Copy User Handoff" Click="CopySelectedUser_Click"/>
+                                <MenuItem Header="Print Current Directory" Click="PrintUsers_Click"/>
                                 <Separator/>
                                 <MenuItem Header="Delete User" Command="{Binding DeleteUserFromRowCommand}" CommandParameter="{Binding SelectedUser}"/>
                             </ContextMenu>
                         </DataGrid.ContextMenu>
-                        <DataGrid.Columns>
-                            <DataGridTemplateColumn Header="Image" Width="54">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Grid Width="30" Height="30" VerticalAlignment="Center">
-                                            <controls:UserAvatar UserName="{Binding UserName}"
-                                                                UserPhotoPath="{Binding UserPhotoPath}"
-                                                                Foreground="{Binding InitialsBrush}"
-                                                                FontSize="14"/>
-                                        </Grid>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Username" Binding="{Binding UserName}" Width="*"/>
-                            <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="135"/>
-                            <DataGridTextColumn Header="Access" Binding="{Binding AccessSummary}" Width="2*"/>
-                            <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="190"/>
-                            <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="115"/>
-                            <DataGridTextColumn Header="Mobile" Binding="{Binding Mobile}" Width="115"/>
-                            <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive}" Width="72"/>
-                            <DataGridTextColumn Header="Lockout" Binding="{Binding LockoutStatus}" Width="130"/>
-                        </DataGrid.Columns>
                     </DataGrid>
 
-                    <TextBlock Grid.Row="1"
-                               Text="No users match this filter"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               FontSize="13"
-                               FontWeight="SemiBold">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
+                    <Border Grid.Row="2" Width="330" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding Users.Count}" Value="0">
@@ -132,107 +224,124 @@
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                        </Border.Style>
+                        <StackPanel>
+                            <TextBlock Text="No users match this filter" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                            <TextBlock Text="Clear the filter or add a new account before assigning app access." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </Border>
 
-            <GridSplitter Grid.Column="1"
-                          Width="6"
-                          HorizontalAlignment="Stretch"
-                          VerticalAlignment="Stretch"
-                          Background="{DynamicResource BorderBrushBase}"/>
+            <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
 
-            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12">
-                <DockPanel LastChildFill="True">
-                    <Border DockPanel.Dock="Top"
-                            Style="{StaticResource DesktopSummaryCard}"
-                            Margin="0,0,0,6">
-                        <DockPanel>
-                            <Grid DockPanel.Dock="Left" Width="48" Height="48" Margin="0,0,8,0">
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}">
+                        <DockPanel LastChildFill="False">
+                            <Grid DockPanel.Dock="Left" Width="54" Height="54" Margin="0,0,10,0" VerticalAlignment="Center">
                                 <controls:UserAvatar UserName="{Binding SelectedUser.UserName}"
                                                      UserPhotoPath="{Binding SelectedUser.UserPhotoPath}"
                                                      Foreground="{Binding SelectedUser.InitialsBrush}"
                                                      FontSize="20"/>
                             </Grid>
-                            <StackPanel>
-                                <TextBlock Text="User Detail" Style="{StaticResource SectionHeader}"/>
-                                <TextBlock Text="{Binding SelectedUser.UserName, TargetNullValue='Select a user'}"
-                                           Style="{StaticResource PageTitleTextBlock}"
-                                           TextWrapping="Wrap"/>
-                                <TextBlock Text="{Binding SelectedUser.Role, TargetNullValue='Choose a row to see contact and access rights'}"
-                                           FontSize="11"
-                                           Margin="0,2,0,0"
-                                           TextWrapping="Wrap"/>
+                            <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                                <TextBlock Text="Access And Security Handoff" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                <TextBlock Text="{Binding SelectedUser.UserName, TargetNullValue=Select a user}" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
+                                <TextBlock Text="Use this panel before permission edits, password recovery, or directory audit output." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                             </StackPanel>
                         </DockPanel>
                     </Border>
 
-                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,6">
-                        <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,0,6">
-                            <StackPanel>
-                                <TextBlock Text="Status" Style="{StaticResource SectionHeader}"/>
-                                <UniformGrid Columns="2" Margin="0,2,0,0">
-                                    <TextBlock Text="{Binding SelectedUser.IsActive, StringFormat='Active: {0}', TargetNullValue='Active: -'}" Margin="0,0,8,2"/>
-                                    <TextBlock Text="{Binding SelectedUser.IsAdmin, StringFormat='Admin: {0}', TargetNullValue='Admin: -'}" Margin="0,0,0,2"/>
-                                    <TextBlock Text="{Binding SelectedUser.CreatedAt, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat='Created: {0:yyyy-MM-dd}', TargetNullValue='Created: -'}" Margin="0,0,8,2"/>
-                                    <TextBlock Text="{Binding SelectedUser.PasswordExpired, StringFormat='Password expired: {0}', TargetNullValue='Password expired: -'}" Margin="0,0,0,2"/>
-                                    <TextBlock Text="{Binding SelectedUser.LockoutStatus, StringFormat='Lockout: {0}', TargetNullValue='Lockout: -'}" Margin="0,0,8,2"/>
-                                </UniformGrid>
-                            </StackPanel>
-                        </Border>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="14">
+                            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="Selected Account" Style="{StaticResource SectionHeader}"/>
+                                    <TextBlock Text="{Binding SelectedUser.UserName, TargetNullValue='No account selected', FallbackValue='No account selected'}"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               TextWrapping="Wrap"
+                                               Margin="0,2,0,0"/>
+                                    <TextBlock Text="{Binding SelectedUser.Role, TargetNullValue='Choose a row to review role, access, and contact details'}"
+                                               Style="{StaticResource UserDetailText}"/>
+                                </StackPanel>
+                            </Border>
 
-                        <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,0,6">
-                            <StackPanel>
-                                <TextBlock Text="Access" Style="{StaticResource SectionHeader}"/>
-                                <TextBlock Text="{Binding SelectedUser.AccessSummary, TargetNullValue='Select a user to review app access'}" TextWrapping="Wrap"/>
-                            </StackPanel>
-                        </Border>
+                            <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="Security Review" Style="{StaticResource SectionHeader}"/>
+                                    <UniformGrid Columns="2" Margin="0,4,0,0">
+                                        <TextBlock Text="{Binding SelectedUser.IsActive, StringFormat='Active: {0}', TargetNullValue='Active: -'}" Style="{StaticResource UserDetailText}" Margin="0,0,8,2"/>
+                                        <TextBlock Text="{Binding SelectedUser.IsAdmin, StringFormat='Admin: {0}', TargetNullValue='Admin: -'}" Style="{StaticResource UserDetailText}" Margin="0,0,0,2"/>
+                                        <TextBlock Text="{Binding SelectedUser.PasswordExpired, StringFormat='Password expired: {0}', TargetNullValue='Password expired: -'}" Style="{StaticResource UserDetailText}" Margin="0,0,8,2"/>
+                                        <TextBlock Text="{Binding SelectedUser.CreatedAt, Converter={StaticResource DateTimeMinToEmptyStringConverter}, StringFormat='Created: {0:yyyy-MM-dd}', TargetNullValue='Created: -'}" Style="{StaticResource UserDetailText}" Margin="0,0,0,2"/>
+                                    </UniformGrid>
+                                    <TextBlock Text="{Binding SelectedUser.LockoutStatus, StringFormat='Lockout: {0}', TargetNullValue='Lockout: -'}" Style="{StaticResource UserDetailText}" FontWeight="SemiBold" Margin="0,6,0,0"/>
+                                </StackPanel>
+                            </Border>
 
-                        <Border Style="{StaticResource DesktopInsetCard}">
-                            <StackPanel>
-                                <TextBlock Text="Contact" Style="{StaticResource SectionHeader}"/>
-                                <TextBlock Text="{Binding SelectedUser.Email, StringFormat='Email: {0}', TargetNullValue='Email: -'}" TextWrapping="Wrap"/>
-                                <TextBlock Text="{Binding SelectedUser.Phone, StringFormat='Phone: {0}', TargetNullValue='Phone: -'}" TextWrapping="Wrap"/>
-                                <TextBlock Text="{Binding SelectedUser.Mobile, StringFormat='Mobile: {0}', TargetNullValue='Mobile: -'}" TextWrapping="Wrap"/>
-                                <TextBlock Text="{Binding SelectedUser.Address, StringFormat='Address: {0}', TargetNullValue='Address: -'}" TextWrapping="Wrap"/>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
+                            <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="Allowed App Areas" Style="{StaticResource SectionHeader}"/>
+                                    <TextBlock Text="{Binding SelectedUser.AccessSummary, TargetNullValue='Select a user to review app access'}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="Edit Access opens the profile editor where role presets and exact app-section checkboxes can be reviewed before saving." Style="{StaticResource UserDetailText}" Margin="0,6,0,0"/>
+                                </StackPanel>
+                            </Border>
 
-                    <StackPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
-                        <TextBlock Text="Actions" Style="{StaticResource SectionHeader}"/>
-                        <UniformGrid Columns="2">
-                            <Button Style="{StaticResource GhostButton}" Content="Open" Click="OpenSelectedUser_Click" Margin="0,0,4,4"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Copy" Click="CopySelectedUser_Click" Margin="0,0,0,4"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Reset" Click="ResetSelectedUser_Click" Margin="0,0,4,0"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Print" Click="PrintUsers_Click"/>
-                        </UniformGrid>
-                    </StackPanel>
+                            <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="Contact And Identity" Style="{StaticResource SectionHeader}"/>
+                                    <TextBlock Text="{Binding SelectedUser.Email, StringFormat='Email: {0}', TargetNullValue='Email: -'}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding SelectedUser.Phone, StringFormat='Phone: {0}', TargetNullValue='Phone: -'}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding SelectedUser.Mobile, StringFormat='Mobile: {0}', TargetNullValue='Mobile: -'}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding SelectedUser.Address, StringFormat='Address: {0}', TargetNullValue='Address: -'}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
 
-                    <Border Style="{StaticResource DesktopInsetCard}"
-                            Background="{DynamicResource TextBoxBackgroundBrush}">
-                        <TextBlock Text="Admin path: edit a user to tick the exact app sections they can access, reset a password when a technician is blocked at login, or print the filtered directory for audit checks."
-                                   TextWrapping="Wrap"/>
+                            <Border Style="{StaticResource DesktopInsetCard}" Background="{DynamicResource TextBoxBackgroundBrush}">
+                                <StackPanel>
+                                    <TextBlock Text="Admin Next Step" Style="{StaticResource SectionHeader}"/>
+                                    <TextBlock Text="Reset the password when the user is blocked at login, edit access when a role changes, upload a current photo for quick visual confirmation, or print the filtered directory for an audit packet."
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <Border Grid.Row="2" Style="{StaticResource DesktopSectionActionStrip}">
+                        <WrapPanel HorizontalAlignment="Right">
+                            <Button Style="{StaticResource GhostButton}" Content="Open Detail" Click="OpenSelectedUser_Click" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedUser_Click" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Reset Password" Click="ResetSelectedUser_Click" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Print Directory" Click="PrintUsers_Click" Margin="0,0,0,4"/>
+                        </WrapPanel>
                     </Border>
-                </DockPanel>
+                </Grid>
             </Border>
         </Grid>
 
-        <Border Grid.Row="2"
+        <Border Grid.Row="3"
                 Background="{DynamicResource SurfaceAltBrush}"
                 BorderBrush="{DynamicResource BorderBrushAlt}"
                 BorderThickness="1,0,1,1"
-                Padding="6,3">
+                Padding="8,4">
             <DockPanel>
                 <TextBlock DockPanel.Dock="Left"
-                           Text="{Binding Users.Count, StringFormat='Visible: {0} users'}"
+                           Text="{Binding Users.Count, StringFormat='Admin desk ready - {0} visible accounts'}"
                            FontSize="11"
                            VerticalAlignment="Center"/>
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <Button Style="{StaticResource GhostButton}" Content="Open" Click="OpenSelectedUser_Click" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Clear Filter" Command="{Binding ClearUserSearchCommand}"/>
-                </StackPanel>
+                <TextBlock DockPanel.Dock="Right"
+                           Text="Select a row, then edit access, reset password, copy handoff, upload photo, or print the filtered directory."
+                           Style="{StaticResource CaptionTextBlock}"
+                           VerticalAlignment="Center"
+                           TextWrapping="Wrap"/>
             </DockPanel>
         </Border>
     </Grid>
