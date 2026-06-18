@@ -38,6 +38,7 @@ namespace InventoryManagementApp.Tests
             var second = new EmailAccountOption("Shared Mailbox", "shared@example.com", "shared");
             var vm = CreateViewModel(new[] { first, second });
 
+            vm.SelectedEmailProvider = "Outlook/Office 365";
             vm.SelectedOutlookAccount = second;
 
             Assert.Equal("shared@example.com", vm.SmtpUsername);
