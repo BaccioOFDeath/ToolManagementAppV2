@@ -1,0 +1,52 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--
+        Admin theme designer tokens.
+        The Settings theme selector chooses the active color dictionary. These shared resources are
+        the app-wide knobs for the visual redesign layer: border removal, glass surfaces,
+        rounded controls, and shadow depth.
+    -->
+
+    <Thickness x:Key="ThemeBorderThickness">1</Thickness>
+    <Thickness x:Key="ThemeSubtleBorderThickness">1</Thickness>
+    <Thickness x:Key="ThemeControlBorderThickness">1</Thickness>
+    <Thickness x:Key="ThemeBorderlessThickness">0</Thickness>
+
+    <CornerRadius x:Key="ThemeCardCornerRadius">6</CornerRadius>
+    <CornerRadius x:Key="ThemePanelCornerRadius">4</CornerRadius>
+    <CornerRadius x:Key="ThemeButtonCornerRadius">5</CornerRadius>
+    <CornerRadius x:Key="ThemeInputCornerRadius">4</CornerRadius>
+    <CornerRadius x:Key="ThemeFooterCornerRadius">0,0,6,6</CornerRadius>
+
+    <SolidColorBrush x:Key="ThemeTransparentBrush" Color="#00000000"/>
+    <SolidColorBrush x:Key="ThemeGlassSurfaceBrush" Color="#DFFFFFFF"/>
+    <SolidColorBrush x:Key="ThemeGlassSurfaceAltBrush" Color="#BFFFFFFF"/>
+    <SolidColorBrush x:Key="ThemeAppBackgroundOverlayBrush" Color="#00FFFFFF"/>
+
+    <DropShadowEffect x:Key="ThemeNoShadow"
+                      BlurRadius="0"
+                      ShadowDepth="0"
+                      Opacity="0"
+                      Color="#00000000"/>
+
+    <DropShadowEffect x:Key="ThemeSurfaceShadow"
+                      BlurRadius="7"
+                      ShadowDepth="1"
+                      Direction="270"
+                      Opacity="0.14"
+                      Color="#55000000"/>
+
+    <DropShadowEffect x:Key="ThemeRaisedShadow"
+                      BlurRadius="13"
+                      ShadowDepth="2"
+                      Direction="270"
+                      Opacity="0.20"
+                      Color="#44000000"/>
+
+    <DropShadowEffect x:Key="ThemeDeepShadow"
+                      BlurRadius="22"
+                      ShadowDepth="5"
+                      Direction="270"
+                      Opacity="0.28"
+                      Color="#55000000"/>
+</ResourceDictionary>
