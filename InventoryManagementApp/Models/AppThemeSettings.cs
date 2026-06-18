@@ -37,7 +37,7 @@ namespace InventoryManagementApp.Models
         {
             var settings = new AppThemeSettings();
             if (!string.IsNullOrWhiteSpace(baseTheme))
-                settings.BaseTheme = baseTheme;
+                settings.BaseTheme = NormalizeBaseTheme(baseTheme);
 
             if (string.Equals(settings.BaseTheme, "Dark", StringComparison.OrdinalIgnoreCase))
             {
@@ -58,8 +58,8 @@ namespace InventoryManagementApp.Models
 
         public void Normalize()
         {
+            BaseTheme = NormalizeBaseTheme(BaseTheme);
             var defaults = CreateDefault(BaseTheme);
-            BaseTheme = string.Equals(BaseTheme, "Dark", StringComparison.OrdinalIgnoreCase) ? "Dark" : "Light";
             BackgroundColor = NormalizeColor(BackgroundColor, defaults.BackgroundColor);
             SurfaceColor = NormalizeColor(SurfaceColor, defaults.SurfaceColor);
             SurfaceAltColor = NormalizeColor(SurfaceAltColor, defaults.SurfaceAltColor);
@@ -85,6 +85,9 @@ namespace InventoryManagementApp.Models
             PagePadding = Clamp(PagePadding, 0, 28);
             CardPadding = Clamp(CardPadding, 0, 32);
         }
+
+        private static string NormalizeBaseTheme(string? value)
+            => value?.IndexOf("Dark", StringComparison.OrdinalIgnoreCase) >= 0 ? "Dark" : "Light";
 
         private static double Clamp01(double value) => Clamp(value, 0, 1);
 
