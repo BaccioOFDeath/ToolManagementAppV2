@@ -79,8 +79,15 @@ namespace InventoryManagementApp.Views.Windows
             document.ColumnGap = 0;
             document.TextAlignment = TextAlignment.Left;
 
-            if (document.Blocks.FirstBlock is not Section { Tag: "PrintPolishHeader" })
-                document.Blocks.InsertBefore(document.Blocks.FirstBlock, BuildDocumentHeader(title));
+            var firstBlock = document.Blocks.FirstBlock;
+            if (firstBlock is not Section { Tag: "PrintPolishHeader" })
+            {
+                var header = BuildDocumentHeader(title);
+                if (firstBlock == null)
+                    document.Blocks.Add(header);
+                else
+                    document.Blocks.InsertBefore(firstBlock, header);
+            }
 
             if (document.Blocks.LastBlock is not Paragraph { Tag: "PrintPolishFooter" })
                 document.Blocks.Add(BuildDocumentFooter());
