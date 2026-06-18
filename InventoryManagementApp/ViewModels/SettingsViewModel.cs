@@ -77,6 +77,7 @@ namespace InventoryManagementApp.ViewModels
             SaveCompanyLogoCommand = new AsyncRelayCommand(SaveCompanyLogoAsync);
             SaveEmailSettingsCommand = new AsyncRelayCommand(SaveEmailSettingsAsync);
             TestEmailCommand = new AsyncRelayCommand(TestEmailConnectionAsync);
+            RefreshOutlookAccountsCommand = new AsyncRelayCommand(LoadOutlookAccountsAsync);
             AddFromEmailCommand = new RelayCommand(AddFromEmailOption);
             RemoveFromEmailCommand = new RelayCommand(RemoveFromEmailOption);
             BrowseBackupDirectoryCommand = new RelayCommand(BrowseBackupDirectory);
@@ -729,6 +730,7 @@ namespace InventoryManagementApp.ViewModels
 
         public IAsyncRelayCommand SaveEmailSettingsCommand { get; }
         public IAsyncRelayCommand TestEmailCommand { get; }
+        public IAsyncRelayCommand RefreshOutlookAccountsCommand { get; }
 
         private void ApplyEmailProviderTemplate(string provider)
         {

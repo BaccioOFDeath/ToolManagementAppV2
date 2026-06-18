@@ -39,6 +39,7 @@ namespace InventoryManagementApp.Services.Notifications
             try
             {
                 var accounts = new Dictionary<string, EmailAccountOption>(StringComparer.OrdinalIgnoreCase);
+                ReadComAccounts(accounts, cancellationToken);
                 foreach (var rootPath in OutlookProfileRoots)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -62,6 +63,97 @@ namespace InventoryManagementApp.Services.Notifications
             {
                 _logger.LogWarning(ex, "Failed to discover Outlook email accounts.");
                 return Task.FromResult<IReadOnlyList<EmailAccountOption>>(Array.Empty<EmailAccountOption>());
+            }
+        }
+
+        private static void ReadComAccounts(IDictionary<string, EmailAccountOption> accounts, CancellationToken cancellationToken)
+        {
+            Type? outlookType;
+            try
+            {
+                outlookType = Type.GetTypeFromProgID("Outlook.Application");
+            }
+            catch
+            {
+                return;
+            }
+
+            if (outlookType == null)
+            {
+                return;
+            }
+
+            object? outlook = null;
+            object? session = null;
+            object? accountCollection = null;
+            try
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                outlook = Activator.CreateInstance(outlookType);
+                session = outlookType.InvokeMember("Session", System.Reflection.BindingFlags.GetProperty, null, outlook, null);
+                accountCollection = session?.GetType().InvokeMember("Accounts", System.Reflection.BindingFlags.GetProperty, null, session, null);
+                var count = Convert.ToInt32(accountCollection?.GetType().InvokeMember("Count", System.Reflection.BindingFlags.GetProperty, null, accountCollection, null) ?? 0);
+
+                for (var index = 1; index <= count; index++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var account = accountCollection!.GetType().InvokeMember("Item", System.Reflection.BindingFlags.InvokeMethod, null, accountCollection, new object[] { index });
+                    if (account == null)
+                    {
+                        continue;
+                    }
+
+                    var email = ReadComString(account, "SmtpAddress");
+                    if (!IsEmailAddress(email))
+                    {
+                        email = ReadComString(account, "UserName");
+                    }
+
+                    if (!IsEmailAddress(email))
+                    {
+                        ReleaseComObject(account);
+                        continue;
+                    }
+
+                    email = email!.Trim();
+                    if (!accounts.ContainsKey(email))
+                    {
+                        var displayName = ReadComString(account, "DisplayName") ?? ReadComString(account, "UserName") ?? email;
+                        var userName = ReadComString(account, "UserName") ?? email;
+                        accounts[email] = new EmailAccountOption(displayName.Trim(), email, userName.Trim());
+                    }
+
+                    ReleaseComObject(account);
+                }
+            }
+            catch
+            {
+            }
+            finally
+            {
+                ReleaseComObject(accountCollection);
+                ReleaseComObject(session);
+                ReleaseComObject(outlook);
+            }
+        }
+
+        private static string? ReadComString(object source, string propertyName)
+        {
+            try
+            {
+                return source.GetType().InvokeMember(propertyName, System.Reflection.BindingFlags.GetProperty, null, source, null)?.ToString();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static void ReleaseComObject(object? instance)
+        {
+            if (instance != null && System.Runtime.InteropServices.Marshal.IsComObject(instance))
+            {
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(instance);
             }
         }
 

@@ -439,7 +439,10 @@
                                         <ComboBox Grid.Row="3" Grid.Column="1" SelectedItem="{Binding SelectedEmailProvider}" ItemsSource="{Binding EmailProviders}" Margin="8,0,0,8" ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
                                         <TextBlock Grid.Row="4" Text="Outlook Account" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Visibility="{Binding IsOutlookProvider, Converter={StaticResource BoolToVis}}"/>
                                         <StackPanel Grid.Row="4" Grid.Column="1" Margin="8,0,0,8" Visibility="{Binding IsOutlookProvider, Converter={StaticResource BoolToVis}}">
-                                            <ComboBox ItemsSource="{Binding OutlookAccountOptions}" SelectedItem="{Binding SelectedOutlookAccount}" DisplayMemberPath="DisplayText" IsEnabled="{Binding HasOutlookAccountOptions}" ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
+                                            <DockPanel LastChildFill="True">
+                                                <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Content="Refresh" Command="{Binding RefreshOutlookAccountsCommand}" Margin="6,0,0,0"/>
+                                                <ComboBox ItemsSource="{Binding OutlookAccountOptions}" SelectedItem="{Binding SelectedOutlookAccount}" DisplayMemberPath="DisplayText" IsEnabled="{Binding HasOutlookAccountOptions}" ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
+                                            </DockPanel>
                                             <TextBlock Text="{Binding OutlookAccountStatus}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
                                         </StackPanel>
                                         <TextBlock Grid.Row="5" Text="SMTP Host" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
