@@ -23,7 +23,7 @@
                 <Border DockPanel.Dock="Right" Style="{StaticResource DesktopNoteCard}" Padding="12,7" Margin="16,0,0,0" VerticalAlignment="Center">
                     <StackPanel>
                         <TextBlock Text="Kit Record" Style="{StaticResource LabelTextBlock}"/>
-                        <TextBlock Text="{Binding Kit.Name, TargetNullValue=Draft kit}" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding Kit.Name, TargetNullValue='Draft kit'}" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>
                 <StackPanel>
