@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
@@ -68,11 +67,15 @@ namespace InventoryManagementApp.Services
                 Set(resources, "BackgroundBrush", backgroundBrush);
                 Set(resources, "SurfaceBrush", surfaceBrush);
                 Set(resources, "SurfaceAltBrush", surfaceAltBrush);
+                Set(resources, "GlassSurfaceBrush", CreateBrush(settings.SurfaceColor, Math.Min(settings.SurfaceOpacity, 0.78)));
+                Set(resources, "GlassSurfaceAltBrush", CreateBrush(settings.SurfaceAltColor, Math.Min(settings.SurfaceAltOpacity, 0.68)));
+                Set(resources, "TransparentSurfaceBrush", Brushes.Transparent);
                 Set(resources, "TextBoxBackgroundBrush", CreateBrush(settings.SurfaceColor, settings.InputOpacity));
                 Set(resources, "ComboBoxPopupBackgroundBrush", CreateBrush(settings.SurfaceColor, Math.Max(settings.SurfaceOpacity, 0.9)));
                 Set(resources, "ForegroundBrush", CreateBrush(settings.TextColor, 1));
                 Set(resources, "ForegroundMutedBrush", CreateBrush(settings.MutedTextColor, 1));
                 Set(resources, "AccentBrush", CreateBrush(settings.AccentColor, 1));
+                Set(resources, "OnAccentForegroundBrush", CreateOnAccentBrush(settings.AccentColor));
                 Set(resources, "SuccessBrush", CreateBrush(settings.SuccessColor, 1));
                 Set(resources, "WarningBrush", CreateBrush(settings.WarningColor, 1));
                 Set(resources, "ErrorBrush", CreateBrush(settings.ErrorColor, 1));
@@ -82,25 +85,34 @@ namespace InventoryManagementApp.Services
                 Set(resources, "BtnBgHover", CreateBrush(settings.AccentColor, Math.Min(1, settings.ButtonOpacity * 0.22 + 0.12)));
                 Set(resources, "BtnBorder", settings.BordersVisible ? CreateBrush(settings.AccentColor, settings.BorderOpacity * 0.72) : Brushes.Transparent);
                 Set(resources, "BtnFg", CreateBrush(settings.TextColor, 1));
+                Set(resources, "NavButtonPressedBrush", CreateBrush(settings.AccentColor, 0.24));
+                Set(resources, "NavButtonHoverBrush", CreateBrush(settings.AccentColor, 0.16));
                 Set(resources, "ItemHoverBrush", CreateBrush(settings.AccentColor, 0.14));
                 Set(resources, "ItemSelectedBrush", CreateBrush(settings.AccentColor, 0.24));
                 Set(resources, "ItemHoverForegroundBrush", CreateBrush(settings.TextColor, 1));
                 Set(resources, "ItemSelectedForegroundBrush", CreateBrush(settings.TextColor, 1));
                 Set(resources, "DataGridRowBackgroundBrush", CreateBrush(settings.SurfaceColor, Math.Max(settings.SurfaceOpacity, 0.78)));
                 Set(resources, "DataGridAlternatingRowBackgroundBrush", CreateBrush(settings.SurfaceAltColor, Math.Max(settings.SurfaceAltOpacity, 0.72)));
+                Set(resources, "ProgressBarBackgroundBrush", CreateBrush(settings.SurfaceAltColor, Math.Max(settings.SurfaceAltOpacity, 0.65)));
                 Set(resources, "ThemeBorderThickness", borderThickness);
                 Set(resources, "ThemeSubtleBorderThickness", subtleBorderThickness);
                 Set(resources, "ThemeControlBorderThickness", borderThickness);
+                Set(resources, "ThemeBorderlessThickness", new Thickness(0));
                 Set(resources, "ThemeCardCornerRadius", new CornerRadius(settings.CardCornerRadius));
                 Set(resources, "ThemePanelCornerRadius", new CornerRadius(settings.PanelCornerRadius));
                 Set(resources, "ThemeButtonCornerRadius", new CornerRadius(settings.ButtonCornerRadius));
                 Set(resources, "ThemeInputCornerRadius", new CornerRadius(settings.InputCornerRadius));
                 Set(resources, "ThemeFooterCornerRadius", new CornerRadius(settings.PanelCornerRadius));
+                Set(resources, "RadiusSmall", new CornerRadius(settings.InputCornerRadius));
+                Set(resources, "RadiusMedium", new CornerRadius(settings.CardCornerRadius));
+                Set(resources, "RadiusLarge", new CornerRadius(settings.CardCornerRadius));
                 Set(resources, "PagePadding", new Thickness(settings.PagePadding));
                 Set(resources, "CardPadding", new Thickness(settings.CardPadding));
                 Set(resources, "ThemeSurfaceShadow", CreateShadow(settings));
                 Set(resources, "ThemeRaisedShadow", CreateShadow(settings, 1.55));
                 Set(resources, "ThemeDeepShadow", CreateShadow(settings, 2.35));
+                Set(resources, "SubtleSurfaceShadow", CreateShadow(settings));
+                Set(resources, "RaisedSurfaceShadow", CreateShadow(settings, 1.55));
 
                 RefreshWindows(app);
             }
@@ -169,6 +181,13 @@ namespace InventoryManagementApp.Services
             if (brush.CanFreeze)
                 brush.Freeze();
             return brush;
+        }
+
+        private static SolidColorBrush CreateOnAccentBrush(string accentColor)
+        {
+            var color = (Color)ColorConverter.ConvertFromString(accentColor);
+            var brightness = (color.R * 0.299) + (color.G * 0.587) + (color.B * 0.114);
+            return CreateBrush(brightness > 140 ? "#FF111827" : "#FFFFFFFF", 1);
         }
 
         private static DropShadowEffect CreateShadow(AppThemeSettings settings, double multiplier = 1)
