@@ -742,7 +742,7 @@ namespace InventoryManagementApp.ViewModels
                     EnableSsl = true;
                     break;
                 case "Outlook/Office 365":
-                    SmtpHost = "smtp-mail.outlook.com";
+                    SmtpHost = "smtp.office365.com";
                     SmtpPort = 587;
                     EnableSsl = true;
                     break;

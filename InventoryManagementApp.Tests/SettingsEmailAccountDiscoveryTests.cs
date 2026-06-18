@@ -23,7 +23,7 @@ namespace InventoryManagementApp.Tests
             await WaitForAsync(() => vm.HasOutlookAccountOptions);
 
             Assert.True(vm.IsOutlookProvider);
-            Assert.Equal("smtp-mail.outlook.com", vm.SmtpHost);
+            Assert.Equal("smtp.office365.com", vm.SmtpHost);
             Assert.Equal(587, vm.SmtpPort);
             Assert.Equal(account, vm.SelectedOutlookAccount);
             Assert.Equal("work@example.com", vm.SmtpUsername);
