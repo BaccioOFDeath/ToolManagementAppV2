@@ -71,6 +71,38 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void EditDialogs_UsePolishedFormStructureAndPreserveBindings()
+        {
+            var customer = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "CustomerEditWindow.xaml");
+            var kit = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "KitEditWindow.xaml");
+            var kitItem = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "KitItemEditWindow.xaml");
+            var saveCancel = ReadRepositoryFile("InventoryManagementApp", "Views", "Controls", "SaveCancelBar.xaml");
+
+            Assert.Contains("Customer Profile", customer, StringComparison.Ordinal);
+            Assert.Contains("Account Identity", customer, StringComparison.Ordinal);
+            Assert.Contains("Communication", customer, StringComparison.Ordinal);
+            Assert.Contains("Customer.Company, UpdateSourceTrigger=PropertyChanged", customer, StringComparison.Ordinal);
+            Assert.Contains("Customer.Address, UpdateSourceTrigger=PropertyChanged", customer, StringComparison.Ordinal);
+
+            Assert.Contains("Kit Setup", kit, StringComparison.Ordinal);
+            Assert.Contains("Kit Identity", kit, StringComparison.Ordinal);
+            Assert.Contains("Release State", kit, StringComparison.Ordinal);
+            Assert.Contains("Kit.KitNumber, UpdateSourceTrigger=PropertyChanged", kit, StringComparison.Ordinal);
+            Assert.Contains("Kit.Description, UpdateSourceTrigger=PropertyChanged", kit, StringComparison.Ordinal);
+
+            Assert.Contains("Kit Item Membership", kitItem, StringComparison.Ordinal);
+            Assert.Contains("Membership Details", kitItem, StringComparison.Ordinal);
+            Assert.Contains("KitItem.ItemNumber, UpdateSourceTrigger=PropertyChanged", kitItem, StringComparison.Ordinal);
+            Assert.Contains("KitItem.Quantity, UpdateSourceTrigger=PropertyChanged", kitItem, StringComparison.Ordinal);
+            Assert.Contains("KitItem.IsOptional", kitItem, StringComparison.Ordinal);
+
+            Assert.Contains("Review changes, then save or cancel", saveCancel, StringComparison.Ordinal);
+            Assert.Contains("SaveCommand", saveCancel, StringComparison.Ordinal);
+            Assert.Contains("CancelCommand", saveCancel, StringComparison.Ordinal);
+            Assert.Contains("Width=\"104\"", saveCancel, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void SelectedRowDetailActions_RouteThroughPolishedDetailDialog()
         {
             var activity = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs");
