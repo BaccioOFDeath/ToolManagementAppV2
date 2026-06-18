@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.ComponentModel;
 using System.Net.Mail;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -1005,12 +1006,14 @@ namespace InventoryManagementApp.ViewModels
 
             try
             {
+                await VerifySmtpPortReachableAsync(SmtpHost, SmtpPort, token).ConfigureAwait(false);
+
                 // Test the connection using System.Net.Mail.SmtpClient
                 using var client = new System.Net.Mail.SmtpClient(SmtpHost, SmtpPort)
                 {
                     EnableSsl = EnableSsl,
                     Credentials = new System.Net.NetworkCredential(SmtpUsername, SmtpPassword),
-                    Timeout = 10000
+                    Timeout = 30000
                 };
 
                 // Try to send a test (but don't actually send)
@@ -1029,13 +1032,56 @@ namespace InventoryManagementApp.ViewModels
             catch (System.Net.Mail.SmtpException ex)
             {
                 _logger.LogWarning(ex, "SMTP test failed.");
-                _dialogService.ShowInfo($"SMTP connection failed: {ex.Message}\n\nPlease verify your settings and try again.", "Connection Failed");
+                _dialogService.ShowInfo(BuildSmtpFailureMessage(ex), "Connection Failed");
+            }
+            catch (TimeoutException ex)
+            {
+                _logger.LogWarning(ex, "SMTP port check timed out.");
+                _dialogService.ShowInfo($"{ex.Message}\n\nCheck firewall, antivirus, or network filtering for outbound TCP port {SmtpPort}.", "Connection Failed");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Email test failed.");
                 _dialogService.ShowInfo($"Email test failed: {ex.Message}", "Test Failed");
             }
+        }
+
+        private static async Task VerifySmtpPortReachableAsync(string host, int port, CancellationToken token)
+        {
+            using var client = new TcpClient();
+            var connectTask = client.ConnectAsync(host, port, token).AsTask();
+            var completedTask = await Task.WhenAny(connectTask, Task.Delay(TimeSpan.FromSeconds(10), token)).ConfigureAwait(false);
+            if (completedTask != connectTask)
+            {
+                throw new TimeoutException($"Could not reach {host}:{port} within 10 seconds.");
+            }
+
+            await connectTask.ConfigureAwait(false);
+        }
+
+        private string BuildSmtpFailureMessage(SmtpException ex)
+        {
+            var message = $"SMTP connection failed: {ex.Message}";
+            if (ex.StatusCode != SmtpStatusCode.GeneralFailure)
+            {
+                message += $"\nStatus: {ex.StatusCode}";
+            }
+
+            if (ex.InnerException != null)
+            {
+                message += $"\nDetails: {ex.InnerException.Message}";
+            }
+
+            if (SelectedEmailProvider.Equals("Outlook/Office 365", StringComparison.OrdinalIgnoreCase))
+            {
+                message += "\n\nFor Microsoft 365, confirm Authenticated SMTP is enabled for this mailbox, MFA is handled with an app password or supported sign-in method, and the sender address has permission to send as the selected mailbox.";
+            }
+            else
+            {
+                message += "\n\nPlease verify your settings and try again.";
+            }
+
+            return message;
         }
 
         private string _backupDirectory = "";
