@@ -57,6 +57,44 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("OkCommand", imageMapping, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void DetailDialog_UsesPolishedHandoffStructureAndCloseAction()
+        {
+            var detail = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "DetailDialogWindow.xaml");
+            var codeBehind = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "DetailDialogWindow.xaml.cs");
+
+            Assert.Contains("Workflow Detail", detail, StringComparison.Ordinal);
+            Assert.Contains("Selected Row Handoff", detail, StringComparison.Ordinal);
+            Assert.Contains("Close returns to the current screen with the same row context.", detail, StringComparison.Ordinal);
+            Assert.Contains("Close_Click", detail, StringComparison.Ordinal);
+            Assert.Contains("ShowDialogFor", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void SelectedRowDetailActions_RouteThroughPolishedDetailDialog()
+        {
+            var activity = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs");
+            var categories = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "CategoriesPage.xaml.cs");
+            var importExport = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml.cs");
+            var users = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "UsersPage.xaml.cs");
+
+            Assert.Contains("DetailDialogWindow.ShowDialogFor", activity, StringComparison.Ordinal);
+            Assert.Contains("Activity Detail", activity, StringComparison.Ordinal);
+            Assert.DoesNotContain("WpfMessageBox.Show(FormatLogDetail", activity, StringComparison.Ordinal);
+
+            Assert.Contains("DetailDialogWindow.ShowDialogFor", categories, StringComparison.Ordinal);
+            Assert.Contains("Category Detail", categories, StringComparison.Ordinal);
+            Assert.DoesNotContain("WpfMessageBox.Show(FormatCategoryDetail", categories, StringComparison.Ordinal);
+
+            Assert.Contains("DetailDialogWindow.ShowDialogFor", importExport, StringComparison.Ordinal);
+            Assert.Contains("Import / Export Result", importExport, StringComparison.Ordinal);
+            Assert.DoesNotContain("WpfMessageBox.Show(log,", importExport, StringComparison.Ordinal);
+
+            Assert.Contains("DetailDialogWindow.ShowDialogFor", users, StringComparison.Ordinal);
+            Assert.Contains("User Detail", users, StringComparison.Ordinal);
+            Assert.DoesNotContain("WpfMessageBox.Show(FormatUserDetail", users, StringComparison.Ordinal);
+        }
+
         static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);
