@@ -1,0 +1,222 @@
+<UserControl x:Class="InventoryManagementApp.Views.Pages.ThemeDesignerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <Style x:Key="ThemeFieldLabel" TargetType="TextBlock" BasedOn="{StaticResource LabelTextBlock}">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
+        </Style>
+        <Style x:Key="ThemeValueBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Margin" Value="0,0,0,8"/>
+            <Setter Property="MinWidth" Value="120"/>
+        </Style>
+        <Style x:Key="ThemeSlider" TargetType="Slider">
+            <Setter Property="Minimum" Value="0"/>
+            <Setter Property="Maximum" Value="1"/>
+            <Setter Property="TickFrequency" Value="0.05"/>
+            <Setter Property="IsSnapToTickEnabled" Value="False"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Border Style="{StaticResource DesktopContentPane}">
+        <DockPanel>
+            <Border DockPanel.Dock="Top" Style="{StaticResource DesktopSectionActionStrip}">
+                <DockPanel LastChildFill="False">
+                    <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                        <TextBlock Text="App Theme Designer" Style="{StaticResource SubheadingTextBlock}"/>
+                        <TextBlock Text="Redesign the full app shell with colors, backgrounds, transparency, borders, corners, spacing, and shadow depth." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Style="{StaticResource GhostButton}" Content="Glass" Command="{Binding ApplyGlassThemePresetCommand}" Margin="0,0,4,0"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Borderless" Command="{Binding ApplyBorderlessThemePresetCommand}" Margin="0,0,4,0"/>
+                        <Button Style="{StaticResource GhostButton}" Content="High Contrast" Command="{Binding ApplyHighContrastThemePresetCommand}" Margin="0,0,4,0"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Reset" Command="{Binding ResetAppThemeSettingsCommand}" Margin="0,0,4,0"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Save Theme" Command="{Binding SaveAppThemeSettingsCommand}"/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid Margin="14" VerticalAlignment="Top">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1.4*" MinWidth="420"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="1.1*" MinWidth="340"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,0,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.ColumnSpan="2" Text="Color system" Style="{StaticResource PageTitleTextBlock}" Margin="0,0,0,4"/>
+                                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="Use #RRGGBB or #AARRGGBB values. Changes preview immediately and are saved when you choose Save Theme." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                                <TextBlock Grid.Row="2" Text="Background" Style="{StaticResource ThemeFieldLabel}"/>
+                                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ThemeBackgroundColor, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeValueBox}"/>
+                                <TextBlock Grid.Row="3" Text="Main surface" Style="{StaticResource ThemeFieldLabel}"/>
+                                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding ThemeSurfaceColor, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeValueBox}"/>
+                                <TextBlock Grid.Row="4" Text="Alt surface" Style="{StaticResource ThemeFieldLabel}"/>
+                                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding ThemeSurfaceAltColor, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeValueBox}"/>
+                                <TextBlock Grid.Row="5" Text="Text" Style="{StaticResource ThemeFieldLabel}"/>
+                                <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding ThemeTextColor, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeValueBox}"/>
+                                <TextBlock Grid.Row="6" Text="Muted text" Style="{StaticResource ThemeFieldLabel}"/>
+                                <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding ThemeMutedTextColor, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeValueBox}"/>
+                                <TextBlock Grid.Row="7" Text="Accent" Style="{StaticResource ThemeFieldLabel}"/>
+                                <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding ThemeAccentColor, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeValueBox}"/>
+                                <TextBlock Grid.Row="8" Text="Success / Warning / Error" Style="{StaticResource ThemeFieldLabel}"/>
+                                <UniformGrid Grid.Row="8" Grid.Column="1" Columns="3">
+                                    <TextBox Text="{Binding ThemeSuccessColor, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeValueBox}" Margin="0,0,6,8"/>
+                                    <TextBox Text="{Binding ThemeWarningColor, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeValueBox}" Margin="0,0,6,8"/>
+                                    <TextBox Text="{Binding ThemeErrorColor, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeValueBox}"/>
+                                </UniformGrid>
+                                <TextBlock Grid.Row="9" Text="Background image" Style="{StaticResource ThemeFieldLabel}"/>
+                                <DockPanel Grid.Row="9" Grid.Column="1" LastChildFill="True">
+                                    <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearThemeBackgroundCommand}" Margin="6,0,0,8"/>
+                                    <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Content="Browse" Command="{Binding BrowseThemeBackgroundCommand}" Margin="6,0,0,8"/>
+                                    <TextBox Text="{Binding ThemeBackgroundImagePath, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeValueBox}"/>
+                                </DockPanel>
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource DesktopInsetCard}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="64"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.ColumnSpan="3" Text="Transparency" Style="{StaticResource PageTitleTextBlock}" Margin="0,0,0,4"/>
+                                <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Text="Lower opacity lets the app background or background image show through surfaces and controls." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                                <TextBlock Grid.Row="2" Text="Background" Style="{StaticResource ThemeFieldLabel}"/>
+                                <Slider Grid.Row="2" Grid.Column="1" Value="{Binding ThemeBackgroundOpacity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
+                                <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding ThemeBackgroundOpacity, StringFormat={}{0:P0}}" Style="{StaticResource CaptionTextBlock}"/>
+                                <TextBlock Grid.Row="3" Text="Surfaces" Style="{StaticResource ThemeFieldLabel}"/>
+                                <Slider Grid.Row="3" Grid.Column="1" Value="{Binding ThemeSurfaceOpacity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
+                                <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding ThemeSurfaceOpacity, StringFormat={}{0:P0}}" Style="{StaticResource CaptionTextBlock}"/>
+                                <TextBlock Grid.Row="4" Text="Inputs" Style="{StaticResource ThemeFieldLabel}"/>
+                                <Slider Grid.Row="4" Grid.Column="1" Value="{Binding ThemeInputOpacity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
+                                <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding ThemeInputOpacity, StringFormat={}{0:P0}}" Style="{StaticResource CaptionTextBlock}"/>
+                                <TextBlock Grid.Row="5" Text="Buttons" Style="{StaticResource ThemeFieldLabel}"/>
+                                <Slider Grid.Row="5" Grid.Column="1" Value="{Binding ThemeButtonOpacity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
+                                <TextBlock Grid.Row="5" Grid.Column="2" Text="{Binding ThemeButtonOpacity, StringFormat={}{0:P0}}" Style="{StaticResource CaptionTextBlock}"/>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="Live preview" Style="{StaticResource PageTitleTextBlock}"/>
+                                <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,8,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="Inventory desk card" Style="{StaticResource SectionHeader}"/>
+                                        <TextBlock Text="Surface, text, borders, corners, padding, and shadows update as you tune the theme." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                            <Button Style="{StaticResource PrimaryButton}" Content="Primary" Margin="0,0,6,0"/>
+                                            <Button Style="{StaticResource GhostButton}" Content="Ghost"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                                <TextBox Text="Input preview" Margin="0,0,0,8"/>
+                                <ProgressBar Value="65" Maximum="100"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,0,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="64"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.ColumnSpan="3" Text="Shape and borders" Style="{StaticResource PageTitleTextBlock}" Margin="0,0,0,4"/>
+                                <TextBlock Grid.Row="1" Text="Show borders" Style="{StaticResource ThemeFieldLabel}"/>
+                                <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding ThemeBordersVisible}" Margin="0,0,0,8"/>
+                                <TextBlock Grid.Row="2" Text="Glass surfaces" Style="{StaticResource ThemeFieldLabel}"/>
+                                <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding ThemeUseGlassSurfaces}" Margin="0,0,0,8"/>
+                                <TextBlock Grid.Row="3" Text="Border opacity" Style="{StaticResource ThemeFieldLabel}"/>
+                                <Slider Grid.Row="3" Grid.Column="1" Value="{Binding ThemeBorderOpacity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
+                                <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding ThemeBorderOpacity, StringFormat={}{0:P0}}" Style="{StaticResource CaptionTextBlock}"/>
+                                <TextBlock Grid.Row="4" Text="Card corners" Style="{StaticResource ThemeFieldLabel}"/>
+                                <Slider Grid.Row="4" Grid.Column="1" Minimum="0" Maximum="32" Value="{Binding ThemeCardCornerRadius, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
+                                <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding ThemeCardCornerRadius, StringFormat={}{0:0}px}" Style="{StaticResource CaptionTextBlock}"/>
+                                <TextBlock Grid.Row="5" Text="Button corners" Style="{StaticResource ThemeFieldLabel}"/>
+                                <Slider Grid.Row="5" Grid.Column="1" Minimum="0" Maximum="32" Value="{Binding ThemeButtonCornerRadius, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
+                                <TextBlock Grid.Row="5" Grid.Column="2" Text="{Binding ThemeButtonCornerRadius, StringFormat={}{0:0}px}" Style="{StaticResource CaptionTextBlock}"/>
+                                <TextBlock Grid.Row="6" Text="Input corners" Style="{StaticResource ThemeFieldLabel}"/>
+                                <Slider Grid.Row="6" Grid.Column="1" Minimum="0" Maximum="32" Value="{Binding ThemeInputCornerRadius, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
+                                <TextBlock Grid.Row="6" Grid.Column="2" Text="{Binding ThemeInputCornerRadius, StringFormat={}{0:0}px}" Style="{StaticResource CaptionTextBlock}"/>
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource DesktopInsetCard}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="64"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.ColumnSpan="3" Text="Depth and spacing" Style="{StaticResource PageTitleTextBlock}" Margin="0,0,0,4"/>
+                                <TextBlock Grid.Row="1" Text="Shadow blur" Style="{StaticResource ThemeFieldLabel}"/>
+                                <Slider Grid.Row="1" Grid.Column="1" Minimum="0" Maximum="48" Value="{Binding ThemeShadowBlurRadius, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding ThemeShadowBlurRadius, StringFormat={}{0:0}}" Style="{StaticResource CaptionTextBlock}"/>
+                                <TextBlock Grid.Row="2" Text="Shadow depth" Style="{StaticResource ThemeFieldLabel}"/>
+                                <Slider Grid.Row="2" Grid.Column="1" Minimum="0" Maximum="16" Value="{Binding ThemeShadowDepth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
+                                <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding ThemeShadowDepth, StringFormat={}{0:0}}" Style="{StaticResource CaptionTextBlock}"/>
+                                <TextBlock Grid.Row="3" Text="Shadow opacity" Style="{StaticResource ThemeFieldLabel}"/>
+                                <Slider Grid.Row="3" Grid.Column="1" Value="{Binding ThemeShadowOpacity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
+                                <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding ThemeShadowOpacity, StringFormat={}{0:P0}}" Style="{StaticResource CaptionTextBlock}"/>
+                                <TextBlock Grid.Row="4" Text="Page padding" Style="{StaticResource ThemeFieldLabel}"/>
+                                <Slider Grid.Row="4" Grid.Column="1" Minimum="0" Maximum="28" Value="{Binding ThemePagePadding, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
+                                <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding ThemePagePadding, StringFormat={}{0:0}px}" Style="{StaticResource CaptionTextBlock}"/>
+                                <TextBlock Grid.Row="5" Text="Card padding" Style="{StaticResource ThemeFieldLabel}"/>
+                                <Slider Grid.Row="5" Grid.Column="1" Minimum="0" Maximum="32" Value="{Binding ThemeCardPadding, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
+                                <TextBlock Grid.Row="5" Grid.Column="2" Text="{Binding ThemeCardPadding, StringFormat={}{0:0}px}" Style="{StaticResource CaptionTextBlock}"/>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</UserControl>
