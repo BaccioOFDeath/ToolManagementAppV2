@@ -53,6 +53,25 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("AutoLogoutMinutesBox_PreviewTextInput", xaml, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void ThemeDesignerControl_ExposesFullAppThemeCustomizationControls()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ThemeDesignerControl.xaml");
+
+            Assert.Contains("ItemsSource=\"{Binding ThemeOptions}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("SuccessColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("WarningColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("ErrorColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("SurfaceAltOpacity", xaml, StringComparison.Ordinal);
+            Assert.Contains("PanelCornerRadius", xaml, StringComparison.Ordinal);
+            Assert.Contains("BackgroundImagePath", xaml, StringComparison.Ordinal);
+            Assert.Contains("BorderOpacity", xaml, StringComparison.Ordinal);
+            Assert.Contains("ShadowBlurRadius", xaml, StringComparison.Ordinal);
+            Assert.Contains("ShadowDepth", xaml, StringComparison.Ordinal);
+            Assert.Contains("PagePadding", xaml, StringComparison.Ordinal);
+            Assert.Contains("CardPadding", xaml, StringComparison.Ordinal);
+        }
+
         static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);
