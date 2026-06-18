@@ -168,6 +168,11 @@ namespace InventoryManagementApp.Services
         {
             foreach (Window window in app.Windows)
             {
+                if (!window.IsLoaded)
+                {
+                    continue;
+                }
+
                 window.InvalidateVisual();
                 window.UpdateLayout();
             }
@@ -225,7 +230,7 @@ namespace InventoryManagementApp.Services
 
         private static DropShadowEffect CreateShadow(AppThemeSettings settings, double multiplier = 1)
         {
-            return new DropShadowEffect
+            var effect = new DropShadowEffect
             {
                 BlurRadius = settings.ShadowBlurRadius * multiplier,
                 ShadowDepth = settings.ShadowDepth * multiplier,
@@ -233,6 +238,11 @@ namespace InventoryManagementApp.Services
                 Opacity = Math.Clamp(settings.ShadowOpacity * multiplier, 0, 1),
                 Color = ParseColor("#66000000")
             };
+
+            if (effect.CanFreeze)
+                effect.Freeze();
+
+            return effect;
         }
 
         private static Color ParseColor(string value)
