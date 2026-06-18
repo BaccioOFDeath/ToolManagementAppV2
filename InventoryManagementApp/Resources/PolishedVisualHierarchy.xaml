@@ -17,19 +17,19 @@
     <Style TargetType="Border" x:Key="Card">
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushBase}"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="BorderThickness" Value="{StaticResource ThemeBorderThickness}"/>
+        <Setter Property="CornerRadius" Value="{StaticResource ThemeCardCornerRadius}"/>
         <Setter Property="Padding" Value="8"/>
         <Setter Property="Margin" Value="0"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
-        <Setter Property="Effect" Value="{StaticResource SubtleSurfaceShadow}"/>
+        <Setter Property="Effect" Value="{StaticResource ThemeSurfaceShadow}"/>
     </Style>
 
     <Style x:Key="ToolbarCard" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="BorderThickness" Value="{StaticResource ThemeSubtleBorderThickness}"/>
+        <Setter Property="CornerRadius" Value="{StaticResource ThemePanelCornerRadius}"/>
         <Setter Property="Padding" Value="10,8"/>
         <Setter Property="Margin" Value="0,0,0,6"/>
         <Setter Property="MinHeight" Value="38"/>
@@ -45,14 +45,16 @@
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="BorderThickness" Value="{StaticResource ThemeControlBorderThickness}"/>
         <Setter Property="Foreground" Value="{DynamicResource OnAccentForegroundBrush}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Padding" Value="10,3"/>
     </Style>
 
     <Style x:Key="GhostButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Background" Value="{DynamicResource TransparentSurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="{StaticResource ThemeControlBorderThickness}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="MinWidth" Value="62"/>
         <Setter Property="MinHeight" Value="28"/>
@@ -77,23 +79,25 @@
     </Style>
 
     <Style x:Key="DesktopSummaryCard" TargetType="Border" BasedOn="{StaticResource Card}">
-        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource GlassSurfaceAltBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="BorderThickness" Value="1,1,1,2"/>
         <Setter Property="Padding" Value="12"/>
         <Setter Property="MinHeight" Value="72"/>
-        <Setter Property="Effect" Value="{StaticResource RaisedSurfaceShadow}"/>
+        <Setter Property="Effect" Value="{StaticResource ThemeRaisedShadow}"/>
     </Style>
 
     <Style x:Key="DesktopInsetCard" TargetType="Border" BasedOn="{StaticResource Card}">
         <Setter Property="Padding" Value="12"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushBase}"/>
+        <Setter Property="Background" Value="{DynamicResource GlassSurfaceBrush}"/>
     </Style>
 
     <Style x:Key="DesktopPaneHeader" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="BorderThickness" Value="0,0,0,2"/>
+        <Setter Property="CornerRadius" Value="{StaticResource ThemePanelCornerRadius}"/>
         <Setter Property="Padding" Value="10,7"/>
         <Setter Property="MinHeight" Value="42"/>
     </Style>
@@ -102,6 +106,7 @@
         <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="CornerRadius" Value="{StaticResource ThemePanelCornerRadius}"/>
         <Setter Property="Padding" Value="10,7"/>
         <Setter Property="MinHeight" Value="36"/>
     </Style>
@@ -115,13 +120,14 @@
     </Style>
 
     <Style x:Key="DesktopStatusFooter" TargetType="Border">
-        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource GlassSurfaceAltBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="1,0,1,1"/>
-        <Setter Property="CornerRadius" Value="0,0,4,4"/>
+        <Setter Property="CornerRadius" Value="{StaticResource ThemeFooterCornerRadius}"/>
         <Setter Property="Padding" Value="10,5"/>
         <Setter Property="MinHeight" Value="34"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Effect" Value="{StaticResource ThemeSurfaceShadow}"/>
     </Style>
 
     <Style x:Key="AdminHandoffCard" TargetType="Border" BasedOn="{StaticResource DesktopInsetCard}">
@@ -130,12 +136,13 @@
         <Setter Property="BorderThickness" Value="1,1,1,2"/>
         <Setter Property="Padding" Value="12"/>
         <Setter Property="Margin" Value="0,0,0,8"/>
+        <Setter Property="Effect" Value="{StaticResource ThemeRaisedShadow}"/>
     </Style>
 
     <Style x:Key="DesktopNoteCard" TargetType="Border" BasedOn="{StaticResource DesktopInsetCard}">
-        <Setter Property="Background" Value="{DynamicResource TextBoxBackgroundBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource GlassSurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderThickness" Value="{StaticResource ThemeSubtleBorderThickness}"/>
     </Style>
 
     <Style x:Key="DataRunLogCard" TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
