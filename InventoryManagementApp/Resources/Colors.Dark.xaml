@@ -31,6 +31,10 @@
     <SolidColorBrush x:Key="TextBoxBackgroundBrush" Color="#3C3C3C"/>
     <SolidColorBrush x:Key="ComboBoxPopupBackgroundBrush" Color="#252526"/>
     <SolidColorBrush x:Key="OverlayBrush" Color="#66000000"/>
+    <SolidColorBrush x:Key="TransparentSurfaceBrush" Color="#00000000"/>
+    <SolidColorBrush x:Key="GlassSurfaceBrush" Color="#D9252526"/>
+    <SolidColorBrush x:Key="GlassSurfaceAltBrush" Color="#B82D2D30"/>
+    <SolidColorBrush x:Key="AppBackgroundTintBrush" Color="#22000000"/>
     <SolidColorBrush x:Key="NavButtonHoverBrush" Color="#2A2D2E"/>
     <SolidColorBrush x:Key="NavButtonHoverBorderBrush" Color="#3F3F46"/>
     <SolidColorBrush x:Key="NavButtonPressedBrush" Color="#313136"/>
