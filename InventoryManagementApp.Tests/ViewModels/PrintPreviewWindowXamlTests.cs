@@ -32,6 +32,21 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("CloseCommand", xaml, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void PrintPreviewWindow_AppliesSharedDocumentPolishToEveryPreview()
+        {
+            var codeBehind = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "PrintPreviewWindow.xaml.cs");
+
+            Assert.Contains("ApplyDocumentPolish(_document, _title)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("PrintPolishHeader", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Inventory Print Package", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Prepared {DateTime.Now:g}", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("PrintPolishFooter", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("ApplyTablePolish", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("TableRowGroup", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Generated from InventoryManagementApp print preview", codeBehind, StringComparison.Ordinal);
+        }
+
         static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);
