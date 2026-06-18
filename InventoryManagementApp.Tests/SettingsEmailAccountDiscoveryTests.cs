@@ -50,13 +50,31 @@ namespace InventoryManagementApp.Tests
             Assert.Equal("Ready to test email delivery.", vm.EmailConfigurationStatus);
         }
 
+        [Fact]
+        public async Task SelectingOutlookProvider_RetriesWhenFirstDiscoveryIsEmpty()
+        {
+            var account = new EmailAccountOption("Work Account", "work@example.com", "work@example.com");
+            var discovery = new RetryEmailAccountDiscoveryService(account);
+            var vm = CreateViewModel(discovery);
+
+            vm.SelectedEmailProvider = "Outlook/Office 365";
+
+            await WaitForAsync(() => vm.HasOutlookAccountOptions);
+
+            Assert.Equal(2, discovery.CallCount);
+            Assert.Equal(account, vm.SelectedOutlookAccount);
+        }
+
         private static SettingsViewModel CreateViewModel(IReadOnlyList<EmailAccountOption> accounts)
+            => CreateViewModel(new StubEmailAccountDiscoveryService(accounts));
+
+        private static SettingsViewModel CreateViewModel(IEmailAccountDiscoveryService discoveryService)
             => new(
                 new DummyFileDialogService(),
                 new DummySettingsService(),
                 new DummyDialogService(),
                 new DummyThemeService(),
-                emailAccountDiscoveryService: new StubEmailAccountDiscoveryService(accounts));
+                emailAccountDiscoveryService: discoveryService);
 
         private static async Task WaitForAsync(Func<bool> condition)
         {
@@ -84,6 +102,24 @@ namespace InventoryManagementApp.Tests
 
             public Task<IReadOnlyList<EmailAccountOption>> GetOutlookAccountsAsync(CancellationToken cancellationToken = default)
                 => Task.FromResult(_accounts);
+        }
+
+        private sealed class RetryEmailAccountDiscoveryService : IEmailAccountDiscoveryService
+        {
+            private readonly EmailAccountOption _account;
+            public int CallCount { get; private set; }
+
+            public RetryEmailAccountDiscoveryService(EmailAccountOption account)
+            {
+                _account = account;
+            }
+
+            public Task<IReadOnlyList<EmailAccountOption>> GetOutlookAccountsAsync(CancellationToken cancellationToken = default)
+            {
+                CallCount++;
+                return Task.FromResult<IReadOnlyList<EmailAccountOption>>(
+                    CallCount == 1 ? Array.Empty<EmailAccountOption>() : new[] { _account });
+            }
         }
 
         private sealed class DummyThemeService : IThemeService

@@ -812,7 +812,7 @@ namespace InventoryManagementApp.ViewModels
 
             try
             {
-                var accounts = await _emailAccountDiscoveryService.GetOutlookAccountsAsync(token).ConfigureAwait(false);
+                var accounts = await GetOutlookAccountsWithRetryAsync(token).ConfigureAwait(false);
                 RunOnUiThread(() =>
                 {
                     OutlookAccountOptions.Clear();
@@ -846,6 +846,28 @@ namespace InventoryManagementApp.ViewModels
                 _logger.LogWarning(ex, "Failed to load Outlook accounts.");
                 OutlookAccountStatus = "Outlook accounts could not be loaded from this computer.";
             }
+        }
+
+        private async Task<IReadOnlyList<EmailAccountOption>> GetOutlookAccountsWithRetryAsync(CancellationToken token)
+        {
+            var accounts = await _emailAccountDiscoveryService.GetOutlookAccountsAsync(token).ConfigureAwait(false);
+            if (accounts.Count > 0)
+            {
+                return accounts;
+            }
+
+            OutlookAccountStatus = "Outlook did not return accounts yet. Retrying...";
+            for (var attempt = 0; attempt < 2; attempt++)
+            {
+                await Task.Delay(750, token).ConfigureAwait(false);
+                accounts = await _emailAccountDiscoveryService.GetOutlookAccountsAsync(token).ConfigureAwait(false);
+                if (accounts.Count > 0)
+                {
+                    return accounts;
+                }
+            }
+
+            return accounts;
         }
 
         private static void RunOnUiThread(Action action)
