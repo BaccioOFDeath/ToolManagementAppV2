@@ -43,7 +43,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("Prepared {DateTime.Now:g}", codeBehind, StringComparison.Ordinal);
             Assert.Contains("PrintPolishFooter", codeBehind, StringComparison.Ordinal);
             Assert.Contains("ApplyTablePolish", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("TableRowGroup", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("foreach (var rowGroup in table.RowGroups)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("Generated from InventoryManagementApp print preview", codeBehind, StringComparison.Ordinal);
         }
 
