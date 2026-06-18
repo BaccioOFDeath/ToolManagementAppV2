@@ -752,6 +752,8 @@ namespace InventoryManagementApp.ViewModels
                     RefreshCurrentUser();
                     CloseNonMainWindows();
                     ClearSearch();
+                    SetNavSection(NavSectionKeys.Overview);
+                    await OpenDashboardCommand.ExecuteAsync(null);
                 try
                 {
                     await _settingsService.DeleteSettingAsync("LastFilter").ConfigureAwait(false);

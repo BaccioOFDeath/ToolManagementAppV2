@@ -368,8 +368,9 @@ namespace InventoryManagementApp.Tests
                     var reservationService = new ReservationService(db, userContext);
                     var kitService = new KitService(db, userContext);
                     var loginShown = false;
+                    MainViewModel? vm = null;
 
-                    var vm = new MainViewModel(
+                    vm = new MainViewModel(
                         new StubItemService(),
                         new StubUserService(),
                         userContext,
@@ -390,15 +391,20 @@ namespace InventoryManagementApp.Tests
                         () =>
                         {
                             loginShown = true;
+                            Assert.IsType<DashboardPage>(vm!.CurrentPage);
                             return Task.FromResult(false);
                         },
                         new StubDispatcherTimer(),
                         new StubDispatcherTimer());
 
+                    vm.OpenCategoriesCommand.ExecuteAsync(null).GetAwaiter().GetResult();
+                    Assert.IsType<CategoriesPage>(vm.CurrentPage);
+
                     vm.SwitchUserCommand.ExecuteAsync(null).GetAwaiter().GetResult();
 
                     Assert.True(loginShown);
                     Assert.Null(userContext.CurrentUser);
+                    Assert.IsType<DashboardPage>(vm.CurrentPage);
 
                     WpfTestHelper.ShutdownApplication();
                 }
