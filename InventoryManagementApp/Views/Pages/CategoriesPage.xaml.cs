@@ -8,6 +8,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using InventoryManagementApp.ViewModels;
+using InventoryManagementApp.Views.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using WpfMessageBox = System.Windows.MessageBox;
 using WpfPrintDialog = System.Windows.Controls.PrintDialog;
@@ -110,7 +111,14 @@ namespace InventoryManagementApp.Views.Pages
             if (!TryGetSelectedCategory(out var category))
                 return;
 
-            WpfMessageBox.Show(FormatCategoryDetail(category), $"Category Detail - {category.Name}", MessageBoxButton.OK, MessageBoxImage.Information);
+            DetailDialogWindow.ShowDialogFor(
+                Window.GetWindow(this),
+                $"Category Detail - {category.Name}",
+                "Category Detail",
+                FormatCategoryDetail(category),
+                "Review naming, directory labeling, and setup handoff guidance before changing category structure.",
+                $"Category #{category.CategoryID}",
+                "Close returns to Categories with the selected category ready for copy, print, rename, or refresh actions.");
         }
 
         private void CopyCategory_Click(object sender, RoutedEventArgs e)
