@@ -7,8 +7,8 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using InventoryManagementApp.ViewModels;
+using InventoryManagementApp.Views.Windows;
 using WpfMessageBox = System.Windows.MessageBox;
-using WpfPrintDialog = System.Windows.Controls.PrintDialog;
 
 namespace InventoryManagementApp.Views.Pages
 {
@@ -55,16 +55,8 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            var printDialog = new WpfPrintDialog();
-            if (printDialog.ShowDialog() != true)
-                return;
-
             var document = BuildReportDocument(vm.ReportTitle, vm.ReportSummary, vm.LastRunText, vm.ReportLines.ToList());
-            document.PageWidth = printDialog.PrintableAreaWidth;
-            document.PageHeight = printDialog.PrintableAreaHeight;
-            document.PagePadding = new Thickness(36);
-            document.ColumnWidth = printDialog.PrintableAreaWidth;
-            printDialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, vm.ReportTitle);
+            new PrintPreviewWindow().ShowPreview(document, vm.ReportTitle, null);
         }
 
         private void OpenSelectedDestination()
