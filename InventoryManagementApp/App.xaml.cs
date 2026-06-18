@@ -155,6 +155,7 @@ namespace InventoryManagementApp
                 services.AddSingleton<IFileDialogService, FileDialogService>();
                 services.AddSingleton<ISettingsService, SettingsService>();
                 services.AddSingleton<IThemeService, ThemeService>();
+                services.AddSingleton<IEmailAccountDiscoveryService, OutlookEmailAccountDiscoveryService>();
                 services.AddSingleton<IDialogService, DialogService>();
                 services.AddSingleton<MaintenanceService>();
                 services.AddSingleton<CalibrationService>();

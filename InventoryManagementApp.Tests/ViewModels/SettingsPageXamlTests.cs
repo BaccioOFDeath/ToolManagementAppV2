@@ -40,6 +40,9 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("SelectNoneItemDisplayCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("AddFromEmailCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("RemoveFromEmailCommand", xaml, StringComparison.Ordinal);
+            Assert.Contains("OutlookAccountOptions", xaml, StringComparison.Ordinal);
+            Assert.Contains("SelectedOutlookAccount", xaml, StringComparison.Ordinal);
+            Assert.Contains("OutlookAccountStatus", xaml, StringComparison.Ordinal);
             Assert.Contains("SmtpPasswordBox", xaml, StringComparison.Ordinal);
             Assert.Contains("SmtpPasswordBox_PasswordChanged", xaml, StringComparison.Ordinal);
             Assert.Contains("SmsApiKeyBox", xaml, StringComparison.Ordinal);

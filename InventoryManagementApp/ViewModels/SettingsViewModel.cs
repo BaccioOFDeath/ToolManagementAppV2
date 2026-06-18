@@ -13,6 +13,7 @@ using System.Windows;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Services.Settings;
+using InventoryManagementApp.Services.Notifications;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Utilities.Helpers;
@@ -30,19 +31,22 @@ namespace InventoryManagementApp.ViewModels
         readonly IDialogService _dialogService;
         readonly IThemeService _themeService;
         readonly RentalConfigurationService? _rentalConfigService;
+        readonly IEmailAccountDiscoveryService _emailAccountDiscoveryService;
         readonly ILogger<SettingsViewModel> _logger;
         public ObservableCollection<ItemDetailOption> ItemDetailOptions { get; } = new();
         public ObservableCollection<string> FromEmailOptions { get; } = new();
+        public ObservableCollection<EmailAccountOption> OutlookAccountOptions { get; } = new();
         public ObservableCollection<string> SmsProviders { get; }
         bool _bulkUpdating;
 
-        public SettingsViewModel(IFileDialogService fileDialog, ISettingsService settingsService, IDialogService dialogService, IThemeService themeService, RentalConfigurationService? rentalConfigService = null, ILogger<SettingsViewModel>? logger = null)
+        public SettingsViewModel(IFileDialogService fileDialog, ISettingsService settingsService, IDialogService dialogService, IThemeService themeService, RentalConfigurationService? rentalConfigService = null, ILogger<SettingsViewModel>? logger = null, IEmailAccountDiscoveryService? emailAccountDiscoveryService = null)
         {
             _fileDialog = fileDialog;
             _settingsService = settingsService;
             _dialogService = dialogService;
             _themeService = themeService;
             _rentalConfigService = rentalConfigService;
+            _emailAccountDiscoveryService = emailAccountDiscoveryService ?? new OutlookEmailAccountDiscoveryService();
             _logger = logger ?? NullLogger<SettingsViewModel>.Instance;
 
             ThemeOptions = new ObservableCollection<string> { "Light", "Dark" };
@@ -174,6 +178,10 @@ namespace InventoryManagementApp.ViewModels
                     OnPropertyChanged(nameof(SelectedSmsProvider));
                     OnPropertyChanged(nameof(SmsApiKey));
                     OnPropertyChanged(nameof(SmsSender));
+                    if (IsOutlookProvider)
+                    {
+                        await LoadOutlookAccountsAsync().ConfigureAwait(false);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -603,6 +611,38 @@ namespace InventoryManagementApp.ViewModels
                 if (SetProperty(ref _selectedEmailProvider, value))
                 {
                     ApplyEmailProviderTemplate(value);
+                    OnPropertyChanged(nameof(IsOutlookProvider));
+                    if (IsOutlookProvider)
+                    {
+                        _ = LoadOutlookAccountsAsync();
+                    }
+                }
+            }
+        }
+
+        public bool IsOutlookProvider => string.Equals(SelectedEmailProvider, "Outlook/Office 365", StringComparison.OrdinalIgnoreCase);
+
+        public bool HasOutlookAccountOptions => OutlookAccountOptions.Count > 0;
+
+        private string _outlookAccountStatus = "Select Outlook/Office 365 to load accounts from this Windows profile.";
+        public string OutlookAccountStatus
+        {
+            get => _outlookAccountStatus;
+            private set => SetProperty(ref _outlookAccountStatus, value);
+        }
+
+        private EmailAccountOption? _selectedOutlookAccount;
+        public EmailAccountOption? SelectedOutlookAccount
+        {
+            get => _selectedOutlookAccount;
+            set
+            {
+                if (SetProperty(ref _selectedOutlookAccount, value) && value != null)
+                {
+                    SmtpUsername = value.UserName;
+                    FromEmail = value.EmailAddress;
+                    EnsureFromEmailOption(value.EmailAddress);
+                    SelectedFromEmail = value.EmailAddress;
                 }
             }
         }
@@ -718,6 +758,65 @@ namespace InventoryManagementApp.ViewModels
                     // Don't change values for custom
                     break;
             }
+        }
+
+        private async Task LoadOutlookAccountsAsync(CancellationToken token = default)
+        {
+            if (!IsOutlookProvider)
+            {
+                return;
+            }
+
+            OutlookAccountStatus = "Looking for Outlook accounts on this computer...";
+
+            try
+            {
+                var accounts = await _emailAccountDiscoveryService.GetOutlookAccountsAsync(token).ConfigureAwait(false);
+                RunOnUiThread(() =>
+                {
+                    OutlookAccountOptions.Clear();
+                    foreach (var account in accounts)
+                    {
+                        OutlookAccountOptions.Add(account);
+                    }
+
+                    OnPropertyChanged(nameof(HasOutlookAccountOptions));
+
+                    if (OutlookAccountOptions.Count == 0)
+                    {
+                        SelectedOutlookAccount = null;
+                        OutlookAccountStatus = "No Outlook accounts were found for the current Windows user.";
+                        return;
+                    }
+
+                    SelectedOutlookAccount = OutlookAccountOptions.FirstOrDefault(account =>
+                            account.EmailAddress.Equals(FromEmail, StringComparison.OrdinalIgnoreCase) ||
+                            account.UserName.Equals(SmtpUsername, StringComparison.OrdinalIgnoreCase))
+                        ?? OutlookAccountOptions.First();
+                    OutlookAccountStatus = $"{OutlookAccountOptions.Count} Outlook account(s) found on this computer.";
+                });
+            }
+            catch (OperationCanceledException ex)
+            {
+                _logger.LogInformation(ex, "Loading Outlook accounts was canceled.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load Outlook accounts.");
+                OutlookAccountStatus = "Outlook accounts could not be loaded from this computer.";
+            }
+        }
+
+        private static void RunOnUiThread(Action action)
+        {
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher == null || dispatcher.CheckAccess())
+            {
+                action();
+                return;
+            }
+
+            dispatcher.Invoke(action);
         }
 
         private async Task SaveEmailSettingsAsync(CancellationToken token = default)

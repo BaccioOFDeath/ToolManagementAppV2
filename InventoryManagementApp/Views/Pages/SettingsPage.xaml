@@ -429,6 +429,7 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
                                         <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="SMTP setup" Style="{StaticResource PageTitleTextBlock}" Margin="0,0,0,4"/>
                                         <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="Choose a provider template, confirm host and port, then test delivery before staff rely on reminders." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,12"/>
@@ -436,19 +437,24 @@
                                         <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding EmailEnabled}" Margin="8,0,0,8"/>
                                         <TextBlock Grid.Row="3" Text="Email Provider" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
                                         <ComboBox Grid.Row="3" Grid.Column="1" SelectedItem="{Binding SelectedEmailProvider}" ItemsSource="{Binding EmailProviders}" Margin="8,0,0,8" ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
-                                        <TextBlock Grid.Row="4" Text="SMTP Host" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding SmtpHost}" Margin="8,0,0,8"/>
-                                        <TextBlock Grid.Row="5" Text="SMTP Port" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                                        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding SmtpPort}" Margin="8,0,0,8"/>
-                                        <TextBlock Grid.Row="6" Text="Username" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                                        <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding SmtpUsername}" Margin="8,0,0,8"/>
-                                        <TextBlock Grid.Row="7" Text="Password" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                                        <PasswordBox Grid.Row="7" Grid.Column="1" x:Name="SmtpPasswordBox" Margin="8,0,0,8" PasswordChanged="SmtpPasswordBox_PasswordChanged"/>
-                                        <TextBlock Grid.Row="8" Text="From Name" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                                        <TextBox Grid.Row="8" Grid.Column="1" Text="{Binding FromName}" Margin="8,0,0,8"/>
-                                        <TextBlock Grid.Row="9" Text="Enable SSL/TLS" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                                        <CheckBox Grid.Row="9" Grid.Column="1" IsChecked="{Binding EnableSsl}" Margin="8,0,0,8"/>
-                                        <StackPanel Grid.Row="10" Grid.Column="1" Orientation="Horizontal" Margin="8,0,0,0">
+                                        <TextBlock Grid.Row="4" Text="Outlook Account" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Visibility="{Binding IsOutlookProvider, Converter={StaticResource BoolToVis}}"/>
+                                        <StackPanel Grid.Row="4" Grid.Column="1" Margin="8,0,0,8" Visibility="{Binding IsOutlookProvider, Converter={StaticResource BoolToVis}}">
+                                            <ComboBox ItemsSource="{Binding OutlookAccountOptions}" SelectedItem="{Binding SelectedOutlookAccount}" DisplayMemberPath="DisplayText" IsEnabled="{Binding HasOutlookAccountOptions}" ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
+                                            <TextBlock Text="{Binding OutlookAccountStatus}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Row="5" Text="SMTP Host" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding SmtpHost}" Margin="8,0,0,8"/>
+                                        <TextBlock Grid.Row="6" Text="SMTP Port" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding SmtpPort}" Margin="8,0,0,8"/>
+                                        <TextBlock Grid.Row="7" Text="Username" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding SmtpUsername}" Margin="8,0,0,8"/>
+                                        <TextBlock Grid.Row="8" Text="Password" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                                        <PasswordBox Grid.Row="8" Grid.Column="1" x:Name="SmtpPasswordBox" Margin="8,0,0,8" PasswordChanged="SmtpPasswordBox_PasswordChanged"/>
+                                        <TextBlock Grid.Row="9" Text="From Name" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="9" Grid.Column="1" Text="{Binding FromName}" Margin="8,0,0,8"/>
+                                        <TextBlock Grid.Row="10" Text="Enable SSL/TLS" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                                        <CheckBox Grid.Row="10" Grid.Column="1" IsChecked="{Binding EnableSsl}" Margin="8,0,0,8"/>
+                                        <StackPanel Grid.Row="11" Grid.Column="1" Orientation="Horizontal" Margin="8,0,0,0">
                                             <Button Style="{StaticResource GhostButton}" Content="Test Email" Command="{Binding TestEmailCommand}" Margin="0,0,4,0"/>
                                             <Button Style="{StaticResource PrimaryButton}" Content="Save Email Settings" Command="{Binding SaveEmailSettingsCommand}"/>
                                         </StackPanel>

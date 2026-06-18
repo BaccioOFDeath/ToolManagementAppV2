@@ -410,8 +410,9 @@ namespace InventoryManagementApp.ViewModels
                                Services.Settings.RentalConfigurationService? rentalConfigService = null,
                              ILogger<MainViewModel>? logger = null,
                              Func<Task<bool>>? showLoginWindow = null,
-                               IDispatcherTimer? autoLogoutTimer = null,
-                               IDispatcherTimer? globalSearchDebounceTimer = null)
+                                IDispatcherTimer? autoLogoutTimer = null,
+                                IDispatcherTimer? globalSearchDebounceTimer = null,
+                             IEmailAccountDiscoveryService? emailAccountDiscoveryService = null)
         {
             _itemService = itemService;
             _userService = userService;
@@ -453,7 +454,7 @@ namespace InventoryManagementApp.ViewModels
             ImportExport = new ImportExportViewModel(itemService, customerService, fileDialogService, databaseService, _dialogService, OpenImageImportMappingWindowCommand, _userContext, rentalConfigService);
             Reports = new ReportsViewModel(new ReportService(itemService, rentalService, activityLogService, customerService, userService));
             ActivityLogs = new ActivityLogsViewModel(activityLogService);
-            Settings = new SettingsViewModel(_fileDialogService, _settingsService, _dialogService, _themeService, rentalConfigService);
+            Settings = new SettingsViewModel(_fileDialogService, _settingsService, _dialogService, _themeService, rentalConfigService, emailAccountDiscoveryService: emailAccountDiscoveryService);
             MaintenanceManagement = new MaintenanceManagementViewModel(maintenanceService ?? throw new ArgumentNullException(nameof(maintenanceService)), _dialogService);
             CalibrationManagement = new CalibrationManagementViewModel(calibrationService ?? throw new ArgumentNullException(nameof(calibrationService)), _dialogService);
             ReservationManagement = new ReservationManagementViewModel(reservationService ?? throw new ArgumentNullException(nameof(reservationService)), _dialogService);
