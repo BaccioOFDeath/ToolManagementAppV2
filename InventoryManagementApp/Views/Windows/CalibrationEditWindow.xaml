@@ -3,76 +3,158 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:InventoryManagementApp.Views.Controls"
         Title="Calibration"
-        Width="680"
-        Height="410"
+        Width="760"
+        Height="540"
+        MinWidth="700"
+        MinHeight="500"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
     <Grid Margin="14">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Margin="0,0,0,8">
+        <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}" Margin="0,0,0,8">
             <DockPanel LastChildFill="True">
-                <StackPanel DockPanel.Dock="Left">
-                    <TextBlock Text="Calibration record" Style="{StaticResource PageTitleTextBlock}"/>
-                    <TextBlock Text="Record certificate details, due dates, result, and verification notes." Style="{StaticResource CaptionTextBlock}"/>
+                <Border DockPanel.Dock="Right" Style="{StaticResource DesktopNoteCard}" Padding="10,6" Margin="14,0,0,0" VerticalAlignment="Center">
+                    <StackPanel>
+                        <TextBlock Text="Certificate Result" Style="{StaticResource LabelTextBlock}"/>
+                        <TextBlock Text="{Binding CalibrationRecord.Result}" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+                <StackPanel>
+                    <TextBlock Text="Calibration Certificate" Style="{StaticResource PageTitleTextBlock}"/>
+                    <TextBlock Text="Record measurement readiness, certificate identity, due dates, and verification notes before returning to the calibration board."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"
+                               Margin="0,2,0,0"/>
                 </StackPanel>
-                <TextBlock DockPanel.Dock="Right"
-                           Text="{Binding CalibrationRecord.Result}"
-                           Style="{StaticResource CaptionTextBlock}"
-                           FontWeight="SemiBold"
-                           VerticalAlignment="Center"/>
             </DockPanel>
         </Border>
 
-        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="12">
+        <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,8">
+            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,6,0">
+                <StackPanel>
+                    <TextBlock Text="01 Asset" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="Item identity" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Confirm item number and item name before saving." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource DesktopSummaryCard}" Margin="3,0">
+                <StackPanel>
+                    <TextBlock Text="02 Certificate" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="Dates and result" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Certificate timing drives due-state and shelf release decisions." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource DesktopSummaryCard}" Margin="6,0,0,0">
+                <StackPanel>
+                    <TextBlock Text="03 Verification" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="Calibrator notes" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Capture certificate context for future audits." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0">
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="118"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="18"/>
-                    <ColumnDefinition Width="118"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Item #" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding CalibrationRecord.ItemNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
-                <TextBlock Grid.Row="0" Grid.Column="3" Text="Item Name" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                <TextBox Grid.Row="0" Grid.Column="4" Text="{Binding CalibrationRecord.ItemName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}">
+                    <DockPanel LastChildFill="True">
+                        <TextBlock Text="Calibration Details" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
+                        <TextBlock Text="Keep certificate fields aligned for quick bench entry and repeat audits." Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                    </DockPanel>
+                </Border>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Calibration Date" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                <DatePicker Grid.Row="1" Grid.Column="1" SelectedDate="{Binding CalibrationRecord.CalibrationDate}" Margin="0,0,0,8"/>
-                <TextBlock Grid.Row="1" Grid.Column="3" Text="Next Due" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                <DatePicker Grid.Row="1" Grid.Column="4" SelectedDate="{Binding CalibrationRecord.NextCalibrationDue}" Margin="0,0,0,8"/>
+                <Grid Grid.Row="1" Margin="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="1.15*"/>
+                    </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Calibrated By" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding CalibrationRecord.CalibratedBy, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
-                <TextBlock Grid.Row="2" Grid.Column="3" Text="Certificate #" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                <TextBox Grid.Row="2" Grid.Column="4" Text="{Binding CalibrationRecord.CertificateNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                    <Grid Grid.Column="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="124"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="18"/>
+                            <ColumnDefinition Width="124"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Result" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                <ComboBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding ResultOptions}" SelectedItem="{Binding CalibrationRecord.Result}" Margin="0,0,0,8"/>
+                        <TextBlock Grid.Row="0" Grid.ColumnSpan="5" Text="Certificate Fields" Style="{StaticResource SectionHeader}" Margin="0,0,0,8"/>
 
-                <TextBlock Grid.Row="3" Grid.Column="3" Grid.ColumnSpan="2" Text="Notes" Style="{StaticResource SectionHeader}" Margin="0,4,0,8"/>
-                <TextBox Grid.Row="4"
-                         Grid.ColumnSpan="5"
-                         Text="{Binding CalibrationRecord.Notes, UpdateSourceTrigger=PropertyChanged}"
-                         AcceptsReturn="True"
-                         TextWrapping="Wrap"
-                         VerticalScrollBarVisibility="Auto"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Item #" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding CalibrationRecord.ItemNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                        <TextBlock Grid.Row="1" Grid.Column="3" Text="Item Name" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                        <TextBox Grid.Row="1" Grid.Column="4" Text="{Binding CalibrationRecord.ItemName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Calibration Date" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                        <DatePicker Grid.Row="2" Grid.Column="1" SelectedDate="{Binding CalibrationRecord.CalibrationDate}" Margin="0,0,0,8"/>
+                        <TextBlock Grid.Row="2" Grid.Column="3" Text="Next Due" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                        <DatePicker Grid.Row="2" Grid.Column="4" SelectedDate="{Binding CalibrationRecord.NextCalibrationDue}" Margin="0,0,0,8"/>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Calibrated By" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding CalibrationRecord.CalibratedBy, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                        <TextBlock Grid.Row="3" Grid.Column="3" Text="Certificate #" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                        <TextBox Grid.Row="3" Grid.Column="4" Text="{Binding CalibrationRecord.CertificateNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Result" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                        <ComboBox Grid.Row="4" Grid.Column="1" ItemsSource="{Binding ResultOptions}" SelectedItem="{Binding CalibrationRecord.Result}" Margin="0,0,0,8"/>
+
+                        <Border Grid.Row="5" Grid.ColumnSpan="5" Style="{StaticResource DesktopNoteCard}" Padding="10" Margin="0,4,0,0">
+                            <TextBlock Text="Save after checking dates, certificate number, and result so calibration due lists and release decisions stay accurate."
+                                       Style="{StaticResource CaptionTextBlock}"
+                                       TextWrapping="Wrap"/>
+                        </Border>
+                    </Grid>
+
+                    <Border Grid.Column="2" Style="{StaticResource AdminHandoffCard}" Margin="0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="Verification Notes" Style="{StaticResource SectionHeader}"/>
+                            <TextBlock Grid.Row="1" Text="Record standard, variance, pass/fail context, and any shelf-release caution for the next operator."
+                                       Style="{StaticResource CaptionTextBlock}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,2,0,8"/>
+                            <TextBox Grid.Row="2"
+                                     Text="{Binding CalibrationRecord.Notes, UpdateSourceTrigger=PropertyChanged}"
+                                     AcceptsReturn="True"
+                                     TextWrapping="Wrap"
+                                     MinHeight="210"
+                                     VerticalScrollBarVisibility="Auto"/>
+                        </Grid>
+                    </Border>
+                </Grid>
             </Grid>
         </Border>
 
-        <controls:SaveCancelBar Grid.Row="2"/>
+        <controls:SaveCancelBar Grid.Row="3"/>
+
+        <Border Grid.Row="4" Style="{StaticResource DesktopStatusFooter}" Margin="0,8,0,0">
+            <TextBlock Text="Calibration edit status: review item identity, certificate dates, result, and verification notes before saving."
+                       Style="{StaticResource CaptionTextBlock}"
+                       TextWrapping="Wrap"/>
+        </Border>
     </Grid>
 </Window>
