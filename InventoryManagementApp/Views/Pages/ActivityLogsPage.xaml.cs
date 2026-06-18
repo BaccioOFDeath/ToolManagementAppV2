@@ -9,7 +9,6 @@ using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Views.Windows;
 using WpfMessageBox = System.Windows.MessageBox;
-using WpfPrintDialog = System.Windows.Controls.PrintDialog;
 
 namespace InventoryManagementApp.Views.Pages
 {
@@ -137,16 +136,8 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            var printDialog = new WpfPrintDialog();
-            if (printDialog.ShowDialog() != true)
-                return;
-
             var document = BuildPrintDocument(vm.FilteredLogs.ToList(), vm.StatusMessage, vm.ActivitySummary);
-            document.PageWidth = printDialog.PrintableAreaWidth;
-            document.PageHeight = printDialog.PrintableAreaHeight;
-            document.PagePadding = new Thickness(36);
-            document.ColumnWidth = printDialog.PrintableAreaWidth;
-            printDialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, "Activity Logs");
+            new PrintPreviewWindow().ShowPreview(document, "Activity Logs", null);
         }
 
         private static string FormatLogDetail(ActivityLog log)
