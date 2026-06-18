@@ -66,7 +66,11 @@ namespace InventoryManagementApp.Views.Windows
             ErrorTextBlock.Text = message;
             ErrorTextBlock.Visibility = Visibility.Visible;
 
-            ForgotPasswordButton.Visibility = _attemptCount >= MaxAttempts
+            var showResetRecovery = _attemptCount >= MaxAttempts;
+            ResetRecoveryPanel.Visibility = showResetRecovery
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            ForgotPasswordButton.Visibility = showResetRecovery
                 ? Visibility.Visible
                 : Visibility.Collapsed;
 
