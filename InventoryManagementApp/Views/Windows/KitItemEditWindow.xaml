@@ -3,67 +3,136 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:InventoryManagementApp.Views.Controls"
         Title="Kit Item"
-        Width="560"
-        Height="430"
-        MinWidth="520"
-        MinHeight="390"
+        Width="640"
+        Height="540"
+        MinWidth="580"
+        MinHeight="480"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
-    <Grid Margin="16">
+    <Grid Margin="14">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource ToolbarCard}" Padding="16,14">
-            <StackPanel>
-                <TextBlock Text="Kit Item Membership" Style="{StaticResource HeadingTextBlock}"/>
-                <TextBlock Text="Set the item reference, display name, required quantity, and whether this item is optional for the kit."
-                           Style="{StaticResource CaptionTextBlock}"
-                           Margin="0,4,0,0"/>
-            </StackPanel>
+        <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}" Margin="0,0,0,8">
+            <DockPanel LastChildFill="True">
+                <Border DockPanel.Dock="Right" Style="{StaticResource DesktopNoteCard}" Padding="12,7" Margin="16,0,0,0" VerticalAlignment="Center">
+                    <StackPanel>
+                        <TextBlock Text="Membership" Style="{StaticResource LabelTextBlock}"/>
+                        <TextBlock Text="{Binding KitItem.ItemNumber, TargetNullValue='New item'}" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+                <StackPanel>
+                    <TextBlock Text="Kit Item Membership" Style="{StaticResource PageTitleTextBlock}"/>
+                    <TextBlock Text="Set the item reference, display name, required quantity, and whether this item is optional for the kit."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"
+                               Margin="0,2,0,0"/>
+                </StackPanel>
+            </DockPanel>
         </Border>
 
-        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="14" Margin="0,10,0,0">
+        <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,8">
+            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,6,0">
+                <StackPanel>
+                    <TextBlock Text="01 Item" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="Reference" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Use the item number and name operators expect on pick sheets."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource DesktopSummaryCard}" Margin="3,0">
+                <StackPanel>
+                    <TextBlock Text="02 Quantity" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="Required count" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Quantity controls what staff need to gather for the kit."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource DesktopSummaryCard}" Margin="6,0,0,0">
+                <StackPanel>
+                    <TextBlock Text="03 Optional" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="Pick list rule" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Optional items stay visible without blocking the core kit."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0">
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="138"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-
-                <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Membership Details" Style="{StaticResource SectionHeader}"/>
-                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="These fields control the kit membership list and printed pick sheet requirements."
-                           Style="{StaticResource CaptionTextBlock}" Margin="0,0,0,12"/>
-
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Item #" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,8" VerticalAlignment="Center"/>
-                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding KitItem.ItemNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
-
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Item Name" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,8" VerticalAlignment="Center"/>
-                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding KitItem.ItemName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
-
-                <TextBlock Grid.Row="4" Grid.Column="0" Text="Quantity" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,8" VerticalAlignment="Center"/>
-                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding KitItem.Quantity, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
-
-                <Border Grid.Row="5" Grid.ColumnSpan="2" Style="{StaticResource DesktopNoteCard}" Margin="0,4,0,0" Padding="12">
-                    <DockPanel LastChildFill="True">
-                        <CheckBox DockPanel.Dock="Left" Content="Optional" IsChecked="{Binding KitItem.IsOptional}" FontWeight="SemiBold" Margin="0,0,12,0"/>
-                        <TextBlock Text="Optional items stay visible in membership review without blocking the core pick list."
-                                   Style="{StaticResource CaptionTextBlock}"
-                                   VerticalAlignment="Center"/>
-                    </DockPanel>
+                <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}">
+                    <StackPanel>
+                        <TextBlock Text="Membership Details" Style="{StaticResource SectionHeader}" Margin="0"/>
+                        <TextBlock Text="Keep fields compact and aligned so quick kit edits do not shift between dialogs." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                    </StackPanel>
                 </Border>
+                <Grid Grid.Row="1" Margin="14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="138"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Item #" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,10" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding KitItem.ItemNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Item Name" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,10" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding KitItem.ItemName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Quantity" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,10" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding KitItem.Quantity, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+                    <Border Grid.Row="3" Grid.ColumnSpan="2" Style="{StaticResource DesktopSectionActionStrip}" Padding="12" Margin="0,2,0,10">
+                        <DockPanel LastChildFill="True">
+                            <CheckBox DockPanel.Dock="Left" Content="Optional" IsChecked="{Binding KitItem.IsOptional}" FontWeight="SemiBold" Margin="0,0,14,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Optional items stay visible in membership review without blocking the core pick list."
+                                       Style="{StaticResource CaptionTextBlock}"
+                                       TextWrapping="Wrap"
+                                       VerticalAlignment="Center"/>
+                        </DockPanel>
+                    </Border>
+
+                    <Border Grid.Row="4" Grid.ColumnSpan="2" Style="{StaticResource AdminHandoffCard}" VerticalAlignment="Top">
+                        <StackPanel>
+                            <TextBlock Text="Pick Sheet Handoff" Style="{StaticResource SectionHeader}"/>
+                            <TextBlock Text="Save after confirming the item reference and quantity so the kit membership list and printed pick sheets stay aligned."
+                                       Style="{StaticResource CaptionTextBlock}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
             </Grid>
         </Border>
 
-        <controls:SaveCancelBar Grid.Row="2"/>
+        <controls:SaveCancelBar Grid.Row="3" Margin="0,10,0,0"/>
+
+        <Border Grid.Row="4" Style="{StaticResource DesktopStatusFooter}" Margin="0,8,0,0">
+            <DockPanel LastChildFill="True">
+                <TextBlock DockPanel.Dock="Left" Text="Kit membership ready" FontSize="11" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <TextBlock Text="Save updates this kit line item; cancel returns without applying membership edits."
+                           Style="{StaticResource CaptionTextBlock}"
+                           TextWrapping="Wrap"
+                           VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
     </Grid>
 </Window>

@@ -43,13 +43,19 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("CloseCommand", labels, StringComparison.Ordinal);
 
             Assert.Contains("Import Mapping Workbench", mapping, StringComparison.Ordinal);
+            Assert.Contains("01 Required Fields", mapping, StringComparison.Ordinal);
             Assert.Contains("Field Mapping Table", mapping, StringComparison.Ordinal);
+            Assert.Contains("Import handoff", mapping, StringComparison.Ordinal);
+            Assert.Contains("DesktopStatusFooter", mapping, StringComparison.Ordinal);
             Assert.Contains("DataContext.ColumnHeaders", mapping, StringComparison.Ordinal);
+            Assert.Contains("SelectedColumn, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged", mapping, StringComparison.Ordinal);
             Assert.Contains("CancelCommand", mapping, StringComparison.Ordinal);
             Assert.Contains("OkCommand", mapping, StringComparison.Ordinal);
 
             Assert.Contains("Picture Matching Setup", imageMapping, StringComparison.Ordinal);
-            Assert.Contains("Import confidence", imageMapping, StringComparison.Ordinal);
+            Assert.Contains("Identifier Rules", imageMapping, StringComparison.Ordinal);
+            Assert.Contains("Import Confidence", imageMapping, StringComparison.Ordinal);
+            Assert.Contains("DesktopStatusFooter", imageMapping, StringComparison.Ordinal);
             Assert.Contains("UseItemNumber", imageMapping, StringComparison.Ordinal);
             Assert.Contains("UsePartNumber", imageMapping, StringComparison.Ordinal);
             Assert.Contains("UseName", imageMapping, StringComparison.Ordinal);
@@ -112,13 +118,19 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("ResultOptions", calibration, StringComparison.Ordinal);
 
             Assert.Contains("Kit Setup", kit, StringComparison.Ordinal);
+            Assert.Contains("01 Identity", kit, StringComparison.Ordinal);
             Assert.Contains("Kit Identity", kit, StringComparison.Ordinal);
-            Assert.Contains("Release State", kit, StringComparison.Ordinal);
+            Assert.Contains("Operations Handoff", kit, StringComparison.Ordinal);
+            Assert.Contains("DesktopStatusFooter", kit, StringComparison.Ordinal);
             Assert.Contains("Kit.KitNumber, UpdateSourceTrigger=PropertyChanged", kit, StringComparison.Ordinal);
             Assert.Contains("Kit.Description, UpdateSourceTrigger=PropertyChanged", kit, StringComparison.Ordinal);
+            Assert.Contains("Kit.IsActive", kit, StringComparison.Ordinal);
 
             Assert.Contains("Kit Item Membership", kitItem, StringComparison.Ordinal);
+            Assert.Contains("01 Item", kitItem, StringComparison.Ordinal);
             Assert.Contains("Membership Details", kitItem, StringComparison.Ordinal);
+            Assert.Contains("Pick Sheet Handoff", kitItem, StringComparison.Ordinal);
+            Assert.Contains("DesktopStatusFooter", kitItem, StringComparison.Ordinal);
             Assert.Contains("KitItem.ItemNumber, UpdateSourceTrigger=PropertyChanged", kitItem, StringComparison.Ordinal);
             Assert.Contains("KitItem.Quantity, UpdateSourceTrigger=PropertyChanged", kitItem, StringComparison.Ordinal);
             Assert.Contains("KitItem.IsOptional", kitItem, StringComparison.Ordinal);
