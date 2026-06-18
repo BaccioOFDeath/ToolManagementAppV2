@@ -22,7 +22,6 @@
         <Setter Property="Padding" Value="8"/>
         <Setter Property="Margin" Value="0"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
-        <Setter Property="Effect" Value="{StaticResource ThemeSurfaceShadow}"/>
     </Style>
 
     <Style x:Key="ToolbarCard" TargetType="Border">
@@ -84,7 +83,6 @@
         <Setter Property="BorderThickness" Value="1,1,1,2"/>
         <Setter Property="Padding" Value="12"/>
         <Setter Property="MinHeight" Value="72"/>
-        <Setter Property="Effect" Value="{StaticResource ThemeRaisedShadow}"/>
     </Style>
 
     <Style x:Key="DesktopInsetCard" TargetType="Border" BasedOn="{StaticResource Card}">
@@ -127,7 +125,6 @@
         <Setter Property="Padding" Value="10,5"/>
         <Setter Property="MinHeight" Value="34"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
-        <Setter Property="Effect" Value="{StaticResource ThemeSurfaceShadow}"/>
     </Style>
 
     <Style x:Key="AdminHandoffCard" TargetType="Border" BasedOn="{StaticResource DesktopInsetCard}">
@@ -136,7 +133,6 @@
         <Setter Property="BorderThickness" Value="1,1,1,2"/>
         <Setter Property="Padding" Value="12"/>
         <Setter Property="Margin" Value="0,0,0,8"/>
-        <Setter Property="Effect" Value="{StaticResource ThemeRaisedShadow}"/>
     </Style>
 
     <Style x:Key="DesktopNoteCard" TargetType="Border" BasedOn="{StaticResource DesktopInsetCard}">
