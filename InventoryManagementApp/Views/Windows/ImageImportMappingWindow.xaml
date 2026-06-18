@@ -17,11 +17,11 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource PageHeaderCard}" Padding="16,14">
+        <Border Style="{StaticResource ToolbarCard}" Padding="16,14">
             <StackPanel>
                 <TextBlock Text="Picture Matching Setup" Style="{StaticResource HeadingTextBlock}"/>
                 <TextBlock Text="Choose which item fields can match incoming image filenames during photo import."
-                           Style="{StaticResource MutedTextBlock}"
+                           Style="{StaticResource CaptionTextBlock}"
                            Margin="0,4,0,0"/>
             </StackPanel>
         </Border>
@@ -35,7 +35,7 @@
                 <StackPanel>
                     <TextBlock Text="Match images by" Style="{StaticResource SectionHeader}"/>
                     <TextBlock Text="Enable the identifiers that are expected to appear in image file names. More than one option can be selected."
-                               Style="{StaticResource MutedTextBlock}"
+                               Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,4,0,12"/>
                     <WrapPanel>
@@ -50,11 +50,11 @@
                                   Margin="0,0,16,8"/>
                     </WrapPanel>
                 </StackPanel>
-                <Border Grid.Column="1" Style="{StaticResource SummaryStatCard}" Padding="14" Margin="18,0,0,0">
+                <Border Grid.Column="1" Style="{StaticResource Card}" Padding="14" Margin="18,0,0,0">
                     <StackPanel>
-                        <TextBlock Text="Import confidence" Style="{StaticResource SummaryStatLabel}"/>
+                        <TextBlock Text="Import confidence" Style="{StaticResource SectionHeader}"/>
                         <TextBlock Text="Pick the most reliable filename identifiers first, then review the mapped photos in the data operations workflow."
-                                   Style="{StaticResource MutedTextBlock}"
+                                   Style="{StaticResource CaptionTextBlock}"
                                    TextWrapping="Wrap"
                                    Margin="0,6,0,0"/>
                     </StackPanel>
@@ -68,8 +68,8 @@
                                   RightButtonText="OK"
                                   RightCommand="{Binding OkCommand}"/>
 
-        <Border Grid.Row="3" Style="{StaticResource StatusFooterBar}" Margin="0,12,0,0">
-            <TextBlock Text="Image matching rules are applied after OK is selected." Style="{StaticResource MutedTextBlock}"/>
+        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,12,0,0" Padding="10,7">
+            <TextBlock Text="Image matching rules are applied after OK is selected." Style="{StaticResource CaptionTextBlock}"/>
         </Border>
     </Grid>
 </Window>
