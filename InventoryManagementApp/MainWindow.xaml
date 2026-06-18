@@ -12,6 +12,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0"
@@ -133,5 +134,71 @@
                Background="{DynamicResource BackgroundBrush}"
                Content="{Binding CurrentPage}"
                Margin="{StaticResource PagePadding}"/>
+
+        <Border Grid.Row="4"
+                Style="{StaticResource DesktopStatusFooter}"
+                Margin="8,0,8,6"
+                MinHeight="40"
+                ToolTip="{Binding CurrentWorkflowGuide}">
+            <Grid ClipToBounds="True">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
+                    <TextBlock Text="Section" Style="{StaticResource LabelTextBlock}" Margin="0,0,5,0"/>
+                    <TextBlock Text="{Binding CurrentNavSectionTitle}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text=" | " Style="{StaticResource CaptionTextBlock}" Margin="8,0"/>
+                    <TextBlock Text="{Binding CurrentPageTitle}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+
+                <Border Grid.Column="1"
+                        Background="{DynamicResource TextBoxBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrushAlt}"
+                        BorderThickness="1"
+                        Padding="8,3"
+                        Margin="0,0,12,0"
+                        VerticalAlignment="Center">
+                    <TextBlock Text="Workflow status" Style="{StaticResource LabelTextBlock}"/>
+                </Border>
+
+                <Grid Grid.Column="2" ClipToBounds="True" VerticalAlignment="Center">
+                    <TextBlock x:Name="ShellWorkflowTicker"
+                               Text="{Binding CurrentWorkflowGuide}"
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="NoWrap"
+                               TextTrimming="CharacterEllipsis"
+                               RenderTransformOrigin="0,0">
+                        <TextBlock.RenderTransform>
+                            <TranslateTransform X="0"/>
+                        </TextBlock.RenderTransform>
+                        <TextBlock.Triggers>
+                            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetProperty="(TextBlock.RenderTransform).(TranslateTransform.X)"
+                                                         From="720"
+                                                         To="-720"
+                                                         Duration="0:0:26"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </TextBlock.Triggers>
+                    </TextBlock>
+                </Grid>
+
+                <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="12,0,0,0">
+                    <TextBlock Text="Primary: " Style="{StaticResource LabelTextBlock}" Visibility="{Binding HasCurrentWorkflowPrimaryAction, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="{Binding CurrentWorkflowPrimaryActionText}" Style="{StaticResource CaptionTextBlock}" FontWeight="SemiBold" Visibility="{Binding HasCurrentWorkflowPrimaryAction, Converter={StaticResource BoolToVis}}" Margin="0,0,10,0"/>
+                    <TextBlock Text="Next: " Style="{StaticResource LabelTextBlock}" Visibility="{Binding HasCurrentWorkflowSecondaryAction, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="{Binding CurrentWorkflowSecondaryActionText}" Style="{StaticResource CaptionTextBlock}" FontWeight="SemiBold" Visibility="{Binding HasCurrentWorkflowSecondaryAction, Converter={StaticResource BoolToVis}}" Margin="0,0,10,0"/>
+                    <TextBlock Text="Signed in: " Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="{Binding CurrentUserRole}" Style="{StaticResource CaptionTextBlock}" FontWeight="SemiBold"/>
+                </StackPanel>
+            </Grid>
+        </Border>
     </Grid>
 </Window>
