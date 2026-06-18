@@ -75,6 +75,20 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("SelectedLogOperatorPath", xaml, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void InsightPrintActions_RouteThroughSharedPrintPreview()
+        {
+            var reportsCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs");
+            var activityCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs");
+
+            Assert.Contains("new PrintPreviewWindow().ShowPreview(document, vm.ReportTitle, null)", reportsCode, StringComparison.Ordinal);
+            Assert.Contains("new PrintPreviewWindow().ShowPreview(document, \"Activity Logs\", null)", activityCode, StringComparison.Ordinal);
+            Assert.DoesNotContain("WpfPrintDialog", reportsCode, StringComparison.Ordinal);
+            Assert.DoesNotContain("WpfPrintDialog", activityCode, StringComparison.Ordinal);
+            Assert.DoesNotContain("PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator", reportsCode, StringComparison.Ordinal);
+            Assert.DoesNotContain("PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator", activityCode, StringComparison.Ordinal);
+        }
+
         static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);
