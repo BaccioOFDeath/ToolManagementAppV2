@@ -18,6 +18,8 @@ namespace InventoryManagementApp.Interfaces
         // Theme configuration
         Task<string?> GetThemeAsync(CancellationToken cancellationToken = default);
         Task SaveThemeAsync(string theme, CancellationToken cancellationToken = default);
+        Task<AppThemeSettings> GetAppThemeSettingsAsync(CancellationToken cancellationToken = default);
+        Task SaveAppThemeSettingsAsync(AppThemeSettings settings, CancellationToken cancellationToken = default);
 
         // Password hashing configuration
         Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default);
