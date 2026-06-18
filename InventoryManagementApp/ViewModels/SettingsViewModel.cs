@@ -1061,7 +1061,7 @@ namespace InventoryManagementApp.ViewModels
             await connectTask.ConfigureAwait(false);
         }
 
-        private string BuildSmtpFailureMessage(SmtpException ex)
+        internal string BuildSmtpFailureMessage(SmtpException ex)
         {
             var message = $"SMTP connection failed: {ex.Message}";
             if (ex.StatusCode != SmtpStatusCode.GeneralFailure)
@@ -1074,9 +1074,9 @@ namespace InventoryManagementApp.ViewModels
                 message += $"\nDetails: {ex.InnerException.Message}";
             }
 
-            if (SelectedEmailProvider.Equals("Outlook/Office 365", StringComparison.OrdinalIgnoreCase))
+            if (IsMicrosoft365SmtpFailure(ex))
             {
-                message += "\n\nFor Microsoft 365, confirm Authenticated SMTP is enabled for this mailbox, MFA is handled with an app password or supported sign-in method, and the sender address has permission to send as the selected mailbox.";
+                message += "\n\nMicrosoft 365 rejected SMTP authentication. Enable Authenticated SMTP for this tenant and mailbox, then use a mailbox password/app password supported by your sign-in policy. Also confirm the sender address has permission to send as the selected mailbox.";
             }
             else
             {
@@ -1084,6 +1084,15 @@ namespace InventoryManagementApp.ViewModels
             }
 
             return message;
+        }
+
+        private bool IsMicrosoft365SmtpFailure(SmtpException ex)
+        {
+            return SelectedEmailProvider.Equals("Outlook/Office 365", StringComparison.OrdinalIgnoreCase)
+                || SmtpHost.Contains("office365.com", StringComparison.OrdinalIgnoreCase)
+                || ex.Message.Contains("smtp.office365.com", StringComparison.OrdinalIgnoreCase)
+                || ex.Message.Contains("SmtpClientAuthentication is disabled", StringComparison.OrdinalIgnoreCase)
+                || ex.Message.Contains("smtp_auth_disabled", StringComparison.OrdinalIgnoreCase);
         }
 
         private string _backupDirectory = "";

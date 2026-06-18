@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Mail;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
@@ -63,6 +64,22 @@ namespace InventoryManagementApp.Tests
 
             Assert.Equal(2, discovery.CallCount);
             Assert.Equal(account, vm.SelectedOutlookAccount);
+        }
+
+        [Fact]
+        public void SmtpFailureMessage_ExplainsMicrosoft365AuthDisabled_WhenProviderIsCustom()
+        {
+            var vm = CreateViewModel(Array.Empty<EmailAccountOption>());
+            vm.SelectedEmailProvider = "Custom";
+            vm.SmtpHost = "smtp.office365.com";
+
+            var message = vm.BuildSmtpFailureMessage(new SmtpException(
+                SmtpStatusCode.MustIssueStartTlsFirst,
+                "5.7.139 Authentication unsuccessful, SmtpClientAuthentication is disabled for the Tenant. Visit https://aka.ms/smtp_auth_disabled for more information."));
+
+            Assert.Contains("Microsoft 365 rejected SMTP authentication", message);
+            Assert.Contains("Enable Authenticated SMTP for this tenant and mailbox", message);
+            Assert.DoesNotContain("Please verify your settings and try again.", message);
         }
 
         private static SettingsViewModel CreateViewModel(IReadOnlyList<EmailAccountOption> accounts)
