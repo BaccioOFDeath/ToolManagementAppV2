@@ -5,25 +5,71 @@
         xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
         xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
         Title="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Import {0} Pictures'}"
-        Width="600" Height="220"
-        WindowStartupLocation="CenterScreen"
+        Width="680" Height="360"
+        MinWidth="640" MinHeight="330"
+        WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
-    <DockPanel Margin="10">
-        <Border Style="{StaticResource Card}" DockPanel.Dock="Top">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Style="{StaticResource PageHeaderCard}" Padding="16,14">
             <StackPanel>
-                <TextBlock Text="Match images by:" Style="{StaticResource SectionHeader}"/>
-                <WrapPanel>
-                    <CheckBox Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='{}{0}Number'}" IsChecked="{Binding UseItemNumber}" Margin="6,0"/>
-                    <CheckBox Content="PartNumber" IsChecked="{Binding UsePartNumber}" Margin="6,0"/>
-                    <CheckBox Content="Name" IsChecked="{Binding UseName}" Margin="6,0"/>
-                </WrapPanel>
+                <TextBlock Text="Picture Matching Setup" Style="{StaticResource HeadingTextBlock}"/>
+                <TextBlock Text="Choose which item fields can match incoming image filenames during photo import."
+                           Style="{StaticResource MutedTextBlock}"
+                           Margin="0,4,0,0"/>
             </StackPanel>
         </Border>
 
-        <controls:DialogButtonBar DockPanel.Dock="Bottom"
+        <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,12,0,12" Padding="18">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Match images by" Style="{StaticResource SectionHeader}"/>
+                    <TextBlock Text="Enable the identifiers that are expected to appear in image file names. More than one option can be selected."
+                               Style="{StaticResource MutedTextBlock}"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,12"/>
+                    <WrapPanel>
+                        <CheckBox Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='{}{0} Number'}"
+                                  IsChecked="{Binding UseItemNumber}"
+                                  Margin="0,0,16,8"/>
+                        <CheckBox Content="Part Number"
+                                  IsChecked="{Binding UsePartNumber}"
+                                  Margin="0,0,16,8"/>
+                        <CheckBox Content="Name"
+                                  IsChecked="{Binding UseName}"
+                                  Margin="0,0,16,8"/>
+                    </WrapPanel>
+                </StackPanel>
+                <Border Grid.Column="1" Style="{StaticResource SummaryStatCard}" Padding="14" Margin="18,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Import confidence" Style="{StaticResource SummaryStatLabel}"/>
+                        <TextBlock Text="Pick the most reliable filename identifiers first, then review the mapped photos in the data operations workflow."
+                                   Style="{StaticResource MutedTextBlock}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <controls:DialogButtonBar Grid.Row="2"
                                   LeftButtonText="Cancel"
                                   LeftCommand="{Binding CancelCommand}"
                                   RightButtonText="OK"
                                   RightCommand="{Binding OkCommand}"/>
-    </DockPanel>
+
+        <Border Grid.Row="3" Style="{StaticResource StatusFooterBar}" Margin="0,12,0,0">
+            <TextBlock Text="Image matching rules are applied after OK is selected." Style="{StaticResource MutedTextBlock}"/>
+        </Border>
+    </Grid>
 </Window>
