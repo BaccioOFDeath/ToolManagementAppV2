@@ -24,7 +24,7 @@ using InventoryManagementApp.Messages;
 
 namespace InventoryManagementApp.ViewModels
 {
-    public class SettingsViewModel : ObservableObject
+    public partial class SettingsViewModel : ObservableObject
     {
         readonly IFileDialogService _fileDialog;
         readonly ISettingsService _settingsService;
@@ -113,6 +113,7 @@ namespace InventoryManagementApp.ViewModels
             if (!string.IsNullOrWhiteSpace(theme) && ThemeOptions.Contains(theme))
                 _theme = theme;
             _themeService.ApplyTheme(_theme);
+            await InitializeThemeDesignerAsync().ConfigureAwait(false);
             _passwordIterations = await _settingsService.GetPasswordIterationsAsync().ConfigureAwait(false);
             _autoLogoutMinutes = await _settingsService.GetAutoLogoutMinutesAsync().ConfigureAwait(false);
             _itemCardSize = await _settingsService.GetItemCardSizeAsync().ConfigureAwait(false);
@@ -317,6 +318,7 @@ namespace InventoryManagementApp.ViewModels
                 if (SetProperty(ref _theme, value))
                 {
                     _themeService.ApplyTheme(value);
+                    ApplyThemeDesignerBaseTheme(value);
                     _ = SetThemeAsync(value);
                 }
             }
