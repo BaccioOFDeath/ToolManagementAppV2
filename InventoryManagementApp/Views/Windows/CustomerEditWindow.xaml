@@ -3,96 +3,197 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:InventoryManagementApp.Views.Controls"
-        Title="Customer" Width="620" Height="520" MinWidth="560" MinHeight="460" WindowStartupLocation="CenterOwner"
+        Title="Customer" Width="760" Height="620" MinWidth="680" MinHeight="560" WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
-    <Grid Margin="16">
+    <Grid Margin="14">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource ToolbarCard}" Padding="16,14">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel>
-                    <TextBlock Text="Customer Profile" Style="{StaticResource HeadingTextBlock}"/>
-                    <TextBlock Text="Keep account, contact, and delivery details ready for rentals, reservations, and service handoffs."
-                               Style="{StaticResource CaptionTextBlock}"
-                               Margin="0,4,0,0"/>
-                </StackPanel>
-                <Border Grid.Column="1" Style="{StaticResource Card}" Padding="12,8" VerticalAlignment="Center" Margin="12,0,0,0">
-                    <TextBlock Text="Directory Record" Style="{StaticResource LabelTextBlock}"/>
+        <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}" Margin="0,0,0,8">
+            <DockPanel LastChildFill="True">
+                <Border DockPanel.Dock="Right" Style="{StaticResource DesktopNoteCard}" Padding="12,7" Margin="16,0,0,0" VerticalAlignment="Center">
+                    <StackPanel>
+                        <TextBlock Text="Directory Record" Style="{StaticResource LabelTextBlock}"/>
+                        <TextBlock Text="{Binding Customer.Company, TargetNullValue='New customer'}" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    </StackPanel>
                 </Border>
+                <StackPanel>
+                    <TextBlock Text="Customer Profile Workbench" Style="{StaticResource PageTitleTextBlock}"/>
+                    <TextBlock Text="Keep account, contact, and delivery details ready for rentals, reservations, service handoffs, and printed customer sheets."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"
+                               Margin="0,2,0,0"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,8">
+            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,6,0">
+                <StackPanel>
+                    <TextBlock Text="01 Account" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="Company and contact" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Primary identity used by customer lookup and rental handoffs."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource DesktopSummaryCard}" Margin="3,0">
+                <StackPanel>
+                    <TextBlock Text="02 Communication" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="Email and phones" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Follow-up details stay together for advisors and printouts."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource DesktopSummaryCard}" Margin="6,0,0,0">
+                <StackPanel>
+                    <TextBlock Text="03 Address" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="Delivery notes" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Service address supports delivery, pickup, and customer sheets."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}">
+                    <DockPanel LastChildFill="True">
+                        <TextBlock DockPanel.Dock="Left" Text="Customer Directory Details" Style="{StaticResource SectionHeader}" Margin="0"/>
+                        <TextBlock Text="Aligned fields keep quick edits steady across customer records." Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
+                    </DockPanel>
+                </Border>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <Grid Margin="14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.1*" MinWidth="280"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*" MinWidth="260"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid Grid.Column="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Border Grid.Row="0" Style="{StaticResource DesktopSectionActionStrip}" Padding="12" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="Account Identity" Style="{StaticResource SectionHeader}"/>
+                                    <TextBlock Text="The company and primary contact appear in customer lookup, printouts, and selected-customer handoffs."
+                                               Style="{StaticResource CaptionTextBlock}"
+                                               TextWrapping="Wrap"
+                                               Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Grid Grid.Row="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="118"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Company" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,10"/>
+                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Customer.Company, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Contact" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Customer.Contact, UpdateSourceTrigger=PropertyChanged}"/>
+                            </Grid>
+
+                            <Border Grid.Row="2" Style="{StaticResource AdminHandoffCard}" Margin="0,12,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="Customer Operations Handoff" Style="{StaticResource SectionHeader}"/>
+                                    <TextBlock Text="Save after confirming the account name, best contact path, and service address so directory rows and printed customer sheets remain trustworthy."
+                                               Style="{StaticResource CaptionTextBlock}"
+                                               TextWrapping="Wrap"
+                                               Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <Grid Grid.Column="2">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <Border Grid.Row="0" Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="88"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Email" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,10"/>
+                                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Customer.Email, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Phone" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,10"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Customer.Phone, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Mobile" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Customer.Mobile, UpdateSourceTrigger=PropertyChanged}"/>
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Row="1" Style="{StaticResource DesktopNoteCard}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="Service Address" Style="{StaticResource SectionHeader}"/>
+                                    <TextBlock Grid.Row="1" Text="Keep this concise enough for directory rows, handoff sheets, and delivery notes."
+                                               Style="{StaticResource CaptionTextBlock}"
+                                               TextWrapping="Wrap"
+                                               Margin="0,2,0,8"/>
+                                    <TextBox Grid.Row="2"
+                                             Text="{Binding Customer.Address, UpdateSourceTrigger=PropertyChanged}"
+                                             AcceptsReturn="True"
+                                             TextWrapping="Wrap"
+                                             MinHeight="118"
+                                             VerticalScrollBarVisibility="Auto"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </ScrollViewer>
             </Grid>
         </Border>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,10,0,0">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.2*"/>
-                    <ColumnDefinition Width="12"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+        <controls:SaveCancelBar Grid.Row="3" Margin="0,10,0,0"/>
 
-                <Border Grid.Column="0" Style="{StaticResource Card}" Padding="14">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="118"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Account Identity" Style="{StaticResource SectionHeader}"/>
-                        <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="The company and primary contact appear in customer lookup, printouts, and selected-customer handoffs."
-                                   Style="{StaticResource CaptionTextBlock}" Margin="0,0,0,12"/>
-
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Company" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
-                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Customer.Company, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
-
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Contact" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Customer.Contact, UpdateSourceTrigger=PropertyChanged}"/>
-                    </Grid>
-                </Border>
-
-                <StackPanel Grid.Column="2">
-                    <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,10">
-                        <StackPanel>
-                            <TextBlock Text="Communication" Style="{StaticResource SectionHeader}"/>
-                            <TextBlock Text="Email, phone, and mobile are used for customer follow-up and printed contact sheets."
-                                       Style="{StaticResource CaptionTextBlock}" Margin="0,0,0,10"/>
-                            <TextBlock Text="Email" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBox Text="{Binding Customer.Email, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8"/>
-                            <TextBlock Text="Phone" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBox Text="{Binding Customer.Phone, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8"/>
-                            <TextBlock Text="Mobile" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBox Text="{Binding Customer.Mobile, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,0"/>
-                        </StackPanel>
-                    </Border>
-
-                    <Border Style="{StaticResource DesktopNoteCard}">
-                        <StackPanel>
-                            <TextBlock Text="Service Address" Style="{StaticResource SectionHeader}"/>
-                            <TextBlock Text="Keep this concise enough for directory rows, handoff sheets, and delivery notes."
-                                       Style="{StaticResource CaptionTextBlock}" Margin="0,0,0,8"/>
-                            <TextBox Text="{Binding Customer.Address, UpdateSourceTrigger=PropertyChanged}"
-                                     Height="82"
-                                     AcceptsReturn="True"
-                                     VerticalScrollBarVisibility="Auto"/>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-            </Grid>
-        </ScrollViewer>
-
-        <controls:SaveCancelBar Grid.Row="2"/>
+        <Border Grid.Row="4" Style="{StaticResource DesktopStatusFooter}" Margin="0,8,0,0">
+            <DockPanel LastChildFill="True">
+                <TextBlock DockPanel.Dock="Left" Text="Customer profile ready" FontSize="11" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <TextBlock Text="Save updates customer lookup, rental handoffs, and printed customer sheets; cancel returns without applying profile edits."
+                           Style="{StaticResource CaptionTextBlock}"
+                           TextWrapping="Wrap"
+                           VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
     </Grid>
 </Window>
