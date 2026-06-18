@@ -747,13 +747,14 @@ namespace InventoryManagementApp.ViewModels
             _globalSearchDebounceTimer.Tick += OnGlobalSearchDebounceTimerTick;
 
             SwitchUserCommand = new AsyncRelayCommand(async () =>
-                {
-                    _userContext.CurrentUser = null;
-                    RefreshCurrentUser();
-                    CloseNonMainWindows();
-                    ClearSearch();
-                    SetNavSection(NavSectionKeys.Overview);
-                    await OpenDashboardCommand.ExecuteAsync(null);
+            {
+                _userContext.CurrentUser = null;
+                RefreshCurrentUser();
+                CloseNonMainWindows();
+                ClearSearch();
+                SetNavSection(NavSectionKeys.Overview);
+                await OpenDashboardCommand.ExecuteAsync(null);
+
                 try
                 {
                     await _settingsService.DeleteSettingAsync("LastFilter").ConfigureAwait(false);
