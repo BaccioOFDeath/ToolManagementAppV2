@@ -991,15 +991,15 @@ namespace InventoryManagementApp.ViewModels
 
         private async Task TestEmailConnectionAsync(CancellationToken token = default)
         {
-            if (string.IsNullOrWhiteSpace(SmtpHost) || SmtpHost.Contains("example.com", StringComparison.OrdinalIgnoreCase))
+            if (!EmailConfigurationStatus.Equals("Ready to test email delivery.", StringComparison.Ordinal))
             {
-                _dialogService.ShowInfo("Please enter a valid SMTP host.", "Invalid Configuration");
+                _dialogService.ShowInfo(EmailConfigurationStatus, "Invalid Configuration");
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(SmtpUsername) || string.IsNullOrWhiteSpace(SmtpPassword))
+            if (SmtpHost.Contains("example.com", StringComparison.OrdinalIgnoreCase))
             {
-                _dialogService.ShowInfo("Please enter SMTP username and password.", "Invalid Configuration");
+                _dialogService.ShowInfo("Please enter a valid SMTP host.", "Invalid Configuration");
                 return;
             }
 

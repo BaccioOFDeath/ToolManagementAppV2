@@ -1,43 +1,97 @@
 using System.Windows.Controls;
 using System.Windows.Input;
+using InventoryManagementApp.ViewModels;
 using TextBox = System.Windows.Controls.TextBox;
 
 namespace InventoryManagementApp.Views.Pages
 {
     public partial class SettingsPage : Page
     {
+        private SettingsViewModel? _settingsViewModel;
+
         public SettingsPage()
         {
             InitializeComponent();
             Loaded += SettingsPage_Loaded;
+            Unloaded += SettingsPage_Unloaded;
+            DataContextChanged += SettingsPage_DataContextChanged;
         }
 
         private void SettingsPage_Loaded(object sender, System.Windows.RoutedEventArgs e)
         {
-            // Set initial password value if view model has one
-            if (DataContext is ViewModels.SettingsViewModel viewModel && !string.IsNullOrEmpty(viewModel.SmtpPassword))
+            AttachViewModel(DataContext as SettingsViewModel);
+            SyncSensitiveFieldsFromViewModel();
+        }
+
+        private void SettingsPage_Unloaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            AttachViewModel(null);
+        }
+
+        private void SettingsPage_DataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
+        {
+            AttachViewModel(e.NewValue as SettingsViewModel);
+            SyncSensitiveFieldsFromViewModel();
+        }
+
+        private void AttachViewModel(SettingsViewModel? viewModel)
+        {
+            if (ReferenceEquals(_settingsViewModel, viewModel))
             {
-                SmtpPasswordBox.Password = viewModel.SmtpPassword;
+                return;
             }
-            if (DataContext is ViewModels.SettingsViewModel smsViewModel && !string.IsNullOrEmpty(smsViewModel.SmsApiKey))
+
+            if (_settingsViewModel != null)
             {
-                SmsApiKeyBox.Password = smsViewModel.SmsApiKey;
+                _settingsViewModel.PropertyChanged -= SettingsViewModel_PropertyChanged;
+            }
+
+            _settingsViewModel = viewModel;
+            if (_settingsViewModel != null)
+            {
+                _settingsViewModel.PropertyChanged += SettingsViewModel_PropertyChanged;
+            }
+        }
+
+        private void SettingsViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName is nameof(SettingsViewModel.SmtpPassword) or nameof(SettingsViewModel.SmsApiKey))
+            {
+                Dispatcher.Invoke(SyncSensitiveFieldsFromViewModel);
+            }
+        }
+
+        private void SyncSensitiveFieldsFromViewModel()
+        {
+            if (_settingsViewModel == null)
+            {
+                return;
+            }
+
+            if (SmtpPasswordBox.Password != _settingsViewModel.SmtpPassword)
+            {
+                SmtpPasswordBox.Password = _settingsViewModel.SmtpPassword;
+            }
+
+            if (SmsApiKeyBox.Password != _settingsViewModel.SmsApiKey)
+            {
+                SmsApiKeyBox.Password = _settingsViewModel.SmsApiKey;
             }
         }
 
         private void SmtpPasswordBox_PasswordChanged(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (DataContext is ViewModels.SettingsViewModel viewModel)
+            if (_settingsViewModel != null && _settingsViewModel.SmtpPassword != SmtpPasswordBox.Password)
             {
-                viewModel.SmtpPassword = SmtpPasswordBox.Password;
+                _settingsViewModel.SmtpPassword = SmtpPasswordBox.Password;
             }
         }
 
         private void SmsApiKeyBox_PasswordChanged(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (DataContext is ViewModels.SettingsViewModel viewModel)
+            if (_settingsViewModel != null && _settingsViewModel.SmsApiKey != SmsApiKeyBox.Password)
             {
-                viewModel.SmsApiKey = SmsApiKeyBox.Password;
+                _settingsViewModel.SmsApiKey = SmsApiKeyBox.Password;
             }
         }
 
