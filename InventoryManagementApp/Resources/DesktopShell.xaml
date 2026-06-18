@@ -30,17 +30,18 @@
     <Style TargetType="Border" x:Key="Card">
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="BorderThickness" Value="{StaticResource ThemeBorderThickness}"/>
+        <Setter Property="CornerRadius" Value="{StaticResource ThemeCardCornerRadius}"/>
         <Setter Property="Padding" Value="{StaticResource CardPadding}"/>
         <Setter Property="Margin" Value="0"/>
+        <Setter Property="Effect" Value="{StaticResource ThemeSurfaceShadow}"/>
     </Style>
 
     <Style x:Key="ToolbarCard" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="BorderThickness" Value="{StaticResource ThemeSubtleBorderThickness}"/>
+        <Setter Property="CornerRadius" Value="{StaticResource ThemePanelCornerRadius}"/>
         <Setter Property="Padding" Value="{StaticResource ToolbarPadding}"/>
         <Setter Property="Margin" Value="0,0,0,4"/>
     </Style>
@@ -49,7 +50,7 @@
         <Setter Property="Foreground" Value="{DynamicResource BtnFg}"/>
         <Setter Property="Background" Value="{DynamicResource BtnBg}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BtnBorder}"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderThickness" Value="{StaticResource ThemeControlBorderThickness}"/>
         <Setter Property="Padding" Value="4,1"/>
         <Setter Property="FontWeight" Value="Normal"/>
         <Setter Property="Cursor" Value="Hand"/>
@@ -65,7 +66,8 @@
                     <Border x:Name="Root"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}">
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource ThemeButtonCornerRadius}">
                         <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                           Margin="{TemplateBinding Padding}"
@@ -102,7 +104,7 @@
     </Style>
 
     <Style x:Key="GhostButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Background" Value="{DynamicResource TransparentSurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="MinWidth" Value="54"/>
@@ -116,7 +118,7 @@
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="Background" Value="{DynamicResource BtnBg}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BtnBorder}"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderThickness" Value="{StaticResource ThemeControlBorderThickness}"/>
         <Setter Property="Padding" Value="7,2"/>
         <Setter Property="HorizontalContentAlignment" Value="Left"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -126,7 +128,7 @@
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="Background" Value="{DynamicResource BtnBg}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BtnBorder}"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderThickness" Value="{StaticResource ThemeControlBorderThickness}"/>
         <Setter Property="Padding" Value="9,2"/>
         <Setter Property="MinHeight" Value="24"/>
         <Setter Property="Margin" Value="0,0,2,0"/>
@@ -136,7 +138,8 @@
                     <Border x:Name="Root"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}">
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource ThemeButtonCornerRadius}">
                         <ContentPresenter Margin="{TemplateBinding Padding}"
                                           HorizontalAlignment="Center"
                                           VerticalAlignment="Center"/>
@@ -163,7 +166,7 @@
         <Setter Property="Background" Value="{DynamicResource TextBoxBackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderThickness" Value="{StaticResource ThemeControlBorderThickness}"/>
         <Setter Property="Padding" Value="{StaticResource ControlPadding}"/>
         <Setter Property="MinHeight" Value="24"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -174,7 +177,7 @@
         <Setter Property="Background" Value="{DynamicResource TextBoxBackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderThickness" Value="{StaticResource ThemeControlBorderThickness}"/>
         <Setter Property="Padding" Value="{StaticResource ControlPadding}"/>
         <Setter Property="MinHeight" Value="24"/>
         <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -193,7 +196,7 @@
         <Setter Property="RowBackground" Value="{DynamicResource DataGridRowBackgroundBrush}"/>
         <Setter Property="AlternatingRowBackground" Value="{DynamicResource DataGridAlternatingRowBackgroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderThickness" Value="{StaticResource ThemeBorderThickness}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="GridLinesVisibility" Value="All"/>
         <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource BorderBrushBase}"/>
@@ -232,7 +235,7 @@
     <Style TargetType="DataGridCell">
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="Padding" Value="4,1"/>
-        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="BorderThickness" Value="{StaticResource ThemeBorderlessThickness}"/>
         <Setter Property="TextBlock.TextTrimming" Value="CharacterEllipsis"/>
         <Setter Property="TextBlock.TextWrapping" Value="NoWrap"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -270,7 +273,7 @@
     <Style TargetType="TabControl">
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderThickness" Value="{StaticResource ThemeBorderThickness}"/>
         <Setter Property="Padding" Value="0"/>
     </Style>
 
