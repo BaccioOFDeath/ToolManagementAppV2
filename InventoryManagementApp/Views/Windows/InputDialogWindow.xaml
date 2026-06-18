@@ -17,11 +17,11 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource PageHeaderCard}" Padding="16,14">
+        <Border Style="{StaticResource ToolbarCard}" Padding="16,14">
             <StackPanel>
                 <TextBlock Text="Input Required" Style="{StaticResource HeadingTextBlock}"/>
                 <TextBlock Text="Enter the requested value, then confirm to continue."
-                           Style="{StaticResource MutedTextBlock}"
+                           Style="{StaticResource CaptionTextBlock}"
                            Margin="0,4,0,0"/>
             </StackPanel>
         </Border>
@@ -51,8 +51,8 @@
                                   RightButtonText="OK"
                                   RightCommand="{Binding OkCommand}"/>
 
-        <Border Grid.Row="3" Style="{StaticResource StatusFooterBar}" Margin="0,12,0,0">
-            <TextBlock Text="Input is applied only after OK is selected." Style="{StaticResource MutedTextBlock}"/>
+        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,12,0,0" Padding="10,7">
+            <TextBlock Text="Input is applied only after OK is selected." Style="{StaticResource CaptionTextBlock}"/>
         </Border>
     </Grid>
 </Window>
