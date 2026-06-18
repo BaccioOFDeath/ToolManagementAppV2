@@ -113,6 +113,26 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void RentCheckoutDialog_UsesPolishedHandoffStructureAndPreservesCommands()
+        {
+            var rent = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "RentItemPopupWindow.xaml");
+
+            Assert.Contains("Rental Checkout", rent, StringComparison.Ordinal);
+            Assert.Contains("01 Customer directory", rent, StringComparison.Ordinal);
+            Assert.Contains("Selected Customer Handoff", rent, StringComparison.Ordinal);
+            Assert.Contains("Checkout Readiness", rent, StringComparison.Ordinal);
+            Assert.Contains("DesktopStatusFooter", rent, StringComparison.Ordinal);
+            Assert.Contains("CustomerSearchText, UpdateSourceTrigger=PropertyChanged", rent, StringComparison.Ordinal);
+            Assert.Contains("ClearCustomerSearchCommand", rent, StringComparison.Ordinal);
+            Assert.Contains("AddCustomerCommand", rent, StringComparison.Ordinal);
+            Assert.Contains("SetRentalDaysCommand", rent, StringComparison.Ordinal);
+            Assert.Contains("SelectedDueDate, Mode=TwoWay", rent, StringComparison.Ordinal);
+            Assert.Contains("RentalDays, UpdateSourceTrigger=PropertyChanged", rent, StringComparison.Ordinal);
+            Assert.Contains("CheckOutCommand", rent, StringComparison.Ordinal);
+            Assert.Contains("CancelCommand", rent, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void SelectedRowDetailActions_RouteThroughPolishedDetailDialog()
         {
             var activity = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs");
