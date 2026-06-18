@@ -75,6 +75,8 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var item = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "ItemEditWindow.xaml");
             var customer = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "CustomerEditWindow.xaml");
+            var maintenance = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "MaintenanceEditWindow.xaml");
+            var calibration = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "CalibrationEditWindow.xaml");
             var kit = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "KitEditWindow.xaml");
             var kitItem = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "KitItemEditWindow.xaml");
             var saveCancel = ReadRepositoryFile("InventoryManagementApp", "Views", "Controls", "SaveCancelBar.xaml");
@@ -93,6 +95,21 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("Communication", customer, StringComparison.Ordinal);
             Assert.Contains("Customer.Company, UpdateSourceTrigger=PropertyChanged", customer, StringComparison.Ordinal);
             Assert.Contains("Customer.Address, UpdateSourceTrigger=PropertyChanged", customer, StringComparison.Ordinal);
+
+            Assert.Contains("Maintenance Work Order", maintenance, StringComparison.Ordinal);
+            Assert.Contains("Technician Handoff", maintenance, StringComparison.Ordinal);
+            Assert.Contains("DesktopStatusFooter", maintenance, StringComparison.Ordinal);
+            Assert.Contains("MaintenanceRecord.ItemNumber, UpdateSourceTrigger=PropertyChanged", maintenance, StringComparison.Ordinal);
+            Assert.Contains("MaintenanceRecord.Notes, UpdateSourceTrigger=PropertyChanged", maintenance, StringComparison.Ordinal);
+            Assert.Contains("MaintenanceTypeOptions", maintenance, StringComparison.Ordinal);
+            Assert.Contains("StatusOptions", maintenance, StringComparison.Ordinal);
+
+            Assert.Contains("Calibration Certificate", calibration, StringComparison.Ordinal);
+            Assert.Contains("Verification Notes", calibration, StringComparison.Ordinal);
+            Assert.Contains("DesktopStatusFooter", calibration, StringComparison.Ordinal);
+            Assert.Contains("CalibrationRecord.CertificateNumber, UpdateSourceTrigger=PropertyChanged", calibration, StringComparison.Ordinal);
+            Assert.Contains("CalibrationRecord.Notes, UpdateSourceTrigger=PropertyChanged", calibration, StringComparison.Ordinal);
+            Assert.Contains("ResultOptions", calibration, StringComparison.Ordinal);
 
             Assert.Contains("Kit Setup", kit, StringComparison.Ordinal);
             Assert.Contains("Kit Identity", kit, StringComparison.Ordinal);
@@ -130,6 +147,26 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("RentalDays, UpdateSourceTrigger=PropertyChanged", rent, StringComparison.Ordinal);
             Assert.Contains("CheckOutCommand", rent, StringComparison.Ordinal);
             Assert.Contains("CancelCommand", rent, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void RentalHistoryDialog_UsesWorkbenchStructureAndPreservesActions()
+        {
+            var history = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "RentalHistoryWindow.xaml");
+
+            Assert.Contains("Rental History Workbench", history, StringComparison.Ordinal);
+            Assert.Contains("01 Current View", history, StringComparison.Ordinal);
+            Assert.Contains("Rental Records", history, StringComparison.Ordinal);
+            Assert.Contains("DesktopSectionActionStrip", history, StringComparison.Ordinal);
+            Assert.Contains("DesktopStatusFooter", history, StringComparison.Ordinal);
+            Assert.Contains("SearchText, UpdateSourceTrigger=PropertyChanged", history, StringComparison.Ordinal);
+            Assert.Contains("SearchCommand", history, StringComparison.Ordinal);
+            Assert.Contains("ClearSearchCommand", history, StringComparison.Ordinal);
+            Assert.Contains("OpenDetailsCommand", history, StringComparison.Ordinal);
+            Assert.Contains("ExportCsvCommand", history, StringComparison.Ordinal);
+            Assert.Contains("CloseCommand", history, StringComparison.Ordinal);
+            Assert.Contains("HistoryRow_MouseDoubleClick", history, StringComparison.Ordinal);
+            Assert.Contains("HistoryRow_PreviewMouseRightButtonDown", history, StringComparison.Ordinal);
         }
 
         [Fact]
