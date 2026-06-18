@@ -9,7 +9,7 @@ namespace InventoryManagementApp.Interfaces
 {
     public interface ISettingsService
     {
-        private const string AppThemeSettingsKey = "AppThemeSettings";
+        public const string AppThemeSettingsKey = "AppThemeSettings";
 
         event EventHandler<IDictionary<ItemDetailField, bool>>? ItemDetailVisibilityChanged;
         event EventHandler<double>? ItemCardSizeChanged;
