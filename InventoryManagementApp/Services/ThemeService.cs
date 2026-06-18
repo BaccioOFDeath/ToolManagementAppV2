@@ -18,6 +18,13 @@ namespace InventoryManagementApp.Services
     {
         private static readonly Uri LightThemeUri = new("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Light.xaml", UriKind.Absolute);
         private static readonly Uri DarkThemeUri = new("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute);
+        private readonly ISettingsService? _settingsService;
+        private bool _applyingCustomTheme;
+
+        public ThemeService(ISettingsService? settingsService = null)
+        {
+            _settingsService = settingsService;
+        }
 
         public void ApplyTheme(string? theme)
         {
@@ -44,6 +51,7 @@ namespace InventoryManagementApp.Services
             }
 
             InvokeOnUi(app, ApplyOnUiThread);
+            ApplySavedCustomTheme(theme);
         }
 
         public void ApplyCustomTheme(AppThemeSettings? settings)
@@ -54,7 +62,15 @@ namespace InventoryManagementApp.Services
             void ApplyOnUiThread()
             {
                 settings.Normalize();
-                ApplyTheme(settings.BaseTheme);
+                _applyingCustomTheme = true;
+                try
+                {
+                    ApplyTheme(settings.BaseTheme);
+                }
+                finally
+                {
+                    _applyingCustomTheme = false;
+                }
 
                 var resources = app.Resources;
                 var borderThickness = settings.BordersVisible ? new Thickness(1) : new Thickness(0);
@@ -118,6 +134,24 @@ namespace InventoryManagementApp.Services
             }
 
             InvokeOnUi(app, ApplyOnUiThread);
+        }
+
+        private void ApplySavedCustomTheme(string? theme)
+        {
+            if (_applyingCustomTheme || _settingsService == null)
+                return;
+
+            try
+            {
+                var settings = _settingsService.GetAppThemeSettingsAsync().GetAwaiter().GetResult();
+                if (!string.IsNullOrWhiteSpace(theme))
+                    settings.BaseTheme = theme;
+                ApplyCustomTheme(settings);
+            }
+            catch
+            {
+                // A missing database or invalid saved profile should never prevent the base theme from loading.
+            }
         }
 
         private static void InvokeOnUi(Application app, Action action)
