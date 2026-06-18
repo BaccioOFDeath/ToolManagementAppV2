@@ -7,6 +7,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
+using InventoryManagementApp.Views.Windows;
 using WpfMessageBox = System.Windows.MessageBox;
 using WpfPrintDialog = System.Windows.Controls.PrintDialog;
 
@@ -49,7 +50,14 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            WpfMessageBox.Show(FormatUserDetail(user), $"User Detail - {user.UserName}", MessageBoxButton.OK, MessageBoxImage.Information);
+            DetailDialogWindow.ShowDialogFor(
+                Window.GetWindow(this),
+                $"User Detail - {user.UserName}",
+                "User Detail",
+                FormatUserDetail(user),
+                "Review identity, access, lockout, and contact context before changing account settings.",
+                ResolveRole(user),
+                "Close returns to Users with the selected account ready for edit, reset, copy, print, or access review.");
         }
 
         private void CopySelectedUser_Click(object sender, RoutedEventArgs e)
