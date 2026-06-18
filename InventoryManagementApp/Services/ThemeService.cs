@@ -27,18 +27,18 @@ namespace InventoryManagementApp.Services
             {
                 var dictionaries = app.Resources.MergedDictionaries;
                 var themeUri = string.Equals(theme, "Dark", StringComparison.OrdinalIgnoreCase) ? DarkThemeUri : LightThemeUri;
+                var insertIndex = 0;
 
                 for (int i = dictionaries.Count - 1; i >= 0; i--)
                 {
-                    var source = dictionaries[i].Source?.OriginalString;
-                    if (string.Equals(source, LightThemeUri.OriginalString, StringComparison.OrdinalIgnoreCase) ||
-                        string.Equals(source, DarkThemeUri.OriginalString, StringComparison.OrdinalIgnoreCase))
+                    if (IsThemeDictionary(dictionaries[i]))
                     {
+                        insertIndex = i;
                         dictionaries.RemoveAt(i);
                     }
                 }
 
-                dictionaries.Insert(0, new ResourceDictionary { Source = themeUri });
+                dictionaries.Insert(Math.Min(insertIndex, dictionaries.Count), new ResourceDictionary { Source = themeUri });
 
                 foreach (Window window in app.Windows)
                 {
@@ -54,6 +54,13 @@ namespace InventoryManagementApp.Services
             }
 
             app.Dispatcher.Invoke(ApplyOnUiThread, DispatcherPriority.Send);
+        }
+
+        private static bool IsThemeDictionary(ResourceDictionary dictionary)
+        {
+            var source = dictionary.Source?.OriginalString.Replace('\\', '/');
+            return source?.EndsWith("Resources/Colors.Light.xaml", StringComparison.OrdinalIgnoreCase) == true ||
+                   source?.EndsWith("Resources/Colors.Dark.xaml", StringComparison.OrdinalIgnoreCase) == true;
         }
     }
 }

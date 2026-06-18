@@ -10,6 +10,7 @@ namespace InventoryManagementApp.Tests
 {
     public class ThemeServiceTests
     {
+        private static readonly Uri LightThemeRelativeUri = new("/InventoryManagementApp;component/Resources/Colors.Light.xaml", UriKind.Relative);
         private static readonly Uri DarkThemeUri = new("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute);
 
         [Fact]
@@ -65,6 +66,23 @@ namespace InventoryManagementApp.Tests
                 service.ApplyTheme("Light");
                 Assert.DoesNotContain(app.Resources.MergedDictionaries, d => d.Source?.OriginalString.Contains("Colors.Dark.xaml") == true);
                 Assert.Contains("Colors.Light.xaml", app.Resources.MergedDictionaries[0].Source.OriginalString);
+                WpfTestHelper.ShutdownApplication();
+                await Task.CompletedTask;
+            });
+        }
+
+        [Fact]
+        public async Task ApplyTheme_ReplacesAppStartupRelativeDictionary()
+        {
+            await RunOnStaThread(async () =>
+            {
+                var app = WpfTestHelper.CreateApplication();
+                app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = LightThemeRelativeUri });
+                var service = new ThemeService();
+                service.ApplyTheme("Dark");
+                Assert.DoesNotContain(app.Resources.MergedDictionaries, d => d.Source?.OriginalString.Contains("Colors.Light.xaml") == true);
+                Assert.Contains("Colors.Dark.xaml", app.Resources.MergedDictionaries[0].Source.OriginalString);
+                Assert.Equal(Color.FromRgb(0x1E, 0x1E, 0x1E), (Color)app.Resources["Col.Background"]);
                 WpfTestHelper.ShutdownApplication();
                 await Task.CompletedTask;
             });
