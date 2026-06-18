@@ -4,6 +4,7 @@
 
 Progress log:
 
+- 2026-06-19 01:11 NZST: Polished the rental checkout dialog. `RentItemPopupWindow` now has a stronger Rental Checkout header, customer/due-date summary cards, aligned customer search/add controls, richer customer rows, a selected-customer handoff panel, checkout readiness guidance, and a stable footer status/action bar while preserving existing customer search, clear, add-customer, due-date, quick-day, rental-day, confirm, and cancel bindings. Added XAML contract coverage in `DialogOutputWindowXamlTests`. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-19-rent-checkout-dialog-polish.md`.
 - 2026-06-18 17:11 NZST: Polished the Import / Export data workbench. `ImportExportPage` now has a stronger data-operations header, item/customer/protection/run-log summary cards, aligned data-action and result-action rows, clearer item/customer/recovery/photo lanes, a stronger run-log empty state, selected-result handoff card, and stable footer status while preserving existing import/export/backup/image-map/cancel/clear commands and log copy/print/open/right-click/double-click handlers. Added shared `DataRunLogCard` styling and updated XAML contract tests for the data desk. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-18-import-export-data-workbench-polish.md`.
 - 2026-06-18 12:11 NZST: Polished the Insights workbenches. `ReportsPage` now has a stronger reporting header, report/row/destination/last-run summary cards, separated report-selection and output-action controls, richer report result rows, a styled empty state, and carded row-handoff sections. `ActivityLogsPage` now has a stronger audit header, visible/load/selected/destination summary cards, separated audit filters and actions, richer audit rows, a styled empty state, and carded audit-handoff sections while preserving existing commands, bindings, double-click handlers, print/copy handlers, and row-correct context menu hooks. Added XAML contract tests for both Insights pages. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-18-insights-workbench-polish.md`.
 - 2026-06-18 11:11 NZST: Polished the Categories workbench. `CategoriesPage` now has a stronger category setup header, directory/filter/selected/name-readiness summary cards, separated category actions and create/filter controls, richer category directory rows, a styled empty state, and carded setup-handoff sections while preserving existing category commands, bindings, double-click handlers, print/copy handlers, and row-correct context menu hooks. Added XAML contract tests for the updated category page. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-18-categories-workbench-polish.md`.
@@ -17,7 +18,7 @@ Progress log:
 - 2026-06-18 02:11 NZST: Polished the Dashboard KPI and activity surface. `DashboardPage` now has a stronger command-center header, more prominent stat cards, a four-part priority strip for checked-out items/rentals/issues/activity, clearer operational pane captions, and visible recent-activity destination context while preserving existing grid names, commands, bindings, context menus, and keyboard paths. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-18-dashboard-kpi-activity-polish.md`.
 - 2026-06-18 01:11 NZST: Polished the Search Tools results and intelligence surface. `ItemSearchPage` now gives the search results and checked-out panes stronger pane headers, expands the intelligence area, adds a session-pulse summary strip, clarifies repeat/open/print/clear actions, and gives recent-search and unavailable-demand tables roomier scanning while preserving existing grid names, click handlers, bindings, and keyboard paths. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-18-search-intelligence-polish.md`.
 - 2026-06-18 00:11 NZST: Polished the first-run setup wizard onboarding surface. `SetupWizardWindow` now has a stronger launch header, setup checklist, guided field descriptions, framed company-logo preview, ready-check validation area, and a `Complete Setup` action while preserving existing setup commands and password bindings. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-18-setup-wizard-onboarding-polish.md`.
-- 2026-06-17 23:11 NZST: Polished the auth entry surface and sensitive password dialogs. The login account-selection surface now has a deliberate two-panel workstation entry layout with branded company context, role/access guidance, profile count, and stronger user cards. `PasswordPromptWindow` and `ChangePasswordWindow` now use secure-access framing, clearer field guidance, wider password inputs, and stronger action labels while preserving the existing command paths. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-17-auth-entry-polish.md`.
+- 2026-06-17 23:11 NZST: Polished the auth entry surface and sensitive password dialogs. The login account-selection surface now has a deliberate two-panel workstation entry layout with branded company context, role/access guidance, profile count, and stronger user cards. `PasswordPromptWindow` and `ChangePasswordWindow` now use secure-access framing, clearer field guidance, wider inputs, and stronger action labels while preserving the existing command paths. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-17-auth-entry-polish.md`.
 - 2026-06-17 22:32 NZST: Added a shared visual hierarchy polish layer (`InventoryManagementApp/Resources/PolishedVisualHierarchy.xaml`) and loaded it in `App.xaml`. This targets the repeated flat/box-heavy feedback by improving common cards, toolbar/action strips, pane headers, summary cards, primary buttons, and dense grid headers across the app. Detailed log: `InventoryManagementApp/ProgressNotes/2026-06-17-shared-visual-hierarchy-polish.md`.
 
 Overall: the UI is operationally competent and consistent, but most screens still look like a solid internal item rather than a polished commercial product. The strongest positives are workflow clarity and consistent layout; the main weakness is flat visual hierarchy.
@@ -51,46 +52,46 @@ Overall: the UI is operationally competent and consistent, but most screens stil
 04-import-export-backup-images.png: the split between backup and image import is logical; visually it still feels like default controls arranged in boxes. Status: first-pass polish complete in `InventoryManagementApp/Views/Pages/ImportExportPage.xaml`; runtime screenshot review still needed.
 05-import-export-run-log.png: the log area is practical, but the right-side guidance panel looks too generic to add much visual confidence. Status: first-pass polish complete in `InventoryManagementApp/Views/Pages/ImportExportPage.xaml`; runtime screenshot review still needed.
 05-admin
-01-users.png: useful layout, but the user detail boxes on the right feel empty and under-styled.
-02-users-narrow.png: still works in a tighter width, which is good; however, it becomes visually cramped quickly.
+01-users.png: useful layout, but the user detail boxes on the right feel empty and under-styled. Status: first-pass polish complete in `InventoryManagementApp/Views/Pages/UsersPage.xaml`; runtime screenshot review still needed.
+02-users-narrow.png: still works in a tighter width, which is good; however, it becomes visually cramped quickly. Status: first-pass polish complete in `InventoryManagementApp/Views/Pages/UsersPage.xaml`; runtime screenshot review still needed.
 03-settings-service-status.png: this is one of the better admin screens because grouped panels create some rhythm.
 04-settings-database.png: weakest settings page visually; it looks more like an unfinished scaffold than a finished screen. Status: first-pass polish complete in `InventoryManagementApp/Views/Pages/SettingsPage.xaml`; runtime screenshot review still needed.
-05-settings-general.png: clear form layout and good explanatory notes; still needs stronger typography and contrast hierarchy.
-06-settings-item-display.png: practical bulk-edit page, but it is visually too austere for such a central configuration area.
-07-settings-email.png: functional and readable; one of the more form-complete screens, though still plain.
+05-settings-general.png: clear form layout and good explanatory notes; still needs stronger typography and contrast hierarchy. Status: first-pass polish complete in `InventoryManagementApp/Views/Pages/SettingsPage.xaml`; runtime screenshot review still needed.
+06-settings-item-display.png: practical bulk-edit page, but it is visually too austere for such a central configuration area. Status: first-pass polish complete in `InventoryManagementApp/Views/Pages/SettingsPage.xaml`; runtime screenshot review still needed.
+07-settings-email.png: functional and readable; one of the more form-complete screens, though still plain. Status: first-pass polish complete in `InventoryManagementApp/Views/Pages/SettingsPage.xaml`; runtime screenshot review still needed.
 08-settings-branding.png: ironically this branding page least conveys brand; the logo area and spacing feel temporary. Status: first-pass polish complete in `InventoryManagementApp/Views/Pages/SettingsPage.xaml`; runtime screenshot review still needed.
-09-settings-messaging.png: simple and understandable, but visually extremely minimal.
+09-settings-messaging.png: simple and understandable, but visually extremely minimal. Status: first-pass polish complete in `InventoryManagementApp/Views/Pages/SettingsPage.xaml`; runtime screenshot review still needed.
 10-settings-backups.png: backup path UI works, but the screen feels empty and not especially trustworthy-looking. Status: first-pass polish complete in `InventoryManagementApp/Views/Pages/SettingsPage.xaml`; runtime screenshot review still needed.
 06-dialogs 01-10
-01-print-labels.png: straightforward and usable, but too plain for a modal that triggers output.
-02-info-dialog.png: readable, but oversized empty space makes it feel low-polish.
-03-confirm-dialog.png: clear action choice, though the balance and spacing feel crude.
-04-input-dialog.png: same issue as above; functional, but not refined.
+01-print-labels.png: straightforward and usable, but too plain for a modal that triggers output. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/PrintLabelWindow.xaml`; runtime screenshot review still needed.
+02-info-dialog.png: readable, but oversized empty space makes it feel low-polish. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/InfoDialogWindow.xaml`; runtime screenshot review still needed.
+03-confirm-dialog.png: clear action choice, though the balance and spacing feel crude. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/ConfirmDialogWindow.xaml`; runtime screenshot review still needed.
+04-input-dialog.png: same issue as above; functional, but not refined. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/InputDialogWindow.xaml`; runtime screenshot review still needed.
 05-item-details.png: one of the better dialogs; the information is organized well and the actions make sense.
-06-item-edit.png: capable form, but long-scroll presentation feels heavy and visually monotonous.
-07-customer-edit.png: simple and readable, though almost aggressively plain.
+06-item-edit.png: capable form, but long-scroll presentation feels heavy and visually monotonous. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/ItemEditWindow.xaml`; runtime screenshot review still needed.
+07-customer-edit.png: simple and readable, though almost aggressively plain. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/CustomerEditWindow.xaml`; runtime screenshot review still needed.
 08-rental-history.png: solid data dialog with good density and clear table structure.
 09-rentals-filter.png: compact and functional, but labels and spacing need more deliberate design.
-10-import-mapping.png: clear task framing, but the oversized side buttons look awkward.
+10-import-mapping.png: clear task framing, but the oversized side buttons look awkward. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/ImportMappingWindow.xaml`; runtime screenshot review still needed.
 06-dialogs 11-20
-11-image-import-mapping.png: understandable, but visually very raw.
+11-image-import-mapping.png: understandable, but visually very raw. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/ImageImportMappingWindow.xaml`; runtime screenshot review still needed.
 12-print-preview.png: clean preview shell; one of the more professional-looking modal frames.
 13-maintenance-edit.png: compact and effective; one of the cleaner edit forms.
 14-calibration-edit.png: same as maintenance edit, with good balance and readable fields.
 15-reservation-edit.png: useful snapshot panel on the left; stronger than many other forms.
-16-kit-edit.png: clear enough, but the large blank space makes it feel underdesigned.
-17-kit-item-edit.png: efficient and readable, though minimal to the point of feeling temporary.
+16-kit-edit.png: clear enough, but the large blank space makes it feel underdesigned. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/KitEditWindow.xaml`; runtime screenshot review still needed.
+17-kit-item-edit.png: efficient and readable, though minimal to the point of feeling temporary. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/KitItemEditWindow.xaml`; runtime screenshot review still needed.
 18-users-edit.png: one of the most complete dialogs functionally; still busy and text-heavy, but convincingly useful.
-19-rent-item-popup.png: one of the better transactional dialogs; clear customer selection and next-step guidance.
+19-rent-item-popup.png: one of the better transactional dialogs; clear customer selection and next-step guidance. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/RentItemPopupWindow.xaml`; runtime screenshot review still needed.
 20-change-password.png: too bare; this should feel more intentional and trustworthy. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/ChangePasswordWindow.xaml`; runtime screenshot review still needed.
 06-dialogs 21-30
 21-password-prompt.png: clear, but visually weak for a sensitive auth step. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/PasswordPromptWindow.xaml`; runtime screenshot review still needed.
-22-password-reset-prompt.png: the reset affordance is good; the red error copy helps, but the whole screen still feels unstyled.
+22-password-reset-prompt.png: the reset affordance is good; the red error copy helps, but the whole screen still feels unstyled. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/PasswordPromptWindow.xaml`; runtime screenshot review still needed.
 23-setup-wizard.png: good structure, but it does not feel like an onboarding experience yet. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/SetupWizardWindow.xaml`; runtime screenshot review still needed.
-24-activity-detail-dialog.png: clear and simple, though very plain.
-25-category-detail-dialog.png: readable and specific; still closer to a system dialog than a polished detail sheet.
-26-import-export-result-dialog.png: good concise result summary; visually generic.
-27-user-detail-dialog.png: useful content, but the dialog lacks visual hierarchy.
+24-activity-detail-dialog.png: clear and simple, though very plain. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/DetailDialogWindow.xaml`; runtime screenshot review still needed.
+25-category-detail-dialog.png: readable and specific; still closer to a system dialog than a polished detail sheet. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/DetailDialogWindow.xaml`; runtime screenshot review still needed.
+26-import-export-result-dialog.png: good concise result summary; visually generic. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/DetailDialogWindow.xaml`; runtime screenshot review still needed.
+27-user-detail-dialog.png: useful content, but the dialog lacks visual hierarchy. Status: first-pass polish complete in `InventoryManagementApp/Views/Windows/DetailDialogWindow.xaml`; runtime screenshot review still needed.
 28-item-search-preview.png: good printable content structure, though visually sparse.
 29-dashboard-preview.png: clear snapshot summary; the printed surface is clean but not branded.
 30-customer-directory-preview.png: readable output, but very plain and under-formatted.
