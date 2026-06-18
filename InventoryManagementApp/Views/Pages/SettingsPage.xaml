@@ -457,9 +457,12 @@
                                         <TextBox Grid.Row="9" Grid.Column="1" Text="{Binding FromName}" Margin="8,0,0,8"/>
                                         <TextBlock Grid.Row="10" Text="Enable SSL/TLS" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
                                         <CheckBox Grid.Row="10" Grid.Column="1" IsChecked="{Binding EnableSsl}" Margin="8,0,0,8"/>
-                                        <StackPanel Grid.Row="11" Grid.Column="1" Orientation="Horizontal" Margin="8,0,0,0">
-                                            <Button Style="{StaticResource GhostButton}" Content="Test Email" Command="{Binding TestEmailCommand}" Margin="0,0,4,0"/>
-                                            <Button Style="{StaticResource PrimaryButton}" Content="Save Email Settings" Command="{Binding SaveEmailSettingsCommand}"/>
+                                        <StackPanel Grid.Row="11" Grid.Column="1" Margin="8,0,0,0">
+                                            <TextBlock Text="{Binding EmailConfigurationStatus}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Style="{StaticResource GhostButton}" Content="Test Email" Command="{Binding TestEmailCommand}" Margin="0,0,4,0"/>
+                                                <Button Style="{StaticResource PrimaryButton}" Content="Save Email Settings" Command="{Binding SaveEmailSettingsCommand}"/>
+                                            </StackPanel>
                                         </StackPanel>
                                     </Grid>
                                 </Border>
@@ -488,6 +491,7 @@
                                             <TextBlock Text="{Binding SelectedEmailProvider, StringFormat='Provider: {0}'}" TextWrapping="Wrap"/>
                                             <TextBlock Text="{Binding SmtpHost, StringFormat='Host: {0}'}" TextWrapping="Wrap"/>
                                             <TextBlock Text="{Binding FromEmail, StringFormat='Sender: {0}'}" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding EmailConfigurationStatus}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>

@@ -35,7 +35,7 @@ namespace InventoryManagementApp.Tests
         public void SelectedOutlookAccount_UpdatesSmtpUsernameAndSender()
         {
             var first = new EmailAccountOption("First", "first@example.com", "first@example.com");
-            var second = new EmailAccountOption("Shared Mailbox", "shared@example.com", "shared@example.com");
+            var second = new EmailAccountOption("Shared Mailbox", "shared@example.com", "shared");
             var vm = CreateViewModel(new[] { first, second });
 
             vm.SelectedOutlookAccount = second;
@@ -44,6 +44,9 @@ namespace InventoryManagementApp.Tests
             Assert.Equal("shared@example.com", vm.FromEmail);
             Assert.Equal("shared@example.com", vm.SelectedFromEmail);
             Assert.Contains("shared@example.com", vm.FromEmailOptions);
+            Assert.Equal("Not ready: enter the mailbox password or app password before testing.", vm.EmailConfigurationStatus);
+            vm.SmtpPassword = "secret";
+            Assert.Equal("Ready to test email delivery.", vm.EmailConfigurationStatus);
         }
 
         private static SettingsViewModel CreateViewModel(IReadOnlyList<EmailAccountOption> accounts)

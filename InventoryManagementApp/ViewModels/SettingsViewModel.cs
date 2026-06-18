@@ -640,7 +640,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _selectedOutlookAccount, value) && value != null)
                 {
-                    SmtpUsername = value.UserName;
+                    SmtpUsername = IsEmailAddress(value.UserName) ? value.UserName : value.EmailAddress;
                     FromEmail = value.EmailAddress;
                     EnsureFromEmailOption(value.EmailAddress);
                     SelectedFromEmail = value.EmailAddress;
@@ -659,35 +659,55 @@ namespace InventoryManagementApp.ViewModels
         public string SmtpHost
         {
             get => _smtpHost;
-            set => SetProperty(ref _smtpHost, value);
+            set
+            {
+                if (SetProperty(ref _smtpHost, value))
+                    OnPropertyChanged(nameof(EmailConfigurationStatus));
+            }
         }
 
         private int _smtpPort = 587;
         public int SmtpPort
         {
             get => _smtpPort;
-            set => SetProperty(ref _smtpPort, value);
+            set
+            {
+                if (SetProperty(ref _smtpPort, value))
+                    OnPropertyChanged(nameof(EmailConfigurationStatus));
+            }
         }
 
         private string _smtpUsername = "";
         public string SmtpUsername
         {
             get => _smtpUsername;
-            set => SetProperty(ref _smtpUsername, value);
+            set
+            {
+                if (SetProperty(ref _smtpUsername, value))
+                    OnPropertyChanged(nameof(EmailConfigurationStatus));
+            }
         }
 
         private string _smtpPassword = "";
         public string SmtpPassword
         {
             get => _smtpPassword;
-            set => SetProperty(ref _smtpPassword, value);
+            set
+            {
+                if (SetProperty(ref _smtpPassword, value))
+                    OnPropertyChanged(nameof(EmailConfigurationStatus));
+            }
         }
 
         private string _fromEmail = "";
         public string FromEmail
         {
             get => _fromEmail;
-            set => SetProperty(ref _fromEmail, value);
+            set
+            {
+                if (SetProperty(ref _fromEmail, value))
+                    OnPropertyChanged(nameof(EmailConfigurationStatus));
+            }
         }
 
         private string _selectedFromEmail = "";
@@ -731,6 +751,25 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand SaveEmailSettingsCommand { get; }
         public IAsyncRelayCommand TestEmailCommand { get; }
         public IAsyncRelayCommand RefreshOutlookAccountsCommand { get; }
+
+        public string EmailConfigurationStatus
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(SmtpHost))
+                    return "Not ready: enter an SMTP host.";
+                if (SmtpPort <= 0)
+                    return "Not ready: enter a valid SMTP port.";
+                if (string.IsNullOrWhiteSpace(SmtpUsername))
+                    return "Not ready: select an account or enter the full Microsoft 365 username.";
+                if (string.IsNullOrWhiteSpace(SmtpPassword))
+                    return "Not ready: enter the mailbox password or app password before testing.";
+                if (string.IsNullOrWhiteSpace(FromEmail))
+                    return "Not ready: choose the sender address.";
+
+                return "Ready to test email delivery.";
+            }
+        }
 
         private void ApplyEmailProviderTemplate(string provider)
         {
@@ -820,6 +859,11 @@ namespace InventoryManagementApp.ViewModels
 
             dispatcher.Invoke(action);
         }
+
+        private static bool IsEmailAddress(string? value)
+            => !string.IsNullOrWhiteSpace(value) &&
+               value.Contains('@', StringComparison.Ordinal) &&
+               value.Contains('.', StringComparison.Ordinal);
 
         private async Task SaveEmailSettingsAsync(CancellationToken token = default)
         {
