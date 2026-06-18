@@ -73,10 +73,20 @@ namespace InventoryManagementApp.Tests.ViewModels
         [Fact]
         public void EditDialogs_UsePolishedFormStructureAndPreserveBindings()
         {
+            var item = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "ItemEditWindow.xaml");
             var customer = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "CustomerEditWindow.xaml");
             var kit = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "KitEditWindow.xaml");
             var kitItem = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "KitItemEditWindow.xaml");
             var saveCancel = ReadRepositoryFile("InventoryManagementApp", "Views", "Controls", "SaveCancelBar.xaml");
+
+            Assert.Contains("Item Edit Workbench", item, StringComparison.Ordinal);
+            Assert.Contains("Inventory Identity", item, StringComparison.Ordinal);
+            Assert.Contains("Image and Availability", item, StringComparison.Ordinal);
+            Assert.Contains("DesktopStatusFooter", item, StringComparison.Ordinal);
+            Assert.Contains("ItemModel.ItemNumber, UpdateSourceTrigger=PropertyChanged", item, StringComparison.Ordinal);
+            Assert.Contains("ItemModel.MissingComponentsNotes, UpdateSourceTrigger=PropertyChanged", item, StringComparison.Ordinal);
+            Assert.Contains("BrowseImageCommand", item, StringComparison.Ordinal);
+            Assert.Contains("RemoveImageCommand", item, StringComparison.Ordinal);
 
             Assert.Contains("Customer Profile", customer, StringComparison.Ordinal);
             Assert.Contains("Account Identity", customer, StringComparison.Ordinal);
