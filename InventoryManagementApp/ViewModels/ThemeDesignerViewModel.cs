@@ -5,6 +5,7 @@ using InventoryManagementApp.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
+using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,6 +34,7 @@ namespace InventoryManagementApp.ViewModels
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<ThemeDesignerViewModel>.Instance;
 
+            ThemeOptions = new ObservableCollection<string> { "Light", "Dark" };
             SaveCommand = new AsyncRelayCommand(SaveAsync);
             ResetCommand = new RelayCommand(Reset);
             BrowseBackgroundCommand = new RelayCommand(BrowseBackground);
@@ -42,6 +44,7 @@ namespace InventoryManagementApp.ViewModels
             HighContrastPresetCommand = new RelayCommand(ApplyHighContrastPreset);
         }
 
+        public ObservableCollection<string> ThemeOptions { get; }
         public IAsyncRelayCommand SaveCommand { get; }
         public IRelayCommand ResetCommand { get; }
         public IRelayCommand BrowseBackgroundCommand { get; }
@@ -134,6 +137,12 @@ namespace InventoryManagementApp.ViewModels
             set => SetDouble(value, (settings, newValue) => settings.SurfaceOpacity = newValue, nameof(SurfaceOpacity));
         }
 
+        public double SurfaceAltOpacity
+        {
+            get => _settings.SurfaceAltOpacity;
+            set => SetDouble(value, (settings, newValue) => settings.SurfaceAltOpacity = newValue, nameof(SurfaceAltOpacity));
+        }
+
         public double InputOpacity
         {
             get => _settings.InputOpacity;
@@ -168,6 +177,12 @@ namespace InventoryManagementApp.ViewModels
         {
             get => _settings.CardCornerRadius;
             set => SetDouble(value, (settings, newValue) => settings.CardCornerRadius = newValue, nameof(CardCornerRadius));
+        }
+
+        public double PanelCornerRadius
+        {
+            get => _settings.PanelCornerRadius;
+            set => SetDouble(value, (settings, newValue) => settings.PanelCornerRadius = newValue, nameof(PanelCornerRadius));
         }
 
         public double ButtonCornerRadius
@@ -268,11 +283,13 @@ namespace InventoryManagementApp.ViewModels
         {
             UseGlassSurfaces = true;
             SurfaceOpacity = 0.68;
+            SurfaceAltOpacity = 0.58;
             InputOpacity = 0.72;
             ButtonOpacity = 0.72;
             BordersVisible = true;
             BorderOpacity = 0.42;
             CardCornerRadius = 14;
+            PanelCornerRadius = 12;
             ButtonCornerRadius = 12;
             InputCornerRadius = 10;
             ShadowBlurRadius = 18;
@@ -287,6 +304,7 @@ namespace InventoryManagementApp.ViewModels
             BordersVisible = false;
             BorderOpacity = 0;
             CardCornerRadius = 0;
+            PanelCornerRadius = 0;
             ButtonCornerRadius = 0;
             InputCornerRadius = 0;
             ShadowBlurRadius = 0;
@@ -304,6 +322,9 @@ namespace InventoryManagementApp.ViewModels
             _settings.TextColor = "#FFFFFFFF";
             _settings.MutedTextColor = "#FFE5E7EB";
             _settings.AccentColor = "#FFFFFF00";
+            _settings.SuccessColor = "#FF00FF66";
+            _settings.WarningColor = "#FFFFFF00";
+            _settings.ErrorColor = "#FFFF4D4D";
             _settings.BordersVisible = true;
             _settings.BorderOpacity = 1;
             Preview();
@@ -362,12 +383,14 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(BackgroundImagePath));
             OnPropertyChanged(nameof(BackgroundOpacity));
             OnPropertyChanged(nameof(SurfaceOpacity));
+            OnPropertyChanged(nameof(SurfaceAltOpacity));
             OnPropertyChanged(nameof(InputOpacity));
             OnPropertyChanged(nameof(ButtonOpacity));
             OnPropertyChanged(nameof(BordersVisible));
             OnPropertyChanged(nameof(UseGlassSurfaces));
             OnPropertyChanged(nameof(BorderOpacity));
             OnPropertyChanged(nameof(CardCornerRadius));
+            OnPropertyChanged(nameof(PanelCornerRadius));
             OnPropertyChanged(nameof(ButtonCornerRadius));
             OnPropertyChanged(nameof(InputCornerRadius));
             OnPropertyChanged(nameof(ShadowBlurRadius));
