@@ -62,14 +62,14 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 <TextBlock Grid.ColumnSpan="2" Text="Color system" Style="{StaticResource PageTitleTextBlock}" Margin="0,0,0,4"/>
                                 <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="Use #RRGGBB or #AARRGGBB values. Changes preview immediately and are saved when you choose Save Theme." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,12"/>
                                 <TextBlock Grid.Row="2" Text="Base theme" Style="{StaticResource ThemeFieldLabel}"/>
-                                <ComboBox Grid.Row="2" Grid.Column="1" SelectedItem="{Binding BaseTheme}" Margin="0,0,0,8">
-                                    <ComboBoxItem Content="Light"/>
-                                    <ComboBoxItem Content="Dark"/>
-                                </ComboBox>
+                                <ComboBox Grid.Row="2" Grid.Column="1" SelectedItem="{Binding BaseTheme}" ItemsSource="{Binding ThemeOptions}" Margin="0,0,0,8"/>
                                 <TextBlock Grid.Row="3" Text="Background" Style="{StaticResource ThemeFieldLabel}"/>
                                 <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding BackgroundColor, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeValueBox}"/>
                                 <TextBlock Grid.Row="4" Text="Main surface" Style="{StaticResource ThemeFieldLabel}"/>
@@ -82,7 +82,13 @@
                                 <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding MutedTextColor, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeValueBox}"/>
                                 <TextBlock Grid.Row="8" Text="Accent" Style="{StaticResource ThemeFieldLabel}"/>
                                 <TextBox Grid.Row="8" Grid.Column="1" Text="{Binding AccentColor, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeValueBox}"/>
-                                <DockPanel Grid.Row="9" Grid.ColumnSpan="2" LastChildFill="True">
+                                <TextBlock Grid.Row="9" Text="Success" Style="{StaticResource ThemeFieldLabel}"/>
+                                <TextBox Grid.Row="9" Grid.Column="1" Text="{Binding SuccessColor, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeValueBox}"/>
+                                <TextBlock Grid.Row="10" Text="Warning" Style="{StaticResource ThemeFieldLabel}"/>
+                                <TextBox Grid.Row="10" Grid.Column="1" Text="{Binding WarningColor, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeValueBox}"/>
+                                <TextBlock Grid.Row="11" Text="Error" Style="{StaticResource ThemeFieldLabel}"/>
+                                <TextBox Grid.Row="11" Grid.Column="1" Text="{Binding ErrorColor, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeValueBox}"/>
+                                <DockPanel Grid.Row="12" Grid.ColumnSpan="2" LastChildFill="True">
                                     <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearBackgroundCommand}" Margin="6,0,0,8"/>
                                     <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Content="Browse" Command="{Binding BrowseBackgroundCommand}" Margin="6,0,0,8"/>
                                     <TextBox Text="{Binding BackgroundImagePath, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeValueBox}"/>
@@ -103,20 +109,24 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 <TextBlock Grid.ColumnSpan="3" Text="Transparency" Style="{StaticResource PageTitleTextBlock}" Margin="0,0,0,4"/>
                                 <TextBlock Grid.Row="1" Text="Background" Style="{StaticResource ThemeFieldLabel}"/>
                                 <Slider Grid.Row="1" Grid.Column="1" Value="{Binding BackgroundOpacity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
                                 <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding BackgroundOpacity, StringFormat={}{0:P0}}" Style="{StaticResource CaptionTextBlock}"/>
-                                <TextBlock Grid.Row="2" Text="Surfaces" Style="{StaticResource ThemeFieldLabel}"/>
+                                <TextBlock Grid.Row="2" Text="Main surfaces" Style="{StaticResource ThemeFieldLabel}"/>
                                 <Slider Grid.Row="2" Grid.Column="1" Value="{Binding SurfaceOpacity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
                                 <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding SurfaceOpacity, StringFormat={}{0:P0}}" Style="{StaticResource CaptionTextBlock}"/>
-                                <TextBlock Grid.Row="3" Text="Inputs" Style="{StaticResource ThemeFieldLabel}"/>
-                                <Slider Grid.Row="3" Grid.Column="1" Value="{Binding InputOpacity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
-                                <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding InputOpacity, StringFormat={}{0:P0}}" Style="{StaticResource CaptionTextBlock}"/>
-                                <TextBlock Grid.Row="4" Text="Buttons" Style="{StaticResource ThemeFieldLabel}"/>
-                                <Slider Grid.Row="4" Grid.Column="1" Value="{Binding ButtonOpacity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
-                                <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding ButtonOpacity, StringFormat={}{0:P0}}" Style="{StaticResource CaptionTextBlock}"/>
+                                <TextBlock Grid.Row="3" Text="Alt surfaces" Style="{StaticResource ThemeFieldLabel}"/>
+                                <Slider Grid.Row="3" Grid.Column="1" Value="{Binding SurfaceAltOpacity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
+                                <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding SurfaceAltOpacity, StringFormat={}{0:P0}}" Style="{StaticResource CaptionTextBlock}"/>
+                                <TextBlock Grid.Row="4" Text="Inputs" Style="{StaticResource ThemeFieldLabel}"/>
+                                <Slider Grid.Row="4" Grid.Column="1" Value="{Binding InputOpacity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
+                                <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding InputOpacity, StringFormat={}{0:P0}}" Style="{StaticResource CaptionTextBlock}"/>
+                                <TextBlock Grid.Row="5" Text="Buttons" Style="{StaticResource ThemeFieldLabel}"/>
+                                <Slider Grid.Row="5" Grid.Column="1" Value="{Binding ButtonOpacity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
+                                <TextBlock Grid.Row="5" Grid.Column="2" Text="{Binding ButtonOpacity, StringFormat={}{0:P0}}" Style="{StaticResource CaptionTextBlock}"/>
                             </Grid>
                         </Border>
                     </StackPanel>
@@ -156,6 +166,7 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 <TextBlock Grid.ColumnSpan="3" Text="Shape and borders" Style="{StaticResource PageTitleTextBlock}" Margin="0,0,0,4"/>
                                 <TextBlock Grid.Row="1" Text="Show borders" Style="{StaticResource ThemeFieldLabel}"/>
@@ -168,12 +179,15 @@
                                 <TextBlock Grid.Row="4" Text="Card corners" Style="{StaticResource ThemeFieldLabel}"/>
                                 <Slider Grid.Row="4" Grid.Column="1" Minimum="0" Maximum="32" Value="{Binding CardCornerRadius, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
                                 <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding CardCornerRadius, StringFormat={}{0:0}px}" Style="{StaticResource CaptionTextBlock}"/>
-                                <TextBlock Grid.Row="5" Text="Button corners" Style="{StaticResource ThemeFieldLabel}"/>
-                                <Slider Grid.Row="5" Grid.Column="1" Minimum="0" Maximum="32" Value="{Binding ButtonCornerRadius, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
-                                <TextBlock Grid.Row="5" Grid.Column="2" Text="{Binding ButtonCornerRadius, StringFormat={}{0:0}px}" Style="{StaticResource CaptionTextBlock}"/>
-                                <TextBlock Grid.Row="6" Text="Input corners" Style="{StaticResource ThemeFieldLabel}"/>
-                                <Slider Grid.Row="6" Grid.Column="1" Minimum="0" Maximum="32" Value="{Binding InputCornerRadius, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
-                                <TextBlock Grid.Row="6" Grid.Column="2" Text="{Binding InputCornerRadius, StringFormat={}{0:0}px}" Style="{StaticResource CaptionTextBlock}"/>
+                                <TextBlock Grid.Row="5" Text="Panel corners" Style="{StaticResource ThemeFieldLabel}"/>
+                                <Slider Grid.Row="5" Grid.Column="1" Minimum="0" Maximum="32" Value="{Binding PanelCornerRadius, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
+                                <TextBlock Grid.Row="5" Grid.Column="2" Text="{Binding PanelCornerRadius, StringFormat={}{0:0}px}" Style="{StaticResource CaptionTextBlock}"/>
+                                <TextBlock Grid.Row="6" Text="Button corners" Style="{StaticResource ThemeFieldLabel}"/>
+                                <Slider Grid.Row="6" Grid.Column="1" Minimum="0" Maximum="32" Value="{Binding ButtonCornerRadius, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
+                                <TextBlock Grid.Row="6" Grid.Column="2" Text="{Binding ButtonCornerRadius, StringFormat={}{0:0}px}" Style="{StaticResource CaptionTextBlock}"/>
+                                <TextBlock Grid.Row="7" Text="Input corners" Style="{StaticResource ThemeFieldLabel}"/>
+                                <Slider Grid.Row="7" Grid.Column="1" Minimum="0" Maximum="32" Value="{Binding InputCornerRadius, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ThemeSlider}"/>
+                                <TextBlock Grid.Row="7" Grid.Column="2" Text="{Binding InputCornerRadius, StringFormat={}{0:0}px}" Style="{StaticResource CaptionTextBlock}"/>
                             </Grid>
                         </Border>
 
