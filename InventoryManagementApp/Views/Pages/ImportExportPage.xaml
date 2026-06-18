@@ -11,112 +11,161 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}">
-            <DockPanel LastChildFill="False">
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-                    <TextBlock Text="Data Workstation" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="14,12">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Left" Margin="0,0,18,0" VerticalAlignment="Center">
+                    <TextBlock Text="Data Operations Workbench" Style="{StaticResource PageTitleTextBlock}"/>
+                    <TextBlock Text="Move inventory, customer, image, backup, and result-review work through one controlled data desk."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"
+                               Margin="0,3,0,0"/>
+                </StackPanel>
+                <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" HorizontalAlignment="Right">
                     <Button Style="{StaticResource PrimaryButton}"
                             Content="Import Items"
                             Command="{Binding ImportItemsCommand}"
-                            Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}"
+                            Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}"
                             Content="Export Items"
                             Command="{Binding ExportItemsCommand}"
-                            Margin="0,0,4,0"/>
+                            Margin="0,0,4,4"/>
                     <Button Style="{StaticResource PrimaryButton}"
                             Content="Import Customers"
                             Command="{Binding ImportCustomersCommand}"
-                            Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}"
+                            Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}"
                             Content="Export Customers"
                             Command="{Binding ExportCustomersCommand}"
-                            Margin="0,0,4,0"/>
+                            Margin="0,0,4,4"/>
                     <Button Style="{StaticResource GhostButton}"
                             Content="Backup DB"
                             Command="{Binding BackupDatabaseCommand}"
-                            Margin="0,0,4,0"/>
+                            Margin="0,0,4,4"/>
                     <Button Style="{StaticResource GhostButton}"
                             Content="Cancel Import"
                             Command="{Binding CancelImportItemsCommand}"
-                            IsEnabled="{Binding ImportItemsCommand.IsRunning}"/>
-                </StackPanel>
-                <TextBlock DockPanel.Dock="Right"
-                           Text="Import, export, photo mapping, backup, and operation results stay together."
-                           Style="{StaticResource CaptionTextBlock}"
-                           VerticalAlignment="Center"/>
+                            IsEnabled="{Binding ImportItemsCommand.IsRunning}"
+                            Margin="0,0,0,4"/>
+                </WrapPanel>
             </DockPanel>
         </Border>
 
         <TabControl Grid.Row="1" Style="{StaticResource DesktopSectionListTabControl}">
             <TabItem Style="{StaticResource DesktopSectionListTabItem}" Header="01 Overview">
                 <Border Style="{StaticResource DesktopContentPane}">
-                    <Grid Margin="14" VerticalAlignment="Top">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
+                    <Grid Margin="12">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,8">
-                            <StackPanel>
-                                <TextBlock Text="Item Data" Style="{StaticResource PageTitleTextBlock}"/>
-                                <TextBlock Text="{Binding ItemDataSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,8"/>
-                                <WrapPanel>
-                                    <Button Style="{StaticResource PrimaryButton}"
-                                            Content="Import Items CSV / JSON / XML"
-                                            Command="{Binding ImportItemsCommand}"
-                                            Margin="0,0,4,0"/>
-                                    <Button Style="{StaticResource GhostButton}"
-                                            Content="Export Items"
-                                            Command="{Binding ExportItemsCommand}"/>
-                                </WrapPanel>
-                            </StackPanel>
-                        </Border>
+                        <UniformGrid Grid.Row="0" Columns="4" Margin="0,0,0,10">
+                            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,0">
+                                <StackPanel>
+                                    <TextBlock Text="Item Exchange" Style="{StaticResource LabelTextBlock}"/>
+                                    <TextBlock Text="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}"
+                                               Style="{StaticResource PageTitleTextBlock}"
+                                               Margin="0,3,0,0"/>
+                                    <TextBlock Text="Mapped CSV, JSON, XML"
+                                               Style="{StaticResource CaptionTextBlock}"
+                                               TextWrapping="Wrap"
+                                               Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,0">
+                                <StackPanel>
+                                    <TextBlock Text="Customer Exchange" Style="{StaticResource LabelTextBlock}"/>
+                                    <TextBlock Text="Directory" Style="{StaticResource PageTitleTextBlock}" Margin="0,3,0,0"/>
+                                    <TextBlock Text="Mapped CSV, JSON, XML"
+                                               Style="{StaticResource CaptionTextBlock}"
+                                               TextWrapping="Wrap"
+                                               Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,0">
+                                <StackPanel>
+                                    <TextBlock Text="Protection" Style="{StaticResource LabelTextBlock}"/>
+                                    <TextBlock Text="Backup First" Style="{StaticResource PageTitleTextBlock}" Margin="0,3,0,0"/>
+                                    <TextBlock Text="Create a database restore point before bulk work."
+                                               Style="{StaticResource CaptionTextBlock}"
+                                               TextWrapping="Wrap"
+                                               Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource DesktopSummaryCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Run Log" Style="{StaticResource LabelTextBlock}"/>
+                                    <TextBlock Text="{Binding LogSummary}" Style="{StaticResource PageTitleTextBlock}" Margin="0,3,0,0"/>
+                                    <TextBlock Text="Copy, print, and review result rows from the same session."
+                                               Style="{StaticResource CaptionTextBlock}"
+                                               TextWrapping="Wrap"
+                                               Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </UniformGrid>
 
-                        <Border Grid.Column="1" Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,8">
-                            <StackPanel>
-                                <TextBlock Text="Customer Data" Style="{StaticResource PageTitleTextBlock}"/>
-                                <TextBlock Text="{Binding CustomerDataSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,8"/>
-                                <WrapPanel>
-                                    <Button Style="{StaticResource PrimaryButton}"
-                                            Content="Import Customers"
-                                            Command="{Binding ImportCustomersCommand}"
-                                            Margin="0,0,4,0"/>
-                                    <Button Style="{StaticResource GhostButton}"
-                                            Content="Export Customers"
-                                            Command="{Binding ExportCustomersCommand}"/>
-                                </WrapPanel>
-                            </StackPanel>
-                        </Border>
+                        <Grid Grid.Row="1" Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,0">
+                                <DockPanel LastChildFill="True">
+                                    <StackPanel DockPanel.Dock="Top">
+                                        <TextBlock Text="Import Readiness" Style="{StaticResource SectionHeader}"/>
+                                        <TextBlock Text="{Binding ItemDataSummary}"
+                                                   Style="{StaticResource CaptionTextBlock}"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,2,0,8"/>
+                                    </StackPanel>
+                                    <WrapPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
+                                        <Button Style="{StaticResource PrimaryButton}"
+                                                Content="Import Items CSV / JSON / XML"
+                                                Command="{Binding ImportItemsCommand}"
+                                                Margin="0,0,4,0"/>
+                                        <Button Style="{StaticResource GhostButton}"
+                                                Content="Export Items"
+                                                Command="{Binding ExportItemsCommand}"
+                                                Margin="0,0,4,0"/>
+                                        <Button Style="{StaticResource GhostButton}"
+                                                Content="Cancel Import"
+                                                Command="{Binding CancelImportItemsCommand}"
+                                                IsEnabled="{Binding ImportItemsCommand.IsRunning}"/>
+                                    </WrapPanel>
+                                    <TextBlock Text="Use this lane for catalog migration, supplier cleanup, and bulk inventory updates. CSV imports still open the mapping dialog before writing rows."
+                                               TextWrapping="Wrap"/>
+                                </DockPanel>
+                            </Border>
+                            <Border Grid.Column="1" Style="{StaticResource DesktopSummaryCard}">
+                                <DockPanel LastChildFill="True">
+                                    <StackPanel DockPanel.Dock="Top">
+                                        <TextBlock Text="Customer And Recovery Lane" Style="{StaticResource SectionHeader}"/>
+                                        <TextBlock Text="{Binding CustomerDataSummary}"
+                                                   Style="{StaticResource CaptionTextBlock}"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,2,0,8"/>
+                                    </StackPanel>
+                                    <WrapPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
+                                        <Button Style="{StaticResource PrimaryButton}"
+                                                Content="Import Customers"
+                                                Command="{Binding ImportCustomersCommand}"
+                                                Margin="0,0,4,0"/>
+                                        <Button Style="{StaticResource GhostButton}"
+                                                Content="Export Customers"
+                                                Command="{Binding ExportCustomersCommand}"
+                                                Margin="0,0,4,0"/>
+                                        <Button Style="{StaticResource GhostButton}"
+                                                Content="Backup Database"
+                                                Command="{Binding BackupDatabaseCommand}"/>
+                                    </WrapPanel>
+                                    <TextBlock Text="Keep customer directory changes and backup activity close together so advisors have a dependable rollback point before larger data changes."
+                                               TextWrapping="Wrap"/>
+                                </DockPanel>
+                            </Border>
+                        </Grid>
 
-                        <Border Grid.Row="1" Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,8">
-                            <StackPanel>
-                                <TextBlock Text="Photo Mapping" Style="{StaticResource PageTitleTextBlock}"/>
-                                <TextBlock Text="{Binding ImageImportSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,8"/>
-                                <Button Style="{StaticResource PrimaryButton}"
-                                        Content="Import Item Images"
-                                        Command="{Binding OpenImageImportMappingWindowCommand}"
-                                        HorizontalAlignment="Left"
-                                        Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
-                            </StackPanel>
-                        </Border>
-
-                        <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,8">
-                            <StackPanel>
-                                <TextBlock Text="Database Backup" Style="{StaticResource PageTitleTextBlock}"/>
-                                <TextBlock Text="{Binding BackupSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,8"/>
-                                <Button Style="{StaticResource PrimaryButton}"
-                                        Content="Backup Database"
-                                        Command="{Binding BackupDatabaseCommand}"
-                                        HorizontalAlignment="Left"/>
-                            </StackPanel>
-                        </Border>
-
-                        <Border Grid.Row="2" Grid.ColumnSpan="2" Style="{StaticResource DesktopInsetCard}" Background="{DynamicResource TextBoxBackgroundBrush}">
+                        <Border Grid.Row="2" Style="{StaticResource DesktopInsetCard}" Background="{DynamicResource TextBoxBackgroundBrush}">
                             <DockPanel LastChildFill="True">
                                 <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
                                     <TextBlock Text="Current run status" Style="{StaticResource SectionHeader}" Margin="0,0,10,0"/>
@@ -133,18 +182,47 @@
                 <Border Style="{StaticResource DesktopContentPane}">
                     <DockPanel>
                         <Border DockPanel.Dock="Top" Style="{StaticResource DesktopSectionActionStrip}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="Item Exchange" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Import CSV / JSON / XML" Command="{Binding ImportItemsCommand}" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Export CSV / JSON / XML" Command="{Binding ExportItemsCommand}" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Cancel Import" Command="{Binding CancelImportItemsCommand}" IsEnabled="{Binding ImportItemsCommand.IsRunning}"/>
-                            </StackPanel>
+                            <DockPanel LastChildFill="False">
+                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                                    <TextBlock Text="Item Exchange" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Import CSV / JSON / XML" Command="{Binding ImportItemsCommand}" Margin="0,0,4,0"/>
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Export CSV / JSON / XML" Command="{Binding ExportItemsCommand}" Margin="0,0,4,0"/>
+                                    <Button Style="{StaticResource GhostButton}" Content="Cancel Import" Command="{Binding CancelImportItemsCommand}" IsEnabled="{Binding ImportItemsCommand.IsRunning}"/>
+                                </StackPanel>
+                                <TextBlock DockPanel.Dock="Right" Text="Mapping required for CSV item number and name." Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center"/>
+                            </DockPanel>
                         </Border>
-                        <StackPanel Margin="8">
-                            <TextBlock Text="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}" Style="{StaticResource PageTitleTextBlock}"/>
-                            <TextBlock Text="{Binding ItemDataSummary}" TextWrapping="Wrap" Margin="0,3,0,10"/>
-                            <TextBlock Text="CSV imports open the mapping dialog and require item number plus name. JSON and XML imports use direct format matching. Export prompts for the target format from the file extension." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
-                        </StackPanel>
+                        <Grid Margin="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.5*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="1*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Style="{StaticResource Card}" Padding="14">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}" Style="{StaticResource PageTitleTextBlock}"/>
+                                    <TextBlock Text="{Binding ItemDataSummary}" TextWrapping="Wrap" Margin="0,3,0,12"/>
+                                    <TextBlock Text="Supported workflow" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="1. Choose the source file or export destination." TextWrapping="Wrap" Margin="0,0,0,3"/>
+                                    <TextBlock Text="2. For CSV imports, map file columns to app fields before writing rows." TextWrapping="Wrap" Margin="0,0,0,3"/>
+                                    <TextBlock Text="3. Review skipped rows and completion messages in the run log." TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                            <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
+                            <Border Grid.Column="2" Style="{StaticResource DesktopSummaryCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Import Safety" Style="{StaticResource SectionHeader}"/>
+                                    <TextBlock Text="Item number and name stay required for mapped CSV imports. JSON and XML use direct schema matching."
+                                               Style="{StaticResource CaptionTextBlock}"
+                                               TextWrapping="Wrap"
+                                               Margin="0,3,0,10"/>
+                                    <TextBlock Text="Best next step" Style="{StaticResource LabelTextBlock}"/>
+                                    <TextBlock Text="Create a backup first when replacing large portions of the catalog or importing from a new vendor file."
+                                               TextWrapping="Wrap"
+                                               Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
                     </DockPanel>
                 </Border>
             </TabItem>
@@ -153,17 +231,39 @@
                 <Border Style="{StaticResource DesktopContentPane}">
                     <DockPanel>
                         <Border DockPanel.Dock="Top" Style="{StaticResource DesktopSectionActionStrip}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="Customer Exchange" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Import Customers" Command="{Binding ImportCustomersCommand}" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Export Customers" Command="{Binding ExportCustomersCommand}"/>
-                            </StackPanel>
+                            <DockPanel LastChildFill="False">
+                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                                    <TextBlock Text="Customer Exchange" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Import Customers" Command="{Binding ImportCustomersCommand}" Margin="0,0,4,0"/>
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Export Customers" Command="{Binding ExportCustomersCommand}"/>
+                                </StackPanel>
+                                <TextBlock DockPanel.Dock="Right" Text="Directory updates write imported, skipped, and export results into the run log." Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center"/>
+                            </DockPanel>
                         </Border>
-                        <StackPanel Margin="8">
-                            <TextBlock Text="Customers" Style="{StaticResource PageTitleTextBlock}"/>
-                            <TextBlock Text="{Binding CustomerDataSummary}" TextWrapping="Wrap" Margin="0,3,0,10"/>
-                            <TextBlock Text="Use this before advisor handoff, customer cleanup, and directory migration. Imported rows and skipped rows are written into the run log below." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
-                        </StackPanel>
+                        <Grid Margin="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.45*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="1*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Style="{StaticResource Card}" Padding="14">
+                                <StackPanel>
+                                    <TextBlock Text="Customer Directory Exchange" Style="{StaticResource PageTitleTextBlock}"/>
+                                    <TextBlock Text="{Binding CustomerDataSummary}" TextWrapping="Wrap" Margin="0,3,0,12"/>
+                                    <TextBlock Text="Use this before advisor handoff, customer cleanup, and directory migration. Imported rows and skipped rows are written into the run log below."
+                                               Style="{StaticResource CaptionTextBlock}"
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                            <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
+                            <Border Grid.Column="2" Style="{StaticResource DesktopSummaryCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Advisor Handoff" Style="{StaticResource SectionHeader}"/>
+                                    <TextBlock Text="After import, print or copy the run log so front-desk staff know which customer rows were created, skipped, or exported."
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
                     </DockPanel>
                 </Border>
             </TabItem>
@@ -172,28 +272,39 @@
                 <Border Style="{StaticResource DesktopContentPane}">
                     <DockPanel>
                         <Border DockPanel.Dock="Top" Style="{StaticResource DesktopSectionActionStrip}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="Admin Actions" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Backup Database" Command="{Binding BackupDatabaseCommand}" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Import Item Images" Command="{Binding OpenImageImportMappingWindowCommand}" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
-                            </StackPanel>
+                            <DockPanel LastChildFill="False">
+                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                                    <TextBlock Text="Admin Actions" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Backup Database" Command="{Binding BackupDatabaseCommand}" Margin="0,0,4,0"/>
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Import Item Images" Command="{Binding OpenImageImportMappingWindowCommand}" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
+                                </StackPanel>
+                                <TextBlock DockPanel.Dock="Right" Text="Backup, image mapping, and result review share the same data-control path." Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center"/>
+                            </DockPanel>
                         </Border>
-                        <Grid Margin="8">
+                        <Grid Margin="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Background="{DynamicResource SurfaceAltBrush}" Padding="8" Margin="0,0,6,0">
+                            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,0">
                                 <StackPanel>
-                                    <TextBlock Text="Backup" Style="{StaticResource PageTitleTextBlock}"/>
-                                    <TextBlock Text="{Binding BackupSummary}" TextWrapping="Wrap" Margin="0,3,0,8"/>
+                                    <TextBlock Text="Recovery Point" Style="{StaticResource PageTitleTextBlock}"/>
+                                    <TextBlock Text="{Binding BackupSummary}" TextWrapping="Wrap" Margin="0,3,0,10"/>
+                                    <TextBlock Text="Recommended before imports, image remaps, customer cleanup, or workstation migration."
+                                               Style="{StaticResource CaptionTextBlock}"
+                                               TextWrapping="Wrap"
+                                               Margin="0,0,0,12"/>
                                     <Button Style="{StaticResource PrimaryButton}" Content="Choose Backup File" Command="{Binding BackupDatabaseCommand}" HorizontalAlignment="Left"/>
                                 </StackPanel>
                             </Border>
-                            <Border Grid.Column="1" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Background="{DynamicResource SurfaceAltBrush}" Padding="8">
+                            <Border Grid.Column="1" Style="{StaticResource DesktopSummaryCard}">
                                 <StackPanel>
-                                    <TextBlock Text="Image Import" Style="{StaticResource PageTitleTextBlock}"/>
-                                    <TextBlock Text="{Binding ImageImportSummary}" TextWrapping="Wrap" Margin="0,3,0,8"/>
+                                    <TextBlock Text="Photo Mapping" Style="{StaticResource PageTitleTextBlock}"/>
+                                    <TextBlock Text="{Binding ImageImportSummary}" TextWrapping="Wrap" Margin="0,3,0,10"/>
+                                    <TextBlock Text="Match folder images to item records, then check the run log for any rows or filenames that need follow-up."
+                                               Style="{StaticResource CaptionTextBlock}"
+                                               TextWrapping="Wrap"
+                                               Margin="0,0,0,12"/>
                                     <Button Style="{StaticResource PrimaryButton}" Content="Open Image Mapping" Command="{Binding OpenImageImportMappingWindowCommand}" HorizontalAlignment="Left" Visibility="{Binding IsCurrentUserAdmin, Converter={StaticResource BoolToVis}}"/>
                                 </StackPanel>
                             </Border>
@@ -223,9 +334,9 @@
 
                         <Grid Grid.Row="1" Margin="8">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2.6*"/>
+                                <ColumnDefinition Width="2.4*"/>
                                 <ColumnDefinition Width="6"/>
-                                <ColumnDefinition Width="1.2*"/>
+                                <ColumnDefinition Width="1.25*"/>
                             </Grid.ColumnDefinitions>
 
                             <Border Style="{StaticResource Card}" Padding="0">
@@ -250,27 +361,41 @@
                                         </ContextMenu>
                                     </DataGrid.ContextMenu>
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Result" Binding="{Binding}" Width="*"/>
+                                        <DataGridTemplateColumn Header="Run Result" Width="*">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Border Padding="8,5">
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                                            <TextBlock Text="Double-click for detail, or right-click to copy and print this log."
+                                                                       Style="{StaticResource CaptionTextBlock}"
+                                                                       TextWrapping="Wrap"
+                                                                       Margin="0,2,0,0"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Border>
 
                             <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
 
-                            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="8">
+                            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="10">
                                 <DockPanel LastChildFill="True">
-                                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
                                         <TextBlock Text="{Binding SelectedLogTitle}" Style="{StaticResource SectionHeader}"/>
                                         <TextBlock Text="{Binding LogSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                                     </StackPanel>
-                                    <StackPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
-                                        <TextBlock Text="Actions" Style="{StaticResource SectionHeader}"/>
-                                        <UniformGrid Columns="2">
+                                    <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                                        <TextBlock Text="Result Actions" Style="{StaticResource SectionHeader}"/>
+                                        <UniformGrid Columns="2" Margin="0,4,0,0">
                                             <Button Style="{StaticResource GhostButton}" Content="Copy" Click="CopySelectedLog_Click" Margin="0,0,4,0"/>
                                             <Button Style="{StaticResource GhostButton}" Content="Print" Click="PrintLogs_Click"/>
                                         </UniformGrid>
                                     </StackPanel>
-                                    <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Background="{DynamicResource TextBoxBackgroundBrush}" Padding="6">
+                                    <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Background="{DynamicResource TextBoxBackgroundBrush}" Padding="8">
                                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                                             <TextBlock Text="{Binding SelectedLogDetail}" TextWrapping="Wrap"/>
                                         </ScrollViewer>
@@ -287,11 +412,21 @@
                 Background="{DynamicResource SurfaceAltBrush}"
                 BorderBrush="{DynamicResource BorderBrushAlt}"
                 BorderThickness="1,0,1,1"
-                Padding="6,3">
+                Padding="8,4">
             <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="{Binding LogSummary}" FontSize="11" VerticalAlignment="Center"/>
+                <TextBlock DockPanel.Dock="Left"
+                           Text="{Binding LogSummary}"
+                           FontSize="11"
+                           VerticalAlignment="Center"/>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <TextBlock Text="Item import running" FontSize="11" Margin="0,0,6,0" Visibility="{Binding ImportItemsCommand.IsRunning, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="Data desk ready"
+                               FontSize="11"
+                               Margin="0,0,10,0"
+                               VerticalAlignment="Center"/>
+                    <TextBlock Text="Item import running"
+                               FontSize="11"
+                               Margin="0,0,6,0"
+                               Visibility="{Binding ImportItemsCommand.IsRunning, Converter={StaticResource BoolToVis}}"/>
                     <ProgressBar Width="140" Height="14" IsIndeterminate="True" Visibility="{Binding ImportItemsCommand.IsRunning, Converter={StaticResource BoolToVis}}"/>
                 </StackPanel>
             </DockPanel>
