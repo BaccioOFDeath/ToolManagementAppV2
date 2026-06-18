@@ -21,7 +21,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource PageHeaderCard}" Padding="16,14">
+        <Border Style="{StaticResource ToolbarCard}" Padding="16,14">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -30,13 +30,13 @@
                 <StackPanel>
                     <TextBlock Text="Label Output Workbench" Style="{StaticResource HeadingTextBlock}"/>
                     <TextBlock Text="Select the label format, review the queued items, then preview or print."
-                               Style="{StaticResource MutedTextBlock}"
+                               Style="{StaticResource CaptionTextBlock}"
                                Margin="0,4,0,0"/>
                 </StackPanel>
-                <Border Grid.Column="1" Style="{StaticResource SummaryStatCard}" Padding="12,8" VerticalAlignment="Center">
+                <Border Grid.Column="1" Style="{StaticResource Card}" Padding="12,8" VerticalAlignment="Center">
                     <StackPanel>
-                        <TextBlock Text="Queue" Style="{StaticResource SummaryStatLabel}"/>
-                        <TextBlock Text="Ready to review" Style="{StaticResource MutedTextBlock}" Margin="0,2,0,0"/>
+                        <TextBlock Text="Queue" Style="{StaticResource LabelTextBlock}"/>
+                        <TextBlock Text="Ready to review" Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
             </Grid>
@@ -62,7 +62,7 @@
                           VerticalAlignment="Center"/>
                 <TextBlock Grid.Column="3"
                            Text="Preview first when labels include item photos, QR codes, or updated location text."
-                           Style="{StaticResource MutedTextBlock}"
+                           Style="{StaticResource CaptionTextBlock}"
                            TextWrapping="Wrap"
                            Margin="18,0,0,0"
                            VerticalAlignment="Center"/>
@@ -75,14 +75,14 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Border Style="{StaticResource PaneHeaderBar}" Padding="12,10">
+                <Border Style="{StaticResource ToolbarCard}" Padding="12,10" Margin="0">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="Queued Label Items" Style="{StaticResource SectionHeader}"/>
-                        <TextBlock Grid.Column="1" Text="Item number, name, and location" Style="{StaticResource MutedTextBlock}"/>
+                        <TextBlock Grid.Column="1" Text="Item number, name, and location" Style="{StaticResource CaptionTextBlock}"/>
                     </Grid>
                 </Border>
                 <DataGrid Grid.Row="1"
@@ -102,14 +102,14 @@
 
         <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,12,0,0" Padding="12">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Style="{StaticResource SecondaryButton}" Content="Preview" Command="{Binding PreviewCommand}" MinWidth="112"/>
+                <Button Style="{StaticResource GhostButton}" Content="Preview" Command="{Binding PreviewCommand}" MinWidth="112"/>
                 <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintCommand}" MinWidth="112" Margin="8,0,0,0"/>
-                <Button Style="{StaticResource SecondaryButton}" Content="Close" Command="{Binding CloseCommand}" MinWidth="112" Margin="8,0,0,0"/>
+                <Button Style="{StaticResource GhostButton}" Content="Close" Command="{Binding CloseCommand}" MinWidth="112" Margin="8,0,0,0"/>
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="4" Style="{StaticResource StatusFooterBar}" Margin="0,12,0,0">
-            <TextBlock Text="Label output ready; preview verifies the final sheet before printing." Style="{StaticResource MutedTextBlock}"/>
+        <Border Grid.Row="4" Style="{StaticResource ToolbarCard}" Margin="0,12,0,0" Padding="10,7">
+            <TextBlock Text="Label output ready; preview verifies the final sheet before printing." Style="{StaticResource CaptionTextBlock}"/>
         </Border>
     </Grid>
 </Window>
