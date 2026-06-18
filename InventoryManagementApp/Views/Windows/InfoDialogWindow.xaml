@@ -15,7 +15,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource PageHeaderCard}" Padding="16,14">
+        <Border Style="{StaticResource ToolbarCard}" Padding="16,14">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -24,14 +24,11 @@
                 <StackPanel>
                     <TextBlock Text="Information Notice" Style="{StaticResource HeadingTextBlock}"/>
                     <TextBlock Text="Review the message before returning to the current workflow."
-                               Style="{StaticResource MutedTextBlock}"
+                               Style="{StaticResource CaptionTextBlock}"
                                Margin="0,4,0,0"/>
                 </StackPanel>
-                <Border Grid.Column="1"
-                        Style="{StaticResource SummaryStatCard}"
-                        Padding="12,8"
-                        VerticalAlignment="Center">
-                    <TextBlock Text="Ready" Style="{StaticResource SummaryStatLabel}"/>
+                <Border Grid.Column="1" Style="{StaticResource Card}" Padding="12,8" VerticalAlignment="Center">
+                    <TextBlock Text="Ready" Style="{StaticResource LabelTextBlock}"/>
                 </Border>
             </Grid>
         </Border>
@@ -42,7 +39,7 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Border Width="44" Height="44" CornerRadius="8" Background="{DynamicResource AccentSoftBrush}" VerticalAlignment="Top">
+                <Border Width="44" Height="44" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" VerticalAlignment="Top">
                     <TextBlock Text="i" FontSize="24" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <TextBlock Grid.Column="1"
@@ -59,8 +56,8 @@
                     MinWidth="112"/>
         </StackPanel>
 
-        <Border Grid.Row="3" Style="{StaticResource StatusFooterBar}" Margin="0,12,0,0">
-            <TextBlock Text="Message reviewed when OK is selected." Style="{StaticResource MutedTextBlock}"/>
+        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,12,0,0" Padding="10,7">
+            <TextBlock Text="Message reviewed when OK is selected." Style="{StaticResource CaptionTextBlock}"/>
         </Border>
     </Grid>
 </Window>
