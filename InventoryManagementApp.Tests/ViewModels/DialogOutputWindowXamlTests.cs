@@ -81,6 +81,7 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var item = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "ItemEditWindow.xaml");
             var customer = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "CustomerEditWindow.xaml");
+            var user = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "UsersEditWindow.xaml");
             var maintenance = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "MaintenanceEditWindow.xaml");
             var calibration = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "CalibrationEditWindow.xaml");
             var kit = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "KitEditWindow.xaml");
@@ -96,11 +97,27 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("BrowseImageCommand", item, StringComparison.Ordinal);
             Assert.Contains("RemoveImageCommand", item, StringComparison.Ordinal);
 
-            Assert.Contains("Customer Profile", customer, StringComparison.Ordinal);
-            Assert.Contains("Account Identity", customer, StringComparison.Ordinal);
-            Assert.Contains("Communication", customer, StringComparison.Ordinal);
+            Assert.Contains("Customer Profile Workbench", customer, StringComparison.Ordinal);
+            Assert.Contains("01 Account", customer, StringComparison.Ordinal);
+            Assert.Contains("Customer Operations Handoff", customer, StringComparison.Ordinal);
+            Assert.Contains("DesktopStatusFooter", customer, StringComparison.Ordinal);
             Assert.Contains("Customer.Company, UpdateSourceTrigger=PropertyChanged", customer, StringComparison.Ordinal);
+            Assert.Contains("Customer.Contact, UpdateSourceTrigger=PropertyChanged", customer, StringComparison.Ordinal);
+            Assert.Contains("Customer.Email, UpdateSourceTrigger=PropertyChanged", customer, StringComparison.Ordinal);
             Assert.Contains("Customer.Address, UpdateSourceTrigger=PropertyChanged", customer, StringComparison.Ordinal);
+
+            Assert.Contains("01 Identity", user, StringComparison.Ordinal);
+            Assert.Contains("Permission Checklist", user, StringComparison.Ordinal);
+            Assert.Contains("Profile Readiness", user, StringComparison.Ordinal);
+            Assert.Contains("DesktopStatusFooter", user, StringComparison.Ordinal);
+            Assert.Contains("BrowseImageCommand", user, StringComparison.Ordinal);
+            Assert.Contains("RemoveImageCommand", user, StringComparison.Ordinal);
+            Assert.Contains("EditingUser.UserName, UpdateSourceTrigger=PropertyChanged", user, StringComparison.Ordinal);
+            Assert.Contains("EditingUser.IsAdmin, Mode=TwoWay", user, StringComparison.Ordinal);
+            Assert.Contains("CanManageItems, Mode=TwoWay", user, StringComparison.Ordinal);
+            Assert.Contains("CanUseSettings, Mode=TwoWay", user, StringComparison.Ordinal);
+            Assert.Contains("WorkflowImpactSummary", user, StringComparison.Ordinal);
+            Assert.Contains("SaveCancelBar", user, StringComparison.Ordinal);
 
             Assert.Contains("Maintenance Work Order", maintenance, StringComparison.Ordinal);
             Assert.Contains("Technician Handoff", maintenance, StringComparison.Ordinal);

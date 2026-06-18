@@ -3,45 +3,85 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:InventoryManagementApp.Views.Controls"
-        Title="User Profile" Width="1020" Height="760" MinWidth="800" MinHeight="600" WindowStartupLocation="CenterOwner"
+        Title="User Profile" Width="1080" Height="820" MinWidth="860" MinHeight="680" WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
-    <Grid Margin="10">
+    <Grid Margin="14">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource ToolbarCard}" Margin="0,0,0,6">
+        <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}" Margin="0,0,0,8">
             <DockPanel LastChildFill="True">
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
-                    <Button Style="{StaticResource PrimaryButton}" Content="Browse Image" Command="{Binding BrowseImageCommand}" Margin="0,0,4,0"/>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                    <Button Style="{StaticResource PrimaryButton}" Content="Browse Image" Command="{Binding BrowseImageCommand}" Margin="0,0,6,0"/>
                     <Button Style="{StaticResource GhostButton}" Content="Remove Image" Command="{Binding RemoveImageCommand}"/>
                 </StackPanel>
                 <StackPanel>
                     <TextBlock Text="{Binding Title}" Style="{StaticResource PageTitleTextBlock}"/>
-                    <TextBlock Text="Maintain identity, contact details, status, photo, and the exact app areas this user can see or operate." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Maintain identity, contact details, status, photo, and the exact app areas this user can see or operate."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"
+                               Margin="0,2,0,0"/>
                 </StackPanel>
             </DockPanel>
         </Border>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <Grid MinHeight="500">
+        <UniformGrid Grid.Row="1" Columns="4" Margin="0,0,0,8">
+            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,6,0">
+                <StackPanel>
+                    <TextBlock Text="01 Identity" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="Profile fields" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Username, role, contact details, and staff photo."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource DesktopSummaryCard}" Margin="3,0">
+                <StackPanel>
+                    <TextBlock Text="02 Access" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="Permissions" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Checkboxes decide visible and usable workflow areas."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource DesktopSummaryCard}" Margin="3,0">
+                <StackPanel>
+                    <TextBlock Text="03 Security" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="Active and password" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Status flags help admins review login readiness."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource DesktopSummaryCard}" Margin="6,0,0,0">
+                <StackPanel>
+                    <TextBlock Text="04 Handoff" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="Operational impact" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Summaries explain what changes will mean after save."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <Grid MinHeight="520">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="150"/>
-                    <ColumnDefinition Width="*" MinWidth="600"/>
+                    <ColumnDefinition Width="190"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*" MinWidth="610"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0"
-                        Background="{DynamicResource SurfaceAltBrush}"
-                        BorderBrush="{DynamicResource BorderBrushAlt}"
-                        BorderThickness="1"
-                        Padding="8"
-                        Margin="0,0,8,0">
+                <Border Grid.Column="0" Style="{StaticResource AdminHandoffCard}" Margin="0">
                     <StackPanel>
-                        <Border Width="116" Height="116" CornerRadius="4" VerticalAlignment="Top" Background="{DynamicResource TextBoxBackgroundBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1">
+                        <Border Width="132" Height="132" CornerRadius="6" HorizontalAlignment="Center" Background="{DynamicResource TextBoxBackgroundBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1">
                             <Grid>
-                                <Image Width="116" Height="116"
+                                <Image Width="132" Height="132"
                                        Source="{Binding EditingUser.UserPhotoPath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=user}"
                                        Stretch="UniformToFill" ClipToBounds="True">
                                     <Image.Style>
@@ -59,7 +99,7 @@
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center"
                                            FontWeight="Bold"
-                                           FontSize="42"
+                                           FontSize="46"
                                            Foreground="{Binding EditingUser.InitialsBrush}">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
@@ -75,21 +115,27 @@
                             </Grid>
                         </Border>
 
-                        <TextBlock Text="{Binding EditingUser.UserName, TargetNullValue='New user'}" Style="{StaticResource SectionHeader}" Margin="0,8,0,2" TextWrapping="Wrap"/>
-                        <TextBlock Text="{Binding EditingUser.Role, TargetNullValue='Set role and contact details'}" FontSize="11" TextWrapping="Wrap"/>
-                        <TextBlock Text="{Binding EditingUser.UserID, StringFormat='User #: {0}'}" FontSize="11" Margin="0,6,0,8"/>
-                        <TextBlock Text="Access result" Style="{StaticResource LabelTextBlock}" Margin="0,4,0,2"/>
-                        <TextBlock Text="{Binding PermissionStatusSummary}" FontSize="11" TextWrapping="Wrap"/>
-                        <TextBlock Text="Current access" Style="{StaticResource LabelTextBlock}" Margin="0,10,0,2"/>
+                        <TextBlock Text="{Binding EditingUser.UserName, TargetNullValue='New user'}" Style="{StaticResource SectionHeader}" Margin="0,12,0,2" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding EditingUser.Role, TargetNullValue='Set role and contact details'}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding EditingUser.UserID, StringFormat='User #: {0}'}" Style="{StaticResource CaptionTextBlock}" Margin="0,6,0,10"/>
+
+                        <Border Style="{StaticResource DesktopSectionActionStrip}" Padding="10" Margin="0,0,0,8">
+                            <StackPanel>
+                                <TextBlock Text="Access Result" Style="{StaticResource LabelTextBlock}"/>
+                                <TextBlock Text="{Binding PermissionStatusSummary}" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="Current Access" Style="{StaticResource LabelTextBlock}" Margin="0,2,0,2"/>
                         <TextBlock Text="{Binding EditingUser.AccessSummary}" FontSize="11" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>
 
-                <Grid Grid.Column="1">
+                <Grid Grid.Column="2">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1.05*" MinWidth="270"/>
-                        <ColumnDefinition Width="8"/>
-                        <ColumnDefinition Width="1.45*" MinWidth="330"/>
+                        <ColumnDefinition Width="1.02*" MinWidth="290"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="1.48*" MinWidth="360"/>
                     </Grid.ColumnDefinitions>
 
                     <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
@@ -99,13 +145,16 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
-                            <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="6,4">
-                                <TextBlock Text="01 Profile Fields" Style="{StaticResource SectionHeader}" Margin="0"/>
+                            <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}">
+                                <StackPanel>
+                                    <TextBlock Text="Profile Fields" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                    <TextBlock Text="Keep identity, contact, and status fields aligned for quick admin edits." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                                </StackPanel>
                             </Border>
 
-                            <Grid Grid.Row="1" Margin="8">
+                            <Grid Grid.Row="1" Margin="12">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="95"/>
+                                    <ColumnDefinition Width="96"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
@@ -120,37 +169,47 @@
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
 
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Username:" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,6"/>
-                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding EditingUser.UserName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Username" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding EditingUser.UserName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Role:" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,6"/>
-                                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding EditingUser.Role, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Role" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding EditingUser.Role, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Email:" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,6"/>
-                                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding EditingUser.Email, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Email" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding EditingUser.Email, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Phone:" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,6"/>
-                                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding EditingUser.Phone, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Phone" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding EditingUser.Phone, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Mobile:" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,6"/>
-                                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding EditingUser.Mobile, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Mobile" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding EditingUser.Mobile, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
 
-                                <TextBlock Grid.Row="5" Grid.Column="0" Text="Address:" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Top" Margin="0,3,8,6"/>
-                                <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding EditingUser.Address, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" Height="64" TextWrapping="Wrap" AcceptsReturn="True"/>
+                                <TextBlock Grid.Row="5" Grid.Column="0" Text="Address" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Top" Margin="0,3,8,8"/>
+                                <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding EditingUser.Address, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" Height="72" TextWrapping="Wrap" AcceptsReturn="True"/>
 
-                                <TextBlock Grid.Row="6" Grid.Column="0" Text="Access:" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,6"/>
-                                <CheckBox Grid.Row="6" Grid.Column="1" Content="Full administrator" IsChecked="{Binding EditingUser.IsAdmin, Mode=TwoWay}" Margin="0,0,0,6"/>
+                                <Border Grid.Row="6" Grid.ColumnSpan="2" Style="{StaticResource DesktopSectionActionStrip}" Padding="10" Margin="0,2,0,8">
+                                    <CheckBox Content="Full administrator" IsChecked="{Binding EditingUser.IsAdmin, Mode=TwoWay}" FontWeight="SemiBold"/>
+                                </Border>
 
-                                <TextBlock Grid.Row="7" Grid.Column="0" Text="Status:" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                <WrapPanel Grid.Row="7" Grid.Column="1">
-                                    <CheckBox Content="Active" IsChecked="{Binding EditingUser.IsActive, Mode=TwoWay}" Margin="0,0,16,6"/>
-                                    <CheckBox Content="Password expired" IsChecked="{Binding EditingUser.PasswordExpired, Mode=TwoWay}" Margin="0,0,0,6"/>
+                                <WrapPanel Grid.Row="7" Grid.ColumnSpan="2">
+                                    <CheckBox Content="Active" IsChecked="{Binding EditingUser.IsActive, Mode=TwoWay}" Margin="0,0,16,8"/>
+                                    <CheckBox Content="Password expired" IsChecked="{Binding EditingUser.PasswordExpired, Mode=TwoWay}" Margin="0,0,0,8"/>
                                 </WrapPanel>
+
+                                <Border Grid.Row="8" Grid.ColumnSpan="2" Style="{StaticResource AdminHandoffCard}" VerticalAlignment="Top" Margin="0,2,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="Profile Readiness" Style="{StaticResource SectionHeader}"/>
+                                        <TextBlock Text="Save after checking identity, role, status, and photo so account rows and permission handoffs stay clear."
+                                                   Style="{StaticResource CaptionTextBlock}"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Border>
                             </Grid>
                         </Grid>
                     </Border>
 
-                    <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
+                    <GridSplitter Grid.Column="1" Width="10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
 
                     <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0">
                         <Grid>
@@ -160,73 +219,86 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
-                            <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="0,0,0,1" Padding="6,4">
+                            <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}">
                                 <DockPanel>
-                                    <TextBlock Text="02 Permissions" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
+                                    <TextBlock Text="Permission Checklist" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
                                     <TextBlock Text="Tick visible and usable areas" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
                                 </DockPanel>
                             </Border>
 
-                            <WrapPanel Grid.Row="1" Margin="8,8,8,4">
-                                <Button Style="{StaticResource GhostButton}" Content="Advisor" Command="{Binding SelectAdvisorPresetCommand}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Technician" Command="{Binding SelectTechnicianPresetCommand}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Admin" Command="{Binding SelectAdminPresetCommand}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearPermissionsCommand}" Margin="0,0,4,4"/>
-                            </WrapPanel>
+                            <Border Grid.Row="1" Style="{StaticResource DesktopSectionActionStrip}" Padding="10" Margin="10,10,10,8">
+                                <WrapPanel>
+                                    <Button Style="{StaticResource GhostButton}" Content="Advisor" Command="{Binding SelectAdvisorPresetCommand}" Margin="0,0,6,4"/>
+                                    <Button Style="{StaticResource GhostButton}" Content="Technician" Command="{Binding SelectTechnicianPresetCommand}" Margin="0,0,6,4"/>
+                                    <Button Style="{StaticResource GhostButton}" Content="Admin" Command="{Binding SelectAdminPresetCommand}" Margin="0,0,6,4"/>
+                                    <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearPermissionsCommand}" Margin="0,0,0,4"/>
+                                </WrapPanel>
+                            </Border>
 
                             <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-                                <Grid Margin="8">
+                                <Grid Margin="10,0,10,10">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="1.05*"/>
+                                        <ColumnDefinition Width="12"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                                        <TextBlock Text="Operations" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
-                                        <CheckBox Content="Manage items" IsChecked="{Binding CanManageItems, Mode=TwoWay}" Margin="0,0,0,4"/>
-                                        <CheckBox Content="Rentals / checkout" IsChecked="{Binding CanUseRentals, Mode=TwoWay}" Margin="0,0,0,4"/>
-                                        <CheckBox Content="Customers" IsChecked="{Binding CanUseCustomers, Mode=TwoWay}" Margin="0,0,0,4"/>
-                                        <CheckBox Content="Maintenance" IsChecked="{Binding CanUseMaintenance, Mode=TwoWay}" Margin="0,0,0,4"/>
-                                        <CheckBox Content="Calibration" IsChecked="{Binding CanUseCalibration, Mode=TwoWay}" Margin="0,0,0,4"/>
-                                        <CheckBox Content="Reservations / holds" IsChecked="{Binding CanUseReservations, Mode=TwoWay}" Margin="0,0,0,4"/>
-                                        <CheckBox Content="Kits" IsChecked="{Binding CanUseKits, Mode=TwoWay}" Margin="0,0,0,4"/>
-                                        <CheckBox Content="Categories" IsChecked="{Binding CanUseCategories, Mode=TwoWay}" Margin="0,0,0,4"/>
-                                        <CheckBox Content="Print labels" IsChecked="{Binding CanPrintLabels, Mode=TwoWay}" Margin="0,0,0,4"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="1">
-                                        <TextBlock Text="Management" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
-                                        <CheckBox Content="Reports" IsChecked="{Binding CanUseReports, Mode=TwoWay}" Margin="0,0,0,4"/>
-                                        <CheckBox Content="Activity logs" IsChecked="{Binding CanUseActivityLogs, Mode=TwoWay}" Margin="0,0,0,4"/>
-                                        <CheckBox Content="Import / export" IsChecked="{Binding CanUseImportExport, Mode=TwoWay}" Margin="0,0,0,4"/>
-                                        <CheckBox Content="Manage users" IsChecked="{Binding CanManageUsers, Mode=TwoWay}" Margin="0,0,0,4"/>
-                                        <CheckBox Content="Settings" IsChecked="{Binding CanUseSettings, Mode=TwoWay}" Margin="0,0,0,10"/>
-                                        <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="6" Background="{DynamicResource SurfaceAltBrush}" Margin="0,0,0,6">
+
+                                    <StackPanel Grid.Column="0">
+                                        <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,10">
                                             <StackPanel>
-                                                <TextBlock Text="Access result" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,2"/>
+                                                <TextBlock Text="Operations" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,6"/>
+                                                <CheckBox Content="Manage items" IsChecked="{Binding CanManageItems, Mode=TwoWay}" Margin="0,0,0,5"/>
+                                                <CheckBox Content="Rentals / checkout" IsChecked="{Binding CanUseRentals, Mode=TwoWay}" Margin="0,0,0,5"/>
+                                                <CheckBox Content="Customers" IsChecked="{Binding CanUseCustomers, Mode=TwoWay}" Margin="0,0,0,5"/>
+                                                <CheckBox Content="Maintenance" IsChecked="{Binding CanUseMaintenance, Mode=TwoWay}" Margin="0,0,0,5"/>
+                                                <CheckBox Content="Calibration" IsChecked="{Binding CanUseCalibration, Mode=TwoWay}" Margin="0,0,0,5"/>
+                                                <CheckBox Content="Reservations / holds" IsChecked="{Binding CanUseReservations, Mode=TwoWay}" Margin="0,0,0,5"/>
+                                                <CheckBox Content="Kits" IsChecked="{Binding CanUseKits, Mode=TwoWay}" Margin="0,0,0,5"/>
+                                                <CheckBox Content="Categories" IsChecked="{Binding CanUseCategories, Mode=TwoWay}" Margin="0,0,0,5"/>
+                                                <CheckBox Content="Print labels" IsChecked="{Binding CanPrintLabels, Mode=TwoWay}"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource DesktopSummaryCard}">
+                                            <StackPanel>
+                                                <TextBlock Text="Management" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,6"/>
+                                                <CheckBox Content="Reports" IsChecked="{Binding CanUseReports, Mode=TwoWay}" Margin="0,0,0,5"/>
+                                                <CheckBox Content="Activity logs" IsChecked="{Binding CanUseActivityLogs, Mode=TwoWay}" Margin="0,0,0,5"/>
+                                                <CheckBox Content="Import / export" IsChecked="{Binding CanUseImportExport, Mode=TwoWay}" Margin="0,0,0,5"/>
+                                                <CheckBox Content="Manage users" IsChecked="{Binding CanManageUsers, Mode=TwoWay}" Margin="0,0,0,5"/>
+                                                <CheckBox Content="Settings" IsChecked="{Binding CanUseSettings, Mode=TwoWay}"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2">
+                                        <Border Style="{StaticResource AdminHandoffCard}" Margin="0,0,0,8">
+                                            <StackPanel>
+                                                <TextBlock Text="Access Result" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,2"/>
                                                 <TextBlock Text="{Binding PermissionStatusSummary}" TextWrapping="Wrap"/>
                                                 <TextBlock Text="{Binding AdminNextStepSummary}" Style="{StaticResource CaptionTextBlock}" Margin="0,4,0,0" TextWrapping="Wrap"/>
                                             </StackPanel>
                                         </Border>
-                                        <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="6" Background="{DynamicResource SurfaceAltBrush}" Margin="0,0,0,6">
+                                        <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,8">
                                             <StackPanel>
-                                                <TextBlock Text="Can see and use" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,2"/>
+                                                <TextBlock Text="Can See And Use" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,2"/>
                                                 <TextBlock Text="{Binding AllowedPermissionSummary}" TextWrapping="Wrap"/>
                                             </StackPanel>
                                         </Border>
-                                        <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="6" Background="{DynamicResource TextBoxBackgroundBrush}" Margin="0,0,0,6">
+                                        <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,8">
                                             <StackPanel>
-                                                <TextBlock Text="Hidden or blocked" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,2"/>
+                                                <TextBlock Text="Hidden Or Blocked" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,2"/>
                                                 <TextBlock Text="{Binding HiddenPermissionSummary}" TextWrapping="Wrap"/>
                                             </StackPanel>
                                         </Border>
-                                        <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="6" Background="{DynamicResource SurfaceAltBrush}" Margin="0,0,0,6">
+                                        <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,8">
                                             <StackPanel>
-                                                <TextBlock Text="Operational impact" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,2"/>
+                                                <TextBlock Text="Operational Impact" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,2"/>
                                                 <TextBlock Text="{Binding WorkflowImpactSummary}" TextWrapping="Wrap"/>
                                             </StackPanel>
                                         </Border>
-                                        <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="6" Background="{DynamicResource TextBoxBackgroundBrush}">
+                                        <Border Style="{StaticResource DesktopNoteCard}">
                                             <StackPanel>
-                                                <TextBlock Text="Guarded actions" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,2"/>
+                                                <TextBlock Text="Guarded Actions" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,2"/>
                                                 <TextBlock Text="{Binding GuardedActionSummary}" TextWrapping="Wrap"/>
                                             </StackPanel>
                                         </Border>
@@ -239,6 +311,16 @@
             </Grid>
         </ScrollViewer>
 
-        <controls:SaveCancelBar Grid.Row="2" Margin="0,8,0,0"/>
+        <controls:SaveCancelBar Grid.Row="3" Margin="0,10,0,0"/>
+
+        <Border Grid.Row="4" Style="{StaticResource DesktopStatusFooter}" Margin="0,8,0,0">
+            <DockPanel LastChildFill="True">
+                <TextBlock DockPanel.Dock="Left" Text="User profile ready" FontSize="11" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <TextBlock Text="Save applies profile, photo, status, and permission changes; cancel returns without updating this account."
+                           Style="{StaticResource CaptionTextBlock}"
+                           TextWrapping="Wrap"
+                           VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
     </Grid>
 </Window>
