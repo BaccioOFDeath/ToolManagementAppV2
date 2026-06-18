@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Models;
@@ -8,6 +9,8 @@ namespace InventoryManagementApp.Interfaces
 {
     public interface ISettingsService
     {
+        public const string AppThemeSettingsKey = "AppThemeSettings";
+
         event EventHandler<IDictionary<ItemDetailField, bool>>? ItemDetailVisibilityChanged;
         event EventHandler<double>? ItemCardSizeChanged;
         Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default);
@@ -18,6 +21,35 @@ namespace InventoryManagementApp.Interfaces
         // Theme configuration
         Task<string?> GetThemeAsync(CancellationToken cancellationToken = default);
         Task SaveThemeAsync(string theme, CancellationToken cancellationToken = default);
+
+        async Task<AppThemeSettings> GetAppThemeSettingsAsync(CancellationToken cancellationToken = default)
+        {
+            var json = await GetSettingAsync(AppThemeSettingsKey, cancellationToken).ConfigureAwait(false);
+            AppThemeSettings? settings = null;
+            if (!string.IsNullOrWhiteSpace(json))
+            {
+                try
+                {
+                    settings = JsonSerializer.Deserialize<AppThemeSettings>(json);
+                }
+                catch (JsonException)
+                {
+                    settings = null;
+                }
+            }
+
+            settings ??= AppThemeSettings.CreateDefault(await GetThemeAsync(cancellationToken).ConfigureAwait(false));
+            settings.Normalize();
+            return settings;
+        }
+
+        async Task SaveAppThemeSettingsAsync(AppThemeSettings settings, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(settings);
+            settings.Normalize();
+            var json = JsonSerializer.Serialize(settings);
+            await SaveSettingAsync(AppThemeSettingsKey, json, cancellationToken).ConfigureAwait(false);
+        }
 
         // Password hashing configuration
         Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default);
