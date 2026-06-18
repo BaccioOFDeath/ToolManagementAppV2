@@ -1,9 +1,12 @@
 <Window x:Class="InventoryManagementApp.Views.Windows.InputDialogWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
         Title="Input"
-        Width="420"
-        Height="220"
+        Width="540"
+        Height="320"
+        MinWidth="520"
+        MinHeight="300"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
     <Grid Margin="16">
@@ -11,24 +14,45 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="{Binding Message}"
-                   TextWrapping="Wrap"
-                   FontSize="14"/>
+        <Border Style="{StaticResource ToolbarCard}" Padding="16,14">
+            <StackPanel>
+                <TextBlock Text="Input Required" Style="{StaticResource HeadingTextBlock}"/>
+                <TextBlock Text="Enter the requested value, then confirm to continue."
+                           Style="{StaticResource CaptionTextBlock}"
+                           Margin="0,4,0,0"/>
+            </StackPanel>
+        </Border>
 
-        <TextBox Grid.Row="1"
-                 Margin="0,12,0,0"
-                 Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"/>
+        <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,12,0,12" Padding="18">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="Request" Style="{StaticResource SectionHeader}"/>
+                <TextBlock Grid.Row="1"
+                           Text="{Binding Message}"
+                           TextWrapping="Wrap"
+                           Style="{StaticResource DialogMessageTextBlock}"
+                           Margin="0,6,0,12"/>
+                <TextBox Grid.Row="2"
+                         MinHeight="36"
+                         Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"/>
+            </Grid>
+        </Border>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
-            <Button Style="{StaticResource PrimaryButton}"
-                    Content="OK"
-                    Command="{Binding OkCommand}"
-                    Margin="0,0,8,0"/>
-            <Button Style="{StaticResource PrimaryButton}"
-                    Content="Cancel"
-                    Command="{Binding CancelCommand}"/>
-        </StackPanel>
+        <controls:DialogButtonBar Grid.Row="2"
+                                  LeftButtonText="Cancel"
+                                  LeftCommand="{Binding CancelCommand}"
+                                  RightButtonText="OK"
+                                  RightCommand="{Binding OkCommand}"/>
+
+        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,12,0,0" Padding="10,7">
+            <TextBlock Text="Input is applied only after OK is selected." Style="{StaticResource CaptionTextBlock}"/>
+        </Border>
     </Grid>
 </Window>
