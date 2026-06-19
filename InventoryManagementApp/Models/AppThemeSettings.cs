@@ -166,7 +166,16 @@ namespace InventoryManagementApp.Models
             if (!trimmed.StartsWith("#", StringComparison.Ordinal))
                 trimmed = "#" + trimmed;
 
-            return trimmed.Length is 7 or 9 ? trimmed.ToUpperInvariant() : fallback;
+            if (trimmed.Length is not (7 or 9))
+                return fallback;
+
+            for (var i = 1; i < trimmed.Length; i++)
+            {
+                if (!Uri.IsHexDigit(trimmed[i]))
+                    return fallback;
+            }
+
+            return trimmed.ToUpperInvariant();
         }
     }
 }
