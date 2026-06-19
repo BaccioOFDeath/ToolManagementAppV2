@@ -48,7 +48,9 @@ namespace InventoryManagementApp.ViewModels
             ImportThemeProfileCommand = new RelayCommand(ImportThemeProfile);
             ExportThemeProfileCommand = new RelayCommand(ExportThemeProfile);
             GlassPresetCommand = new RelayCommand(ApplyGlassPreset);
+            TransparentCanvasPresetCommand = new RelayCommand(ApplyTransparentCanvasPreset);
             BorderlessPresetCommand = new RelayCommand(ApplyBorderlessPreset);
+            DeepShadowPresetCommand = new RelayCommand(ApplyDeepShadowPreset);
             HighContrastPresetCommand = new RelayCommand(ApplyHighContrastPreset);
         }
 
@@ -61,7 +63,9 @@ namespace InventoryManagementApp.ViewModels
         public IRelayCommand ImportThemeProfileCommand { get; }
         public IRelayCommand ExportThemeProfileCommand { get; }
         public IRelayCommand GlassPresetCommand { get; }
+        public IRelayCommand TransparentCanvasPresetCommand { get; }
         public IRelayCommand BorderlessPresetCommand { get; }
+        public IRelayCommand DeepShadowPresetCommand { get; }
         public IRelayCommand HighContrastPresetCommand { get; }
 
         public string Status
@@ -579,6 +583,47 @@ namespace InventoryManagementApp.ViewModels
             Status = "Glass preset previewed. Save to keep it.";
         }
 
+        private void ApplyTransparentCanvasPreset()
+        {
+            UseGlassSurfaces = true;
+            BackgroundOpacity = 1;
+            BackgroundOverlayOpacity = 0;
+            SurfaceOpacity = 0.18;
+            SurfaceAltOpacity = 0.12;
+            InputOpacity = 0.24;
+            ButtonOpacity = 0.22;
+            NavigationOpacity = 0.18;
+            HeaderOpacity = 0.16;
+            MenuOpacity = 0.16;
+            FooterOpacity = 0.14;
+            DialogOpacity = 0.34;
+            DisabledOpacity = 0.36;
+            BordersVisible = false;
+            BorderOpacity = 0;
+            BorderThickness = 0;
+            ControlBorderThickness = 0;
+            DividerOpacity = 0.08;
+            EnableSurfaceShadows = false;
+            EnableControlShadows = false;
+            ShadowBlurRadius = 0;
+            ShadowDepth = 0;
+            ShadowOpacity = 0;
+            SurfaceShadowScale = 0;
+            ControlShadowScale = 0;
+            CardCornerRadius = 10;
+            PanelCornerRadius = 10;
+            ButtonCornerRadius = 10;
+            InputCornerRadius = 8;
+            PagePadding = 8;
+            CardPadding = 10;
+            InteractionIntensity = 0.75;
+            FocusRingOpacity = 0.5;
+            GridLineOpacity = 0.06;
+            MotionIntensity = 0.9;
+            BackgroundImageStretch = "UniformToFill";
+            Status = "Transparent canvas preset previewed. Save to keep it.";
+        }
+
         private void ApplyBorderlessPreset()
         {
             UseGlassSurfaces = false;
@@ -621,6 +666,44 @@ namespace InventoryManagementApp.ViewModels
             GridLineOpacity = 0;
             MotionIntensity = 0.75;
             Status = "Borderless preset previewed. Save to keep it.";
+        }
+
+        private void ApplyDeepShadowPreset()
+        {
+            UseGlassSurfaces = false;
+            SurfaceOpacity = 0.96;
+            SurfaceAltOpacity = 0.92;
+            InputOpacity = 0.96;
+            ButtonOpacity = 0.94;
+            NavigationOpacity = 0.96;
+            HeaderOpacity = 0.96;
+            MenuOpacity = 0.94;
+            FooterOpacity = 0.92;
+            DialogOpacity = 0.98;
+            BordersVisible = true;
+            BorderOpacity = 0.55;
+            BorderThickness = 1;
+            ControlBorderThickness = 1;
+            DividerOpacity = 0.5;
+            EnableSurfaceShadows = true;
+            EnableControlShadows = true;
+            ShadowBlurRadius = 36;
+            ShadowDepth = 12;
+            ShadowOpacity = 0.45;
+            ShadowDirection = 270;
+            SurfaceShadowScale = 2.2;
+            ControlShadowScale = 1.6;
+            CardCornerRadius = 12;
+            PanelCornerRadius = 10;
+            ButtonCornerRadius = 8;
+            InputCornerRadius = 6;
+            PagePadding = 10;
+            CardPadding = 12;
+            InteractionIntensity = 1.25;
+            FocusRingOpacity = 0.65;
+            GridLineOpacity = 0.32;
+            MotionIntensity = 1.15;
+            Status = "Deep shadow preset previewed. Save to keep it.";
         }
 
         private void ApplyHighContrastPreset()
