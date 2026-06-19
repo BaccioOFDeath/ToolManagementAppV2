@@ -32,15 +32,17 @@
                         <TextBlock Text="App Theme Designer" Style="{StaticResource SubheadingTextBlock}"/>
                         <TextBlock Text="Redesign the full app shell with colors, backgrounds, transparency, border width, divider strength, corners, spacing, typography, disabled states, table density, focus rings, interaction feedback, shadow color/direction, separate surface/control shadow strength, and portable theme profiles." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                     </StackPanel>
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Style="{StaticResource GhostButton}" Content="Import" Command="{Binding ImportThemeProfileCommand}" Margin="0,0,4,0"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Export" Command="{Binding ExportThemeProfileCommand}" Margin="0,0,4,0"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Glass" Command="{Binding GlassPresetCommand}" Margin="0,0,4,0"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Borderless" Command="{Binding BorderlessPresetCommand}" Margin="0,0,4,0"/>
-                        <Button Style="{StaticResource GhostButton}" Content="High Contrast" Command="{Binding HighContrastPresetCommand}" Margin="0,0,4,0"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Reset" Command="{Binding ResetCommand}" Margin="0,0,4,0"/>
-                        <Button Style="{StaticResource PrimaryButton}" Content="Save Theme" Command="{Binding SaveCommand}"/>
-                    </StackPanel>
+                    <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Style="{StaticResource GhostButton}" Content="Import" Command="{Binding ImportThemeProfileCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Export" Command="{Binding ExportThemeProfileCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Glass" Command="{Binding GlassPresetCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Transparent Canvas" Command="{Binding TransparentCanvasPresetCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Borderless" Command="{Binding BorderlessPresetCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Deep Shadow" Command="{Binding DeepShadowPresetCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="High Contrast" Command="{Binding HighContrastPresetCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Reset" Command="{Binding ResetCommand}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Save Theme" Command="{Binding SaveCommand}" Margin="0,0,0,4"/>
+                    </WrapPanel>
                 </DockPanel>
             </Border>
 
@@ -195,7 +197,7 @@
                                 <TextBlock Text="02 Backgrounds and transparency" Style="{StaticResource LabelTextBlock}"/>
                                 <TextBlock Text="Background image, image fit, overlay tint, and transparent shell controls." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,8"/>
                                 <TextBlock Text="03 Shape and depth" Style="{StaticResource LabelTextBlock}"/>
-                                <TextBlock Text="Border removal, divider strength, corners, glass surfaces, and shadow depth." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                <TextBlock Text="Border removal, divider strength, corners, glass surfaces, shadow depth, and preset starting points for transparent or dramatic-depth redesigns." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,8"/>
                                 <TextBlock Text="04 Density and interaction" Style="{StaticResource LabelTextBlock}"/>
                                 <TextBlock Text="Spacing, typography scale, table density, focus rings, hover strength, grid lines, and motion." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,8"/>
                                 <TextBlock Text="Profiles" Style="{StaticResource LabelTextBlock}"/>
