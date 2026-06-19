@@ -78,10 +78,17 @@ namespace InventoryManagementApp.Services
                 var borderBrush = CreateBrush(settings.AccentColor, settings.BorderOpacity * 0.55);
                 var surfaceBrush = CreateBrush(settings.SurfaceColor, settings.UseGlassSurfaces ? Math.Min(settings.SurfaceOpacity, 0.72) : settings.SurfaceOpacity);
                 var surfaceAltBrush = CreateBrush(settings.SurfaceAltColor, settings.UseGlassSurfaces ? Math.Min(settings.SurfaceAltOpacity, 0.62) : settings.SurfaceAltOpacity);
+                var navigationBrush = CreateBrush(settings.SurfaceAltColor, settings.UseGlassSurfaces ? Math.Min(settings.NavigationOpacity, 0.74) : settings.NavigationOpacity);
+                var bodyFontSize = Math.Round(13 * settings.FontScale, 1);
+                var captionFontSize = Math.Round(11 * settings.FontScale, 1);
+                var sectionFontSize = Math.Round(14 * settings.FontScale, 1);
+                var titleFontSize = Math.Round(18 * settings.FontScale, 1);
 
                 Set(resources, "BackgroundBrush", CreateBackgroundBrush(settings));
                 Set(resources, "SurfaceBrush", surfaceBrush);
                 Set(resources, "SurfaceAltBrush", surfaceAltBrush);
+                Set(resources, "NavigationSurfaceBrush", navigationBrush);
+                Set(resources, "NavigationAltSurfaceBrush", CreateBrush(settings.SurfaceColor, Math.Min(1, settings.NavigationOpacity * 0.9)));
                 Set(resources, "GlassSurfaceBrush", CreateBrush(settings.SurfaceColor, Math.Min(settings.SurfaceOpacity, 0.78)));
                 Set(resources, "GlassSurfaceAltBrush", CreateBrush(settings.SurfaceAltColor, Math.Min(settings.SurfaceAltOpacity, 0.68)));
                 Set(resources, "TransparentSurfaceBrush", Brushes.Transparent);
@@ -123,6 +130,14 @@ namespace InventoryManagementApp.Services
                 Set(resources, "RadiusLarge", new CornerRadius(settings.CardCornerRadius));
                 Set(resources, "PagePadding", new Thickness(settings.PagePadding));
                 Set(resources, "CardPadding", new Thickness(settings.CardPadding));
+                Set(resources, "ThemeFontScale", settings.FontScale);
+                Set(resources, "ThemeCaptionFontSize", captionFontSize);
+                Set(resources, "ThemeBodyFontSize", bodyFontSize);
+                Set(resources, "ThemeSectionFontSize", sectionFontSize);
+                Set(resources, "ThemeTitleFontSize", titleFontSize);
+                Set(resources, "ThemeControlMinHeight", settings.ControlHeight);
+                Set(resources, "ThemeDataGridRowHeight", settings.DataGridRowHeight);
+                Set(resources, "ThemeDataGridHeaderHeight", settings.DataGridHeaderHeight);
                 Set(resources, "ThemeSurfaceShadow", CreateShadow(settings));
                 Set(resources, "ThemeRaisedShadow", CreateShadow(settings, 1.55));
                 Set(resources, "ThemeDeepShadow", CreateShadow(settings, 2.35));
