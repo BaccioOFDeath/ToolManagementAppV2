@@ -77,9 +77,14 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("BackgroundImageStretch", xaml, StringComparison.Ordinal);
             Assert.Contains("BackgroundStretchOptions", xaml, StringComparison.Ordinal);
             Assert.Contains("BorderOpacity", xaml, StringComparison.Ordinal);
+            Assert.Contains("BorderThickness", xaml, StringComparison.Ordinal);
+            Assert.Contains("ControlBorderThickness", xaml, StringComparison.Ordinal);
+            Assert.Contains("DividerOpacity", xaml, StringComparison.Ordinal);
             Assert.Contains("ShadowBlurRadius", xaml, StringComparison.Ordinal);
             Assert.Contains("ShadowDepth", xaml, StringComparison.Ordinal);
             Assert.Contains("ShadowDirection", xaml, StringComparison.Ordinal);
+            Assert.Contains("SurfaceShadowScale", xaml, StringComparison.Ordinal);
+            Assert.Contains("ControlShadowScale", xaml, StringComparison.Ordinal);
             Assert.Contains("PagePadding", xaml, StringComparison.Ordinal);
             Assert.Contains("CardPadding", xaml, StringComparison.Ordinal);
             Assert.Contains("FontScale", xaml, StringComparison.Ordinal);
@@ -92,6 +97,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("FocusRingOpacity", xaml, StringComparison.Ordinal);
             Assert.Contains("GridLineOpacity", xaml, StringComparison.Ordinal);
             Assert.Contains("MotionIntensity", xaml, StringComparison.Ordinal);
+            Assert.Contains("Shape and borders", xaml, StringComparison.Ordinal);
             Assert.Contains("Depth, spacing, and density", xaml, StringComparison.Ordinal);
             Assert.Contains("Interaction feel", xaml, StringComparison.Ordinal);
         }

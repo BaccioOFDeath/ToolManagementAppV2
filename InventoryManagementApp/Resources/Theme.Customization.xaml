@@ -5,7 +5,8 @@
         Admin theme designer tokens.
         The Settings theme selector chooses the active color dictionary. These shared resources are
         the app-wide knobs for the visual redesign layer: border removal, glass surfaces,
-        rounded controls, shadow color/direction/depth, navigation transparency, typography scale,
+        border/control outline width, divider strength, rounded controls, shadow color/direction/depth,
+        independent surface/control shadow strength, navigation transparency, typography scale,
         font family, heading scale, disabled opacity, background overlay tint, grid density,
         interaction intensity, focus visibility, background image fit, and grid line strength.
     -->
@@ -35,6 +36,9 @@
     <sys:Double x:Key="ThemeMotionIntensity">1</sys:Double>
     <sys:Double x:Key="ThemeFocusVisualStrokeThickness">2</sys:Double>
     <sys:Double x:Key="ThemeShadowDirection">270</sys:Double>
+    <sys:Double x:Key="ThemeDividerOpacity">1</sys:Double>
+    <sys:Double x:Key="ThemeSurfaceShadowScale">1</sys:Double>
+    <sys:Double x:Key="ThemeControlShadowScale">1</sys:Double>
     <sys:Double x:Key="ThemeDisabledOpacity">0.55</sys:Double>
 
     <SolidColorBrush x:Key="ThemeTransparentBrush" Color="#00000000"/>

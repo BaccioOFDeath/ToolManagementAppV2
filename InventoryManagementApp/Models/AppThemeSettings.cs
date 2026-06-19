@@ -37,6 +37,9 @@ namespace InventoryManagementApp.Models
         public double DisabledOpacity { get; set; } = 0.55;
         public bool BordersVisible { get; set; } = true;
         public double BorderOpacity { get; set; } = 1.0;
+        public double BorderThickness { get; set; } = 1.0;
+        public double ControlBorderThickness { get; set; } = 1.0;
+        public double DividerOpacity { get; set; } = 1.0;
         public double CardCornerRadius { get; set; } = 6.0;
         public double PanelCornerRadius { get; set; } = 4.0;
         public double ButtonCornerRadius { get; set; } = 5.0;
@@ -45,6 +48,8 @@ namespace InventoryManagementApp.Models
         public double ShadowDepth { get; set; } = 1.0;
         public double ShadowOpacity { get; set; } = 0.14;
         public double ShadowDirection { get; set; } = 270.0;
+        public double SurfaceShadowScale { get; set; } = 1.0;
+        public double ControlShadowScale { get; set; } = 1.0;
         public double PagePadding { get; set; } = 6.0;
         public double CardPadding { get; set; } = 8.0;
         public double FontScale { get; set; } = 1.0;
@@ -124,6 +129,9 @@ namespace InventoryManagementApp.Models
             DialogOpacity = Clamp01(DialogOpacity);
             DisabledOpacity = Clamp(DisabledOpacity, 0.15, 1);
             BorderOpacity = Clamp01(BorderOpacity);
+            BorderThickness = Clamp(BorderThickness, 0, 6);
+            ControlBorderThickness = Clamp(ControlBorderThickness, 0, 6);
+            DividerOpacity = Clamp01(DividerOpacity);
             CardCornerRadius = Clamp(CardCornerRadius, 0, 32);
             PanelCornerRadius = Clamp(PanelCornerRadius, 0, 32);
             ButtonCornerRadius = Clamp(ButtonCornerRadius, 0, 32);
@@ -132,6 +140,8 @@ namespace InventoryManagementApp.Models
             ShadowDepth = Clamp(ShadowDepth, 0, 16);
             ShadowOpacity = Clamp01(ShadowOpacity);
             ShadowDirection = Clamp(ShadowDirection, 0, 360);
+            SurfaceShadowScale = Clamp(SurfaceShadowScale, 0, 3);
+            ControlShadowScale = Clamp(ControlShadowScale, 0, 3);
             PagePadding = Clamp(PagePadding, 0, 28);
             CardPadding = Clamp(CardPadding, 0, 32);
             FontScale = Clamp(FontScale, 0.75, 1.4);

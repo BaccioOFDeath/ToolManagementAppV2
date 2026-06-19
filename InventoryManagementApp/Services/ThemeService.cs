@@ -73,9 +73,11 @@ namespace InventoryManagementApp.Services
                 }
 
                 var resources = app.Resources;
-                var borderThickness = settings.BordersVisible ? new Thickness(1) : new Thickness(0);
-                var subtleBorderThickness = settings.BordersVisible ? new Thickness(0, 0, 0, 1) : new Thickness(0);
+                var borderThickness = settings.BordersVisible ? new Thickness(settings.BorderThickness) : new Thickness(0);
+                var controlBorderThickness = settings.BordersVisible ? new Thickness(settings.ControlBorderThickness) : new Thickness(0);
+                var dividerThickness = settings.BordersVisible ? new Thickness(0, 0, 0, settings.BorderThickness) : new Thickness(0);
                 var borderBrush = CreateBrush(settings.BorderColor, settings.BorderOpacity * 0.55);
+                var dividerBrush = CreateBrush(settings.BorderColor, settings.BorderOpacity * settings.DividerOpacity * 0.55);
                 var surfaceOpacity = settings.UseGlassSurfaces ? Math.Min(settings.SurfaceOpacity, 0.72) : settings.SurfaceOpacity;
                 var surfaceAltOpacity = settings.UseGlassSurfaces ? Math.Min(settings.SurfaceAltOpacity, 0.62) : settings.SurfaceAltOpacity;
                 var navigationOpacity = settings.UseGlassSurfaces ? Math.Min(settings.NavigationOpacity, 0.74) : settings.NavigationOpacity;
@@ -115,7 +117,7 @@ namespace InventoryManagementApp.Services
                 Set(resources, "WarningBrush", CreateBrush(settings.WarningColor, 1));
                 Set(resources, "ErrorBrush", CreateBrush(settings.ErrorColor, 1));
                 Set(resources, "BorderBrushBase", borderBrush);
-                Set(resources, "BorderBrushAlt", CreateBrush(settings.BorderColor, settings.BorderOpacity * 0.45));
+                Set(resources, "BorderBrushAlt", dividerBrush);
                 Set(resources, "BtnBg", buttonBrush);
                 Set(resources, "BtnBgHover", CreateBrush(settings.AccentColor, Math.Min(1, settings.ButtonOpacity * hoverOpacity + 0.08)));
                 Set(resources, "BtnBorder", settings.BordersVisible ? CreateBrush(settings.BorderColor, settings.BorderOpacity * 0.72) : Brushes.Transparent);
@@ -130,11 +132,11 @@ namespace InventoryManagementApp.Services
                 Set(resources, "ItemSelectedForegroundBrush", CreateBrush(settings.TextColor, 1));
                 Set(resources, "DataGridRowBackgroundBrush", CreateBrush(settings.SurfaceColor, Math.Max(settings.SurfaceOpacity, 0.78)));
                 Set(resources, "DataGridAlternatingRowBackgroundBrush", CreateBrush(settings.SurfaceAltColor, Math.Max(settings.SurfaceAltOpacity, 0.72)));
-                Set(resources, "ThemeGridLineBrush", settings.BordersVisible ? CreateBrush(settings.BorderColor, settings.GridLineOpacity) : Brushes.Transparent);
+                Set(resources, "ThemeGridLineBrush", settings.BordersVisible ? CreateBrush(settings.BorderColor, settings.GridLineOpacity * settings.DividerOpacity) : Brushes.Transparent);
                 Set(resources, "ProgressBarBackgroundBrush", CreateBrush(settings.SurfaceAltColor, Math.Max(settings.SurfaceAltOpacity, 0.65)));
                 Set(resources, "ThemeBorderThickness", borderThickness);
-                Set(resources, "ThemeSubtleBorderThickness", subtleBorderThickness);
-                Set(resources, "ThemeControlBorderThickness", borderThickness);
+                Set(resources, "ThemeSubtleBorderThickness", dividerThickness);
+                Set(resources, "ThemeControlBorderThickness", controlBorderThickness);
                 Set(resources, "ThemeBorderlessThickness", new Thickness(0));
                 Set(resources, "ThemeCardCornerRadius", new CornerRadius(settings.CardCornerRadius));
                 Set(resources, "ThemePanelCornerRadius", new CornerRadius(settings.PanelCornerRadius));
@@ -160,13 +162,16 @@ namespace InventoryManagementApp.Services
                 Set(resources, "ThemeInteractionIntensity", settings.InteractionIntensity);
                 Set(resources, "ThemeMotionIntensity", settings.MotionIntensity);
                 Set(resources, "ThemeShadowDirection", settings.ShadowDirection);
+                Set(resources, "ThemeDividerOpacity", settings.DividerOpacity);
+                Set(resources, "ThemeSurfaceShadowScale", settings.SurfaceShadowScale);
+                Set(resources, "ThemeControlShadowScale", settings.ControlShadowScale);
                 Set(resources, "ThemeShadowColorBrush", CreateBrush(settings.ShadowColor, settings.ShadowOpacity));
-                Set(resources, "ThemeSurfaceShadow", settings.EnableSurfaceShadows ? CreateShadow(settings) : CreateNoShadow());
-                Set(resources, "ThemeRaisedShadow", settings.EnableSurfaceShadows ? CreateShadow(settings, 1.55) : CreateNoShadow());
-                Set(resources, "ThemeDeepShadow", settings.EnableSurfaceShadows ? CreateShadow(settings, 2.35) : CreateNoShadow());
-                Set(resources, "ThemeControlShadow", settings.EnableControlShadows ? CreateShadow(settings, 0.45) : CreateNoShadow());
-                Set(resources, "SubtleSurfaceShadow", settings.EnableSurfaceShadows ? CreateShadow(settings) : CreateNoShadow());
-                Set(resources, "RaisedSurfaceShadow", settings.EnableSurfaceShadows ? CreateShadow(settings, 1.55) : CreateNoShadow());
+                Set(resources, "ThemeSurfaceShadow", settings.EnableSurfaceShadows ? CreateShadow(settings, settings.SurfaceShadowScale) : CreateNoShadow());
+                Set(resources, "ThemeRaisedShadow", settings.EnableSurfaceShadows ? CreateShadow(settings, 1.55 * settings.SurfaceShadowScale) : CreateNoShadow());
+                Set(resources, "ThemeDeepShadow", settings.EnableSurfaceShadows ? CreateShadow(settings, 2.35 * settings.SurfaceShadowScale) : CreateNoShadow());
+                Set(resources, "ThemeControlShadow", settings.EnableControlShadows ? CreateShadow(settings, 0.45 * settings.ControlShadowScale) : CreateNoShadow());
+                Set(resources, "SubtleSurfaceShadow", settings.EnableSurfaceShadows ? CreateShadow(settings, settings.SurfaceShadowScale) : CreateNoShadow());
+                Set(resources, "RaisedSurfaceShadow", settings.EnableSurfaceShadows ? CreateShadow(settings, 1.55 * settings.SurfaceShadowScale) : CreateNoShadow());
 
                 RefreshWindows(app);
             }
