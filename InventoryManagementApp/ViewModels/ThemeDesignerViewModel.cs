@@ -35,6 +35,7 @@ namespace InventoryManagementApp.ViewModels
             _logger = logger ?? NullLogger<ThemeDesignerViewModel>.Instance;
 
             ThemeOptions = new ObservableCollection<string> { "Light", "Dark" };
+            BackgroundStretchOptions = new ObservableCollection<string> { "UniformToFill", "Uniform", "Fill", "None" };
             SaveCommand = new AsyncRelayCommand(SaveAsync);
             ResetCommand = new RelayCommand(Reset);
             BrowseBackgroundCommand = new RelayCommand(BrowseBackground);
@@ -45,6 +46,7 @@ namespace InventoryManagementApp.ViewModels
         }
 
         public ObservableCollection<string> ThemeOptions { get; }
+        public ObservableCollection<string> BackgroundStretchOptions { get; }
         public IAsyncRelayCommand SaveCommand { get; }
         public IRelayCommand ResetCommand { get; }
         public IRelayCommand BrowseBackgroundCommand { get; }
@@ -123,6 +125,12 @@ namespace InventoryManagementApp.ViewModels
         {
             get => _settings.BackgroundImagePath;
             set => SetString(value, (settings, newValue) => settings.BackgroundImagePath = newValue, nameof(BackgroundImagePath));
+        }
+
+        public string BackgroundImageStretch
+        {
+            get => _settings.BackgroundImageStretch;
+            set => SetString(value, (settings, newValue) => settings.BackgroundImageStretch = newValue, nameof(BackgroundImageStretch));
         }
 
         public double BackgroundOpacity
@@ -257,6 +265,30 @@ namespace InventoryManagementApp.ViewModels
             set => SetDouble(value, (settings, newValue) => settings.DataGridHeaderHeight = newValue, nameof(DataGridHeaderHeight));
         }
 
+        public double InteractionIntensity
+        {
+            get => _settings.InteractionIntensity;
+            set => SetDouble(value, (settings, newValue) => settings.InteractionIntensity = newValue, nameof(InteractionIntensity));
+        }
+
+        public double FocusRingOpacity
+        {
+            get => _settings.FocusRingOpacity;
+            set => SetDouble(value, (settings, newValue) => settings.FocusRingOpacity = newValue, nameof(FocusRingOpacity));
+        }
+
+        public double GridLineOpacity
+        {
+            get => _settings.GridLineOpacity;
+            set => SetDouble(value, (settings, newValue) => settings.GridLineOpacity = newValue, nameof(GridLineOpacity));
+        }
+
+        public double MotionIntensity
+        {
+            get => _settings.MotionIntensity;
+            set => SetDouble(value, (settings, newValue) => settings.MotionIntensity = newValue, nameof(MotionIntensity));
+        }
+
         public async Task InitializeAsync(CancellationToken token = default)
         {
             try
@@ -330,6 +362,11 @@ namespace InventoryManagementApp.ViewModels
             ControlHeight = 30;
             DataGridRowHeight = 34;
             DataGridHeaderHeight = 34;
+            InteractionIntensity = 1.1;
+            FocusRingOpacity = 0.48;
+            GridLineOpacity = 0.24;
+            MotionIntensity = 1.1;
+            BackgroundImageStretch = "UniformToFill";
             Status = "Glass preset previewed. Save to keep it.";
         }
 
@@ -349,6 +386,10 @@ namespace InventoryManagementApp.ViewModels
             ControlHeight = 26;
             DataGridRowHeight = 28;
             DataGridHeaderHeight = 28;
+            InteractionIntensity = 0.55;
+            FocusRingOpacity = 0.38;
+            GridLineOpacity = 0;
+            MotionIntensity = 0.75;
             Status = "Borderless preset previewed. Save to keep it.";
         }
 
@@ -370,6 +411,10 @@ namespace InventoryManagementApp.ViewModels
             _settings.DataGridHeaderHeight = 36;
             _settings.BordersVisible = true;
             _settings.BorderOpacity = 1;
+            _settings.InteractionIntensity = 1.45;
+            _settings.FocusRingOpacity = 1;
+            _settings.GridLineOpacity = 0.85;
+            _settings.MotionIntensity = 0.4;
             Preview();
             NotifyAllThemePropertiesChanged();
             Status = "High contrast preset previewed. Save to keep it.";
@@ -424,6 +469,7 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(WarningColor));
             OnPropertyChanged(nameof(ErrorColor));
             OnPropertyChanged(nameof(BackgroundImagePath));
+            OnPropertyChanged(nameof(BackgroundImageStretch));
             OnPropertyChanged(nameof(BackgroundOpacity));
             OnPropertyChanged(nameof(SurfaceOpacity));
             OnPropertyChanged(nameof(SurfaceAltOpacity));
@@ -446,6 +492,10 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(ControlHeight));
             OnPropertyChanged(nameof(DataGridRowHeight));
             OnPropertyChanged(nameof(DataGridHeaderHeight));
+            OnPropertyChanged(nameof(InteractionIntensity));
+            OnPropertyChanged(nameof(FocusRingOpacity));
+            OnPropertyChanged(nameof(GridLineOpacity));
+            OnPropertyChanged(nameof(MotionIntensity));
         }
     }
 }
