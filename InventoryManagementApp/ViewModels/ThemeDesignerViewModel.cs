@@ -6,6 +6,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,6 +15,9 @@ namespace InventoryManagementApp.ViewModels
 {
     public class ThemeDesignerViewModel : ObservableObject
     {
+        private static readonly JsonSerializerOptions ThemeProfileJsonOptions = new() { WriteIndented = true };
+        private const string ThemeProfileDialogFilter = "Theme Profile (*.json)|*.json|All Files (*.*)|*.*";
+
         private readonly ISettingsService _settingsService;
         private readonly IThemeService _themeService;
         private readonly IFileDialogService _fileDialogService;
@@ -40,6 +45,8 @@ namespace InventoryManagementApp.ViewModels
             ResetCommand = new RelayCommand(Reset);
             BrowseBackgroundCommand = new RelayCommand(BrowseBackground);
             ClearBackgroundCommand = new RelayCommand(() => BackgroundImagePath = string.Empty);
+            ImportThemeProfileCommand = new RelayCommand(ImportThemeProfile);
+            ExportThemeProfileCommand = new RelayCommand(ExportThemeProfile);
             GlassPresetCommand = new RelayCommand(ApplyGlassPreset);
             BorderlessPresetCommand = new RelayCommand(ApplyBorderlessPreset);
             HighContrastPresetCommand = new RelayCommand(ApplyHighContrastPreset);
@@ -51,6 +58,8 @@ namespace InventoryManagementApp.ViewModels
         public IRelayCommand ResetCommand { get; }
         public IRelayCommand BrowseBackgroundCommand { get; }
         public IRelayCommand ClearBackgroundCommand { get; }
+        public IRelayCommand ImportThemeProfileCommand { get; }
+        public IRelayCommand ExportThemeProfileCommand { get; }
         public IRelayCommand GlassPresetCommand { get; }
         public IRelayCommand BorderlessPresetCommand { get; }
         public IRelayCommand HighContrastPresetCommand { get; }
@@ -471,6 +480,52 @@ namespace InventoryManagementApp.ViewModels
             var path = _fileDialogService.OpenFile("Image Files|*.png;*.jpg;*.jpeg;*.bmp");
             if (!string.IsNullOrWhiteSpace(path))
                 BackgroundImagePath = path;
+        }
+
+        private void ExportThemeProfile()
+        {
+            var path = _fileDialogService.SaveFile(ThemeProfileDialogFilter);
+            if (string.IsNullOrWhiteSpace(path))
+                return;
+
+            try
+            {
+                _settings.Normalize();
+                File.WriteAllText(path, JsonSerializer.Serialize(_settings, ThemeProfileJsonOptions));
+                NotifyAllThemePropertiesChanged();
+                Status = "Theme profile exported.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to export app theme profile.");
+                _dialogService.ShowInfo("Theme profile could not be exported. Choose a writable location and try again.", "Theme Profile");
+                Status = "Theme profile export failed.";
+            }
+        }
+
+        private void ImportThemeProfile()
+        {
+            var path = _fileDialogService.OpenFile(ThemeProfileDialogFilter);
+            if (string.IsNullOrWhiteSpace(path))
+                return;
+
+            try
+            {
+                var imported = JsonSerializer.Deserialize<AppThemeSettings>(File.ReadAllText(path), ThemeProfileJsonOptions)
+                    ?? throw new InvalidDataException("Theme profile did not contain app theme settings.");
+
+                imported.Normalize();
+                _settings = imported;
+                Preview();
+                NotifyAllThemePropertiesChanged();
+                Status = "Theme profile imported for preview. Save to keep it.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to import app theme profile.");
+                _dialogService.ShowInfo("Theme profile could not be imported. Choose a valid theme JSON file and try again.", "Theme Profile");
+                Status = "Theme profile import failed.";
+            }
         }
 
         private void ApplyGlassPreset()
