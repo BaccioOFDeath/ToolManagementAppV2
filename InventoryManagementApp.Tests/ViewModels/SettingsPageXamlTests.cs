@@ -63,6 +63,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("WarningColor", xaml, StringComparison.Ordinal);
             Assert.Contains("ErrorColor", xaml, StringComparison.Ordinal);
             Assert.Contains("SurfaceAltOpacity", xaml, StringComparison.Ordinal);
+            Assert.Contains("NavigationOpacity", xaml, StringComparison.Ordinal);
             Assert.Contains("PanelCornerRadius", xaml, StringComparison.Ordinal);
             Assert.Contains("BackgroundImagePath", xaml, StringComparison.Ordinal);
             Assert.Contains("BorderOpacity", xaml, StringComparison.Ordinal);
@@ -70,6 +71,11 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("ShadowDepth", xaml, StringComparison.Ordinal);
             Assert.Contains("PagePadding", xaml, StringComparison.Ordinal);
             Assert.Contains("CardPadding", xaml, StringComparison.Ordinal);
+            Assert.Contains("FontScale", xaml, StringComparison.Ordinal);
+            Assert.Contains("ControlHeight", xaml, StringComparison.Ordinal);
+            Assert.Contains("DataGridRowHeight", xaml, StringComparison.Ordinal);
+            Assert.Contains("DataGridHeaderHeight", xaml, StringComparison.Ordinal);
+            Assert.Contains("Depth, spacing, and density", xaml, StringComparison.Ordinal);
         }
 
         static string ReadRepositoryFile(params string[] relativePathParts)
