@@ -61,6 +61,20 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("{DynamicResource ItemSelectedBrush}", xaml, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void FormMediaPreviewOverrides_PreserveFinalInteractionAndReadabilityChrome()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.FormMediaPreviewOverrides.xaml");
+
+            Assert.Contains("DefaultFocusVisual", xaml, StringComparison.Ordinal);
+            Assert.Contains("AutoToolTipPlacement", xaml, StringComparison.Ordinal);
+            Assert.Contains("AutoToolTipPrecision", xaml, StringComparison.Ordinal);
+            Assert.Contains("IsMoveToPointEnabled", xaml, StringComparison.Ordinal);
+            Assert.Contains("TextBlock.TextTrimming", xaml, StringComparison.Ordinal);
+            Assert.Contains("TextBlock.TextWrapping", xaml, StringComparison.Ordinal);
+            Assert.Contains("SnapsToDevicePixels", xaml, StringComparison.Ordinal);
+        }
+
         private static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);
