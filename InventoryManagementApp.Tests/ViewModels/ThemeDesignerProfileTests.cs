@@ -77,6 +77,18 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("Portable JSON backups", xaml, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void ThemeDesignerControl_ExposesPresetToolbarWithoutHorizontalClipping()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ThemeDesignerControl.xaml");
+
+            Assert.Contains("<WrapPanel DockPanel.Dock=\"Right\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TransparentCanvasPresetCommand", xaml, StringComparison.Ordinal);
+            Assert.Contains("DeepShadowPresetCommand", xaml, StringComparison.Ordinal);
+            Assert.Contains("Transparent Canvas", xaml, StringComparison.Ordinal);
+            Assert.Contains("Deep Shadow", xaml, StringComparison.Ordinal);
+        }
+
         private static ThemeDesignerViewModel CreateViewModel(
             FakeSettingsService? settingsService = null,
             FakeThemeService? themeService = null,
