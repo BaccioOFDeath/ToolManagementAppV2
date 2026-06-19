@@ -20,6 +20,7 @@ namespace InventoryManagementApp.Models
         public double SurfaceAltOpacity { get; set; } = 1.0;
         public double InputOpacity { get; set; } = 1.0;
         public double ButtonOpacity { get; set; } = 1.0;
+        public double NavigationOpacity { get; set; } = 1.0;
         public bool BordersVisible { get; set; } = true;
         public double BorderOpacity { get; set; } = 1.0;
         public double CardCornerRadius { get; set; } = 6.0;
@@ -31,6 +32,10 @@ namespace InventoryManagementApp.Models
         public double ShadowOpacity { get; set; } = 0.14;
         public double PagePadding { get; set; } = 6.0;
         public double CardPadding { get; set; } = 8.0;
+        public double FontScale { get; set; } = 1.0;
+        public double ControlHeight { get; set; } = 28.0;
+        public double DataGridRowHeight { get; set; } = 30.0;
+        public double DataGridHeaderHeight { get; set; } = 30.0;
         public bool UseGlassSurfaces { get; set; }
 
         public static AppThemeSettings CreateDefault(string? baseTheme = null)
@@ -74,6 +79,7 @@ namespace InventoryManagementApp.Models
             SurfaceAltOpacity = Clamp01(SurfaceAltOpacity);
             InputOpacity = Clamp01(InputOpacity);
             ButtonOpacity = Clamp01(ButtonOpacity);
+            NavigationOpacity = Clamp01(NavigationOpacity);
             BorderOpacity = Clamp01(BorderOpacity);
             CardCornerRadius = Clamp(CardCornerRadius, 0, 32);
             PanelCornerRadius = Clamp(PanelCornerRadius, 0, 32);
@@ -84,6 +90,10 @@ namespace InventoryManagementApp.Models
             ShadowOpacity = Clamp01(ShadowOpacity);
             PagePadding = Clamp(PagePadding, 0, 28);
             CardPadding = Clamp(CardPadding, 0, 32);
+            FontScale = Clamp(FontScale, 0.75, 1.4);
+            ControlHeight = Clamp(ControlHeight, 22, 44);
+            DataGridRowHeight = Clamp(DataGridRowHeight, 22, 52);
+            DataGridHeaderHeight = Clamp(DataGridHeaderHeight, 24, 56);
         }
 
         private static string NormalizeBaseTheme(string? value)
