@@ -28,11 +28,15 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("ThemedWindowHeader", xaml, StringComparison.Ordinal);
             Assert.Contains("ThemedWindowPane", xaml, StringComparison.Ordinal);
             Assert.Contains("ThemedDocumentCanvasFrame", xaml, StringComparison.Ordinal);
+            Assert.Contains("ThemedDocumentPreviewViewer", xaml, StringComparison.Ordinal);
             Assert.Contains("ThemedWindowFooter", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource BackgroundBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeAppBackgroundOverlayBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeShellHeaderBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeDialogSurfaceBrush}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource ForegroundBrush}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource ThemeFontFamily}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource ThemeBodyFontSize}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeCardCornerRadius}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemePanelCornerRadius}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeInputCornerRadius}", xaml, StringComparison.Ordinal);
@@ -41,6 +45,7 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("{DynamicResource ThemeSurfaceShadow}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeRaisedShadow}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeControlShadow}", xaml, StringComparison.Ordinal);
+            Assert.Contains("DefaultFocusVisual", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -53,10 +58,12 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("Style=\"{StaticResource ThemedWindowHeader}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Style=\"{StaticResource ThemedWindowPane}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Style=\"{StaticResource ThemedDocumentCanvasFrame}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Style=\"{StaticResource ThemedDocumentPreviewViewer}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Style=\"{StaticResource ThemedWindowFooter}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("FontFamily=\"{DynamicResource ThemeFontFamily}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("BorderThickness=\"{DynamicResource ThemeControlBorderThickness}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("CornerRadius=\"{DynamicResource ThemePanelCornerRadius}\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Background=\"White\"", xaml, StringComparison.Ordinal);
         }
 
         private static string ReadRepositoryFile(params string[] relativePathParts)
