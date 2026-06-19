@@ -66,14 +66,44 @@
     </Style>
 
     <Style TargetType="DataGrid">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="RowBackground" Value="{DynamicResource DataGridRowBackgroundBrush}"/>
+        <Setter Property="AlternatingRowBackground" Value="{DynamicResource DataGridAlternatingRowBackgroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="GridLinesVisibility" Value="All"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource BorderBrushBase}"/>
+        <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource BorderBrushBase}"/>
+        <Setter Property="HeadersVisibility" Value="Column"/>
         <Setter Property="RowHeight" Value="{DynamicResource ThemeDataGridRowHeight}"/>
         <Setter Property="ColumnHeaderHeight" Value="{DynamicResource ThemeDataGridHeaderHeight}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+        <Setter Property="CanUserAddRows" Value="False"/>
+        <Setter Property="CanUserDeleteRows" Value="False"/>
+        <Setter Property="CanUserReorderColumns" Value="True"/>
+        <Setter Property="CanUserSortColumns" Value="True"/>
+        <Setter Property="AutoGenerateColumns" Value="False"/>
+        <Setter Property="AlternationCount" Value="2"/>
+        <Setter Property="SelectionUnit" Value="FullRow"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
     </Style>
 
     <Style TargetType="DataGridRow">
-        <Setter Property="MinHeight" Value="{DynamicResource ThemeDataGridRowHeight}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="MinHeight" Value="{DynamicResource ThemeDataGridRowHeight}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource ItemHoverForegroundBrush}"/>
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource ItemSelectedForegroundBrush}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <Style TargetType="DataGridColumnHeader">
