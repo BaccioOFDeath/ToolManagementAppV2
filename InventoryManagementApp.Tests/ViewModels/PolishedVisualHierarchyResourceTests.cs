@@ -62,6 +62,8 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("ThemeMotionIntensity", customization, StringComparison.Ordinal);
             Assert.Contains("ThemeFocusVisualStrokeThickness", customization, StringComparison.Ordinal);
             Assert.Contains("ThemeGridLineBrush", customization, StringComparison.Ordinal);
+            Assert.Contains("ThemeShadowDirection", customization, StringComparison.Ordinal);
+            Assert.Contains("ThemeShadowColorBrush", customization, StringComparison.Ordinal);
             Assert.Contains("HorizontalGridLinesBrush\" Value=\"{DynamicResource ThemeGridLineBrush}\"", hierarchy, StringComparison.Ordinal);
             Assert.Contains("VerticalGridLinesBrush\" Value=\"{DynamicResource ThemeGridLineBrush}\"", hierarchy, StringComparison.Ordinal);
         }
