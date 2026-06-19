@@ -51,7 +51,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1.35*" MinWidth="520"/>
                         <ColumnDefinition Width="12"/>
-                        <ColumnDefinition Width="1.0*" MinWidth="340"/>
+                        <ColumnDefinition Width="1.0*" MinWidth="360"/>
                     </Grid.ColumnDefinitions>
 
                     <TabControl Grid.Column="0" x:Name="ThemeDesignerTabs">
@@ -161,20 +161,90 @@
                     <StackPanel Grid.Column="2">
                         <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,12">
                             <StackPanel>
-                                <TextBlock Text="Live preview" Style="{StaticResource PageTitleTextBlock}"/>
-                                <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,8,0,8">
+                                <TextBlock Text="Theme coverage preview lab" Style="{StaticResource PageTitleTextBlock}"/>
+                                <TextBlock Text="Use this board to inspect how the current redesign affects the everyday app surfaces before saving it." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                                <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,8">
                                     <StackPanel>
-                                        <TextBlock Text="Inventory desk card" Style="{StaticResource SectionHeader}"/>
-                                        <TextBlock Text="Surface, text, border width, divider strength, corners, padding, shadows, disabled states, grid lines, and interaction feedback update as you tune the theme." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
-                                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                            <Button Style="{StaticResource PrimaryButton}" Content="Primary" Margin="0,0,6,0"/>
-                                            <Button Style="{StaticResource GhostButton}" Content="Disabled" IsEnabled="False"/>
-                                        </StackPanel>
+                                        <TextBlock Text="Shell and card depth" Style="{StaticResource SectionHeader}"/>
+                                        <TextBlock Text="Surface opacity, border removal, card corners, padding, divider strength, and shadow depth update here as you tune the theme." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                                        <Border Style="{StaticResource DesktopInsetCard}" Margin="0,8,0,0">
+                                            <DockPanel>
+                                                <TextBlock DockPanel.Dock="Right" Text="Footer chrome" Style="{StaticResource CaptionTextBlock}"/>
+                                                <TextBlock Text="Navigation / header / dialog preview" Style="{StaticResource LabelTextBlock}"/>
+                                            </DockPanel>
+                                        </Border>
                                     </StackPanel>
                                 </Border>
-                                <TextBox Text="Input preview" Margin="0,0,0,8"/>
-                                <ProgressBar Value="65" Maximum="100"/>
-                                <TextBlock Text="{Binding Status}" Style="{StaticResource CaptionTextBlock}" Margin="0,8,0,0"/>
+
+                                <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="Themed control matrix" Style="{StaticResource SectionHeader}"/>
+                                        <WrapPanel Margin="0,8,0,0">
+                                            <Button Style="{StaticResource PrimaryButton}" Content="Primary" Margin="0,0,6,6"/>
+                                            <Button Style="{StaticResource GhostButton}" Content="Ghost" Margin="0,0,6,6"/>
+                                            <Button Style="{StaticResource GhostButton}" Content="Disabled" IsEnabled="False" Margin="0,0,6,6"/>
+                                            <CheckBox Content="Checked" IsChecked="True" Margin="0,0,10,6"/>
+                                            <CheckBox Content="Disabled" IsEnabled="False" Margin="0,0,10,6"/>
+                                        </WrapPanel>
+                                        <TextBox Text="Input preview" Margin="0,2,0,8"/>
+                                        <ComboBox SelectedIndex="0" Margin="0,0,0,8">
+                                            <ComboBoxItem Content="Dropdown preview"/>
+                                            <ComboBoxItem Content="Menu selection"/>
+                                        </ComboBox>
+                                        <Slider Value="65" Maximum="100" Margin="0,0,0,8"/>
+                                        <ProgressBar Value="65" Maximum="100"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="Table density and selection" Style="{StaticResource SectionHeader}"/>
+                                        <DataGrid AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" Height="116" Margin="0,8,0,0">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="Area" Binding="{Binding}" Width="*"/>
+                                                <DataGridTextColumn Header="Status" Binding="{Binding}" Width="90"/>
+                                            </DataGrid.Columns>
+                                            <TextBlock Text="Grid row/header density, grid-line strength, and selection contrast preview." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                                        </DataGrid>
+                                    </StackPanel>
+                                </Border>
+
+                                <UniformGrid Columns="3" Margin="0,0,0,8">
+                                    <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,6,0">
+                                        <StackPanel>
+                                            <TextBlock Text="Success" Style="{StaticResource LabelTextBlock}"/>
+                                            <TextBlock Text="Semantic color" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,6,0">
+                                        <StackPanel>
+                                            <TextBlock Text="Warning" Style="{StaticResource LabelTextBlock}"/>
+                                            <TextBlock Text="Semantic color" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource DesktopInsetCard}">
+                                        <StackPanel>
+                                            <TextBlock Text="Error" Style="{StaticResource LabelTextBlock}"/>
+                                            <TextBlock Text="Semantic color" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+                                </UniformGrid>
+
+                                <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="Transparent background lane" Style="{StaticResource SectionHeader}"/>
+                                        <TextBlock Text="Background images, overlay tint, glass surfaces, shell opacity, menu opacity, and borderless presets should leave the canvas visible without losing readable text." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource DesktopInsetCard}">
+                                    <StackPanel>
+                                        <TextBlock Text="Print and document preview" Style="{StaticResource SectionHeader}"/>
+                                        <TextBlock Text="Document viewers, rich text blocks, media frames, and print-preview chrome use the same theme resources as the rest of the app." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding Status}" Style="{StaticResource CaptionTextBlock}" Margin="0,8,0,0"/>
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
                         </Border>
 
@@ -200,6 +270,8 @@
                                 <TextBlock Text="Border removal, divider strength, corners, glass surfaces, shadow depth, and preset starting points for transparent or dramatic-depth redesigns." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,8"/>
                                 <TextBlock Text="04 Density and interaction" Style="{StaticResource LabelTextBlock}"/>
                                 <TextBlock Text="Spacing, typography scale, table density, focus rings, hover strength, grid lines, and motion." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                <TextBlock Text="Preview lab" Style="{StaticResource LabelTextBlock}"/>
+                                <TextBlock Text="Coverage board for controls, tables, transparent backgrounds, semantic states, and document preview surfaces." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,8"/>
                                 <TextBlock Text="Profiles" Style="{StaticResource LabelTextBlock}"/>
                                 <TextBlock Text="Portable JSON backups for full-app redesigns." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                             </StackPanel>
