@@ -66,11 +66,13 @@ public class AppThemeSettingsTests
         var settings = AppThemeSettings.CreateDefault();
         settings.AccentColor = "60a5fa";
         settings.ErrorColor = "not-a-color";
+        settings.WarningColor = "#GGGGGG";
 
         settings.Normalize();
 
         Assert.Equal("#60A5FA", settings.AccentColor);
         Assert.Equal("#FFDC2626", settings.ErrorColor);
+        Assert.Equal("#FFD97706", settings.WarningColor);
     }
 
     [Fact]
