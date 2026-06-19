@@ -49,6 +49,7 @@
     <SolidColorBrush x:Key="ThemeShellMenuBrush" Color="#FFE8EDF3"/>
     <SolidColorBrush x:Key="ThemeShellFooterBrush" Color="#BFFFFFFF"/>
     <SolidColorBrush x:Key="ThemeDialogSurfaceBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="ThemePopupSurfaceBrush" Color="#FFE8EDF3"/>
     <SolidColorBrush x:Key="NavigationSurfaceBrush" Color="#FFE8EDF3"/>
     <SolidColorBrush x:Key="NavigationAltSurfaceBrush" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="ThemeGridLineBrush" Color="#6B94A3B8"/>
