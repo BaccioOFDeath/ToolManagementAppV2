@@ -44,6 +44,7 @@
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
         <Setter Property="Padding" Value="{DynamicResource ControlPadding}"/>
         <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
@@ -66,6 +67,12 @@
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeControlBorderThickness}"/>
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
+        <Setter Property="IsMoveToPointEnabled" Value="True"/>
+        <Setter Property="AutoToolTipPlacement" Value="TopLeft"/>
+        <Setter Property="AutoToolTipPrecision" Value="2"/>
         <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
         <Style.Triggers>
             <Trigger Property="IsEnabled" Value="False">
@@ -81,6 +88,7 @@
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeControlBorderThickness}"/>
         <Setter Property="Height" Value="{DynamicResource ThemeControlMinHeight}"/>
         <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
     </Style>
 
     <Style TargetType="Label">
@@ -92,6 +100,8 @@
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="Padding" Value="{DynamicResource ControlPadding}"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="TextBlock.TextTrimming" Value="CharacterEllipsis"/>
+        <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
         <Style.Triggers>
             <Trigger Property="IsEnabled" Value="False">
                 <Setter Property="Opacity" Value="{DynamicResource ThemeDisabledOpacity}"/>
@@ -113,6 +123,8 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="Effect" Value="{DynamicResource ThemeRaisedShadow}"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
 
     <Style TargetType="FlowDocumentScrollViewer">
@@ -123,6 +135,8 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="Effect" Value="{DynamicResource ThemeRaisedShadow}"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
 
     <Style TargetType="RichTextBox">
@@ -135,5 +149,10 @@
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
         <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="{DynamicResource ThemeDisabledOpacity}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 </ResourceDictionary>
