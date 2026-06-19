@@ -17,18 +17,18 @@
     <Style TargetType="Border" x:Key="Card">
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushBase}"/>
-        <Setter Property="BorderThickness" Value="{StaticResource ThemeBorderThickness}"/>
-        <Setter Property="CornerRadius" Value="{StaticResource ThemeCardCornerRadius}"/>
-        <Setter Property="Padding" Value="8"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource ThemeCardCornerRadius}"/>
+        <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
         <Setter Property="Margin" Value="0"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
 
     <Style x:Key="ToolbarCard" TargetType="Border">
-        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource NavigationSurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
-        <Setter Property="BorderThickness" Value="{StaticResource ThemeSubtleBorderThickness}"/>
-        <Setter Property="CornerRadius" Value="{StaticResource ThemePanelCornerRadius}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource ThemePanelCornerRadius}"/>
         <Setter Property="Padding" Value="10,8"/>
         <Setter Property="Margin" Value="0,0,0,6"/>
         <Setter Property="MinHeight" Value="38"/>
@@ -37,15 +37,16 @@
 
     <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="MinWidth" Value="72"/>
-        <Setter Property="MinHeight" Value="28"/>
+        <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
         <Setter Property="HorizontalAlignment" Value="Left"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="HorizontalContentAlignment" Value="Center"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-        <Setter Property="BorderThickness" Value="{StaticResource ThemeControlBorderThickness}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeControlBorderThickness}"/>
         <Setter Property="Foreground" Value="{DynamicResource OnAccentForegroundBrush}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Padding" Value="10,3"/>
     </Style>
@@ -53,26 +54,69 @@
     <Style x:Key="GhostButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Background" Value="{DynamicResource TransparentSurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
-        <Setter Property="BorderThickness" Value="{StaticResource ThemeControlBorderThickness}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeControlBorderThickness}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="MinWidth" Value="62"/>
-        <Setter Property="MinHeight" Value="28"/>
+        <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="HorizontalContentAlignment" Value="Center"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Padding" Value="9,3"/>
     </Style>
 
-    <Style TargetType="DataGridColumnHeader">
-        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+    <Style TargetType="DataGrid">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="RowBackground" Value="{DynamicResource DataGridRowBackgroundBrush}"/>
+        <Setter Property="AlternatingRowBackground" Value="{DynamicResource DataGridAlternatingRowBackgroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="GridLinesVisibility" Value="All"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource BorderBrushBase}"/>
+        <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource BorderBrushBase}"/>
+        <Setter Property="HeadersVisibility" Value="Column"/>
+        <Setter Property="RowHeight" Value="{DynamicResource ThemeDataGridRowHeight}"/>
+        <Setter Property="ColumnHeaderHeight" Value="{DynamicResource ThemeDataGridHeaderHeight}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+        <Setter Property="CanUserAddRows" Value="False"/>
+        <Setter Property="CanUserDeleteRows" Value="False"/>
+        <Setter Property="CanUserReorderColumns" Value="True"/>
+        <Setter Property="CanUserSortColumns" Value="True"/>
+        <Setter Property="AutoGenerateColumns" Value="False"/>
+        <Setter Property="AlternationCount" Value="2"/>
+        <Setter Property="SelectionUnit" Value="FullRow"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
+    </Style>
+
+    <Style TargetType="DataGridRow">
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="MinHeight" Value="{DynamicResource ThemeDataGridRowHeight}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource ItemHoverForegroundBrush}"/>
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource ItemSelectedForegroundBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="DataGridColumnHeader">
+        <Setter Property="Background" Value="{DynamicResource NavigationSurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="HorizontalContentAlignment" Value="Left"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="0,0,1,2"/>
         <Setter Property="Padding" Value="6,4"/>
-        <Setter Property="MinHeight" Value="30"/>
+        <Setter Property="MinHeight" Value="{DynamicResource ThemeDataGridHeaderHeight}"/>
         <Setter Property="TextBlock.TextTrimming" Value="CharacterEllipsis"/>
         <Setter Property="TextBlock.TextWrapping" Value="NoWrap"/>
     </Style>
@@ -81,36 +125,36 @@
         <Setter Property="Background" Value="{DynamicResource GlassSurfaceAltBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="BorderThickness" Value="1,1,1,2"/>
-        <Setter Property="Padding" Value="12"/>
+        <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
         <Setter Property="MinHeight" Value="72"/>
     </Style>
 
     <Style x:Key="DesktopInsetCard" TargetType="Border" BasedOn="{StaticResource Card}">
-        <Setter Property="Padding" Value="12"/>
+        <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushBase}"/>
         <Setter Property="Background" Value="{DynamicResource GlassSurfaceBrush}"/>
     </Style>
 
     <Style x:Key="DesktopPaneHeader" TargetType="Border">
-        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource NavigationSurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="BorderThickness" Value="0,0,0,2"/>
-        <Setter Property="CornerRadius" Value="{StaticResource ThemePanelCornerRadius}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource ThemePanelCornerRadius}"/>
         <Setter Property="Padding" Value="10,7"/>
         <Setter Property="MinHeight" Value="42"/>
     </Style>
 
     <Style x:Key="DesktopPaneSubheader" TargetType="Border">
-        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource NavigationSurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="0,0,0,1"/>
-        <Setter Property="CornerRadius" Value="{StaticResource ThemePanelCornerRadius}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource ThemePanelCornerRadius}"/>
         <Setter Property="Padding" Value="10,7"/>
         <Setter Property="MinHeight" Value="36"/>
     </Style>
 
     <Style x:Key="DesktopSectionActionStrip" TargetType="Border">
-        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource NavigationSurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="BorderThickness" Value="0,1,0,2"/>
         <Setter Property="Padding" Value="10,7"/>
@@ -121,7 +165,7 @@
         <Setter Property="Background" Value="{DynamicResource GlassSurfaceAltBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="1,0,1,1"/>
-        <Setter Property="CornerRadius" Value="{StaticResource ThemeFooterCornerRadius}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource ThemeFooterCornerRadius}"/>
         <Setter Property="Padding" Value="10,5"/>
         <Setter Property="MinHeight" Value="34"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
@@ -131,18 +175,18 @@
         <Setter Property="Background" Value="{DynamicResource TextBoxBackgroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="BorderThickness" Value="1,1,1,2"/>
-        <Setter Property="Padding" Value="12"/>
+        <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
         <Setter Property="Margin" Value="0,0,0,8"/>
     </Style>
 
     <Style x:Key="DesktopNoteCard" TargetType="Border" BasedOn="{StaticResource DesktopInsetCard}">
         <Setter Property="Background" Value="{DynamicResource GlassSurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
-        <Setter Property="BorderThickness" Value="{StaticResource ThemeSubtleBorderThickness}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
     </Style>
 
     <Style x:Key="DataRunLogCard" TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
-        <Setter Property="Padding" Value="12"/>
+        <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
         <Setter Property="Margin" Value="0,0,0,8"/>
         <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="BorderThickness" Value="1,1,1,2"/>

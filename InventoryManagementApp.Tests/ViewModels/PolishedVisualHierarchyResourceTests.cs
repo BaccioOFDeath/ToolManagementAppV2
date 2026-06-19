@@ -14,7 +14,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("RaisedSurfaceShadow", xaml, StringComparison.Ordinal);
             Assert.Contains("DesktopStatusFooter", xaml, StringComparison.Ordinal);
             Assert.Contains("AdminHandoffCard", xaml, StringComparison.Ordinal);
-            Assert.Contains("MinHeight\" Value=\"28\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("ThemeControlMinHeight", xaml, StringComparison.Ordinal);
             Assert.Contains("HorizontalContentAlignment\" Value=\"Center\"", xaml, StringComparison.Ordinal);
             Assert.Contains("VerticalContentAlignment\" Value=\"Center\"", xaml, StringComparison.Ordinal);
         }
@@ -33,6 +33,23 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("DesktopSectionActionStrip", xaml, StringComparison.Ordinal);
             Assert.Contains("DesktopNoteCard", xaml, StringComparison.Ordinal);
             Assert.Contains("DataRunLogCard", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ThemeResources_DefineAdminControlledDensityTokens()
+        {
+            var customization = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.Customization.xaml");
+            var hierarchy = ReadRepositoryFile("InventoryManagementApp", "Resources", "PolishedVisualHierarchy.xaml");
+
+            Assert.Contains("ThemeFontScale", customization, StringComparison.Ordinal);
+            Assert.Contains("ThemeBodyFontSize", customization, StringComparison.Ordinal);
+            Assert.Contains("ThemeControlMinHeight", customization, StringComparison.Ordinal);
+            Assert.Contains("ThemeDataGridRowHeight", customization, StringComparison.Ordinal);
+            Assert.Contains("ThemeDataGridHeaderHeight", customization, StringComparison.Ordinal);
+            Assert.Contains("NavigationSurfaceBrush", customization, StringComparison.Ordinal);
+            Assert.Contains("NavigationSurfaceBrush", hierarchy, StringComparison.Ordinal);
+            Assert.Contains("ThemeDataGridRowHeight", hierarchy, StringComparison.Ordinal);
+            Assert.Contains("ThemeDataGridHeaderHeight", hierarchy, StringComparison.Ordinal);
         }
 
         static string ReadRepositoryFile(params string[] relativePathParts)
