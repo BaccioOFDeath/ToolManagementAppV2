@@ -52,6 +52,20 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("ThemeDataGridHeaderHeight", hierarchy, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void ThemeResources_DefineAdminControlledInteractionTokens()
+        {
+            var customization = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.Customization.xaml");
+            var hierarchy = ReadRepositoryFile("InventoryManagementApp", "Resources", "PolishedVisualHierarchy.xaml");
+
+            Assert.Contains("ThemeInteractionIntensity", customization, StringComparison.Ordinal);
+            Assert.Contains("ThemeMotionIntensity", customization, StringComparison.Ordinal);
+            Assert.Contains("ThemeFocusVisualStrokeThickness", customization, StringComparison.Ordinal);
+            Assert.Contains("ThemeGridLineBrush", customization, StringComparison.Ordinal);
+            Assert.Contains("HorizontalGridLinesBrush\" Value=\"{DynamicResource ThemeGridLineBrush}\"", hierarchy, StringComparison.Ordinal);
+            Assert.Contains("VerticalGridLinesBrush\" Value=\"{DynamicResource ThemeGridLineBrush}\"", hierarchy, StringComparison.Ordinal);
+        }
+
         static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);
