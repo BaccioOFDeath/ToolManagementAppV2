@@ -115,6 +115,29 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("Theme pages", xaml, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void ThemeControlCustomizationOverrides_AreLoadedAfterFullCustomizationLayer()
+        {
+            var appXaml = ReadRepositoryFile("InventoryManagementApp", "App.xaml");
+            var controlOverrides = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.ControlCustomizationOverrides.xaml");
+
+            var fullLayerIndex = appXaml.IndexOf("Resources/Theme.FullCustomizationOverrides.xaml", StringComparison.Ordinal);
+            var controlLayerIndex = appXaml.IndexOf("Resources/Theme.ControlCustomizationOverrides.xaml", StringComparison.Ordinal);
+
+            Assert.True(fullLayerIndex >= 0, "Expected the app to load the full admin theme customization layer.");
+            Assert.True(controlLayerIndex > fullLayerIndex, "Expected control overrides to load after full customization resources.");
+            Assert.Contains("TargetType=\"TabControl\"", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"TabItem\"", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"CheckBox\"", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"Slider\"", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"ProgressBar\"", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("ThemeControlBorderThickness", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("ThemeControlMinHeight", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("ThemeControlShadow", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("ThemeDisabledOpacity", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("GlassSurfaceBrush", controlOverrides, StringComparison.Ordinal);
+        }
+
         static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);
