@@ -6,27 +6,26 @@
         Width="1220" Height="820"
         MinWidth="980" MinHeight="680"
         WindowStartupLocation="CenterScreen"
-        Background="{DynamicResource BackgroundBrush}">
-    <Grid Margin="12">
+        Background="{DynamicResource BackgroundBrush}"
+        FontFamily="{DynamicResource ThemeFontFamily}">
+    <Grid Style="{StaticResource ThemedWindowRoot}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0"
-                Background="{DynamicResource SurfaceAltBrush}"
-                BorderBrush="{DynamicResource AccentBrush}"
-                BorderThickness="1,1,1,3"
-                Padding="14"
-                CornerRadius="8">
+        <Border Grid.RowSpan="3" Style="{StaticResource ThemedWindowOverlay}"/>
+
+        <Border Grid.Row="0" Style="{StaticResource ThemedWindowHeader}">
             <DockPanel LastChildFill="False">
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,16,0">
                     <Border Width="48" Height="48"
                             Background="{DynamicResource SurfaceBrush}"
                             BorderBrush="{DynamicResource BorderBrushAlt}"
-                            BorderThickness="1"
-                            CornerRadius="6"
+                            BorderThickness="{DynamicResource ThemeControlBorderThickness}"
+                            CornerRadius="{DynamicResource ThemePanelCornerRadius}"
+                            Effect="{DynamicResource ThemeControlShadow}"
                             Margin="0,0,12,0">
                         <Image x:Name="PreviewLogo"
                                Width="34" Height="34"
@@ -73,12 +72,7 @@
                 <ColumnDefinition Width="280"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0"
-                    Background="{DynamicResource SurfaceBrush}"
-                    BorderBrush="{DynamicResource BorderBrushAlt}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="12">
+            <Border Grid.Column="0" Style="{StaticResource ThemedWindowPane}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -92,12 +86,7 @@
                         <TextBlock DockPanel.Dock="Right" Text="Output Review" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center"/>
                     </DockPanel>
 
-                    <Border Grid.Row="1"
-                            Background="White"
-                            BorderBrush="#D4D9E2"
-                            BorderThickness="1"
-                            Padding="8"
-                            CornerRadius="4">
+                    <Border Grid.Row="1" Style="{StaticResource ThemedDocumentCanvasFrame}">
                         <FlowDocumentScrollViewer x:Name="DocViewer"
                                                   Background="White"
                                                   IsToolBarVisible="False"
@@ -132,12 +121,7 @@
             </StackPanel>
         </Grid>
 
-        <Border Grid.Row="2"
-                Background="{DynamicResource SurfaceAltBrush}"
-                BorderBrush="{DynamicResource BorderBrushAlt}"
-                BorderThickness="1"
-                CornerRadius="6"
-                Padding="10,7">
+        <Border Grid.Row="2" Style="{StaticResource ThemedWindowFooter}">
             <DockPanel LastChildFill="False">
                 <TextBlock DockPanel.Dock="Left"
                            Text="Ready for final print review"
