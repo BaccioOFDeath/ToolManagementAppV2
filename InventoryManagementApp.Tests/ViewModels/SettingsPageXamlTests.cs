@@ -99,7 +99,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("MotionIntensity", xaml, StringComparison.Ordinal);
             Assert.Contains("Shape and borders", xaml, StringComparison.Ordinal);
             Assert.Contains("Depth, spacing, and density", xaml, StringComparison.Ordinal);
-            Assert.Contains("Interaction feel", xaml, StringComparison.Ordinal);
+            Assert.Contains("04 Density and interaction", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
