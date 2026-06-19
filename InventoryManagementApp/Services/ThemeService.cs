@@ -79,6 +79,9 @@ namespace InventoryManagementApp.Services
                 var surfaceBrush = CreateBrush(settings.SurfaceColor, settings.UseGlassSurfaces ? Math.Min(settings.SurfaceOpacity, 0.72) : settings.SurfaceOpacity);
                 var surfaceAltBrush = CreateBrush(settings.SurfaceAltColor, settings.UseGlassSurfaces ? Math.Min(settings.SurfaceAltOpacity, 0.62) : settings.SurfaceAltOpacity);
                 var navigationBrush = CreateBrush(settings.SurfaceAltColor, settings.UseGlassSurfaces ? Math.Min(settings.NavigationOpacity, 0.74) : settings.NavigationOpacity);
+                var hoverOpacity = Math.Clamp(0.08 + (settings.InteractionIntensity * 0.08), 0, 0.28);
+                var selectedOpacity = Math.Clamp(0.14 + (settings.InteractionIntensity * 0.13), 0, 0.42);
+                var pressedOpacity = Math.Clamp(0.18 + (settings.InteractionIntensity * 0.12), 0, 0.48);
                 var bodyFontSize = Math.Round(13 * settings.FontScale, 1);
                 var captionFontSize = Math.Round(11 * settings.FontScale, 1);
                 var sectionFontSize = Math.Round(14 * settings.FontScale, 1);
@@ -104,17 +107,20 @@ namespace InventoryManagementApp.Services
                 Set(resources, "BorderBrushBase", borderBrush);
                 Set(resources, "BorderBrushAlt", CreateBrush(settings.MutedTextColor, settings.BorderOpacity * 0.45));
                 Set(resources, "BtnBg", CreateBrush(settings.SurfaceAltColor, settings.ButtonOpacity));
-                Set(resources, "BtnBgHover", CreateBrush(settings.AccentColor, Math.Min(1, settings.ButtonOpacity * 0.22 + 0.12)));
+                Set(resources, "BtnBgHover", CreateBrush(settings.AccentColor, Math.Min(1, settings.ButtonOpacity * hoverOpacity + 0.08)));
                 Set(resources, "BtnBorder", settings.BordersVisible ? CreateBrush(settings.AccentColor, settings.BorderOpacity * 0.72) : Brushes.Transparent);
                 Set(resources, "BtnFg", CreateBrush(settings.TextColor, 1));
-                Set(resources, "NavButtonPressedBrush", CreateBrush(settings.AccentColor, 0.24));
-                Set(resources, "NavButtonHoverBrush", CreateBrush(settings.AccentColor, 0.16));
-                Set(resources, "ItemHoverBrush", CreateBrush(settings.AccentColor, 0.14));
-                Set(resources, "ItemSelectedBrush", CreateBrush(settings.AccentColor, 0.24));
+                Set(resources, "FocusVisualStrokeBrush", CreateBrush(settings.AccentColor, settings.FocusRingOpacity));
+                Set(resources, "ThemeFocusVisualStrokeThickness", Math.Clamp(1 + settings.FocusRingOpacity * 3, 1, 4));
+                Set(resources, "NavButtonPressedBrush", CreateBrush(settings.AccentColor, pressedOpacity));
+                Set(resources, "NavButtonHoverBrush", CreateBrush(settings.AccentColor, hoverOpacity));
+                Set(resources, "ItemHoverBrush", CreateBrush(settings.AccentColor, hoverOpacity));
+                Set(resources, "ItemSelectedBrush", CreateBrush(settings.AccentColor, selectedOpacity));
                 Set(resources, "ItemHoverForegroundBrush", CreateBrush(settings.TextColor, 1));
                 Set(resources, "ItemSelectedForegroundBrush", CreateBrush(settings.TextColor, 1));
                 Set(resources, "DataGridRowBackgroundBrush", CreateBrush(settings.SurfaceColor, Math.Max(settings.SurfaceOpacity, 0.78)));
                 Set(resources, "DataGridAlternatingRowBackgroundBrush", CreateBrush(settings.SurfaceAltColor, Math.Max(settings.SurfaceAltOpacity, 0.72)));
+                Set(resources, "ThemeGridLineBrush", settings.BordersVisible ? CreateBrush(settings.MutedTextColor, settings.GridLineOpacity) : Brushes.Transparent);
                 Set(resources, "ProgressBarBackgroundBrush", CreateBrush(settings.SurfaceAltColor, Math.Max(settings.SurfaceAltOpacity, 0.65)));
                 Set(resources, "ThemeBorderThickness", borderThickness);
                 Set(resources, "ThemeSubtleBorderThickness", subtleBorderThickness);
@@ -138,6 +144,8 @@ namespace InventoryManagementApp.Services
                 Set(resources, "ThemeControlMinHeight", settings.ControlHeight);
                 Set(resources, "ThemeDataGridRowHeight", settings.DataGridRowHeight);
                 Set(resources, "ThemeDataGridHeaderHeight", settings.DataGridHeaderHeight);
+                Set(resources, "ThemeInteractionIntensity", settings.InteractionIntensity);
+                Set(resources, "ThemeMotionIntensity", settings.MotionIntensity);
                 Set(resources, "ThemeSurfaceShadow", CreateShadow(settings));
                 Set(resources, "ThemeRaisedShadow", CreateShadow(settings, 1.55));
                 Set(resources, "ThemeDeepShadow", CreateShadow(settings, 2.35));
@@ -213,7 +221,7 @@ namespace InventoryManagementApp.Services
                 {
                     return new ImageBrush(new BitmapImage(new Uri(settings.BackgroundImagePath, UriKind.Absolute)))
                     {
-                        Stretch = Stretch.UniformToFill,
+                        Stretch = ParseStretch(settings.BackgroundImageStretch),
                         Opacity = settings.BackgroundOpacity
                     };
                 }
@@ -224,6 +232,13 @@ namespace InventoryManagementApp.Services
             }
 
             return CreateBrush(settings.BackgroundColor, settings.BackgroundOpacity);
+        }
+
+        private static Stretch ParseStretch(string? value)
+        {
+            if (Enum.TryParse(value, ignoreCase: true, out Stretch stretch))
+                return stretch;
+            return Stretch.UniformToFill;
         }
 
         private static SolidColorBrush CreateBrush(string color, double opacity)
