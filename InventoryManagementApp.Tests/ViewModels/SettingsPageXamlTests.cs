@@ -116,6 +116,23 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void ThemeDesignerControl_ExposesPreviewLabForFullAppThemeCoverage()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ThemeDesignerControl.xaml");
+
+            Assert.Contains("Theme coverage preview lab", xaml, StringComparison.Ordinal);
+            Assert.Contains("Shell and card depth", xaml, StringComparison.Ordinal);
+            Assert.Contains("Themed control matrix", xaml, StringComparison.Ordinal);
+            Assert.Contains("Table density and selection", xaml, StringComparison.Ordinal);
+            Assert.Contains("Transparent background lane", xaml, StringComparison.Ordinal);
+            Assert.Contains("Print and document preview", xaml, StringComparison.Ordinal);
+            Assert.Contains("Coverage board for controls, tables, transparent backgrounds, semantic states, and document preview surfaces.", xaml, StringComparison.Ordinal);
+            Assert.Contains("<ComboBoxItem Content=\"Dropdown preview\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<DataGrid AutoGenerateColumns=\"False\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<CheckBox Content=\"Checked\" IsChecked=\"True\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ThemeControlCustomizationOverrides_AreLoadedAfterFullCustomizationLayer()
         {
             var appXaml = ReadRepositoryFile("InventoryManagementApp", "App.xaml");
