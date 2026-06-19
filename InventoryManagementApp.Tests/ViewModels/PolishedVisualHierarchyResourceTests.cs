@@ -85,6 +85,23 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("Background=\"{DynamicResource ThemeAppBackgroundOverlayBrush}\"", mainWindow, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void ThemeResources_DefineAdminControlledVisualGranularityTokens()
+        {
+            var customization = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.Customization.xaml");
+            var hierarchy = ReadRepositoryFile("InventoryManagementApp", "Resources", "PolishedVisualHierarchy.xaml");
+
+            Assert.Contains("ThemeBorderThickness", customization, StringComparison.Ordinal);
+            Assert.Contains("ThemeControlBorderThickness", customization, StringComparison.Ordinal);
+            Assert.Contains("ThemeDividerOpacity", customization, StringComparison.Ordinal);
+            Assert.Contains("ThemeSurfaceShadowScale", customization, StringComparison.Ordinal);
+            Assert.Contains("ThemeControlShadowScale", customization, StringComparison.Ordinal);
+            Assert.Contains("BorderThickness\" Value=\"{DynamicResource ThemeBorderThickness}\"", hierarchy, StringComparison.Ordinal);
+            Assert.Contains("BorderThickness\" Value=\"{DynamicResource ThemeControlBorderThickness}\"", hierarchy, StringComparison.Ordinal);
+            Assert.Contains("Effect\" Value=\"{DynamicResource ThemeControlShadow}\"", hierarchy, StringComparison.Ordinal);
+            Assert.Contains("Effect\" Value=\"{DynamicResource ThemeSurfaceShadow}\"", hierarchy, StringComparison.Ordinal);
+        }
+
         static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);
