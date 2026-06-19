@@ -73,8 +73,8 @@
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="GridLinesVisibility" Value="All"/>
-        <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource BorderBrushBase}"/>
-        <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource BorderBrushBase}"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource ThemeGridLineBrush}"/>
+        <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource ThemeGridLineBrush}"/>
         <Setter Property="HeadersVisibility" Value="Column"/>
         <Setter Property="RowHeight" Value="{DynamicResource ThemeDataGridRowHeight}"/>
         <Setter Property="ColumnHeaderHeight" Value="{DynamicResource ThemeDataGridHeaderHeight}"/>

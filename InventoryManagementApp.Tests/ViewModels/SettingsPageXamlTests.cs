@@ -66,6 +66,8 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("NavigationOpacity", xaml, StringComparison.Ordinal);
             Assert.Contains("PanelCornerRadius", xaml, StringComparison.Ordinal);
             Assert.Contains("BackgroundImagePath", xaml, StringComparison.Ordinal);
+            Assert.Contains("BackgroundImageStretch", xaml, StringComparison.Ordinal);
+            Assert.Contains("BackgroundStretchOptions", xaml, StringComparison.Ordinal);
             Assert.Contains("BorderOpacity", xaml, StringComparison.Ordinal);
             Assert.Contains("ShadowBlurRadius", xaml, StringComparison.Ordinal);
             Assert.Contains("ShadowDepth", xaml, StringComparison.Ordinal);
@@ -75,7 +77,12 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("ControlHeight", xaml, StringComparison.Ordinal);
             Assert.Contains("DataGridRowHeight", xaml, StringComparison.Ordinal);
             Assert.Contains("DataGridHeaderHeight", xaml, StringComparison.Ordinal);
+            Assert.Contains("InteractionIntensity", xaml, StringComparison.Ordinal);
+            Assert.Contains("FocusRingOpacity", xaml, StringComparison.Ordinal);
+            Assert.Contains("GridLineOpacity", xaml, StringComparison.Ordinal);
+            Assert.Contains("MotionIntensity", xaml, StringComparison.Ordinal);
             Assert.Contains("Depth, spacing, and density", xaml, StringComparison.Ordinal);
+            Assert.Contains("Interaction feel", xaml, StringComparison.Ordinal);
         }
 
         static string ReadRepositoryFile(params string[] relativePathParts)
