@@ -6,7 +6,8 @@
         The Settings theme selector chooses the active color dictionary. These shared resources are
         the app-wide knobs for the visual redesign layer: border removal, glass surfaces,
         rounded controls, shadow color/direction/depth, navigation transparency, typography scale,
-        grid density, interaction intensity, focus visibility, background image fit, and grid line strength.
+        font family, heading scale, disabled opacity, background overlay tint, grid density,
+        interaction intensity, focus visibility, background image fit, and grid line strength.
     -->
 
     <Thickness x:Key="ThemeBorderThickness">1</Thickness>
@@ -20,7 +21,9 @@
     <CornerRadius x:Key="ThemeInputCornerRadius">4</CornerRadius>
     <CornerRadius x:Key="ThemeFooterCornerRadius">0,0,6,6</CornerRadius>
 
+    <FontFamily x:Key="ThemeFontFamily">Segoe UI</FontFamily>
     <sys:Double x:Key="ThemeFontScale">1</sys:Double>
+    <sys:Double x:Key="ThemeHeadingFontScale">1</sys:Double>
     <sys:Double x:Key="ThemeCaptionFontSize">11</sys:Double>
     <sys:Double x:Key="ThemeBodyFontSize">13</sys:Double>
     <sys:Double x:Key="ThemeSectionFontSize">14</sys:Double>
@@ -32,6 +35,7 @@
     <sys:Double x:Key="ThemeMotionIntensity">1</sys:Double>
     <sys:Double x:Key="ThemeFocusVisualStrokeThickness">2</sys:Double>
     <sys:Double x:Key="ThemeShadowDirection">270</sys:Double>
+    <sys:Double x:Key="ThemeDisabledOpacity">0.55</sys:Double>
 
     <SolidColorBrush x:Key="ThemeTransparentBrush" Color="#00000000"/>
     <SolidColorBrush x:Key="ThemeGlassSurfaceBrush" Color="#DFFFFFFF"/>
