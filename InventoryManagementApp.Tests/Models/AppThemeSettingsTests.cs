@@ -17,6 +17,7 @@ namespace InventoryManagementApp.Tests.Models
                 BaseTheme = "Unexpected",
                 BackgroundColor = "123456",
                 SurfaceColor = "bad",
+                BackgroundImageStretch = "Tile",
                 BackgroundOpacity = 2,
                 SurfaceOpacity = -1,
                 ButtonCornerRadius = 99,
@@ -27,7 +28,11 @@ namespace InventoryManagementApp.Tests.Models
                 FontScale = 3,
                 ControlHeight = 99,
                 DataGridRowHeight = 2,
-                DataGridHeaderHeight = 99
+                DataGridHeaderHeight = 99,
+                InteractionIntensity = 5,
+                FocusRingOpacity = -2,
+                GridLineOpacity = 4,
+                MotionIntensity = double.PositiveInfinity
             };
 
             settings.Normalize();
@@ -35,6 +40,7 @@ namespace InventoryManagementApp.Tests.Models
             Assert.Equal("Light", settings.BaseTheme);
             Assert.Equal("#123456", settings.BackgroundColor);
             Assert.Equal(AppThemeSettings.CreateDefault("Light").SurfaceColor, settings.SurfaceColor);
+            Assert.Equal("UniformToFill", settings.BackgroundImageStretch);
             Assert.Equal(1, settings.BackgroundOpacity);
             Assert.Equal(0, settings.SurfaceOpacity);
             Assert.Equal(32, settings.ButtonCornerRadius);
@@ -46,6 +52,10 @@ namespace InventoryManagementApp.Tests.Models
             Assert.Equal(44, settings.ControlHeight);
             Assert.Equal(22, settings.DataGridRowHeight);
             Assert.Equal(56, settings.DataGridHeaderHeight);
+            Assert.Equal(2, settings.InteractionIntensity);
+            Assert.Equal(0, settings.FocusRingOpacity);
+            Assert.Equal(1, settings.GridLineOpacity);
+            Assert.Equal(0, settings.MotionIntensity);
         }
 
         [Fact]
@@ -57,6 +67,20 @@ namespace InventoryManagementApp.Tests.Models
             Assert.Equal("#FF101418", settings.BackgroundColor);
         }
 
+        [Theory]
+        [InlineData("None")]
+        [InlineData("Fill")]
+        [InlineData("Uniform")]
+        [InlineData("UniformToFill")]
+        public void Normalize_PreservesSupportedBackgroundStretchModes(string stretch)
+        {
+            var settings = new AppThemeSettings { BackgroundImageStretch = stretch };
+
+            settings.Normalize();
+
+            Assert.Equal(stretch, settings.BackgroundImageStretch);
+        }
+
         [Fact]
         public async Task SettingsServiceDefaults_SaveAndLoadThemeProfileAsSingleSetting()
         {
@@ -66,6 +90,11 @@ namespace InventoryManagementApp.Tests.Models
             settings.BordersVisible = false;
             settings.FontScale = 1.15;
             settings.DataGridRowHeight = 38;
+            settings.BackgroundImageStretch = "Uniform";
+            settings.InteractionIntensity = 1.6;
+            settings.FocusRingOpacity = 0.75;
+            settings.GridLineOpacity = 0.2;
+            settings.MotionIntensity = 0.35;
 
             await service.SaveAppThemeSettingsAsync(settings);
             var loaded = await service.GetAppThemeSettingsAsync();
@@ -75,6 +104,11 @@ namespace InventoryManagementApp.Tests.Models
             Assert.False(loaded.BordersVisible);
             Assert.Equal(1.15, loaded.FontScale);
             Assert.Equal(38, loaded.DataGridRowHeight);
+            Assert.Equal("Uniform", loaded.BackgroundImageStretch);
+            Assert.Equal(1.6, loaded.InteractionIntensity);
+            Assert.Equal(0.75, loaded.FocusRingOpacity);
+            Assert.Equal(0.2, loaded.GridLineOpacity);
+            Assert.Equal(0.35, loaded.MotionIntensity);
         }
 
         private sealed class FakeSettingsService : ISettingsService
