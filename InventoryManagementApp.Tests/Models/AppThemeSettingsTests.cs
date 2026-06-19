@@ -17,6 +17,7 @@ namespace InventoryManagementApp.Tests.Models
             {
                 BaseTheme = "Unexpected",
                 BackgroundColor = "123456",
+                BackgroundOverlayColor = "#GGGGGG",
                 SurfaceColor = "bad",
                 NavigationColor = "445566",
                 InputColor = "not-a-color",
@@ -24,8 +25,11 @@ namespace InventoryManagementApp.Tests.Models
                 BorderColor = "abcdef",
                 ShadowColor = "112233",
                 BackgroundImageStretch = "Tile",
+                FontFamily = "  Aptos  ",
                 BackgroundOpacity = 2,
+                BackgroundOverlayOpacity = 3,
                 SurfaceOpacity = -1,
+                DisabledOpacity = 0,
                 ButtonCornerRadius = 99,
                 ShadowDepth = -5,
                 ShadowOpacity = 5,
@@ -33,6 +37,7 @@ namespace InventoryManagementApp.Tests.Models
                 PagePadding = 100,
                 NavigationOpacity = 4,
                 FontScale = 3,
+                HeadingFontScale = 4,
                 ControlHeight = 99,
                 DataGridRowHeight = 2,
                 DataGridHeaderHeight = 99,
@@ -46,6 +51,7 @@ namespace InventoryManagementApp.Tests.Models
 
             Assert.Equal("Light", settings.BaseTheme);
             Assert.Equal("#123456", settings.BackgroundColor);
+            Assert.Equal(AppThemeSettings.CreateDefault("Light").BackgroundOverlayColor, settings.BackgroundOverlayColor);
             Assert.Equal(AppThemeSettings.CreateDefault("Light").SurfaceColor, settings.SurfaceColor);
             Assert.Equal("#445566", settings.NavigationColor);
             Assert.Equal(AppThemeSettings.CreateDefault("Light").InputColor, settings.InputColor);
@@ -53,8 +59,11 @@ namespace InventoryManagementApp.Tests.Models
             Assert.Equal("#ABCDEF", settings.BorderColor);
             Assert.Equal("#112233", settings.ShadowColor);
             Assert.Equal("UniformToFill", settings.BackgroundImageStretch);
+            Assert.Equal("Aptos", settings.FontFamily);
             Assert.Equal(1, settings.BackgroundOpacity);
+            Assert.Equal(1, settings.BackgroundOverlayOpacity);
             Assert.Equal(0, settings.SurfaceOpacity);
+            Assert.Equal(0.15, settings.DisabledOpacity);
             Assert.Equal(32, settings.ButtonCornerRadius);
             Assert.Equal(0, settings.ShadowDepth);
             Assert.Equal(1, settings.ShadowOpacity);
@@ -62,6 +71,7 @@ namespace InventoryManagementApp.Tests.Models
             Assert.Equal(28, settings.PagePadding);
             Assert.Equal(1, settings.NavigationOpacity);
             Assert.Equal(1.4, settings.FontScale);
+            Assert.Equal(1.6, settings.HeadingFontScale);
             Assert.Equal(44, settings.ControlHeight);
             Assert.Equal(22, settings.DataGridRowHeight);
             Assert.Equal(56, settings.DataGridHeaderHeight);
@@ -78,6 +88,7 @@ namespace InventoryManagementApp.Tests.Models
 
             Assert.Equal("Dark", settings.BaseTheme);
             Assert.Equal("#FF101418", settings.BackgroundColor);
+            Assert.Equal("#CC101418", settings.BackgroundOverlayColor);
             Assert.Equal("#FF252D36", settings.NavigationColor);
             Assert.Equal("#FF1B222A", settings.InputColor);
             Assert.Equal("#FF252D36", settings.ButtonColor);
@@ -103,14 +114,19 @@ namespace InventoryManagementApp.Tests.Models
         {
             ISettingsService service = new FakeSettingsService();
             var settings = AppThemeSettings.CreateDefault("Dark");
+            settings.BackgroundOverlayColor = "#AA223344";
+            settings.BackgroundOverlayOpacity = 0.28;
             settings.NavigationColor = "#FF111111";
             settings.InputColor = "#FF222222";
             settings.ButtonColor = "#FF333333";
             settings.BorderColor = "#FF444444";
             settings.ShadowColor = "#AA000000";
+            settings.FontFamily = "Aptos";
             settings.ButtonCornerRadius = 18;
             settings.BordersVisible = false;
+            settings.DisabledOpacity = 0.34;
             settings.FontScale = 1.15;
+            settings.HeadingFontScale = 1.2;
             settings.DataGridRowHeight = 38;
             settings.BackgroundImageStretch = "Uniform";
             settings.InteractionIntensity = 1.6;
@@ -123,14 +139,19 @@ namespace InventoryManagementApp.Tests.Models
             var loaded = await service.GetAppThemeSettingsAsync();
 
             Assert.Equal("Dark", loaded.BaseTheme);
+            Assert.Equal("#AA223344", loaded.BackgroundOverlayColor);
+            Assert.Equal(0.28, loaded.BackgroundOverlayOpacity);
             Assert.Equal("#FF111111", loaded.NavigationColor);
             Assert.Equal("#FF222222", loaded.InputColor);
             Assert.Equal("#FF333333", loaded.ButtonColor);
             Assert.Equal("#FF444444", loaded.BorderColor);
             Assert.Equal("#AA000000", loaded.ShadowColor);
+            Assert.Equal("Aptos", loaded.FontFamily);
             Assert.Equal(18, loaded.ButtonCornerRadius);
             Assert.False(loaded.BordersVisible);
+            Assert.Equal(0.34, loaded.DisabledOpacity);
             Assert.Equal(1.15, loaded.FontScale);
+            Assert.Equal(1.2, loaded.HeadingFontScale);
             Assert.Equal(38, loaded.DataGridRowHeight);
             Assert.Equal("Uniform", loaded.BackgroundImageStretch);
             Assert.Equal(1.6, loaded.InteractionIntensity);
