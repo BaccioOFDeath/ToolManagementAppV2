@@ -6,6 +6,7 @@ namespace InventoryManagementApp.Models
     {
         public string BaseTheme { get; set; } = "Light";
         public string BackgroundColor { get; set; } = "#F4F6F8";
+        public string BackgroundOverlayColor { get; set; } = "#00FFFFFF";
         public string SurfaceColor { get; set; } = "#FFFFFFFF";
         public string SurfaceAltColor { get; set; } = "#FFE8EDF3";
         public string NavigationColor { get; set; } = "#FFE8EDF3";
@@ -21,7 +22,9 @@ namespace InventoryManagementApp.Models
         public string ShadowColor { get; set; } = "#66000000";
         public string BackgroundImagePath { get; set; } = string.Empty;
         public string BackgroundImageStretch { get; set; } = "UniformToFill";
+        public string FontFamily { get; set; } = "Segoe UI";
         public double BackgroundOpacity { get; set; } = 1.0;
+        public double BackgroundOverlayOpacity { get; set; }
         public double SurfaceOpacity { get; set; } = 1.0;
         public double SurfaceAltOpacity { get; set; } = 1.0;
         public double InputOpacity { get; set; } = 1.0;
@@ -31,6 +34,7 @@ namespace InventoryManagementApp.Models
         public double MenuOpacity { get; set; } = 1.0;
         public double FooterOpacity { get; set; } = 1.0;
         public double DialogOpacity { get; set; } = 1.0;
+        public double DisabledOpacity { get; set; } = 0.55;
         public bool BordersVisible { get; set; } = true;
         public double BorderOpacity { get; set; } = 1.0;
         public double CardCornerRadius { get; set; } = 6.0;
@@ -44,6 +48,7 @@ namespace InventoryManagementApp.Models
         public double PagePadding { get; set; } = 6.0;
         public double CardPadding { get; set; } = 8.0;
         public double FontScale { get; set; } = 1.0;
+        public double HeadingFontScale { get; set; } = 1.0;
         public double ControlHeight { get; set; } = 28.0;
         public double DataGridRowHeight { get; set; } = 30.0;
         public double DataGridHeaderHeight { get; set; } = 30.0;
@@ -64,6 +69,7 @@ namespace InventoryManagementApp.Models
             if (string.Equals(settings.BaseTheme, "Dark", StringComparison.OrdinalIgnoreCase))
             {
                 settings.BackgroundColor = "#FF101418";
+                settings.BackgroundOverlayColor = "#CC101418";
                 settings.SurfaceColor = "#FF1B222A";
                 settings.SurfaceAltColor = "#FF252D36";
                 settings.NavigationColor = "#FF252D36";
@@ -89,6 +95,7 @@ namespace InventoryManagementApp.Models
             BaseTheme = NormalizeBaseTheme(BaseTheme);
             var defaults = CreateDefault(BaseTheme);
             BackgroundColor = NormalizeColor(BackgroundColor, defaults.BackgroundColor);
+            BackgroundOverlayColor = NormalizeColor(BackgroundOverlayColor, defaults.BackgroundOverlayColor);
             SurfaceColor = NormalizeColor(SurfaceColor, defaults.SurfaceColor);
             SurfaceAltColor = NormalizeColor(SurfaceAltColor, defaults.SurfaceAltColor);
             NavigationColor = NormalizeColor(NavigationColor, defaults.NavigationColor);
@@ -103,7 +110,9 @@ namespace InventoryManagementApp.Models
             ErrorColor = NormalizeColor(ErrorColor, defaults.ErrorColor);
             ShadowColor = NormalizeColor(ShadowColor, defaults.ShadowColor);
             BackgroundImageStretch = NormalizeBackgroundStretch(BackgroundImageStretch);
+            FontFamily = NormalizeFontFamily(FontFamily, defaults.FontFamily);
             BackgroundOpacity = Clamp01(BackgroundOpacity);
+            BackgroundOverlayOpacity = Clamp01(BackgroundOverlayOpacity);
             SurfaceOpacity = Clamp01(SurfaceOpacity);
             SurfaceAltOpacity = Clamp01(SurfaceAltOpacity);
             InputOpacity = Clamp01(InputOpacity);
@@ -113,6 +122,7 @@ namespace InventoryManagementApp.Models
             MenuOpacity = Clamp01(MenuOpacity);
             FooterOpacity = Clamp01(FooterOpacity);
             DialogOpacity = Clamp01(DialogOpacity);
+            DisabledOpacity = Clamp(DisabledOpacity, 0.15, 1);
             BorderOpacity = Clamp01(BorderOpacity);
             CardCornerRadius = Clamp(CardCornerRadius, 0, 32);
             PanelCornerRadius = Clamp(PanelCornerRadius, 0, 32);
@@ -125,6 +135,7 @@ namespace InventoryManagementApp.Models
             PagePadding = Clamp(PagePadding, 0, 28);
             CardPadding = Clamp(CardPadding, 0, 32);
             FontScale = Clamp(FontScale, 0.75, 1.4);
+            HeadingFontScale = Clamp(HeadingFontScale, 0.75, 1.6);
             ControlHeight = Clamp(ControlHeight, 22, 44);
             DataGridRowHeight = Clamp(DataGridRowHeight, 22, 52);
             DataGridHeaderHeight = Clamp(DataGridHeaderHeight, 24, 56);
@@ -155,6 +166,15 @@ namespace InventoryManagementApp.Models
             if (double.IsNaN(value) || double.IsInfinity(value))
                 return min;
             return Math.Min(max, Math.Max(min, value));
+        }
+
+        private static string NormalizeFontFamily(string? value, string fallback)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return fallback;
+
+            var trimmed = value.Trim();
+            return trimmed.Length > 80 ? trimmed[..80] : trimmed;
         }
 
         private static string NormalizeColor(string? value, string fallback)

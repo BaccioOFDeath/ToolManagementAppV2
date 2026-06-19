@@ -59,6 +59,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ThemeDesignerControl.xaml");
 
             Assert.Contains("ItemsSource=\"{Binding ThemeOptions}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("BackgroundOverlayColor", xaml, StringComparison.Ordinal);
             Assert.Contains("SuccessColor", xaml, StringComparison.Ordinal);
             Assert.Contains("WarningColor", xaml, StringComparison.Ordinal);
             Assert.Contains("ErrorColor", xaml, StringComparison.Ordinal);
@@ -67,7 +68,9 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("ButtonColor", xaml, StringComparison.Ordinal);
             Assert.Contains("BorderColor", xaml, StringComparison.Ordinal);
             Assert.Contains("ShadowColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("FontFamily", xaml, StringComparison.Ordinal);
             Assert.Contains("SurfaceAltOpacity", xaml, StringComparison.Ordinal);
+            Assert.Contains("BackgroundOverlayOpacity", xaml, StringComparison.Ordinal);
             Assert.Contains("NavigationOpacity", xaml, StringComparison.Ordinal);
             Assert.Contains("PanelCornerRadius", xaml, StringComparison.Ordinal);
             Assert.Contains("BackgroundImagePath", xaml, StringComparison.Ordinal);
@@ -80,6 +83,8 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("PagePadding", xaml, StringComparison.Ordinal);
             Assert.Contains("CardPadding", xaml, StringComparison.Ordinal);
             Assert.Contains("FontScale", xaml, StringComparison.Ordinal);
+            Assert.Contains("HeadingFontScale", xaml, StringComparison.Ordinal);
+            Assert.Contains("DisabledOpacity", xaml, StringComparison.Ordinal);
             Assert.Contains("ControlHeight", xaml, StringComparison.Ordinal);
             Assert.Contains("DataGridRowHeight", xaml, StringComparison.Ordinal);
             Assert.Contains("DataGridHeaderHeight", xaml, StringComparison.Ordinal);

@@ -68,6 +68,23 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("VerticalGridLinesBrush\" Value=\"{DynamicResource ThemeGridLineBrush}\"", hierarchy, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void ThemeResources_DefineAdminControlledTypographyAndOverlayTokens()
+        {
+            var customization = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.Customization.xaml");
+            var hierarchy = ReadRepositoryFile("InventoryManagementApp", "Resources", "PolishedVisualHierarchy.xaml");
+            var mainWindow = ReadRepositoryFile("InventoryManagementApp", "MainWindow.xaml");
+
+            Assert.Contains("ThemeFontFamily", customization, StringComparison.Ordinal);
+            Assert.Contains("ThemeHeadingFontScale", customization, StringComparison.Ordinal);
+            Assert.Contains("ThemeDisabledOpacity", customization, StringComparison.Ordinal);
+            Assert.Contains("ThemeAppBackgroundOverlayBrush", customization, StringComparison.Ordinal);
+            Assert.Contains("FontFamily\" Value=\"{DynamicResource ThemeFontFamily}\"", hierarchy, StringComparison.Ordinal);
+            Assert.Contains("ThemeDisabledOpacity", hierarchy, StringComparison.Ordinal);
+            Assert.Contains("FontFamily=\"{DynamicResource ThemeFontFamily}\"", mainWindow, StringComparison.Ordinal);
+            Assert.Contains("Background=\"{DynamicResource ThemeAppBackgroundOverlayBrush}\"", mainWindow, StringComparison.Ordinal);
+        }
+
         static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);

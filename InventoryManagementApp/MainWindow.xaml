@@ -5,7 +5,8 @@
         xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
         xmlns:pages="clr-namespace:InventoryManagementApp.Views.Pages"
         Title="{Binding WindowTitle}" Width="1280" Height="800" MinWidth="1040" MinHeight="620" WindowStartupLocation="CenterScreen"
-        Background="{DynamicResource BackgroundBrush}">
+        Background="{DynamicResource BackgroundBrush}"
+        FontFamily="{DynamicResource ThemeFontFamily}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -14,6 +15,10 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+
+        <Border Grid.RowSpan="5"
+                Background="{DynamicResource ThemeAppBackgroundOverlayBrush}"
+                IsHitTestVisible="False"/>
 
         <Border Grid.Row="0"
                 Background="{DynamicResource ThemeShellHeaderBrush}"
