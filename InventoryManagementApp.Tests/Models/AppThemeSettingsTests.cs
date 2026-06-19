@@ -22,7 +22,12 @@ namespace InventoryManagementApp.Tests.Models
                 ButtonCornerRadius = 99,
                 ShadowDepth = -5,
                 ShadowOpacity = 5,
-                PagePadding = 100
+                PagePadding = 100,
+                NavigationOpacity = 4,
+                FontScale = 3,
+                ControlHeight = 99,
+                DataGridRowHeight = 2,
+                DataGridHeaderHeight = 99
             };
 
             settings.Normalize();
@@ -36,6 +41,11 @@ namespace InventoryManagementApp.Tests.Models
             Assert.Equal(0, settings.ShadowDepth);
             Assert.Equal(1, settings.ShadowOpacity);
             Assert.Equal(28, settings.PagePadding);
+            Assert.Equal(1, settings.NavigationOpacity);
+            Assert.Equal(1.4, settings.FontScale);
+            Assert.Equal(44, settings.ControlHeight);
+            Assert.Equal(22, settings.DataGridRowHeight);
+            Assert.Equal(56, settings.DataGridHeaderHeight);
         }
 
         [Fact]
@@ -54,6 +64,8 @@ namespace InventoryManagementApp.Tests.Models
             var settings = AppThemeSettings.CreateDefault("Dark");
             settings.ButtonCornerRadius = 18;
             settings.BordersVisible = false;
+            settings.FontScale = 1.15;
+            settings.DataGridRowHeight = 38;
 
             await service.SaveAppThemeSettingsAsync(settings);
             var loaded = await service.GetAppThemeSettingsAsync();
@@ -61,6 +73,8 @@ namespace InventoryManagementApp.Tests.Models
             Assert.Equal("Dark", loaded.BaseTheme);
             Assert.Equal(18, loaded.ButtonCornerRadius);
             Assert.False(loaded.BordersVisible);
+            Assert.Equal(1.15, loaded.FontScale);
+            Assert.Equal(38, loaded.DataGridRowHeight);
         }
 
         private sealed class FakeSettingsService : ISettingsService
