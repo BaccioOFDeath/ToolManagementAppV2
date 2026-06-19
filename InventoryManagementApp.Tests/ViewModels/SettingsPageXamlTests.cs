@@ -62,6 +62,11 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("SuccessColor", xaml, StringComparison.Ordinal);
             Assert.Contains("WarningColor", xaml, StringComparison.Ordinal);
             Assert.Contains("ErrorColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("NavigationColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("InputColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("ButtonColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("BorderColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("ShadowColor", xaml, StringComparison.Ordinal);
             Assert.Contains("SurfaceAltOpacity", xaml, StringComparison.Ordinal);
             Assert.Contains("NavigationOpacity", xaml, StringComparison.Ordinal);
             Assert.Contains("PanelCornerRadius", xaml, StringComparison.Ordinal);
@@ -71,6 +76,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("BorderOpacity", xaml, StringComparison.Ordinal);
             Assert.Contains("ShadowBlurRadius", xaml, StringComparison.Ordinal);
             Assert.Contains("ShadowDepth", xaml, StringComparison.Ordinal);
+            Assert.Contains("ShadowDirection", xaml, StringComparison.Ordinal);
             Assert.Contains("PagePadding", xaml, StringComparison.Ordinal);
             Assert.Contains("CardPadding", xaml, StringComparison.Ordinal);
             Assert.Contains("FontScale", xaml, StringComparison.Ordinal);
