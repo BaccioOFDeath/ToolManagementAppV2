@@ -277,6 +277,24 @@ namespace InventoryManagementApp.ViewModels
             set => SetDouble(value, (settings, newValue) => settings.BorderOpacity = newValue, nameof(BorderOpacity));
         }
 
+        public double BorderThickness
+        {
+            get => _settings.BorderThickness;
+            set => SetDouble(value, (settings, newValue) => settings.BorderThickness = newValue, nameof(BorderThickness));
+        }
+
+        public double ControlBorderThickness
+        {
+            get => _settings.ControlBorderThickness;
+            set => SetDouble(value, (settings, newValue) => settings.ControlBorderThickness = newValue, nameof(ControlBorderThickness));
+        }
+
+        public double DividerOpacity
+        {
+            get => _settings.DividerOpacity;
+            set => SetDouble(value, (settings, newValue) => settings.DividerOpacity = newValue, nameof(DividerOpacity));
+        }
+
         public double CardCornerRadius
         {
             get => _settings.CardCornerRadius;
@@ -323,6 +341,18 @@ namespace InventoryManagementApp.ViewModels
         {
             get => _settings.ShadowDirection;
             set => SetDouble(value, (settings, newValue) => settings.ShadowDirection = newValue, nameof(ShadowDirection));
+        }
+
+        public double SurfaceShadowScale
+        {
+            get => _settings.SurfaceShadowScale;
+            set => SetDouble(value, (settings, newValue) => settings.SurfaceShadowScale = newValue, nameof(SurfaceShadowScale));
+        }
+
+        public double ControlShadowScale
+        {
+            get => _settings.ControlShadowScale;
+            set => SetDouble(value, (settings, newValue) => settings.ControlShadowScale = newValue, nameof(ControlShadowScale));
         }
 
         public double PagePadding
@@ -466,6 +496,9 @@ namespace InventoryManagementApp.ViewModels
             FontFamily = "Segoe UI";
             BordersVisible = true;
             BorderOpacity = 0.42;
+            BorderThickness = 1;
+            ControlBorderThickness = 1;
+            DividerOpacity = 0.6;
             EnableSurfaceShadows = true;
             EnableControlShadows = true;
             CardCornerRadius = 14;
@@ -476,6 +509,8 @@ namespace InventoryManagementApp.ViewModels
             ShadowDepth = 4;
             ShadowOpacity = 0.24;
             ShadowDirection = 270;
+            SurfaceShadowScale = 1.2;
+            ControlShadowScale = 0.85;
             FontScale = 1.02;
             HeadingFontScale = 1.06;
             ControlHeight = 30;
@@ -494,6 +529,9 @@ namespace InventoryManagementApp.ViewModels
             UseGlassSurfaces = false;
             BordersVisible = false;
             BorderOpacity = 0;
+            BorderThickness = 0;
+            ControlBorderThickness = 0;
+            DividerOpacity = 0;
             CardCornerRadius = 0;
             PanelCornerRadius = 0;
             ButtonCornerRadius = 0;
@@ -502,6 +540,8 @@ namespace InventoryManagementApp.ViewModels
             ShadowDepth = 0;
             ShadowOpacity = 0;
             ShadowDirection = 270;
+            SurfaceShadowScale = 0;
+            ControlShadowScale = 0;
             HeaderOpacity = 0.96;
             MenuOpacity = 0.92;
             FooterOpacity = 0.9;
@@ -561,8 +601,13 @@ namespace InventoryManagementApp.ViewModels
             _settings.DataGridHeaderHeight = 36;
             _settings.BordersVisible = true;
             _settings.BorderOpacity = 1;
+            _settings.BorderThickness = 2;
+            _settings.ControlBorderThickness = 2;
+            _settings.DividerOpacity = 1;
             _settings.EnableSurfaceShadows = false;
             _settings.EnableControlShadows = false;
+            _settings.SurfaceShadowScale = 0;
+            _settings.ControlShadowScale = 0;
             _settings.ShadowDirection = 270;
             _settings.InteractionIntensity = 1.45;
             _settings.FocusRingOpacity = 1;
@@ -647,6 +692,9 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(EnableSurfaceShadows));
             OnPropertyChanged(nameof(EnableControlShadows));
             OnPropertyChanged(nameof(BorderOpacity));
+            OnPropertyChanged(nameof(BorderThickness));
+            OnPropertyChanged(nameof(ControlBorderThickness));
+            OnPropertyChanged(nameof(DividerOpacity));
             OnPropertyChanged(nameof(CardCornerRadius));
             OnPropertyChanged(nameof(PanelCornerRadius));
             OnPropertyChanged(nameof(ButtonCornerRadius));
@@ -655,6 +703,8 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(ShadowDepth));
             OnPropertyChanged(nameof(ShadowOpacity));
             OnPropertyChanged(nameof(ShadowDirection));
+            OnPropertyChanged(nameof(SurfaceShadowScale));
+            OnPropertyChanged(nameof(ControlShadowScale));
             OnPropertyChanged(nameof(PagePadding));
             OnPropertyChanged(nameof(CardPadding));
             OnPropertyChanged(nameof(FontScale));
