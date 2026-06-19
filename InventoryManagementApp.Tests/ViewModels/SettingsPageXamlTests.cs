@@ -132,7 +132,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("TargetType=\"Slider\"", controlOverrides, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"ProgressBar\"", controlOverrides, StringComparison.Ordinal);
             Assert.Contains("ThemeControlBorderThickness", controlOverrides, StringComparison.Ordinal);
-            Assert.Contains("ThemeButtonCornerRadius", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("ThemeControlMinHeight", controlOverrides, StringComparison.Ordinal);
             Assert.Contains("ThemeControlShadow", controlOverrides, StringComparison.Ordinal);
             Assert.Contains("ThemeDisabledOpacity", controlOverrides, StringComparison.Ordinal);
             Assert.Contains("GlassSurfaceBrush", controlOverrides, StringComparison.Ordinal);
