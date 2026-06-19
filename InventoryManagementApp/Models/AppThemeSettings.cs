@@ -27,6 +27,10 @@ namespace InventoryManagementApp.Models
         public double InputOpacity { get; set; } = 1.0;
         public double ButtonOpacity { get; set; } = 1.0;
         public double NavigationOpacity { get; set; } = 1.0;
+        public double HeaderOpacity { get; set; } = 1.0;
+        public double MenuOpacity { get; set; } = 1.0;
+        public double FooterOpacity { get; set; } = 1.0;
+        public double DialogOpacity { get; set; } = 1.0;
         public bool BordersVisible { get; set; } = true;
         public double BorderOpacity { get; set; } = 1.0;
         public double CardCornerRadius { get; set; } = 6.0;
@@ -48,6 +52,8 @@ namespace InventoryManagementApp.Models
         public double GridLineOpacity { get; set; } = 0.42;
         public double MotionIntensity { get; set; } = 1.0;
         public bool UseGlassSurfaces { get; set; }
+        public bool EnableSurfaceShadows { get; set; } = true;
+        public bool EnableControlShadows { get; set; }
 
         public static AppThemeSettings CreateDefault(string? baseTheme = null)
         {
@@ -103,6 +109,10 @@ namespace InventoryManagementApp.Models
             InputOpacity = Clamp01(InputOpacity);
             ButtonOpacity = Clamp01(ButtonOpacity);
             NavigationOpacity = Clamp01(NavigationOpacity);
+            HeaderOpacity = Clamp01(HeaderOpacity);
+            MenuOpacity = Clamp01(MenuOpacity);
+            FooterOpacity = Clamp01(FooterOpacity);
+            DialogOpacity = Clamp01(DialogOpacity);
             BorderOpacity = Clamp01(BorderOpacity);
             CardCornerRadius = Clamp(CardCornerRadius, 0, 32);
             PanelCornerRadius = Clamp(PanelCornerRadius, 0, 32);
