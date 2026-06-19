@@ -1,0 +1,47 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="ThemedWindowRoot" TargetType="Grid">
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="Margin" Value="{DynamicResource PagePadding}"/>
+    </Style>
+
+    <Style x:Key="ThemedWindowOverlay" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource ThemeAppBackgroundOverlayBrush}"/>
+        <Setter Property="IsHitTestVisible" Value="False"/>
+    </Style>
+
+    <Style x:Key="ThemedWindowHeader" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource ThemeShellHeaderBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,2"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource ThemePanelCornerRadius}"/>
+        <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
+        <Setter Property="Effect" Value="{DynamicResource ThemeRaisedShadow}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style x:Key="ThemedWindowPane" TargetType="Border" BasedOn="{StaticResource Card}">
+        <Setter Property="Background" Value="{DynamicResource ThemeDialogSurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource ThemeCardCornerRadius}"/>
+        <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
+        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+    </Style>
+
+    <Style x:Key="ThemedDocumentCanvasFrame" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource TextBoxBackgroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ThemeGridLineBrush}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeControlBorderThickness}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource ThemeInputCornerRadius}"/>
+        <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
+        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style x:Key="ThemedWindowFooter" TargetType="Border" BasedOn="{StaticResource DesktopStatusFooter}">
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource ThemeFooterCornerRadius}"/>
+        <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
+    </Style>
+</ResourceDictionary>
