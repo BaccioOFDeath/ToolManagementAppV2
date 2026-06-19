@@ -85,6 +85,30 @@ namespace InventoryManagementApp.ViewModels
             set => SetString(value, (settings, newValue) => settings.SurfaceAltColor = newValue, nameof(SurfaceAltColor));
         }
 
+        public string NavigationColor
+        {
+            get => _settings.NavigationColor;
+            set => SetString(value, (settings, newValue) => settings.NavigationColor = newValue, nameof(NavigationColor));
+        }
+
+        public string InputColor
+        {
+            get => _settings.InputColor;
+            set => SetString(value, (settings, newValue) => settings.InputColor = newValue, nameof(InputColor));
+        }
+
+        public string ButtonColor
+        {
+            get => _settings.ButtonColor;
+            set => SetString(value, (settings, newValue) => settings.ButtonColor = newValue, nameof(ButtonColor));
+        }
+
+        public string BorderColor
+        {
+            get => _settings.BorderColor;
+            set => SetString(value, (settings, newValue) => settings.BorderColor = newValue, nameof(BorderColor));
+        }
+
         public string TextColor
         {
             get => _settings.TextColor;
@@ -119,6 +143,12 @@ namespace InventoryManagementApp.ViewModels
         {
             get => _settings.ErrorColor;
             set => SetString(value, (settings, newValue) => settings.ErrorColor = newValue, nameof(ErrorColor));
+        }
+
+        public string ShadowColor
+        {
+            get => _settings.ShadowColor;
+            set => SetString(value, (settings, newValue) => settings.ShadowColor = newValue, nameof(ShadowColor));
         }
 
         public string BackgroundImagePath
@@ -227,6 +257,12 @@ namespace InventoryManagementApp.ViewModels
         {
             get => _settings.ShadowOpacity;
             set => SetDouble(value, (settings, newValue) => settings.ShadowOpacity = newValue, nameof(ShadowOpacity));
+        }
+
+        public double ShadowDirection
+        {
+            get => _settings.ShadowDirection;
+            set => SetDouble(value, (settings, newValue) => settings.ShadowDirection = newValue, nameof(ShadowDirection));
         }
 
         public double PagePadding
@@ -349,6 +385,11 @@ namespace InventoryManagementApp.ViewModels
             InputOpacity = 0.72;
             ButtonOpacity = 0.72;
             NavigationOpacity = 0.76;
+            NavigationColor = SurfaceAltColor;
+            InputColor = SurfaceColor;
+            ButtonColor = SurfaceAltColor;
+            BorderColor = AccentColor;
+            ShadowColor = "#88000000";
             BordersVisible = true;
             BorderOpacity = 0.42;
             CardCornerRadius = 14;
@@ -358,6 +399,7 @@ namespace InventoryManagementApp.ViewModels
             ShadowBlurRadius = 18;
             ShadowDepth = 4;
             ShadowOpacity = 0.24;
+            ShadowDirection = 270;
             FontScale = 1.02;
             ControlHeight = 30;
             DataGridRowHeight = 34;
@@ -382,7 +424,13 @@ namespace InventoryManagementApp.ViewModels
             ShadowBlurRadius = 0;
             ShadowDepth = 0;
             ShadowOpacity = 0;
+            ShadowDirection = 270;
             NavigationOpacity = 0.92;
+            NavigationColor = SurfaceColor;
+            InputColor = SurfaceColor;
+            ButtonColor = SurfaceAltColor;
+            BorderColor = SurfaceColor;
+            ShadowColor = "#00000000";
             ControlHeight = 26;
             DataGridRowHeight = 28;
             DataGridHeaderHeight = 28;
@@ -399,18 +447,24 @@ namespace InventoryManagementApp.ViewModels
             _settings.BackgroundColor = "#FF000000";
             _settings.SurfaceColor = "#FF111111";
             _settings.SurfaceAltColor = "#FF1F1F1F";
+            _settings.NavigationColor = "#FF000000";
+            _settings.InputColor = "#FF000000";
+            _settings.ButtonColor = "#FF1F1F1F";
+            _settings.BorderColor = "#FFFFFF00";
             _settings.TextColor = "#FFFFFFFF";
             _settings.MutedTextColor = "#FFE5E7EB";
             _settings.AccentColor = "#FFFFFF00";
             _settings.SuccessColor = "#FF00FF66";
             _settings.WarningColor = "#FFFFFF00";
             _settings.ErrorColor = "#FFFF4D4D";
+            _settings.ShadowColor = "#FFFFFFFF";
             _settings.NavigationOpacity = 1;
             _settings.ControlHeight = 32;
             _settings.DataGridRowHeight = 36;
             _settings.DataGridHeaderHeight = 36;
             _settings.BordersVisible = true;
             _settings.BorderOpacity = 1;
+            _settings.ShadowDirection = 270;
             _settings.InteractionIntensity = 1.45;
             _settings.FocusRingOpacity = 1;
             _settings.GridLineOpacity = 0.85;
@@ -462,12 +516,17 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(BackgroundColor));
             OnPropertyChanged(nameof(SurfaceColor));
             OnPropertyChanged(nameof(SurfaceAltColor));
+            OnPropertyChanged(nameof(NavigationColor));
+            OnPropertyChanged(nameof(InputColor));
+            OnPropertyChanged(nameof(ButtonColor));
+            OnPropertyChanged(nameof(BorderColor));
             OnPropertyChanged(nameof(TextColor));
             OnPropertyChanged(nameof(MutedTextColor));
             OnPropertyChanged(nameof(AccentColor));
             OnPropertyChanged(nameof(SuccessColor));
             OnPropertyChanged(nameof(WarningColor));
             OnPropertyChanged(nameof(ErrorColor));
+            OnPropertyChanged(nameof(ShadowColor));
             OnPropertyChanged(nameof(BackgroundImagePath));
             OnPropertyChanged(nameof(BackgroundImageStretch));
             OnPropertyChanged(nameof(BackgroundOpacity));
@@ -486,6 +545,7 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(ShadowBlurRadius));
             OnPropertyChanged(nameof(ShadowDepth));
             OnPropertyChanged(nameof(ShadowOpacity));
+            OnPropertyChanged(nameof(ShadowDirection));
             OnPropertyChanged(nameof(PagePadding));
             OnPropertyChanged(nameof(CardPadding));
             OnPropertyChanged(nameof(FontScale));
