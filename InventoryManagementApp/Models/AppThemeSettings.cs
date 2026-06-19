@@ -15,6 +15,7 @@ namespace InventoryManagementApp.Models
         public string WarningColor { get; set; } = "#FFD97706";
         public string ErrorColor { get; set; } = "#FFDC2626";
         public string BackgroundImagePath { get; set; } = string.Empty;
+        public string BackgroundImageStretch { get; set; } = "UniformToFill";
         public double BackgroundOpacity { get; set; } = 1.0;
         public double SurfaceOpacity { get; set; } = 1.0;
         public double SurfaceAltOpacity { get; set; } = 1.0;
@@ -36,6 +37,10 @@ namespace InventoryManagementApp.Models
         public double ControlHeight { get; set; } = 28.0;
         public double DataGridRowHeight { get; set; } = 30.0;
         public double DataGridHeaderHeight { get; set; } = 30.0;
+        public double InteractionIntensity { get; set; } = 1.0;
+        public double FocusRingOpacity { get; set; } = 0.55;
+        public double GridLineOpacity { get; set; } = 0.42;
+        public double MotionIntensity { get; set; } = 1.0;
         public bool UseGlassSurfaces { get; set; }
 
         public static AppThemeSettings CreateDefault(string? baseTheme = null)
@@ -56,6 +61,7 @@ namespace InventoryManagementApp.Models
                 settings.WarningColor = "#FFFBBF24";
                 settings.ErrorColor = "#FFF87171";
                 settings.ShadowOpacity = 0.35;
+                settings.GridLineOpacity = 0.5;
             }
 
             return settings;
@@ -74,6 +80,7 @@ namespace InventoryManagementApp.Models
             SuccessColor = NormalizeColor(SuccessColor, defaults.SuccessColor);
             WarningColor = NormalizeColor(WarningColor, defaults.WarningColor);
             ErrorColor = NormalizeColor(ErrorColor, defaults.ErrorColor);
+            BackgroundImageStretch = NormalizeBackgroundStretch(BackgroundImageStretch);
             BackgroundOpacity = Clamp01(BackgroundOpacity);
             SurfaceOpacity = Clamp01(SurfaceOpacity);
             SurfaceAltOpacity = Clamp01(SurfaceAltOpacity);
@@ -94,10 +101,25 @@ namespace InventoryManagementApp.Models
             ControlHeight = Clamp(ControlHeight, 22, 44);
             DataGridRowHeight = Clamp(DataGridRowHeight, 22, 52);
             DataGridHeaderHeight = Clamp(DataGridHeaderHeight, 24, 56);
+            InteractionIntensity = Clamp(InteractionIntensity, 0, 2);
+            FocusRingOpacity = Clamp01(FocusRingOpacity);
+            GridLineOpacity = Clamp01(GridLineOpacity);
+            MotionIntensity = Clamp(MotionIntensity, 0, 2);
         }
 
         private static string NormalizeBaseTheme(string? value)
             => value?.IndexOf("Dark", StringComparison.OrdinalIgnoreCase) >= 0 ? "Dark" : "Light";
+
+        private static string NormalizeBackgroundStretch(string? value)
+        {
+            if (string.Equals(value, "None", StringComparison.OrdinalIgnoreCase))
+                return "None";
+            if (string.Equals(value, "Fill", StringComparison.OrdinalIgnoreCase))
+                return "Fill";
+            if (string.Equals(value, "Uniform", StringComparison.OrdinalIgnoreCase))
+                return "Uniform";
+            return "UniformToFill";
+        }
 
         private static double Clamp01(double value) => Clamp(value, 0, 1);
 
