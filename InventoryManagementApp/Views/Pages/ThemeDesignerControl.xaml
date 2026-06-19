@@ -30,9 +30,11 @@
                 <DockPanel LastChildFill="False">
                     <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
                         <TextBlock Text="App Theme Designer" Style="{StaticResource SubheadingTextBlock}"/>
-                        <TextBlock Text="Redesign the full app shell with colors, backgrounds, transparency, border width, divider strength, corners, spacing, typography, disabled states, table density, focus rings, interaction feedback, shadow color/direction, and separate surface/control shadow strength." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                        <TextBlock Text="Redesign the full app shell with colors, backgrounds, transparency, border width, divider strength, corners, spacing, typography, disabled states, table density, focus rings, interaction feedback, shadow color/direction, separate surface/control shadow strength, and portable theme profiles." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                     </StackPanel>
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Style="{StaticResource GhostButton}" Content="Import" Command="{Binding ImportThemeProfileCommand}" Margin="0,0,4,0"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Export" Command="{Binding ExportThemeProfileCommand}" Margin="0,0,4,0"/>
                         <Button Style="{StaticResource GhostButton}" Content="Glass" Command="{Binding GlassPresetCommand}" Margin="0,0,4,0"/>
                         <Button Style="{StaticResource GhostButton}" Content="Borderless" Command="{Binding BorderlessPresetCommand}" Margin="0,0,4,0"/>
                         <Button Style="{StaticResource GhostButton}" Content="High Contrast" Command="{Binding HighContrastPresetCommand}" Margin="0,0,4,0"/>
@@ -174,6 +176,17 @@
                             </StackPanel>
                         </Border>
 
+                        <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="Theme profile backup" Style="{StaticResource PageTitleTextBlock}" Margin="0,0,0,4"/>
+                                <TextBlock Text="Export a JSON theme profile before experimenting, or import a profile from another workstation. Imported profiles preview immediately; choose Save Theme to make one permanent." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Style="{StaticResource GhostButton}" Content="Import Profile" Command="{Binding ImportThemeProfileCommand}" Margin="0,0,6,0"/>
+                                    <Button Style="{StaticResource GhostButton}" Content="Export Profile" Command="{Binding ExportThemeProfileCommand}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
                         <Border Style="{StaticResource DesktopInsetCard}">
                             <StackPanel>
                                 <TextBlock Text="Theme pages" Style="{StaticResource PageTitleTextBlock}" Margin="0,0,0,4"/>
@@ -184,7 +197,9 @@
                                 <TextBlock Text="03 Shape and depth" Style="{StaticResource LabelTextBlock}"/>
                                 <TextBlock Text="Border removal, divider strength, corners, glass surfaces, and shadow depth." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,8"/>
                                 <TextBlock Text="04 Density and interaction" Style="{StaticResource LabelTextBlock}"/>
-                                <TextBlock Text="Spacing, typography scale, table density, focus rings, hover strength, grid lines, and motion." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                                <TextBlock Text="Spacing, typography scale, table density, focus rings, hover strength, grid lines, and motion." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                <TextBlock Text="Profiles" Style="{StaticResource LabelTextBlock}"/>
+                                <TextBlock Text="Portable JSON backups for full-app redesigns." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
