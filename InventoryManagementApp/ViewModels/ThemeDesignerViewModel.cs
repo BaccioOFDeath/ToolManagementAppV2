@@ -73,6 +73,12 @@ namespace InventoryManagementApp.ViewModels
             set => SetString(value, (settings, newValue) => settings.BackgroundColor = newValue, nameof(BackgroundColor));
         }
 
+        public string BackgroundOverlayColor
+        {
+            get => _settings.BackgroundOverlayColor;
+            set => SetString(value, (settings, newValue) => settings.BackgroundOverlayColor = newValue, nameof(BackgroundOverlayColor));
+        }
+
         public string SurfaceColor
         {
             get => _settings.SurfaceColor;
@@ -163,10 +169,22 @@ namespace InventoryManagementApp.ViewModels
             set => SetString(value, (settings, newValue) => settings.BackgroundImageStretch = newValue, nameof(BackgroundImageStretch));
         }
 
+        public string FontFamily
+        {
+            get => _settings.FontFamily;
+            set => SetString(value, (settings, newValue) => settings.FontFamily = newValue, nameof(FontFamily));
+        }
+
         public double BackgroundOpacity
         {
             get => _settings.BackgroundOpacity;
             set => SetDouble(value, (settings, newValue) => settings.BackgroundOpacity = newValue, nameof(BackgroundOpacity));
+        }
+
+        public double BackgroundOverlayOpacity
+        {
+            get => _settings.BackgroundOverlayOpacity;
+            set => SetDouble(value, (settings, newValue) => settings.BackgroundOverlayOpacity = newValue, nameof(BackgroundOverlayOpacity));
         }
 
         public double SurfaceOpacity
@@ -221,6 +239,12 @@ namespace InventoryManagementApp.ViewModels
         {
             get => _settings.DialogOpacity;
             set => SetDouble(value, (settings, newValue) => settings.DialogOpacity = newValue, nameof(DialogOpacity));
+        }
+
+        public double DisabledOpacity
+        {
+            get => _settings.DisabledOpacity;
+            set => SetDouble(value, (settings, newValue) => settings.DisabledOpacity = newValue, nameof(DisabledOpacity));
         }
 
         public bool BordersVisible
@@ -317,6 +341,12 @@ namespace InventoryManagementApp.ViewModels
         {
             get => _settings.FontScale;
             set => SetDouble(value, (settings, newValue) => settings.FontScale = newValue, nameof(FontScale));
+        }
+
+        public double HeadingFontScale
+        {
+            get => _settings.HeadingFontScale;
+            set => SetDouble(value, (settings, newValue) => settings.HeadingFontScale = newValue, nameof(HeadingFontScale));
         }
 
         public double ControlHeight
@@ -425,11 +455,15 @@ namespace InventoryManagementApp.ViewModels
             MenuOpacity = 0.62;
             FooterOpacity = 0.58;
             DialogOpacity = 0.82;
+            DisabledOpacity = 0.48;
+            BackgroundOverlayColor = "#FFFFFFFF";
+            BackgroundOverlayOpacity = 0.16;
             NavigationColor = SurfaceAltColor;
             InputColor = SurfaceColor;
             ButtonColor = SurfaceAltColor;
             BorderColor = AccentColor;
             ShadowColor = "#88000000";
+            FontFamily = "Segoe UI";
             BordersVisible = true;
             BorderOpacity = 0.42;
             EnableSurfaceShadows = true;
@@ -443,6 +477,7 @@ namespace InventoryManagementApp.ViewModels
             ShadowOpacity = 0.24;
             ShadowDirection = 270;
             FontScale = 1.02;
+            HeadingFontScale = 1.06;
             ControlHeight = 30;
             DataGridRowHeight = 34;
             DataGridHeaderHeight = 34;
@@ -471,6 +506,8 @@ namespace InventoryManagementApp.ViewModels
             MenuOpacity = 0.92;
             FooterOpacity = 0.9;
             DialogOpacity = 0.98;
+            DisabledOpacity = 0.42;
+            BackgroundOverlayOpacity = 0;
             EnableSurfaceShadows = false;
             EnableControlShadows = false;
             NavigationOpacity = 0.92;
@@ -479,6 +516,8 @@ namespace InventoryManagementApp.ViewModels
             ButtonColor = SurfaceAltColor;
             BorderColor = SurfaceColor;
             ShadowColor = "#00000000";
+            FontFamily = "Segoe UI";
+            HeadingFontScale = 0.96;
             ControlHeight = 26;
             DataGridRowHeight = 28;
             DataGridHeaderHeight = 28;
@@ -493,6 +532,8 @@ namespace InventoryManagementApp.ViewModels
         {
             _settings = AppThemeSettings.CreateDefault("Dark");
             _settings.BackgroundColor = "#FF000000";
+            _settings.BackgroundOverlayColor = "#FF000000";
+            _settings.BackgroundOverlayOpacity = 0.2;
             _settings.SurfaceColor = "#FF111111";
             _settings.SurfaceAltColor = "#FF1F1F1F";
             _settings.NavigationColor = "#FF000000";
@@ -506,11 +547,15 @@ namespace InventoryManagementApp.ViewModels
             _settings.WarningColor = "#FFFFFF00";
             _settings.ErrorColor = "#FFFF4D4D";
             _settings.ShadowColor = "#FFFFFFFF";
+            _settings.FontFamily = "Segoe UI";
             _settings.NavigationOpacity = 1;
             _settings.HeaderOpacity = 1;
             _settings.MenuOpacity = 1;
             _settings.FooterOpacity = 1;
             _settings.DialogOpacity = 1;
+            _settings.DisabledOpacity = 0.72;
+            _settings.FontScale = 1.08;
+            _settings.HeadingFontScale = 1.12;
             _settings.ControlHeight = 32;
             _settings.DataGridRowHeight = 36;
             _settings.DataGridHeaderHeight = 36;
@@ -568,6 +613,7 @@ namespace InventoryManagementApp.ViewModels
         {
             OnPropertyChanged(nameof(BaseTheme));
             OnPropertyChanged(nameof(BackgroundColor));
+            OnPropertyChanged(nameof(BackgroundOverlayColor));
             OnPropertyChanged(nameof(SurfaceColor));
             OnPropertyChanged(nameof(SurfaceAltColor));
             OnPropertyChanged(nameof(NavigationColor));
@@ -583,7 +629,9 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(ShadowColor));
             OnPropertyChanged(nameof(BackgroundImagePath));
             OnPropertyChanged(nameof(BackgroundImageStretch));
+            OnPropertyChanged(nameof(FontFamily));
             OnPropertyChanged(nameof(BackgroundOpacity));
+            OnPropertyChanged(nameof(BackgroundOverlayOpacity));
             OnPropertyChanged(nameof(SurfaceOpacity));
             OnPropertyChanged(nameof(SurfaceAltOpacity));
             OnPropertyChanged(nameof(InputOpacity));
@@ -593,6 +641,7 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(MenuOpacity));
             OnPropertyChanged(nameof(FooterOpacity));
             OnPropertyChanged(nameof(DialogOpacity));
+            OnPropertyChanged(nameof(DisabledOpacity));
             OnPropertyChanged(nameof(BordersVisible));
             OnPropertyChanged(nameof(UseGlassSurfaces));
             OnPropertyChanged(nameof(EnableSurfaceShadows));
@@ -609,6 +658,7 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(PagePadding));
             OnPropertyChanged(nameof(CardPadding));
             OnPropertyChanged(nameof(FontScale));
+            OnPropertyChanged(nameof(HeadingFontScale));
             OnPropertyChanged(nameof(ControlHeight));
             OnPropertyChanged(nameof(DataGridRowHeight));
             OnPropertyChanged(nameof(DataGridHeaderHeight));
