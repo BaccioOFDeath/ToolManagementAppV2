@@ -95,4 +95,15 @@
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeControlBorderThickness}"/>
         <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
     </Style>
+
+    <Style TargetType="ContextMenu">
+        <Setter Property="Background" Value="{DynamicResource ThemePopupSurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeControlBorderThickness}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+        <Setter Property="Padding" Value="4"/>
+        <Setter Property="Effect" Value="{DynamicResource ThemeRaisedShadow}"/>
+    </Style>
 </ResourceDictionary>
