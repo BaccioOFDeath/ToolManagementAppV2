@@ -18,12 +18,18 @@ namespace InventoryManagementApp.Tests.Models
                 BaseTheme = "Unexpected",
                 BackgroundColor = "123456",
                 SurfaceColor = "bad",
+                NavigationColor = "445566",
+                InputColor = "not-a-color",
+                ButtonColor = "778899",
+                BorderColor = "abcdef",
+                ShadowColor = "112233",
                 BackgroundImageStretch = "Tile",
                 BackgroundOpacity = 2,
                 SurfaceOpacity = -1,
                 ButtonCornerRadius = 99,
                 ShadowDepth = -5,
                 ShadowOpacity = 5,
+                ShadowDirection = 999,
                 PagePadding = 100,
                 NavigationOpacity = 4,
                 FontScale = 3,
@@ -41,12 +47,18 @@ namespace InventoryManagementApp.Tests.Models
             Assert.Equal("Light", settings.BaseTheme);
             Assert.Equal("#123456", settings.BackgroundColor);
             Assert.Equal(AppThemeSettings.CreateDefault("Light").SurfaceColor, settings.SurfaceColor);
+            Assert.Equal("#445566", settings.NavigationColor);
+            Assert.Equal(AppThemeSettings.CreateDefault("Light").InputColor, settings.InputColor);
+            Assert.Equal("#778899", settings.ButtonColor);
+            Assert.Equal("#ABCDEF", settings.BorderColor);
+            Assert.Equal("#112233", settings.ShadowColor);
             Assert.Equal("UniformToFill", settings.BackgroundImageStretch);
             Assert.Equal(1, settings.BackgroundOpacity);
             Assert.Equal(0, settings.SurfaceOpacity);
             Assert.Equal(32, settings.ButtonCornerRadius);
             Assert.Equal(0, settings.ShadowDepth);
             Assert.Equal(1, settings.ShadowOpacity);
+            Assert.Equal(360, settings.ShadowDirection);
             Assert.Equal(28, settings.PagePadding);
             Assert.Equal(1, settings.NavigationOpacity);
             Assert.Equal(1.4, settings.FontScale);
@@ -66,6 +78,10 @@ namespace InventoryManagementApp.Tests.Models
 
             Assert.Equal("Dark", settings.BaseTheme);
             Assert.Equal("#FF101418", settings.BackgroundColor);
+            Assert.Equal("#FF252D36", settings.NavigationColor);
+            Assert.Equal("#FF1B222A", settings.InputColor);
+            Assert.Equal("#FF252D36", settings.ButtonColor);
+            Assert.Equal("#FF60A5FA", settings.BorderColor);
         }
 
         [Theory]
@@ -87,6 +103,11 @@ namespace InventoryManagementApp.Tests.Models
         {
             ISettingsService service = new FakeSettingsService();
             var settings = AppThemeSettings.CreateDefault("Dark");
+            settings.NavigationColor = "#FF111111";
+            settings.InputColor = "#FF222222";
+            settings.ButtonColor = "#FF333333";
+            settings.BorderColor = "#FF444444";
+            settings.ShadowColor = "#AA000000";
             settings.ButtonCornerRadius = 18;
             settings.BordersVisible = false;
             settings.FontScale = 1.15;
@@ -96,11 +117,17 @@ namespace InventoryManagementApp.Tests.Models
             settings.FocusRingOpacity = 0.75;
             settings.GridLineOpacity = 0.2;
             settings.MotionIntensity = 0.35;
+            settings.ShadowDirection = 225;
 
             await service.SaveAppThemeSettingsAsync(settings);
             var loaded = await service.GetAppThemeSettingsAsync();
 
             Assert.Equal("Dark", loaded.BaseTheme);
+            Assert.Equal("#FF111111", loaded.NavigationColor);
+            Assert.Equal("#FF222222", loaded.InputColor);
+            Assert.Equal("#FF333333", loaded.ButtonColor);
+            Assert.Equal("#FF444444", loaded.BorderColor);
+            Assert.Equal("#AA000000", loaded.ShadowColor);
             Assert.Equal(18, loaded.ButtonCornerRadius);
             Assert.False(loaded.BordersVisible);
             Assert.Equal(1.15, loaded.FontScale);
@@ -110,6 +137,7 @@ namespace InventoryManagementApp.Tests.Models
             Assert.Equal(0.75, loaded.FocusRingOpacity);
             Assert.Equal(0.2, loaded.GridLineOpacity);
             Assert.Equal(0.35, loaded.MotionIntensity);
+            Assert.Equal(225, loaded.ShadowDirection);
         }
 
         private sealed class FakeSettingsService : ISettingsService
