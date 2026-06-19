@@ -10,16 +10,24 @@ public class AppThemeSettingsTests
         var settings = new AppThemeSettings
         {
             BackgroundOpacity = 1.5,
+            BackgroundOverlayOpacity = -0.25,
             SurfaceOpacity = -0.5,
             HeaderOpacity = 4,
             MenuOpacity = double.NaN,
             FooterOpacity = -2,
             DialogOpacity = 1.2,
+            DisabledOpacity = 9,
+            BorderThickness = 99,
+            ControlBorderThickness = -1,
+            DividerOpacity = double.PositiveInfinity,
             ShadowBlurRadius = 99,
             ShadowDepth = -4,
             ShadowOpacity = 2,
             ShadowDirection = 999,
+            SurfaceShadowScale = 99,
+            ControlShadowScale = -5,
             FontScale = 3,
+            HeadingFontScale = 9,
             ControlHeight = 2,
             DataGridRowHeight = 100,
             DataGridHeaderHeight = 1,
@@ -30,16 +38,24 @@ public class AppThemeSettingsTests
         settings.Normalize();
 
         Assert.Equal(1, settings.BackgroundOpacity);
+        Assert.Equal(0, settings.BackgroundOverlayOpacity);
         Assert.Equal(0, settings.SurfaceOpacity);
         Assert.Equal(1, settings.HeaderOpacity);
         Assert.Equal(0, settings.MenuOpacity);
         Assert.Equal(0, settings.FooterOpacity);
         Assert.Equal(1, settings.DialogOpacity);
+        Assert.Equal(1, settings.DisabledOpacity);
+        Assert.Equal(6, settings.BorderThickness);
+        Assert.Equal(0, settings.ControlBorderThickness);
+        Assert.Equal(0, settings.DividerOpacity);
         Assert.Equal(48, settings.ShadowBlurRadius);
         Assert.Equal(0, settings.ShadowDepth);
         Assert.Equal(1, settings.ShadowOpacity);
         Assert.Equal(360, settings.ShadowDirection);
+        Assert.Equal(3, settings.SurfaceShadowScale);
+        Assert.Equal(0, settings.ControlShadowScale);
         Assert.Equal(1.4, settings.FontScale);
+        Assert.Equal(1.6, settings.HeadingFontScale);
         Assert.Equal(22, settings.ControlHeight);
         Assert.Equal(52, settings.DataGridRowHeight);
         Assert.Equal(24, settings.DataGridHeaderHeight);
@@ -79,20 +95,40 @@ public class AppThemeSettingsTests
     public void JsonRoundTrip_PreservesExpandedThemeSettings()
     {
         var settings = AppThemeSettings.CreateDefault("Dark");
+        settings.BackgroundOverlayColor = "#AA112233";
+        settings.BackgroundOverlayOpacity = 0.17;
         settings.HeaderOpacity = 0.42;
         settings.MenuOpacity = 0.37;
         settings.FooterOpacity = 0.31;
         settings.DialogOpacity = 0.88;
+        settings.DisabledOpacity = 0.63;
+        settings.BorderThickness = 3.5;
+        settings.ControlBorderThickness = 2.5;
+        settings.DividerOpacity = 0.44;
+        settings.SurfaceShadowScale = 1.8;
+        settings.ControlShadowScale = 0.7;
+        settings.FontFamily = "Aptos";
+        settings.HeadingFontScale = 1.2;
         settings.EnableSurfaceShadows = false;
         settings.EnableControlShadows = true;
 
         var json = JsonSerializer.Serialize(settings);
         var roundTripped = JsonSerializer.Deserialize<AppThemeSettings>(json)!;
 
+        Assert.Equal("#AA112233", roundTripped.BackgroundOverlayColor);
+        Assert.Equal(0.17, roundTripped.BackgroundOverlayOpacity);
         Assert.Equal(0.42, roundTripped.HeaderOpacity);
         Assert.Equal(0.37, roundTripped.MenuOpacity);
         Assert.Equal(0.31, roundTripped.FooterOpacity);
         Assert.Equal(0.88, roundTripped.DialogOpacity);
+        Assert.Equal(0.63, roundTripped.DisabledOpacity);
+        Assert.Equal(3.5, roundTripped.BorderThickness);
+        Assert.Equal(2.5, roundTripped.ControlBorderThickness);
+        Assert.Equal(0.44, roundTripped.DividerOpacity);
+        Assert.Equal(1.8, roundTripped.SurfaceShadowScale);
+        Assert.Equal(0.7, roundTripped.ControlShadowScale);
+        Assert.Equal("Aptos", roundTripped.FontFamily);
+        Assert.Equal(1.2, roundTripped.HeadingFontScale);
         Assert.False(roundTripped.EnableSurfaceShadows);
         Assert.True(roundTripped.EnableControlShadows);
     }
