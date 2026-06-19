@@ -155,6 +155,12 @@ namespace InventoryManagementApp.ViewModels
             set => SetDouble(value, (settings, newValue) => settings.ButtonOpacity = newValue, nameof(ButtonOpacity));
         }
 
+        public double NavigationOpacity
+        {
+            get => _settings.NavigationOpacity;
+            set => SetDouble(value, (settings, newValue) => settings.NavigationOpacity = newValue, nameof(NavigationOpacity));
+        }
+
         public bool BordersVisible
         {
             get => _settings.BordersVisible;
@@ -227,6 +233,30 @@ namespace InventoryManagementApp.ViewModels
             set => SetDouble(value, (settings, newValue) => settings.CardPadding = newValue, nameof(CardPadding));
         }
 
+        public double FontScale
+        {
+            get => _settings.FontScale;
+            set => SetDouble(value, (settings, newValue) => settings.FontScale = newValue, nameof(FontScale));
+        }
+
+        public double ControlHeight
+        {
+            get => _settings.ControlHeight;
+            set => SetDouble(value, (settings, newValue) => settings.ControlHeight = newValue, nameof(ControlHeight));
+        }
+
+        public double DataGridRowHeight
+        {
+            get => _settings.DataGridRowHeight;
+            set => SetDouble(value, (settings, newValue) => settings.DataGridRowHeight = newValue, nameof(DataGridRowHeight));
+        }
+
+        public double DataGridHeaderHeight
+        {
+            get => _settings.DataGridHeaderHeight;
+            set => SetDouble(value, (settings, newValue) => settings.DataGridHeaderHeight = newValue, nameof(DataGridHeaderHeight));
+        }
+
         public async Task InitializeAsync(CancellationToken token = default)
         {
             try
@@ -286,6 +316,7 @@ namespace InventoryManagementApp.ViewModels
             SurfaceAltOpacity = 0.58;
             InputOpacity = 0.72;
             ButtonOpacity = 0.72;
+            NavigationOpacity = 0.76;
             BordersVisible = true;
             BorderOpacity = 0.42;
             CardCornerRadius = 14;
@@ -295,6 +326,10 @@ namespace InventoryManagementApp.ViewModels
             ShadowBlurRadius = 18;
             ShadowDepth = 4;
             ShadowOpacity = 0.24;
+            FontScale = 1.02;
+            ControlHeight = 30;
+            DataGridRowHeight = 34;
+            DataGridHeaderHeight = 34;
             Status = "Glass preset previewed. Save to keep it.";
         }
 
@@ -310,6 +345,10 @@ namespace InventoryManagementApp.ViewModels
             ShadowBlurRadius = 0;
             ShadowDepth = 0;
             ShadowOpacity = 0;
+            NavigationOpacity = 0.92;
+            ControlHeight = 26;
+            DataGridRowHeight = 28;
+            DataGridHeaderHeight = 28;
             Status = "Borderless preset previewed. Save to keep it.";
         }
 
@@ -325,6 +364,10 @@ namespace InventoryManagementApp.ViewModels
             _settings.SuccessColor = "#FF00FF66";
             _settings.WarningColor = "#FFFFFF00";
             _settings.ErrorColor = "#FFFF4D4D";
+            _settings.NavigationOpacity = 1;
+            _settings.ControlHeight = 32;
+            _settings.DataGridRowHeight = 36;
+            _settings.DataGridHeaderHeight = 36;
             _settings.BordersVisible = true;
             _settings.BorderOpacity = 1;
             Preview();
@@ -386,6 +429,7 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(SurfaceAltOpacity));
             OnPropertyChanged(nameof(InputOpacity));
             OnPropertyChanged(nameof(ButtonOpacity));
+            OnPropertyChanged(nameof(NavigationOpacity));
             OnPropertyChanged(nameof(BordersVisible));
             OnPropertyChanged(nameof(UseGlassSurfaces));
             OnPropertyChanged(nameof(BorderOpacity));
@@ -398,6 +442,10 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(ShadowOpacity));
             OnPropertyChanged(nameof(PagePadding));
             OnPropertyChanged(nameof(CardPadding));
+            OnPropertyChanged(nameof(FontScale));
+            OnPropertyChanged(nameof(ControlHeight));
+            OnPropertyChanged(nameof(DataGridRowHeight));
+            OnPropertyChanged(nameof(DataGridHeaderHeight));
         }
     }
 }
