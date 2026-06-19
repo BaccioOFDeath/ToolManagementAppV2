@@ -30,10 +30,15 @@ namespace InventoryManagementApp.Tests.Models
                 BackgroundOverlayOpacity = 3,
                 SurfaceOpacity = -1,
                 DisabledOpacity = 0,
+                BorderThickness = 99,
+                ControlBorderThickness = -2,
+                DividerOpacity = 4,
                 ButtonCornerRadius = 99,
                 ShadowDepth = -5,
                 ShadowOpacity = 5,
                 ShadowDirection = 999,
+                SurfaceShadowScale = 8,
+                ControlShadowScale = double.NaN,
                 PagePadding = 100,
                 NavigationOpacity = 4,
                 FontScale = 3,
@@ -64,10 +69,15 @@ namespace InventoryManagementApp.Tests.Models
             Assert.Equal(1, settings.BackgroundOverlayOpacity);
             Assert.Equal(0, settings.SurfaceOpacity);
             Assert.Equal(0.15, settings.DisabledOpacity);
+            Assert.Equal(6, settings.BorderThickness);
+            Assert.Equal(0, settings.ControlBorderThickness);
+            Assert.Equal(1, settings.DividerOpacity);
             Assert.Equal(32, settings.ButtonCornerRadius);
             Assert.Equal(0, settings.ShadowDepth);
             Assert.Equal(1, settings.ShadowOpacity);
             Assert.Equal(360, settings.ShadowDirection);
+            Assert.Equal(3, settings.SurfaceShadowScale);
+            Assert.Equal(0, settings.ControlShadowScale);
             Assert.Equal(28, settings.PagePadding);
             Assert.Equal(1, settings.NavigationOpacity);
             Assert.Equal(1.4, settings.FontScale);
@@ -124,6 +134,9 @@ namespace InventoryManagementApp.Tests.Models
             settings.FontFamily = "Aptos";
             settings.ButtonCornerRadius = 18;
             settings.BordersVisible = false;
+            settings.BorderThickness = 2.5;
+            settings.ControlBorderThickness = 1.5;
+            settings.DividerOpacity = 0.36;
             settings.DisabledOpacity = 0.34;
             settings.FontScale = 1.15;
             settings.HeadingFontScale = 1.2;
@@ -134,6 +147,8 @@ namespace InventoryManagementApp.Tests.Models
             settings.GridLineOpacity = 0.2;
             settings.MotionIntensity = 0.35;
             settings.ShadowDirection = 225;
+            settings.SurfaceShadowScale = 1.7;
+            settings.ControlShadowScale = 0.65;
 
             await service.SaveAppThemeSettingsAsync(settings);
             var loaded = await service.GetAppThemeSettingsAsync();
@@ -149,6 +164,9 @@ namespace InventoryManagementApp.Tests.Models
             Assert.Equal("Aptos", loaded.FontFamily);
             Assert.Equal(18, loaded.ButtonCornerRadius);
             Assert.False(loaded.BordersVisible);
+            Assert.Equal(2.5, loaded.BorderThickness);
+            Assert.Equal(1.5, loaded.ControlBorderThickness);
+            Assert.Equal(0.36, loaded.DividerOpacity);
             Assert.Equal(0.34, loaded.DisabledOpacity);
             Assert.Equal(1.15, loaded.FontScale);
             Assert.Equal(1.2, loaded.HeadingFontScale);
@@ -159,6 +177,8 @@ namespace InventoryManagementApp.Tests.Models
             Assert.Equal(0.2, loaded.GridLineOpacity);
             Assert.Equal(0.35, loaded.MotionIntensity);
             Assert.Equal(225, loaded.ShadowDirection);
+            Assert.Equal(1.7, loaded.SurfaceShadowScale);
+            Assert.Equal(0.65, loaded.ControlShadowScale);
         }
 
         private sealed class FakeSettingsService : ISettingsService
