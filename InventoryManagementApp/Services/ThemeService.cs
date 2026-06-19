@@ -89,10 +89,11 @@ namespace InventoryManagementApp.Services
                 var pressedOpacity = Math.Clamp(0.18 + (settings.InteractionIntensity * 0.12), 0, 0.48);
                 var bodyFontSize = Math.Round(13 * settings.FontScale, 1);
                 var captionFontSize = Math.Round(11 * settings.FontScale, 1);
-                var sectionFontSize = Math.Round(14 * settings.FontScale, 1);
-                var titleFontSize = Math.Round(18 * settings.FontScale, 1);
+                var sectionFontSize = Math.Round(14 * settings.FontScale * settings.HeadingFontScale, 1);
+                var titleFontSize = Math.Round(18 * settings.FontScale * settings.HeadingFontScale, 1);
 
                 Set(resources, "BackgroundBrush", CreateBackgroundBrush(settings));
+                Set(resources, "ThemeAppBackgroundOverlayBrush", CreateBrush(settings.BackgroundOverlayColor, settings.BackgroundOverlayOpacity));
                 Set(resources, "SurfaceBrush", surfaceBrush);
                 Set(resources, "SurfaceAltBrush", surfaceAltBrush);
                 Set(resources, "NavigationSurfaceBrush", navigationBrush);
@@ -145,11 +146,14 @@ namespace InventoryManagementApp.Services
                 Set(resources, "RadiusLarge", new CornerRadius(settings.CardCornerRadius));
                 Set(resources, "PagePadding", new Thickness(settings.PagePadding));
                 Set(resources, "CardPadding", new Thickness(settings.CardPadding));
+                Set(resources, "ThemeFontFamily", new FontFamily(settings.FontFamily));
                 Set(resources, "ThemeFontScale", settings.FontScale);
+                Set(resources, "ThemeHeadingFontScale", settings.HeadingFontScale);
                 Set(resources, "ThemeCaptionFontSize", captionFontSize);
                 Set(resources, "ThemeBodyFontSize", bodyFontSize);
                 Set(resources, "ThemeSectionFontSize", sectionFontSize);
                 Set(resources, "ThemeTitleFontSize", titleFontSize);
+                Set(resources, "ThemeDisabledOpacity", settings.DisabledOpacity);
                 Set(resources, "ThemeControlMinHeight", settings.ControlHeight);
                 Set(resources, "ThemeDataGridRowHeight", settings.DataGridRowHeight);
                 Set(resources, "ThemeDataGridHeaderHeight", settings.DataGridHeaderHeight);
