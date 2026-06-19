@@ -75,6 +75,36 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public async Task TransparentCanvasPreset_PreviewsBackgroundFirstRedesign()
+        {
+            var settingsService = new FakeSettingsService();
+            var themeService = new RecordingThemeService();
+            var viewModel = CreateViewModel(settingsService, themeService);
+            await viewModel.InitializeAsync();
+
+            viewModel.TransparentCanvasPresetCommand.Execute(null);
+
+            Assert.True(viewModel.UseGlassSurfaces);
+            Assert.False(viewModel.BordersVisible);
+            Assert.False(viewModel.EnableSurfaceShadows);
+            Assert.False(viewModel.EnableControlShadows);
+            Assert.Equal(0, viewModel.BackgroundOverlayOpacity);
+            Assert.Equal(0.18, viewModel.SurfaceOpacity);
+            Assert.Equal(0.12, viewModel.SurfaceAltOpacity);
+            Assert.Equal(0.24, viewModel.InputOpacity);
+            Assert.Equal(0.22, viewModel.ButtonOpacity);
+            Assert.Equal(0.18, viewModel.NavigationOpacity);
+            Assert.Equal(0.16, viewModel.HeaderOpacity);
+            Assert.Equal(0, viewModel.BorderThickness);
+            Assert.Equal(0, viewModel.ControlBorderThickness);
+            Assert.Equal(0, viewModel.ShadowDepth);
+            Assert.Equal(0.06, viewModel.GridLineOpacity);
+            Assert.NotNull(themeService.LastCustomTheme);
+            Assert.Equal(0.18, themeService.LastCustomTheme!.SurfaceOpacity);
+            Assert.Equal("Transparent canvas preset previewed. Save to keep it.", viewModel.Status);
+        }
+
+        [Fact]
         public async Task BorderlessPreset_PreviewsCompleteBorderAndShadowRemoval()
         {
             var settingsService = new FakeSettingsService();
@@ -98,6 +128,33 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.NotNull(themeService.LastCustomTheme);
             Assert.False(themeService.LastCustomTheme!.BordersVisible);
             Assert.Equal("Borderless preset previewed. Save to keep it.", viewModel.Status);
+        }
+
+        [Fact]
+        public async Task DeepShadowPreset_PreviewsRaisedSurfaceAndControlDepth()
+        {
+            var settingsService = new FakeSettingsService();
+            var themeService = new RecordingThemeService();
+            var viewModel = CreateViewModel(settingsService, themeService);
+            await viewModel.InitializeAsync();
+
+            viewModel.DeepShadowPresetCommand.Execute(null);
+
+            Assert.True(viewModel.BordersVisible);
+            Assert.True(viewModel.EnableSurfaceShadows);
+            Assert.True(viewModel.EnableControlShadows);
+            Assert.Equal(36, viewModel.ShadowBlurRadius);
+            Assert.Equal(12, viewModel.ShadowDepth);
+            Assert.Equal(0.45, viewModel.ShadowOpacity);
+            Assert.Equal(2.2, viewModel.SurfaceShadowScale);
+            Assert.Equal(1.6, viewModel.ControlShadowScale);
+            Assert.Equal(12, viewModel.CardCornerRadius);
+            Assert.Equal(8, viewModel.ButtonCornerRadius);
+            Assert.Equal(1.25, viewModel.InteractionIntensity);
+            Assert.NotNull(themeService.LastCustomTheme);
+            Assert.True(themeService.LastCustomTheme!.EnableControlShadows);
+            Assert.Equal(1.6, themeService.LastCustomTheme.ControlShadowScale);
+            Assert.Equal("Deep shadow preset previewed. Save to keep it.", viewModel.Status);
         }
 
         private static ThemeDesignerViewModel CreateViewModel(FakeSettingsService settingsService, RecordingThemeService themeService)
