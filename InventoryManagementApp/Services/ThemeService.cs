@@ -76,11 +76,14 @@ namespace InventoryManagementApp.Services
                 var borderThickness = settings.BordersVisible ? new Thickness(1) : new Thickness(0);
                 var subtleBorderThickness = settings.BordersVisible ? new Thickness(0, 0, 0, 1) : new Thickness(0);
                 var borderBrush = CreateBrush(settings.BorderColor, settings.BorderOpacity * 0.55);
-                var surfaceBrush = CreateBrush(settings.SurfaceColor, settings.UseGlassSurfaces ? Math.Min(settings.SurfaceOpacity, 0.72) : settings.SurfaceOpacity);
-                var surfaceAltBrush = CreateBrush(settings.SurfaceAltColor, settings.UseGlassSurfaces ? Math.Min(settings.SurfaceAltOpacity, 0.62) : settings.SurfaceAltOpacity);
+                var surfaceOpacity = settings.UseGlassSurfaces ? Math.Min(settings.SurfaceOpacity, 0.72) : settings.SurfaceOpacity;
+                var surfaceAltOpacity = settings.UseGlassSurfaces ? Math.Min(settings.SurfaceAltOpacity, 0.62) : settings.SurfaceAltOpacity;
+                var navigationOpacity = settings.UseGlassSurfaces ? Math.Min(settings.NavigationOpacity, 0.74) : settings.NavigationOpacity;
+                var surfaceBrush = CreateBrush(settings.SurfaceColor, surfaceOpacity);
+                var surfaceAltBrush = CreateBrush(settings.SurfaceAltColor, surfaceAltOpacity);
                 var inputBrush = CreateBrush(settings.InputColor, settings.InputOpacity);
                 var buttonBrush = CreateBrush(settings.ButtonColor, settings.ButtonOpacity);
-                var navigationBrush = CreateBrush(settings.NavigationColor, settings.UseGlassSurfaces ? Math.Min(settings.NavigationOpacity, 0.74) : settings.NavigationOpacity);
+                var navigationBrush = CreateBrush(settings.NavigationColor, navigationOpacity);
                 var hoverOpacity = Math.Clamp(0.08 + (settings.InteractionIntensity * 0.08), 0, 0.28);
                 var selectedOpacity = Math.Clamp(0.14 + (settings.InteractionIntensity * 0.13), 0, 0.42);
                 var pressedOpacity = Math.Clamp(0.18 + (settings.InteractionIntensity * 0.12), 0, 0.48);
@@ -93,7 +96,11 @@ namespace InventoryManagementApp.Services
                 Set(resources, "SurfaceBrush", surfaceBrush);
                 Set(resources, "SurfaceAltBrush", surfaceAltBrush);
                 Set(resources, "NavigationSurfaceBrush", navigationBrush);
-                Set(resources, "NavigationAltSurfaceBrush", CreateBrush(settings.NavigationColor, Math.Min(1, settings.NavigationOpacity * 0.9)));
+                Set(resources, "NavigationAltSurfaceBrush", CreateBrush(settings.NavigationColor, Math.Min(1, navigationOpacity * 0.9)));
+                Set(resources, "ThemeShellHeaderBrush", CreateBrush(settings.SurfaceColor, Math.Min(surfaceOpacity, settings.HeaderOpacity)));
+                Set(resources, "ThemeShellMenuBrush", CreateBrush(settings.NavigationColor, Math.Min(navigationOpacity, settings.MenuOpacity)));
+                Set(resources, "ThemeShellFooterBrush", CreateBrush(settings.SurfaceAltColor, Math.Min(surfaceAltOpacity, settings.FooterOpacity)));
+                Set(resources, "ThemeDialogSurfaceBrush", CreateBrush(settings.SurfaceColor, Math.Min(surfaceOpacity, settings.DialogOpacity)));
                 Set(resources, "GlassSurfaceBrush", CreateBrush(settings.SurfaceColor, Math.Min(settings.SurfaceOpacity, 0.78)));
                 Set(resources, "GlassSurfaceAltBrush", CreateBrush(settings.SurfaceAltColor, Math.Min(settings.SurfaceAltOpacity, 0.68)));
                 Set(resources, "TransparentSurfaceBrush", Brushes.Transparent);
@@ -150,11 +157,12 @@ namespace InventoryManagementApp.Services
                 Set(resources, "ThemeMotionIntensity", settings.MotionIntensity);
                 Set(resources, "ThemeShadowDirection", settings.ShadowDirection);
                 Set(resources, "ThemeShadowColorBrush", CreateBrush(settings.ShadowColor, settings.ShadowOpacity));
-                Set(resources, "ThemeSurfaceShadow", CreateShadow(settings));
-                Set(resources, "ThemeRaisedShadow", CreateShadow(settings, 1.55));
-                Set(resources, "ThemeDeepShadow", CreateShadow(settings, 2.35));
-                Set(resources, "SubtleSurfaceShadow", CreateShadow(settings));
-                Set(resources, "RaisedSurfaceShadow", CreateShadow(settings, 1.55));
+                Set(resources, "ThemeSurfaceShadow", settings.EnableSurfaceShadows ? CreateShadow(settings) : CreateNoShadow());
+                Set(resources, "ThemeRaisedShadow", settings.EnableSurfaceShadows ? CreateShadow(settings, 1.55) : CreateNoShadow());
+                Set(resources, "ThemeDeepShadow", settings.EnableSurfaceShadows ? CreateShadow(settings, 2.35) : CreateNoShadow());
+                Set(resources, "ThemeControlShadow", settings.EnableControlShadows ? CreateShadow(settings, 0.45) : CreateNoShadow());
+                Set(resources, "SubtleSurfaceShadow", settings.EnableSurfaceShadows ? CreateShadow(settings) : CreateNoShadow());
+                Set(resources, "RaisedSurfaceShadow", settings.EnableSurfaceShadows ? CreateShadow(settings, 1.55) : CreateNoShadow());
 
                 RefreshWindows(app);
             }
@@ -271,6 +279,22 @@ namespace InventoryManagementApp.Services
                 Direction = settings.ShadowDirection,
                 Opacity = Math.Clamp(settings.ShadowOpacity * multiplier, 0, 1),
                 Color = ParseColor(settings.ShadowColor)
+            };
+
+            if (effect.CanFreeze)
+                effect.Freeze();
+
+            return effect;
+        }
+
+        private static DropShadowEffect CreateNoShadow()
+        {
+            var effect = new DropShadowEffect
+            {
+                BlurRadius = 0,
+                ShadowDepth = 0,
+                Opacity = 0,
+                Color = Colors.Transparent
             };
 
             if (effect.CanFreeze)

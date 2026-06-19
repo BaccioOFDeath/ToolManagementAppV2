@@ -199,6 +199,30 @@ namespace InventoryManagementApp.ViewModels
             set => SetDouble(value, (settings, newValue) => settings.NavigationOpacity = newValue, nameof(NavigationOpacity));
         }
 
+        public double HeaderOpacity
+        {
+            get => _settings.HeaderOpacity;
+            set => SetDouble(value, (settings, newValue) => settings.HeaderOpacity = newValue, nameof(HeaderOpacity));
+        }
+
+        public double MenuOpacity
+        {
+            get => _settings.MenuOpacity;
+            set => SetDouble(value, (settings, newValue) => settings.MenuOpacity = newValue, nameof(MenuOpacity));
+        }
+
+        public double FooterOpacity
+        {
+            get => _settings.FooterOpacity;
+            set => SetDouble(value, (settings, newValue) => settings.FooterOpacity = newValue, nameof(FooterOpacity));
+        }
+
+        public double DialogOpacity
+        {
+            get => _settings.DialogOpacity;
+            set => SetDouble(value, (settings, newValue) => settings.DialogOpacity = newValue, nameof(DialogOpacity));
+        }
+
         public bool BordersVisible
         {
             get => _settings.BordersVisible;
@@ -209,6 +233,18 @@ namespace InventoryManagementApp.ViewModels
         {
             get => _settings.UseGlassSurfaces;
             set => SetBool(value, (settings, newValue) => settings.UseGlassSurfaces = newValue, nameof(UseGlassSurfaces));
+        }
+
+        public bool EnableSurfaceShadows
+        {
+            get => _settings.EnableSurfaceShadows;
+            set => SetBool(value, (settings, newValue) => settings.EnableSurfaceShadows = newValue, nameof(EnableSurfaceShadows));
+        }
+
+        public bool EnableControlShadows
+        {
+            get => _settings.EnableControlShadows;
+            set => SetBool(value, (settings, newValue) => settings.EnableControlShadows = newValue, nameof(EnableControlShadows));
         }
 
         public double BorderOpacity
@@ -385,6 +421,10 @@ namespace InventoryManagementApp.ViewModels
             InputOpacity = 0.72;
             ButtonOpacity = 0.72;
             NavigationOpacity = 0.76;
+            HeaderOpacity = 0.68;
+            MenuOpacity = 0.62;
+            FooterOpacity = 0.58;
+            DialogOpacity = 0.82;
             NavigationColor = SurfaceAltColor;
             InputColor = SurfaceColor;
             ButtonColor = SurfaceAltColor;
@@ -392,6 +432,8 @@ namespace InventoryManagementApp.ViewModels
             ShadowColor = "#88000000";
             BordersVisible = true;
             BorderOpacity = 0.42;
+            EnableSurfaceShadows = true;
+            EnableControlShadows = true;
             CardCornerRadius = 14;
             PanelCornerRadius = 12;
             ButtonCornerRadius = 12;
@@ -425,6 +467,12 @@ namespace InventoryManagementApp.ViewModels
             ShadowDepth = 0;
             ShadowOpacity = 0;
             ShadowDirection = 270;
+            HeaderOpacity = 0.96;
+            MenuOpacity = 0.92;
+            FooterOpacity = 0.9;
+            DialogOpacity = 0.98;
+            EnableSurfaceShadows = false;
+            EnableControlShadows = false;
             NavigationOpacity = 0.92;
             NavigationColor = SurfaceColor;
             InputColor = SurfaceColor;
@@ -459,11 +507,17 @@ namespace InventoryManagementApp.ViewModels
             _settings.ErrorColor = "#FFFF4D4D";
             _settings.ShadowColor = "#FFFFFFFF";
             _settings.NavigationOpacity = 1;
+            _settings.HeaderOpacity = 1;
+            _settings.MenuOpacity = 1;
+            _settings.FooterOpacity = 1;
+            _settings.DialogOpacity = 1;
             _settings.ControlHeight = 32;
             _settings.DataGridRowHeight = 36;
             _settings.DataGridHeaderHeight = 36;
             _settings.BordersVisible = true;
             _settings.BorderOpacity = 1;
+            _settings.EnableSurfaceShadows = false;
+            _settings.EnableControlShadows = false;
             _settings.ShadowDirection = 270;
             _settings.InteractionIntensity = 1.45;
             _settings.FocusRingOpacity = 1;
@@ -535,8 +589,14 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(InputOpacity));
             OnPropertyChanged(nameof(ButtonOpacity));
             OnPropertyChanged(nameof(NavigationOpacity));
+            OnPropertyChanged(nameof(HeaderOpacity));
+            OnPropertyChanged(nameof(MenuOpacity));
+            OnPropertyChanged(nameof(FooterOpacity));
+            OnPropertyChanged(nameof(DialogOpacity));
             OnPropertyChanged(nameof(BordersVisible));
             OnPropertyChanged(nameof(UseGlassSurfaces));
+            OnPropertyChanged(nameof(EnableSurfaceShadows));
+            OnPropertyChanged(nameof(EnableControlShadows));
             OnPropertyChanged(nameof(BorderOpacity));
             OnPropertyChanged(nameof(CardCornerRadius));
             OnPropertyChanged(nameof(PanelCornerRadius));

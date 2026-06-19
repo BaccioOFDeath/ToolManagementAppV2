@@ -1,0 +1,99 @@
+using System.Text.Json;
+using InventoryManagementApp.Models;
+using Xunit;
+
+public class AppThemeSettingsTests
+{
+    [Fact]
+    public void Normalize_ClampsExpandedTransparencyAndShadowControls()
+    {
+        var settings = new AppThemeSettings
+        {
+            BackgroundOpacity = 1.5,
+            SurfaceOpacity = -0.5,
+            HeaderOpacity = 4,
+            MenuOpacity = double.NaN,
+            FooterOpacity = -2,
+            DialogOpacity = 1.2,
+            ShadowBlurRadius = 99,
+            ShadowDepth = -4,
+            ShadowOpacity = 2,
+            ShadowDirection = 999,
+            FontScale = 3,
+            ControlHeight = 2,
+            DataGridRowHeight = 100,
+            DataGridHeaderHeight = 1,
+            InteractionIntensity = -1,
+            MotionIntensity = 9
+        };
+
+        settings.Normalize();
+
+        Assert.Equal(1, settings.BackgroundOpacity);
+        Assert.Equal(0, settings.SurfaceOpacity);
+        Assert.Equal(1, settings.HeaderOpacity);
+        Assert.Equal(0, settings.MenuOpacity);
+        Assert.Equal(0, settings.FooterOpacity);
+        Assert.Equal(1, settings.DialogOpacity);
+        Assert.Equal(48, settings.ShadowBlurRadius);
+        Assert.Equal(0, settings.ShadowDepth);
+        Assert.Equal(1, settings.ShadowOpacity);
+        Assert.Equal(360, settings.ShadowDirection);
+        Assert.Equal(1.4, settings.FontScale);
+        Assert.Equal(22, settings.ControlHeight);
+        Assert.Equal(52, settings.DataGridRowHeight);
+        Assert.Equal(24, settings.DataGridHeaderHeight);
+        Assert.Equal(0, settings.InteractionIntensity);
+        Assert.Equal(2, settings.MotionIntensity);
+    }
+
+    [Fact]
+    public void Normalize_PreservesShadowToggleChoices()
+    {
+        var settings = AppThemeSettings.CreateDefault();
+
+        settings.EnableSurfaceShadows = false;
+        settings.EnableControlShadows = true;
+        settings.Normalize();
+
+        Assert.False(settings.EnableSurfaceShadows);
+        Assert.True(settings.EnableControlShadows);
+    }
+
+    [Fact]
+    public void Normalize_AcceptsBareHexAndRejectsMalformedColors()
+    {
+        var settings = AppThemeSettings.CreateDefault();
+        settings.AccentColor = "60a5fa";
+        settings.ErrorColor = "not-a-color";
+        settings.WarningColor = "#GGGGGG";
+
+        settings.Normalize();
+
+        Assert.Equal("#60A5FA", settings.AccentColor);
+        Assert.Equal("#FFDC2626", settings.ErrorColor);
+        Assert.Equal("#FFD97706", settings.WarningColor);
+    }
+
+    [Fact]
+    public void JsonRoundTrip_PreservesExpandedThemeSettings()
+    {
+        var settings = AppThemeSettings.CreateDefault("Dark");
+        settings.HeaderOpacity = 0.42;
+        settings.MenuOpacity = 0.37;
+        settings.FooterOpacity = 0.31;
+        settings.DialogOpacity = 0.88;
+        settings.EnableSurfaceShadows = false;
+        settings.EnableControlShadows = true;
+
+        var json = JsonSerializer.Serialize(settings);
+        var roundTripped = JsonSerializer.Deserialize<AppThemeSettings>(json)!;
+
+        Assert.Equal(0.42, roundTripped.HeaderOpacity);
+        Assert.Equal(0.37, roundTripped.MenuOpacity);
+        Assert.Equal(0.31, roundTripped.FooterOpacity);
+        Assert.Equal(0.88, roundTripped.DialogOpacity);
+        Assert.False(roundTripped.EnableSurfaceShadows);
+        Assert.True(roundTripped.EnableControlShadows);
+    }
+}
