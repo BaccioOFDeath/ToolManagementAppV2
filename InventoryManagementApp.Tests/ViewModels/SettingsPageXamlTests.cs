@@ -99,7 +99,20 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("MotionIntensity", xaml, StringComparison.Ordinal);
             Assert.Contains("Shape and borders", xaml, StringComparison.Ordinal);
             Assert.Contains("Depth, spacing, and density", xaml, StringComparison.Ordinal);
-            Assert.Contains("Interaction feel", xaml, StringComparison.Ordinal);
+            Assert.Contains("04 Density and interaction", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ThemeDesignerControl_SplitsCustomizationSurfaceIntoFocusedTabs()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ThemeDesignerControl.xaml");
+
+            Assert.Contains("x:Name=\"ThemeDesignerTabs\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"01 Colors\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"02 Backgrounds and transparency\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"03 Shape and depth\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"04 Density and interaction\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Theme pages", xaml, StringComparison.Ordinal);
         }
 
         static string ReadRepositoryFile(params string[] relativePathParts)
