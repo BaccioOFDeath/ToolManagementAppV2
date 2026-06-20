@@ -35,6 +35,7 @@
     <sys:Double x:Key="ThemeInteractionIntensity">1</sys:Double>
     <sys:Double x:Key="ThemeMotionIntensity">1</sys:Double>
     <sys:Double x:Key="ThemeFocusVisualStrokeThickness">2</sys:Double>
+    <sys:Double x:Key="ThemeShapeStrokeThickness">1</sys:Double>
     <sys:Double x:Key="ThemeShadowDirection">270</sys:Double>
     <sys:Double x:Key="ThemeDividerOpacity">1</sys:Double>
     <sys:Double x:Key="ThemeSurfaceShadowScale">1</sys:Double>

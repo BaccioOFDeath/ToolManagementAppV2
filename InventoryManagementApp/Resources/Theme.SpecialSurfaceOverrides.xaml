@@ -4,8 +4,9 @@
     <!--
         Last-mile special surfaces for Admin Settings theme customization.
         These controls are less common than buttons, grids, and text inputs, but they can still
-        carry opaque platform defaults around previews, media, ink, resize handles, and document
-        pages. Keep them routed through admin-selected transparency, typography, borders, and depth.
+        carry opaque platform defaults around previews, media, ink, resize handles, vector chrome,
+        and document pages. Keep them routed through admin-selected transparency, typography,
+        borders, color, and depth.
     -->
 
     <Style TargetType="Image">
@@ -31,6 +32,50 @@
         <Setter Property="ClipToBounds" Value="True"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="UseLayoutRounding" Value="True"/>
+    </Style>
+
+    <Style TargetType="Rectangle">
+        <Setter Property="Fill" Value="{DynamicResource TransparentSurfaceBrush}"/>
+        <Setter Property="Stroke" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="StrokeThickness" Value="{DynamicResource ThemeShapeStrokeThickness}"/>
+        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style TargetType="Ellipse">
+        <Setter Property="Fill" Value="{DynamicResource TransparentSurfaceBrush}"/>
+        <Setter Property="Stroke" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="StrokeThickness" Value="{DynamicResource ThemeShapeStrokeThickness}"/>
+        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style TargetType="Line">
+        <Setter Property="Stroke" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="StrokeThickness" Value="{DynamicResource ThemeShapeStrokeThickness}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style TargetType="Path">
+        <Setter Property="Fill" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="Stroke" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="StrokeThickness" Value="{DynamicResource ThemeShapeStrokeThickness}"/>
+        <Setter Property="Stretch" Value="Uniform"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style TargetType="Polygon">
+        <Setter Property="Fill" Value="{DynamicResource TransparentSurfaceBrush}"/>
+        <Setter Property="Stroke" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="StrokeThickness" Value="{DynamicResource ThemeShapeStrokeThickness}"/>
+        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style TargetType="Polyline">
+        <Setter Property="Stroke" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="StrokeThickness" Value="{DynamicResource ThemeShapeStrokeThickness}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
 
     <Style TargetType="FixedPage">

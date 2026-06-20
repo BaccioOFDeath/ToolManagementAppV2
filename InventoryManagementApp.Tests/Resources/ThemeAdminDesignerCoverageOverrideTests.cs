@@ -158,7 +158,7 @@ namespace InventoryManagementApp.Tests.Resources
         }
 
         [Fact]
-        public void SpecialSurfaceOverrides_ExtendAdminThemesToMediaDocumentAndResizeChrome()
+        public void SpecialSurfaceOverrides_ExtendAdminThemesToMediaDocumentResizeAndVectorChrome()
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.SpecialSurfaceOverrides.xaml");
 
@@ -166,6 +166,12 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("TargetType=\"MediaElement\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"InkCanvas\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"Viewport3D\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"Rectangle\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"Ellipse\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"Line\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"Path\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"Polygon\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"Polyline\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"FixedPage\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"FlowDocumentPageViewer\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"StatusBarItem\"", xaml, StringComparison.Ordinal);
@@ -175,7 +181,7 @@ namespace InventoryManagementApp.Tests.Resources
         }
 
         [Fact]
-        public void SpecialSurfaceOverrides_UseAdminThemeTokensForTransparencyTypographyAndDepth()
+        public void SpecialSurfaceOverrides_UseAdminThemeTokensForTransparencyTypographyDepthAndVectorStrokes()
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.SpecialSurfaceOverrides.xaml");
 
@@ -183,9 +189,11 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("{DynamicResource BackgroundBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ForegroundBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource BorderBrushAlt}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource AccentBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeBorderThickness}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeBorderlessThickness}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeControlBorderThickness}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource ThemeShapeStrokeThickness}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeFontFamily}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeBodyFontSize}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeCaptionFontSize}", xaml, StringComparison.Ordinal);
@@ -196,6 +204,16 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("{DynamicResource ThemeDisabledOpacity}", xaml, StringComparison.Ordinal);
             Assert.Contains("FocusVisualStyle\" Value=\"{StaticResource DefaultFocusVisual}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TextOptions.TextRenderingMode\" Value=\"ClearType\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ThemeCustomizationAndService_ExposeShapeStrokeResourceForBorderlessVectorChrome()
+        {
+            var resources = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.Customization.xaml");
+            var service = ReadRepositoryFile("InventoryManagementApp", "Services", "ThemeService.cs");
+
+            Assert.Contains("x:Key=\"ThemeShapeStrokeThickness\"", resources, StringComparison.Ordinal);
+            Assert.Contains("Set(resources, \"ThemeShapeStrokeThickness\", settings.BordersVisible ? settings.ControlBorderThickness : 0)", service, StringComparison.Ordinal);
         }
 
         [Fact]
