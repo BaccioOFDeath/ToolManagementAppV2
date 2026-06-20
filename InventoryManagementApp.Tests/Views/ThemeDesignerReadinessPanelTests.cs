@@ -45,6 +45,19 @@ namespace InventoryManagementApp.Tests.Views
             Assert.Contains("shadow depth", source, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void ThemeDesignerReadinessPanel_ExposesSavedThemeRecoveryAction()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ThemeDesignerControl.xaml.cs");
+
+            Assert.Contains("ReloadSavedTheme_Click", source, StringComparison.Ordinal);
+            Assert.Contains("Reload Saved Theme", source, StringComparison.Ordinal);
+            Assert.Contains("Discard the current preview and restore the last saved app theme.", source, StringComparison.Ordinal);
+            Assert.Contains("experimental preview makes the workspace hard to read", source, StringComparison.Ordinal);
+            Assert.Contains("await viewModel.InitializeAsync();", source, StringComparison.Ordinal);
+            Assert.Contains("EnsureThemeDesignerViewModelAsync", source, StringComparison.Ordinal);
+        }
+
         private static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);
