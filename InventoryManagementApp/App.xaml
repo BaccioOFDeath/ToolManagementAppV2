@@ -23,6 +23,7 @@
                 <ResourceDictionary Source="Resources/Theme.LayoutPresenterOverrides.xaml"/>
                 <ResourceDictionary Source="Resources/Theme.SpecialSurfaceOverrides.xaml"/>
                 <ResourceDictionary Source="Resources/Theme.OverlayDocumentOverrides.xaml"/>
+                <ResourceDictionary Source="Resources/Theme.FinalContentInputOverrides.xaml"/>
                 <ResourceDictionary Source="Resources/Converters.xaml"/>
                 <ResourceDictionary Source="Resources/Templates.xaml"/>
             </ResourceDictionary.MergedDictionaries>
