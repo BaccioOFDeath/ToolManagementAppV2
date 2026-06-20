@@ -124,12 +124,8 @@
     </Style>
 
     <Style TargetType="primitives:DataGridDetailsPresenter">
-        <Setter Property="Background" Value="{DynamicResource GlassSurfaceAltBrush}"/>
-        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
-        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
-        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="UseLayoutRounding" Value="True"/>
     </Style>
 
     <Style TargetType="primitives:DataGridCellsPresenter">
