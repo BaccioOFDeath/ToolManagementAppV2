@@ -2,6 +2,7 @@ using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -21,6 +22,11 @@ namespace InventoryManagementApp.Views.Pages
 
         private async void ThemeDesignerControl_Loaded(object sender, System.Windows.RoutedEventArgs e)
         {
+            await EnsureThemeDesignerViewModelAsync();
+        }
+
+        private async Task EnsureThemeDesignerViewModelAsync()
+        {
             if (_initialized || DataContext is ThemeDesignerViewModel)
                 return;
 
@@ -38,6 +44,19 @@ namespace InventoryManagementApp.Views.Pages
             DataContext = viewModel;
             await viewModel.InitializeAsync();
             _initialized = true;
+        }
+
+        private async void ReloadSavedTheme_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is ThemeDesignerViewModel viewModel)
+            {
+                await viewModel.InitializeAsync();
+                _initialized = true;
+                return;
+            }
+
+            _initialized = false;
+            await EnsureThemeDesignerViewModelAsync();
         }
 
         private void AddDesignReadinessPanel()
@@ -64,12 +83,30 @@ namespace InventoryManagementApp.Views.Pages
 
             var checklist = new TextBlock
             {
-                Text = "Before saving a full-app redesign, review text contrast, transparent surface readability, focus-ring visibility, disabled-control clarity, table density, borderless affordances, and shadow depth in the preview lab.",
+                Text = "Before saving a full-app redesign, review text contrast, transparent surface readability, focus-ring visibility, disabled-control clarity, table density, borderless affordances, and shadow depth in the preview lab. Reload the saved theme if an experimental preview makes the workspace hard to read.",
                 TextWrapping = TextWrapping.Wrap,
                 Margin = new Thickness(0, 0, 0, 8)
             };
             checklist.SetResourceReference(StyleProperty, "CaptionTextBlock");
             stack.Children.Add(checklist);
+
+            var actionRow = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Margin = new Thickness(0, 0, 0, 8)
+            };
+
+            var reloadButton = new Button
+            {
+                Content = "Reload Saved Theme",
+                ToolTip = "Discard the current preview and restore the last saved app theme.",
+                Margin = new Thickness(0, 0, 8, 0)
+            };
+            reloadButton.SetResourceReference(StyleProperty, "GhostButton");
+            reloadButton.Click += ReloadSavedTheme_Click;
+            actionRow.Children.Add(reloadButton);
+
+            stack.Children.Add(actionRow);
 
             var status = new TextBlock
             {
