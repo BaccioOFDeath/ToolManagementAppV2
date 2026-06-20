@@ -138,6 +138,7 @@ namespace InventoryManagementApp.Services
                 Set(resources, "ThemeBorderThickness", borderThickness);
                 Set(resources, "ThemeSubtleBorderThickness", dividerThickness);
                 Set(resources, "ThemeControlBorderThickness", controlBorderThickness);
+                Set(resources, "ThemeShapeStrokeThickness", settings.BordersVisible ? settings.ControlBorderThickness : 0);
                 Set(resources, "ThemeBorderlessThickness", new Thickness(0));
                 Set(resources, "ThemeCardCornerRadius", new CornerRadius(settings.CardCornerRadius));
                 Set(resources, "ThemePanelCornerRadius", new CornerRadius(settings.PanelCornerRadius));
