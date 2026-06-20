@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-18 03:11 NZST
+Last audit date/time: 2026-06-21 11:11 NZST
 
 ## Completed workflows
 
@@ -42,6 +42,7 @@ Last audit date/time: 2026-06-18 03:11 NZST
 - Auth entry surfaces now have a more deliberate first impression: login uses a two-panel workstation entry with branded context and stronger user cards, while password prompt and change-password dialogs use secure-access framing, clearer field guidance, wider inputs, and stronger action labels.
 - The setup wizard now presents first-run onboarding with a stronger launch header, setup checklist, guided field descriptions, framed logo preview, ready-check validation, and a `Complete Setup` action while preserving the existing setup command flow.
 - Search Tools now gives search results, checked-out items, recent searches, and unavailable demand stronger pane headers, clearer action affordances, a session-pulse summary strip, and roomier intelligence tables while preserving the existing command and keyboard paths.
+- Admin Settings theme customization now includes a final adorner/validation coverage layer so validation error frames, text/combo/date/password validation states, adorner layers, bullet decorators, viewboxes, toolbar/status panels, and data-grid presenters follow admin-controlled colors, transparency, borders, corners, focus visuals, and shadow depth.
 
 ## Partially complete workflows
 
@@ -62,6 +63,7 @@ Last audit date/time: 2026-06-18 03:11 NZST
 - Auth entry and setup wizard polish are in place for login, password prompt, change-password, and onboarding surfaces, but password-reset prompt and runtime auth/setup screenshot review still need follow-up.
 - Search Tools first-pass polish is in place for results, checked-out items, recent searches, and unavailable-demand intelligence, but runtime screenshot review still needs to confirm the new right-pane width, summary strip, and action wrapping at standard and narrow workstation sizes.
 - Settings Database, Branding, and Backups first-pass polish is in place, but runtime settings screenshot review still needs to confirm the new connection, logo preview, and recovery panels at standard and narrow admin workstation sizes.
+- Admin Settings theme customization now has broad resource, preset, profile, common-control, document, popup, text, layout, validation, and outer-chrome coverage, but runtime Windows screenshot review still needs to confirm extreme transparent, borderless, high-shadow, dense, and low-motion designs across the full app.
 
 ## Known broken workflows
 
@@ -71,10 +73,10 @@ Last audit date/time: 2026-06-18 03:11 NZST
 
 ## Next recommended target
 
-- Continue targeted UI polish on password-reset prompt and print-preview document styling. Run the enhanced Windows QA screenshot capture when a Windows/.NET workstation is available.
+- Continue targeted Admin Settings theme coverage and runtime Windows screenshot review, especially extreme transparent, borderless, and high-shadow profiles. Run the enhanced Windows QA screenshot capture when a Windows/.NET workstation is available.
 
 ## Validation status
 
-- GitHub connector readback reviewed the Settings XAML, ToDo progress log, and this checklist update.
+- GitHub connector readback reviewed the theme override XAML, App resource load order, contract tests, progress note, and this checklist update.
 - Local XAML parsing, `dotnet --info`, `dotnet restore`, `dotnet build`, `dotnet test`, WPF screenshots, and local banned-word checks were not run because this scheduled Linux container lacks the .NET SDK and Windows/WPF runtime, and direct local clone/raw fetches remain blocked by the network tunnel.
 - Did not run unrelated tests, per instruction.
