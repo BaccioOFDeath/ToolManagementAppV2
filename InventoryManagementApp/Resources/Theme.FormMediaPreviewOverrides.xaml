@@ -167,9 +167,6 @@
                 <Setter Property="Foreground" Value="{DynamicResource ItemSelectedForegroundBrush}"/>
                 <Setter Property="TextDecorations" Value="Underline"/>
             </Trigger>
-            <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}"/>
-            </Trigger>
         </Style.Triggers>
     </Style>
 
