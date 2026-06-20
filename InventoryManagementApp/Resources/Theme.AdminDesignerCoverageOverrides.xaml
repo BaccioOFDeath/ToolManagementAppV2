@@ -50,6 +50,15 @@
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
     </Style>
 
+    <Style TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource TransparentSurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource ThemePanelCornerRadius}"/>
+        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
     <Style TargetType="ContentControl">
         <Setter Property="Background" Value="{DynamicResource TransparentSurfaceBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
@@ -150,6 +159,143 @@
     <Style TargetType="ToolBarTray">
         <Setter Property="Background" Value="{DynamicResource ThemeShellMenuBrush}"/>
         <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+    </Style>
+
+    <Style TargetType="ToolBar">
+        <Setter Property="Background" Value="{DynamicResource ThemeShellMenuBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+        <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
+        <Setter Property="Effect" Value="{DynamicResource ThemeRaisedShadow}"/>
+    </Style>
+
+    <Style TargetType="StatusBar">
+        <Setter Property="Background" Value="{DynamicResource ThemeShellFooterBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeCaptionFontSize}"/>
+        <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
+        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+    </Style>
+
+    <Style TargetType="Separator">
+        <Setter Property="Background" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
+        <Setter Property="Margin" Value="4,3"/>
+    </Style>
+
+    <Style TargetType="ScrollViewer">
+        <Setter Property="Background" Value="{DynamicResource TransparentSurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="CanContentScroll" Value="True"/>
+        <Setter Property="PanningMode" Value="Both"/>
+    </Style>
+
+    <Style TargetType="ScrollBar">
+        <Setter Property="Background" Value="{DynamicResource TransparentSurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderlessThickness}"/>
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="MinWidth" Value="12"/>
+        <Setter Property="MinHeight" Value="12"/>
+        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+    </Style>
+
+    <Style TargetType="ListBox">
+        <Setter Property="Background" Value="{DynamicResource GlassSurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+        <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
+        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+    </Style>
+
+    <Style TargetType="ListView" BasedOn="{StaticResource {x:Type ListBox}}">
+        <Setter Property="Background" Value="{DynamicResource GlassSurfaceAltBrush}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}"/>
+        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+    </Style>
+
+    <Style TargetType="ListBoxItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderlessThickness}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+        <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
+        <Setter Property="Padding" Value="{DynamicResource ControlPadding}"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource ItemHoverForegroundBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource ItemSelectedForegroundBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="{DynamicResource ThemeDisabledOpacity}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+        <Setter Property="BorderBrush" Value="{DynamicResource ThemeGridLineBrush}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
+    </Style>
+
+    <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+        <Setter Property="Background" Value="{DynamicResource ThemePopupSurfaceBrush}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeControlBorderThickness}"/>
+    </Style>
+
+    <Style TargetType="TreeView">
+        <Setter Property="Background" Value="{DynamicResource GlassSurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+    </Style>
+
+    <Style TargetType="TreeViewItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+        <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
+        <Setter Property="Padding" Value="{DynamicResource ControlPadding}"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource ItemHoverForegroundBrush}"/>
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource ItemSelectedForegroundBrush}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="{DynamicResource ThemeDisabledOpacity}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <Style TargetType="GridSplitter">
