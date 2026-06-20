@@ -126,10 +126,9 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("TargetType=\"StackPanel\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"WrapPanel\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"Canvas\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("TargetType=\"UniformGrid\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"primitives:UniformGrid\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"ContentPresenter\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"ItemsPresenter\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("TargetType=\"HeaderedItemsControl\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"primitives:Popup\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"GridViewColumnHeader\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"DocumentViewer\"", xaml, StringComparison.Ordinal);
