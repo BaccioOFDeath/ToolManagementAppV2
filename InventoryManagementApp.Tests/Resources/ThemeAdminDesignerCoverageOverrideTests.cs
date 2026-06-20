@@ -45,6 +45,23 @@ namespace InventoryManagementApp.Tests.Resources
         }
 
         [Fact]
+        public void AdminDesignerCoverageOverrides_ExtendThemeHooksToEditableInputsAndDataGrids()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.AdminDesignerCoverageOverrides.xaml");
+
+            Assert.Contains("AdminDesignerTextBoxTemplate", xaml, StringComparison.Ordinal);
+            Assert.Contains("AdminDesignerPasswordBoxTemplate", xaml, StringComparison.Ordinal);
+            Assert.Contains("AdminDesignerTextBoxBaseStyle", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"TextBox\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"RichTextBox\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"PasswordBox\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"DataGrid\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"DataGridColumnHeader\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"DataGridRow\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"DataGridCell\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void AdminDesignerCoverageOverrides_UseAdminTokensForSelectionTransparencyAndDepth()
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.AdminDesignerCoverageOverrides.xaml");
@@ -52,10 +69,12 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("{DynamicResource TransparentSurfaceBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource GlassSurfaceBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource GlassSurfaceAltBrush}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource TextBoxBackgroundBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemePopupSurfaceBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeShellMenuBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeShellFooterBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemePanelCornerRadius}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource ThemeInputCornerRadius}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeBorderThickness}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeSubtleBorderThickness}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeBorderlessThickness}", xaml, StringComparison.Ordinal);
@@ -63,6 +82,11 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("{DynamicResource ThemeSurfaceShadow}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeRaisedShadow}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeControlShadow}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource ThemeGridLineBrush}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource DataGridRowBackgroundBrush}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource DataGridAlternatingRowBackgroundBrush}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource ThemeDataGridRowHeight}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource ThemeDataGridHeaderHeight}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ItemHoverBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ItemSelectedBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ItemSelectedForegroundBrush}", xaml, StringComparison.Ordinal);
