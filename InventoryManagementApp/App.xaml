@@ -18,6 +18,7 @@
                 <ResourceDictionary Source="Resources/Theme.FullCustomizationOverrides.xaml"/>
                 <ResourceDictionary Source="Resources/Theme.ControlCustomizationOverrides.xaml"/>
                 <ResourceDictionary Source="Resources/Theme.FormMediaPreviewOverrides.xaml"/>
+                <ResourceDictionary Source="Resources/Theme.AdminDesignerCoverageOverrides.xaml"/>
                 <ResourceDictionary Source="Resources/Converters.xaml"/>
                 <ResourceDictionary Source="Resources/Templates.xaml"/>
             </ResourceDictionary.MergedDictionaries>
