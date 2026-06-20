@@ -303,7 +303,7 @@ namespace InventoryManagementApp.Views.Pages
         {
             var row = AddRow(grid, label);
             var combo = new ComboBox { ItemsSource = options, SelectedItem = get(), Margin = new Thickness(8, 0, 0, 8) };
-            combo.SetResourceReference(ComboBox.ItemContainerStyleProperty, "DropdownItemStyle");
+            combo.SetResourceReference(ItemsControl.ItemContainerStyleProperty, "DropdownItemStyle");
             combo.SelectionChanged += (_, _) =>
             {
                 if (combo.SelectedItem is string selected)
@@ -375,6 +375,7 @@ namespace InventoryManagementApp.Views.Pages
             {
                 _settings = await _settingsService.GetAppThemeSettingsAsync(token).ConfigureAwait(true);
                 RefreshEditors?.Invoke();
+                _loading = false;
                 ApplyCurrentTheme();
                 _statusText.Text = "Loaded saved app theme profile.";
             }
