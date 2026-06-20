@@ -1,0 +1,79 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:documents="clr-namespace:System.Windows.Documents;assembly=PresentationFramework">
+    <!--
+        Late admin theme coverage for navigation and text chrome.
+        These host controls often sit around page content instead of inside it, so route their
+        backgrounds, typography, borders, shadows, and disabled opacity through the same admin
+        theme tokens used by the rest of Settings > Themes.
+    -->
+
+    <Style TargetType="Frame">
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderlessThickness}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+        <Setter Property="NavigationUIVisibility" Value="Hidden"/>
+        <Setter Property="JournalOwnership" Value="OwnsJournal"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="UseLayoutRounding" Value="True"/>
+    </Style>
+
+    <Style TargetType="NavigationWindow">
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+        <Setter Property="Icon" Value="{DynamicResource WindowIcon}"/>
+        <Setter Property="ShowsNavigationUI" Value="False"/>
+        <Setter Property="UseLayoutRounding" Value="True"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+        <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+        <Setter Property="TextOptions.TextHintingMode" Value="Fixed"/>
+    </Style>
+
+    <Style TargetType="Label">
+        <Setter Property="Background" Value="{DynamicResource TransparentSurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderlessThickness}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+        <Setter Property="Padding" Value="2,0"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="{DynamicResource ThemeDisabledOpacity}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="AccessText">
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+        <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+        <Setter Property="TextOptions.TextHintingMode" Value="Fixed"/>
+    </Style>
+
+    <Style TargetType="BulletDecorator">
+        <Setter Property="Background" Value="{DynamicResource TransparentSurfaceBrush}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style TargetType="documents:AdornerDecorator">
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style TargetType="Viewbox">
+        <Setter Property="Stretch" Value="Uniform"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+</ResourceDictionary>
