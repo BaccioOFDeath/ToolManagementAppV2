@@ -141,6 +141,36 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task ApplyCustomTheme_ShellAndDataOpacityControlsAreIndependent()
+        {
+            await RunOnStaThread(async () =>
+            {
+                var app = WpfTestHelper.CreateApplication();
+                var service = new ThemeService();
+                var settings = AppThemeSettings.CreateDefault();
+                settings.SurfaceOpacity = 0.11;
+                settings.SurfaceAltOpacity = 0.09;
+                settings.NavigationOpacity = 0.13;
+                settings.HeaderOpacity = 0.91;
+                settings.MenuOpacity = 0.37;
+                settings.FooterOpacity = 0.23;
+                settings.DialogOpacity = 0.84;
+
+                service.ApplyCustomTheme(settings);
+
+                Assert.Equal(0xE8, ((SolidColorBrush)app.Resources["ThemeShellHeaderBrush"]).Color.A);
+                Assert.Equal(0x5E, ((SolidColorBrush)app.Resources["ThemeShellMenuBrush"]).Color.A);
+                Assert.Equal(0x3B, ((SolidColorBrush)app.Resources["ThemeShellFooterBrush"]).Color.A);
+                Assert.Equal(0xD6, ((SolidColorBrush)app.Resources["ThemeDialogSurfaceBrush"]).Color.A);
+                Assert.Equal(0x1C, ((SolidColorBrush)app.Resources["DataGridRowBackgroundBrush"]).Color.A);
+                Assert.Equal(0x17, ((SolidColorBrush)app.Resources["DataGridAlternatingRowBackgroundBrush"]).Color.A);
+                Assert.Equal(0x17, ((SolidColorBrush)app.Resources["ProgressBarBackgroundBrush"]).Color.A);
+                WpfTestHelper.ShutdownApplication();
+                await Task.CompletedTask;
+            });
+        }
+
+        [Fact]
         public async Task ApplyCustomTheme_SeparatesSurfaceAndControlShadowDepth()
         {
             await RunOnStaThread(async () =>
