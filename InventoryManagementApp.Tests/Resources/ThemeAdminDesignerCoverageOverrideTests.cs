@@ -67,7 +67,7 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("{DynamicResource ItemSelectedBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ItemSelectedForegroundBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeDisabledOpacity}", xaml, StringComparison.Ordinal);
-            Assert.Contains("{DynamicResource DefaultFocusVisual}", xaml, StringComparison.Ordinal);
+            Assert.Contains("FocusVisualStyle\" Value=\"{StaticResource DefaultFocusVisual}\"", xaml, StringComparison.Ordinal);
         }
 
         private static string ReadRepositoryFile(params string[] relativePathParts)
