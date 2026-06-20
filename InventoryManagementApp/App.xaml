@@ -20,6 +20,7 @@
                 <ResourceDictionary Source="Resources/Theme.FormMediaPreviewOverrides.xaml"/>
                 <ResourceDictionary Source="Resources/Theme.AdminDesignerCoverageOverrides.xaml"/>
                 <ResourceDictionary Source="Resources/Theme.NavigationChromeOverrides.xaml"/>
+                <ResourceDictionary Source="Resources/Theme.LayoutPresenterOverrides.xaml"/>
                 <ResourceDictionary Source="Resources/Converters.xaml"/>
                 <ResourceDictionary Source="Resources/Templates.xaml"/>
             </ResourceDictionary.MergedDictionaries>
