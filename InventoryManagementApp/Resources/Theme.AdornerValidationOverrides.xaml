@@ -1,0 +1,135 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework">
+    <!--
+        Final adorner and validation chrome pass for Admin Settings theme customization.
+        Validation frames, drag/drop adorners, bullets, resize handles, and presenter surfaces sit
+        around controls rather than inside them, so this layer keeps those outer surfaces aligned
+        with admin-selected transparency, borders, focus, typography, and shadow depth.
+    -->
+
+    <ControlTemplate x:Key="ThemeValidationErrorTemplate">
+        <DockPanel LastChildFill="True" SnapsToDevicePixels="True">
+            <Border DockPanel.Dock="Right"
+                    MinWidth="18"
+                    MinHeight="18"
+                    Margin="4,0,0,0"
+                    Padding="4,1"
+                    Background="{DynamicResource ThemePopupSurfaceBrush}"
+                    BorderBrush="{DynamicResource ErrorBrush}"
+                    BorderThickness="{DynamicResource ThemeControlBorderThickness}"
+                    CornerRadius="{DynamicResource ThemeInputCornerRadius}"
+                    Effect="{DynamicResource ThemeControlShadow}">
+                <TextBlock Text="!"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource ErrorBrush}"
+                           FontFamily="{DynamicResource ThemeFontFamily}"
+                           FontSize="{DynamicResource ThemeCaptionFontSize}"/>
+            </Border>
+            <Border BorderBrush="{DynamicResource ErrorBrush}"
+                    BorderThickness="{DynamicResource ThemeControlBorderThickness}"
+                    CornerRadius="{DynamicResource ThemeInputCornerRadius}"
+                    Effect="{DynamicResource ThemeControlShadow}">
+                <AdornedElementPlaceholder/>
+            </Border>
+        </DockPanel>
+    </ControlTemplate>
+
+    <Style x:Key="ThemeValidationTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+        <Setter Property="Validation.ErrorTemplate" Value="{StaticResource ThemeValidationErrorTemplate}"/>
+        <Setter Property="ToolTipService.ShowDuration" Value="12000"/>
+        <Style.Triggers>
+            <Trigger Property="Validation.HasError" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource ErrorBrush}"/>
+                <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ThemeValidationComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+        <Setter Property="Validation.ErrorTemplate" Value="{StaticResource ThemeValidationErrorTemplate}"/>
+        <Setter Property="ToolTipService.ShowDuration" Value="12000"/>
+        <Style.Triggers>
+            <Trigger Property="Validation.HasError" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource ErrorBrush}"/>
+                <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ThemeValidationDatePickerStyle" TargetType="DatePicker" BasedOn="{StaticResource {x:Type DatePicker}}">
+        <Setter Property="Validation.ErrorTemplate" Value="{StaticResource ThemeValidationErrorTemplate}"/>
+        <Setter Property="ToolTipService.ShowDuration" Value="12000"/>
+        <Style.Triggers>
+            <Trigger Property="Validation.HasError" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource ErrorBrush}"/>
+                <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ThemeValidationPasswordBoxStyle" TargetType="PasswordBox" BasedOn="{StaticResource {x:Type PasswordBox}}">
+        <Setter Property="Validation.ErrorTemplate" Value="{StaticResource ThemeValidationErrorTemplate}"/>
+        <Setter Property="ToolTipService.ShowDuration" Value="12000"/>
+        <Style.Triggers>
+            <Trigger Property="Validation.HasError" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource ErrorBrush}"/>
+                <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="TextBox" BasedOn="{StaticResource ThemeValidationTextBoxStyle}"/>
+    <Style TargetType="ComboBox" BasedOn="{StaticResource ThemeValidationComboBoxStyle}"/>
+    <Style TargetType="DatePicker" BasedOn="{StaticResource ThemeValidationDatePickerStyle}"/>
+    <Style TargetType="PasswordBox" BasedOn="{StaticResource ThemeValidationPasswordBoxStyle}"/>
+
+    <Style TargetType="AdornerDecorator">
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="UseLayoutRounding" Value="True"/>
+    </Style>
+
+    <Style TargetType="AdornerLayer">
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="UseLayoutRounding" Value="True"/>
+    </Style>
+
+    <Style TargetType="BulletDecorator">
+        <Setter Property="Background" Value="{DynamicResource TransparentSurfaceBrush}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="UseLayoutRounding" Value="True"/>
+    </Style>
+
+    <Style TargetType="Viewbox">
+        <Setter Property="Stretch" Value="Uniform"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="UseLayoutRounding" Value="True"/>
+    </Style>
+
+    <Style TargetType="primitives:ToolBarOverflowPanel">
+        <Setter Property="Background" Value="{DynamicResource ThemeShellMenuBrush}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style TargetType="primitives:ToolBarPanel">
+        <Setter Property="Background" Value="{DynamicResource TransparentSurfaceBrush}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style TargetType="primitives:StatusBarPanel">
+        <Setter Property="Background" Value="{DynamicResource ThemeShellFooterBrush}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style TargetType="primitives:DataGridDetailsPresenter">
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="UseLayoutRounding" Value="True"/>
+    </Style>
+
+    <Style TargetType="primitives:DataGridCellsPresenter">
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="UseLayoutRounding" Value="True"/>
+    </Style>
+</ResourceDictionary>

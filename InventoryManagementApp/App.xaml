@@ -27,6 +27,7 @@
                 <ResourceDictionary Source="Resources/Theme.RangeScrollChromeOverrides.xaml"/>
                 <ResourceDictionary Source="Resources/Theme.PopupChromeOverrides.xaml"/>
                 <ResourceDictionary Source="Resources/Theme.TextHierarchyOverrides.xaml"/>
+                <ResourceDictionary Source="Resources/Theme.AdornerValidationOverrides.xaml"/>
                 <ResourceDictionary Source="Resources/Converters.xaml"/>
                 <ResourceDictionary Source="Resources/Templates.xaml"/>
             </ResourceDictionary.MergedDictionaries>
