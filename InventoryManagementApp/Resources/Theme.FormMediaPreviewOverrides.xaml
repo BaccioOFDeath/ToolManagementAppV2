@@ -139,6 +139,37 @@
         <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
 
+    <Style TargetType="FlowDocument">
+        <Setter Property="Background" Value="{DynamicResource ThemeDialogSurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+        <Setter Property="PagePadding" Value="{DynamicResource CardPadding}"/>
+    </Style>
+
+    <Style TargetType="Section">
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+    </Style>
+
+    <Style TargetType="Paragraph">
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+    </Style>
+
+    <Style TargetType="Hyperlink">
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="TextDecorations" Value="{x:Null}"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource ItemSelectedForegroundBrush}"/>
+                <Setter Property="TextDecorations" Value="Underline"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <Style TargetType="RichTextBox">
         <Setter Property="Background" Value="{DynamicResource TextBoxBackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>

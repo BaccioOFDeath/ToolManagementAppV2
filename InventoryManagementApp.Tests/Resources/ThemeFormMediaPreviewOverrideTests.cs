@@ -34,6 +34,10 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("TargetType=\"Image\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"DocumentViewer\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"FlowDocumentScrollViewer\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"FlowDocument\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"Section\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"Paragraph\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"Hyperlink\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"RichTextBox\"", xaml, StringComparison.Ordinal);
         }
 
@@ -73,6 +77,22 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("TextBlock.TextTrimming", xaml, StringComparison.Ordinal);
             Assert.Contains("TextBlock.TextWrapping", xaml, StringComparison.Ordinal);
             Assert.Contains("SnapsToDevicePixels", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void FormMediaPreviewOverrides_ThemeDocumentTextAndLinksForTransparentBackgrounds()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.FormMediaPreviewOverrides.xaml");
+
+            Assert.Contains("TargetType=\"FlowDocument\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"Section\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"Paragraph\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"Hyperlink\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Foreground\" Value=\"{DynamicResource ForegroundBrush}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Foreground\" Value=\"{DynamicResource AccentBrush}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TextDecorations\" Value=\"{x:Null}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TextDecorations\" Value=\"Underline\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("PagePadding\" Value=\"{DynamicResource CardPadding}\"", xaml, StringComparison.Ordinal);
         }
 
         private static string ReadRepositoryFile(params string[] relativePathParts)
