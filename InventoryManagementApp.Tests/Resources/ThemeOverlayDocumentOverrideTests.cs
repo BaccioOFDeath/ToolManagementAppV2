@@ -37,7 +37,7 @@ namespace InventoryManagementApp.Tests.Resources
         }
 
         [Fact]
-        public void OverlayDocumentOverrides_ExtendAdminThemesToDocumentTextAndAdorners()
+        public void OverlayDocumentOverrides_ExtendAdminThemesToDocumentTextStructureAndAdorners()
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.OverlayDocumentOverrides.xaml");
 
@@ -45,6 +45,12 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("TargetType=\"Paragraph\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"Run\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"Span\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"Section\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"List\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"ListItem\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"Hyperlink\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"Table\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"TableCell\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"documents:AdornerDecorator\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"documents:AdornerLayer\"", xaml, StringComparison.Ordinal);
         }
@@ -60,15 +66,18 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("{DynamicResource ThemeDialogSurfaceBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource GlassSurfaceBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ForegroundBrush}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource AccentBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource BorderBrushAlt}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeBorderThickness}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeControlBorderThickness}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeSubtleBorderThickness}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource ThemeBorderlessThickness}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeGridLineBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeFontFamily}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeBodyFontSize}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeControlMinHeight}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource CardPadding}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource ControlPadding}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeSurfaceShadow}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeRaisedShadow}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ItemHoverBrush}", xaml, StringComparison.Ordinal);
