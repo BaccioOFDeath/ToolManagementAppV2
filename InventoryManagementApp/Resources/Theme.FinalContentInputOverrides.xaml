@@ -42,7 +42,6 @@
         <Setter Property="Padding" Value="{DynamicResource ControlPadding}"/>
         <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="SelectionBrush" Value="{DynamicResource ItemSelectedBrush}"/>
-        <Setter Property="SelectionTextBrush" Value="{DynamicResource ItemSelectedForegroundBrush}"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
         <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
         <Style.Triggers>
