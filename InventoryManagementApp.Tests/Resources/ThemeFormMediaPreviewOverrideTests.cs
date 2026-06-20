@@ -90,7 +90,7 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("TargetType=\"Hyperlink\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Foreground\" Value=\"{DynamicResource ForegroundBrush}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Foreground\" Value=\"{DynamicResource AccentBrush}\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("TextDecorations\" Value=\"None\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TextDecorations\" Value=\"{x:Null}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TextDecorations\" Value=\"Underline\"", xaml, StringComparison.Ordinal);
             Assert.Contains("PagePadding\" Value=\"{DynamicResource CardPadding}\"", xaml, StringComparison.Ordinal);
         }
