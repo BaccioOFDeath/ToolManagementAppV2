@@ -124,6 +124,56 @@
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
     </Style>
 
+    <Style TargetType="Section">
+        <Setter Property="Background" Value="{DynamicResource TransparentSurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderlessThickness}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+    </Style>
+
+    <Style TargetType="List">
+        <Setter Property="Background" Value="{DynamicResource TransparentSurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderlessThickness}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+    </Style>
+
+    <Style TargetType="ListItem">
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+    </Style>
+
+    <Style TargetType="Hyperlink">
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+    </Style>
+
+    <Style TargetType="Table">
+        <Setter Property="Background" Value="{DynamicResource TransparentSurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ThemeGridLineBrush}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
+        <Setter Property="CellSpacing" Value="0"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+    </Style>
+
+    <Style TargetType="TableCell">
+        <Setter Property="Background" Value="{DynamicResource TransparentSurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ThemeGridLineBrush}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+        <Setter Property="Padding" Value="{DynamicResource ControlPadding}"/>
+    </Style>
+
     <Style TargetType="documents:AdornerDecorator">
         <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
