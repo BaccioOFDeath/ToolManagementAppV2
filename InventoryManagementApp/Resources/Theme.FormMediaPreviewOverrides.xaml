@@ -161,7 +161,7 @@
 
     <Style TargetType="Hyperlink">
         <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
-        <Setter Property="TextDecorations" Value="None"/>
+        <Setter Property="TextDecorations" Value="{x:Null}"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Foreground" Value="{DynamicResource ItemSelectedForegroundBrush}"/>
