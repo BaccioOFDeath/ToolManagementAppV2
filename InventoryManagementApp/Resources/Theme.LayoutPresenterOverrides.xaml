@@ -37,7 +37,7 @@
         <Setter Property="UseLayoutRounding" Value="True"/>
     </Style>
 
-    <Style TargetType="UniformGrid">
+    <Style TargetType="primitives:UniformGrid">
         <Setter Property="Background" Value="{DynamicResource TransparentSurfaceBrush}"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="UseLayoutRounding" Value="True"/>
@@ -54,14 +54,6 @@
     <Style TargetType="ItemsPresenter">
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="UseLayoutRounding" Value="True"/>
-    </Style>
-
-    <Style TargetType="HeaderedItemsControl">
-        <Setter Property="Background" Value="{DynamicResource TransparentSurfaceBrush}"/>
-        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
-        <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
-        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
-        <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
     </Style>
 
     <Style TargetType="primitives:Popup">
