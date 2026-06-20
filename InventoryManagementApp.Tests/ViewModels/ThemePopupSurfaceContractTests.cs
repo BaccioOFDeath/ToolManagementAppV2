@@ -30,6 +30,20 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("Effect\" Value=\"{DynamicResource ThemeRaisedShadow}\"", controlOverrides, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void ThemeResources_RoutePopupItemsAndTooltipsThroughAdminThemeTokens()
+        {
+            var controlOverrides = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.ControlCustomizationOverrides.xaml");
+
+            Assert.Contains("<Style TargetType=\"MenuItem\">", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("<Style TargetType=\"ToolTip\">", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("Background\" Value=\"{DynamicResource ThemePopupSurfaceBrush}\"", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("BorderThickness\" Value=\"{DynamicResource ThemeControlBorderThickness}\"", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("Opacity\" Value=\"{DynamicResource ThemeDisabledOpacity}\"", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("HasDropShadow\" Value=\"False\"", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("Effect\" Value=\"{DynamicResource ThemeRaisedShadow}\"", controlOverrides, StringComparison.Ordinal);
+        }
+
         private static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);
