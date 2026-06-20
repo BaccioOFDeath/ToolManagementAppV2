@@ -219,5 +219,44 @@
 
     <Style TargetType="primitives:Thumb" BasedOn="{StaticResource ThemeRangeThumbStyle}"/>
 
-    <Style TargetType="primitives:RepeatButton" BasedOn="{StaticResource ThemeScrollLineButtonStyle}"/>
+    <Style TargetType="primitives:RepeatButton">
+        <Setter Property="Background" Value="{DynamicResource BtnBg}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BtnBorder}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeControlBorderThickness}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BtnFg}"/>
+        <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
+        <Setter Property="Padding" Value="{DynamicResource ControlPadding}"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
+        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="primitives:RepeatButton">
+                    <Border x:Name="Chrome"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{DynamicResource ThemeButtonCornerRadius}"
+                            Effect="{TemplateBinding Effect}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          RecognizesAccessKey="True"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource BtnBgHover}"/>
+                            <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource NavButtonPressedBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Chrome" Property="Opacity" Value="{DynamicResource ThemeDisabledOpacity}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>
