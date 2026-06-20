@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using InventoryManagementApp.ViewModels;
 using TextBox = System.Windows.Controls.TextBox;
 
@@ -11,6 +12,7 @@ namespace InventoryManagementApp.Views.Pages
     {
         private SettingsViewModel? _settingsViewModel;
         private bool _themeDesignerTabAdded;
+        private bool _themeDesignerTabRetryQueued;
 
         public SettingsPage()
         {
@@ -45,8 +47,12 @@ namespace InventoryManagementApp.Views.Pages
 
             var tabControl = FindVisualChild<TabControl>(this);
             if (tabControl == null)
+            {
+                QueueThemeDesignerTabRetry();
                 return;
+            }
 
+            _themeDesignerTabRetryQueued = false;
             var tab = new TabItem
             {
                 Header = "06 Themes",
@@ -57,6 +63,15 @@ namespace InventoryManagementApp.Views.Pages
             tabControl.Items.Insert(System.Math.Min(5, tabControl.Items.Count), tab);
             RenumberTabs(tabControl);
             _themeDesignerTabAdded = true;
+        }
+
+        private void QueueThemeDesignerTabRetry()
+        {
+            if (_themeDesignerTabRetryQueued)
+                return;
+
+            _themeDesignerTabRetryQueued = true;
+            Dispatcher.BeginInvoke(AddThemeDesignerTab, DispatcherPriority.Loaded);
         }
 
         private static void RenumberTabs(TabControl tabControl)
