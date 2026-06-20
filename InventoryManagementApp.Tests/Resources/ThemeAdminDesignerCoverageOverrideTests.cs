@@ -62,6 +62,24 @@ namespace InventoryManagementApp.Tests.Resources
         }
 
         [Fact]
+        public void ControlCustomizationOverrides_ExtendThemeHooksToSelectionAndDateControls()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.ControlCustomizationOverrides.xaml");
+
+            Assert.Contains("xmlns:primitives=\"clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"CheckBox\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"RadioButton\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"DatePicker\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"primitives:DatePickerTextBox\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"Calendar\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"primitives:CalendarButton\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"primitives:CalendarDayButton\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Property=\"IsChecked\" Value=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Property=\"IsKeyboardFocusWithin\" Value=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Property=\"IsBlackedOut\" Value=\"True\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void AdminDesignerCoverageOverrides_UseAdminTokensForSelectionTransparencyAndDepth()
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.AdminDesignerCoverageOverrides.xaml");
