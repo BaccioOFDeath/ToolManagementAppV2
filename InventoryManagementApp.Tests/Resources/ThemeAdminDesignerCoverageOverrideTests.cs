@@ -16,6 +16,7 @@ namespace InventoryManagementApp.Tests.Resources
             var formMediaIndex = xaml.IndexOf("Resources/Theme.FormMediaPreviewOverrides.xaml", StringComparison.Ordinal);
             var adminCoverageIndex = xaml.IndexOf("Resources/Theme.AdminDesignerCoverageOverrides.xaml", StringComparison.Ordinal);
             var navigationChromeIndex = xaml.IndexOf("Resources/Theme.NavigationChromeOverrides.xaml", StringComparison.Ordinal);
+            var layoutPresenterIndex = xaml.IndexOf("Resources/Theme.LayoutPresenterOverrides.xaml", StringComparison.Ordinal);
             var convertersIndex = xaml.IndexOf("Resources/Converters.xaml", StringComparison.Ordinal);
 
             Assert.True(fullCustomizationIndex >= 0, "Full customization overrides should remain loaded.");
@@ -23,7 +24,8 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.True(formMediaIndex > controlCustomizationIndex, "Form/media overrides should load after control overrides.");
             Assert.True(adminCoverageIndex > formMediaIndex, "Admin coverage overrides should remain after form/media resources.");
             Assert.True(navigationChromeIndex > adminCoverageIndex, "Navigation chrome overrides should load after the broad admin coverage layer.");
-            Assert.True(convertersIndex > navigationChromeIndex, "Converters should remain after visual resources.");
+            Assert.True(layoutPresenterIndex > navigationChromeIndex, "Layout presenter overrides should load after navigation chrome resources.");
+            Assert.True(convertersIndex > layoutPresenterIndex, "Converters should remain after visual resources.");
         }
 
         [Fact]
@@ -111,6 +113,45 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("{DynamicResource ThemeBodyFontSize}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeDisabledOpacity}", xaml, StringComparison.Ordinal);
             Assert.Contains("FocusVisualStyle\" Value=\"{StaticResource DefaultFocusVisual}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TextOptions.TextRenderingMode\" Value=\"ClearType\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void LayoutPresenterOverrides_ExtendAdminThemesToStructuralLayoutChrome()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.LayoutPresenterOverrides.xaml");
+
+            Assert.Contains("TargetType=\"Grid\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"DockPanel\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"StackPanel\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"WrapPanel\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"Canvas\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"primitives:UniformGrid\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"ContentPresenter\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"ItemsPresenter\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"primitives:Popup\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"GridViewColumnHeader\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"DocumentViewer\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"FlowDocumentReader\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"FlowDocumentScrollViewer\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void LayoutPresenterOverrides_UseAdminThemeTokensForTransparentBackgroundsAndTypography()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.LayoutPresenterOverrides.xaml");
+
+            Assert.Contains("{DynamicResource TransparentSurfaceBrush}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource BackgroundBrush}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource ForegroundBrush}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource BorderBrushAlt}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource ThemeGridLineBrush}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource ThemeControlBorderThickness}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource ThemeBorderThickness}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource ThemeFontFamily}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource ThemeBodyFontSize}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource ThemeDataGridHeaderHeight}", xaml, StringComparison.Ordinal);
+            Assert.Contains("AllowsTransparency\" Value=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TextOptions.TextRenderingMode\" Value=\"ClearType\"", xaml, StringComparison.Ordinal);
         }
 
