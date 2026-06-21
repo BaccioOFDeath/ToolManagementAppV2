@@ -222,13 +222,14 @@ namespace InventoryManagementApp.ViewModels
 
         public async Task LoadRentalsAsync()
         {
+            var selectedRentalId = SelectedRental?.RentalID;
             IsLoading = true;
             try
             {
                 _allRentals = await _rentalService.GetAllRentalsAsync();
                 await LoadPendingRequestsAsync();
                 RefreshActiveRentals();
-                ApplyFilter();
+                ApplyFilter(selectedRentalId);
             }
             catch (Exception ex)
             {
@@ -269,7 +270,9 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        void ApplyFilter()
+        void ApplyFilter() => ApplyFilter(SelectedRental?.RentalID);
+
+        void ApplyFilter(int? selectedRentalId)
         {
             if (FilterFrom.HasValue && FilterTo.HasValue && FilterFrom > FilterTo)
             {
@@ -295,18 +298,33 @@ namespace InventoryManagementApp.ViewModels
             if (!string.IsNullOrWhiteSpace(SelectedStatus) && SelectedStatus != "All")
                 filtered = filtered.Where(r => string.Equals(r.Status, SelectedStatus, StringComparison.OrdinalIgnoreCase));
 
-            Rentals.ReplaceRange(filtered);
+            Rentals.ReplaceRange(filtered.ToList());
+            RestoreSelectedRental(selectedRentalId);
             OnPropertyChanged(nameof(SearchSummary));
         }
 
         void ClearFilter()
         {
+            var selectedRentalId = SelectedRental?.RentalID;
             SearchText = string.Empty;
             FilterFrom = null;
             FilterTo = null;
             SelectedStatus = StatusOptions.First();
             Rentals.ReplaceRange(_allRentals);
+            RestoreSelectedRental(selectedRentalId);
             OnPropertyChanged(nameof(SearchSummary));
+        }
+
+        void RestoreSelectedRental(int? selectedRentalId)
+        {
+            if (!selectedRentalId.HasValue)
+            {
+                if (SelectedRental != null && !Rentals.Contains(SelectedRental))
+                    SelectedRental = null;
+                return;
+            }
+
+            SelectedRental = Rentals.FirstOrDefault(r => r.RentalID == selectedRentalId.Value);
         }
 
         async Task CheckInAsync()
