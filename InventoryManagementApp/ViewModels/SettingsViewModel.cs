@@ -317,7 +317,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _theme, value))
                 {
-                    _themeService.ApplyTheme(value);
+                    _themeService.ApplyCustomTheme(AppThemeSettings.CreateDefault(value));
                     _ = SetThemeAsync(value);
                 }
             }
@@ -328,6 +328,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 await _settingsService.SaveThemeAsync(value, token).ConfigureAwait(false);
+                await _settingsService.SaveAppThemeSettingsAsync(AppThemeSettings.CreateDefault(value), token).ConfigureAwait(false);
             }
             catch (UnauthorizedAccessException ex)
             {

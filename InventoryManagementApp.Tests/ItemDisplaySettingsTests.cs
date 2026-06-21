@@ -55,7 +55,9 @@ public class ItemDisplaySettingsTests
 
     private sealed class DummyThemeService : IThemeService
     {
+        public AppThemeSettings? LastCustomTheme { get; private set; }
         public void ApplyTheme(string? theme) { }
+        public void ApplyCustomTheme(AppThemeSettings? settings) => LastCustomTheme = settings;
     }
 
     private sealed class TrackingItemService : IItemService
@@ -318,6 +320,31 @@ public class ItemDisplaySettingsTests
         await vm.InitializeAsync();
         Assert.Equal("TestApp", vm.ApplicationName);
         Assert.True(vm.ItemDetailOptions.Single(o => o.Field == ItemDetailField.Name).IsVisible);
+    }
+
+    [Fact]
+    public async Task SettingsViewModel_ThemeSelectionAppliesAndPersistsDefaultAppTheme()
+    {
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        await using var db = new DatabaseService(dbPath);
+        new MigrationRunner(db).Migrate();
+        var settings = new SettingsService(db);
+        var custom = AppThemeSettings.CreateDefault("Light");
+        custom.SelectedColor = "#FFFF0000";
+        await ((ISettingsService)settings).SaveAppThemeSettingsAsync(custom);
+        var theme = new DummyThemeService();
+        var vm = new SettingsViewModel(new DummyFileDialogService(), settings, new DummyDialogService(), theme);
+
+        vm.Theme = "Dark";
+        await Task.Delay(100);
+
+        var saved = await ((ISettingsService)settings).GetAppThemeSettingsAsync();
+        var defaults = AppThemeSettings.CreateDefault("Dark");
+        Assert.Equal("Dark", await settings.GetThemeAsync());
+        Assert.Equal("Dark", saved.BaseTheme);
+        Assert.Equal(defaults.SelectedColor, saved.SelectedColor);
+        Assert.NotNull(theme.LastCustomTheme);
+        Assert.Equal(defaults.SelectedColor, theme.LastCustomTheme!.SelectedColor);
     }
 
     [Fact]

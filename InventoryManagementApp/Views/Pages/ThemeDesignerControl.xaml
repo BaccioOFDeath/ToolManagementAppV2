@@ -206,6 +206,28 @@
                                             <ComboBoxItem Content="Dropdown preview"/>
                                             <ComboBoxItem Content="Menu selection"/>
                                         </ComboBox>
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="8"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <ListBox SelectedIndex="1" MinHeight="82">
+                                                <ListBoxItem Content="Dropdown normal"/>
+                                                <ListBoxItem Content="Dropdown selected"/>
+                                                <ListBoxItem Content="Dropdown hover"/>
+                                            </ListBox>
+                                            <Border Grid.Column="2"
+                                                    Background="{DynamicResource ItemSelectedBrush}"
+                                                    BorderBrush="{DynamicResource BorderBrushAlt}"
+                                                    BorderThickness="{DynamicResource ThemeControlBorderThickness}"
+                                                    Padding="10,8">
+                                                <StackPanel>
+                                                    <TextBlock Text="Menu selection" Foreground="{DynamicResource ItemSelectedForegroundBrush}" Style="{StaticResource LabelTextBlock}"/>
+                                                    <TextBlock Text="Hover / selected contrast" Foreground="{DynamicResource ItemSelectedForegroundBrush}" Style="{StaticResource CaptionTextBlock}"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
                                         <Slider Value="65" Maximum="100" Margin="0,0,0,8"/>
                                         <ProgressBar Value="65" Maximum="100"/>
                                     </StackPanel>
