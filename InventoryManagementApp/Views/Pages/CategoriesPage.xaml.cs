@@ -98,11 +98,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void CategoryRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (sender is DataGridRow row && !row.IsSelected)
-            {
-                row.Focus();
-                row.IsSelected = true;
-            }
+            GridContextMenuSelection.SelectRow(sender, e);
         }
 
         private void OpenCategoryDetail_Click(object sender, RoutedEventArgs e)
