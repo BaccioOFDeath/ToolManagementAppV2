@@ -75,6 +75,31 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public async Task BaseTheme_SelectionLoadsFullDefaultPaletteAndAppliesImmediately()
+        {
+            var settingsService = new FakeSettingsService();
+            var themeService = new RecordingThemeService();
+            var viewModel = CreateViewModel(settingsService, themeService);
+            await viewModel.InitializeAsync();
+
+            viewModel.AccentColor = "#FFFF0000";
+            viewModel.SelectedColor = "#FFFF0000";
+
+            viewModel.BaseTheme = "Dark";
+
+            var darkDefaults = AppThemeSettings.CreateDefault("Dark");
+            Assert.Equal("Dark", viewModel.BaseTheme);
+            Assert.Equal(darkDefaults.BackgroundColor, viewModel.BackgroundColor);
+            Assert.Equal(darkDefaults.SurfaceColor, viewModel.SurfaceColor);
+            Assert.Equal(darkDefaults.AccentColor, viewModel.AccentColor);
+            Assert.Equal(darkDefaults.SelectedColor, viewModel.SelectedColor);
+            Assert.NotNull(themeService.LastCustomTheme);
+            Assert.Equal("Dark", themeService.LastCustomTheme!.BaseTheme);
+            Assert.Equal(darkDefaults.SelectedColor, themeService.LastCustomTheme.SelectedColor);
+            Assert.Equal("Dark theme previewed. Save to keep it.", viewModel.Status);
+        }
+
+        [Fact]
         public async Task TransparentCanvasPreset_PreviewsBackgroundFirstRedesign()
         {
             var settingsService = new FakeSettingsService();
@@ -197,6 +222,10 @@ namespace InventoryManagementApp.Tests.ViewModels
                     TextColor = settings.TextColor,
                     MutedTextColor = settings.MutedTextColor,
                     AccentColor = settings.AccentColor,
+                    HoverColor = settings.HoverColor,
+                    HoverTextColor = settings.HoverTextColor,
+                    SelectedColor = settings.SelectedColor,
+                    SelectedTextColor = settings.SelectedTextColor,
                     SuccessColor = settings.SuccessColor,
                     WarningColor = settings.WarningColor,
                     ErrorColor = settings.ErrorColor,

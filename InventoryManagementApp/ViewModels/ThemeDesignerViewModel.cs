@@ -23,8 +23,10 @@ namespace InventoryManagementApp.ViewModels
         private readonly IFileDialogService _fileDialogService;
         private readonly IDialogService _dialogService;
         private readonly ILogger<ThemeDesignerViewModel> _logger;
+        private CancellationTokenSource? _previewDebounceCts;
         private AppThemeSettings _settings = AppThemeSettings.CreateDefault();
         private string _status = "Theme designer ready.";
+        private const int PreviewDebounceMilliseconds = 140;
 
         public ThemeDesignerViewModel(
             ISettingsService settingsService,
@@ -77,7 +79,17 @@ namespace InventoryManagementApp.ViewModels
         public string BaseTheme
         {
             get => _settings.BaseTheme;
-            set => SetString(value, (settings, newValue) => settings.BaseTheme = newValue, nameof(BaseTheme));
+            set
+            {
+                var theme = string.Equals(value, "Dark", StringComparison.OrdinalIgnoreCase) ? "Dark" : "Light";
+                if (string.Equals(_settings.BaseTheme, theme, StringComparison.OrdinalIgnoreCase))
+                    return;
+
+                _settings = AppThemeSettings.CreateDefault(theme);
+                Preview(immediate: true);
+                NotifyAllThemePropertiesChanged();
+                Status = $"{theme} theme previewed. Save to keep it.";
+            }
         }
 
         public string BackgroundColor
@@ -463,7 +475,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 _settings = await _settingsService.GetAppThemeSettingsAsync(token).ConfigureAwait(false);
-                _themeService.ApplyCustomTheme(_settings);
+                Preview(immediate: true);
                 NotifyAllThemePropertiesChanged();
                 Status = "Loaded saved app theme.";
             }
@@ -483,7 +495,7 @@ namespace InventoryManagementApp.ViewModels
                 _settings.Normalize();
                 await _settingsService.SaveThemeAsync(_settings.BaseTheme, token).ConfigureAwait(false);
                 await _settingsService.SaveAppThemeSettingsAsync(_settings, token).ConfigureAwait(false);
-                _themeService.ApplyCustomTheme(_settings);
+                Preview(immediate: true);
                 NotifyAllThemePropertiesChanged();
                 Status = "Theme saved and applied.";
             }
@@ -498,7 +510,7 @@ namespace InventoryManagementApp.ViewModels
         private void Reset()
         {
             _settings = AppThemeSettings.CreateDefault(BaseTheme);
-            Preview();
+            Preview(immediate: true);
             NotifyAllThemePropertiesChanged();
             Status = "Theme reset to defaults. Save to keep it.";
         }
@@ -544,7 +556,7 @@ namespace InventoryManagementApp.ViewModels
 
                 imported.Normalize();
                 _settings = imported;
-                Preview();
+                Preview(immediate: true);
                 NotifyAllThemePropertiesChanged();
                 Status = "Theme profile imported for preview. Save to keep it.";
             }
@@ -608,6 +620,8 @@ namespace InventoryManagementApp.ViewModels
             GridLineOpacity = 0.24;
             MotionIntensity = 1.1;
             BackgroundImageStretch = "UniformToFill";
+            Preview(immediate: true);
+            NotifyAllThemePropertiesChanged();
             Status = "Glass preset previewed. Save to keep it.";
         }
 
@@ -649,6 +663,8 @@ namespace InventoryManagementApp.ViewModels
             GridLineOpacity = 0.06;
             MotionIntensity = 0.9;
             BackgroundImageStretch = "UniformToFill";
+            Preview(immediate: true);
+            NotifyAllThemePropertiesChanged();
             Status = "Transparent canvas preset previewed. Save to keep it.";
         }
 
@@ -693,6 +709,8 @@ namespace InventoryManagementApp.ViewModels
             FocusRingOpacity = 0.38;
             GridLineOpacity = 0;
             MotionIntensity = 0.75;
+            Preview(immediate: true);
+            NotifyAllThemePropertiesChanged();
             Status = "Borderless preset previewed. Save to keep it.";
         }
 
@@ -731,6 +749,8 @@ namespace InventoryManagementApp.ViewModels
             FocusRingOpacity = 0.65;
             GridLineOpacity = 0.32;
             MotionIntensity = 1.15;
+            Preview(immediate: true);
+            NotifyAllThemePropertiesChanged();
             Status = "Deep shadow preset previewed. Save to keep it.";
         }
 
@@ -783,7 +803,7 @@ namespace InventoryManagementApp.ViewModels
             _settings.FocusRingOpacity = 1;
             _settings.GridLineOpacity = 0.85;
             _settings.MotionIntensity = 0.4;
-            Preview();
+            Preview(immediate: true);
             NotifyAllThemePropertiesChanged();
             Status = "High contrast preset previewed. Save to keep it.";
         }
@@ -809,13 +829,48 @@ namespace InventoryManagementApp.ViewModels
             Preview();
         }
 
-        private void Preview()
+        private void Preview(bool immediate = false)
+        {
+            _previewDebounceCts?.Cancel();
+            _previewDebounceCts = null;
+
+            if (immediate)
+            {
+                ApplyPreview();
+                return;
+            }
+
+            var cts = new CancellationTokenSource();
+            _previewDebounceCts = cts;
+            _ = PreviewAfterDelayAsync(cts);
+        }
+
+        private async Task PreviewAfterDelayAsync(CancellationTokenSource cts)
+        {
+            try
+            {
+                await Task.Delay(PreviewDebounceMilliseconds, cts.Token).ConfigureAwait(false);
+                if (!cts.IsCancellationRequested)
+                    ApplyPreview();
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            finally
+            {
+                if (ReferenceEquals(_previewDebounceCts, cts))
+                    _previewDebounceCts = null;
+
+                cts.Dispose();
+            }
+        }
+
+        private void ApplyPreview()
         {
             try
             {
                 _settings.Normalize();
                 _themeService.ApplyCustomTheme(_settings);
-                NotifyAllThemePropertiesChanged();
             }
             catch (Exception ex)
             {

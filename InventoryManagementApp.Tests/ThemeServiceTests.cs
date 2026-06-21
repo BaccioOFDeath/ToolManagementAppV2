@@ -228,6 +228,25 @@ namespace InventoryManagementApp.Tests
             });
         }
 
+        [Fact]
+        public async Task ApplyCustomTheme_ReusesExistingBaseThemeDictionaryDuringLivePreview()
+        {
+            await RunOnStaThread(async () =>
+            {
+                var app = WpfTestHelper.CreateApplication();
+                var service = new ThemeService();
+                var settings = AppThemeSettings.CreateDefault("Dark");
+
+                service.ApplyCustomTheme(settings);
+                service.ApplyCustomTheme(settings);
+
+                Assert.Single(app.Resources.MergedDictionaries, d => d.Source?.OriginalString.Contains("Colors.Dark.xaml") == true);
+                Assert.DoesNotContain(app.Resources.MergedDictionaries, d => d.Source?.OriginalString.Contains("Colors.Light.xaml") == true);
+                WpfTestHelper.ShutdownApplication();
+                await Task.CompletedTask;
+            });
+        }
+
         static Task RunOnStaThread(Func<Task> action)
         {
             var tcs = new TaskCompletionSource();

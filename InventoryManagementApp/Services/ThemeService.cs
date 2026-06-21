@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
@@ -33,20 +34,7 @@ namespace InventoryManagementApp.Services
 
             void ApplyOnUiThread()
             {
-                var dictionaries = app.Resources.MergedDictionaries;
-                var themeUri = string.Equals(theme, "Dark", StringComparison.OrdinalIgnoreCase) ? DarkThemeUri : LightThemeUri;
-                var insertIndex = 0;
-
-                for (int i = dictionaries.Count - 1; i >= 0; i--)
-                {
-                    if (IsThemeDictionary(dictionaries[i]))
-                    {
-                        insertIndex = i;
-                        dictionaries.RemoveAt(i);
-                    }
-                }
-
-                dictionaries.Insert(Math.Min(insertIndex, dictionaries.Count), new ResourceDictionary { Source = themeUri });
+                ApplyBaseThemeDictionary(app, theme);
                 RefreshWindows(app);
             }
 
@@ -65,7 +53,7 @@ namespace InventoryManagementApp.Services
                 _applyingCustomTheme = true;
                 try
                 {
-                    ApplyTheme(settings.BaseTheme);
+                    ApplyBaseThemeDictionary(app, settings.BaseTheme);
                 }
                 finally
                 {
@@ -175,7 +163,7 @@ namespace InventoryManagementApp.Services
                 Set(resources, "SubtleSurfaceShadow", settings.EnableSurfaceShadows ? CreateShadow(settings, settings.SurfaceShadowScale) : CreateNoShadow());
                 Set(resources, "RaisedSurfaceShadow", settings.EnableSurfaceShadows ? CreateShadow(settings, 1.55 * settings.SurfaceShadowScale) : CreateNoShadow());
 
-                RefreshWindows(app);
+                InvalidateWindows(app);
             }
 
             InvokeOnUi(app, ApplyOnUiThread);
@@ -212,6 +200,8 @@ namespace InventoryManagementApp.Services
 
         private static void RefreshWindows(Application app)
         {
+            InvalidateWindows(app);
+
             foreach (Window window in app.Windows)
             {
                 if (!window.IsLoaded)
@@ -219,9 +209,79 @@ namespace InventoryManagementApp.Services
                     continue;
                 }
 
-                window.InvalidateVisual();
                 window.UpdateLayout();
             }
+        }
+
+        private static void InvalidateWindows(Application app)
+        {
+            foreach (Window window in app.Windows)
+            {
+                if (window.IsLoaded)
+                    window.InvalidateVisual();
+            }
+        }
+
+        private static void ApplyBaseThemeDictionary(Application app, string? theme)
+        {
+            var dictionaries = app.Resources.MergedDictionaries;
+            var themeUri = string.Equals(theme, "Dark", StringComparison.OrdinalIgnoreCase) ? DarkThemeUri : LightThemeUri;
+            var insertIndex = 0;
+            var existingTheme = FindThemeDictionary(dictionaries);
+
+            if (existingTheme.Dictionary != null &&
+                UriEquals(existingTheme.Dictionary.Source, themeUri) &&
+                CountThemeDictionaries(dictionaries) == 1)
+            {
+                return;
+            }
+
+            for (int i = dictionaries.Count - 1; i >= 0; i--)
+            {
+                if (IsThemeDictionary(dictionaries[i]))
+                {
+                    insertIndex = i;
+                    dictionaries.RemoveAt(i);
+                }
+            }
+
+            dictionaries.Insert(Math.Min(insertIndex, dictionaries.Count), new ResourceDictionary { Source = themeUri });
+        }
+
+        private static (ResourceDictionary? Dictionary, int Index) FindThemeDictionary(Collection<ResourceDictionary> dictionaries)
+        {
+            for (var i = 0; i < dictionaries.Count; i++)
+            {
+                if (IsThemeDictionary(dictionaries[i]))
+                    return (dictionaries[i], i);
+            }
+
+            return (null, -1);
+        }
+
+        private static int CountThemeDictionaries(Collection<ResourceDictionary> dictionaries)
+        {
+            var count = 0;
+            foreach (var dictionary in dictionaries)
+            {
+                if (IsThemeDictionary(dictionary))
+                    count++;
+            }
+
+            return count;
+        }
+
+        private static bool UriEquals(Uri? left, Uri right)
+        {
+            if (left == null)
+                return false;
+
+            var leftText = left.OriginalString.Replace('\\', '/');
+            var rightText = right.OriginalString.Replace('\\', '/');
+            return leftText.EndsWith("Resources/Colors.Dark.xaml", StringComparison.OrdinalIgnoreCase) &&
+                   rightText.EndsWith("Resources/Colors.Dark.xaml", StringComparison.OrdinalIgnoreCase) ||
+                   leftText.EndsWith("Resources/Colors.Light.xaml", StringComparison.OrdinalIgnoreCase) &&
+                   rightText.EndsWith("Resources/Colors.Light.xaml", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsThemeDictionary(ResourceDictionary dictionary)
