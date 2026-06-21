@@ -124,10 +124,10 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Width="42" Height="34" Margin="2">
-                                            <Image Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                            <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
                                                    Stretch="UniformToFill">
                                                 <Image.ToolTip>
-                                                    <Image Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                                    <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
                                                            MaxWidth="180" MaxHeight="180" Stretch="Uniform"/>
                                                 </Image.ToolTip>
                                             </Image>
@@ -232,10 +232,10 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Width="42" Height="34" Margin="2">
-                                            <Image Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                            <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
                                                    Stretch="UniformToFill">
                                                 <Image.ToolTip>
-                                                    <Image Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                                    <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
                                                            MaxWidth="180" MaxHeight="180" Stretch="Uniform"/>
                                                 </Image.ToolTip>
                                             </Image>

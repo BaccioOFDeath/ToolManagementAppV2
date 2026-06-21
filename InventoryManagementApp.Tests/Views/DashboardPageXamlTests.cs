@@ -16,7 +16,7 @@ namespace InventoryManagementApp.Tests.Views
             var checkedOutGrid = xaml.Substring(gridIndex);
 
             Assert.Contains("<DataGridTemplateColumn Header=\"Image\" Width=\"58\">", checkedOutGrid, StringComparison.Ordinal);
-            Assert.Contains("Source=\"{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}\"", checkedOutGrid, StringComparison.Ordinal);
+            Assert.Contains("Source=\"{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}\"", checkedOutGrid, StringComparison.Ordinal);
             Assert.Contains("<Image.ToolTip>", checkedOutGrid, StringComparison.Ordinal);
             Assert.Contains("RowHeight=\"44\"", checkedOutGrid, StringComparison.Ordinal);
         }
