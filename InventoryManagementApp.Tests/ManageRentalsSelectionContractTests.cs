@@ -22,6 +22,19 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void RentalsLoadFailuresClearStaleRowsAndDisableRentalActions()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
+
+            Assert.Contains("ClearRentalStateAfterLoadFailure();\n                await _dialogService.ShowInfoAsync($\"Failed to load rentals: {ex.Message} Rental rows were cleared until reload succeeds.\", \"Error\");", source, StringComparison.Ordinal);
+            Assert.Contains("void ClearRentalStateAfterLoadFailure()", source, StringComparison.Ordinal);
+            Assert.Contains("_allRentals.Clear();\n            Rentals.Clear();\n            ActiveRentals.Clear();\n            SelectedRental = null;", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(SearchSummary));\n            OnPropertyChanged(nameof(CheckedOutSummary));", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(SelectedRequestHolderLine));\n            OnPropertyChanged(nameof(SelectedRequestNextAction));", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("await _dialogService.ShowInfoAsync($\"Failed to load rentals: {ex.Message}\", \"Error\");", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void MissingSelectionAfterFilterClearsRentalActions()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
