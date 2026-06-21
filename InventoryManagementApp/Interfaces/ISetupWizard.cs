@@ -12,5 +12,6 @@ namespace InventoryManagementApp.Interfaces
         string ApplicationName,
         string ItemLabelSingular,
         string ItemLabelPlural,
-        string CompanyLogoPath);
+        string CompanyLogoPath,
+        string ThemeProfilePath = "");
 }

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -319,6 +320,8 @@ namespace InventoryManagementApp
 
                 // Refresh settings service for normal operations
                 settingsService = Host.Services.GetRequiredService<ISettingsService>();
+                theme = await settingsService.GetThemeAsync();
+                themeService.ApplyTheme(theme);
                 ApplyWindowBranding(await settingsService.GetSettingAsync("CompanyLogoPath"));
             }
             await LabelProvider.Instance.InitializeAsync(settingsService);
@@ -422,6 +425,27 @@ namespace InventoryManagementApp
             await bypassSettings.SaveItemLabelPluralAsync(result.ItemLabelPlural);
             if (disableAutoLogout)
                 await bypassSettings.SaveAutoLogoutMinutesAsync(0);
+
+            if (!string.IsNullOrWhiteSpace(result.ThemeProfilePath))
+            {
+                try
+                {
+                    var themeProfilePath = Path.GetFullPath(result.ThemeProfilePath);
+                    if (File.Exists(themeProfilePath))
+                    {
+                        var themeSettings = JsonSerializer.Deserialize<AppThemeSettings>(File.ReadAllText(themeProfilePath))
+                            ?? throw new InvalidDataException("Theme profile did not contain app theme settings.");
+                        themeSettings.Normalize();
+                        await bypassSettings.SaveThemeAsync(themeSettings.BaseTheme);
+                        await bypassSettings.SaveAppThemeSettingsAsync(themeSettings);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to apply QA theme profile {ThemeProfilePath}.", result.ThemeProfilePath);
+                    throw;
+                }
+            }
 
             if (!string.IsNullOrWhiteSpace(result.CompanyLogoPath))
             {
