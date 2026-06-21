@@ -323,6 +323,37 @@ namespace InventoryManagementApp
             }
             await LabelProvider.Instance.InitializeAsync(settingsService);
 
+            if (qaOptions != null)
+            {
+                var qaMain = (Window)Host.Services.GetRequiredService<IMainWindow>();
+                Current.MainWindow = qaMain;
+                ShutdownMode = ShutdownMode.OnMainWindowClose;
+                qaMain.Show();
+
+                // Yield once on the UI dispatcher so startup continues after Show()
+                // without depending on an ApplicationIdle pump in tests.
+                await qaMain.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Background);
+
+                await RunQaScreenshotsAsync(qaMain, qaOptions);
+                qaMain.Close();
+                return;
+            }
+
+            var login = Host.Services.GetRequiredService<ILoginWindow>();
+            login.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            if (login is Window startupLoginWindow)
+                startupLoginWindow.ShowInTaskbar = true;
+
+            var lvm = login.ViewModel;
+            await lvm.InitializeAsync();
+
+            var ok = login.ShowDialog() == true;
+            if (!ok)
+            {
+                Shutdown();
+                return;
+            }
+
             var main = (Window)Host.Services.GetRequiredService<IMainWindow>();
             Current.MainWindow = main;
             ShutdownMode = ShutdownMode.OnMainWindowClose;
@@ -331,27 +362,6 @@ namespace InventoryManagementApp
             // Yield once on the UI dispatcher so startup continues after Show()
             // without depending on an ApplicationIdle pump in tests.
             await main.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Background);
-
-            if (qaOptions != null)
-            {
-                await RunQaScreenshotsAsync(main, qaOptions);
-                main.Close();
-                return;
-            }
-
-            var login = Host.Services.GetRequiredService<ILoginWindow>();
-            login.Owner = main;
-            login.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-
-            var lvm = login.ViewModel;
-            await lvm.InitializeAsync();
-
-            var ok = login.ShowDialog() == true;
-            if (!ok)
-            {
-                main.Close();
-                return;
-            }
 
             if (main.WindowState == WindowState.Minimized) main.WindowState = WindowState.Normal;
             main.Activate();

@@ -429,9 +429,37 @@ namespace InventoryManagementApp.ViewModels
             {
                 var app = (App)System.Windows.Application.Current;
                 var login = app.Host.Services.GetRequiredService<ILoginWindow>();
-                login.Owner =  System.Windows.Application.Current.MainWindow;
+                var mainWindow = System.Windows.Application.Current.MainWindow;
+                var mainWasVisible = mainWindow?.IsVisible == true;
+                if (mainWasVisible)
+                    mainWindow!.Hide();
+
+                if (login is Window loginWindow)
+                {
+                    loginWindow.ShowInTaskbar = true;
+                    login.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                }
+                else if (mainWindow?.IsVisible == true)
+                {
+                    login.Owner = mainWindow;
+                    login.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                }
+
                 await login.ViewModel.InitializeAsync();
-                return login.ShowDialog() == true;
+                try
+                {
+                    return login.ShowDialog() == true;
+                }
+                finally
+                {
+                    if (mainWasVisible)
+                    {
+                        mainWindow!.Show();
+                        if (mainWindow.WindowState == WindowState.Minimized)
+                            mainWindow.WindowState = WindowState.Normal;
+                        mainWindow.Activate();
+                    }
+                }
             });
 
             _userContextChangedHandler = (_, _) => OnCurrentUserChanged();
