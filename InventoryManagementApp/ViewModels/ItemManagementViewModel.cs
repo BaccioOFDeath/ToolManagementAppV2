@@ -518,7 +518,8 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to rent {ItemLabelSingular} {ItemID}", LabelProvider.Instance.ItemLabelSingular, item.ItemID);
-                await _dialogService.ShowInfoAsync($"Failed to rent {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message}", "Error");
+                await RefreshItemsAfterWorkflowFailureAsync(item.ItemID, cancellationToken);
+                await _dialogService.ShowInfoAsync($"Failed to rent {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message} The item list has been refreshed in case the rental was saved before the failure.", "Error");
             }
         }
 
@@ -546,7 +547,8 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to rent {ItemLabelSingular} {ItemID}", LabelProvider.Instance.ItemLabelSingular, item.ItemID);
-                await _dialogService.ShowInfoAsync($"Failed to rent {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message}", "Error");
+                await RefreshItemsAfterWorkflowFailureAsync(item.ItemID, cancellationToken);
+                await _dialogService.ShowInfoAsync($"Failed to rent {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message} The item list has been refreshed in case the rental was saved before the failure.", "Error");
             }
         }
 
@@ -558,6 +560,18 @@ namespace InventoryManagementApp.ViewModels
         private Task ReloadItemsAfterCheckoutAsync(int itemId, CancellationToken cancellationToken)
         {
             return ReloadItemsAfterItemWorkflowAsync(itemId, cancellationToken);
+        }
+
+        private async Task RefreshItemsAfterWorkflowFailureAsync(int itemId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await ReloadItemsAfterItemWorkflowAsync(itemId, cancellationToken);
+            }
+            catch (Exception refreshEx)
+            {
+                _logger.LogError(refreshEx, "Failed to refresh items after workflow failure for item {ItemID}", itemId);
+            }
         }
 
         private async Task ReloadItemsAfterItemWorkflowAsync(int itemId, CancellationToken cancellationToken)
@@ -598,7 +612,8 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to toggle check out status for item {ItemID}", item.ItemID);
-                await _dialogService.ShowInfoAsync($"Failed to update check-out status: {ex.Message}", "Error");
+                await RefreshItemsAfterWorkflowFailureAsync(item.ItemID, cancellationToken);
+                await _dialogService.ShowInfoAsync($"Failed to update check-out status: {ex.Message} The item list has been refreshed in case the check-out status changed before the failure.", "Error");
             }
         }
 
