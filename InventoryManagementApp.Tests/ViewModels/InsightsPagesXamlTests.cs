@@ -81,8 +81,12 @@ namespace InventoryManagementApp.Tests.ViewModels
             var reportsCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs");
             var activityCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs");
 
-            Assert.Contains("new PrintPreviewWindow().ShowPreview(document, vm.ReportTitle, null)", reportsCode, StringComparison.Ordinal);
-            Assert.Contains("new PrintPreviewWindow().ShowPreview(document, \"Activity Logs\", null)", activityCode, StringComparison.Ordinal);
+            Assert.Contains("new PrintPreviewWindow().ShowPreview(", reportsCode, StringComparison.Ordinal);
+            Assert.Contains("vm.ReportTitle", reportsCode, StringComparison.Ordinal);
+            Assert.Contains("Review the report summary, destination routing, and next-action handoff before printing.", reportsCode, StringComparison.Ordinal);
+            Assert.Contains("new PrintPreviewWindow().ShowPreview(", activityCode, StringComparison.Ordinal);
+            Assert.Contains("\"Activity Logs\"", activityCode, StringComparison.Ordinal);
+            Assert.Contains("Review the filtered audit trail, destination routing, and operator handoff before printing.", activityCode, StringComparison.Ordinal);
             Assert.DoesNotContain("WpfPrintDialog", reportsCode, StringComparison.Ordinal);
             Assert.DoesNotContain("WpfPrintDialog", activityCode, StringComparison.Ordinal);
             Assert.DoesNotContain("PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator", reportsCode, StringComparison.Ordinal);
