@@ -34,12 +34,16 @@ namespace InventoryManagementApp.Tests.ViewModels
         public void ThemeResources_RouteClosedComboBoxChromeThroughThemeTemplate()
         {
             var styles = ReadRepositoryFile("InventoryManagementApp", "Resources", "Styles.xaml");
+            var desktopShell = ReadRepositoryFile("InventoryManagementApp", "Resources", "DesktopShell.xaml");
 
+            Assert.Contains("x:Key=\"ThemedComboBoxStyle\"", styles, StringComparison.Ordinal);
+            Assert.Contains("<Style TargetType=\"ComboBox\" BasedOn=\"{StaticResource ThemedComboBoxStyle}\"", styles, StringComparison.Ordinal);
             Assert.Contains("<ToggleButton.Template>", styles, StringComparison.Ordinal);
             Assert.Contains("x:Name=\"ToggleChrome\"", styles, StringComparison.Ordinal);
             Assert.Contains("Background=\"{TemplateBinding Background}\"", styles, StringComparison.Ordinal);
             Assert.Contains("Property=\"IsChecked\" Value=\"True\"", styles, StringComparison.Ordinal);
             Assert.Contains("Value=\"{DynamicResource ComboBoxPopupBackgroundBrush}\"", styles, StringComparison.Ordinal);
+            Assert.Contains("<Style TargetType=\"ComboBox\" BasedOn=\"{StaticResource ThemedComboBoxStyle}\"", desktopShell, StringComparison.Ordinal);
         }
 
         [Fact]

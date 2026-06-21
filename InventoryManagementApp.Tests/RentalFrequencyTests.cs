@@ -8,6 +8,7 @@ using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Services.Items;
 using InventoryManagementApp.Services.Rentals;
 using InventoryManagementApp.Services.Customers;
+using Microsoft.Data.Sqlite;
 using Xunit;
 
 namespace InventoryManagementApp.Tests
@@ -123,6 +124,58 @@ namespace InventoryManagementApp.Tests
             var frequencies = await _rentalService.GetRentalFrequencyAsync(10);
 
             Assert.Empty(frequencies);
+        }
+
+        [Fact]
+        public async Task ExtendRentalAsync_DoesNotChangeItemQuantities()
+        {
+            var customer = await AddCustomerAsync();
+            var item = new ItemModel { ItemNumber = "EXT001", Name = "Extension item", Location = "Loc1", QuantityOnHand = 2, IsRentalItem = true };
+            await _itemService.AddItemAsync(item);
+            await _rentalService.RentItemAsync(item.ItemID, customer.CustomerID, DateTime.Today.AddDays(-3), DateTime.Today);
+
+            await _rentalService.ExtendRentalAsync((await _rentalService.GetActiveRentalsAsync()).Single().RentalID, DateTime.Today.AddDays(7));
+
+            var quantities = await GetItemQuantitiesAsync(item.ItemID);
+            Assert.Equal((1, 1), quantities);
+        }
+
+        [Fact]
+        public async Task DeleteRentalAsync_RestoresItemQuantityForActiveRental()
+        {
+            var customer = await AddCustomerAsync();
+            var item = new ItemModel { ItemNumber = "DEL001", Name = "Delete item", Location = "Loc1", QuantityOnHand = 1, IsRentalItem = true };
+            await _itemService.AddItemAsync(item);
+            await _rentalService.RentItemAsync(item.ItemID, customer.CustomerID, DateTime.Today, DateTime.Today.AddDays(3));
+            var rental = (await _rentalService.GetActiveRentalsAsync()).Single();
+
+            await _rentalService.DeleteRentalAsync(rental.RentalID);
+
+            var quantities = await GetItemQuantitiesAsync(item.ItemID);
+            Assert.Equal((1, 0), quantities);
+            Assert.Empty(await _rentalService.GetActiveRentalsAsync());
+        }
+
+        private async Task<CustomerModel> AddCustomerAsync()
+        {
+            var customer = new CustomerModel
+            {
+                Company = "Test Customer",
+                Email = "test@test.com",
+                Contact = "John Doe"
+            };
+            await _customerService.AddCustomerAsync(customer);
+            return customer;
+        }
+
+        private async Task<(int available, int rented)> GetItemQuantitiesAsync(int itemId)
+        {
+            using var conn = _dbService.CreateConnection();
+            using var cmd = new SqliteCommand("SELECT AvailableQuantity, RentedQuantity FROM Items WHERE ItemID=@ItemID", conn);
+            cmd.Parameters.AddWithValue("@ItemID", itemId);
+            using var reader = await cmd.ExecuteReaderAsync();
+            Assert.True(await reader.ReadAsync());
+            return (Convert.ToInt32(reader["AvailableQuantity"]), Convert.ToInt32(reader["RentedQuantity"]));
         }
     }
 }

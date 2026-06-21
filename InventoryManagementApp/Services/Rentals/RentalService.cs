@@ -260,21 +260,12 @@ namespace InventoryManagementApp.Services.Rentals
             await ExecuteWithTransactionAsync(async (conn, tx) =>
             {
                 var selectCmd = new SqliteCommand(
-                    "SELECT ItemID, DueDate FROM Rentals WHERE RentalID=@RentalID AND Status='Rented'",
+                    "SELECT 1 FROM Rentals WHERE RentalID=@RentalID AND Status='Rented'",
                     conn, tx);
                 selectCmd.Parameters.AddWithValue("@RentalID", rentalID);
-                using var reader = await selectCmd.ExecuteReaderAsync();
-                if (!await reader.ReadAsync())
+                var activeRental = await selectCmd.ExecuteScalarAsync();
+                if (activeRental == null)
                     throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
-
-                int itemID = Convert.ToInt32(reader["ItemID"]);
-                var dueText = reader["DueDate"].ToString();
-                DateTime oldDueDate;
-                if (!DateTime.TryParse(dueText, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out oldDueDate))
-                {
-                    _logger.LogError("Failed to parse DueDate: {Value}", dueText);
-                    oldDueDate = default;
-                }
 
                 var updateCmd = new SqliteCommand(
                     "UPDATE Rentals SET DueDate=@NewDueDate WHERE RentalID=@RentalID AND Status='Rented'",
@@ -283,14 +274,6 @@ namespace InventoryManagementApp.Services.Rentals
                 updateCmd.Parameters.AddWithValue("@RentalID", rentalID);
                 if (await updateCmd.ExecuteNonQueryAsync() == 0)
                     throw new InvalidOperationException("Unable to extend rental. Rental not found or already returned.");
-
-                if (_itemService != null)
-                {
-                    if (oldDueDate <= DateTime.Today && newDueDate > DateTime.Today)
-                        await _itemService.UpdateItemQuantitiesAsync(itemID, 1, true, conn, tx);
-                    else if (oldDueDate > DateTime.Today && newDueDate <= DateTime.Today)
-                        await _itemService.UpdateItemQuantitiesAsync(itemID, 1, false, conn, tx);
-                }
             });
             if (_activityLog != null)
             {
@@ -301,12 +284,35 @@ namespace InventoryManagementApp.Services.Rentals
 
         public async Task DeleteRentalAsync(int rentalID)
         {
+            if (rentalID < 1)
+                throw new ArgumentOutOfRangeException(nameof(rentalID), "Rental ID must be greater than 0.");
+
             _auth.EnsureAdmin();
-            const string sql = "DELETE FROM Rentals WHERE RentalID = @RentalID";
-            var p = new[] { new SqliteParameter("@RentalID", rentalID) };
-            using var conn = _dbService.CreateConnection();
-            if (await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p) == 0)
-                throw new InvalidOperationException("Rental not found.");
+            await ExecuteWithTransactionAsync(async (conn, tx) =>
+            {
+                var selectCmd = new SqliteCommand(
+                    "SELECT ItemID, Status, ReturnDate FROM Rentals WHERE RentalID=@RentalID",
+                    conn, tx);
+                selectCmd.Parameters.AddWithValue("@RentalID", rentalID);
+                using var reader = await selectCmd.ExecuteReaderAsync();
+                if (!await reader.ReadAsync())
+                    throw new InvalidOperationException("Rental not found.");
+
+                var itemID = Convert.ToInt32(reader["ItemID"]);
+                var status = reader["Status"]?.ToString();
+                var isActive = string.Equals(status, "Rented", StringComparison.OrdinalIgnoreCase) && reader["ReturnDate"] is DBNull;
+                await reader.DisposeAsync();
+
+                if (isActive && _itemService != null)
+                    await _itemService.UpdateItemQuantitiesAsync(itemID, 1, false, conn, tx);
+
+                var deleteCmd = new SqliteCommand(
+                    "DELETE FROM Rentals WHERE RentalID=@RentalID",
+                    conn, tx);
+                deleteCmd.Parameters.AddWithValue("@RentalID", rentalID);
+                if (await deleteCmd.ExecuteNonQueryAsync() == 0)
+                    throw new InvalidOperationException("Rental not found.");
+            });
             if (_activityLog != null)
             {
                 var user = _context?.CurrentUser;

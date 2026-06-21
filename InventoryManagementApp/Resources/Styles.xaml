@@ -182,7 +182,7 @@
         <Setter Property="ItemContainerStyle" Value="{StaticResource {x:Type ListViewItem}}"/>
     </Style>
 
-    <Style TargetType="ComboBox">
+    <Style x:Key="ThemedComboBoxStyle" TargetType="ComboBox">
         <Setter Property="Background" Value="{DynamicResource TextBoxBackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
@@ -287,6 +287,8 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <Style TargetType="ComboBox" BasedOn="{StaticResource ThemedComboBoxStyle}"/>
 
     <Style TargetType="PasswordBox">
         <Setter Property="Background" Value="{DynamicResource TextBoxBackgroundBrush}"/>
