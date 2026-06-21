@@ -503,7 +503,7 @@ namespace InventoryManagementApp.ViewModels
                         customer.CustomerID,
                         DateTime.Today,
                         dueDate);
-                    await LoadItemsAsync(new ItemPage(1, PageSize));
+                    await ReloadItemsAfterRentalAsync(item.ItemID, cancellationToken);
                 }
             }
             catch (OperationCanceledException)
@@ -532,7 +532,7 @@ namespace InventoryManagementApp.ViewModels
                 {
                     var (customer, dueDate) = result.Value;
                     await _rentalService.RentItemAsync(item.ItemID, customer.CustomerID, DateTime.Today, dueDate);
-                    await LoadItemsAsync(new ItemPage(1, PageSize));
+                    await ReloadItemsAfterRentalAsync(item.ItemID, cancellationToken);
                 }
             }
             catch (OperationCanceledException)
@@ -547,6 +547,19 @@ namespace InventoryManagementApp.ViewModels
                 _logger.LogError(ex, "Failed to rent {ItemLabelSingular} {ItemID}", LabelProvider.Instance.ItemLabelSingular, item.ItemID);
                 await _dialogService.ShowInfoAsync($"Failed to rent {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message}", "Error");
             }
+        }
+
+        private async Task ReloadItemsAfterRentalAsync(int itemId, CancellationToken cancellationToken)
+        {
+            var previousSelection = SelectedItem;
+
+            await LoadItemsAsync(new ItemPage(1, PageSize));
+            await FilterItemsAsync();
+
+            SelectedItem = SearchResults.FirstOrDefault(t => t.ItemID == itemId)
+                ?? Items.FirstOrDefault(t => t.ItemID == itemId)
+                ?? CheckedOutItems.FirstOrDefault(t => t.ItemID == itemId)
+                ?? previousSelection;
         }
 
         private async Task ToggleCheckOutAsync(ItemModel? item, CancellationToken cancellationToken)
