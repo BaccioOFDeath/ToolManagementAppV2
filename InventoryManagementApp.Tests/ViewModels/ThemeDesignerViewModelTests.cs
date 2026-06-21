@@ -21,7 +21,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             saved.ButtonCornerRadius = 17;
             saved.EnableControlShadows = true;
             saved.ControlShadowScale = 1.4;
-            await settingsService.SaveAppThemeSettingsAsync(saved);
+            await ((ISettingsService)settingsService).SaveAppThemeSettingsAsync(saved);
 
             var themeService = new RecordingThemeService();
             var viewModel = CreateViewModel(settingsService, themeService);
@@ -57,7 +57,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             viewModel.BackgroundImageStretch = "Uniform";
 
             await viewModel.SaveCommand.ExecuteAsync(null);
-            var loaded = await settingsService.GetAppThemeSettingsAsync();
+            var loaded = await ((ISettingsService)settingsService).GetAppThemeSettingsAsync();
 
             Assert.Equal("Dark", await settingsService.GetThemeAsync());
             Assert.Equal("Dark", loaded.BaseTheme);

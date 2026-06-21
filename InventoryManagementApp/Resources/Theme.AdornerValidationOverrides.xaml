@@ -118,11 +118,6 @@
         <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
 
-    <Style TargetType="primitives:StatusBarPanel">
-        <Setter Property="Background" Value="{DynamicResource ThemeShellFooterBrush}"/>
-        <Setter Property="SnapsToDevicePixels" Value="True"/>
-    </Style>
-
     <Style TargetType="primitives:DataGridDetailsPresenter">
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="UseLayoutRounding" Value="True"/>
