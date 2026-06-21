@@ -31,6 +31,30 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void ThemeResources_RouteClosedComboBoxChromeThroughThemeTemplate()
+        {
+            var styles = ReadRepositoryFile("InventoryManagementApp", "Resources", "Styles.xaml");
+
+            Assert.Contains("<ToggleButton.Template>", styles, StringComparison.Ordinal);
+            Assert.Contains("x:Name=\"ToggleChrome\"", styles, StringComparison.Ordinal);
+            Assert.Contains("Background=\"{TemplateBinding Background}\"", styles, StringComparison.Ordinal);
+            Assert.Contains("Property=\"IsChecked\" Value=\"True\"", styles, StringComparison.Ordinal);
+            Assert.Contains("Value=\"{DynamicResource ComboBoxPopupBackgroundBrush}\"", styles, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ThemeResources_RouteSelectedTabsThroughSelectedThemeBrushes()
+        {
+            var controlOverrides = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.ControlCustomizationOverrides.xaml");
+
+            Assert.Contains("<ControlTemplate TargetType=\"TabItem\">", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("x:Name=\"TabChrome\"", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("Property=\"IsSelected\" Value=\"True\"", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("TargetName=\"TabChrome\" Property=\"Background\" Value=\"{DynamicResource ItemSelectedBrush}\"", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("Property=\"Foreground\" Value=\"{DynamicResource ItemSelectedForegroundBrush}\"", controlOverrides, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ThemeResources_RouteContextMenusThroughPopupSurfaceBrush()
         {
             var tokens = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.Customization.xaml");
