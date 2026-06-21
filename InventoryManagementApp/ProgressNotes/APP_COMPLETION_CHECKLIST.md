@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-21 11:11 NZST
+Last audit date/time: 2026-06-22 01:11 NZST
 
 ## Completed workflows
 
@@ -9,6 +9,7 @@ Last audit date/time: 2026-06-21 11:11 NZST
 - Reservation editor supports item lookup inside the popup so advisors/admins can search inventory and apply item details without leaving the workflow.
 - Reports ViewModel now keeps `ReportResults` as a compatibility alias for `ReportLines`, protecting older tests/bindings while the reports page uses the newer dense report grid.
 - Item edit saves now clone all operational fields, show clear validation/database failure messages, and keep the selected row stable when a save fails.
+- Item checkout conflict and rental-history load failures now give visible operator feedback instead of silently returning or only logging, and checkout conflict handling refreshes the item lists before returning control to the desk.
 - Settings now opens with an admin service status panel that summarizes database, email, messaging, backup, branding, and workstation security state with the relevant action buttons available from the same view.
 - Settings Database, Branding, and Backups tabs now have stronger admin polish: connection-readiness guidance, a larger brand/logo identity preview, and a recovery-focused backup destination layout while preserving the existing commands and bindings.
 - QA screenshot capture now has a repository script and latest screenshot set covering login, overview/search, operational pages, reports/activity, import/export, users, settings, and print-label dialog surfaces; the script fails if the expected PNG count is not produced.
@@ -73,10 +74,10 @@ Last audit date/time: 2026-06-21 11:11 NZST
 
 ## Next recommended target
 
-- Continue targeted Admin Settings theme coverage and runtime Windows screenshot review, especially extreme transparent, borderless, and high-shadow profiles. Run the enhanced Windows QA screenshot capture when a Windows/.NET workstation is available.
+- Continue broader item/rental service-level validation around rent, return/check-in, extend, request, and checkout paths, especially conflict, permission, and stale-state messages that should refresh or disable UI state safely. Use Admin Settings theme work only when current evidence shows a concrete remaining gap or regression.
 
 ## Validation status
 
-- GitHub connector readback reviewed the theme override XAML, App resource load order, contract tests, progress note, and this checklist update.
-- Local XAML parsing, `dotnet --info`, `dotnet restore`, `dotnet build`, `dotnet test`, WPF screenshots, and local banned-word checks were not run because this scheduled Linux container lacks the .NET SDK and Windows/WPF runtime, and direct local clone/raw fetches remain blocked by the network tunnel.
+- GitHub connector readback/compare should review the item workflow feedback changes, source-contract tests, progress note, and this checklist update.
+- Local XAML parsing, `dotnet --info`, `dotnet restore`, `dotnet build`, `dotnet test`, WPF screenshots, local banned-word checks, and full runtime function checks were not run because this scheduled Linux container lacks the .NET SDK and Windows/WPF runtime, and direct local clone/raw fetches remain blocked by the network tunnel.
 - Did not run unrelated tests, per instruction.
