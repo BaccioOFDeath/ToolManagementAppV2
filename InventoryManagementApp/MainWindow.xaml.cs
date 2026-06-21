@@ -62,24 +62,11 @@ namespace InventoryManagementApp
 
         void SectionMenuItem_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (sender is not MenuItem menuItem || DataContext is not MainViewModel vm)
+            if (sender is not MenuItem menuItem)
                 return;
 
             if (FindSourceMenuItem(e.OriginalSource as DependencyObject) != menuItem)
                 return;
-
-            var command = menuItem.Header?.ToString() switch
-            {
-                "Overview" => vm.SelectOverviewSectionCommand,
-                "Operations" => vm.SelectOperationsSectionCommand,
-                "Insights" => vm.SelectInsightsSectionCommand,
-                "Data" => vm.SelectDataSectionCommand,
-                "Admin" => vm.SelectAdminSectionCommand,
-                _ => null
-            };
-
-            if (command?.CanExecute(null) == true)
-                command.Execute(null);
 
             menuItem.IsSubmenuOpen = true;
             e.Handled = true;
