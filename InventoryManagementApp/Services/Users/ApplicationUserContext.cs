@@ -44,7 +44,7 @@ namespace InventoryManagementApp.Services.Users
 
         public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
 
-        public string UserName => CurrentUser?.UserName ?? "Guest";
+        public string UserName => CurrentUser?.UserName ?? string.Empty;
 
         public string Role
         {
@@ -53,7 +53,10 @@ namespace InventoryManagementApp.Services.Users
                 if (IsAdmin)
                     return "Admin";
 
-                return string.IsNullOrWhiteSpace(CurrentUser?.Role)
+                if (CurrentUser == null)
+                    return string.Empty;
+
+                return string.IsNullOrWhiteSpace(CurrentUser.Role)
                     ? "User"
                     : CurrentUser.Role;
             }
