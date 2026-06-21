@@ -155,6 +155,7 @@ public class DashboardViewModelTests
         public int ToggleCalls { get; private set; }
         public int LastToggledItemID { get; private set; }
         public bool ToggleResult { get; set; } = true;
+        public ItemModel? ItemByIdResult { get; set; }
 
         public Task<int> CountItemsAsync(ItemFilter filter, CancellationToken ct) => Task.FromResult(0);
         public Task<List<ItemModel>> GetCheckedOutItemsAsync(CancellationToken cancellationToken = default)
@@ -166,7 +167,7 @@ public class DashboardViewModelTests
         public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task DeleteItemAsync(int itemID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default) => Task.FromResult(ItemByIdResult);
         public IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default) => AsyncEnumerable.Empty<ItemModel>();
         public IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default) => AsyncEnumerable.Empty<ItemModel>();
         public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct) => Task.CompletedTask;
@@ -428,6 +429,61 @@ public class DashboardViewModelTests
         Assert.Single(vm.CheckedOutItems);
         Assert.Equal(1, itemService.ToggleCalls);
         Assert.Equal(2, itemService.LastToggledItemID);
+    }
+
+    [Fact]
+    public async Task ToggleSelectedCommonItemCommand_AddsCheckedOutItemImmediately()
+    {
+        using var db = new DatabaseService(":memory:");
+        var checkedOutAt = new DateTime(2026, 6, 21, 21, 58, 0);
+        var itemService = new StubItemService
+        {
+            ItemByIdResult = new ItemModel
+            {
+                ItemID = 15,
+                ItemNumber = "T15",
+                Name = "BMW Diesel Engine Timing",
+                Location = "D4",
+                ImagePath = "images/t15.jpg",
+                IsCheckedOut = true,
+                CheckedOutBy = "admin",
+                CheckedOutTime = checkedOutAt
+            }
+        };
+        var rentalService = new StubRentalService();
+        var customerService = new StubCustomerService();
+        var userService = new StubUserService();
+        var activityLogService = new StubActivityLogService(db);
+
+        var vm = new DashboardViewModel(
+            itemService,
+            rentalService,
+            customerService,
+            userService,
+            activityLogService,
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }));
+        var commonItem = new ItemModel
+        {
+            ItemID = 15,
+            ItemNumber = "T15",
+            Name = "BMW Diesel Engine Timing",
+            Location = "D4",
+            IsCheckedOut = false
+        };
+        vm.CommonlyUsedItems.Add(commonItem);
+        vm.SelectedCommonlyUsedItem = commonItem;
+
+        await vm.ToggleSelectedCommonItemCommand.ExecuteAsync(null);
+
+        var checkedOut = Assert.Single(vm.CheckedOutItems);
+        Assert.Same(commonItem, checkedOut);
+        Assert.True(commonItem.IsCheckedOut);
+        Assert.Equal("admin", commonItem.CheckedOutBy);
+        Assert.Equal(checkedOutAt, commonItem.CheckedOutTime);
+        Assert.Equal("images/t15.jpg", commonItem.ImagePath);
+        Assert.Contains("1 checked out", vm.OperationsSummary);
     }
 
     [Fact]

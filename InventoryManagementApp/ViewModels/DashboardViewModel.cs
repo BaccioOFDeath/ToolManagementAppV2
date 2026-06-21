@@ -355,15 +355,35 @@ namespace InventoryManagementApp.ViewModels
             if (item == null) return;
             try
             {
+                var wasCheckedOut = item.IsCheckedOut || CheckedOutItems.Any(existing => existing.ItemID == item.ItemID);
                 var result = await _itemService.ToggleItemCheckOutStatusAsync(item.ItemID, token).ConfigureAwait(false);
                 if (result)
                 {
-                    CheckedOutItems.Remove(item);
-                    item.IsCheckedOut = !item.IsCheckedOut;
-                    if (SelectedCheckedOutItem?.ItemID == item.ItemID)
+                    var refreshed = await TryGetItemByIdAsync(item.ItemID, token).ConfigureAwait(false);
+                    if (refreshed != null)
+                    {
+                        ApplyItemState(item, refreshed);
+                    }
+                    else
+                    {
+                        item.IsCheckedOut = !wasCheckedOut;
+                    }
+
+                    if (item.IsCheckedOut)
+                    {
+                        UpsertCheckedOutItem(item);
+                        UpdateSelectedRecordSummary();
+                    }
+                    else
+                    {
+                        RemoveCheckedOutItem(item.ItemID);
+                    }
+
+                    if (SelectedCheckedOutItem?.ItemID == item.ItemID && !item.IsCheckedOut)
                         SelectedCheckedOutItem = null;
                     else
                         UpdateSelectedRecordSummary();
+
                     OnPropertyChanged(nameof(OperationsSummary));
                 }
             }
@@ -374,6 +394,70 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to check in item {ItemID}", item.ItemID);
             }
+        }
+
+        private async Task<ItemModel?> TryGetItemByIdAsync(int itemId, CancellationToken token)
+        {
+            try
+            {
+                return await _itemService.GetItemByIDAsync(itemId, token).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Failed to refresh dashboard item {ItemID} after check-out toggle", itemId);
+                return null;
+            }
+        }
+
+        private void UpsertCheckedOutItem(ItemModel item)
+        {
+            var existing = CheckedOutItems.FirstOrDefault(existing => existing.ItemID == item.ItemID);
+            if (existing == null)
+            {
+                CheckedOutItems.Insert(0, item);
+                return;
+            }
+
+            ApplyItemState(existing, item);
+        }
+
+        private void RemoveCheckedOutItem(int itemId)
+        {
+            for (var i = CheckedOutItems.Count - 1; i >= 0; i--)
+            {
+                if (CheckedOutItems[i].ItemID == itemId)
+                    CheckedOutItems.RemoveAt(i);
+            }
+        }
+
+        private static void ApplyItemState(ItemModel target, ItemModel source)
+        {
+            target.ItemID = source.ItemID;
+            target.ItemNumber = source.ItemNumber;
+            target.PartNumber = source.PartNumber;
+            target.Name = source.Name;
+            target.Brand = source.Brand;
+            target.Location = source.Location;
+            target.Price = source.Price;
+            target.QuantityOnHand = source.QuantityOnHand;
+            target.RentedQuantity = source.RentedQuantity;
+            target.Supplier = source.Supplier;
+            target.PurchasedDate = source.PurchasedDate;
+            target.Notes = source.Notes;
+            target.Keywords = source.Keywords;
+            target.IsPowered = source.IsPowered;
+            target.IsRentalItem = source.IsRentalItem;
+            target.IsCheckedOut = source.IsCheckedOut;
+            target.CheckedOutBy = source.CheckedOutBy;
+            target.CheckedOutTime = source.CheckedOutTime;
+            target.CheckedInBy = source.CheckedInBy;
+            target.CheckedInTime = source.CheckedInTime;
+            target.ImagePath = source.ImagePath;
+            target.UpdatedAt = source.UpdatedAt;
+            target.IsIncomplete = source.IsIncomplete;
+            target.MissingComponentsNotes = source.MissingComponentsNotes;
+            target.IssuesNotes = source.IssuesNotes;
+            target.CheckoutCount = source.CheckoutCount;
         }
 
         private async Task ReturnRentalAsync(RentalModel? rental, CancellationToken token)
