@@ -137,7 +137,10 @@ namespace InventoryManagementApp.Views.Pages
             }
 
             var document = BuildPrintDocument(vm.FilteredLogs.ToList(), vm.StatusMessage, vm.ActivitySummary);
-            new PrintPreviewWindow().ShowPreview(document, "Activity Logs", null);
+            new PrintPreviewWindow().ShowPreview(
+                document,
+                "Activity Logs",
+                "Review the filtered audit trail, destination routing, and operator handoff before printing.");
         }
 
         private static string FormatLogDetail(ActivityLog log)
