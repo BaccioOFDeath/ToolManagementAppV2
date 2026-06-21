@@ -46,6 +46,26 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void RentalOperationFailuresRefreshDeskAndExplainState()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
+
+            Assert.Contains("async Task RefreshRentalDeskAfterOperationFailureAsync(int rentalId)", source, StringComparison.Ordinal);
+            Assert.Contains("_allRentals = await _rentalService.GetAllRentalsAsync();", source, StringComparison.Ordinal);
+            Assert.Contains("await LoadPendingRequestsAsync();", source, StringComparison.Ordinal);
+            Assert.Contains("RefreshActiveRentals();", source, StringComparison.Ordinal);
+            Assert.Contains("ApplyFilter(rentalId);", source, StringComparison.Ordinal);
+            Assert.Equal(3, CountOccurrences(source, "await RefreshRentalDeskAfterOperationFailureAsync("));
+            Assert.Contains("var rentalToExtend = SelectedRental;", source, StringComparison.Ordinal);
+            Assert.Contains("await _rentalService.ExtendRentalAsync(rentalToExtend.RentalID, newDueDate);", source, StringComparison.Ordinal);
+            Assert.Contains("_logger.LogError(ex, \"Failed to extend rental {RentalID}\", rentalToExtend.RentalID);", source, StringComparison.Ordinal);
+            Assert.Contains("_logger.LogError(ex, \"Failed to delete rental {RentalID}\", rentalToDelete.RentalID);", source, StringComparison.Ordinal);
+            Assert.Equal(3, CountOccurrences(source, "The rental desk has been refreshed so current rental actions match the latest saved state."));
+            Assert.DoesNotContain("_logger.LogError(ex, \"Failed to extend rental {RentalID}\", SelectedRental.RentalID);", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("_logger.LogError(ex, \"Failed to delete rental {RentalID}\", rentalToDelete?.RentalID);", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void RentalGridRightClickSelectionUsesSharedSafeTreeTraversal()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml.cs");
