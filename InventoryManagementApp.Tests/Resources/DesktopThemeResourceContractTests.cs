@@ -40,6 +40,17 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("{DynamicResource ThemeSubtleBorderThickness}", xaml, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void DesktopPageShell_SectionRailTabsScrollWhenPaddingConsumesHeight()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "DesktopPageShellResources.xaml");
+
+            Assert.Contains("<ScrollViewer VerticalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("HorizontalScrollBarVisibility=\"Disabled\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("CanContentScroll=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("IsItemsHost=\"True\"", xaml, StringComparison.Ordinal);
+        }
+
         private static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);

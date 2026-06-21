@@ -25,11 +25,16 @@
                                 CornerRadius="{DynamicResource ThemePanelCornerRadius}"
                                 Padding="{DynamicResource CardPadding}"
                                 Effect="{DynamicResource ThemeSurfaceShadow}">
-                            <TabPanel Grid.Column="0"
-                                      IsItemsHost="True"
-                                      Margin="0"
-                                      KeyboardNavigation.TabIndex="1"
-                                      Background="Transparent"/>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Disabled"
+                                          CanContentScroll="True"
+                                          Focusable="False">
+                                <TabPanel Grid.Column="0"
+                                          IsItemsHost="True"
+                                          Margin="0"
+                                          KeyboardNavigation.TabIndex="1"
+                                          Background="Transparent"/>
+                            </ScrollViewer>
                         </Border>
                         <ContentPresenter Grid.Column="2"
                                           x:Name="PART_SelectedContentHost"
