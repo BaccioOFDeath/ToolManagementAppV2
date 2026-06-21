@@ -5,6 +5,16 @@
         xmlns:controls="clr-namespace:InventoryManagementApp.Views.Controls"
         Title="User Profile" Width="1080" Height="820" MinWidth="860" MinHeight="680" WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/InventoryManagementApp;component/Resources/DesktopShell.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/InventoryManagementApp;component/Resources/DesktopPageShellResources.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/InventoryManagementApp;component/Resources/PolishedVisualHierarchy.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/InventoryManagementApp;component/Resources/Theme.FullCustomizationOverrides.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
     <Grid Margin="14">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

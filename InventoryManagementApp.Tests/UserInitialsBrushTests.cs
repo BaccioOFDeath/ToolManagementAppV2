@@ -89,7 +89,7 @@ namespace InventoryManagementApp.Tests
                         await editVm.SaveCommand.ExecuteAsync(null);
                     });
 
-                    vm.EditUserCommand.Execute(null);
+                    vm.EditUserCommand.ExecuteAsync(null).GetAwaiter().GetResult();
 
                     Assert.Equal(originalBrush, vm.Users[0].InitialsBrush);
                 }
@@ -141,7 +141,7 @@ namespace InventoryManagementApp.Tests
                         await editVm.SaveCommand.ExecuteAsync(null);
                     });
 
-                    vm.EditUserCommand.Execute(null);
+                    vm.EditUserCommand.ExecuteAsync(null).GetAwaiter().GetResult();
 
                     Assert.Equal(defaultBrush, vm.Users[0].InitialsBrush);
                     Assert.Equal(defaultBrush, vm.Users[1].InitialsBrush);
