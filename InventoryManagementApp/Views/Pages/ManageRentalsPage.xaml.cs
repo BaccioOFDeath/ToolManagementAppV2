@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -184,10 +185,23 @@ namespace InventoryManagementApp.Views.Pages
                 if (current is T match)
                     return match;
 
-                current = VisualTreeHelper.GetParent(current);
+                current = GetParent(current);
             }
 
             return null;
+        }
+
+        private static DependencyObject? GetParent(DependencyObject current)
+        {
+            try
+            {
+                return VisualTreeHelper.GetParent(current)
+                    ?? LogicalTreeHelper.GetParent(current);
+            }
+            catch (InvalidOperationException)
+            {
+                return LogicalTreeHelper.GetParent(current);
+            }
         }
     }
 }
