@@ -89,6 +89,19 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("Deep Shadow", xaml, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void ThemeDesignerControl_ExposesColorPickersForHexThemeColors()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ThemeDesignerControl.xaml");
+
+            Assert.Contains("xmlns:xctk=\"http://schemas.xceed.com/wpf/xaml/toolkit\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("xctk:ColorPicker", xaml, StringComparison.Ordinal);
+            Assert.Contains("HexColorConverter", xaml, StringComparison.Ordinal);
+            Assert.Contains("SelectedColor=\"{Binding BackgroundColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("SelectedColor=\"{Binding AccentColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("UsingAlphaChannel", xaml, StringComparison.Ordinal);
+        }
+
         private static ThemeDesignerViewModel CreateViewModel(
             FakeSettingsService? settingsService = null,
             FakeThemeService? themeService = null,

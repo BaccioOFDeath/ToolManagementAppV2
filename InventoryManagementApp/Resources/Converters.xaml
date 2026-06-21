@@ -8,4 +8,5 @@
     <conv:StringNotEmptyConverter x:Key="StringNotEmptyConverter"/>
     <conv:ExistingFilePathToBoolConverter x:Key="ExistingFilePathToBoolConverter"/>
     <conv:NameToInitialsConverter x:Key="NameToInitialsConverter"/>
+    <conv:HexColorConverter x:Key="HexColorConverter"/>
 </ResourceDictionary>

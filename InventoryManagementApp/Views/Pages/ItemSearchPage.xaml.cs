@@ -147,10 +147,23 @@ namespace InventoryManagementApp.Views.Pages
                 if (current is T match)
                     return match;
 
-                current = System.Windows.Media.VisualTreeHelper.GetParent(current);
+                current = GetParent(current);
             }
 
             return null;
+        }
+
+        private static DependencyObject? GetParent(DependencyObject current)
+        {
+            try
+            {
+                return System.Windows.Media.VisualTreeHelper.GetParent(current)
+                    ?? LogicalTreeHelper.GetParent(current);
+            }
+            catch (InvalidOperationException)
+            {
+                return LogicalTreeHelper.GetParent(current);
+            }
         }
 
         private static void OpenSelectedItemDetails(ItemManagementViewModel vm)
