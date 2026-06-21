@@ -50,7 +50,7 @@ namespace InventoryManagementApp.ViewModels
             _emailAccountDiscoveryService = emailAccountDiscoveryService ?? new OutlookEmailAccountDiscoveryService();
             _logger = logger ?? NullLogger<SettingsViewModel>.Instance;
 
-            ThemeOptions = new ObservableCollection<string> { "Light", "Dark", "VS Code" };
+            ThemeOptions = new ObservableCollection<string> { "Light", "Dark", "VS Code", "VS Code Light" };
             _theme = ThemeOptions[0];
             _itemLabelSingular = LabelProvider.Instance.ItemLabelSingular;
             _itemLabelPlural = LabelProvider.Instance.ItemLabelPlural;
@@ -348,6 +348,14 @@ namespace InventoryManagementApp.ViewModels
 
         private static string NormalizeThemeOption(string? value)
         {
+            if ((value?.IndexOf("VS Code", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                 value?.IndexOf("VSCode", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                 value?.IndexOf("Visual Studio Code", StringComparison.OrdinalIgnoreCase) >= 0) &&
+                value?.IndexOf("Light", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return "VS Code Light";
+            }
+
             if (value?.IndexOf("VS Code", StringComparison.OrdinalIgnoreCase) >= 0 ||
                 value?.IndexOf("VSCode", StringComparison.OrdinalIgnoreCase) >= 0 ||
                 value?.IndexOf("Visual Studio Code", StringComparison.OrdinalIgnoreCase) >= 0)

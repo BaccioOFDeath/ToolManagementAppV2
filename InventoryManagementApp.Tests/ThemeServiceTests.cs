@@ -216,6 +216,20 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task ApplyTheme_LoadsLightDictionaryForVSCodeLightTheme()
+        {
+            await RunOnStaThread(async () =>
+            {
+                var app = WpfTestHelper.CreateApplication();
+                var service = new ThemeService();
+                service.ApplyTheme("VS Code Light");
+                Assert.Contains("Colors.Light.xaml", app.Resources.MergedDictionaries[0].Source.OriginalString);
+                WpfTestHelper.ShutdownApplication();
+                await Task.CompletedTask;
+            });
+        }
+
+        [Fact]
         public async Task ApplyCustomTheme_UsesSeparateHoverAndSelectedColors()
         {
             await RunOnStaThread(async () =>
@@ -284,6 +298,28 @@ namespace InventoryManagementApp.Tests
                 Assert.Equal(Color.FromRgb(0x31, 0x31, 0x31), ((SolidColorBrush)app.Resources["TextBoxBackgroundBrush"]).Color);
                 var selected = ((SolidColorBrush)app.Resources["ItemSelectedBrush"]).Color;
                 Assert.Equal((0x04, 0x39, 0x5E), (selected.R, selected.G, selected.B));
+                Assert.Equal(new CornerRadius(2), (CornerRadius)app.Resources["ThemeInputCornerRadius"]);
+                WpfTestHelper.ShutdownApplication();
+                await Task.CompletedTask;
+            });
+        }
+
+        [Fact]
+        public async Task ApplyCustomTheme_AppliesVSCodeLightPaletteToRuntimeResources()
+        {
+            await RunOnStaThread(async () =>
+            {
+                var app = WpfTestHelper.CreateApplication();
+                var service = new ThemeService();
+                var settings = AppThemeSettings.CreateDefault("VS Code Light");
+
+                service.ApplyCustomTheme(settings);
+
+                Assert.Equal(Color.FromRgb(0xF3, 0xF3, 0xF3), ((SolidColorBrush)app.Resources["BackgroundBrush"]).Color);
+                Assert.Equal(Color.FromRgb(0xF3, 0xF3, 0xF3), ((SolidColorBrush)app.Resources["ThemeShellMenuBrush"]).Color);
+                Assert.Equal(Colors.White, ((SolidColorBrush)app.Resources["TextBoxBackgroundBrush"]).Color);
+                var selected = ((SolidColorBrush)app.Resources["ItemSelectedBrush"]).Color;
+                Assert.Equal((0xAD, 0xD6, 0xFF), (selected.R, selected.G, selected.B));
                 Assert.Equal(new CornerRadius(2), (CornerRadius)app.Resources["ThemeInputCornerRadius"]);
                 WpfTestHelper.ShutdownApplication();
                 await Task.CompletedTask;

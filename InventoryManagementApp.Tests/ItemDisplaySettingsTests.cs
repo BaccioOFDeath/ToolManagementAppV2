@@ -358,14 +358,15 @@ public class ItemDisplaySettingsTests
         var vm = new SettingsViewModel(new DummyFileDialogService(), settings, new DummyDialogService(), theme);
 
         Assert.Contains("VS Code", vm.ThemeOptions);
+        Assert.Contains("VS Code Light", vm.ThemeOptions);
 
-        vm.Theme = "VS Code";
+        vm.Theme = "VS Code Light";
         await Task.Delay(100);
 
         var saved = await ((ISettingsService)settings).GetAppThemeSettingsAsync();
-        var defaults = AppThemeSettings.CreateDefault("VS Code");
-        Assert.Equal("VS Code", await settings.GetThemeAsync());
-        Assert.Equal("VS Code", saved.BaseTheme);
+        var defaults = AppThemeSettings.CreateDefault("VS Code Light");
+        Assert.Equal("VS Code Light", await settings.GetThemeAsync());
+        Assert.Equal("VS Code Light", saved.BaseTheme);
         Assert.Equal(defaults.NavigationColor, saved.NavigationColor);
         Assert.Equal(defaults.SelectedColor, saved.SelectedColor);
         Assert.NotNull(theme.LastCustomTheme);

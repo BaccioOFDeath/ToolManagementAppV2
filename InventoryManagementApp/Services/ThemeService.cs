@@ -291,9 +291,10 @@ namespace InventoryManagementApp.Services
 
         private static bool IsDarkBaseTheme(string? theme)
             => theme?.IndexOf("Dark", StringComparison.OrdinalIgnoreCase) >= 0 ||
-               theme?.IndexOf("VS Code", StringComparison.OrdinalIgnoreCase) >= 0 ||
+               ((theme?.IndexOf("VS Code", StringComparison.OrdinalIgnoreCase) >= 0 ||
                theme?.IndexOf("VSCode", StringComparison.OrdinalIgnoreCase) >= 0 ||
-               theme?.IndexOf("Visual Studio Code", StringComparison.OrdinalIgnoreCase) >= 0;
+               theme?.IndexOf("Visual Studio Code", StringComparison.OrdinalIgnoreCase) >= 0) &&
+               theme?.IndexOf("Light", StringComparison.OrdinalIgnoreCase) < 0);
 
         private static bool IsThemeDictionary(ResourceDictionary dictionary)
         {

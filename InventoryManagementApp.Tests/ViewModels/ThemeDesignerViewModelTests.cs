@@ -108,6 +108,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             await viewModel.InitializeAsync();
 
             Assert.Contains("VS Code", viewModel.ThemeOptions);
+            Assert.Contains("VS Code Light", viewModel.ThemeOptions);
 
             viewModel.BaseTheme = "VS Code";
 
@@ -120,6 +121,27 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.NotNull(themeService.LastCustomTheme);
             Assert.Equal("VS Code", themeService.LastCustomTheme!.BaseTheme);
             Assert.Equal("VS Code theme previewed. Save to keep it.", viewModel.Status);
+        }
+
+        [Fact]
+        public async Task ThemeOptions_ExposeVSCodeLightBaseTheme()
+        {
+            var settingsService = new FakeSettingsService();
+            var themeService = new RecordingThemeService();
+            var viewModel = CreateViewModel(settingsService, themeService);
+            await viewModel.InitializeAsync();
+
+            viewModel.BaseTheme = "VS Code Light";
+
+            var defaults = AppThemeSettings.CreateDefault("VS Code Light");
+            Assert.Equal("VS Code Light", viewModel.BaseTheme);
+            Assert.Equal(defaults.BackgroundColor, viewModel.BackgroundColor);
+            Assert.Equal(defaults.NavigationColor, viewModel.NavigationColor);
+            Assert.Equal(defaults.SelectedColor, viewModel.SelectedColor);
+            Assert.False(viewModel.EnableSurfaceShadows);
+            Assert.NotNull(themeService.LastCustomTheme);
+            Assert.Equal("VS Code Light", themeService.LastCustomTheme!.BaseTheme);
+            Assert.Equal("VS Code Light theme previewed. Save to keep it.", viewModel.Status);
         }
 
         [Fact]
