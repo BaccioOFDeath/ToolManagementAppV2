@@ -30,10 +30,30 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("private Task ReloadItemsAfterCheckoutAsync(int itemId, CancellationToken cancellationToken)", source, StringComparison.Ordinal);
             Assert.Equal(2, CountOccurrences(source, "return ReloadItemsAfterItemWorkflowAsync(itemId, cancellationToken);"));
             Assert.Contains("var result = await _itemService.ToggleItemCheckOutStatusAsync(item.ItemID, cancellationToken).ConfigureAwait(false);", source, StringComparison.Ordinal);
-            Assert.Contains("if (!result) return;", source, StringComparison.Ordinal);
             Assert.Contains("await ReloadItemsAfterCheckoutAsync(item.ItemID, cancellationToken);", source, StringComparison.Ordinal);
             Assert.DoesNotContain("var refreshed = await _itemService.GetItemByIDAsync(item.ItemID, cancellationToken).ConfigureAwait(false);", source, StringComparison.Ordinal);
             Assert.Contains("?? CheckedOutItems.FirstOrDefault(t => t.ItemID == itemId)", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ItemCheckoutToggleFailureRefreshesAndExplainsTheConflict()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemManagementViewModel.cs");
+
+            Assert.Contains("if (!result)", source, StringComparison.Ordinal);
+            Assert.Contains("await ReloadItemsAfterCheckoutAsync(item.ItemID, cancellationToken);", source, StringComparison.Ordinal);
+            Assert.Contains("Check-out status could not be updated. The item may have been changed by another user; the list has been refreshed.", source, StringComparison.Ordinal);
+            Assert.Contains("\"Check-out Status\"", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("if (!result) return;", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void RentalHistoryLoadFailureShowsOperatorFeedback()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemManagementViewModel.cs");
+
+            Assert.Contains("_logger.LogError(ex, \"Failed to open rental history for {ItemLabelSingular} {ItemID}\"", source, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync($\"Failed to load rental history: {ex.Message}\", \"Error\");", source, StringComparison.Ordinal);
         }
 
         private static int CountOccurrences(string source, string value)
