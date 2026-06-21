@@ -11,7 +11,6 @@ using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Views.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using WpfMessageBox = System.Windows.MessageBox;
-using WpfPrintDialog = System.Windows.Controls.PrintDialog;
 
 namespace InventoryManagementApp.Views.Pages
 {
@@ -138,7 +137,7 @@ namespace InventoryManagementApp.Views.Pages
             }
 
             var document = BuildDirectoryPrintDocument(vm.FilteredCategories.ToList(), vm.CategoryResultsSummary, vm.CategorySetupSummary);
-            PrintDocument(document, "Category Directory");
+            ShowPrintPreview(document, "Category Directory");
         }
 
         private void PrintSelectedCategory_Click(object sender, RoutedEventArgs e)
@@ -147,7 +146,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
 
             var document = BuildSelectedCategoryPrintDocument(category);
-            PrintDocument(document, $"Category Sheet - {category.Name}");
+            ShowPrintPreview(document, $"Category Sheet - {category.Name}");
         }
 
         private bool TryGetSelectedCategory(out CategoryManagementViewModel.CategoryItem category)
@@ -163,17 +162,9 @@ namespace InventoryManagementApp.Views.Pages
             return false;
         }
 
-        private static void PrintDocument(FlowDocument document, string title)
+        private static void ShowPrintPreview(FlowDocument document, string title)
         {
-            var printDialog = new WpfPrintDialog();
-            if (printDialog.ShowDialog() != true)
-                return;
-
-            document.PageWidth = printDialog.PrintableAreaWidth;
-            document.PageHeight = printDialog.PrintableAreaHeight;
-            document.PagePadding = new Thickness(36);
-            document.ColumnWidth = printDialog.PrintableAreaWidth;
-            printDialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, title);
+            new PrintPreviewWindow().ShowPreview(document, title, null);
         }
 
         private static string FormatCategoryDetail(CategoryManagementViewModel.CategoryItem category)
