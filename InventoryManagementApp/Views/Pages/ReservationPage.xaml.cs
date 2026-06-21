@@ -37,7 +37,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void ReservationRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            SelectRowForContextMenu(sender, e);
+            GridContextMenuSelection.SelectRow(sender, e);
         }
 
         private void ReservationPage_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -125,32 +125,9 @@ namespace InventoryManagementApp.Views.Pages
             searchBox.SelectAll();
         }
 
-        private void SelectRowForContextMenu(object sender, MouseButtonEventArgs e)
-        {
-            var row = sender as DataGridRow ?? FindAncestor<DataGridRow>(e.OriginalSource as DependencyObject);
-            if (row == null)
-                return;
-
-            row.IsSelected = true;
-            row.Focus();
-        }
-
         private static bool IsTextInputFocused()
         {
             return Keyboard.FocusedElement is TextBoxBase or PasswordBox;
-        }
-
-        private static T? FindAncestor<T>(DependencyObject? current) where T : DependencyObject
-        {
-            while (current != null)
-            {
-                if (current is T match)
-                    return match;
-
-                current = VisualTreeHelper.GetParent(current);
-            }
-
-            return null;
         }
 
         private static T? FindDescendant<T>(DependencyObject current) where T : DependencyObject
