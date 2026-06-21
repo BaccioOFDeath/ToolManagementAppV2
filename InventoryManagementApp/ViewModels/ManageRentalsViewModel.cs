@@ -227,7 +227,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 _allRentals = await _rentalService.GetAllRentalsAsync();
-                await LoadPendingRequestsAsync();
+                await LoadPendingRequestsAsync(notifyOnFailure: true);
                 RefreshActiveRentals();
                 ApplyFilter(selectedRentalId);
             }
@@ -242,7 +242,7 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        async Task LoadPendingRequestsAsync()
+        async Task LoadPendingRequestsAsync(bool notifyOnFailure = false)
         {
             if (_reservationService == null)
             {
@@ -263,6 +263,9 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to load open reservations for rentals page");
                 PendingRequests.Clear();
+                SelectedRequest = null;
+                if (notifyOnFailure)
+                    await _dialogService.ShowInfoAsync($"Failed to load open requests: {ex.Message} The open request queue has been cleared until it can be refreshed.", "Open Requests");
             }
             finally
             {
@@ -525,7 +528,8 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to place request for rental {RentalID}", rental.RentalID);
-                await _dialogService.ShowInfoAsync($"Failed to place request: {ex.Message}", "Error");
+                await LoadPendingRequestsAsync();
+                await _dialogService.ShowInfoAsync($"Failed to place request: {ex.Message} The open request queue has been refreshed in case the request was saved before the failure.", "Error");
             }
         }
 
