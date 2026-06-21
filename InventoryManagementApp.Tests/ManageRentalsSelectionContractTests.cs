@@ -48,6 +48,21 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void OpenRequestRefreshFailuresAreContainedBeforeStatusErrorDialogs()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
+
+            Assert.Contains("async Task LoadPendingRequestsAsync(bool notifyOnFailure = false)", source, StringComparison.Ordinal);
+            Assert.Contains("catch (Exception ex)\n            {\n                _logger.LogError(ex, \"Failed to load open reservations for rentals page\");", source, StringComparison.Ordinal);
+            Assert.Contains("PendingRequests.Clear();\n                SelectedRequest = null;", source, StringComparison.Ordinal);
+            Assert.Contains("finally\n            {\n                OnPropertyChanged(nameof(RequestSummary));\n            }", source, StringComparison.Ordinal);
+            Assert.Contains("await LoadPendingRequestsAsync();\n                await _dialogService.ShowInfoAsync($\"Failed to confirm request: {ex.Message}", source, StringComparison.Ordinal);
+            Assert.Contains("await LoadPendingRequestsAsync();\n                await _dialogService.ShowInfoAsync($\"Failed to cancel request: {ex.Message}", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("await LoadPendingRequestsAsync(notifyOnFailure: true);\n                await _dialogService.ShowInfoAsync($\"Failed to confirm request", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("await LoadPendingRequestsAsync(notifyOnFailure: true);\n                await _dialogService.ShowInfoAsync($\"Failed to cancel request", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void RequestPlacementAndQueueLoadFailuresRefreshAndExplainState()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
