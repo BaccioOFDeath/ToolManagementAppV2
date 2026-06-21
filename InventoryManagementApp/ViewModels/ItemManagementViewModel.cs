@@ -338,6 +338,7 @@ namespace InventoryManagementApp.ViewModels
             else
             {
                 SearchResults.ReplaceRange(list);
+                await RefreshCheckedOutItemsAsync(cancellationToken);
             }
         }
 
