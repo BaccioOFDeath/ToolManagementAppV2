@@ -13,8 +13,21 @@ namespace InventoryManagementApp.Tests.ViewModels
 
             Assert.Contains("ThemePopupSurfaceBrush", themeService, StringComparison.Ordinal);
             Assert.Contains("CreateBrush(settings.SurfaceAltColor, Math.Min(surfaceAltOpacity, settings.MenuOpacity))", themeService, StringComparison.Ordinal);
-            Assert.Contains("CreateBrush(settings.InputColor, settings.InputOpacity)", themeService, StringComparison.Ordinal);
+            Assert.Contains("ComboBoxPopupBackgroundBrush", themeService, StringComparison.Ordinal);
+            Assert.DoesNotContain("\"ComboBoxPopupBackgroundBrush\", CreateBrush(settings.InputColor, settings.InputOpacity)", themeService, StringComparison.Ordinal);
             Assert.DoesNotContain("Math.Max(settings.InputOpacity, 0.9)", themeService, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ThemeResources_RouteComboBoxDropdownRowsThroughPopupBackgroundBrush()
+        {
+            var styles = ReadRepositoryFile("InventoryManagementApp", "Resources", "Styles.xaml");
+            var adminOverrides = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.AdminDesignerCoverageOverrides.xaml");
+
+            Assert.Contains("x:Key=\"DropdownItemStyle\"", styles, StringComparison.Ordinal);
+            Assert.Contains("Background\" Value=\"{DynamicResource ComboBoxPopupBackgroundBrush}\"", styles, StringComparison.Ordinal);
+            Assert.Contains("<Style TargetType=\"ComboBoxItem\"", adminOverrides, StringComparison.Ordinal);
+            Assert.Contains("Background\" Value=\"{DynamicResource ComboBoxPopupBackgroundBrush}\"", adminOverrides, StringComparison.Ordinal);
         }
 
         [Fact]

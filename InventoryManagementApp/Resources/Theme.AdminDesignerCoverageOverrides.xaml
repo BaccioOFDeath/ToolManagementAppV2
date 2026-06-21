@@ -450,7 +450,7 @@
     </Style>
 
     <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
-        <Setter Property="Background" Value="{DynamicResource ThemePopupSurfaceBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource ComboBoxPopupBackgroundBrush}"/>
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeControlBorderThickness}"/>
     </Style>
 

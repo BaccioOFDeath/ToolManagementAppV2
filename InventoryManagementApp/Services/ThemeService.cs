@@ -97,7 +97,7 @@ namespace InventoryManagementApp.Services
                 Set(resources, "GlassSurfaceAltBrush", CreateBrush(settings.SurfaceAltColor, Math.Min(settings.SurfaceAltOpacity, 0.68)));
                 Set(resources, "TransparentSurfaceBrush", Brushes.Transparent);
                 Set(resources, "TextBoxBackgroundBrush", inputBrush);
-                Set(resources, "ComboBoxPopupBackgroundBrush", CreateBrush(settings.InputColor, settings.InputOpacity));
+                Set(resources, "ComboBoxPopupBackgroundBrush", CreateBrush(settings.SurfaceAltColor, Math.Min(surfaceAltOpacity, settings.MenuOpacity)));
                 Set(resources, "ForegroundBrush", CreateBrush(settings.TextColor, 1));
                 Set(resources, "ForegroundMutedBrush", CreateBrush(settings.MutedTextColor, 1));
                 Set(resources, "AccentBrush", CreateBrush(settings.AccentColor, 1));

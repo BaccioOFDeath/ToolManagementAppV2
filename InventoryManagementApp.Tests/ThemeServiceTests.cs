@@ -229,6 +229,32 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task ApplyCustomTheme_UsesPopupSurfaceForComboBoxDropdownBackground()
+        {
+            await RunOnStaThread(async () =>
+            {
+                var app = WpfTestHelper.CreateApplication();
+                var service = new ThemeService();
+                var settings = AppThemeSettings.CreateDefault("Dark");
+                settings.InputColor = "#FFFFFFFF";
+                settings.SurfaceAltColor = "#FF252D36";
+                settings.InputOpacity = 1;
+                settings.SurfaceAltOpacity = 1;
+                settings.MenuOpacity = 1;
+
+                service.ApplyCustomTheme(settings);
+
+                var popupBackground = ((SolidColorBrush)app.Resources["ComboBoxPopupBackgroundBrush"]).Color;
+                var textBoxBackground = ((SolidColorBrush)app.Resources["TextBoxBackgroundBrush"]).Color;
+
+                Assert.Equal(Color.FromRgb(0x25, 0x2D, 0x36), popupBackground);
+                Assert.Equal(Colors.White, textBoxBackground);
+                WpfTestHelper.ShutdownApplication();
+                await Task.CompletedTask;
+            });
+        }
+
+        [Fact]
         public async Task ApplyCustomTheme_ReusesExistingBaseThemeDictionaryDuringLivePreview()
         {
             await RunOnStaThread(async () =>
