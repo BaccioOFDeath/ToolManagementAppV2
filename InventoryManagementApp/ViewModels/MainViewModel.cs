@@ -696,9 +696,9 @@ namespace InventoryManagementApp.ViewModels
             {
                 try
                 {
+                    await Reports.RunSummaryReportAsync();
                     var page = new ReportsPage { DataContext = Reports, Title = "Reports" };
                     CurrentPage = page;
-                    await Task.CompletedTask;
                 }
                 catch (Exception ex)
                 {

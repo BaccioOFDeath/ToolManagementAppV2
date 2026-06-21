@@ -93,6 +93,15 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.DoesNotContain("PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator", activityCode, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void ReportsNavigation_RunsSummaryReportBeforeShowingPage()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "MainViewModel.cs");
+
+            Assert.Contains("await Reports.RunSummaryReportAsync();", source, StringComparison.Ordinal);
+            Assert.Contains("var page = new ReportsPage { DataContext = Reports, Title = \"Reports\" };", source, StringComparison.Ordinal);
+        }
+
         static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);

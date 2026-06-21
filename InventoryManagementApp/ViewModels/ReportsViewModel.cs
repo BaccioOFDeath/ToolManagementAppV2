@@ -147,6 +147,12 @@ namespace InventoryManagementApp.ViewModels
             ClearReportCommand = new RelayCommand(ClearReport, () => ReportLines.Count > 0);
         }
 
+        public async Task RunSummaryReportAsync()
+        {
+            SelectedReport = "Summary";
+            await RunReportAsync().ConfigureAwait(false);
+        }
+
         private bool CanRunReport() => !IsBusy && !string.IsNullOrWhiteSpace(SelectedReport);
 
         private async Task RunReportAsync()
