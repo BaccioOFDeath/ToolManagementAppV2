@@ -49,6 +49,21 @@ namespace InventoryManagementApp.Tests
             });
         }
 
+        [Fact]
+        public void Source_TracksVisitedElementsToAvoidThemeDesignerLoadLoops()
+        {
+            var source = System.IO.File.ReadAllText(System.IO.Path.Combine(
+                AppContext.BaseDirectory,
+                "..", "..", "..", "..",
+                "InventoryManagementApp",
+                "Utilities",
+                "InformationalTooltipService.cs"));
+
+            Assert.Contains("HashSet<DependencyObject>", source, StringComparison.Ordinal);
+            Assert.Contains("ReferenceEqualityComparer.Instance", source, StringComparison.Ordinal);
+            Assert.Contains("visited.Add(child)", source, StringComparison.Ordinal);
+        }
+
         private static void RunOnSta(Action action)
         {
             Exception? exception = null;

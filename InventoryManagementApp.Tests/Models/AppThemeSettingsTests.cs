@@ -23,6 +23,10 @@ namespace InventoryManagementApp.Tests.Models
                 InputColor = "not-a-color",
                 ButtonColor = "778899",
                 BorderColor = "abcdef",
+                HoverColor = "121212",
+                HoverTextColor = "fefefe",
+                SelectedColor = "13579b",
+                SelectedTextColor = "ffffff",
                 ShadowColor = "112233",
                 BackgroundImageStretch = "Tile",
                 FontFamily = "  Aptos  ",
@@ -62,6 +66,10 @@ namespace InventoryManagementApp.Tests.Models
             Assert.Equal(AppThemeSettings.CreateDefault("Light").InputColor, settings.InputColor);
             Assert.Equal("#778899", settings.ButtonColor);
             Assert.Equal("#ABCDEF", settings.BorderColor);
+            Assert.Equal("#121212", settings.HoverColor);
+            Assert.Equal("#FEFEFE", settings.HoverTextColor);
+            Assert.Equal("#13579B", settings.SelectedColor);
+            Assert.Equal("#FFFFFF", settings.SelectedTextColor);
             Assert.Equal("#112233", settings.ShadowColor);
             Assert.Equal("UniformToFill", settings.BackgroundImageStretch);
             Assert.Equal("Aptos", settings.FontFamily);
@@ -103,6 +111,10 @@ namespace InventoryManagementApp.Tests.Models
             Assert.Equal("#FF1B222A", settings.InputColor);
             Assert.Equal("#FF252D36", settings.ButtonColor);
             Assert.Equal("#FF60A5FA", settings.BorderColor);
+            Assert.Equal("#FF1E3A5F", settings.HoverColor);
+            Assert.Equal("#FFF3F4F6", settings.HoverTextColor);
+            Assert.Equal("#FF2563EB", settings.SelectedColor);
+            Assert.Equal("#FFFFFFFF", settings.SelectedTextColor);
         }
 
         [Theory]
@@ -130,6 +142,10 @@ namespace InventoryManagementApp.Tests.Models
             settings.InputColor = "#FF222222";
             settings.ButtonColor = "#FF333333";
             settings.BorderColor = "#FF444444";
+            settings.HoverColor = "#FF555555";
+            settings.HoverTextColor = "#FFEEEEEE";
+            settings.SelectedColor = "#FF666666";
+            settings.SelectedTextColor = "#FFFFFFFF";
             settings.ShadowColor = "#AA000000";
             settings.FontFamily = "Aptos";
             settings.ButtonCornerRadius = 18;
@@ -160,6 +176,10 @@ namespace InventoryManagementApp.Tests.Models
             Assert.Equal("#FF222222", loaded.InputColor);
             Assert.Equal("#FF333333", loaded.ButtonColor);
             Assert.Equal("#FF444444", loaded.BorderColor);
+            Assert.Equal("#FF555555", loaded.HoverColor);
+            Assert.Equal("#FFEEEEEE", loaded.HoverTextColor);
+            Assert.Equal("#FF666666", loaded.SelectedColor);
+            Assert.Equal("#FFFFFFFF", loaded.SelectedTextColor);
             Assert.Equal("#AA000000", loaded.ShadowColor);
             Assert.Equal("Aptos", loaded.FontFamily);
             Assert.Equal(18, loaded.ButtonCornerRadius);

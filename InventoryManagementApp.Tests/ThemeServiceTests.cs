@@ -201,6 +201,33 @@ namespace InventoryManagementApp.Tests
             });
         }
 
+        [Fact]
+        public async Task ApplyCustomTheme_UsesSeparateHoverAndSelectedColors()
+        {
+            await RunOnStaThread(async () =>
+            {
+                var app = WpfTestHelper.CreateApplication();
+                var service = new ThemeService();
+                var settings = AppThemeSettings.CreateDefault("Dark");
+                settings.HoverColor = "#FF102030";
+                settings.HoverTextColor = "#FFEEEEEE";
+                settings.SelectedColor = "#FF204080";
+                settings.SelectedTextColor = "#FFFFFFFF";
+                settings.InteractionIntensity = 1;
+
+                service.ApplyCustomTheme(settings);
+
+                var hover = ((SolidColorBrush)app.Resources["ItemHoverBrush"]).Color;
+                var selected = ((SolidColorBrush)app.Resources["ItemSelectedBrush"]).Color;
+                Assert.Equal((0x10, 0x20, 0x30), (hover.R, hover.G, hover.B));
+                Assert.Equal((0x20, 0x40, 0x80), (selected.R, selected.G, selected.B));
+                Assert.Equal(Color.FromRgb(0xEE, 0xEE, 0xEE), ((SolidColorBrush)app.Resources["ItemHoverForegroundBrush"]).Color);
+                Assert.Equal(Colors.White, ((SolidColorBrush)app.Resources["ItemSelectedForegroundBrush"]).Color);
+                WpfTestHelper.ShutdownApplication();
+                await Task.CompletedTask;
+            });
+        }
+
         static Task RunOnStaThread(Func<Task> action)
         {
             var tcs = new TaskCompletionSource();

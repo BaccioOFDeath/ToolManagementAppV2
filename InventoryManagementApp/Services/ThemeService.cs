@@ -125,12 +125,12 @@ namespace InventoryManagementApp.Services
                 Set(resources, "BtnFg", CreateBrush(settings.TextColor, 1));
                 Set(resources, "FocusVisualStrokeBrush", CreateBrush(settings.AccentColor, settings.FocusRingOpacity));
                 Set(resources, "ThemeFocusVisualStrokeThickness", Math.Clamp(1 + settings.FocusRingOpacity * 3, 1, 4));
-                Set(resources, "NavButtonPressedBrush", CreateBrush(settings.AccentColor, pressedOpacity));
-                Set(resources, "NavButtonHoverBrush", CreateBrush(settings.AccentColor, hoverOpacity));
-                Set(resources, "ItemHoverBrush", CreateBrush(settings.AccentColor, hoverOpacity));
-                Set(resources, "ItemSelectedBrush", CreateBrush(settings.AccentColor, selectedOpacity));
-                Set(resources, "ItemHoverForegroundBrush", CreateBrush(settings.TextColor, 1));
-                Set(resources, "ItemSelectedForegroundBrush", CreateBrush(settings.TextColor, 1));
+                Set(resources, "NavButtonPressedBrush", CreateBrush(settings.SelectedColor, pressedOpacity));
+                Set(resources, "NavButtonHoverBrush", CreateBrush(settings.HoverColor, Math.Max(hoverOpacity, 0.35)));
+                Set(resources, "ItemHoverBrush", CreateBrush(settings.HoverColor, Math.Max(hoverOpacity, 0.35)));
+                Set(resources, "ItemSelectedBrush", CreateBrush(settings.SelectedColor, Math.Max(selectedOpacity, 0.72)));
+                Set(resources, "ItemHoverForegroundBrush", CreateBrush(settings.HoverTextColor, 1));
+                Set(resources, "ItemSelectedForegroundBrush", CreateBrush(settings.SelectedTextColor, 1));
                 Set(resources, "DataGridRowBackgroundBrush", CreateBrush(settings.SurfaceColor, settings.SurfaceOpacity));
                 Set(resources, "DataGridAlternatingRowBackgroundBrush", CreateBrush(settings.SurfaceAltColor, settings.SurfaceAltOpacity));
                 Set(resources, "ThemeGridLineBrush", settings.BordersVisible ? CreateBrush(settings.BorderColor, settings.GridLineOpacity * settings.DividerOpacity) : Brushes.Transparent);

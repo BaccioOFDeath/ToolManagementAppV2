@@ -146,6 +146,30 @@ namespace InventoryManagementApp.ViewModels
             set => SetString(value, (settings, newValue) => settings.AccentColor = newValue, nameof(AccentColor));
         }
 
+        public string HoverColor
+        {
+            get => _settings.HoverColor;
+            set => SetString(value, (settings, newValue) => settings.HoverColor = newValue, nameof(HoverColor));
+        }
+
+        public string HoverTextColor
+        {
+            get => _settings.HoverTextColor;
+            set => SetString(value, (settings, newValue) => settings.HoverTextColor = newValue, nameof(HoverTextColor));
+        }
+
+        public string SelectedColor
+        {
+            get => _settings.SelectedColor;
+            set => SetString(value, (settings, newValue) => settings.SelectedColor = newValue, nameof(SelectedColor));
+        }
+
+        public string SelectedTextColor
+        {
+            get => _settings.SelectedTextColor;
+            set => SetString(value, (settings, newValue) => settings.SelectedTextColor = newValue, nameof(SelectedTextColor));
+        }
+
         public string SuccessColor
         {
             get => _settings.SuccessColor;
@@ -551,6 +575,10 @@ namespace InventoryManagementApp.ViewModels
             InputColor = SurfaceColor;
             ButtonColor = SurfaceAltColor;
             BorderColor = AccentColor;
+            HoverColor = "#4460A5FA";
+            HoverTextColor = TextColor;
+            SelectedColor = AccentColor;
+            SelectedTextColor = "#FFFFFFFF";
             ShadowColor = "#88000000";
             FontFamily = "Segoe UI";
             BordersVisible = true;
@@ -721,6 +749,10 @@ namespace InventoryManagementApp.ViewModels
             _settings.TextColor = "#FFFFFFFF";
             _settings.MutedTextColor = "#FFE5E7EB";
             _settings.AccentColor = "#FFFFFF00";
+            _settings.HoverColor = "#FF333300";
+            _settings.HoverTextColor = "#FFFFFFFF";
+            _settings.SelectedColor = "#FFFFFF00";
+            _settings.SelectedTextColor = "#FF000000";
             _settings.SuccessColor = "#FF00FF66";
             _settings.WarningColor = "#FFFFFF00";
             _settings.ErrorColor = "#FFFF4D4D";
@@ -806,6 +838,10 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(TextColor));
             OnPropertyChanged(nameof(MutedTextColor));
             OnPropertyChanged(nameof(AccentColor));
+            OnPropertyChanged(nameof(HoverColor));
+            OnPropertyChanged(nameof(HoverTextColor));
+            OnPropertyChanged(nameof(SelectedColor));
+            OnPropertyChanged(nameof(SelectedTextColor));
             OnPropertyChanged(nameof(SuccessColor));
             OnPropertyChanged(nameof(WarningColor));
             OnPropertyChanged(nameof(ErrorColor));

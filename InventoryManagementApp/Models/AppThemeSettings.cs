@@ -16,6 +16,10 @@ namespace InventoryManagementApp.Models
         public string TextColor { get; set; } = "#FF111827";
         public string MutedTextColor { get; set; } = "#FF5B6472";
         public string AccentColor { get; set; } = "#FF2563EB";
+        public string HoverColor { get; set; } = "#FFDBEAFE";
+        public string HoverTextColor { get; set; } = "#FF111827";
+        public string SelectedColor { get; set; } = "#FF2563EB";
+        public string SelectedTextColor { get; set; } = "#FFFFFFFF";
         public string SuccessColor { get; set; } = "#FF15803D";
         public string WarningColor { get; set; } = "#FFD97706";
         public string ErrorColor { get; set; } = "#FFDC2626";
@@ -84,6 +88,10 @@ namespace InventoryManagementApp.Models
                 settings.TextColor = "#FFF3F4F6";
                 settings.MutedTextColor = "#FFB5BDC8";
                 settings.AccentColor = "#FF60A5FA";
+                settings.HoverColor = "#FF1E3A5F";
+                settings.HoverTextColor = "#FFF3F4F6";
+                settings.SelectedColor = "#FF2563EB";
+                settings.SelectedTextColor = "#FFFFFFFF";
                 settings.SuccessColor = "#FF4ADE80";
                 settings.WarningColor = "#FFFBBF24";
                 settings.ErrorColor = "#FFF87171";
@@ -110,6 +118,10 @@ namespace InventoryManagementApp.Models
             TextColor = NormalizeColor(TextColor, defaults.TextColor);
             MutedTextColor = NormalizeColor(MutedTextColor, defaults.MutedTextColor);
             AccentColor = NormalizeColor(AccentColor, defaults.AccentColor);
+            HoverColor = NormalizeColor(HoverColor, defaults.HoverColor);
+            HoverTextColor = NormalizeColor(HoverTextColor, defaults.HoverTextColor);
+            SelectedColor = NormalizeColor(SelectedColor, defaults.SelectedColor);
+            SelectedTextColor = NormalizeColor(SelectedTextColor, defaults.SelectedTextColor);
             SuccessColor = NormalizeColor(SuccessColor, defaults.SuccessColor);
             WarningColor = NormalizeColor(WarningColor, defaults.WarningColor);
             ErrorColor = NormalizeColor(ErrorColor, defaults.ErrorColor);

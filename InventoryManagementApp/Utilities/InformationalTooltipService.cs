@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
@@ -160,7 +159,9 @@ namespace InventoryManagementApp.Utilities
 
         private static IEnumerable<DependencyObject> EnumerateDescendants(DependencyObject root)
         {
+            var visited = new HashSet<DependencyObject>(ReferenceEqualityComparer.Instance);
             var queue = new Queue<DependencyObject>();
+            visited.Add(root);
             queue.Enqueue(root);
 
             while (queue.Count > 0)
@@ -169,7 +170,10 @@ namespace InventoryManagementApp.Utilities
                 yield return current;
 
                 foreach (var child in GetChildren(current))
-                    queue.Enqueue(child);
+                {
+                    if (visited.Add(child))
+                        queue.Enqueue(child);
+                }
             }
         }
 
