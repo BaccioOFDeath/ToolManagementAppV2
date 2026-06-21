@@ -12,5 +12,5 @@ Date: 2026-06-22 03:11 NZST scheduled pass
 
 ## Validation
 
-- GitHub connector readback/compare should confirm the focused view-model, test, checklist, and progress-note changes.
+- GitHub connector readback/compare should confirm the focused view-model, test, and progress-note changes.
 - Not run locally: direct local clone/raw access is blocked by `CONNECT tunnel failed, response 403`; `dotnet` is not installed; Windows/WPF runtime screenshots, local banned-word checks, and full runtime function checks are unavailable in this scheduled Linux container.
