@@ -44,7 +44,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("TargetType=\"BulletDecorator\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"Viewbox\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"primitives:ToolBarOverflowPanel\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("TargetType=\"primitives:StatusBarPanel\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("StatusBarPanel", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"primitives:DataGridDetailsPresenter\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"primitives:DataGridCellsPresenter\"", xaml, StringComparison.Ordinal);
         }
