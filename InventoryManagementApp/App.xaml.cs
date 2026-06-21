@@ -67,6 +67,7 @@ namespace InventoryManagementApp
             _dialogService = Host.Services.GetRequiredService<IDialogService>();
 
             EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.LoadedEvent, new RoutedEventHandler(OnWindowLoaded));
+            EventManager.RegisterClassHandler(typeof(UserControl), FrameworkElement.LoadedEvent, new RoutedEventHandler(OnUserControlLoaded));
 
             DispatcherUnhandledException += (s, e) => HandleDispatcherException(e.Exception, e);
             AppDomain.CurrentDomain.UnhandledException += (s, e) =>
@@ -1594,7 +1595,14 @@ namespace InventoryManagementApp
             if (sender is Window window)
             {
                 window.SetResourceReference(Window.IconProperty, "WindowIcon");
+                InformationalTooltipService.Apply(window);
             }
+        }
+
+        void OnUserControlLoaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is UserControl userControl)
+                InformationalTooltipService.Apply(userControl);
         }
 
         public void ApplyWindowBranding(string? logoPath)
