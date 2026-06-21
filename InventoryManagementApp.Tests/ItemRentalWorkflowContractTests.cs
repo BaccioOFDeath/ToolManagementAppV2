@@ -48,6 +48,21 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ItemWorkflowExceptionsRefreshListsAndExplainPossibleSavedState()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemManagementViewModel.cs");
+
+            Assert.Contains("private async Task RefreshItemsAfterWorkflowFailureAsync(int itemId, CancellationToken cancellationToken)", source, StringComparison.Ordinal);
+            Assert.Contains("await ReloadItemsAfterItemWorkflowAsync(itemId, cancellationToken);", source, StringComparison.Ordinal);
+            Assert.Contains("_logger.LogError(refreshEx, \"Failed to refresh items after workflow failure for item {ItemID}\", itemId);", source, StringComparison.Ordinal);
+            Assert.Equal(3, CountOccurrences(source, "await RefreshItemsAfterWorkflowFailureAsync(item.ItemID, cancellationToken);"));
+            Assert.Equal(2, CountOccurrences(source, "The item list has been refreshed in case the rental was saved before the failure."));
+            Assert.Contains("Failed to update check-out status: {ex.Message} The item list has been refreshed in case the check-out status changed before the failure.", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("await _dialogService.ShowInfoAsync($\"Failed to rent {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message}\", \"Error\");", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("await _dialogService.ShowInfoAsync($\"Failed to update check-out status: {ex.Message}\", \"Error\");", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void RentalHistoryLoadFailureShowsOperatorFeedback()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemManagementViewModel.cs");
