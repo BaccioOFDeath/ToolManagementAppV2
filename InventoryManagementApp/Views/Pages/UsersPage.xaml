@@ -140,6 +140,7 @@
                               AutoGenerateColumns="False"
                               SelectionMode="Single"
                               CanUserAddRows="False"
+                              RowHeight="48"
                               Style="{StaticResource VirtualizedDataGridStyle}">
                         <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
