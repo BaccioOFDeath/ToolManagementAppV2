@@ -88,12 +88,10 @@ namespace InventoryManagementApp.Views.Pages
             if (sender is not WpfDataGrid grid)
                 return;
 
-            var row = FindAncestor<DataGridRow>(e.OriginalSource as DependencyObject);
+            var row = GridContextMenuSelection.SelectRow(sender, e);
             if (row?.Item is not ItemModel item)
                 return;
 
-            row.IsSelected = true;
-            row.Focus();
             grid.SelectedItem = item;
 
             if (DataContext is ItemManagementViewModel vm)
@@ -137,32 +135,6 @@ namespace InventoryManagementApp.Views.Pages
             {
                 UiActionGuard.Run(this, "Item Search", () => OpenSelectedItemDetails(vm));
                 e.Handled = true;
-            }
-        }
-
-        private static T? FindAncestor<T>(DependencyObject? current) where T : DependencyObject
-        {
-            while (current != null)
-            {
-                if (current is T match)
-                    return match;
-
-                current = GetParent(current);
-            }
-
-            return null;
-        }
-
-        private static DependencyObject? GetParent(DependencyObject current)
-        {
-            try
-            {
-                return System.Windows.Media.VisualTreeHelper.GetParent(current)
-                    ?? LogicalTreeHelper.GetParent(current);
-            }
-            catch (InvalidOperationException)
-            {
-                return LogicalTreeHelper.GetParent(current);
             }
         }
 
