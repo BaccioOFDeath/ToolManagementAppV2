@@ -15,6 +15,7 @@ using InventoryManagementApp.Services.Maintenance;
 using InventoryManagementApp.Services.Calibration;
 using InventoryManagementApp.Services.Reservations;
 using InventoryManagementApp.Services.Kits;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Utilities.Helpers;
@@ -46,6 +47,7 @@ namespace InventoryManagementApp.ViewModels
         readonly IRelayCommand _openRentalsCommand;
         readonly IRelayCommand _openImportExportCommand;
         readonly ILogger<DashboardViewModel> _logger;
+        readonly IDialogService? _dialogService;
         ItemModel? _selectedCommonlyUsedItem;
         ItemModel? _selectedCheckedOutItem;
         ItemModel? _selectedIncompleteItem;
@@ -185,7 +187,8 @@ namespace InventoryManagementApp.ViewModels
                                   CalibrationService? calibrationService = null,
                                   ReservationService? reservationService = null,
                                   KitService? kitService = null,
-                                  ILogger<DashboardViewModel>? logger = null)
+                                  ILogger<DashboardViewModel>? logger = null,
+                                  IDialogService? dialogService = null)
         {
             _itemService = itemService ?? throw new ArgumentNullException(nameof(itemService));
             _rentalService = rentalService ?? throw new ArgumentNullException(nameof(rentalService));
@@ -200,6 +203,7 @@ namespace InventoryManagementApp.ViewModels
             _openRentalsCommand = openRentalsCommand ?? throw new ArgumentNullException(nameof(openRentalsCommand));
             _openImportExportCommand = openImportExportCommand ?? throw new ArgumentNullException(nameof(openImportExportCommand));
             _logger = logger ?? NullLogger<DashboardViewModel>.Instance;
+            _dialogService = dialogService;
 
             NewItemCommand = new RelayCommand(OpenItemsWorkflow);
             OpenItemsCommand = new RelayCommand(OpenItemsWorkflow);
@@ -580,16 +584,10 @@ namespace InventoryManagementApp.ViewModels
         {
             try
             {
-                var currentUser = await _userService.GetCurrentUserAsync().ConfigureAwait(false);
+                var currentUser = await _userService.GetCurrentUserAsync();
                 var userName = currentUser?.UserName ?? "Unknown";
                 var doc = GenerateCheckedOutItemsDocument(userName);
-                
-                var printDialog = new System.Windows.Controls.PrintDialog();
-                if (printDialog.ShowDialog() == true)
-                {
-                    var paginator = ((System.Windows.Documents.IDocumentPaginatorSource)doc).DocumentPaginator;
-                    printDialog.PrintDocument(paginator, $"Checked Out Items - {userName}");
-                }
+                ShowDashboardPrintPreview(doc, $"Checked Out Items - {userName}", "Dashboard checked-out item handoff");
             }
             catch (Exception ex)
             {
@@ -601,21 +599,29 @@ namespace InventoryManagementApp.ViewModels
         {
             try
             {
-                var currentUser = await _userService.GetCurrentUserAsync().ConfigureAwait(false);
+                var currentUser = await _userService.GetCurrentUserAsync();
                 var userName = currentUser?.UserName ?? "Unknown";
                 var doc = GenerateDashboardSnapshotDocument(userName);
-
-                var printDialog = new System.Windows.Controls.PrintDialog();
-                if (printDialog.ShowDialog() == true)
-                {
-                    var paginator = ((System.Windows.Documents.IDocumentPaginatorSource)doc).DocumentPaginator;
-                    printDialog.PrintDocument(paginator, $"Dashboard Snapshot - {DateTime.Now:yyyy-MM-dd HH:mm}");
-                }
+                ShowDashboardPrintPreview(doc, $"Dashboard Snapshot - {DateTime.Now:yyyy-MM-dd HH:mm}", "Dashboard operations snapshot");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to print dashboard snapshot");
             }
+        }
+
+        private void ShowDashboardPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description)
+        {
+            var dialogService = _dialogService
+                ?? (System.Windows.Application.Current as InventoryManagementApp.App)?.Host.Services.GetService<IDialogService>();
+
+            if (dialogService == null)
+            {
+                _logger.LogWarning("Dashboard print preview service is not available for {Title}", title);
+                return;
+            }
+
+            dialogService.ShowPrintPreview(document, title, description);
         }
 
         private System.Windows.Documents.FlowDocument GenerateCheckedOutItemsDocument(string userName)
