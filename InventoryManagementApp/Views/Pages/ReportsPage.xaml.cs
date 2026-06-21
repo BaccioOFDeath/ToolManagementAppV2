@@ -56,7 +56,10 @@ namespace InventoryManagementApp.Views.Pages
             }
 
             var document = BuildReportDocument(vm.ReportTitle, vm.ReportSummary, vm.LastRunText, vm.ReportLines.ToList());
-            new PrintPreviewWindow().ShowPreview(document, vm.ReportTitle, null);
+            new PrintPreviewWindow().ShowPreview(
+                document,
+                vm.ReportTitle,
+                "Review the report summary, destination routing, and next-action handoff before printing.");
         }
 
         private void OpenSelectedDestination()
