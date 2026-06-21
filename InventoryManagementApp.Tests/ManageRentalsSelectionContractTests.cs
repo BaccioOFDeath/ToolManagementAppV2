@@ -40,9 +40,29 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("var updated = await _reservationService.ConfirmReservationAsync(requestId);", source, StringComparison.Ordinal);
             Assert.Contains("var updated = await _reservationService.CancelReservationAsync(request.ReservationID);", source, StringComparison.Ordinal);
-            Assert.Equal(5, CountOccurrences(source, "await LoadPendingRequestsAsync();"));
+            Assert.Equal(6, CountOccurrences(source, "await LoadPendingRequestsAsync();"));
             Assert.Contains("The selected request could not be confirmed. It may have been removed or changed by another user. The open request queue has been refreshed.", source, StringComparison.Ordinal);
             Assert.Contains("The selected request could not be cancelled. It may have been removed or changed by another user. The open request queue has been refreshed.", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void RentalOperationFailuresRefreshDeskAndExplainState()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
+
+            Assert.Contains("async Task RefreshRentalDeskAfterOperationFailureAsync(int rentalId)", source, StringComparison.Ordinal);
+            Assert.Contains("_allRentals = await _rentalService.GetAllRentalsAsync();", source, StringComparison.Ordinal);
+            Assert.Contains("await LoadPendingRequestsAsync();", source, StringComparison.Ordinal);
+            Assert.Contains("RefreshActiveRentals();", source, StringComparison.Ordinal);
+            Assert.Contains("ApplyFilter(rentalId);", source, StringComparison.Ordinal);
+            Assert.Equal(3, CountOccurrences(source, "await RefreshRentalDeskAfterOperationFailureAsync("));
+            Assert.Contains("var rentalToExtend = SelectedRental;", source, StringComparison.Ordinal);
+            Assert.Contains("await _rentalService.ExtendRentalAsync(rentalToExtend.RentalID, newDueDate);", source, StringComparison.Ordinal);
+            Assert.Contains("_logger.LogError(ex, \"Failed to extend rental {RentalID}\", rentalToExtend.RentalID);", source, StringComparison.Ordinal);
+            Assert.Contains("_logger.LogError(ex, \"Failed to delete rental {RentalID}\", rentalToDelete.RentalID);", source, StringComparison.Ordinal);
+            Assert.Equal(3, CountOccurrences(source, "The rental desk has been refreshed so current rental actions match the latest saved state."));
+            Assert.DoesNotContain("_logger.LogError(ex, \"Failed to extend rental {RentalID}\", SelectedRental.RentalID);", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("_logger.LogError(ex, \"Failed to delete rental {RentalID}\", rentalToDelete?.RentalID);", source, StringComparison.Ordinal);
         }
 
         [Fact]
