@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Interfaces;
@@ -138,6 +139,38 @@ public class DashboardViewModelTests
         public Task UpdateUserAsync(User user) => throw new NotImplementedException();
         public Task<bool> TryDeleteUserAsync(int userID) => throw new NotImplementedException();
         public Task<bool> ChangeUserPasswordAsync(int userID, string newPassword) => throw new NotImplementedException();
+    }
+
+    private sealed class StubDialogService : IDialogService
+    {
+        public bool ConfirmResult { get; set; } = true;
+        public int ConfirmCalls { get; private set; }
+        public string? LastConfirmTitle { get; private set; }
+        public string? LastConfirmMessage { get; private set; }
+
+        public void ShowInfo(string message, string title) { }
+        public Task ShowInfoAsync(string message, string title) => Task.CompletedTask;
+        public bool ShowConfirmation(string message, string title)
+        {
+            ConfirmCalls++;
+            LastConfirmTitle = title;
+            LastConfirmMessage = message;
+            return ConfirmResult;
+        }
+
+        public Task<bool> ShowConfirmationAsync(string message, string title) => Task.FromResult(ShowConfirmation(message, title));
+        public ItemModel? ShowEditItemDialog(ItemModel item) => null;
+        public Task<ItemModel?> ShowEditItemDialogAsync(ItemModel item) => Task.FromResult<ItemModel?>(null);
+        public void ShowItemDetails(ItemModel item) { }
+        public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;
+        public CustomerModel? ShowAddCustomerDialog() => null;
+        public CustomerModel? ShowEditCustomerDialog(CustomerModel customer) => null;
+        public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
+        public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history) { }
+        public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties, IEnumerable<string>? requiredPropertyNames = null) => null;
+        public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
+        public void ShowPrintPreview(FlowDocument document, string title, string description) { }
+        public void ShowPrintLabelDialog() { }
     }
 
     private sealed class StubActivityLogService : ActivityLogService
@@ -570,6 +603,72 @@ public class DashboardViewModelTests
 
         Assert.Empty(vm.RentedItems);
         Assert.Equal(1, rentalService.ReturnCalls);
+    }
+
+    [Fact]
+    public async Task ReturnRentalCommand_PromptsBeforeReturningRental()
+    {
+        using var db = new DatabaseService(":memory:");
+        var itemService = new StubItemService();
+        var rentalService = new StubRentalService();
+        var customerService = new StubCustomerService();
+        var userService = new StubUserService();
+        var activityLogService = new StubActivityLogService(db);
+        var dialogService = new StubDialogService();
+
+        var vm = new DashboardViewModel(
+            itemService,
+            rentalService,
+            customerService,
+            userService,
+            activityLogService,
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }),
+            dialogService: dialogService);
+
+        var rental = new Rental { RentalID = 5, ItemNumber = "R5", CustomerName = "Taylor", DueDate = DateTime.Today.AddDays(1) };
+        vm.RentedItems.Add(rental);
+
+        await vm.ReturnRentalCommand.ExecuteAsync(rental);
+
+        Assert.Equal(1, dialogService.ConfirmCalls);
+        Assert.Equal("Confirm Rental Return", dialogService.LastConfirmTitle);
+        Assert.Contains("R5", dialogService.LastConfirmMessage);
+        Assert.Contains("Taylor", dialogService.LastConfirmMessage);
+        Assert.Equal(1, rentalService.ReturnCalls);
+    }
+
+    [Fact]
+    public async Task ReturnRentalCommand_DoesNotReturnWhenPromptIsCancelled()
+    {
+        using var db = new DatabaseService(":memory:");
+        var itemService = new StubItemService();
+        var rentalService = new StubRentalService();
+        var customerService = new StubCustomerService();
+        var userService = new StubUserService();
+        var activityLogService = new StubActivityLogService(db);
+        var dialogService = new StubDialogService { ConfirmResult = false };
+
+        var vm = new DashboardViewModel(
+            itemService,
+            rentalService,
+            customerService,
+            userService,
+            activityLogService,
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }),
+            dialogService: dialogService);
+
+        var rental = new Rental { RentalID = 6, ItemNumber = "R6", CustomerName = "Morgan", DueDate = DateTime.Today.AddDays(1) };
+        vm.RentedItems.Add(rental);
+
+        await vm.ReturnRentalCommand.ExecuteAsync(rental);
+
+        Assert.Equal(1, dialogService.ConfirmCalls);
+        Assert.Equal(0, rentalService.ReturnCalls);
+        Assert.Single(vm.RentedItems);
     }
 
     [Fact]

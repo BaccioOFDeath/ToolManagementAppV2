@@ -336,6 +336,10 @@ namespace InventoryManagementApp.ViewModels
                 return;
 
             var returnedRental = SelectedRental;
+            var confirmed = await _dialogService.ShowConfirmAsync("Confirm Rental Return", BuildReturnConfirmationMessage(returnedRental));
+            if (!confirmed)
+                return;
+
             try
             {
                 IsLoading = true;
@@ -357,6 +361,20 @@ namespace InventoryManagementApp.ViewModels
             {
                 IsLoading = false;
             }
+        }
+
+        static string BuildReturnConfirmationMessage(RentalModel rental)
+        {
+            var message = new StringBuilder();
+            message.AppendLine($"Return rental #{rental.RentalID}?");
+            message.AppendLine();
+            message.AppendLine($"Item: {ValueOrNotRecorded(rental.ItemNumber)}");
+            message.AppendLine($"Customer: {ValueOrNotRecorded(rental.CustomerName)}");
+            message.AppendLine($"Due back: {FormatDate(rental.DueDate)}");
+            message.AppendLine($"Return date: {DateTime.Today:yyyy-MM-dd}");
+            message.AppendLine();
+            message.AppendLine("Confirm only after the item and any documents have been received.");
+            return message.ToString();
         }
 
         async Task NotifyWaitingRequestsAsync(int itemId, string itemNumber)

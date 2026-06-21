@@ -563,7 +563,8 @@ namespace InventoryManagementApp.ViewModels
                         _activityLogService,
                         OpenManageItemsCommand,
                         OpenRentalsCommand,
-                        OpenImportExportCommand);
+                        OpenImportExportCommand,
+                        dialogService: _dialogService);
                     var page = new DashboardPage { DataContext = vm, Title = "Dashboard" };
                     CurrentPage = page;
                     _pageLoadCts = new CancellationTokenSource();

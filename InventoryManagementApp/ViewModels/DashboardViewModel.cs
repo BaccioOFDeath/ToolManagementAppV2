@@ -465,6 +465,9 @@ namespace InventoryManagementApp.ViewModels
             if (rental == null) return;
             try
             {
+                if (!await ConfirmRentalReturnAsync(rental).ConfigureAwait(false))
+                    return;
+
                 await _rentalService.ReturnItemAsync(rental.RentalID, DateTime.Today).ConfigureAwait(false);
                 RentedItems.Remove(rental);
                 if (SelectedRental?.RentalID == rental.RentalID)
@@ -480,6 +483,27 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to return rental {RentalID}", rental.RentalID);
             }
+        }
+
+        private Task<bool> ConfirmRentalReturnAsync(RentalModel rental)
+        {
+            if (_dialogService == null)
+                return Task.FromResult(true);
+
+            return _dialogService.ShowConfirmAsync("Confirm Rental Return", BuildReturnConfirmationMessage(rental));
+        }
+
+        private static string BuildReturnConfirmationMessage(RentalModel rental)
+        {
+            return string.Join(Environment.NewLine,
+                $"Return rental #{rental.RentalID}?",
+                string.Empty,
+                $"Item: {ValueOrNotRecorded(rental.ItemNumber)}",
+                $"Customer: {ValueOrNotRecorded(rental.CustomerName)}",
+                $"Due back: {rental.DueDate:yyyy-MM-dd HH:mm}",
+                $"Return date: {DateTime.Today:yyyy-MM-dd}",
+                string.Empty,
+                "Confirm only after the item and any documents have been received.");
         }
 
         internal async Task LoadCommonlyUsedItemsAsync(CancellationToken token)
@@ -663,6 +687,8 @@ namespace InventoryManagementApp.ViewModels
             var destination = ActivityLogsViewModel.BuildDestinationName(ActivityLogsViewModel.BuildDestinationKey(activity.Action));
             return $"Activity: {activity.Timestamp:yyyy-MM-dd HH:mm} | {activity.UserName} | open {destination} | {activity.Action}";
         }
+
+        private static string ValueOrNotRecorded(string? value) => string.IsNullOrWhiteSpace(value) ? "Not recorded" : value;
 
         private async Task PrintCheckedOutItemsAsync()
         {
