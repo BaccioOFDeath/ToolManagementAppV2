@@ -234,12 +234,25 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load rentals");
-                await _dialogService.ShowInfoAsync($"Failed to load rentals: {ex.Message}", "Error");
+                ClearRentalStateAfterLoadFailure();
+                await _dialogService.ShowInfoAsync($"Failed to load rentals: {ex.Message} Rental rows were cleared until reload succeeds.", "Error");
             }
             finally
             {
                 IsLoading = false;
             }
+        }
+
+        void ClearRentalStateAfterLoadFailure()
+        {
+            _allRentals.Clear();
+            Rentals.Clear();
+            ActiveRentals.Clear();
+            SelectedRental = null;
+            OnPropertyChanged(nameof(SearchSummary));
+            OnPropertyChanged(nameof(CheckedOutSummary));
+            OnPropertyChanged(nameof(SelectedRequestHolderLine));
+            OnPropertyChanged(nameof(SelectedRequestNextAction));
         }
 
         async Task LoadPendingRequestsAsync(bool notifyOnFailure = false)
