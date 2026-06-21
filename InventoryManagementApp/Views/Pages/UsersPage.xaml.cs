@@ -9,7 +9,6 @@ using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Views.Windows;
 using WpfMessageBox = System.Windows.MessageBox;
-using WpfPrintDialog = System.Windows.Controls.PrintDialog;
 
 namespace InventoryManagementApp.Views.Pages
 {
@@ -90,16 +89,8 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            var printDialog = new WpfPrintDialog();
-            if (printDialog.ShowDialog() != true)
-                return;
-
             var document = BuildPrintDocument(ViewModel.Users.ToList(), $"Visible users: {ViewModel.Users.Count}");
-            document.PageWidth = printDialog.PrintableAreaWidth;
-            document.PageHeight = printDialog.PrintableAreaHeight;
-            document.PagePadding = new Thickness(36);
-            document.ColumnWidth = printDialog.PrintableAreaWidth;
-            printDialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, "User Directory");
+            ShowPrintPreview(document, "User Directory");
         }
 
         private static string FormatUserDetail(UserModel user)
@@ -172,6 +163,11 @@ namespace InventoryManagementApp.Views.Pages
 
             document.Blocks.Add(table);
             return document;
+        }
+
+        private static void ShowPrintPreview(FlowDocument document, string title)
+        {
+            new PrintPreviewWindow().ShowPreview(document, title, null);
         }
 
         private static void AddCell(TableRow row, string text)
