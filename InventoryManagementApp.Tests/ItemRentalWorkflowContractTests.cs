@@ -27,11 +27,13 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemManagementViewModel.cs");
 
-            Assert.Contains("private Task ReloadItemsAfterCheckoutAsync(int itemId, CancellationToken cancellationToken)", source, StringComparison.Ordinal);
-            Assert.Equal(2, CountOccurrences(source, "return ReloadItemsAfterItemWorkflowAsync(itemId, cancellationToken);"));
+            Assert.Contains("private Task ReloadItemsAfterCheckoutAsync(ItemModel item, CancellationToken cancellationToken)", source, StringComparison.Ordinal);
+            Assert.Contains("return ReloadItemAfterCheckoutAsync(item, cancellationToken);", source, StringComparison.Ordinal);
+            Assert.Contains("var refreshed = await _itemService.GetItemByIDAsync(itemId, cancellationToken).ConfigureAwait(false);", source, StringComparison.Ordinal);
+            Assert.Contains("var existingRows = new[] { item }", source, StringComparison.Ordinal);
+            Assert.Contains("ApplyItemState(row, refreshed);", source, StringComparison.Ordinal);
             Assert.Contains("var result = await _itemService.ToggleItemCheckOutStatusAsync(item.ItemID, cancellationToken).ConfigureAwait(false);", source, StringComparison.Ordinal);
-            Assert.Contains("await ReloadItemsAfterCheckoutAsync(item.ItemID, cancellationToken);", source, StringComparison.Ordinal);
-            Assert.DoesNotContain("var refreshed = await _itemService.GetItemByIDAsync(item.ItemID, cancellationToken).ConfigureAwait(false);", source, StringComparison.Ordinal);
+            Assert.Contains("await ReloadItemsAfterCheckoutAsync(item, cancellationToken);", source, StringComparison.Ordinal);
             Assert.Contains("?? CheckedOutItems.FirstOrDefault(t => t.ItemID == itemId)", source, StringComparison.Ordinal);
         }
 
@@ -41,7 +43,7 @@ namespace InventoryManagementApp.Tests
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemManagementViewModel.cs");
 
             Assert.Contains("if (!result)", source, StringComparison.Ordinal);
-            Assert.Contains("await ReloadItemsAfterCheckoutAsync(item.ItemID, cancellationToken);", source, StringComparison.Ordinal);
+            Assert.Contains("await ReloadItemsAfterCheckoutAsync(item, cancellationToken);", source, StringComparison.Ordinal);
             Assert.Contains("Check-out status could not be updated. The item may have been changed by another user; the list has been refreshed.", source, StringComparison.Ordinal);
             Assert.Contains("\"Check-out Status\"", source, StringComparison.Ordinal);
             Assert.DoesNotContain("if (!result) return;", source, StringComparison.Ordinal);

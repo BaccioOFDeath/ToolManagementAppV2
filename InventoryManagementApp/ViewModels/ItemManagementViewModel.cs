@@ -557,9 +557,9 @@ namespace InventoryManagementApp.ViewModels
             return ReloadItemsAfterItemWorkflowAsync(itemId, cancellationToken);
         }
 
-        private Task ReloadItemsAfterCheckoutAsync(int itemId, CancellationToken cancellationToken)
+        private Task ReloadItemsAfterCheckoutAsync(ItemModel item, CancellationToken cancellationToken)
         {
-            return ReloadItemsAfterItemWorkflowAsync(itemId, cancellationToken);
+            return ReloadItemAfterCheckoutAsync(item, cancellationToken);
         }
 
         private async Task RefreshItemsAfterWorkflowFailureAsync(int itemId, CancellationToken cancellationToken)
@@ -587,6 +587,46 @@ namespace InventoryManagementApp.ViewModels
                 ?? previousSelection;
         }
 
+        private async Task ReloadItemAfterCheckoutAsync(ItemModel item, CancellationToken cancellationToken)
+        {
+            var itemId = item.ItemID;
+            var previousSelection = SelectedItem;
+            var refreshed = await _itemService.GetItemByIDAsync(itemId, cancellationToken).ConfigureAwait(false);
+
+            if (refreshed != null)
+            {
+                var existingRows = new[] { item }
+                    .Concat(Items)
+                    .Concat(SearchResults)
+                    .Concat(CheckedOutItems)
+                    .Where(t => t.ItemID == itemId)
+                    .Distinct()
+                    .ToList();
+
+                if (existingRows.Count == 0)
+                {
+                    SearchResults.Add(refreshed);
+                }
+                else
+                {
+                    foreach (var row in existingRows)
+                        ApplyItemState(row, refreshed);
+                }
+            }
+            else
+            {
+                await LoadItemsAsync(new ItemPage(1, PageSize));
+                await FilterItemsAsync();
+            }
+
+            await RefreshCheckedOutItemsAsync(cancellationToken);
+
+            SelectedItem = SearchResults.FirstOrDefault(t => t.ItemID == itemId)
+                ?? Items.FirstOrDefault(t => t.ItemID == itemId)
+                ?? CheckedOutItems.FirstOrDefault(t => t.ItemID == itemId)
+                ?? previousSelection;
+        }
+
         private async Task ToggleCheckOutAsync(ItemModel? item, CancellationToken cancellationToken)
         {
             if (item == null) return;
@@ -595,12 +635,12 @@ namespace InventoryManagementApp.ViewModels
                 var result = await _itemService.ToggleItemCheckOutStatusAsync(item.ItemID, cancellationToken).ConfigureAwait(false);
                 if (!result)
                 {
-                    await ReloadItemsAfterCheckoutAsync(item.ItemID, cancellationToken);
+                    await ReloadItemsAfterCheckoutAsync(item, cancellationToken);
                     await _dialogService.ShowInfoAsync("Check-out status could not be updated. The item may have been changed by another user; the list has been refreshed.", "Check-out Status");
                     return;
                 }
 
-                await ReloadItemsAfterCheckoutAsync(item.ItemID, cancellationToken);
+                await ReloadItemsAfterCheckoutAsync(item, cancellationToken);
             }
             catch (OperationCanceledException)
             {

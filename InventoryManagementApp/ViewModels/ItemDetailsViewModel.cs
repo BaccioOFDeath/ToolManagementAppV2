@@ -147,40 +147,48 @@ namespace InventoryManagementApp.ViewModels
 
         async Task ToggleCheckOutAsync()
         {
-            var result = await _itemService.ToggleItemCheckOutStatusAsync(ItemModel.ItemID).ConfigureAwait(false);
-            if (!result)
-                return;
-
-            var checkedOut = !ItemModel.IsCheckedOut;
-            ItemModel.IsCheckedOut = checkedOut;
-            ItemModel.QuantityOnHand += checkedOut ? -1 : 1;
-
-            var refreshed = await _itemService.GetItemByIDAsync(ItemModel.ItemID).ConfigureAwait(false);
-            if (refreshed != null)
+            try
             {
-                CopyItem(ItemModel, refreshed);
-            }
+                var result = await _itemService.ToggleItemCheckOutStatusAsync(ItemModel.ItemID).ConfigureAwait(false);
+                if (!result)
+                {
+                    await RefreshItemStateAsync().ConfigureAwait(false);
+                    await _dialogService.ShowInfoAsync("Check-out status could not be updated. The item may have been changed by another user; the details have been refreshed.", "Check-out Status").ConfigureAwait(false);
+                    return;
+                }
 
-            RefreshState();
+                var checkedOut = !ItemModel.IsCheckedOut;
+                ItemModel.IsCheckedOut = checkedOut;
+                ItemModel.QuantityOnHand += checkedOut ? -1 : 1;
+
+                await RefreshItemStateAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await RefreshItemStateAsync().ConfigureAwait(false);
+                await _dialogService.ShowInfoAsync($"Failed to update check-out status: {ex.Message} The item details have been refreshed in case the check-out status changed before the failure.", "Error").ConfigureAwait(false);
+            }
         }
 
         async Task RentOutAsync()
         {
-            var customers = await _customerService.GetAllCustomersAsync().ConfigureAwait(false);
-            var result = _dialogService.ShowRentItemDialog(ItemModel, customers);
-            if (result == null)
-                return;
-
-            var (customer, dueDate) = result.Value;
-            await _rentalService.RentItemAsync(ItemModel.ItemID, customer.CustomerID, DateTime.Today, dueDate).ConfigureAwait(false);
-
-            var refreshed = await _itemService.GetItemByIDAsync(ItemModel.ItemID).ConfigureAwait(false);
-            if (refreshed != null)
+            try
             {
-                CopyItem(ItemModel, refreshed);
-            }
+                var customers = await _customerService.GetAllCustomersAsync().ConfigureAwait(false);
+                var result = _dialogService.ShowRentItemDialog(ItemModel, customers);
+                if (result == null)
+                    return;
 
-            RefreshState();
+                var (customer, dueDate) = result.Value;
+                await _rentalService.RentItemAsync(ItemModel.ItemID, customer.CustomerID, DateTime.Today, dueDate).ConfigureAwait(false);
+
+                await RefreshItemStateAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await RefreshItemStateAsync().ConfigureAwait(false);
+                await _dialogService.ShowInfoAsync($"Failed to rent item: {ex.Message} The item details have been refreshed in case the rental was saved before the failure.", "Error").ConfigureAwait(false);
+            }
         }
 
         async Task OpenRentalHistoryAsync()
@@ -334,6 +342,17 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(RequestStatusText));
             OnPropertyChanged(nameof(ConditionSummary));
             OnPropertyChanged(nameof(NextActionText));
+        }
+
+        async Task RefreshItemStateAsync()
+        {
+            var refreshed = await _itemService.GetItemByIDAsync(ItemModel.ItemID).ConfigureAwait(false);
+            if (refreshed != null)
+            {
+                CopyItem(ItemModel, refreshed);
+            }
+
+            RefreshState();
         }
 
         static string FormatElapsed(TimeSpan elapsed)
