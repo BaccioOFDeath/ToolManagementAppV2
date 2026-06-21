@@ -15,6 +15,7 @@ using InventoryManagementApp.Models;
 using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Extensions;
 using InventoryManagementApp.Services;
+using InventoryManagementApp.Services.Printing;
 using InventoryManagementApp.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -505,6 +506,7 @@ namespace InventoryManagementApp.ViewModels
                         customer.CustomerID,
                         DateTime.Today,
                         dueDate);
+                    await PromptToPrintRentalHandoffAsync(item, customer, dueDate).ConfigureAwait(false);
                     await ReloadItemsAfterRentalAsync(item.ItemID, cancellationToken);
                 }
             }
@@ -535,6 +537,7 @@ namespace InventoryManagementApp.ViewModels
                 {
                     var (customer, dueDate) = result.Value;
                     await _rentalService.RentItemAsync(item.ItemID, customer.CustomerID, DateTime.Today, dueDate);
+                    await PromptToPrintRentalHandoffAsync(item, customer, dueDate).ConfigureAwait(false);
                     await ReloadItemsAfterRentalAsync(item.ItemID, cancellationToken);
                 }
             }
@@ -557,6 +560,70 @@ namespace InventoryManagementApp.ViewModels
         {
             return ReloadItemsAfterItemWorkflowAsync(itemId, cancellationToken);
         }
+
+        private async Task PromptToPrintRentalHandoffAsync(ItemModel item, CustomerModel customer, DateTime dueDate)
+        {
+            var print = await _dialogService.ShowConfirmAsync(
+                "Print Rental Handoff",
+                $"Rental saved for {ValueOrNotRecorded(customer.Company)}.{Environment.NewLine}{Environment.NewLine}Print the picking slip for shelf collection and the customer rental copy now?").ConfigureAwait(false);
+            if (!print)
+                return;
+
+            var rental = await FindNewActiveRentalAsync(item, customer, dueDate).ConfigureAwait(false)
+                ?? BuildRentalHandoffFallback(item, customer, dueDate);
+            var printService = new RentalPrintingService("Equipment Rentals", "", "");
+            var rentalTitle = rental.RentalID > 0 ? rental.RentalID.ToString() : item.ItemNumber;
+
+            _dialogService.ShowPrintPreview(
+                printService.GeneratePickingSlip(rental),
+                $"Picking Slip - Rental {rentalTitle}",
+                "Shelf picking slip");
+            _dialogService.ShowPrintPreview(
+                printService.GenerateInvoice(rental, dailyRate: 25.00m, lateFee: 0),
+                $"Invoice - Rental {rentalTitle}",
+                "Customer rental copy");
+        }
+
+        private async Task<RentalModel?> FindNewActiveRentalAsync(ItemModel item, CustomerModel customer, DateTime dueDate)
+        {
+            try
+            {
+                var activeRentals = await _rentalService.GetActiveRentalsAsync().ConfigureAwait(false);
+                return activeRentals
+                    .Where(r => r.ItemID == item.ItemID
+                        && r.CustomerID == customer.CustomerID
+                        && r.DueDate.Date == dueDate.Date
+                        && string.Equals(r.Status, "Rented", StringComparison.OrdinalIgnoreCase))
+                    .OrderByDescending(r => r.RentalID)
+                    .FirstOrDefault();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static RentalModel BuildRentalHandoffFallback(ItemModel item, CustomerModel customer, DateTime dueDate)
+        {
+            return new RentalModel
+            {
+                ItemID = item.ItemID,
+                CustomerID = customer.CustomerID,
+                RentalDate = DateTime.Today,
+                DueDate = dueDate,
+                Status = "Rented",
+                ItemNumber = item.ItemNumber,
+                ItemLocation = item.Location,
+                CustomerName = customer.Company,
+                CustomerContact = customer.Contact,
+                CustomerEmail = customer.Email,
+                CustomerPhone = string.IsNullOrWhiteSpace(customer.Phone) ? customer.Mobile : customer.Phone,
+                CustomerMobile = customer.Mobile,
+                CustomerAddress = customer.Address
+            };
+        }
+
+        private static string ValueOrNotRecorded(string? value) => string.IsNullOrWhiteSpace(value) ? "Not recorded" : value;
 
         private Task ReloadItemsAfterCheckoutAsync(ItemModel item, CancellationToken cancellationToken)
         {
