@@ -41,7 +41,7 @@ namespace InventoryManagementApp.ViewModels
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<ThemeDesignerViewModel>.Instance;
 
-            ThemeOptions = new ObservableCollection<string> { "Light", "Dark" };
+            ThemeOptions = new ObservableCollection<string> { "Light", "Dark", "VS Code" };
             BackgroundStretchOptions = new ObservableCollection<string> { "UniformToFill", "Uniform", "Fill", "None" };
             SaveCommand = new AsyncRelayCommand(SaveAsync);
             ResetCommand = new RelayCommand(Reset);
@@ -81,7 +81,11 @@ namespace InventoryManagementApp.ViewModels
             get => _settings.BaseTheme;
             set
             {
-                var theme = string.Equals(value, "Dark", StringComparison.OrdinalIgnoreCase) ? "Dark" : "Light";
+                var theme = value?.IndexOf("VS Code", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            value?.IndexOf("VSCode", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            value?.IndexOf("Visual Studio Code", StringComparison.OrdinalIgnoreCase) >= 0
+                    ? "VS Code"
+                    : string.Equals(value, "Dark", StringComparison.OrdinalIgnoreCase) ? "Dark" : "Light";
                 if (string.Equals(_settings.BaseTheme, theme, StringComparison.OrdinalIgnoreCase))
                     return;
 

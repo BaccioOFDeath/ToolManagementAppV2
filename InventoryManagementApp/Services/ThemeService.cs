@@ -178,7 +178,12 @@ namespace InventoryManagementApp.Services
             {
                 var settings = _settingsService.GetAppThemeSettingsAsync().GetAwaiter().GetResult();
                 if (!string.IsNullOrWhiteSpace(theme))
-                    settings.BaseTheme = theme;
+                {
+                    var selectedDefaults = AppThemeSettings.CreateDefault(theme);
+                    settings = string.Equals(settings.BaseTheme, selectedDefaults.BaseTheme, StringComparison.OrdinalIgnoreCase)
+                        ? settings
+                        : selectedDefaults;
+                }
                 ApplyCustomTheme(settings);
             }
             catch
@@ -225,7 +230,7 @@ namespace InventoryManagementApp.Services
         private static void ApplyBaseThemeDictionary(Application app, string? theme)
         {
             var dictionaries = app.Resources.MergedDictionaries;
-            var themeUri = string.Equals(theme, "Dark", StringComparison.OrdinalIgnoreCase) ? DarkThemeUri : LightThemeUri;
+            var themeUri = IsDarkBaseTheme(theme) ? DarkThemeUri : LightThemeUri;
             var insertIndex = 0;
             var existingTheme = FindThemeDictionary(dictionaries);
 
@@ -283,6 +288,12 @@ namespace InventoryManagementApp.Services
                    leftText.EndsWith("Resources/Colors.Light.xaml", StringComparison.OrdinalIgnoreCase) &&
                    rightText.EndsWith("Resources/Colors.Light.xaml", StringComparison.OrdinalIgnoreCase);
         }
+
+        private static bool IsDarkBaseTheme(string? theme)
+            => theme?.IndexOf("Dark", StringComparison.OrdinalIgnoreCase) >= 0 ||
+               theme?.IndexOf("VS Code", StringComparison.OrdinalIgnoreCase) >= 0 ||
+               theme?.IndexOf("VSCode", StringComparison.OrdinalIgnoreCase) >= 0 ||
+               theme?.IndexOf("Visual Studio Code", StringComparison.OrdinalIgnoreCase) >= 0;
 
         private static bool IsThemeDictionary(ResourceDictionary dictionary)
         {

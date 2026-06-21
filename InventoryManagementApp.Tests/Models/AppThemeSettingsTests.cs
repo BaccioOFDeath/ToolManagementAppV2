@@ -117,6 +117,29 @@ namespace InventoryManagementApp.Tests.Models
             Assert.Equal("#FFFFFFFF", settings.SelectedTextColor);
         }
 
+        [Fact]
+        public void CreateDefault_BuildsVSCodeThemePalette()
+        {
+            var settings = AppThemeSettings.CreateDefault("vscode");
+
+            Assert.Equal("VS Code", settings.BaseTheme);
+            Assert.Equal("#FF1E1E1E", settings.BackgroundColor);
+            Assert.Equal("#FF181818", settings.NavigationColor);
+            Assert.Equal("#FF252526", settings.SurfaceAltColor);
+            Assert.Equal("#FF313131", settings.InputColor);
+            Assert.Equal("#FF0E639C", settings.ButtonColor);
+            Assert.Equal("#FF007ACC", settings.AccentColor);
+            Assert.Equal("#FF2A2D2E", settings.HoverColor);
+            Assert.Equal("#FF04395E", settings.SelectedColor);
+            Assert.Equal("#FFCCCCCC", settings.TextColor);
+            Assert.Equal("#FF858585", settings.MutedTextColor);
+            Assert.False(settings.EnableSurfaceShadows);
+            Assert.False(settings.EnableControlShadows);
+            Assert.Equal(0, settings.CardCornerRadius);
+            Assert.Equal(2, settings.InputCornerRadius);
+            Assert.Equal(26, settings.ControlHeight);
+        }
+
         [Theory]
         [InlineData("None")]
         [InlineData("Fill")]

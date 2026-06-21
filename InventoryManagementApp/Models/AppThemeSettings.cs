@@ -99,6 +99,64 @@ namespace InventoryManagementApp.Models
                 settings.ShadowOpacity = 0.35;
                 settings.GridLineOpacity = 0.5;
             }
+            else if (string.Equals(settings.BaseTheme, "VS Code", StringComparison.OrdinalIgnoreCase))
+            {
+                settings.BackgroundColor = "#FF1E1E1E";
+                settings.BackgroundOverlayColor = "#001E1E1E";
+                settings.SurfaceColor = "#FF1E1E1E";
+                settings.SurfaceAltColor = "#FF252526";
+                settings.NavigationColor = "#FF181818";
+                settings.InputColor = "#FF313131";
+                settings.ButtonColor = "#FF0E639C";
+                settings.BorderColor = "#FF2B2B2B";
+                settings.TextColor = "#FFCCCCCC";
+                settings.MutedTextColor = "#FF858585";
+                settings.AccentColor = "#FF007ACC";
+                settings.HoverColor = "#FF2A2D2E";
+                settings.HoverTextColor = "#FFCCCCCC";
+                settings.SelectedColor = "#FF04395E";
+                settings.SelectedTextColor = "#FFFFFFFF";
+                settings.SuccessColor = "#FF89D185";
+                settings.WarningColor = "#FFDCDCAA";
+                settings.ErrorColor = "#FFF48771";
+                settings.ShadowColor = "#66000000";
+                settings.SurfaceOpacity = 1;
+                settings.SurfaceAltOpacity = 1;
+                settings.InputOpacity = 1;
+                settings.ButtonOpacity = 1;
+                settings.NavigationOpacity = 1;
+                settings.HeaderOpacity = 1;
+                settings.MenuOpacity = 1;
+                settings.FooterOpacity = 1;
+                settings.DialogOpacity = 1;
+                settings.DisabledOpacity = 0.5;
+                settings.BorderOpacity = 1;
+                settings.DividerOpacity = 1;
+                settings.BorderThickness = 1;
+                settings.ControlBorderThickness = 1;
+                settings.CardCornerRadius = 0;
+                settings.PanelCornerRadius = 0;
+                settings.ButtonCornerRadius = 2;
+                settings.InputCornerRadius = 2;
+                settings.ShadowBlurRadius = 0;
+                settings.ShadowDepth = 0;
+                settings.ShadowOpacity = 0;
+                settings.SurfaceShadowScale = 0;
+                settings.ControlShadowScale = 0;
+                settings.PagePadding = 4;
+                settings.CardPadding = 6;
+                settings.FontScale = 0.96;
+                settings.HeadingFontScale = 0.95;
+                settings.ControlHeight = 26;
+                settings.DataGridRowHeight = 28;
+                settings.DataGridHeaderHeight = 28;
+                settings.InteractionIntensity = 1.15;
+                settings.FocusRingOpacity = 0.8;
+                settings.GridLineOpacity = 0.65;
+                settings.MotionIntensity = 0.4;
+                settings.EnableSurfaceShadows = false;
+                settings.EnableControlShadows = false;
+            }
 
             return settings;
         }
@@ -168,7 +226,16 @@ namespace InventoryManagementApp.Models
         }
 
         private static string NormalizeBaseTheme(string? value)
-            => value?.IndexOf("Dark", StringComparison.OrdinalIgnoreCase) >= 0 ? "Dark" : "Light";
+        {
+            if (value?.IndexOf("VS Code", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                value?.IndexOf("VSCode", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                value?.IndexOf("Visual Studio Code", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return "VS Code";
+            }
+
+            return value?.IndexOf("Dark", StringComparison.OrdinalIgnoreCase) >= 0 ? "Dark" : "Light";
+        }
 
         private static string NormalizeBackgroundStretch(string? value)
         {

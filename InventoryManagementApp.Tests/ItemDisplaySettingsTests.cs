@@ -348,6 +348,31 @@ public class ItemDisplaySettingsTests
     }
 
     [Fact]
+    public async Task SettingsViewModel_ThemeOptionsIncludeVSCodeAndPersistDefaultPalette()
+    {
+        var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
+        await using var db = new DatabaseService(dbPath);
+        new MigrationRunner(db).Migrate();
+        var settings = new SettingsService(db);
+        var theme = new DummyThemeService();
+        var vm = new SettingsViewModel(new DummyFileDialogService(), settings, new DummyDialogService(), theme);
+
+        Assert.Contains("VS Code", vm.ThemeOptions);
+
+        vm.Theme = "VS Code";
+        await Task.Delay(100);
+
+        var saved = await ((ISettingsService)settings).GetAppThemeSettingsAsync();
+        var defaults = AppThemeSettings.CreateDefault("VS Code");
+        Assert.Equal("VS Code", await settings.GetThemeAsync());
+        Assert.Equal("VS Code", saved.BaseTheme);
+        Assert.Equal(defaults.NavigationColor, saved.NavigationColor);
+        Assert.Equal(defaults.SelectedColor, saved.SelectedColor);
+        Assert.NotNull(theme.LastCustomTheme);
+        Assert.Equal(defaults.AccentColor, theme.LastCustomTheme!.AccentColor);
+    }
+
+    [Fact]
     public void SettingsViewModel_InitializeAsync_DoesNotDeadlock()
     {
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");

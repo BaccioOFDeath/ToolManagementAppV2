@@ -202,6 +202,20 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task ApplyTheme_LoadsDarkDictionaryForVSCodeTheme()
+        {
+            await RunOnStaThread(async () =>
+            {
+                var app = WpfTestHelper.CreateApplication();
+                var service = new ThemeService();
+                service.ApplyTheme("VS Code");
+                Assert.Contains("Colors.Dark.xaml", app.Resources.MergedDictionaries[0].Source.OriginalString);
+                WpfTestHelper.ShutdownApplication();
+                await Task.CompletedTask;
+            });
+        }
+
+        [Fact]
         public async Task ApplyCustomTheme_UsesSeparateHoverAndSelectedColors()
         {
             await RunOnStaThread(async () =>
@@ -249,6 +263,27 @@ namespace InventoryManagementApp.Tests
 
                 Assert.Equal(Color.FromRgb(0x25, 0x2D, 0x36), popupBackground);
                 Assert.Equal(Colors.White, textBoxBackground);
+                WpfTestHelper.ShutdownApplication();
+                await Task.CompletedTask;
+            });
+        }
+
+        [Fact]
+        public async Task ApplyCustomTheme_AppliesVSCodePaletteToRuntimeResources()
+        {
+            await RunOnStaThread(async () =>
+            {
+                var app = WpfTestHelper.CreateApplication();
+                var service = new ThemeService();
+                var settings = AppThemeSettings.CreateDefault("VS Code");
+
+                service.ApplyCustomTheme(settings);
+
+                Assert.Equal(Color.FromRgb(0x1E, 0x1E, 0x1E), ((SolidColorBrush)app.Resources["BackgroundBrush"]).Color);
+                Assert.Equal(Color.FromRgb(0x18, 0x18, 0x18), ((SolidColorBrush)app.Resources["ThemeShellMenuBrush"]).Color);
+                Assert.Equal(Color.FromRgb(0x31, 0x31, 0x31), ((SolidColorBrush)app.Resources["TextBoxBackgroundBrush"]).Color);
+                Assert.Equal(Color.FromRgb(0x04, 0x39, 0x5E), ((SolidColorBrush)app.Resources["ItemSelectedBrush"]).Color);
+                Assert.Equal(new CornerRadius(2), (CornerRadius)app.Resources["ThemeInputCornerRadius"]);
                 WpfTestHelper.ShutdownApplication();
                 await Task.CompletedTask;
             });

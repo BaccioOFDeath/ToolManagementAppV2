@@ -50,7 +50,7 @@ namespace InventoryManagementApp.ViewModels
             _emailAccountDiscoveryService = emailAccountDiscoveryService ?? new OutlookEmailAccountDiscoveryService();
             _logger = logger ?? NullLogger<SettingsViewModel>.Instance;
 
-            ThemeOptions = new ObservableCollection<string> { "Light", "Dark" };
+            ThemeOptions = new ObservableCollection<string> { "Light", "Dark", "VS Code" };
             _theme = ThemeOptions[0];
             _itemLabelSingular = LabelProvider.Instance.ItemLabelSingular;
             _itemLabelPlural = LabelProvider.Instance.ItemLabelPlural;
@@ -111,8 +111,9 @@ namespace InventoryManagementApp.ViewModels
             if (!string.IsNullOrWhiteSpace(appName))
                 _applicationName = appName;
             var theme = await _settingsService.GetThemeAsync().ConfigureAwait(false);
-            if (!string.IsNullOrWhiteSpace(theme) && ThemeOptions.Contains(theme))
-                _theme = theme;
+            var normalizedTheme = NormalizeThemeOption(theme);
+            if (ThemeOptions.Contains(normalizedTheme))
+                _theme = normalizedTheme;
             _themeService.ApplyTheme(_theme);
             _passwordIterations = await _settingsService.GetPasswordIterationsAsync().ConfigureAwait(false);
             _autoLogoutMinutes = await _settingsService.GetAutoLogoutMinutesAsync().ConfigureAwait(false);
@@ -343,6 +344,18 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to save theme.");
             }
+        }
+
+        private static string NormalizeThemeOption(string? value)
+        {
+            if (value?.IndexOf("VS Code", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                value?.IndexOf("VSCode", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                value?.IndexOf("Visual Studio Code", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return "VS Code";
+            }
+
+            return string.Equals(value, "Dark", StringComparison.OrdinalIgnoreCase) ? "Dark" : "Light";
         }
 
         private int _passwordIterations;

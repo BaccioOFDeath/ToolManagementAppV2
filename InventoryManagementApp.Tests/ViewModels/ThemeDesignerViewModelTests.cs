@@ -100,6 +100,29 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public async Task ThemeOptions_ExposeVSCodeBaseTheme()
+        {
+            var settingsService = new FakeSettingsService();
+            var themeService = new RecordingThemeService();
+            var viewModel = CreateViewModel(settingsService, themeService);
+            await viewModel.InitializeAsync();
+
+            Assert.Contains("VS Code", viewModel.ThemeOptions);
+
+            viewModel.BaseTheme = "VS Code";
+
+            var defaults = AppThemeSettings.CreateDefault("VS Code");
+            Assert.Equal("VS Code", viewModel.BaseTheme);
+            Assert.Equal(defaults.BackgroundColor, viewModel.BackgroundColor);
+            Assert.Equal(defaults.NavigationColor, viewModel.NavigationColor);
+            Assert.Equal(defaults.SelectedColor, viewModel.SelectedColor);
+            Assert.False(viewModel.EnableSurfaceShadows);
+            Assert.NotNull(themeService.LastCustomTheme);
+            Assert.Equal("VS Code", themeService.LastCustomTheme!.BaseTheme);
+            Assert.Equal("VS Code theme previewed. Save to keep it.", viewModel.Status);
+        }
+
+        [Fact]
         public async Task TransparentCanvasPreset_PreviewsBackgroundFirstRedesign()
         {
             var settingsService = new FakeSettingsService();
