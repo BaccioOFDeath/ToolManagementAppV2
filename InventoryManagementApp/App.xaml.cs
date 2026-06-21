@@ -542,6 +542,12 @@ namespace InventoryManagementApp
             if (main.WindowState == WindowState.Minimized)
                 main.WindowState = WindowState.Normal;
 
+            if (options.FullScreen)
+            {
+                main.WindowState = WindowState.Maximized;
+                LogStep("Maximized main window for fullscreen QA capture.");
+            }
+
             main.Activate();
             main.Focus();
             await WaitForUiAsync(main.Dispatcher);
@@ -852,10 +858,13 @@ namespace InventoryManagementApp
         static async Task WithMainWindowWidthAsync(MainWindow mainWindow, double width, Func<Task> captureAsync)
         {
             var originalWidth = mainWindow.Width;
+            var originalWindowState = mainWindow.WindowState;
             try
             {
                 await mainWindow.Dispatcher.InvokeAsync(() =>
                 {
+                    if (mainWindow.WindowState != WindowState.Normal)
+                        mainWindow.WindowState = WindowState.Normal;
                     mainWindow.Width = Math.Max(mainWindow.MinWidth, width);
                     mainWindow.UpdateLayout();
                 }, DispatcherPriority.Background);
@@ -869,6 +878,7 @@ namespace InventoryManagementApp
                 await mainWindow.Dispatcher.InvokeAsync(() =>
                 {
                     mainWindow.Width = originalWidth;
+                    mainWindow.WindowState = originalWindowState;
                     mainWindow.UpdateLayout();
                 }, DispatcherPriority.Background);
 
