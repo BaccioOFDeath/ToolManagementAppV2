@@ -449,6 +449,7 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to open rental history for {ItemLabelSingular} {ItemID}", LabelProvider.Instance.ItemLabelSingular, item.ItemID);
+                await _dialogService.ShowInfoAsync($"Failed to load rental history: {ex.Message}", "Error");
             }
         }
 
@@ -578,7 +579,12 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 var result = await _itemService.ToggleItemCheckOutStatusAsync(item.ItemID, cancellationToken).ConfigureAwait(false);
-                if (!result) return;
+                if (!result)
+                {
+                    await ReloadItemsAfterCheckoutAsync(item.ItemID, cancellationToken);
+                    await _dialogService.ShowInfoAsync("Check-out status could not be updated. The item may have been changed by another user; the list has been refreshed.", "Check-out Status");
+                    return;
+                }
 
                 await ReloadItemsAfterCheckoutAsync(item.ItemID, cancellationToken);
             }
