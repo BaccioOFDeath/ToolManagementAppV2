@@ -225,7 +225,7 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("{DynamicResource GlassSurfaceBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource GlassSurfaceAltBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource TextBoxBackgroundBrush}", xaml, StringComparison.Ordinal);
-            Assert.Contains("{DynamicResource ThemePopupSurfaceBrush}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource ComboBoxPopupBackgroundBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeShellMenuBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeShellFooterBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemePanelCornerRadius}", xaml, StringComparison.Ordinal);
