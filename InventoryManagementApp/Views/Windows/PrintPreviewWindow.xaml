@@ -39,7 +39,7 @@
                                    Style="{StaticResource HeadingTextBlock}"
                                    TextWrapping="Wrap"
                                    MaxWidth="580"/>
-                        <TextBlock Text="Review page setup, content, and branding before sending output to the printer."
+                        <TextBlock x:Name="PreviewDescription"
                                    Style="{StaticResource CaptionTextBlock}"
                                    TextWrapping="Wrap"
                                    MaxWidth="620"
