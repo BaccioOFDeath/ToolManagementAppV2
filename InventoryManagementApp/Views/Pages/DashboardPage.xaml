@@ -116,6 +116,7 @@
                               CanUserAddRows="False"
                               SelectionMode="Single"
                               Style="{StaticResource VirtualizedDataGridStyle}"
+                              RowHeight="44"
                               MouseDoubleClick="CommonItemsGrid_MouseDoubleClick"
                               PreviewMouseRightButtonDown="DashboardGrid_PreviewMouseRightButtonDown">
                         <DataGrid.Columns>
@@ -223,6 +224,7 @@
                               CanUserAddRows="False"
                               SelectionMode="Single"
                               Style="{StaticResource VirtualizedDataGridStyle}"
+                              RowHeight="44"
                               MouseDoubleClick="CheckedOutItemsGrid_MouseDoubleClick"
                               PreviewMouseRightButtonDown="DashboardGrid_PreviewMouseRightButtonDown">
                         <DataGrid.Columns>

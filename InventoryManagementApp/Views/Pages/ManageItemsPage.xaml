@@ -150,6 +150,7 @@
                               AutoGenerateColumns="False"
                               EnableColumnVirtualization="True"
                               Style="{StaticResource VirtualizedDataGridStyle}">
+                        <DataGrid.RowHeight>56</DataGrid.RowHeight>
                         <DataGrid.Resources>
                             <helpers:BindingProxy x:Key="VmProxy" Data="{Binding}"/>
                         </DataGrid.Resources>
