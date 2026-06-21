@@ -17,6 +17,7 @@ namespace InventoryManagementApp.Views.Windows
     {
         private FlowDocument? _document;
         private string _title = string.Empty;
+        private string _description = string.Empty;
         private string _logoPath = string.Empty;
 
         public PrintPreviewWindow()
@@ -26,14 +27,16 @@ namespace InventoryManagementApp.Views.Windows
             this.DisposeDataContextOnUnload();
         }
 
-        public void ShowPreview(FlowDocument document, string title, string? logoPath)
+        public void ShowPreview(FlowDocument document, string title, string? description = null, string? logoPath = null)
         {
             _document = document ?? throw new ArgumentNullException(nameof(document));
             _title = title ?? throw new ArgumentNullException(nameof(title));
+            _description = SafeText(description, "Review page setup, content, and branding before sending output to the printer.");
             _logoPath = logoPath ?? string.Empty;
 
-            Title = $"Print Preview – {_title}";
+            Title = $"Print Preview - {_title}";
             PreviewTitle.Text = _title;
+            PreviewDescription.Text = _description;
 
             var logoUri = ResolveLogoUri(_logoPath);
             var bmp = new BitmapImage();
