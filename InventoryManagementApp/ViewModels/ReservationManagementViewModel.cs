@@ -190,7 +190,11 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync("Error loading reservations", ex.Message);
+                Reservations.Clear();
+                FilteredReservations.Clear();
+                SelectedReservation = null;
+                OnPropertyChanged(nameof(ReservationResultsSummary));
+                await _dialogService.ShowErrorAsync("Error loading reservations", $"{ex.Message} The reservation list has been cleared until reload succeeds.");
             }
         }
 

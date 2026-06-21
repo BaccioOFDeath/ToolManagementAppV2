@@ -7,6 +7,16 @@ namespace InventoryManagementApp.Tests
     public class ReservationWorkflowContractTests
     {
         [Fact]
+        public void ReservationLoadFailuresClearStaleVisibleRowsAndExplainState()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ReservationManagementViewModel.cs");
+
+            Assert.Contains("catch (Exception ex)\n            {\n                Reservations.Clear();\n                FilteredReservations.Clear();\n                SelectedReservation = null;", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(ReservationResultsSummary));\n                await _dialogService.ShowErrorAsync(\"Error loading reservations\", $\"{ex.Message} The reservation list has been cleared until reload succeeds.\");", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("catch (Exception ex)\n            {\n                await _dialogService.ShowErrorAsync(\"Error loading reservations\", ex.Message);", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ReservationOperationFailuresRefreshVisibleRowsAndExplainState()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ReservationManagementViewModel.cs");
