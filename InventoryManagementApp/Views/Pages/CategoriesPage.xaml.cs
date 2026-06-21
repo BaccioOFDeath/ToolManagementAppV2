@@ -107,46 +107,58 @@ namespace InventoryManagementApp.Views.Pages
 
         private void OpenCategoryDetail_Click(object sender, RoutedEventArgs e)
         {
-            if (!TryGetSelectedCategory(out var category))
-                return;
+            UiActionGuard.Run(this, "Category Detail", () =>
+            {
+                if (!TryGetSelectedCategory(out var category))
+                    return;
 
-            DetailDialogWindow.ShowDialogFor(
-                Window.GetWindow(this),
-                $"Category Detail - {category.Name}",
-                "Category Detail",
-                FormatCategoryDetail(category),
-                "Review naming, directory labeling, and setup handoff guidance before changing category structure.",
-                $"Category #{category.CategoryID}",
-                "Close returns to Categories with the selected category ready for copy, print, rename, or refresh actions.");
+                DetailDialogWindow.ShowDialogFor(
+                    Window.GetWindow(this),
+                    $"Category Detail - {category.Name}",
+                    "Category Detail",
+                    FormatCategoryDetail(category),
+                    "Review naming, directory labeling, and setup handoff guidance before changing category structure.",
+                    $"Category #{category.CategoryID}",
+                    "Close returns to Categories with the selected category ready for copy, print, rename, or refresh actions.");
+            });
         }
 
         private void CopyCategory_Click(object sender, RoutedEventArgs e)
         {
-            if (!TryGetSelectedCategory(out var category))
-                return;
+            UiActionGuard.Run(this, "Category Detail", () =>
+            {
+                if (!TryGetSelectedCategory(out var category))
+                    return;
 
-            System.Windows.Clipboard.SetText(FormatCategoryDetail(category));
+                System.Windows.Clipboard.SetText(FormatCategoryDetail(category));
+            });
         }
 
         private void PrintCategories_Click(object sender, RoutedEventArgs e)
         {
-            if (DataContext is not CategoryManagementViewModel vm || vm.FilteredCategories.Count == 0)
+            UiActionGuard.Run(this, "Category Directory", () =>
             {
-                WpfMessageBox.Show("There are no categories to print.", "Category Directory", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
+                if (DataContext is not CategoryManagementViewModel vm || vm.FilteredCategories.Count == 0)
+                {
+                    WpfMessageBox.Show("There are no categories to print.", "Category Directory", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
 
-            var document = BuildDirectoryPrintDocument(vm.FilteredCategories.ToList(), vm.CategoryResultsSummary, vm.CategorySetupSummary);
-            ShowPrintPreview(document, "Category Directory");
+                var document = BuildDirectoryPrintDocument(vm.FilteredCategories.ToList(), vm.CategoryResultsSummary, vm.CategorySetupSummary);
+                ShowPrintPreview(document, "Category Directory");
+            });
         }
 
         private void PrintSelectedCategory_Click(object sender, RoutedEventArgs e)
         {
-            if (!TryGetSelectedCategory(out var category))
-                return;
+            UiActionGuard.Run(this, "Category Sheet", () =>
+            {
+                if (!TryGetSelectedCategory(out var category))
+                    return;
 
-            var document = BuildSelectedCategoryPrintDocument(category);
-            ShowPrintPreview(document, $"Category Sheet - {category.Name}");
+                var document = BuildSelectedCategoryPrintDocument(category);
+                ShowPrintPreview(document, $"Category Sheet - {category.Name}");
+            });
         }
 
         private bool TryGetSelectedCategory(out CategoryManagementViewModel.CategoryItem category)

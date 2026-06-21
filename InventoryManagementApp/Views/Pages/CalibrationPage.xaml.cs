@@ -25,7 +25,7 @@ namespace InventoryManagementApp.Views.Pages
         {
             if (DataContext is CalibrationManagementViewModel vm && vm.OpenCalibrationDetailsCommand.CanExecute(null))
             {
-                vm.OpenCalibrationDetailsCommand.Execute(null);
+                UiActionGuard.Run(this, "Calibration", () => vm.OpenCalibrationDetailsCommand.Execute(null));
             }
         }
 

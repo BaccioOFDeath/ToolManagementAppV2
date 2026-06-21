@@ -43,54 +43,66 @@ namespace InventoryManagementApp.Views.Pages
 
         private void OpenSelectedUser_Click(object sender, RoutedEventArgs e)
         {
-            if (UsersDataGrid.SelectedItem is not UserModel user)
+            UiActionGuard.Run(this, "User Directory", () =>
             {
-                WpfMessageBox.Show("Select a user row first.", "User Directory", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
+                if (UsersDataGrid.SelectedItem is not UserModel user)
+                {
+                    WpfMessageBox.Show("Select a user row first.", "User Directory", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
 
-            DetailDialogWindow.ShowDialogFor(
-                Window.GetWindow(this),
-                $"User Detail - {user.UserName}",
-                "User Detail",
-                FormatUserDetail(user),
-                "Review identity, access, lockout, and contact context before changing account settings.",
-                ResolveRole(user),
-                "Close returns to Users with the selected account ready for edit, reset, copy, print, or access review.");
+                DetailDialogWindow.ShowDialogFor(
+                    Window.GetWindow(this),
+                    $"User Detail - {user.UserName}",
+                    "User Detail",
+                    FormatUserDetail(user),
+                    "Review identity, access, lockout, and contact context before changing account settings.",
+                    ResolveRole(user),
+                    "Close returns to Users with the selected account ready for edit, reset, copy, print, or access review.");
+            });
         }
 
         private void CopySelectedUser_Click(object sender, RoutedEventArgs e)
         {
-            if (UsersDataGrid.SelectedItem is not UserModel user)
+            UiActionGuard.Run(this, "User Directory", () =>
             {
-                WpfMessageBox.Show("Select a user row first.", "User Directory", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
+                if (UsersDataGrid.SelectedItem is not UserModel user)
+                {
+                    WpfMessageBox.Show("Select a user row first.", "User Directory", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
 
-            System.Windows.Clipboard.SetText(FormatUserDetail(user));
+                System.Windows.Clipboard.SetText(FormatUserDetail(user));
+            });
         }
 
-        private async void ResetSelectedUser_Click(object sender, RoutedEventArgs e)
+        private void ResetSelectedUser_Click(object sender, RoutedEventArgs e)
         {
-            if (ViewModel == null || UsersDataGrid.SelectedItem is not UserModel user)
+            UiActionGuard.RunAsync(this, "User Directory", async () =>
             {
-                WpfMessageBox.Show("Select a user row first.", "User Directory", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
+                if (ViewModel == null || UsersDataGrid.SelectedItem is not UserModel user)
+                {
+                    WpfMessageBox.Show("Select a user row first.", "User Directory", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
 
-            await ViewModel.ResetPasswordFromRowCommand.ExecuteAsync(user);
+                await ViewModel.ResetPasswordFromRowCommand.ExecuteAsync(user);
+            });
         }
 
         private void PrintUsers_Click(object sender, RoutedEventArgs e)
         {
-            if (ViewModel == null || ViewModel.Users.Count == 0)
+            UiActionGuard.Run(this, "User Directory", () =>
             {
-                WpfMessageBox.Show("There are no users to print.", "User Directory", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
+                if (ViewModel == null || ViewModel.Users.Count == 0)
+                {
+                    WpfMessageBox.Show("There are no users to print.", "User Directory", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
 
-            var document = BuildPrintDocument(ViewModel.Users.ToList(), $"Visible users: {ViewModel.Users.Count}");
-            ShowPrintPreview(document, "User Directory");
+                var document = BuildPrintDocument(ViewModel.Users.ToList(), $"Visible users: {ViewModel.Users.Count}");
+                ShowPrintPreview(document, "User Directory");
+            });
         }
 
         private static string FormatUserDetail(UserModel user)

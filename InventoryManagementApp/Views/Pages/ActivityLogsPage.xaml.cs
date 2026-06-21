@@ -52,95 +52,107 @@ namespace InventoryManagementApp.Views.Pages
 
         private void OpenSelectedLog_Click(object sender, RoutedEventArgs e)
         {
-            if (ActivityGrid.SelectedItem is not ActivityLog log)
+            UiActionGuard.Run(this, "Activity Logs", () =>
             {
-                WpfMessageBox.Show("Select an activity row first.", "Activity Logs", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
+                if (ActivityGrid.SelectedItem is not ActivityLog log)
+                {
+                    WpfMessageBox.Show("Select an activity row first.", "Activity Logs", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
 
-            DetailDialogWindow.ShowDialogFor(
-                Window.GetWindow(this),
-                "Activity Detail",
-                "Activity Detail",
-                FormatLogDetail(log),
-                "Review the selected audit trail, destination, and next action without losing row context.",
-                ActivityLogsViewModel.ClassifyAction(log.Action),
-                "Close returns to Activity Logs with the selected audit row still available for copy, print, or related-page routing.");
+                DetailDialogWindow.ShowDialogFor(
+                    Window.GetWindow(this),
+                    "Activity Detail",
+                    "Activity Detail",
+                    FormatLogDetail(log),
+                    "Review the selected audit trail, destination, and next action without losing row context.",
+                    ActivityLogsViewModel.ClassifyAction(log.Action),
+                    "Close returns to Activity Logs with the selected audit row still available for copy, print, or related-page routing.");
+            });
         }
 
         private void OpenRelatedPage_Click(object sender, RoutedEventArgs e)
         {
-            if (ActivityGrid.SelectedItem is not ActivityLog log)
+            UiActionGuard.Run(this, "Activity Logs", () =>
             {
-                WpfMessageBox.Show("Select an activity row first.", "Activity Logs", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
+                if (ActivityGrid.SelectedItem is not ActivityLog log)
+                {
+                    WpfMessageBox.Show("Select an activity row first.", "Activity Logs", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
 
-            if (Window.GetWindow(this)?.DataContext is not MainViewModel main)
-            {
-                WpfMessageBox.Show("The related page is not available from this window.", "Activity Logs", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
+                if (Window.GetWindow(this)?.DataContext is not MainViewModel main)
+                {
+                    WpfMessageBox.Show("The related page is not available from this window.", "Activity Logs", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
 
-            switch (ActivityLogsViewModel.BuildDestinationKey(log.Action))
-            {
-                case "Rentals":
-                    main.OpenRentalsCommand.Execute(null);
-                    break;
-                case "Reservations":
-                    main.OpenReservationsCommand.Execute(null);
-                    break;
-                case "Calibration":
-                    main.OpenCalibrationCommand.Execute(null);
-                    break;
-                case "Maintenance":
-                    main.OpenMaintenanceCommand.Execute(null);
-                    break;
-                case "ImportExport":
-                    main.OpenImportExportCommand.Execute(null);
-                    break;
-                case "Users":
-                    main.OpenUsersCommand.Execute(null);
-                    break;
-                case "Categories":
-                    main.OpenCategoriesCommand.Execute(null);
-                    break;
-                case "Kits":
-                    main.OpenKitManagementCommand.Execute(null);
-                    break;
-                case "Items":
-                    main.OpenManageItemsCommand.Execute(null);
-                    break;
-                default:
-                    main.OpenDashboardCommand.Execute(null);
-                    break;
-            }
+                switch (ActivityLogsViewModel.BuildDestinationKey(log.Action))
+                {
+                    case "Rentals":
+                        main.OpenRentalsCommand.Execute(null);
+                        break;
+                    case "Reservations":
+                        main.OpenReservationsCommand.Execute(null);
+                        break;
+                    case "Calibration":
+                        main.OpenCalibrationCommand.Execute(null);
+                        break;
+                    case "Maintenance":
+                        main.OpenMaintenanceCommand.Execute(null);
+                        break;
+                    case "ImportExport":
+                        main.OpenImportExportCommand.Execute(null);
+                        break;
+                    case "Users":
+                        main.OpenUsersCommand.Execute(null);
+                        break;
+                    case "Categories":
+                        main.OpenCategoriesCommand.Execute(null);
+                        break;
+                    case "Kits":
+                        main.OpenKitManagementCommand.Execute(null);
+                        break;
+                    case "Items":
+                        main.OpenManageItemsCommand.Execute(null);
+                        break;
+                    default:
+                        main.OpenDashboardCommand.Execute(null);
+                        break;
+                }
+            });
         }
 
         private void CopySelectedLog_Click(object sender, RoutedEventArgs e)
         {
-            if (ActivityGrid.SelectedItem is not ActivityLog log)
+            UiActionGuard.Run(this, "Activity Logs", () =>
             {
-                WpfMessageBox.Show("Select an activity row first.", "Activity Logs", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
+                if (ActivityGrid.SelectedItem is not ActivityLog log)
+                {
+                    WpfMessageBox.Show("Select an activity row first.", "Activity Logs", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
 
-            System.Windows.Clipboard.SetText(FormatLogDetail(log));
+                System.Windows.Clipboard.SetText(FormatLogDetail(log));
+            });
         }
 
         private void PrintLogs_Click(object sender, RoutedEventArgs e)
         {
-            if (DataContext is not ActivityLogsViewModel vm || vm.FilteredLogs.Count == 0)
+            UiActionGuard.Run(this, "Activity Logs", () =>
             {
-                WpfMessageBox.Show("There are no activity rows to print.", "Activity Logs", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
+                if (DataContext is not ActivityLogsViewModel vm || vm.FilteredLogs.Count == 0)
+                {
+                    WpfMessageBox.Show("There are no activity rows to print.", "Activity Logs", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
 
-            var document = BuildPrintDocument(vm.FilteredLogs.ToList(), vm.StatusMessage, vm.ActivitySummary);
-            new PrintPreviewWindow().ShowPreview(
-                document,
-                "Activity Logs",
-                "Review the filtered audit trail, destination routing, and operator handoff before printing.");
+                var document = BuildPrintDocument(vm.FilteredLogs.ToList(), vm.StatusMessage, vm.ActivitySummary);
+                new PrintPreviewWindow().ShowPreview(
+                    document,
+                    "Activity Logs",
+                    "Review the filtered audit trail, destination routing, and operator handoff before printing.");
+            });
         }
 
         private static string FormatLogDetail(ActivityLog log)

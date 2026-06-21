@@ -23,29 +23,29 @@ namespace InventoryManagementApp.Views.Pages
             }
         }
 
-        private async void KitManagementPage_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void KitManagementPage_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (DataContext is not KitManagementViewModel vm)
                 return;
 
             if (e.Key == Key.Enter && vm.OpenKitDetailsCommand.CanExecute(null))
             {
-                vm.OpenKitDetailsCommand.Execute(null);
+                UiActionGuard.Run(this, "Kit Management", () => vm.OpenKitDetailsCommand.Execute(null));
                 e.Handled = true;
             }
             else if (e.Key == Key.F5 && vm.RefreshCommand.CanExecute(null))
             {
-                await vm.RefreshCommand.ExecuteAsync(null);
+                UiActionGuard.RunAsync(this, "Kit Management", async () => await vm.RefreshCommand.ExecuteAsync(null));
                 e.Handled = true;
             }
             else if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P && vm.PrintSelectedKitCommand.CanExecute(null))
             {
-                vm.PrintSelectedKitCommand.Execute(null);
+                UiActionGuard.Run(this, "Kit Management", () => vm.PrintSelectedKitCommand.Execute(null));
                 e.Handled = true;
             }
             else if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.D && vm.PrintKitListCommand.CanExecute(null))
             {
-                vm.PrintKitListCommand.Execute(null);
+                UiActionGuard.Run(this, "Kit Management", () => vm.PrintKitListCommand.Execute(null));
                 e.Handled = true;
             }
         }
@@ -54,16 +54,16 @@ namespace InventoryManagementApp.Views.Pages
         {
             if (DataContext is KitManagementViewModel vm && vm.OpenKitDetailsCommand.CanExecute(null))
             {
-                vm.OpenKitDetailsCommand.Execute(null);
+                UiActionGuard.Run(this, "Kit Management", () => vm.OpenKitDetailsCommand.Execute(null));
                 e.Handled = true;
             }
         }
 
-        private async void KitItemRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private void KitItemRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (DataContext is KitManagementViewModel vm && vm.EditKitItemCommand.CanExecute(null))
             {
-                await vm.EditKitItemCommand.ExecuteAsync(null);
+                UiActionGuard.RunAsync(this, "Kit Management", async () => await vm.EditKitItemCommand.ExecuteAsync(null));
                 e.Handled = true;
             }
         }

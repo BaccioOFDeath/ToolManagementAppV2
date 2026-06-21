@@ -31,7 +31,7 @@ namespace InventoryManagementApp.Views.Pages
         {
             if (DataContext is ReservationManagementViewModel vm && vm.OpenReservationDetailsCommand.CanExecute(null))
             {
-                vm.OpenReservationDetailsCommand.Execute(null);
+                UiActionGuard.Run(this, "Reservations", () => vm.OpenReservationDetailsCommand.Execute(null));
             }
         }
 
@@ -54,63 +54,63 @@ namespace InventoryManagementApp.Views.Pages
 
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.N)
             {
-                vm.AddReservationCommand.Execute(null);
+                UiActionGuard.RunAsync(this, "Reservations", async () => await vm.AddReservationCommand.ExecuteAsync(null));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P)
             {
-                vm.PrintReservationDirectoryCommand.Execute(null);
+                UiActionGuard.Run(this, "Reservations", () => vm.PrintReservationDirectoryCommand.Execute(null));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && e.Key == Key.P && vm.PrintReservationHandoffCommand.CanExecute(null))
             {
-                vm.PrintReservationHandoffCommand.Execute(null);
+                UiActionGuard.Run(this, "Reservations", () => vm.PrintReservationHandoffCommand.Execute(null));
                 e.Handled = true;
                 return;
             }
 
             if (!IsTextInputFocused() && Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C && vm.CopyReservationHandoffCommand.CanExecute(null))
             {
-                vm.CopyReservationHandoffCommand.Execute(null);
+                UiActionGuard.Run(this, "Reservations", () => vm.CopyReservationHandoffCommand.Execute(null));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.D && vm.OpenReservationDetailsCommand.CanExecute(null))
             {
-                vm.OpenReservationDetailsCommand.Execute(null);
+                UiActionGuard.Run(this, "Reservations", () => vm.OpenReservationDetailsCommand.Execute(null));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.Enter && vm.ConfirmReservationCommand.CanExecute(null))
             {
-                vm.ConfirmReservationCommand.Execute(null);
+                UiActionGuard.RunAsync(this, "Reservations", async () => await vm.ConfirmReservationCommand.ExecuteAsync(null));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && e.Key == Key.Enter && vm.FulfillReservationCommand.CanExecute(null))
             {
-                vm.FulfillReservationCommand.Execute(null);
+                UiActionGuard.RunAsync(this, "Reservations", async () => await vm.FulfillReservationCommand.ExecuteAsync(null));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Enter && vm.OpenReservationDetailsCommand.CanExecute(null))
             {
-                vm.OpenReservationDetailsCommand.Execute(null);
+                UiActionGuard.Run(this, "Reservations", () => vm.OpenReservationDetailsCommand.Execute(null));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Delete && vm.CancelReservationCommand.CanExecute(null))
             {
-                vm.CancelReservationCommand.Execute(null);
+                UiActionGuard.RunAsync(this, "Reservations", async () => await vm.CancelReservationCommand.ExecuteAsync(null));
                 e.Handled = true;
             }
         }

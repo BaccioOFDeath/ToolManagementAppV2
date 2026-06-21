@@ -34,7 +34,7 @@ namespace InventoryManagementApp.Views.Pages
         {
             if (DataContext is ManageRentalsViewModel vm && vm.OpenRentalDetailsCommand.CanExecute(null))
             {
-                vm.OpenRentalDetailsCommand.Execute(null);
+                UiActionGuard.Run(this, "Rentals", () => vm.OpenRentalDetailsCommand.Execute(null));
             }
         }
 
@@ -47,7 +47,7 @@ namespace InventoryManagementApp.Views.Pages
         {
             if (DataContext is ManageRentalsViewModel vm && vm.OpenRequestDetailsCommand.CanExecute(null))
             {
-                vm.OpenRequestDetailsCommand.Execute(null);
+                UiActionGuard.Run(this, "Rentals", () => vm.OpenRequestDetailsCommand.Execute(null));
             }
         }
 
@@ -71,21 +71,21 @@ namespace InventoryManagementApp.Views.Pages
 
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P)
             {
-                vm.PrintSearchResultsCommand.Execute(null);
+                UiActionGuard.Run(this, "Rentals", () => vm.PrintSearchResultsCommand.Execute(null));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && e.Key == Key.P)
             {
-                vm.PrintCheckedOutCommand.Execute(null);
+                UiActionGuard.Run(this, "Rentals", () => vm.PrintCheckedOutCommand.Execute(null));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && e.Key == Key.R)
             {
-                vm.PrintRequestsCommand.Execute(null);
+                UiActionGuard.Run(this, "Rentals", () => vm.PrintRequestsCommand.Execute(null));
                 e.Handled = true;
                 return;
             }
@@ -99,28 +99,28 @@ namespace InventoryManagementApp.Views.Pages
 
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.H && vm.OpenHistoryCommand.CanExecute(null))
             {
-                vm.OpenHistoryCommand.Execute(null);
+                UiActionGuard.RunAsync(this, "Rentals", async () => await vm.OpenHistoryCommand.ExecuteAsync(null));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.I && vm.CheckInCommand.CanExecute(null))
             {
-                vm.CheckInCommand.Execute(null);
+                UiActionGuard.RunAsync(this, "Rentals", async () => await vm.CheckInCommand.ExecuteAsync(null));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.E && vm.ExtendCommand.CanExecute(null))
             {
-                vm.ExtendCommand.Execute(null);
+                UiActionGuard.RunAsync(this, "Rentals", async () => await vm.ExtendCommand.ExecuteAsync(null));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.R && vm.PlaceRequestCommand.CanExecute(null))
             {
-                vm.PlaceRequestCommand.Execute(null);
+                UiActionGuard.RunAsync(this, "Rentals", async () => await vm.PlaceRequestCommand.ExecuteAsync(null));
                 e.Handled = true;
                 return;
             }
@@ -134,26 +134,29 @@ namespace InventoryManagementApp.Views.Pages
 
             if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Delete && vm.DeleteRentalCommand.CanExecute(null))
             {
-                vm.DeleteRentalCommand.Execute(null);
+                UiActionGuard.RunAsync(this, "Rentals", async () => await vm.DeleteRentalCommand.ExecuteAsync(null));
                 e.Handled = true;
             }
         }
 
-        private static void OpenFocusedDetails(ManageRentalsViewModel vm)
+        private void OpenFocusedDetails(ManageRentalsViewModel vm)
         {
-            if (Keyboard.FocusedElement is DependencyObject focusedElement && FindAncestor<System.Windows.Controls.DataGrid>(focusedElement) is System.Windows.Controls.DataGrid grid)
+            UiActionGuard.Run(this, "Rentals", () =>
             {
-                if (grid.SelectedItem is Reservation && vm.OpenRequestDetailsCommand.CanExecute(null))
+                if (Keyboard.FocusedElement is DependencyObject focusedElement && FindAncestor<System.Windows.Controls.DataGrid>(focusedElement) is System.Windows.Controls.DataGrid grid)
                 {
-                    vm.OpenRequestDetailsCommand.Execute(null);
-                    return;
+                    if (grid.SelectedItem is Reservation && vm.OpenRequestDetailsCommand.CanExecute(null))
+                    {
+                        vm.OpenRequestDetailsCommand.Execute(null);
+                        return;
+                    }
                 }
-            }
 
-            if (vm.OpenRentalDetailsCommand.CanExecute(null))
-                vm.OpenRentalDetailsCommand.Execute(null);
-            else if (vm.OpenRequestDetailsCommand.CanExecute(null))
-                vm.OpenRequestDetailsCommand.Execute(null);
+                if (vm.OpenRentalDetailsCommand.CanExecute(null))
+                    vm.OpenRentalDetailsCommand.Execute(null);
+                else if (vm.OpenRequestDetailsCommand.CanExecute(null))
+                    vm.OpenRequestDetailsCommand.Execute(null);
+            });
         }
 
         private void SelectRowForContextMenu(object sender, MouseButtonEventArgs e)

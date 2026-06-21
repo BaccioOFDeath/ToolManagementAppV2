@@ -25,7 +25,7 @@ namespace InventoryManagementApp.Views.Pages
         {
             if (DataContext is CustomerManagementViewModel vm && vm.OpenCustomerDetailsCommand.CanExecute(null))
             {
-                vm.OpenCustomerDetailsCommand.Execute(null);
+                UiActionGuard.Run(this, "Customers", () => vm.OpenCustomerDetailsCommand.Execute(null));
             }
         }
 

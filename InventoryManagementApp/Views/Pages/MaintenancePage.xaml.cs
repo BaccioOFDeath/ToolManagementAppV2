@@ -25,7 +25,7 @@ namespace InventoryManagementApp.Views.Pages
         {
             if (DataContext is MaintenanceManagementViewModel vm && vm.OpenMaintenanceDetailsCommand.CanExecute(null))
             {
-                vm.OpenMaintenanceDetailsCommand.Execute(null);
+                UiActionGuard.Run(this, "Maintenance", () => vm.OpenMaintenanceDetailsCommand.Execute(null));
             }
         }
 

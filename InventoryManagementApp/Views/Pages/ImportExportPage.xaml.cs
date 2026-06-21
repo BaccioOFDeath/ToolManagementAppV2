@@ -34,43 +34,52 @@ namespace InventoryManagementApp.Views.Pages
 
         private void OpenSelectedLog_Click(object sender, RoutedEventArgs e)
         {
-            if (ImportExportLogGrid.SelectedItem is not string log || string.IsNullOrWhiteSpace(log))
+            UiActionGuard.Run(this, "Import / Export", () =>
             {
-                WpfMessageBox.Show("Select an import/export log row first.", "Import / Export", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
+                if (ImportExportLogGrid.SelectedItem is not string log || string.IsNullOrWhiteSpace(log))
+                {
+                    WpfMessageBox.Show("Select an import/export log row first.", "Import / Export", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
 
-            DetailDialogWindow.ShowDialogFor(
-                Window.GetWindow(this),
-                "Import / Export Result",
-                "Import / Export Result",
-                log,
-                "Review the selected operation result before copying, printing, or continuing the data workflow.",
-                "Run Log",
-                "Close returns to the run log with the selected result still available for copy, print, or review.");
+                DetailDialogWindow.ShowDialogFor(
+                    Window.GetWindow(this),
+                    "Import / Export Result",
+                    "Import / Export Result",
+                    log,
+                    "Review the selected operation result before copying, printing, or continuing the data workflow.",
+                    "Run Log",
+                    "Close returns to the run log with the selected result still available for copy, print, or review.");
+            });
         }
 
         private void CopySelectedLog_Click(object sender, RoutedEventArgs e)
         {
-            if (ImportExportLogGrid.SelectedItem is not string log || string.IsNullOrWhiteSpace(log))
+            UiActionGuard.Run(this, "Import / Export", () =>
             {
-                WpfMessageBox.Show("Select an import/export log row first.", "Import / Export", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
+                if (ImportExportLogGrid.SelectedItem is not string log || string.IsNullOrWhiteSpace(log))
+                {
+                    WpfMessageBox.Show("Select an import/export log row first.", "Import / Export", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
 
-            System.Windows.Clipboard.SetText(log);
+                System.Windows.Clipboard.SetText(log);
+            });
         }
 
         private void PrintLogs_Click(object sender, RoutedEventArgs e)
         {
-            if (DataContext is not ImportExportViewModel vm || vm.ImportExportLogs.Count == 0)
+            UiActionGuard.Run(this, "Import / Export", () =>
             {
-                WpfMessageBox.Show("There are no import/export log rows to print.", "Import / Export", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
+                if (DataContext is not ImportExportViewModel vm || vm.ImportExportLogs.Count == 0)
+                {
+                    WpfMessageBox.Show("There are no import/export log rows to print.", "Import / Export", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
 
-            var document = BuildPrintDocument(vm.ImportExportLogs.ToList(), vm.LogSummary);
-            new PrintPreviewWindow().ShowPreview(document, "Import / Export Log", null);
+                var document = BuildPrintDocument(vm.ImportExportLogs.ToList(), vm.LogSummary);
+                new PrintPreviewWindow().ShowPreview(document, "Import / Export Log", null);
+            });
         }
 
         private static FlowDocument BuildPrintDocument(IReadOnlyCollection<string> logs, string summary)

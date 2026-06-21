@@ -21,12 +21,12 @@ namespace InventoryManagementApp.Views.Pages
 
         private void ReportGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            OpenSelectedDestination();
+            UiActionGuard.Run(this, "Reports", OpenSelectedDestination);
         }
 
         private void OpenSourcePage_Click(object sender, RoutedEventArgs e)
         {
-            OpenSelectedDestination();
+            UiActionGuard.Run(this, "Reports", OpenSelectedDestination);
         }
 
         private void ReportGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
@@ -38,28 +38,34 @@ namespace InventoryManagementApp.Views.Pages
 
         private void CopySelectedRow_Click(object sender, RoutedEventArgs e)
         {
-            if (ReportGrid.SelectedItem is not ReportLine line)
+            UiActionGuard.Run(this, "Reports", () =>
             {
-                WpfMessageBox.Show("Select a report row first.", "Reports", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
+                if (ReportGrid.SelectedItem is not ReportLine line)
+                {
+                    WpfMessageBox.Show("Select a report row first.", "Reports", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
 
-            System.Windows.Clipboard.SetText(FormatHandoff(line));
+                System.Windows.Clipboard.SetText(FormatHandoff(line));
+            });
         }
 
         private void PrintReport_Click(object sender, RoutedEventArgs e)
         {
-            if (DataContext is not ReportsViewModel vm || vm.ReportLines.Count == 0)
+            UiActionGuard.Run(this, "Reports", () =>
             {
-                WpfMessageBox.Show("Run a report before printing.", "Reports", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
+                if (DataContext is not ReportsViewModel vm || vm.ReportLines.Count == 0)
+                {
+                    WpfMessageBox.Show("Run a report before printing.", "Reports", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
 
-            var document = BuildReportDocument(vm.ReportTitle, vm.ReportSummary, vm.LastRunText, vm.ReportLines.ToList());
-            new PrintPreviewWindow().ShowPreview(
-                document,
-                vm.ReportTitle,
-                "Review the report summary, destination routing, and next-action handoff before printing.");
+                var document = BuildReportDocument(vm.ReportTitle, vm.ReportSummary, vm.LastRunText, vm.ReportLines.ToList());
+                new PrintPreviewWindow().ShowPreview(
+                    document,
+                    vm.ReportTitle,
+                    "Review the report summary, destination routing, and next-action handoff before printing.");
+            });
         }
 
         private void OpenSelectedDestination()

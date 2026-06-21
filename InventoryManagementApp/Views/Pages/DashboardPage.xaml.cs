@@ -52,35 +52,35 @@ namespace InventoryManagementApp.Views.Pages
 
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P)
             {
-                vm.PrintDashboardSnapshotCommand.Execute(null);
+                UiActionGuard.RunAsync(this, "Dashboard", async () => await vm.PrintDashboardSnapshotCommand.ExecuteAsync(null));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && e.Key == Key.P)
             {
-                vm.PrintCheckedOutItemsCommand.Execute(null);
+                UiActionGuard.RunAsync(this, "Dashboard", async () => await vm.PrintCheckedOutItemsCommand.ExecuteAsync(null));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.I)
             {
-                vm.OpenItemsCommand.Execute(null);
+                UiActionGuard.Run(this, "Dashboard", () => vm.OpenItemsCommand.Execute(null));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.R)
             {
-                vm.OpenRentalsCommand.Execute(null);
+                UiActionGuard.Run(this, "Dashboard", () => vm.OpenRentalsCommand.Execute(null));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Enter)
             {
-                OpenFocusedRow(vm);
+                UiActionGuard.Run(this, "Dashboard", () => OpenFocusedRow(vm));
                 e.Handled = true;
             }
         }
@@ -88,31 +88,31 @@ namespace InventoryManagementApp.Views.Pages
         private void CommonItemsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (DataContext is DashboardViewModel vm)
-                vm.OpenSelectedCommonItemCommand.Execute(null);
+                UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedCommonItemCommand.Execute(null));
         }
 
         private void CheckedOutItemsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (DataContext is DashboardViewModel vm)
-                vm.OpenSelectedCheckedOutItemCommand.Execute(null);
+                UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedCheckedOutItemCommand.Execute(null));
         }
 
         private void RentedItemsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (DataContext is DashboardViewModel vm)
-                vm.OpenSelectedRentalCommand.Execute(null);
+                UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedRentalCommand.Execute(null));
         }
 
         private void RecentActivityGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (DataContext is DashboardViewModel vm)
-                vm.OpenActivityDestinationCommand.Execute(null);
+                UiActionGuard.Run(this, "Dashboard", () => vm.OpenActivityDestinationCommand.Execute(null));
         }
 
         private void IncompleteItemsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (DataContext is DashboardViewModel vm)
-                vm.OpenSelectedIncompleteItemCommand.Execute(null);
+                UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedIncompleteItemCommand.Execute(null));
         }
 
         private void DashboardGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)

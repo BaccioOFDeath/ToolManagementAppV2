@@ -80,7 +80,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
 
             vm.SelectedItem = item;
-            OpenSelectedItemDetails(vm);
+            UiActionGuard.Run(this, "Item Search", () => OpenSelectedItemDetails(vm));
         }
 
         private void ItemGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
@@ -107,21 +107,21 @@ namespace InventoryManagementApp.Views.Pages
 
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P)
             {
-                PrintItems("Item Search Results", vm.SearchResults);
+                UiActionGuard.Run(this, "Item Search", () => PrintItems("Item Search Results", vm.SearchResults));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && e.Key == Key.P)
             {
-                PrintItems("Currently Checked Out Items", vm.CheckedOutItems);
+                UiActionGuard.Run(this, "Item Search", () => PrintItems("Currently Checked Out Items", vm.CheckedOutItems));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.I)
             {
-                PrintSearchIntelligence();
+                UiActionGuard.Run(this, "Item Search", PrintSearchIntelligence);
                 e.Handled = true;
                 return;
             }
@@ -135,7 +135,7 @@ namespace InventoryManagementApp.Views.Pages
 
             if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Enter && vm.SelectedItem != null)
             {
-                OpenSelectedItemDetails(vm);
+                UiActionGuard.Run(this, "Item Search", () => OpenSelectedItemDetails(vm));
                 e.Handled = true;
             }
         }
@@ -309,7 +309,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
 
             vm.SelectedItem = entry.Item;
-            OpenSelectedItemDetails(vm);
+            UiActionGuard.Run(this, "Item Search", () => OpenSelectedItemDetails(vm));
         }
 
         private void ClearSearchIntelligence_Click(object sender, RoutedEventArgs e)
@@ -326,7 +326,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void PrintSearchIntelligence_Click(object sender, RoutedEventArgs e)
         {
-            PrintSearchIntelligence();
+            UiActionGuard.Run(this, "Item Search", PrintSearchIntelligence);
         }
 
         private void PrintSearchIntelligence()
@@ -344,13 +344,13 @@ namespace InventoryManagementApp.Views.Pages
         private void PrintSearchResults_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is ItemManagementViewModel vm)
-                PrintItems("Item Search Results", vm.SearchResults);
+                UiActionGuard.Run(this, "Item Search", () => PrintItems("Item Search Results", vm.SearchResults));
         }
 
         private void PrintCheckedOut_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is ItemManagementViewModel vm)
-                PrintItems("Currently Checked Out Items", vm.CheckedOutItems);
+                UiActionGuard.Run(this, "Item Search", () => PrintItems("Currently Checked Out Items", vm.CheckedOutItems));
         }
 
         private void PrintItems(string title, IEnumerable<ItemModel> items)
