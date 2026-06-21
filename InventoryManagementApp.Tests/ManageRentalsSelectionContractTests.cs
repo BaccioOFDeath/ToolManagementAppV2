@@ -33,6 +33,22 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("bool CanPlaceRequestForSelectedRental() => SelectedRental != null && IsRentalActive(SelectedRental);", source, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void RentalGridRightClickSelectionUsesSafeTreeTraversal()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml.cs");
+
+            Assert.Contains("using System;", source, StringComparison.Ordinal);
+            Assert.Contains("var row = sender as DataGridRow ?? FindAncestor<DataGridRow>(e.OriginalSource as DependencyObject);", source, StringComparison.Ordinal);
+            Assert.Contains("current = GetParent(current);", source, StringComparison.Ordinal);
+            Assert.Contains("private static DependencyObject? GetParent(DependencyObject current)", source, StringComparison.Ordinal);
+            Assert.Contains("return VisualTreeHelper.GetParent(current)", source, StringComparison.Ordinal);
+            Assert.Contains("?? LogicalTreeHelper.GetParent(current);", source, StringComparison.Ordinal);
+            Assert.Contains("catch (InvalidOperationException)", source, StringComparison.Ordinal);
+            Assert.Contains("return LogicalTreeHelper.GetParent(current);", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("current = VisualTreeHelper.GetParent(current);", source, StringComparison.Ordinal);
+        }
+
         private static string ReadRepoFile(params string[] parts)
         {
             var directory = AppContext.BaseDirectory;
