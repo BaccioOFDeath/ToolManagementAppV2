@@ -347,7 +347,8 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to check in rental {RentalID}", returnedRental.RentalID);
-                await _dialogService.ShowInfoAsync($"Failed to check in rental: {ex.Message}", "Error");
+                await RefreshRentalDeskAfterOperationFailureAsync(returnedRental.RentalID);
+                await _dialogService.ShowInfoAsync($"Failed to check in rental: {ex.Message} The rental desk has been refreshed so current rental actions match the latest saved state.", "Error");
             }
             finally
             {
@@ -378,11 +379,13 @@ namespace InventoryManagementApp.ViewModels
         {
             if (SelectedRental == null)
                 return;
+
+            var rentalToExtend = SelectedRental;
             try
             {
                 IsLoading = true;
-                var newDueDate = SelectedRental.DueDate.AddDays(7);
-                await _rentalService.ExtendRentalAsync(SelectedRental.RentalID, newDueDate);
+                var newDueDate = rentalToExtend.DueDate.AddDays(7);
+                await _rentalService.ExtendRentalAsync(rentalToExtend.RentalID, newDueDate);
                 await LoadRentalsAsync();
             }
             catch (UnauthorizedAccessException)
@@ -391,12 +394,28 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to extend rental {RentalID}", SelectedRental.RentalID);
-                await _dialogService.ShowInfoAsync($"Failed to extend rental: {ex.Message}", "Error");
+                _logger.LogError(ex, "Failed to extend rental {RentalID}", rentalToExtend.RentalID);
+                await RefreshRentalDeskAfterOperationFailureAsync(rentalToExtend.RentalID);
+                await _dialogService.ShowInfoAsync($"Failed to extend rental: {ex.Message} The rental desk has been refreshed so current rental actions match the latest saved state.", "Error");
             }
             finally
             {
                 IsLoading = false;
+            }
+        }
+
+        async Task RefreshRentalDeskAfterOperationFailureAsync(int rentalId)
+        {
+            try
+            {
+                _allRentals = await _rentalService.GetAllRentalsAsync();
+                await LoadPendingRequestsAsync();
+                RefreshActiveRentals();
+                ApplyFilter(rentalId);
+            }
+            catch (Exception refreshEx)
+            {
+                _logger.LogError(refreshEx, "Failed to refresh rentals after operation failure for rental {RentalID}", rentalId);
             }
         }
 
@@ -891,8 +910,9 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to delete rental {RentalID}", rentalToDelete?.RentalID);
-                await _dialogService.ShowInfoAsync($"Failed to delete rental: {ex.Message}", "Error");
+                _logger.LogError(ex, "Failed to delete rental {RentalID}", rentalToDelete.RentalID);
+                await RefreshRentalDeskAfterOperationFailureAsync(rentalToDelete.RentalID);
+                await _dialogService.ShowInfoAsync($"Failed to delete rental: {ex.Message} The rental desk has been refreshed so current rental actions match the latest saved state.", "Error");
             }
             finally
             {
