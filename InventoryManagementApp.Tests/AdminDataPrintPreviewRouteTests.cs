@@ -35,6 +35,20 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void DashboardPrintActionsUseDialogPreviewService()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "DashboardViewModel.cs");
+
+            Assert.Contains("IDialogService? dialogService", source, StringComparison.Ordinal);
+            Assert.Contains("_dialogService.ShowPrintPreview(document, title, description)", source, StringComparison.Ordinal);
+            Assert.Contains("Dashboard checked-out item handoff", source, StringComparison.Ordinal);
+            Assert.Contains("Dashboard operations snapshot", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("new System.Windows.Controls.PrintDialog", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("new PrintDialog", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("PrintDocument(((System.Windows.Documents.IDocumentPaginatorSource)doc).DocumentPaginator", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void CategoriesKeepBothDirectoryAndSelectedSheetPreviewRoutes()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CategoriesPage.xaml.cs");
