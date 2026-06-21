@@ -104,7 +104,7 @@ namespace InventoryManagementApp.Services
                 Set(resources, "ThemeShellMenuBrush", CreateBrush(settings.NavigationColor, settings.MenuOpacity));
                 Set(resources, "ThemeShellFooterBrush", CreateBrush(settings.SurfaceAltColor, settings.FooterOpacity));
                 Set(resources, "ThemeDialogSurfaceBrush", CreateBrush(settings.SurfaceColor, settings.DialogOpacity));
-                Set(resources, "ThemePopupSurfaceBrush", CreateBrush(settings.SurfaceAltColor, settings.MenuOpacity));
+                Set(resources, "ThemePopupSurfaceBrush", CreateBrush(settings.SurfaceAltColor, Math.Min(surfaceAltOpacity, settings.MenuOpacity)));
                 Set(resources, "GlassSurfaceBrush", CreateBrush(settings.SurfaceColor, Math.Min(settings.SurfaceOpacity, 0.78)));
                 Set(resources, "GlassSurfaceAltBrush", CreateBrush(settings.SurfaceAltColor, Math.Min(settings.SurfaceAltOpacity, 0.68)));
                 Set(resources, "TransparentSurfaceBrush", Brushes.Transparent);
@@ -171,7 +171,7 @@ namespace InventoryManagementApp.Services
                 Set(resources, "ThemeSurfaceShadow", settings.EnableSurfaceShadows ? CreateShadow(settings, settings.SurfaceShadowScale) : CreateNoShadow());
                 Set(resources, "ThemeRaisedShadow", settings.EnableSurfaceShadows ? CreateShadow(settings, 1.55 * settings.SurfaceShadowScale) : CreateNoShadow());
                 Set(resources, "ThemeDeepShadow", settings.EnableSurfaceShadows ? CreateShadow(settings, 2.35 * settings.SurfaceShadowScale) : CreateNoShadow());
-                Set(resources, "ThemeControlShadow", settings.EnableControlShadows ? CreateShadow(settings, 0.45 * settings.ControlShadowScale) : CreateNoShadow());
+                Set(resources, "ThemeControlShadow", settings.EnableControlShadows ? CreateShadow(settings, 0.5 * settings.ControlShadowScale) : CreateNoShadow());
                 Set(resources, "SubtleSurfaceShadow", settings.EnableSurfaceShadows ? CreateShadow(settings, settings.SurfaceShadowScale) : CreateNoShadow());
                 Set(resources, "RaisedSurfaceShadow", settings.EnableSurfaceShadows ? CreateShadow(settings, 1.55 * settings.SurfaceShadowScale) : CreateNoShadow());
 
