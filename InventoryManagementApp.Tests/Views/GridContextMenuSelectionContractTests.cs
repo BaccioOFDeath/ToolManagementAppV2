@@ -8,7 +8,7 @@ namespace InventoryManagementApp.Tests.Views
     public class GridContextMenuSelectionContractTests
     {
         [Fact]
-        public void SharedGridContextMenuSelectionUsesGuardedVisualAndLogicalTraversal()
+        public void SharedGridContextMenuSelectionUsesNonThrowingVisualLogicalAndFrameworkTraversal()
         {
             var helper = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "GridContextMenuSelection.cs");
 
@@ -16,10 +16,15 @@ namespace InventoryManagementApp.Tests.Views
             Assert.Contains("public static DataGridRow? SelectRow(object sender, MouseButtonEventArgs e)", helper, StringComparison.Ordinal);
             Assert.Contains("sender as DataGridRow ?? FindAncestor<DataGridRow>(e.OriginalSource as DependencyObject)", helper, StringComparison.Ordinal);
             Assert.Contains("FindAncestor<DataGrid>(row)", helper, StringComparison.Ordinal);
-            Assert.Contains("return VisualTreeHelper.GetParent(current)", helper, StringComparison.Ordinal);
-            Assert.Contains("?? LogicalTreeHelper.GetParent(current);", helper, StringComparison.Ordinal);
-            Assert.Contains("catch (InvalidOperationException)", helper, StringComparison.Ordinal);
-            Assert.Contains("return LogicalTreeHelper.GetParent(current);", helper, StringComparison.Ordinal);
+            Assert.Contains("return TryGetVisualParent(current)", helper, StringComparison.Ordinal);
+            Assert.Contains("?? TryGetLogicalParent(current)", helper, StringComparison.Ordinal);
+            Assert.Contains("?? TryGetFrameworkParent(current);", helper, StringComparison.Ordinal);
+            Assert.Contains("private static DependencyObject? TryGetVisualParent(DependencyObject current)", helper, StringComparison.Ordinal);
+            Assert.Contains("private static DependencyObject? TryGetLogicalParent(DependencyObject current)", helper, StringComparison.Ordinal);
+            Assert.Equal(2, CountOccurrences(helper, "catch (InvalidOperationException)"));
+            Assert.Contains("FrameworkElement element => element.Parent", helper, StringComparison.Ordinal);
+            Assert.Contains("FrameworkContentElement contentElement => contentElement.Parent", helper, StringComparison.Ordinal);
+            Assert.DoesNotContain("return LogicalTreeHelper.GetParent(current);", helper, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -65,6 +70,20 @@ namespace InventoryManagementApp.Tests.Views
                 foreach (var removedPattern in entry.Value)
                     Assert.DoesNotContain(removedPattern, source, StringComparison.Ordinal);
             }
+        }
+
+        private static int CountOccurrences(string source, string value)
+        {
+            var count = 0;
+            var index = 0;
+
+            while ((index = source.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+            {
+                count++;
+                index += value.Length;
+            }
+
+            return count;
         }
 
         private static string ReadRepositoryFile(params string[] relativePath)
