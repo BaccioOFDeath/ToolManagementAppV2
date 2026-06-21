@@ -583,7 +583,7 @@ namespace InventoryManagementApp.ViewModels
         {
             try
             {
-                var currentUser = await _userService.GetCurrentUserAsync().ConfigureAwait(false);
+                var currentUser = await _userService.GetCurrentUserAsync();
                 var userName = currentUser?.UserName ?? "Unknown";
                 var doc = GenerateCheckedOutItemsDocument(userName);
                 ShowDashboardPrintPreview(doc, $"Checked Out Items - {userName}", "Dashboard checked-out item handoff");
@@ -598,7 +598,7 @@ namespace InventoryManagementApp.ViewModels
         {
             try
             {
-                var currentUser = await _userService.GetCurrentUserAsync().ConfigureAwait(false);
+                var currentUser = await _userService.GetCurrentUserAsync();
                 var userName = currentUser?.UserName ?? "Unknown";
                 var doc = GenerateDashboardSnapshotDocument(userName);
                 ShowDashboardPrintPreview(doc, $"Dashboard Snapshot - {DateTime.Now:yyyy-MM-dd HH:mm}", "Dashboard operations snapshot");
