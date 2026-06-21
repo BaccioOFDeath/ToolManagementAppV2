@@ -85,5 +85,95 @@ namespace InventoryManagementApp.Tests
             thread.Join();
             if (threadEx != null) throw threadEx;
         }
+
+        [Fact]
+        public void SignedOutUser_HasBlankDisplayNameAndRole()
+        {
+            RunOnStaThread(() =>
+            {
+                WpfTestHelper.CreateApplication();
+                var ctx = new ApplicationUserContext();
+
+                ctx.CurrentUser = null;
+
+                Assert.Null(ctx.CurrentUser);
+                Assert.False(ctx.IsAdmin);
+                Assert.Equal(string.Empty, ctx.UserName);
+                Assert.Equal(string.Empty, ctx.Role);
+            });
+        }
+
+        [Fact]
+        public void NonAdminUserWithBlankRole_StillFallsBackToUserRole()
+        {
+            RunOnStaThread(() =>
+            {
+                WpfTestHelper.CreateApplication();
+                var ctx = new ApplicationUserContext
+                {
+                    CurrentUser = new User
+                    {
+                        UserID = 7,
+                        UserName = "Desk Operator",
+                        IsAdmin = false,
+                        Role = "   "
+                    }
+                };
+
+                Assert.Equal("Desk Operator", ctx.UserName);
+                Assert.Equal("User", ctx.Role);
+            });
+        }
+
+        [Fact]
+        public void AdminUser_PreservesAdminRoleLabel()
+        {
+            RunOnStaThread(() =>
+            {
+                WpfTestHelper.CreateApplication();
+                var ctx = new ApplicationUserContext
+                {
+                    CurrentUser = new User
+                    {
+                        UserID = 9,
+                        UserName = "Admin Operator",
+                        IsAdmin = true,
+                        Role = "Supervisor"
+                    }
+                };
+
+                Assert.True(ctx.IsAdmin);
+                Assert.Equal("Admin Operator", ctx.UserName);
+                Assert.Equal("Admin", ctx.Role);
+            });
+        }
+
+        private static void RunOnStaThread(Action action)
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    WpfTestHelper.ShutdownApplication();
+                    action();
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+                finally
+                {
+                    WpfTestHelper.ShutdownApplication();
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadEx != null)
+                throw threadEx;
+        }
     }
 }
