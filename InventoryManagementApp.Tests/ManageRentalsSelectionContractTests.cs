@@ -43,10 +43,27 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("GridContextMenuSelection.FindAncestor<System.Windows.Controls.DataGrid>(focusedElement)", source, StringComparison.Ordinal);
             Assert.DoesNotContain("VisualTreeHelper.GetParent", source, StringComparison.Ordinal);
             Assert.DoesNotContain("private static DependencyObject? GetParent", source, StringComparison.Ordinal);
-            Assert.Contains("return VisualTreeHelper.GetParent(current)", helper, StringComparison.Ordinal);
-            Assert.Contains("?? LogicalTreeHelper.GetParent(current);", helper, StringComparison.Ordinal);
-            Assert.Contains("catch (InvalidOperationException)", helper, StringComparison.Ordinal);
-            Assert.Contains("return LogicalTreeHelper.GetParent(current);", helper, StringComparison.Ordinal);
+            Assert.Contains("return TryGetVisualParent(current)", helper, StringComparison.Ordinal);
+            Assert.Contains("?? TryGetLogicalParent(current)", helper, StringComparison.Ordinal);
+            Assert.Contains("?? TryGetFrameworkParent(current);", helper, StringComparison.Ordinal);
+            Assert.Equal(2, CountOccurrences(helper, "catch (InvalidOperationException)"));
+            Assert.Contains("FrameworkElement element => element.Parent", helper, StringComparison.Ordinal);
+            Assert.Contains("FrameworkContentElement contentElement => contentElement.Parent", helper, StringComparison.Ordinal);
+            Assert.DoesNotContain("return LogicalTreeHelper.GetParent(current);", helper, StringComparison.Ordinal);
+        }
+
+        private static int CountOccurrences(string source, string value)
+        {
+            var count = 0;
+            var index = 0;
+
+            while ((index = source.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+            {
+                count++;
+                index += value.Length;
+            }
+
+            return count;
         }
 
         private static string ReadRepoFile(params string[] parts)
