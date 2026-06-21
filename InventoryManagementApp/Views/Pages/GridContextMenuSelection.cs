@@ -59,7 +59,8 @@ namespace InventoryManagementApp.Views.Pages
         {
             try
             {
-                return LogicalTreeHelper.GetParent(current);
+                var parent = LogicalTreeHelper.GetParent(current);
+                return parent;
             }
             catch (InvalidOperationException)
             {

@@ -37,6 +37,16 @@ namespace InventoryManagementApp.Tests.Resources
         }
 
         [Fact]
+        public void PopupChromeOverrides_DoNotApplyMenuItemContainerStyleToSeparators()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.PopupChromeOverrides.xaml");
+
+            Assert.DoesNotContain("Property=\"ItemContainerStyle\" Value=\"{StaticResource ThemePopupMenuItemStyle}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Style TargetType=\"MenuItem\" BasedOn=\"{StaticResource ThemePopupMenuItemStyle}\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Style TargetType=\"Separator\" BasedOn=\"{StaticResource ThemePopupSeparatorStyle}\"/>", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void PopupChromeOverrides_UseAdminThemeTokensForTransparencyDepthAndInteraction()
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.PopupChromeOverrides.xaml");

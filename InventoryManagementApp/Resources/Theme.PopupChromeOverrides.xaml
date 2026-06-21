@@ -54,7 +54,6 @@
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="HasDropShadow" Value="False"/>
-        <Setter Property="ItemContainerStyle" Value="{StaticResource ThemePopupMenuItemStyle}"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="UseLayoutRounding" Value="True"/>
         <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
@@ -67,7 +66,6 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
-        <Setter Property="ItemContainerStyle" Value="{StaticResource ThemePopupMenuItemStyle}"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
 
