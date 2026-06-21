@@ -40,7 +40,9 @@ namespace InventoryManagementApp.Tests
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "DashboardViewModel.cs");
 
             Assert.Contains("IDialogService? dialogService", source, StringComparison.Ordinal);
-            Assert.Contains("_dialogService.ShowPrintPreview(document, title, description)", source, StringComparison.Ordinal);
+            Assert.Contains("var dialogService = _dialogService", source, StringComparison.Ordinal);
+            Assert.Contains("Host.Services.GetService<IDialogService>()", source, StringComparison.Ordinal);
+            Assert.Contains("dialogService.ShowPrintPreview(document, title, description)", source, StringComparison.Ordinal);
             Assert.Contains("Dashboard checked-out item handoff", source, StringComparison.Ordinal);
             Assert.Contains("Dashboard operations snapshot", source, StringComparison.Ordinal);
             Assert.DoesNotContain("new System.Windows.Controls.PrintDialog", source, StringComparison.Ordinal);
