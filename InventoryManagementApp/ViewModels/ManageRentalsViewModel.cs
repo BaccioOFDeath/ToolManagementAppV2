@@ -595,7 +595,8 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to confirm request {ReservationID}", requestId);
-                await _dialogService.ShowInfoAsync($"Failed to confirm request: {ex.Message}", "Error");
+                await LoadPendingRequestsAsync();
+                await _dialogService.ShowInfoAsync($"Failed to confirm request: {ex.Message} The open request queue has been refreshed in case the request status changed before the failure.", "Error");
             }
             finally
             {
@@ -630,7 +631,8 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to cancel request {ReservationID}", request.ReservationID);
-                await _dialogService.ShowInfoAsync($"Failed to cancel request: {ex.Message}", "Error");
+                await LoadPendingRequestsAsync();
+                await _dialogService.ShowInfoAsync($"Failed to cancel request: {ex.Message} The open request queue has been refreshed in case the request status changed before the failure.", "Error");
             }
             finally
             {

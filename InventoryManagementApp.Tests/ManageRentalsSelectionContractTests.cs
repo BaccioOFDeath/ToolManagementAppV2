@@ -34,15 +34,17 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void RequestConflictResponsesRefreshOpenRequestQueue()
+        public void RequestStatusUpdatesRefreshOpenRequestQueue()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
 
             Assert.Contains("var updated = await _reservationService.ConfirmReservationAsync(requestId);", source, StringComparison.Ordinal);
             Assert.Contains("var updated = await _reservationService.CancelReservationAsync(request.ReservationID);", source, StringComparison.Ordinal);
-            Assert.Equal(6, CountOccurrences(source, "await LoadPendingRequestsAsync();"));
+            Assert.Equal(8, CountOccurrences(source, "await LoadPendingRequestsAsync();"));
             Assert.Contains("The selected request could not be confirmed. It may have been removed or changed by another user. The open request queue has been refreshed.", source, StringComparison.Ordinal);
             Assert.Contains("The selected request could not be cancelled. It may have been removed or changed by another user. The open request queue has been refreshed.", source, StringComparison.Ordinal);
+            Assert.Contains("await LoadPendingRequestsAsync();\n                await _dialogService.ShowInfoAsync($\"Failed to confirm request: {ex.Message} The open request queue has been refreshed in case the request status changed before the failure.\", \"Error\");", source, StringComparison.Ordinal);
+            Assert.Contains("await LoadPendingRequestsAsync();\n                await _dialogService.ShowInfoAsync($\"Failed to cancel request: {ex.Message} The open request queue has been refreshed in case the request status changed before the failure.\", \"Error\");", source, StringComparison.Ordinal);
         }
 
         [Fact]
