@@ -51,6 +51,21 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void PrintPreviewDescriptionIsNotTreatedAsLogoPath()
+        {
+            var dialogService = ReadRepoFile("InventoryManagementApp", "Services", "DialogService.cs");
+            var previewSource = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "PrintPreviewWindow.xaml.cs");
+            var previewXaml = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "PrintPreviewWindow.xaml");
+
+            Assert.Contains("ShowPreview(document, title, description)", dialogService, StringComparison.Ordinal);
+            Assert.Contains("string? description = null, string? logoPath = null", previewSource, StringComparison.Ordinal);
+            Assert.Contains("PreviewDescription.Text = _description", previewSource, StringComparison.Ordinal);
+            Assert.Contains("_logoPath = logoPath ?? string.Empty", previewSource, StringComparison.Ordinal);
+            Assert.Contains("ResolveLogoUri(_logoPath)", previewSource, StringComparison.Ordinal);
+            Assert.Contains("x:Name=\"PreviewDescription\"", previewXaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void CategoriesKeepBothDirectoryAndSelectedSheetPreviewRoutes()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CategoriesPage.xaml.cs");
