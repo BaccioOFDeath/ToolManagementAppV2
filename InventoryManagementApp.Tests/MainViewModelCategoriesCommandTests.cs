@@ -334,7 +334,7 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void SwitchUserCommand_CancelledLogin_LeavesUserSignedOut()
+        public void SwitchUserCommand_CancelledLogin_ShutsDownApplication()
         {
             Exception? threadEx = null;
             var thread = new Thread(() =>
@@ -368,6 +368,7 @@ namespace InventoryManagementApp.Tests
                     var reservationService = new ReservationService(db, userContext);
                     var kitService = new KitService(db, userContext);
                     var loginShown = false;
+                    var shutdownRequested = false;
                     MainViewModel? vm = null;
 
                     vm = new MainViewModel(
@@ -395,7 +396,9 @@ namespace InventoryManagementApp.Tests
                             return Task.FromResult(false);
                         },
                         new StubDispatcherTimer(),
-                        new StubDispatcherTimer());
+                        new StubDispatcherTimer(),
+                        null,
+                        () => shutdownRequested = true);
 
                     vm.OpenCategoriesCommand.ExecuteAsync(null).GetAwaiter().GetResult();
                     Assert.IsType<CategoriesPage>(vm.CurrentPage);
@@ -403,6 +406,7 @@ namespace InventoryManagementApp.Tests
                     vm.SwitchUserCommand.ExecuteAsync(null).GetAwaiter().GetResult();
 
                     Assert.True(loginShown);
+                    Assert.True(shutdownRequested);
                     Assert.Null(userContext.CurrentUser);
                     Assert.IsType<DashboardPage>(vm.CurrentPage);
 

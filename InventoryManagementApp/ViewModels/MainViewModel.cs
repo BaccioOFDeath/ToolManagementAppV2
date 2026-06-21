@@ -47,6 +47,7 @@ namespace InventoryManagementApp.ViewModels
         readonly IThemeService _themeService;
         readonly ILogger<MainViewModel> _logger;
         readonly Func<Task<bool>> _showLoginWindow;
+        readonly Action _shutdownApplication;
         readonly IDispatcherTimer _autoLogoutTimer;
         readonly IDispatcherTimer _globalSearchDebounceTimer;
         int _autoLogoutMinutes;
@@ -412,7 +413,8 @@ namespace InventoryManagementApp.ViewModels
                              Func<Task<bool>>? showLoginWindow = null,
                                 IDispatcherTimer? autoLogoutTimer = null,
                                 IDispatcherTimer? globalSearchDebounceTimer = null,
-                             IEmailAccountDiscoveryService? emailAccountDiscoveryService = null)
+                             IEmailAccountDiscoveryService? emailAccountDiscoveryService = null,
+                             Action? shutdownApplication = null)
         {
             _itemService = itemService;
             _userService = userService;
@@ -425,6 +427,7 @@ namespace InventoryManagementApp.ViewModels
             _dialogService = dialogService;
             _fileDialogService = fileDialogService;
             _logger = logger ?? NullLogger<MainViewModel>.Instance;
+            _shutdownApplication = shutdownApplication ?? (() => Application.Current?.Shutdown());
             _showLoginWindow = showLoginWindow ?? new Func<Task<bool>>(async () =>
             {
                 var app = (App)System.Windows.Application.Current;
@@ -801,6 +804,7 @@ namespace InventoryManagementApp.ViewModels
                     else
                     {
                         _logger.LogInformation("Login cancelled after signing out.");
+                        _shutdownApplication();
                     }
                 }
                 catch (Exception ex)
