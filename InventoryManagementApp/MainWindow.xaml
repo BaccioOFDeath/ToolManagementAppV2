@@ -5,6 +5,7 @@
         xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
         xmlns:pages="clr-namespace:InventoryManagementApp.Views.Pages"
         Title="{Binding WindowTitle}" Width="1280" Height="800" MinWidth="1040" MinHeight="620" WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
         Background="{DynamicResource BackgroundBrush}"
         FontFamily="{DynamicResource ThemeFontFamily}">
     <Grid>

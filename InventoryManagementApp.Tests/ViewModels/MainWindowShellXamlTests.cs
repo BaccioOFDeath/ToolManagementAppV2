@@ -22,6 +22,14 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void MainWindow_StartsMaximizedForWorkbenchPages()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "MainWindow.xaml");
+
+            Assert.Contains("WindowState=\"Maximized\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void MainWindowFooter_ExplainsCurrentLocationAndNextButtonDestinations()
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "MainWindow.xaml");

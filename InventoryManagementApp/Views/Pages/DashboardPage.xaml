@@ -25,11 +25,11 @@
 
                 <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0">
                     <TextBlock Text="Actions" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="New Item" Command="{Binding NewItemCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Open Items" Command="{Binding OpenItemsCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Open Rentals" Command="{Binding OpenRentalsCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Print Snapshot" Command="{Binding PrintDashboardSnapshotCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Import / Export" Command="{Binding OpenImportExportCommand}" Margin="0,0,0,4"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="New Item" Command="{Binding NewItemCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Open Items" Command="{Binding OpenItemsCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Open Rentals" Command="{Binding OpenRentalsCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Print Snapshot" Command="{Binding PrintDashboardSnapshotCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Import / Export" Command="{Binding OpenImportExportCommand}"/>
                 </WrapPanel>
 
                 <ItemsControl ItemsSource="{Binding StatCards}" Margin="0,0,8,0">

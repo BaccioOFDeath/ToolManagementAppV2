@@ -71,6 +71,7 @@
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
+        <Setter Property="MinHeight" Value="44"/>
         <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
     </Style>
 
@@ -97,6 +98,7 @@
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
+        <Setter Property="MinHeight" Value="56"/>
         <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
     </Style>
 
@@ -105,6 +107,7 @@
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
+        <Setter Property="MinHeight" Value="42"/>
         <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
     </Style>
 
