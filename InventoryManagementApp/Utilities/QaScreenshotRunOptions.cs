@@ -14,7 +14,6 @@ namespace InventoryManagementApp.Utilities
         public required string ItemLabelPlural { get; init; }
         public required string AdminPassword { get; init; }
         public string AdminUserName { get; init; } = DefaultAdminUserName;
-        public double NarrowWindowWidth { get; init; } = 1040d;
         public string ThemeProfilePath { get; init; } = string.Empty;
         public bool FullScreen { get; init; }
 
@@ -29,7 +28,6 @@ namespace InventoryManagementApp.Utilities
             var itemLabelSingular = "Item";
             var itemLabelPlural = "Tools";
             var adminPassword = "AdminQ123";
-            var narrowWindowWidth = 1040d;
             var themeProfilePath = string.Empty;
             var fullScreen = false;
 
@@ -71,14 +69,6 @@ namespace InventoryManagementApp.Utilities
                     continue;
                 }
 
-                if (TryReadValue(arg, "--qa-narrow-width=", out var narrowWidthText) &&
-                    double.TryParse(narrowWidthText, out var parsedNarrowWidth) &&
-                    parsedNarrowWidth > 0)
-                {
-                    narrowWindowWidth = parsedNarrowWidth;
-                    continue;
-                }
-
                 if (TryReadValue(arg, "--qa-theme-profile=", out var profilePath))
                 {
                     themeProfilePath = profilePath;
@@ -104,7 +94,6 @@ namespace InventoryManagementApp.Utilities
                 ItemLabelSingular = itemLabelSingular,
                 ItemLabelPlural = itemLabelPlural,
                 AdminPassword = adminPassword,
-                NarrowWindowWidth = narrowWindowWidth,
                 ThemeProfilePath = themeProfilePath,
                 FullScreen = fullScreen
             };

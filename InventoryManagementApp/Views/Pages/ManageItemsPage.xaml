@@ -247,7 +247,7 @@
                             <Button Style="{StaticResource GhostButton}" Content="Save" Command="{Binding CommitChangesCommand}" Margin="0,0,4,4"/>
                         </WrapPanel>
                     </Border>
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer VerticalScrollBarVisibility="Hidden">
                         <StackPanel Margin="12">
                             <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,10">
                                 <StackPanel>

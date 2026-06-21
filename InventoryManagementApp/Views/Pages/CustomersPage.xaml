@@ -214,7 +214,7 @@
                             </StackPanel>
                         </DockPanel>
                     </Border>
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
                         <StackPanel Margin="14">
                             <TextBlock Text="{Binding SelectedCustomer.Company, TargetNullValue='No customer selected', FallbackValue='No customer selected'}"
                                        FontSize="18"

@@ -239,7 +239,7 @@
                             <TextBlock Text="Use the selected category card to guide rename, print, and item-assignment decisions." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                         </StackPanel>
                     </Border>
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
                         <StackPanel Margin="8">
                             <Border Style="{StaticResource CategoryDetailCard}">
                                 <StackPanel>

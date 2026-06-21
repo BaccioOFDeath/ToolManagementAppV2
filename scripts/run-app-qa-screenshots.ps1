@@ -9,11 +9,10 @@ param(
     [string]$AdminPassword = "AdminQ123",
     [string]$OutputRoot = "",
     [string]$ThemeProfilePath = "",
-    [int]$ExpectedScreenshotCount = 79,
+    [int]$ExpectedScreenshotCount = 76,
     [switch]$SkipBuild,
     [switch]$KeepRunDirectory,
-    [switch]$SkipFullScreen,
-    [double]$NarrowWindowWidth = 1040
+    [switch]$SkipFullScreen
 )
 
 Set-StrictMode -Version Latest
@@ -109,7 +108,6 @@ $expectedScreenshotFiles = @(
     "01-overview\04-dashboard-summary.png",
     "01-overview\05-dashboard-recent-activity.png",
     "01-overview\06-dashboard-items-with-issues.png",
-    "01-overview\07-dashboard-recent-activity-narrow.png",
     "02-operations\01-manage-tools.png",
     "02-operations\02-rentals.png",
     "02-operations\03-customers.png",
@@ -118,7 +116,6 @@ $expectedScreenshotFiles = @(
     "02-operations\06-reservations.png",
     "02-operations\07-kits.png",
     "02-operations\08-categories.png",
-    "02-operations\09-rentals-narrow.png",
     "03-insights\01-reports.png",
     "03-insights\02-activity-logs.png",
     "04-data\01-import-export-overview.png",
@@ -127,15 +124,14 @@ $expectedScreenshotFiles = @(
     "04-data\04-import-export-backup-images.png",
     "04-data\05-import-export-run-log.png",
     "05-admin\01-users.png",
-    "05-admin\02-users-narrow.png",
-    "05-admin\03-settings-service-status.png",
-    "05-admin\04-settings-database.png",
-    "05-admin\05-settings-general.png",
-    "05-admin\06-settings-item-display.png",
-    "05-admin\07-settings-email.png",
-    "05-admin\08-settings-branding.png",
-    "05-admin\09-settings-messaging.png",
-    "05-admin\10-settings-backups.png",
+    "05-admin\02-settings-service-status.png",
+    "05-admin\03-settings-database.png",
+    "05-admin\04-settings-general.png",
+    "05-admin\05-settings-item-display.png",
+    "05-admin\06-settings-email.png",
+    "05-admin\07-settings-branding.png",
+    "05-admin\08-settings-messaging.png",
+    "05-admin\09-settings-backups.png",
     "06-dialogs\01-print-labels.png",
     "06-dialogs\02-info-dialog.png",
     "06-dialogs\03-confirm-dialog.png",
@@ -186,7 +182,7 @@ $reviewChecklist = @(
     "Header, search, and signed-in user controls wrap without overlapping or clipping.",
     "The workflow guidance strip matches the active page and offers useful related jumps.",
     "Each capture shows a clear selected-row or empty-state path to the next action.",
-    "Toolbar and context actions remain reachable on narrow and wide workstations.",
+    "Toolbar and context actions remain reachable on standard and fullscreen workstations.",
     "Text in grids, handoff panels, and buttons fits its container without hiding important values.",
     "Admin-only pages explain what the setting or permission change affects before saving.",
     "Technician and advisor flows can be completed from the current page or one visible drill-down."
@@ -238,7 +234,6 @@ function Invoke-QaScreenshotRun {
         "--qa-item-singular=$ItemLabelSingular",
         "--qa-item-plural=$ItemLabelPlural",
         "--qa-password=$AdminPassword",
-        "--qa-narrow-width=$NarrowWindowWidth",
         "--qa-theme-profile=$ThemeProfilePath"
     )
     if ($FullScreen) {

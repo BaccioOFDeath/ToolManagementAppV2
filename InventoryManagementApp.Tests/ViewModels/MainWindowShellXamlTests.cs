@@ -15,8 +15,10 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("Workflow status", xaml, StringComparison.Ordinal);
             Assert.Contains("ShellWorkflowTicker", xaml, StringComparison.Ordinal);
             Assert.Contains("CurrentWorkflowGuide", xaml, StringComparison.Ordinal);
-            Assert.Contains("RepeatBehavior=\"Forever\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Storyboard.TargetProperty=\"(TextBlock.RenderTransform).(TranslateTransform.X)\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TextTrimming=\"CharacterEllipsis\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("HorizontalAlignment=\"Center\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("RepeatBehavior=\"Forever\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Storyboard.TargetProperty=\"(TextBlock.RenderTransform).(TranslateTransform.X)\"", xaml, StringComparison.Ordinal);
         }
 
         [Fact]

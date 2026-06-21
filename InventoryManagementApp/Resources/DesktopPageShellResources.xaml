@@ -11,7 +11,9 @@
             <Setter.Value>
                 <ControlTemplate TargetType="TabControl">
                     <Grid KeyboardNavigation.TabNavigation="Local"
+                          HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch"
+                          Width="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
                           MinHeight="{Binding ActualHeight, RelativeSource={RelativeSource TemplatedParent}}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="198"/>
@@ -54,7 +56,7 @@
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
         <Setter Property="Margin" Value="0,0,0,4"/>
-        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         <Setter Property="VerticalContentAlignment" Value="Stretch"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
     </Style>
