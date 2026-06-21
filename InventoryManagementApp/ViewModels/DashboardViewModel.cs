@@ -15,6 +15,7 @@ using InventoryManagementApp.Services.Maintenance;
 using InventoryManagementApp.Services.Calibration;
 using InventoryManagementApp.Services.Reservations;
 using InventoryManagementApp.Services.Kits;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Utilities.Helpers;
@@ -611,13 +612,16 @@ namespace InventoryManagementApp.ViewModels
 
         private void ShowDashboardPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description)
         {
-            if (_dialogService == null)
+            var dialogService = _dialogService
+                ?? (System.Windows.Application.Current as InventoryManagementApp.App)?.Host.Services.GetService<IDialogService>();
+
+            if (dialogService == null)
             {
                 _logger.LogWarning("Dashboard print preview service is not available for {Title}", title);
                 return;
             }
 
-            _dialogService.ShowPrintPreview(document, title, description);
+            dialogService.ShowPrintPreview(document, title, description);
         }
 
         private System.Windows.Documents.FlowDocument GenerateCheckedOutItemsDocument(string userName)
