@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using InventoryManagementApp.ViewModels;
@@ -31,9 +30,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void ReportGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            var row = FindParent<DataGridRow>(e.OriginalSource as DependencyObject);
-            if (row != null && !row.IsSelected)
-                row.IsSelected = true;
+            GridContextMenuSelection.SelectRow(sender, e);
         }
 
         private void CopySelectedRow_Click(object sender, RoutedEventArgs e)
@@ -194,20 +191,6 @@ namespace InventoryManagementApp.Views.Pages
                 BorderThickness = new Thickness(0, 0, 0, 0.5),
                 Padding = new Thickness(3, 2, 3, 2)
             });
-        }
-
-        private static T? FindParent<T>(DependencyObject? child) where T : DependencyObject
-        {
-            while (child != null)
-            {
-                if (child is T parent)
-                    return parent;
-                child = child is Popup popup
-                    ? popup.PlacementTarget
-                    : System.Windows.Media.VisualTreeHelper.GetParent(child);
-            }
-
-            return null;
         }
     }
 }
