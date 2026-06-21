@@ -1,6 +1,6 @@
 # InventoryManagementApp Completion Checklist
 
-Last audit date/time: 2026-06-22 01:11 NZST
+Last audit date/time: 2026-06-22 06:11 NZST
 
 ## Completed workflows
 
@@ -10,6 +10,7 @@ Last audit date/time: 2026-06-22 01:11 NZST
 - Reports ViewModel now keeps `ReportResults` as a compatibility alias for `ReportLines`, protecting older tests/bindings while the reports page uses the newer dense report grid.
 - Item edit saves now clone all operational fields, show clear validation/database failure messages, and keep the selected row stable when a save fails.
 - Item checkout conflict and rental-history load failures now give visible operator feedback instead of silently returning or only logging, and checkout conflict handling refreshes the item lists before returning control to the desk.
+- Item rent and check-out exception paths now refresh item rows before reporting possible post-save failures, so stale availability is less likely after service readback or UI handoff errors.
 - Settings now opens with an admin service status panel that summarizes database, email, messaging, backup, branding, and workstation security state with the relevant action buttons available from the same view.
 - Settings Database, Branding, and Backups tabs now have stronger admin polish: connection-readiness guidance, a larger brand/logo identity preview, and a recovery-focused backup destination layout while preserving the existing commands and bindings.
 - QA screenshot capture now has a repository script and latest screenshot set covering login, overview/search, operational pages, reports/activity, import/export, users, settings, and print-label dialog surfaces; the script fails if the expected PNG count is not produced.
@@ -52,7 +53,7 @@ Last audit date/time: 2026-06-22 01:11 NZST
 - Import / Export has been redesigned and wired for log actions plus permission-matched image mapping, but runtime file-dialog, print, image-mapping, and screenshot checks still need a Windows/.NET workstation.
 - Kits now have a completed desktop workflow surface, but runtime add/edit/item-membership dialog validation still needs a Windows/.NET workstation.
 - Customers now have a completed desktop workflow surface, but runtime add/edit/delete/print/copy validation still need a Windows/.NET workstation.
-- Maintenance now has a completed desktop workflow surface, but runtime add/edit/complete/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
+- Maintenance now has a completed desktop workflow surface, but runtime add/edit/complete/delete/print/copy and screenshot validation still needs a Windows/.NET workstation.
 - Calibration now has a completed desktop workflow surface, but runtime add/edit/delete/print/copy and screenshot validation still needs a Windows/.NET workstation.
 - User permission editing now has a completed persistence/UI/navigation/editor-summary pass, impact review, and matching service-layer permission guards, but runtime login-as-each-role and screenshot validation still needs a Windows/.NET workstation.
 - Reservations now have a completed desktop workflow surface, but runtime add/edit/confirm/cancel/fulfill/delete/print/copy and screenshot validation still need a Windows/.NET workstation.
@@ -78,6 +79,6 @@ Last audit date/time: 2026-06-22 01:11 NZST
 
 ## Validation status
 
-- GitHub connector readback/compare should review the item workflow feedback changes, source-contract tests, progress note, and this checklist update.
+- GitHub connector readback/compare should review the item workflow exception refresh changes, source-contract tests, progress note, and this checklist update.
 - Local XAML parsing, `dotnet --info`, `dotnet restore`, `dotnet build`, `dotnet test`, WPF screenshots, local banned-word checks, and full runtime function checks were not run because this scheduled Linux container lacks the .NET SDK and Windows/WPF runtime, and direct local clone/raw fetches remain blocked by the network tunnel.
 - Did not run unrelated tests, per instruction.
