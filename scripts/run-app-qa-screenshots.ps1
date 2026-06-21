@@ -8,9 +8,11 @@ param(
     [string]$ItemLabelPlural = "Tools",
     [string]$AdminPassword = "AdminQ123",
     [string]$OutputRoot = "",
+    [string]$ThemeProfilePath = "",
     [int]$ExpectedScreenshotCount = 79,
     [switch]$SkipBuild,
     [switch]$KeepRunDirectory,
+    [switch]$SkipFullScreen,
     [double]$NarrowWindowWidth = 1040
 )
 
@@ -77,6 +79,11 @@ $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
     $OutputRoot = Join-Path $repoRoot ".qa-screenshots"
 }
+if ([string]::IsNullOrWhiteSpace($ThemeProfilePath)) {
+    $ThemeProfilePath = Join-Path $repoRoot "Themes\Good.json"
+}
+$ThemeProfilePath = (Resolve-Path -LiteralPath $ThemeProfilePath).Path
+[void](Get-Content -LiteralPath $ThemeProfilePath -Raw | ConvertFrom-Json)
 
 $minimumScreenshotBytes = 1024
 $minimumScreenshotWidth = 640
@@ -200,6 +207,129 @@ $sourceExe = Join-Path $buildOutput "InventoryManagementApp.exe"
 $runExe = Join-Path $runDirectory "InventoryManagementApp.exe"
 $process = $null
 
+function Reset-RunDirectory {
+    Write-Step "Preparing isolated run directory at '$runDirectory'."
+    if (Test-Path -LiteralPath $runDirectory) {
+        Remove-Item -LiteralPath $runDirectory -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
+    New-Item -ItemType Directory -Path $runDirectory | Out-Null
+    Copy-Item -Path (Join-Path $buildOutput "*") -Destination $runDirectory -Recurse -Force
+    Get-ChildItem -LiteralPath $runDirectory -Filter "*.db*" -File -Recurse -Force -ErrorAction SilentlyContinue |
+        Remove-Item -Force -ErrorAction SilentlyContinue
+    if (Test-Path -LiteralPath (Join-Path $runDirectory "Logs")) {
+        Remove-Item -LiteralPath (Join-Path $runDirectory "Logs") -Recurse -Force
+    }
+}
+
+function Invoke-QaScreenshotRun {
+    param(
+        [Parameter(Mandatory = $true)][string]$RunOutput,
+        [switch]$FullScreen
+    )
+
+    Reset-RunDirectory
+
+    Write-Step "Starting QA screenshot run$(if ($FullScreen) { ' (fullscreen)' } else { '' })."
+    $arguments = @(
+        "--qa-screenshots",
+        "--qa-output-dir=$RunOutput",
+        "--qa-app-name=$ApplicationName",
+        "--qa-item-singular=$ItemLabelSingular",
+        "--qa-item-plural=$ItemLabelPlural",
+        "--qa-password=$AdminPassword",
+        "--qa-narrow-width=$NarrowWindowWidth",
+        "--qa-theme-profile=$ThemeProfilePath"
+    )
+    if ($FullScreen) {
+        $arguments += "--qa-fullscreen"
+    }
+
+    $script:process = Start-Process -FilePath $runExe -ArgumentList $arguments -WorkingDirectory $runDirectory -PassThru
+    if (-not $script:process.WaitForExit(240000)) {
+        throw "The QA screenshot run did not exit within 240 seconds."
+    }
+
+    if ($script:process.ExitCode -ne 0) {
+        throw "The QA screenshot run exited with code $($script:process.ExitCode)."
+    }
+
+    $script:process = $null
+}
+
+function Test-QaScreenshotOutput {
+    param([Parameter(Mandatory = $true)][string]$RunOutput)
+
+    $screenshots = @(Get-ChildItem -LiteralPath $RunOutput -Recurse -File -Filter "*.png")
+    if ($screenshots.Count -lt $ExpectedScreenshotCount) {
+        throw "QA screenshot run produced $($screenshots.Count) PNG file(s); expected at least $ExpectedScreenshotCount."
+    }
+
+    foreach ($folder in $expectedFolders) {
+        $folderPath = Join-Path $RunOutput $folder
+        if (-not (Test-Path -LiteralPath $folderPath)) {
+            throw "QA screenshot run did not create expected folder '$folder'."
+        }
+
+        $folderScreenshots = @(Get-ChildItem -LiteralPath $folderPath -File -Filter "*.png" -ErrorAction SilentlyContinue)
+        if ($folderScreenshots.Count -eq 0) {
+            throw "QA screenshot folder '$folder' did not contain any PNG files."
+        }
+    }
+
+    $missingExpectedFiles = @()
+    foreach ($expectedFile in $expectedScreenshotFiles) {
+        $expectedPath = Join-Path $RunOutput $expectedFile
+        if (-not (Test-Path -LiteralPath $expectedPath)) {
+            $missingExpectedFiles += $expectedFile
+        }
+    }
+
+    if ($missingExpectedFiles.Count -gt 0) {
+        throw "QA screenshot run missed expected capture(s): $($missingExpectedFiles -join ', ')."
+    }
+
+    $unexpectedScreenshots = @()
+    foreach ($screenshot in $screenshots) {
+        $relativeToSession = Get-RelativePathCompat -BasePath $RunOutput -TargetPath $screenshot.FullName
+        if (-not $expectedScreenshotSet.Contains($relativeToSession)) {
+            $unexpectedScreenshots += $relativeToSession
+        }
+    }
+
+    if ($unexpectedScreenshots.Count -gt 0) {
+        throw "QA screenshot run produced unexpected capture(s). Update the expected screenshot manifest if these are intentional: $($unexpectedScreenshots -join ', ')."
+    }
+
+    $undersizedScreenshots = @($screenshots | Where-Object { $_.Length -lt $minimumScreenshotBytes })
+    if ($undersizedScreenshots.Count -gt 0) {
+        $undersizedList = $undersizedScreenshots | ForEach-Object { $_.FullName }
+        throw "QA screenshot run produced suspiciously small PNG capture(s): $($undersizedList -join ', ')."
+    }
+
+    $dimensionFailures = @()
+    foreach ($screenshot in $screenshots) {
+        $dimensions = Get-PngDimensions -File $screenshot
+        $relativeToSession = Get-RelativePathCompat -BasePath $RunOutput -TargetPath $screenshot.FullName
+        $requiredWidth = $minimumScreenshotWidth
+        $requiredHeight = $minimumScreenshotHeight
+        if ($dimensionOverrides.ContainsKey($relativeToSession)) {
+            $requiredWidth = $dimensionOverrides[$relativeToSession].Width
+            $requiredHeight = $dimensionOverrides[$relativeToSession].Height
+        }
+
+        if ($dimensions.Width -lt $requiredWidth -or $dimensions.Height -lt $requiredHeight) {
+            $dimensionFailures += "{0} ({1}x{2})" -f $screenshot.FullName, $dimensions.Width, $dimensions.Height
+        }
+    }
+
+    if ($dimensionFailures.Count -gt 0) {
+        throw "QA screenshot run produced unexpectedly small-dimension PNG capture(s): $($dimensionFailures -join ', ')."
+    }
+
+    return $screenshots
+}
+
 if (Test-Path -LiteralPath $OutputRoot) {
     Get-ChildItem -LiteralPath $OutputRoot -Force | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
 }
@@ -224,105 +354,8 @@ try {
         throw "Expected executable was not found at '$sourceExe'."
     }
 
-    Write-Step "Preparing isolated run directory at '$runDirectory'."
-    if (Test-Path -LiteralPath $runDirectory) {
-        Remove-Item -LiteralPath $runDirectory -Recurse -Force -ErrorAction SilentlyContinue
-    }
-
-    New-Item -ItemType Directory -Path $runDirectory | Out-Null
-    Copy-Item -Path (Join-Path $buildOutput "*") -Destination $runDirectory -Recurse -Force
-    Get-ChildItem -LiteralPath $runDirectory -Filter "*.db*" -File -Recurse -Force -ErrorAction SilentlyContinue |
-        Remove-Item -Force -ErrorAction SilentlyContinue
-    if (Test-Path -LiteralPath (Join-Path $runDirectory "Logs")) {
-        Remove-Item -LiteralPath (Join-Path $runDirectory "Logs") -Recurse -Force
-    }
-
-    Write-Step "Starting QA screenshot run."
-    $arguments = @(
-        "--qa-screenshots",
-        "--qa-output-dir=$sessionOutput",
-        "--qa-app-name=$ApplicationName",
-        "--qa-item-singular=$ItemLabelSingular",
-        "--qa-item-plural=$ItemLabelPlural",
-        "--qa-password=$AdminPassword",
-        "--qa-narrow-width=$NarrowWindowWidth"
-    )
-
-    $process = Start-Process -FilePath $runExe -ArgumentList $arguments -WorkingDirectory $runDirectory -PassThru
-    if (-not $process.WaitForExit(240000)) {
-        throw "The QA screenshot run did not exit within 240 seconds."
-    }
-
-    if ($process.ExitCode -ne 0) {
-        throw "The QA screenshot run exited with code $($process.ExitCode)."
-    }
-
-    $screenshots = @(Get-ChildItem -LiteralPath $sessionOutput -Recurse -File -Filter "*.png")
-    if ($screenshots.Count -lt $ExpectedScreenshotCount) {
-        throw "QA screenshot run produced $($screenshots.Count) PNG file(s); expected at least $ExpectedScreenshotCount."
-    }
-
-    foreach ($folder in $expectedFolders) {
-        $folderPath = Join-Path $sessionOutput $folder
-        if (-not (Test-Path -LiteralPath $folderPath)) {
-            throw "QA screenshot run did not create expected folder '$folder'."
-        }
-
-        $folderScreenshots = @(Get-ChildItem -LiteralPath $folderPath -File -Filter "*.png" -ErrorAction SilentlyContinue)
-        if ($folderScreenshots.Count -eq 0) {
-            throw "QA screenshot folder '$folder' did not contain any PNG files."
-        }
-    }
-
-    $missingExpectedFiles = @()
-    foreach ($expectedFile in $expectedScreenshotFiles) {
-        $expectedPath = Join-Path $sessionOutput $expectedFile
-        if (-not (Test-Path -LiteralPath $expectedPath)) {
-            $missingExpectedFiles += $expectedFile
-        }
-    }
-
-    if ($missingExpectedFiles.Count -gt 0) {
-        throw "QA screenshot run missed expected capture(s): $($missingExpectedFiles -join ', ')."
-    }
-
-    $unexpectedScreenshots = @()
-    foreach ($screenshot in $screenshots) {
-        $relativeToSession = Get-RelativePathCompat -BasePath $sessionOutput -TargetPath $screenshot.FullName
-        if (-not $expectedScreenshotSet.Contains($relativeToSession)) {
-            $unexpectedScreenshots += $relativeToSession
-        }
-    }
-
-    if ($unexpectedScreenshots.Count -gt 0) {
-        throw "QA screenshot run produced unexpected capture(s). Update the expected screenshot manifest if these are intentional: $($unexpectedScreenshots -join ', ')."
-    }
-
-    $undersizedScreenshots = @($screenshots | Where-Object { $_.Length -lt $minimumScreenshotBytes })
-    if ($undersizedScreenshots.Count -gt 0) {
-        $undersizedList = $undersizedScreenshots | ForEach-Object { $_.FullName }
-        throw "QA screenshot run produced suspiciously small PNG capture(s): $($undersizedList -join ', ')."
-    }
-
-    $dimensionFailures = @()
-    foreach ($screenshot in $screenshots) {
-        $dimensions = Get-PngDimensions -File $screenshot
-        $relativeToSession = Get-RelativePathCompat -BasePath $sessionOutput -TargetPath $screenshot.FullName
-        $requiredWidth = $minimumScreenshotWidth
-        $requiredHeight = $minimumScreenshotHeight
-        if ($dimensionOverrides.ContainsKey($relativeToSession)) {
-            $requiredWidth = $dimensionOverrides[$relativeToSession].Width
-            $requiredHeight = $dimensionOverrides[$relativeToSession].Height
-        }
-
-        if ($dimensions.Width -lt $requiredWidth -or $dimensions.Height -lt $requiredHeight) {
-            $dimensionFailures += "{0} ({1}x{2})" -f $screenshot.FullName, $dimensions.Width, $dimensions.Height
-        }
-    }
-
-    if ($dimensionFailures.Count -gt 0) {
-        throw "QA screenshot run produced unexpectedly small-dimension PNG capture(s): $($dimensionFailures -join ', ')."
-    }
+    Invoke-QaScreenshotRun -RunOutput $sessionOutput
+    $screenshots = @(Test-QaScreenshotOutput -RunOutput $sessionOutput)
 
     $captureRows = @()
     foreach ($screenshot in ($screenshots | Sort-Object FullName)) {
@@ -397,6 +430,14 @@ try {
 
     Write-Step "QA screenshots saved to '$sessionOutput' ($($screenshots.Count) PNG files)."
     Write-Step "Screenshot review index saved to '$indexPath'."
+
+    if (-not $SkipFullScreen) {
+        $fullScreenOutput = Join-Path $OutputRoot "fullscreen"
+        Ensure-Directory -Path $fullScreenOutput
+        Invoke-QaScreenshotRun -RunOutput $fullScreenOutput -FullScreen
+        $fullScreenScreenshots = @(Test-QaScreenshotOutput -RunOutput $fullScreenOutput)
+        Write-Step "Fullscreen QA screenshots saved to '$fullScreenOutput' ($($fullScreenScreenshots.Count) PNG files)."
+    }
 }
 finally {
     if ($process -and -not $process.HasExited) {

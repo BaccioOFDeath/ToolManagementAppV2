@@ -437,7 +437,7 @@ namespace InventoryManagementApp
                             ?? throw new InvalidDataException("Theme profile did not contain app theme settings.");
                         themeSettings.Normalize();
                         await bypassSettings.SaveThemeAsync(themeSettings.BaseTheme);
-                        await bypassSettings.SaveAppThemeSettingsAsync(themeSettings);
+                        await ((ISettingsService)bypassSettings).SaveAppThemeSettingsAsync(themeSettings);
                     }
                 }
                 catch (Exception ex)
