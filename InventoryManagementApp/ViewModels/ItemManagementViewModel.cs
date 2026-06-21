@@ -549,7 +549,17 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        private async Task ReloadItemsAfterRentalAsync(int itemId, CancellationToken cancellationToken)
+        private Task ReloadItemsAfterRentalAsync(int itemId, CancellationToken cancellationToken)
+        {
+            return ReloadItemsAfterItemWorkflowAsync(itemId, cancellationToken);
+        }
+
+        private Task ReloadItemsAfterCheckoutAsync(int itemId, CancellationToken cancellationToken)
+        {
+            return ReloadItemsAfterItemWorkflowAsync(itemId, cancellationToken);
+        }
+
+        private async Task ReloadItemsAfterItemWorkflowAsync(int itemId, CancellationToken cancellationToken)
         {
             var previousSelection = SelectedItem;
 
@@ -570,17 +580,7 @@ namespace InventoryManagementApp.ViewModels
                 var result = await _itemService.ToggleItemCheckOutStatusAsync(item.ItemID, cancellationToken).ConfigureAwait(false);
                 if (!result) return;
 
-                var refreshed = await _itemService.GetItemByIDAsync(item.ItemID, cancellationToken).ConfigureAwait(false);
-                if (refreshed == null)
-                {
-                    _logger.LogWarning("Item {ItemID} was toggled but could not be refreshed from storage", item.ItemID);
-                    await LoadItemsAsync(new ItemPage(1, PageSize));
-                    await FilterItemsAsync();
-                    return;
-                }
-
-                ApplyItemState(item, refreshed);
-                await RefreshCheckedOutItemsAsync(cancellationToken);
+                await ReloadItemsAfterCheckoutAsync(item.ItemID, cancellationToken);
             }
             catch (OperationCanceledException)
             {
