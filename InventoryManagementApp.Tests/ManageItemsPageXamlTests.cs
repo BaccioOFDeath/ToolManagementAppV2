@@ -30,6 +30,18 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void DataGridRow_DoesNotClearImageBindingsWhenVirtualized()
+        {
+            var xaml = ReadXaml();
+            var codeBehind = ReadPageCodeBehind();
+
+            Assert.DoesNotContain("DataGridRow_Loaded", xaml);
+            Assert.DoesNotContain("DataGridRow_Unloaded", xaml);
+            Assert.DoesNotContain("ReleaseRowImage", codeBehind);
+            Assert.DoesNotContain("img.Source = null", codeBehind);
+        }
+
+        [Fact]
         public void Columns_BindVisibilityToVisibleFields()
         {
             var xaml = ReadXaml();
@@ -54,5 +66,8 @@ namespace InventoryManagementApp.Tests
 
         private static string ReadXaml()
             => File.ReadAllText(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml")));
+
+        private static string ReadPageCodeBehind()
+            => File.ReadAllText(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml.cs")));
     }
 }

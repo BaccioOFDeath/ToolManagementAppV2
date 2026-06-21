@@ -158,8 +158,6 @@
                             <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
                                 <EventSetter Event="PreviewMouseRightButtonDown"
                                              Handler="DataGridRow_PreviewMouseRightButtonDown"/>
-                                <EventSetter Event="Loaded" Handler="DataGridRow_Loaded"/>
-                                <EventSetter Event="Unloaded" Handler="DataGridRow_Unloaded"/>
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>

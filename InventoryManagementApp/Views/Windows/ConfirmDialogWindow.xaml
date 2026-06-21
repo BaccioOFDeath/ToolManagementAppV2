@@ -4,8 +4,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
         Title="Confirm"
-        Width="540" Height="300"
-        MinWidth="520" MinHeight="280"
+        Width="600" Height="380"
+        MinWidth="540" MinHeight="340"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
     <Grid Margin="16">
@@ -43,12 +43,19 @@
                 <Border Width="44" Height="44" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" VerticalAlignment="Top">
                     <TextBlock Text="?" FontSize="24" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
-                <StackPanel Grid.Column="1" Margin="14,0,0,0">
+                <Grid Grid.Column="1" Margin="14,0,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
                     <TextBlock Text="Action Review" Style="{StaticResource SectionHeader}"/>
-                    <TextBlock Text="{Binding Message}"
-                               Style="{StaticResource DialogMessageTextBlock}"
-                               Margin="0,6,0,0"/>
-                </StackPanel>
+                    <ScrollViewer Margin="0,6,0,0"
+                                  Grid.Row="1"
+                                  VerticalScrollBarVisibility="Auto">
+                        <TextBlock Text="{Binding Message}"
+                                   Style="{StaticResource DialogMessageTextBlock}"/>
+                    </ScrollViewer>
+                </Grid>
             </Grid>
         </Border>
 
