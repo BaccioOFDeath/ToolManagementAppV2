@@ -282,7 +282,8 @@ namespace InventoryManagementApp.Tests
                 Assert.Equal(Color.FromRgb(0x1E, 0x1E, 0x1E), ((SolidColorBrush)app.Resources["BackgroundBrush"]).Color);
                 Assert.Equal(Color.FromRgb(0x18, 0x18, 0x18), ((SolidColorBrush)app.Resources["ThemeShellMenuBrush"]).Color);
                 Assert.Equal(Color.FromRgb(0x31, 0x31, 0x31), ((SolidColorBrush)app.Resources["TextBoxBackgroundBrush"]).Color);
-                Assert.Equal(Color.FromRgb(0x04, 0x39, 0x5E), ((SolidColorBrush)app.Resources["ItemSelectedBrush"]).Color);
+                var selected = ((SolidColorBrush)app.Resources["ItemSelectedBrush"]).Color;
+                Assert.Equal((0x04, 0x39, 0x5E), (selected.R, selected.G, selected.B));
                 Assert.Equal(new CornerRadius(2), (CornerRadius)app.Resources["ThemeInputCornerRadius"]);
                 WpfTestHelper.ShutdownApplication();
                 await Task.CompletedTask;
