@@ -46,6 +46,19 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void RequestPlacementAndQueueLoadFailuresRefreshAndExplainState()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
+
+            Assert.Contains("await LoadPendingRequestsAsync(notifyOnFailure: true);", source, StringComparison.Ordinal);
+            Assert.Contains("async Task LoadPendingRequestsAsync(bool notifyOnFailure = false)", source, StringComparison.Ordinal);
+            Assert.Contains("PendingRequests.Clear();\n                SelectedRequest = null;", source, StringComparison.Ordinal);
+            Assert.Contains("if (notifyOnFailure)", source, StringComparison.Ordinal);
+            Assert.Contains("Failed to load open requests: {ex.Message} The open request queue has been cleared until it can be refreshed.", source, StringComparison.Ordinal);
+            Assert.Contains("await LoadPendingRequestsAsync();\n                await _dialogService.ShowInfoAsync($\"Failed to place request: {ex.Message} The open request queue has been refreshed in case the request was saved before the failure.\", \"Error\");", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void RentalOperationFailuresRefreshDeskAndExplainState()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
