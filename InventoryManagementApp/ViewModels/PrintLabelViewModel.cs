@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Utilities.Helpers;
+using InventoryManagementApp.Utilities.Printing;
 
 #nullable enable
 
@@ -66,6 +67,7 @@ namespace InventoryManagementApp.ViewModels
         private void Print()
         {
             var doc = BuildDocument();
+            PrintDocumentTheme.ApplyLightTheme(doc);
             try
             {
                 _printAction(doc);

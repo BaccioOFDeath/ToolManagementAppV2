@@ -8,6 +8,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Controls; // WPF PrintDialog
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Utilities.Extensions;
+using InventoryManagementApp.Utilities.Printing;
 
 #nullable enable
 
@@ -76,8 +77,7 @@ namespace InventoryManagementApp.Views.Windows
         {
             document.FontFamily = new FontFamily("Segoe UI");
             document.FontSize = Math.Max(document.FontSize, 10.5);
-            document.Foreground = new SolidColorBrush(Color.FromRgb(31, 41, 55));
-            document.Background = Brushes.White;
+            PrintDocumentTheme.ApplyLightTheme(document);
             document.PagePadding = new Thickness(44, 40, 44, 42);
             document.ColumnGap = 0;
             document.TextAlignment = TextAlignment.Left;
@@ -104,8 +104,8 @@ namespace InventoryManagementApp.Views.Windows
             var header = new Section
             {
                 Tag = "PrintPolishHeader",
-                Background = new SolidColorBrush(Color.FromRgb(244, 247, 251)),
-                BorderBrush = new SolidColorBrush(Color.FromRgb(49, 130, 206)),
+                Background = PrintDocumentTheme.HeaderPanelBackgroundBrush,
+                BorderBrush = PrintDocumentTheme.AccentBorderBrush,
                 BorderThickness = new Thickness(0, 0, 0, 2),
                 Padding = new Thickness(12, 10, 12, 10),
                 Margin = new Thickness(0, 0, 0, 14)
@@ -115,13 +115,13 @@ namespace InventoryManagementApp.Views.Windows
             {
                 FontSize = 20,
                 FontWeight = FontWeights.SemiBold,
-                Foreground = new SolidColorBrush(Color.FromRgb(17, 24, 39)),
+                Foreground = PrintDocumentTheme.HeaderForegroundBrush,
                 Margin = new Thickness(0, 0, 0, 3)
             });
             header.Blocks.Add(new Paragraph(new Run($"Prepared {DateTime.Now:g} | Review, sign off, and file with the matching workflow."))
             {
                 FontSize = 10.5,
-                Foreground = new SolidColorBrush(Color.FromRgb(75, 85, 99)),
+                Foreground = PrintDocumentTheme.MutedForegroundBrush,
                 Margin = new Thickness(0)
             });
 
@@ -134,8 +134,8 @@ namespace InventoryManagementApp.Views.Windows
             {
                 Tag = "PrintPolishFooter",
                 FontSize = 9.5,
-                Foreground = new SolidColorBrush(Color.FromRgb(75, 85, 99)),
-                BorderBrush = new SolidColorBrush(Color.FromRgb(209, 213, 219)),
+                Foreground = PrintDocumentTheme.MutedForegroundBrush,
+                BorderBrush = PrintDocumentTheme.RuleBorderBrush,
                 BorderThickness = new Thickness(0, 1, 0, 0),
                 Padding = new Thickness(0, 8, 0, 0),
                 Margin = new Thickness(0, 14, 0, 0)
@@ -156,18 +156,18 @@ namespace InventoryManagementApp.Views.Windows
 
                     if (rowIndex == 0)
                     {
-                        row.Background = new SolidColorBrush(Color.FromRgb(230, 236, 246));
-                        row.Foreground = new SolidColorBrush(Color.FromRgb(17, 24, 39));
+                        row.Background = PrintDocumentTheme.HeaderBackgroundBrush;
+                        row.Foreground = PrintDocumentTheme.HeaderForegroundBrush;
                         row.FontWeight = FontWeights.SemiBold;
                     }
                     else if (rowIndex % 2 == 0)
                     {
-                        row.Background = new SolidColorBrush(Color.FromRgb(249, 250, 252));
+                        row.Background = PrintDocumentTheme.AlternatingRowBackgroundBrush;
                     }
 
                     foreach (var cell in row.Cells)
                     {
-                        cell.BorderBrush = new SolidColorBrush(Color.FromRgb(209, 213, 219));
+                        cell.BorderBrush = PrintDocumentTheme.RuleBorderBrush;
                         cell.BorderThickness = new Thickness(0, 0, 0, 0.6);
                         cell.Padding = new Thickness(6, 4, 6, 4);
 
