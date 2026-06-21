@@ -1,8 +1,6 @@
-using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
 namespace InventoryManagementApp.Views.Pages
@@ -144,7 +142,7 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Rentals", () =>
             {
-                if (Keyboard.FocusedElement is DependencyObject focusedElement && FindAncestor<System.Windows.Controls.DataGrid>(focusedElement) is System.Windows.Controls.DataGrid grid)
+                if (Keyboard.FocusedElement is DependencyObject focusedElement && GridContextMenuSelection.FindAncestor<System.Windows.Controls.DataGrid>(focusedElement) is System.Windows.Controls.DataGrid grid)
                 {
                     if (grid.SelectedItem is Reservation && vm.OpenRequestDetailsCommand.CanExecute(null))
                     {
@@ -162,12 +160,9 @@ namespace InventoryManagementApp.Views.Pages
 
         private void SelectRowForContextMenu(object sender, MouseButtonEventArgs e)
         {
-            var row = sender as DataGridRow ?? FindAncestor<DataGridRow>(e.OriginalSource as DependencyObject);
+            var row = GridContextMenuSelection.SelectRow(sender, e);
             if (row == null)
                 return;
-
-            row.IsSelected = true;
-            row.Focus();
 
             if (DataContext is ManageRentalsViewModel vm)
             {
@@ -175,32 +170,6 @@ namespace InventoryManagementApp.Views.Pages
                     vm.SelectedRental = rental;
                 else if (row.Item is Reservation request)
                     vm.SelectedRequest = request;
-            }
-        }
-
-        private static T? FindAncestor<T>(DependencyObject? current) where T : DependencyObject
-        {
-            while (current != null)
-            {
-                if (current is T match)
-                    return match;
-
-                current = GetParent(current);
-            }
-
-            return null;
-        }
-
-        private static DependencyObject? GetParent(DependencyObject current)
-        {
-            try
-            {
-                return VisualTreeHelper.GetParent(current)
-                    ?? LogicalTreeHelper.GetParent(current);
-            }
-            catch (InvalidOperationException)
-            {
-                return LogicalTreeHelper.GetParent(current);
             }
         }
     }

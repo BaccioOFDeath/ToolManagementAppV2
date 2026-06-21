@@ -7,15 +7,17 @@ namespace InventoryManagementApp.Tests.Views
     public class ItemSearchRightClickTests
     {
         [Fact]
-        public void ItemSearchPage_RightClickSelectionFallsBackToLogicalTreeForTextContent()
+        public void ItemSearchPage_RightClickSelectionUsesSharedSafeTreeTraversal()
         {
             var code = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml.cs");
+            var helper = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "GridContextMenuSelection.cs");
 
             Assert.Contains("ItemGrid_PreviewMouseRightButtonDown", code, StringComparison.Ordinal);
-            Assert.Contains("GetParent(current)", code, StringComparison.Ordinal);
-            Assert.Contains("VisualTreeHelper.GetParent(current)", code, StringComparison.Ordinal);
-            Assert.Contains("LogicalTreeHelper.GetParent(current)", code, StringComparison.Ordinal);
-            Assert.Contains("catch (InvalidOperationException)", code, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.SelectRow(sender, e)", code, StringComparison.Ordinal);
+            Assert.DoesNotContain("private static DependencyObject? GetParent", code, StringComparison.Ordinal);
+            Assert.Contains("VisualTreeHelper.GetParent(current)", helper, StringComparison.Ordinal);
+            Assert.Contains("LogicalTreeHelper.GetParent(current)", helper, StringComparison.Ordinal);
+            Assert.Contains("catch (InvalidOperationException)", helper, StringComparison.Ordinal);
         }
 
         private static string ReadRepositoryFile(params string[] relativePath)

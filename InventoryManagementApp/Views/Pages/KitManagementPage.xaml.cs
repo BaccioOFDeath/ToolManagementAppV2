@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using InventoryManagementApp.ViewModels;
 
 namespace InventoryManagementApp.Views.Pages
@@ -70,25 +69,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void DataGridRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (sender is DataGridRow row)
-            {
-                row.IsSelected = true;
-                var dataGrid = FindParent<System.Windows.Controls.DataGrid>(row);
-                if (dataGrid != null)
-                    dataGrid.SelectedItem = row.Item;
-            }
-        }
-
-        private static T? FindParent<T>(DependencyObject child) where T : DependencyObject
-        {
-            var parent = VisualTreeHelper.GetParent(child);
-            while (parent != null)
-            {
-                if (parent is T typedParent)
-                    return typedParent;
-                parent = VisualTreeHelper.GetParent(parent);
-            }
-            return null;
+            GridContextMenuSelection.SelectRow(sender, e);
         }
     }
 }

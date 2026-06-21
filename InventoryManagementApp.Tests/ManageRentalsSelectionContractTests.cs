@@ -34,19 +34,19 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void RentalGridRightClickSelectionUsesSafeTreeTraversal()
+        public void RentalGridRightClickSelectionUsesSharedSafeTreeTraversal()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml.cs");
+            var helper = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "GridContextMenuSelection.cs");
 
-            Assert.Contains("using System;", source, StringComparison.Ordinal);
-            Assert.Contains("var row = sender as DataGridRow ?? FindAncestor<DataGridRow>(e.OriginalSource as DependencyObject);", source, StringComparison.Ordinal);
-            Assert.Contains("current = GetParent(current);", source, StringComparison.Ordinal);
-            Assert.Contains("private static DependencyObject? GetParent(DependencyObject current)", source, StringComparison.Ordinal);
-            Assert.Contains("return VisualTreeHelper.GetParent(current)", source, StringComparison.Ordinal);
-            Assert.Contains("?? LogicalTreeHelper.GetParent(current);", source, StringComparison.Ordinal);
-            Assert.Contains("catch (InvalidOperationException)", source, StringComparison.Ordinal);
-            Assert.Contains("return LogicalTreeHelper.GetParent(current);", source, StringComparison.Ordinal);
-            Assert.DoesNotContain("current = VisualTreeHelper.GetParent(current);", source, StringComparison.Ordinal);
+            Assert.Contains("var row = GridContextMenuSelection.SelectRow(sender, e);", source, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.FindAncestor<System.Windows.Controls.DataGrid>(focusedElement)", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("VisualTreeHelper.GetParent", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("private static DependencyObject? GetParent", source, StringComparison.Ordinal);
+            Assert.Contains("return VisualTreeHelper.GetParent(current)", helper, StringComparison.Ordinal);
+            Assert.Contains("?? LogicalTreeHelper.GetParent(current);", helper, StringComparison.Ordinal);
+            Assert.Contains("catch (InvalidOperationException)", helper, StringComparison.Ordinal);
+            Assert.Contains("return LogicalTreeHelper.GetParent(current);", helper, StringComparison.Ordinal);
         }
 
         private static string ReadRepoFile(params string[] parts)

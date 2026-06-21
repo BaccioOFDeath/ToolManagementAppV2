@@ -2,7 +2,6 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
@@ -117,14 +116,8 @@ namespace InventoryManagementApp.Views.Pages
 
         private void DashboardGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            var row = FindAncestor<DataGridRow>(e.OriginalSource as DependencyObject);
-            if (row == null)
-                return;
-
-            row.IsSelected = true;
-            row.Focus();
-
-            if (DataContext is not DashboardViewModel vm)
+            var row = GridContextMenuSelection.SelectRow(sender, e);
+            if (row == null || DataContext is not DashboardViewModel vm)
                 return;
 
             switch (row.Item)
@@ -149,7 +142,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private static void OpenFocusedRow(DashboardViewModel vm)
         {
-            if (Keyboard.FocusedElement is DependencyObject focusedElement && FindAncestor<System.Windows.Controls.DataGrid>(focusedElement) is System.Windows.Controls.DataGrid grid)
+            if (Keyboard.FocusedElement is DependencyObject focusedElement && GridContextMenuSelection.FindAncestor<System.Windows.Controls.DataGrid>(focusedElement) is System.Windows.Controls.DataGrid grid)
             {
                 switch (grid.Name)
                 {
@@ -172,19 +165,6 @@ namespace InventoryManagementApp.Views.Pages
             }
 
             vm.OpenItemsCommand.Execute(null);
-        }
-
-        private static T? FindAncestor<T>(DependencyObject? current) where T : DependencyObject
-        {
-            while (current != null)
-            {
-                if (current is T match)
-                    return match;
-
-                current = VisualTreeHelper.GetParent(current);
-            }
-
-            return null;
         }
     }
 }
