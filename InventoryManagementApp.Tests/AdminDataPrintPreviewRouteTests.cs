@@ -10,12 +10,25 @@ namespace InventoryManagementApp.Tests
         [InlineData("InventoryManagementApp", "Views", "Pages", "UsersPage.xaml.cs")]
         [InlineData("InventoryManagementApp", "Views", "Pages", "CategoriesPage.xaml.cs")]
         [InlineData("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml.cs")]
-        public void AdminDataPrintActionsUseSharedPreviewWindow(params string[] path)
+        public void AdminDataPagePrintActionsUseSharedPreviewWindow(params string[] path)
         {
             var source = ReadRepoFile(path);
 
             Assert.Contains("PrintPreviewWindow", source, StringComparison.Ordinal);
             Assert.Contains("ShowPreview(document", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("WpfPrintDialog", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("new PrintDialog", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator", source, StringComparison.Ordinal);
+        }
+
+        [Theory]
+        [InlineData("InventoryManagementApp", "ViewModels", "CustomerManagementViewModel.cs")]
+        [InlineData("InventoryManagementApp", "ViewModels", "KitManagementViewModel.cs")]
+        public void AdminDataViewModelPrintActionsUseDialogPreviewService(params string[] path)
+        {
+            var source = ReadRepoFile(path);
+
+            Assert.Contains("_dialogService.ShowPrintPreview(doc", source, StringComparison.Ordinal);
             Assert.DoesNotContain("WpfPrintDialog", source, StringComparison.Ordinal);
             Assert.DoesNotContain("new PrintDialog", source, StringComparison.Ordinal);
             Assert.DoesNotContain("PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator", source, StringComparison.Ordinal);
@@ -28,6 +41,18 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("ShowPrintPreview(document, \"Category Directory\")", source, StringComparison.Ordinal);
             Assert.Contains("ShowPrintPreview(document, $\"Category Sheet - {category.Name}\")", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void CustomerAndKitOutputsKeepDirectoryAndSelectedSheetPreviewRoutes()
+        {
+            var customerSource = ReadRepoFile("InventoryManagementApp", "ViewModels", "CustomerManagementViewModel.cs");
+            var kitSource = ReadRepoFile("InventoryManagementApp", "ViewModels", "KitManagementViewModel.cs");
+
+            Assert.Contains("_dialogService.ShowPrintPreview(doc, \"Customer Directory\"", customerSource, StringComparison.Ordinal);
+            Assert.Contains("CreateCustomerDocument($\"Customer Sheet - {ValueOrNotRecorded(customer.Company)}\")", customerSource, StringComparison.Ordinal);
+            Assert.Contains("_dialogService.ShowPrintPreview(doc, \"Kit Directory\"", kitSource, StringComparison.Ordinal);
+            Assert.Contains("CreateKitDocument($\"Kit Pick Sheet - {ValueOrNotRecorded(kit.Name)}\")", kitSource, StringComparison.Ordinal);
         }
 
         private static string ReadRepoFile(params string[] parts)
