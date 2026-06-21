@@ -27,12 +27,12 @@
     <Border Style="{StaticResource DesktopContentPane}">
         <DockPanel>
             <Border DockPanel.Dock="Top" Style="{StaticResource DesktopSectionActionStrip}">
-                <DockPanel LastChildFill="False">
-                    <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                <StackPanel>
+                    <StackPanel>
                         <TextBlock Text="App Theme Designer" Style="{StaticResource SubheadingTextBlock}"/>
                         <TextBlock Text="Redesign the full app shell with colors, backgrounds, transparency, border width, divider strength, corners, spacing, typography, disabled states, table density, focus rings, interaction feedback, shadow color/direction, separate surface/control shadow strength, and portable theme profiles." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                     </StackPanel>
-                    <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <WrapPanel HorizontalAlignment="Left" Margin="0,10,0,0">
                         <Button Style="{StaticResource GhostButton}" Content="Import" Command="{Binding ImportThemeProfileCommand}" Margin="0,0,4,4"/>
                         <Button Style="{StaticResource GhostButton}" Content="Export" Command="{Binding ExportThemeProfileCommand}" Margin="0,0,4,4"/>
                         <Button Style="{StaticResource GhostButton}" Content="Glass" Command="{Binding GlassPresetCommand}" Margin="0,0,4,4"/>
@@ -43,7 +43,7 @@
                         <Button Style="{StaticResource GhostButton}" Content="Reset" Command="{Binding ResetCommand}" Margin="0,0,4,4"/>
                         <Button Style="{StaticResource PrimaryButton}" Content="Save Theme" Command="{Binding SaveCommand}" Margin="0,0,0,4"/>
                     </WrapPanel>
-                </DockPanel>
+                </StackPanel>
             </Border>
 
             <ScrollViewer VerticalScrollBarVisibility="Auto">

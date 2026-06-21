@@ -82,7 +82,7 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ThemeDesignerControl.xaml");
 
-            Assert.Contains("<WrapPanel DockPanel.Dock=\"Right\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<WrapPanel HorizontalAlignment=\"Left\" Margin=\"0,10,0,0\">", xaml, StringComparison.Ordinal);
             Assert.Contains("TransparentCanvasPresetCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("DeepShadowPresetCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("Transparent Canvas", xaml, StringComparison.Ordinal);
