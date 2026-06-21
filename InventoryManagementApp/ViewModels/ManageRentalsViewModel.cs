@@ -561,7 +561,8 @@ namespace InventoryManagementApp.ViewModels
                 var updated = await _reservationService.ConfirmReservationAsync(requestId);
                 if (!updated)
                 {
-                    await _dialogService.ShowInfoAsync("The selected request could not be confirmed. It may have been removed or changed by another user.", "Confirm Request");
+                    await LoadPendingRequestsAsync();
+                    await _dialogService.ShowInfoAsync("The selected request could not be confirmed. It may have been removed or changed by another user. The open request queue has been refreshed.", "Confirm Request");
                     return;
                 }
 
@@ -595,7 +596,8 @@ namespace InventoryManagementApp.ViewModels
                 var updated = await _reservationService.CancelReservationAsync(request.ReservationID);
                 if (!updated)
                 {
-                    await _dialogService.ShowInfoAsync("The selected request could not be cancelled. It may have been removed or changed by another user.", "Cancel Request");
+                    await LoadPendingRequestsAsync();
+                    await _dialogService.ShowInfoAsync("The selected request could not be cancelled. It may have been removed or changed by another user. The open request queue has been refreshed.", "Cancel Request");
                     return;
                 }
 

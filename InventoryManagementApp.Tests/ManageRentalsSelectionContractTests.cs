@@ -34,6 +34,18 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void RequestConflictResponsesRefreshOpenRequestQueue()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
+
+            Assert.Contains("var updated = await _reservationService.ConfirmReservationAsync(requestId);", source, StringComparison.Ordinal);
+            Assert.Contains("var updated = await _reservationService.CancelReservationAsync(request.ReservationID);", source, StringComparison.Ordinal);
+            Assert.Equal(5, CountOccurrences(source, "await LoadPendingRequestsAsync();"));
+            Assert.Contains("The selected request could not be confirmed. It may have been removed or changed by another user. The open request queue has been refreshed.", source, StringComparison.Ordinal);
+            Assert.Contains("The selected request could not be cancelled. It may have been removed or changed by another user. The open request queue has been refreshed.", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void RentalGridRightClickSelectionUsesSharedSafeTreeTraversal()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml.cs");
