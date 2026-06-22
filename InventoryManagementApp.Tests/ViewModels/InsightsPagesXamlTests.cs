@@ -94,6 +94,20 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void ActivityLogsSelectedRowActions_UseGridOrViewModelSelectedLog()
+        {
+            var pageCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs");
+
+            Assert.Contains("private ActivityLog? GetSelectedActivityLogForAction()", pageCode, StringComparison.Ordinal);
+            Assert.Contains("if (ActivityGrid.SelectedItem is ActivityLog gridLog)", pageCode, StringComparison.Ordinal);
+            Assert.Contains("return DataContext is ActivityLogsViewModel vm", pageCode, StringComparison.Ordinal);
+            Assert.Contains("? vm.SelectedLog", pageCode, StringComparison.Ordinal);
+            Assert.Contains("var log = GetSelectedActivityLogForAction();", pageCode, StringComparison.Ordinal);
+            Assert.Contains("switch (ActivityLogsViewModel.BuildDestinationKey(log.Action))", pageCode, StringComparison.Ordinal);
+            Assert.DoesNotContain("ActivityGrid.SelectedItem is not ActivityLog log", pageCode, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ReportsGenerationFailure_ClearsRowsSelectionAndKeepsFailureStatus()
         {
             var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ReportsViewModel.cs");
