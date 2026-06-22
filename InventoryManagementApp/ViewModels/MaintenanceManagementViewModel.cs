@@ -189,7 +189,8 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync("Error loading maintenance records", ex.Message);
+                ClearMaintenanceStateAfterLoadFailure();
+                await _dialogService.ShowErrorAsync("Error loading maintenance records", $"{ex.Message} Maintenance rows were cleared until reload succeeds.");
             }
         }
 
@@ -321,6 +322,14 @@ namespace InventoryManagementApp.ViewModels
             SearchText = string.Empty;
             SelectedFilter = "All";
             ApplyFilter();
+        }
+
+        private void ClearMaintenanceStateAfterLoadFailure()
+        {
+            MaintenanceRecords.Clear();
+            FilteredMaintenanceRecords.Clear();
+            SelectedRecord = null;
+            NotifyCommandStatesAndSummaries();
         }
 
         private void ApplyFilter(int? preferredMaintenanceId = null)
