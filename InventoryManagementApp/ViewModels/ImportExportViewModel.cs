@@ -195,6 +195,12 @@ namespace InventoryManagementApp.ViewModels
             ClearImportExportLogsCommand.NotifyCanExecuteChanged();
         }
 
+        async Task CancelFileSelectionAsync(string message, string title)
+        {
+            AddLog(message);
+            await _dialogService.ShowInfoAsync(message, title);
+        }
+
         async Task ImportItemsAsync(CancellationToken cancellationToken)
         {
             // Build combined file filter for all supported formats
@@ -205,7 +211,12 @@ namespace InventoryManagementApp.ViewModels
             var combinedFilter = string.Join("|", filters) + "|All Files|*.*";
             
             var path = _fileDialogService.OpenFile(combinedFilter, AppContext.BaseDirectory);
-            if (string.IsNullOrWhiteSpace(path)) return;
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                var plural = LabelProvider.Instance.ItemLabelPlural;
+                await CancelFileSelectionAsync($"{plural} import file selection was cancelled.", $"Import {plural}");
+                return;
+            }
             
             try
             {
@@ -293,7 +304,12 @@ namespace InventoryManagementApp.ViewModels
             var combinedFilter = string.Join("|", filters);
             
             var path = _fileDialogService.SaveFile(combinedFilter);
-            if (string.IsNullOrWhiteSpace(path)) return;
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                var plural = LabelProvider.Instance.ItemLabelPlural;
+                await CancelFileSelectionAsync($"{plural} export destination selection was cancelled.", $"Export {plural}");
+                return;
+            }
             
             try
             {
@@ -342,7 +358,11 @@ namespace InventoryManagementApp.ViewModels
             var combinedFilter = string.Join("|", filters) + "|All Files|*.*";
             
             var path = _fileDialogService.OpenFile(combinedFilter, AppContext.BaseDirectory);
-            if (string.IsNullOrWhiteSpace(path)) return;
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                await CancelFileSelectionAsync("Customer import file selection was cancelled.", "Import Customers");
+                return;
+            }
             
             try
             {
@@ -410,7 +430,11 @@ namespace InventoryManagementApp.ViewModels
             var combinedFilter = string.Join("|", filters);
             
             var path = _fileDialogService.SaveFile(combinedFilter);
-            if (string.IsNullOrWhiteSpace(path)) return;
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                await CancelFileSelectionAsync("Customer export destination selection was cancelled.", "Export Customers");
+                return;
+            }
             
             try
             {
@@ -460,7 +484,11 @@ namespace InventoryManagementApp.ViewModels
                 ? null
                 : await _rentalConfigService.GetBackupDirectoryAsync(cancellationToken).ConfigureAwait(false);
             var path = _fileDialogService.SaveFile("SQLite Database|*.db", initialDirectory);
-            if (string.IsNullOrWhiteSpace(path)) return;
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                await CancelFileSelectionAsync("Database backup destination selection was cancelled.", "Database Backup");
+                return;
+            }
             try
             {
                 await _databaseService.BackupDatabaseAsync(path, cancellationToken);
