@@ -79,26 +79,18 @@ namespace InventoryManagementApp.Views.Pages
                 : string.Empty;
         }
 
-        private void PrintSelectedLog_Click(object sender, RoutedEventArgs e)
-        {
-            UiActionGuard.Run(this, "Import / Export", () =>
-            {
-                var log = GetSelectedLogForAction();
-                if (string.IsNullOrWhiteSpace(log))
-                {
-                    WpfMessageBox.Show("Select an import/export log row first.", "Import / Export", MessageBoxButton.OK, MessageBoxImage.Information);
-                    return;
-                }
-
-                var document = BuildPrintDocument(new[] { log }, "Selected import/export operation result.", "Import / Export Selected Result");
-                new PrintPreviewWindow().ShowPreview(document, "Import / Export Selected Result", null);
-            });
-        }
-
         private void PrintLogs_Click(object sender, RoutedEventArgs e)
         {
             UiActionGuard.Run(this, "Import / Export", () =>
             {
+                var selectedLog = GetSelectedLogForAction();
+                if (!string.IsNullOrWhiteSpace(selectedLog))
+                {
+                    var selectedDocument = BuildPrintDocument(new[] { selectedLog }, "Selected import/export operation result.", "Import / Export Selected Result");
+                    new PrintPreviewWindow().ShowPreview(selectedDocument, "Import / Export Selected Result", null);
+                    return;
+                }
+
                 if (DataContext is not ImportExportViewModel vm || vm.ImportExportLogs.Count == 0)
                 {
                     WpfMessageBox.Show("There are no import/export log rows to print.", "Import / Export", MessageBoxButton.OK, MessageBoxImage.Information);
