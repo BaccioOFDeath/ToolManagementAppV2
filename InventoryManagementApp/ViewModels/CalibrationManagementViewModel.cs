@@ -179,7 +179,8 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync("Error loading calibration records", ex.Message);
+                ClearCalibrationStateAfterLoadFailure();
+                await _dialogService.ShowErrorAsync("Error loading calibration records", $"{ex.Message} Calibration rows were cleared until reload succeeds.");
             }
         }
 
@@ -280,6 +281,14 @@ namespace InventoryManagementApp.ViewModels
             SearchText = string.Empty;
             SelectedFilter = "All";
             ApplyFilter();
+        }
+
+        private void ClearCalibrationStateAfterLoadFailure()
+        {
+            CalibrationRecords.Clear();
+            FilteredCalibrationRecords.Clear();
+            SelectedRecord = null;
+            NotifyCommandStatesAndSummaries();
         }
 
         private void ApplyFilter(int? preferredCalibrationId = null)
@@ -458,6 +467,18 @@ namespace InventoryManagementApp.ViewModels
         }
 
         private bool CanEditOrDelete() => SelectedRecord != null;
+
+        private void NotifyCommandStatesAndSummaries()
+        {
+            EditCalibrationCommand.NotifyCanExecuteChanged();
+            DeleteCalibrationCommand.NotifyCanExecuteChanged();
+            OpenCalibrationDetailsCommand.NotifyCanExecuteChanged();
+            PrintSelectedCalibrationCommand.NotifyCanExecuteChanged();
+            CopySelectedCalibrationCommand.NotifyCanExecuteChanged();
+            OnSelectedRecordSummariesChanged();
+            OnPropertyChanged(nameof(CalibrationBacklogSummary));
+            OnPropertyChanged(nameof(CalibrationResultsSummary));
+        }
 
         private void OnSelectedRecordSummariesChanged()
         {
