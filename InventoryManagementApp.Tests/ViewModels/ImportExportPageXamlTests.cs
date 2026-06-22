@@ -64,6 +64,18 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("await _dialogService.ShowInfoAsync(message, \"Database Backup\");", source, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void ImportExportViewModel_ShowsVisibleFeedbackForItemImportFailures()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
+
+            Assert.Contains("var errorMessage = $\"Mapping for {singular} number is required.\";", source, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(errorMessage, $\"Import {plural}\");", source, StringComparison.Ordinal);
+            Assert.Contains("var errorMessage = $\"No importer found for file type: {extension}\";", source, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync($\"{plural} import was cancelled.\", $\"Import {plural}\");", source, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync($\"Failed to import {plural} from {path}: {ex.Message}\", $\"Import {plural}\");", source, StringComparison.Ordinal);
+        }
+
         static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);
