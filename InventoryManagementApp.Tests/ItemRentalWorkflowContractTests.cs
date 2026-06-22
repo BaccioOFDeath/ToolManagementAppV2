@@ -65,6 +65,27 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ItemLoadAndSearchFailuresClearStaleVisibleRows()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemManagementViewModel.cs");
+
+            Assert.Contains("private void ClearItemStateAfterLoadFailure()", source, StringComparison.Ordinal);
+            Assert.Contains("Items.Clear();", source, StringComparison.Ordinal);
+            Assert.Contains("SearchResults.Clear();", source, StringComparison.Ordinal);
+            Assert.Contains("CheckedOutItems.Clear();", source, StringComparison.Ordinal);
+            Assert.Contains("Categories.ReplaceRange(new[] { \"All\" });", source, StringComparison.Ordinal);
+            Assert.Contains("_selectedCategory = \"All\";", source, StringComparison.Ordinal);
+            Assert.Contains("SelectedItem = null;", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(SearchResultsSummary));", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(CheckedOutSummary));", source, StringComparison.Ordinal);
+            Assert.Equal(2, CountOccurrences(source, "ClearItemStateAfterLoadFailure();"));
+            Assert.Contains("_logger.LogError(ex, \"Failed to load item directory\");", source, StringComparison.Ordinal);
+            Assert.Contains("_logger.LogError(ex, \"Failed to search item directory\");", source, StringComparison.Ordinal);
+            Assert.Contains("Failed to load {LabelProvider.Instance.ItemLabelPlural.ToLower()}: {ex.Message} Visible item rows were cleared until reload succeeds.", source, StringComparison.Ordinal);
+            Assert.Contains("Failed to search {LabelProvider.Instance.ItemLabelPlural.ToLower()}: {ex.Message} Visible item rows were cleared until reload succeeds.", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void RentalHistoryLoadFailureShowsOperatorFeedback()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemManagementViewModel.cs");

@@ -280,6 +280,12 @@ namespace InventoryManagementApp.ViewModels
                 LoadCategories(Items);
                 await RefreshCheckedOutItemsAsync(CancellationToken.None);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load item directory");
+                ClearItemStateAfterLoadFailure();
+                await _dialogService.ShowInfoAsync($"Failed to load {LabelProvider.Instance.ItemLabelPlural.ToLower()}: {ex.Message} Visible item rows were cleared until reload succeeds.", "Error");
+            }
             finally
             {
                 _suppressItemsChanged = false;
@@ -321,6 +327,13 @@ namespace InventoryManagementApp.ViewModels
             catch (OperationCanceledException ex)
             {
                 _logger.LogDebug(ex, "Item search cancelled");
+                return;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to search item directory");
+                ClearItemStateAfterLoadFailure();
+                await _dialogService.ShowInfoAsync($"Failed to search {LabelProvider.Instance.ItemLabelPlural.ToLower()}: {ex.Message} Visible item rows were cleared until reload succeeds.", "Error");
                 return;
             }
 
@@ -786,6 +799,27 @@ namespace InventoryManagementApp.ViewModels
             target.MissingComponentsNotes = source.MissingComponentsNotes;
             target.IssuesNotes = source.IssuesNotes;
             target.CheckoutCount = source.CheckoutCount;
+        }
+
+        private void ClearItemStateAfterLoadFailure()
+        {
+            _suppressItemsChanged = true;
+            try
+            {
+                Items.Clear();
+                SearchResults.Clear();
+                CheckedOutItems.Clear();
+                Categories.ReplaceRange(new[] { "All" });
+                _selectedCategory = "All";
+                OnPropertyChanged(nameof(SelectedCategory));
+                SelectedItem = null;
+                OnPropertyChanged(nameof(SearchResultsSummary));
+                OnPropertyChanged(nameof(CheckedOutSummary));
+            }
+            finally
+            {
+                _suppressItemsChanged = false;
+            }
         }
 
         void LoadCategories(IEnumerable<ItemModel> items, bool suppressSearch = false)
