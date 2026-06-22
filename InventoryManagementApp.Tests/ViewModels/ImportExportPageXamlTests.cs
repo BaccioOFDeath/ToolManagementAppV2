@@ -57,6 +57,25 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void ImportExportLogPrint_PrefersSelectedResultBeforeWholeSessionLog()
+        {
+            var pageCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml.cs");
+            var printMethod = ExtractMethodBody(pageCode, "private void PrintLogs_Click", "private static FlowDocument BuildPrintDocument");
+
+            Assert.Contains("var selectedLog = GetSelectedLogForAction();", printMethod, StringComparison.Ordinal);
+            Assert.Contains("if (!string.IsNullOrWhiteSpace(selectedLog))", printMethod, StringComparison.Ordinal);
+            Assert.Contains("BuildPrintDocument(new[] { selectedLog }, \"Selected import/export operation result.\", \"Import / Export Selected Result\")", printMethod, StringComparison.Ordinal);
+            Assert.Contains("ShowPreview(selectedDocument, \"Import / Export Selected Result\", null);", printMethod, StringComparison.Ordinal);
+            Assert.Contains("return;", printMethod, StringComparison.Ordinal);
+            Assert.Contains("DataContext is not ImportExportViewModel vm || vm.ImportExportLogs.Count == 0", printMethod, StringComparison.Ordinal);
+            Assert.Contains("BuildPrintDocument(vm.ImportExportLogs.ToList(), vm.LogSummary)", printMethod, StringComparison.Ordinal);
+            Assert.True(
+                printMethod.IndexOf("var selectedLog = GetSelectedLogForAction();", StringComparison.Ordinal) <
+                printMethod.IndexOf("DataContext is not ImportExportViewModel vm", StringComparison.Ordinal),
+                "Selected result printing should be resolved before falling back to the whole session log.");
+        }
+
+        [Fact]
         public void ImportExportViewModel_ShowsVisibleFeedbackForFailedDataOperations()
         {
             var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
