@@ -51,7 +51,7 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Reports", () =>
             {
-                if (DataContext is not ReportsViewModel vm || vm.ReportLines.Count == 0)
+                if (DataContext is not ReportsViewModel vm || !vm.CanPrintCurrentReport)
                 {
                     WpfMessageBox.Show("Run a report before printing.", "Reports", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
