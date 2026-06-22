@@ -94,6 +94,25 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void ReportsGenerationFailure_ClearsRowsSelectionAndKeepsFailureStatus()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ReportsViewModel.cs");
+
+            Assert.Contains("catch (Exception ex)", source, StringComparison.Ordinal);
+            Assert.Contains("ReportLines.Clear();", source, StringComparison.Ordinal);
+            Assert.Contains("SelectedReportLine = null;", source, StringComparison.Ordinal);
+            Assert.Contains("ReportTitle = SelectedReport;", source, StringComparison.Ordinal);
+            Assert.Contains("ReportSubtitle = \"The report could not be generated.\";", source, StringComparison.Ordinal);
+            Assert.Contains("ReportSummary = ex.Message;", source, StringComparison.Ordinal);
+            Assert.Contains("ReportStatus = \"Report failed.\";", source, StringComparison.Ordinal);
+            Assert.Contains("LastRunAt = DateTime.Now;", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(ReportLineCount));", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(ReportOperatorPath));", source, StringComparison.Ordinal);
+            Assert.Contains("ClearReportCommand.NotifyCanExecuteChanged();", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("catch (Exception ex)\n            {\n                LoadReport(null);", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void InsightPrintActions_RouteThroughSharedPrintPreview()
         {
             var reportsCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs");
