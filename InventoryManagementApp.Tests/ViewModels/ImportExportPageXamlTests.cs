@@ -92,6 +92,8 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
 
+            Assert.Contains("var message = $\"{plural} import mapping was cancelled.\";", source, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(message, $\"Import {plural}\");", source, StringComparison.Ordinal);
             Assert.Contains("var errorMessage = $\"Mapping for {singular} number is required.\";", source, StringComparison.Ordinal);
             Assert.Contains("await _dialogService.ShowInfoAsync(errorMessage, $\"Import {plural}\");", source, StringComparison.Ordinal);
             Assert.Contains("var errorMessage = $\"No importer found for file type: {extension}\";", source, StringComparison.Ordinal);
@@ -105,6 +107,8 @@ namespace InventoryManagementApp.Tests.ViewModels
             var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
             var method = ExtractMethodBody(source, "async Task ImportCustomersAsync", "async Task ExportCustomersAsync");
 
+            Assert.Contains("const string message = \"Customer import mapping was cancelled.\";", method, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(message, \"Import Customers\");", method, StringComparison.Ordinal);
             Assert.Contains("var errorMessage = $\"No importer found for file type: {extension}\";", method, StringComparison.Ordinal);
             Assert.Contains("await _dialogService.ShowInfoAsync(errorMessage, \"Import Customers\");", method, StringComparison.Ordinal);
             Assert.Contains("const string message = \"Customer import was cancelled.\";", method, StringComparison.Ordinal);
