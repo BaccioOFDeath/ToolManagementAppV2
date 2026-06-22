@@ -98,12 +98,16 @@ namespace InventoryManagementApp.ViewModels
             set
             {
                 if (SetProperty(ref _lastRunAt, value))
+                {
                     OnPropertyChanged(nameof(LastRunText));
+                    OnPropertyChanged(nameof(CanPrintCurrentReport));
+                }
             }
         }
 
         public string LastRunText => LastRunAt.HasValue ? LastRunAt.Value.ToString("g") : "Not run";
         public int ReportLineCount => ReportLines.Count;
+        public bool CanPrintCurrentReport => LastRunAt.HasValue && ReportLines.Count > 0 && !string.Equals(ReportStatus, "Report failed.", StringComparison.Ordinal);
         public string ReportOperatorPath => string.IsNullOrWhiteSpace(SelectedReport)
             ? "Choose a report, run it, then open the source page from any row that needs follow-up."
             : $"Run {SelectedReport}, select a row, then open {BuildDestinationName(SelectedReport, SelectedReportLine?.Category)} to continue the workflow.";
@@ -195,6 +199,7 @@ namespace InventoryManagementApp.ViewModels
                 ReportStatus = "Report failed.";
                 LastRunAt = DateTime.Now;
                 OnPropertyChanged(nameof(ReportLineCount));
+                OnPropertyChanged(nameof(CanPrintCurrentReport));
                 OnPropertyChanged(nameof(ReportOperatorPath));
                 ClearReportCommand.NotifyCanExecuteChanged();
             }
@@ -239,6 +244,7 @@ namespace InventoryManagementApp.ViewModels
             if (ReportLines.Count > 0)
                 SelectedReportLine = ReportLines[0];
             OnPropertyChanged(nameof(ReportLineCount));
+            OnPropertyChanged(nameof(CanPrintCurrentReport));
             OnPropertyChanged(nameof(ReportOperatorPath));
             ClearReportCommand.NotifyCanExecuteChanged();
         }
@@ -256,6 +262,7 @@ namespace InventoryManagementApp.ViewModels
                 : $"Run {reportName} to refresh report rows.";
             LastRunAt = null;
             OnPropertyChanged(nameof(ReportLineCount));
+            OnPropertyChanged(nameof(CanPrintCurrentReport));
             OnPropertyChanged(nameof(ReportOperatorPath));
             ClearReportCommand.NotifyCanExecuteChanged();
         }
@@ -270,6 +277,7 @@ namespace InventoryManagementApp.ViewModels
             ReportStatus = "Report cleared.";
             LastRunAt = null;
             OnPropertyChanged(nameof(ReportLineCount));
+            OnPropertyChanged(nameof(CanPrintCurrentReport));
             OnPropertyChanged(nameof(ReportOperatorPath));
             ClearReportCommand.NotifyCanExecuteChanged();
         }

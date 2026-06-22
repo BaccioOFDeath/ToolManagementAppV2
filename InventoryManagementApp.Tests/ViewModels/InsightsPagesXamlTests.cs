@@ -132,6 +132,18 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void ReportsPrintAction_RequiresCompletedFreshReportOutput()
+        {
+            var viewModel = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ReportsViewModel.cs");
+            var pageCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs");
+
+            Assert.Contains("public bool CanPrintCurrentReport => LastRunAt.HasValue && ReportLines.Count > 0 && !string.Equals(ReportStatus, \"Report failed.\", StringComparison.Ordinal);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(CanPrintCurrentReport));", viewModel, StringComparison.Ordinal);
+            Assert.Contains("if (DataContext is not ReportsViewModel vm || !vm.CanPrintCurrentReport)", pageCode, StringComparison.Ordinal);
+            Assert.DoesNotContain("if (DataContext is not ReportsViewModel vm || vm.ReportLines.Count == 0)", pageCode, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void InsightPrintActions_RouteThroughSharedPrintPreview()
         {
             var reportsCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs");
