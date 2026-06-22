@@ -16,6 +16,35 @@ namespace InventoryManagementApp.Tests
     public class UserManagementViewModelTests
     {
         [Fact]
+        public async Task LoadUsersAsync_WhenReloadFails_ClearsStaleRowsAndSelection()
+        {
+            var user = new UserModel { UserID = 4, UserName = "workshop4", Role = "Advisor" };
+            var service = new StubUserService();
+            service.Users.Add(user);
+            var dialog = new StubDialogService();
+            var vm = new UserManagementViewModel(service, new StubFileDialogService(), dialog);
+
+            await vm.LoadUsersAsync();
+            vm.SelectedUser = user;
+            Assert.Single(vm.Users);
+            Assert.True(vm.UpdateUserCommand.CanExecute(null));
+            Assert.True(vm.EditUserCommand.CanExecute(null));
+
+            service.ThrowOnGetAllUsers = true;
+            await vm.LoadUsersAsync();
+
+            Assert.Empty(vm.Users);
+            Assert.Null(vm.SelectedUser);
+            Assert.False(vm.UpdateUserCommand.CanExecute(null));
+            Assert.False(vm.EditUserCommand.CanExecute(null));
+            Assert.Equal("Error", dialog.LastTitle);
+            Assert.Contains("User rows were cleared until refresh succeeds", dialog.LastMessage);
+
+            vm.ClearUserSearchCommand.Execute(null);
+            Assert.Empty(vm.Users);
+        }
+
+        [Fact]
         public async Task ResetPasswordFromRowCommand_WhenPasswordChangeFails_ShowsErrorAndDoesNotMarkExpired()
         {
             var user = new UserModel { UserID = 7, UserName = "workshop7", PasswordExpired = false };
@@ -55,10 +84,16 @@ namespace InventoryManagementApp.Tests
         {
             public List<UserModel> Users { get; } = new();
             public bool ChangePasswordResult { get; set; } = true;
+            public bool ThrowOnGetAllUsers { get; set; }
             public int UpdateCallCount { get; private set; }
 
             public Task<List<UserModel>> GetAllUsersAsync(CancellationToken cancellationToken = default)
-                => Task.FromResult(Users.ToList());
+            {
+                if (ThrowOnGetAllUsers)
+                    throw new InvalidOperationException("Users are offline");
+
+                return Task.FromResult(Users.ToList());
+            }
 
             public Task<int> CountUsersAsync(CancellationToken cancellationToken = default)
                 => Task.FromResult(Users.Count);

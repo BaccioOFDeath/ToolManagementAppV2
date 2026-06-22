@@ -111,8 +111,18 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load users");
-                await _dialogService.ShowInfoAsync($"Failed to load users: {ex.Message}", "Error");
+                ClearUsersAfterLoadFailure();
+                await _dialogService.ShowInfoAsync($"Failed to load users: {ex.Message}. User rows were cleared until refresh succeeds.", "Error");
             }
+        }
+
+        private void ClearUsersAfterLoadFailure()
+        {
+            _allUsers.Clear();
+            Users.Clear();
+            SelectedUser = null;
+            ((AsyncRelayCommand)UpdateUserCommand).NotifyCanExecuteChanged();
+            ((AsyncRelayCommand)EditUserCommand).NotifyCanExecuteChanged();
         }
 
         static string GetInitials(string? name)
