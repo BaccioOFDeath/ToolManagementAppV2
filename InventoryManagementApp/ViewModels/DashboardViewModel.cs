@@ -282,6 +282,7 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load dashboard statistics");
+                ClearDashboardStatsAfterLoadFailure();
             }
         }
 
@@ -294,10 +295,12 @@ namespace InventoryManagementApp.ViewModels
                 if (!result.Success || result.Value == null)
                 {
                     _logger.LogError("Failed to load recent activity: {Error}", result.ErrorMessage);
+                    ClearRecentActivityAfterLoadFailure();
                     return;
                 }
                 foreach (var log in result.Value)
                     RecentActivity.Add(log);
+                ClearActivitySelectionIfMissing();
                 OnPropertyChanged(nameof(OperationsSummary));
             }
             catch (OperationCanceledException)
@@ -306,6 +309,7 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load recent activity");
+                ClearRecentActivityAfterLoadFailure();
             }
         }
 
@@ -326,6 +330,7 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load checked-out items");
+                ClearCheckedOutItemsAfterLoadFailure();
             }
         }
 
@@ -347,6 +352,7 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load rented items");
+                ClearRentedItemsAfterLoadFailure();
             }
         }
 
@@ -522,6 +528,7 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load commonly used items");
+                ClearCommonlyUsedItemsAfterLoadFailure();
             }
         }
 
@@ -542,6 +549,7 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load incomplete items");
+                ClearIncompleteItemsAfterLoadFailure();
             }
         }
 
@@ -673,6 +681,51 @@ namespace InventoryManagementApp.ViewModels
         {
             if (SelectedRental != null && RentedItems.All(rental => rental.RentalID != SelectedRental.RentalID))
                 SelectedRental = null;
+        }
+
+        private void ClearActivitySelectionIfMissing()
+        {
+            if (SelectedActivity != null && RecentActivity.All(log => log.LogID != SelectedActivity.LogID))
+                SelectedActivity = null;
+        }
+
+        private void ClearDashboardStatsAfterLoadFailure()
+        {
+            StatCards.Clear();
+        }
+
+        private void ClearRecentActivityAfterLoadFailure()
+        {
+            RecentActivity.Clear();
+            SelectedActivity = null;
+            OnPropertyChanged(nameof(OperationsSummary));
+        }
+
+        private void ClearCheckedOutItemsAfterLoadFailure()
+        {
+            CheckedOutItems.Clear();
+            SelectedCheckedOutItem = null;
+            OnPropertyChanged(nameof(OperationsSummary));
+        }
+
+        private void ClearRentedItemsAfterLoadFailure()
+        {
+            RentedItems.Clear();
+            SelectedRental = null;
+            OnPropertyChanged(nameof(OperationsSummary));
+        }
+
+        private void ClearCommonlyUsedItemsAfterLoadFailure()
+        {
+            CommonlyUsedItems.Clear();
+            SelectedCommonlyUsedItem = null;
+        }
+
+        private void ClearIncompleteItemsAfterLoadFailure()
+        {
+            IncompleteItems.Clear();
+            SelectedIncompleteItem = null;
+            OnPropertyChanged(nameof(OperationsSummary));
         }
 
         private static string DescribeItem(string prefix, ItemModel item)
