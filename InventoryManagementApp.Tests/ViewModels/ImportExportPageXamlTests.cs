@@ -65,6 +65,32 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void ImportExportViewModel_ShowsVisibleFeedbackForFileDialogCancellations()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
+
+            Assert.Contains("async Task CancelFileSelectionAsync(string message, string title)", source, StringComparison.Ordinal);
+            Assert.Contains("AddLog(message);", source, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(message, title);", source, StringComparison.Ordinal);
+
+            var itemImport = ExtractMethodBody(source, "async Task ImportItemsAsync", "async Task ExportItemsAsync");
+            Assert.Contains("if (string.IsNullOrWhiteSpace(path))", itemImport, StringComparison.Ordinal);
+            Assert.Contains("await CancelFileSelectionAsync($\"{plural} import file selection was cancelled.\", $\"Import {plural}\");", itemImport, StringComparison.Ordinal);
+
+            var itemExport = ExtractMethodBody(source, "async Task ExportItemsAsync", "async Task ImportCustomersAsync");
+            Assert.Contains("await CancelFileSelectionAsync($\"{plural} export destination selection was cancelled.\", $\"Export {plural}\");", itemExport, StringComparison.Ordinal);
+
+            var customerImport = ExtractMethodBody(source, "async Task ImportCustomersAsync", "async Task ExportCustomersAsync");
+            Assert.Contains("await CancelFileSelectionAsync(\"Customer import file selection was cancelled.\", \"Import Customers\");", customerImport, StringComparison.Ordinal);
+
+            var customerExport = ExtractMethodBody(source, "async Task ExportCustomersAsync", "async Task BackupDatabaseAsync");
+            Assert.Contains("await CancelFileSelectionAsync(\"Customer export destination selection was cancelled.\", \"Export Customers\");", customerExport, StringComparison.Ordinal);
+
+            var backup = ExtractMethodBody(source, "async Task BackupDatabaseAsync", "    }\n}");
+            Assert.Contains("await CancelFileSelectionAsync(\"Database backup destination selection was cancelled.\", \"Database Backup\");", backup, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ImportExportViewModel_ShowsVisibleFeedbackForSuccessfulDataOperations()
         {
             var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
