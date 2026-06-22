@@ -111,6 +111,11 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
 
+            var itemImport = ExtractMethodBody(source, "async Task ImportItemsAsync", "async Task ExportItemsAsync");
+            Assert.Contains("var successMessage = $\"Successfully imported {plural} from {path}.\";", itemImport, StringComparison.Ordinal);
+            Assert.Contains("successMessage += $\" {skippedMessage}\";", itemImport, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(successMessage, $\"Import {plural}\");", itemImport, StringComparison.Ordinal);
+
             Assert.Contains("var successMessage = $\"Successfully exported {plural} to {path} ({exporter.FormatName} format).\";", source, StringComparison.Ordinal);
             Assert.Contains("await _dialogService.ShowInfoAsync(successMessage, $\"Export {plural}\");", source, StringComparison.Ordinal);
 
