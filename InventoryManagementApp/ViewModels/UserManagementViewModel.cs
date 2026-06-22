@@ -276,7 +276,6 @@ namespace InventoryManagementApp.ViewModels
 
             var newUser = new UserModel
             {
-                UserID = 0,
                 UserName = name,
                 Role = "Workshop Staff",
                 IsAdmin = false,
