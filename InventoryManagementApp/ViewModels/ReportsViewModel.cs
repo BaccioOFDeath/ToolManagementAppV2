@@ -30,6 +30,7 @@ namespace InventoryManagementApp.ViewModels
                     ReportStatus = string.IsNullOrWhiteSpace(value)
                         ? "Select a report to begin."
                         : $"Ready to run {value}.";
+                    ClearReportOutputForSelection(value);
                     RunReportCommand.NotifyCanExecuteChanged();
                 }
             }
@@ -237,6 +238,23 @@ namespace InventoryManagementApp.ViewModels
                 : $"{SelectedReport} completed with {ReportLines.Count} line(s). Select a row or open the source page.";
             if (ReportLines.Count > 0)
                 SelectedReportLine = ReportLines[0];
+            OnPropertyChanged(nameof(ReportLineCount));
+            OnPropertyChanged(nameof(ReportOperatorPath));
+            ClearReportCommand.NotifyCanExecuteChanged();
+        }
+
+        private void ClearReportOutputForSelection(string reportName)
+        {
+            ReportLines.Clear();
+            SelectedReportLine = null;
+            ReportTitle = string.IsNullOrWhiteSpace(reportName) ? "Reports" : reportName;
+            ReportSubtitle = string.IsNullOrWhiteSpace(reportName)
+                ? "Run operational reports for inventory, rentals, maintenance, reservations, and usage."
+                : BuildSubtitle(reportName);
+            ReportSummary = string.IsNullOrWhiteSpace(reportName)
+                ? "No report has been run yet."
+                : $"Run {reportName} to refresh report rows.";
+            LastRunAt = null;
             OnPropertyChanged(nameof(ReportLineCount));
             OnPropertyChanged(nameof(ReportOperatorPath));
             ClearReportCommand.NotifyCanExecuteChanged();
