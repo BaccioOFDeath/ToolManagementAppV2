@@ -225,7 +225,12 @@ namespace InventoryManagementApp.ViewModels
                         properties,
                         new[] { nameof(ItemImportDto.ItemNumber), nameof(ItemImportDto.Name) });
                     if (map == null)
+                    {
+                        var message = $"{plural} import mapping was cancelled.";
+                        AddLog(message);
+                        await _dialogService.ShowInfoAsync(message, $"Import {plural}");
                         return;
+                    }
                     
                     if (!map.TryGetValue(nameof(ItemImportDto.ItemNumber), out var itemNumberHeader) || string.IsNullOrWhiteSpace(itemNumberHeader))
                     {
@@ -350,7 +355,12 @@ namespace InventoryManagementApp.ViewModels
                     var properties = typeof(CustomerImportDto).GetProperties().Select(p => p.Name);
                     var map = _dialogService.ShowImportMapping(headers, properties);
                     if (map == null)
+                    {
+                        const string message = "Customer import mapping was cancelled.";
+                        AddLog(message);
+                        await _dialogService.ShowInfoAsync(message, "Import Customers");
                         return;
+                    }
                     var result = await _customerService.ImportCustomersFromCsvAsync(path, map, cancellationToken);
                     var successMessage = $"Successfully imported customers from {path}. Imported {result.ImportedCount} customers.";
                     AddLog(successMessage);
