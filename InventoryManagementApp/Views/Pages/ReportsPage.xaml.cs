@@ -37,7 +37,8 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Reports", () =>
             {
-                if (ReportGrid.SelectedItem is not ReportLine line)
+                var line = GetSelectedReportLineForAction();
+                if (line == null)
                 {
                     WpfMessageBox.Show("Select a report row first.", "Reports", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
@@ -67,12 +68,8 @@ namespace InventoryManagementApp.Views.Pages
 
         private void OpenSelectedDestination()
         {
-            var line = ReportGrid.SelectedItem as ReportLine;
-            var key = line?.DestinationKey;
-            if (string.IsNullOrWhiteSpace(key) && DataContext is ReportsViewModel vm)
-                key = vm.SelectedLineDestinationKey;
-
-            if (string.IsNullOrWhiteSpace(key))
+            var line = GetSelectedReportLineForAction();
+            if (line == null || string.IsNullOrWhiteSpace(line.DestinationKey))
             {
                 WpfMessageBox.Show("Run a report and select a row first.", "Reports", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
@@ -84,7 +81,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            switch (key)
+            switch (line.DestinationKey)
             {
                 case "ActivityLogs":
                     main.OpenActivityLogsCommand.Execute(null);
@@ -117,6 +114,16 @@ namespace InventoryManagementApp.Views.Pages
                     main.OpenDashboardCommand.Execute(null);
                     break;
             }
+        }
+
+        private ReportLine? GetSelectedReportLineForAction()
+        {
+            if (ReportGrid.SelectedItem is ReportLine gridLine)
+                return gridLine;
+
+            return DataContext is ReportsViewModel vm
+                ? vm.SelectedReportLine
+                : null;
         }
 
         private static string FormatHandoff(ReportLine line)
