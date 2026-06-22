@@ -44,6 +44,19 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void ImportExportLogActions_FallBackToViewModelSelectedLog()
+        {
+            var pageCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml.cs");
+
+            Assert.Contains("private string GetSelectedLogForAction()", pageCode, StringComparison.Ordinal);
+            Assert.Contains("if (ImportExportLogGrid.SelectedItem is string gridLog && !string.IsNullOrWhiteSpace(gridLog))", pageCode, StringComparison.Ordinal);
+            Assert.Contains("DataContext is ImportExportViewModel vm && !string.IsNullOrWhiteSpace(vm.SelectedImportExportLog)", pageCode, StringComparison.Ordinal);
+            Assert.Contains("? vm.SelectedImportExportLog", pageCode, StringComparison.Ordinal);
+            Assert.Contains("var log = GetSelectedLogForAction();", pageCode, StringComparison.Ordinal);
+            Assert.DoesNotContain("if (ImportExportLogGrid.SelectedItem is not string log || string.IsNullOrWhiteSpace(log))", pageCode, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ImportExportViewModel_ShowsVisibleFeedbackForFailedDataOperations()
         {
             var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
