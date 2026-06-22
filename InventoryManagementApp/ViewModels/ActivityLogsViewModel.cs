@@ -180,9 +180,8 @@ namespace InventoryManagementApp.ViewModels
                 var result = await _service.GetRecentLogsAsync();
                 if (!result.Success || result.Value == null)
                 {
-                    StatusMessage = "Activity logs could not be loaded.";
                     _logger.LogError("Failed to load activity logs: {Error}", result.ErrorMessage);
-                    ApplyFilters();
+                    ClearActivityLogRowsAfterLoadFailure("Activity logs could not be loaded. Activity rows were cleared until refresh succeeds.");
                     return false;
                 }
 
@@ -197,11 +196,23 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                StatusMessage = "Activity logs could not be loaded.";
                 _logger.LogError(ex, "Failed to load activity logs");
-                ApplyFilters();
+                ClearActivityLogRowsAfterLoadFailure("Activity logs could not be loaded. Activity rows were cleared until refresh succeeds.");
                 return false;
             }
+        }
+
+        private void ClearActivityLogRowsAfterLoadFailure(string message)
+        {
+            Logs.Clear();
+            FilteredLogs.Clear();
+            SelectedLog = null;
+            RebuildFilterLists();
+            OnPropertyChanged(nameof(TotalLogCount));
+            OnPropertyChanged(nameof(FilteredLogCount));
+            OnPropertyChanged(nameof(ActivitySummary));
+            ClearFiltersCommand.NotifyCanExecuteChanged();
+            StatusMessage = message;
         }
 
         private void ClearFilters()
