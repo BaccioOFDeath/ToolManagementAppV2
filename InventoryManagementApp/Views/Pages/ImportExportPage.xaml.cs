@@ -36,7 +36,8 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Import / Export", () =>
             {
-                if (ImportExportLogGrid.SelectedItem is not string log || string.IsNullOrWhiteSpace(log))
+                var log = GetSelectedLogForAction();
+                if (string.IsNullOrWhiteSpace(log))
                 {
                     WpfMessageBox.Show("Select an import/export log row first.", "Import / Export", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
@@ -57,7 +58,8 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Import / Export", () =>
             {
-                if (ImportExportLogGrid.SelectedItem is not string log || string.IsNullOrWhiteSpace(log))
+                var log = GetSelectedLogForAction();
+                if (string.IsNullOrWhiteSpace(log))
                 {
                     WpfMessageBox.Show("Select an import/export log row first.", "Import / Export", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
@@ -65,6 +67,16 @@ namespace InventoryManagementApp.Views.Pages
 
                 System.Windows.Clipboard.SetText(log);
             });
+        }
+
+        private string GetSelectedLogForAction()
+        {
+            if (ImportExportLogGrid.SelectedItem is string gridLog && !string.IsNullOrWhiteSpace(gridLog))
+                return gridLog;
+
+            return DataContext is ImportExportViewModel vm && !string.IsNullOrWhiteSpace(vm.SelectedImportExportLog)
+                ? vm.SelectedImportExportLog
+                : string.Empty;
         }
 
         private void PrintLogs_Click(object sender, RoutedEventArgs e)
