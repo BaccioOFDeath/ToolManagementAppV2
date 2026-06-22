@@ -65,6 +65,22 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void ImportExportViewModel_ShowsVisibleFeedbackForBackupStartupFailures()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
+            var backup = ExtractMethodBody(source, "async Task BackupDatabaseAsync", "    }\n}");
+
+            Assert.Contains("string? path = null;", backup, StringComparison.Ordinal);
+            Assert.Contains("var initialDirectory = _rentalConfigService == null", backup, StringComparison.Ordinal);
+            Assert.Contains("path = _fileDialogService.SaveFile(\"SQLite Database|*.db\", initialDirectory);", backup, StringComparison.Ordinal);
+            Assert.Contains("var failureMessage = string.IsNullOrWhiteSpace(path)", backup, StringComparison.Ordinal);
+            Assert.Contains("? $\"Failed to start database backup: {ex.Message}\"", backup, StringComparison.Ordinal);
+            Assert.Contains(": $\"Failed to backup database to {path}: {ex.Message}\";", backup, StringComparison.Ordinal);
+            Assert.Contains("AddLog(failureMessage);", backup, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(failureMessage, \"Database Backup\");", backup, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ImportExportViewModel_ShowsVisibleFeedbackForFileDialogCancellations()
         {
             var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
