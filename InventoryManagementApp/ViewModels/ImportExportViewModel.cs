@@ -480,17 +480,20 @@ namespace InventoryManagementApp.ViewModels
         /// <returns>A <see cref="Task"/> representing the asynchronous backup operation.</returns>
         async Task BackupDatabaseAsync(CancellationToken cancellationToken)
         {
-            var initialDirectory = _rentalConfigService == null
-                ? null
-                : await _rentalConfigService.GetBackupDirectoryAsync(cancellationToken).ConfigureAwait(false);
-            var path = _fileDialogService.SaveFile("SQLite Database|*.db", initialDirectory);
-            if (string.IsNullOrWhiteSpace(path))
-            {
-                await CancelFileSelectionAsync("Database backup destination selection was cancelled.", "Database Backup");
-                return;
-            }
+            string? path = null;
+
             try
             {
+                var initialDirectory = _rentalConfigService == null
+                    ? null
+                    : await _rentalConfigService.GetBackupDirectoryAsync(cancellationToken).ConfigureAwait(false);
+                path = _fileDialogService.SaveFile("SQLite Database|*.db", initialDirectory);
+                if (string.IsNullOrWhiteSpace(path))
+                {
+                    await CancelFileSelectionAsync("Database backup destination selection was cancelled.", "Database Backup");
+                    return;
+                }
+
                 await _databaseService.BackupDatabaseAsync(path, cancellationToken);
                 var successMessage = $"Successfully backed up database to {path}.";
                 AddLog(successMessage);
@@ -505,7 +508,9 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to backup database to {Path}", path);
-                var failureMessage = $"Failed to backup database to {path}: {ex.Message}";
+                var failureMessage = string.IsNullOrWhiteSpace(path)
+                    ? $"Failed to start database backup: {ex.Message}"
+                    : $"Failed to backup database to {path}: {ex.Message}";
                 AddLog(failureMessage);
                 await _dialogService.ShowInfoAsync(failureMessage, "Database Backup");
             }
