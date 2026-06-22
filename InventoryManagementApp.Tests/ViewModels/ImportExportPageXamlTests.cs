@@ -76,6 +76,20 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("await _dialogService.ShowInfoAsync($\"Failed to import {plural} from {path}: {ex.Message}\", $\"Import {plural}\");", source, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void ImportExportViewModel_ShowsVisibleFeedbackForCustomerImportFailures()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
+            var method = ExtractMethodBody(source, "async Task ImportCustomersAsync", "async Task ExportCustomersAsync");
+
+            Assert.Contains("var errorMessage = $\"No importer found for file type: {extension}\";", method, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(errorMessage, \"Import Customers\");", method, StringComparison.Ordinal);
+            Assert.Contains("const string message = \"Customer import was cancelled.\";", method, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(message, \"Import Customers\");", method, StringComparison.Ordinal);
+            Assert.Contains("var failureMessage = $\"Failed to import customers from {path}: {ex.Message}\";", method, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(failureMessage, \"Import Customers\");", method, StringComparison.Ordinal);
+        }
+
         static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -86,6 +100,17 @@ namespace InventoryManagementApp.Tests.ViewModels
             var path = Path.Combine(directory!.FullName, Path.Combine(relativePathParts));
             Assert.True(File.Exists(path), $"Expected repository file at {path}");
             return File.ReadAllText(path);
+        }
+
+        static string ExtractMethodBody(string source, string methodStart, string nextMethodStart)
+        {
+            var start = source.IndexOf(methodStart, StringComparison.Ordinal);
+            Assert.True(start >= 0, $"Expected to find method starting with {methodStart}");
+
+            var end = source.IndexOf(nextMethodStart, start, StringComparison.Ordinal);
+            Assert.True(end > start, $"Expected to find next method starting with {nextMethodStart}");
+
+            return source.Substring(start, end - start);
         }
     }
 }
