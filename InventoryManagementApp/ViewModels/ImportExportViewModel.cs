@@ -306,7 +306,9 @@ namespace InventoryManagementApp.ViewModels
                 }
                 
                 await _itemService.ExportItemsAsync(path, exporter, cancellationToken);
-                AddLog($"Successfully exported {plural} to {path} ({exporter.FormatName} format).");
+                var successMessage = $"Successfully exported {plural} to {path} ({exporter.FormatName} format).";
+                AddLog(successMessage);
+                await _dialogService.ShowInfoAsync(successMessage, $"Export {plural}");
             }
             catch (OperationCanceledException)
             {
@@ -350,9 +352,13 @@ namespace InventoryManagementApp.ViewModels
                     if (map == null)
                         return;
                     var result = await _customerService.ImportCustomersFromCsvAsync(path, map, cancellationToken);
-                    AddLog($"Successfully imported customers from {path}. Imported {result.ImportedCount} customers.");
+                    var successMessage = $"Successfully imported customers from {path}. Imported {result.ImportedCount} customers.";
+                    AddLog(successMessage);
+                    if (result.SkippedRows.Any())
+                        successMessage += $" {result.SkippedRows.Count} skipped row{(result.SkippedRows.Count == 1 ? "" : "s")} were recorded in the run log.";
                     foreach (var msg in result.SkippedRows)
                         AddLog($"Skipped {msg}");
+                    await _dialogService.ShowInfoAsync(successMessage, "Import Customers");
                 }
                 else
                 {
@@ -367,7 +373,9 @@ namespace InventoryManagementApp.ViewModels
                     }
                     
                     var importedCount = await _customerService.ImportCustomersAsync(path, importer, cancellationToken);
-                    AddLog($"Successfully imported {importedCount} customers from {path} ({importer.FormatName} format).");
+                    var successMessage = $"Successfully imported {importedCount} customers from {path} ({importer.FormatName} format).";
+                    AddLog(successMessage);
+                    await _dialogService.ShowInfoAsync(successMessage, "Import Customers");
                 }
             }
             catch (OperationCanceledException)
@@ -409,7 +417,9 @@ namespace InventoryManagementApp.ViewModels
                 }
                 
                 await _customerService.ExportCustomersAsync(path, exporter, cancellationToken);
-                AddLog($"Successfully exported customers to {path} ({exporter.FormatName} format).");
+                var successMessage = $"Successfully exported customers to {path} ({exporter.FormatName} format).";
+                AddLog(successMessage);
+                await _dialogService.ShowInfoAsync(successMessage, "Export Customers");
             }
             catch (OperationCanceledException)
             {
@@ -444,7 +454,9 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 await _databaseService.BackupDatabaseAsync(path, cancellationToken);
-                AddLog($"Successfully backed up database to {path}.");
+                var successMessage = $"Successfully backed up database to {path}.";
+                AddLog(successMessage);
+                await _dialogService.ShowInfoAsync(successMessage, "Database Backup");
             }
             catch (OperationCanceledException)
             {
