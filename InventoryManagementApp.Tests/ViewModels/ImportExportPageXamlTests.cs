@@ -43,6 +43,27 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("DataRunLogCard", xaml, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void ImportExportViewModel_ShowsVisibleFeedbackForFailedDataOperations()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
+
+            Assert.Contains("await _dialogService.ShowInfoAsync(errorMessage, $\"Export {plural}\");", source, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(failureMessage, $\"Export {plural}\");", source, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(message, $\"Export {plural}\");", source, StringComparison.Ordinal);
+
+            Assert.Contains("await _dialogService.ShowInfoAsync(errorMessage, \"Import Customers\");", source, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(failureMessage, \"Import Customers\");", source, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(message, \"Import Customers\");", source, StringComparison.Ordinal);
+
+            Assert.Contains("await _dialogService.ShowInfoAsync(errorMessage, \"Export Customers\");", source, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(failureMessage, \"Export Customers\");", source, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(message, \"Export Customers\");", source, StringComparison.Ordinal);
+
+            Assert.Contains("await _dialogService.ShowInfoAsync(failureMessage, \"Database Backup\");", source, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(message, \"Database Backup\");", source, StringComparison.Ordinal);
+        }
+
         static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);
