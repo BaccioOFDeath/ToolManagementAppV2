@@ -144,6 +144,22 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void ReportsSelectedRowActions_RequireActualSelectedReportLine()
+        {
+            var pageCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs");
+
+            Assert.Contains("private ReportLine? GetSelectedReportLineForAction()", pageCode, StringComparison.Ordinal);
+            Assert.Contains("if (ReportGrid.SelectedItem is ReportLine gridLine)", pageCode, StringComparison.Ordinal);
+            Assert.Contains("return DataContext is ReportsViewModel vm", pageCode, StringComparison.Ordinal);
+            Assert.Contains("? vm.SelectedReportLine", pageCode, StringComparison.Ordinal);
+            Assert.Contains("var line = GetSelectedReportLineForAction();", pageCode, StringComparison.Ordinal);
+            Assert.Contains("if (line == null || string.IsNullOrWhiteSpace(line.DestinationKey))", pageCode, StringComparison.Ordinal);
+            Assert.Contains("switch (line.DestinationKey)", pageCode, StringComparison.Ordinal);
+            Assert.DoesNotContain("key = vm.SelectedLineDestinationKey;", pageCode, StringComparison.Ordinal);
+            Assert.DoesNotContain("var key = line?.DestinationKey;", pageCode, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void InsightPrintActions_RouteThroughSharedPrintPreview()
         {
             var reportsCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs");
