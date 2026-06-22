@@ -79,6 +79,22 @@ namespace InventoryManagementApp.Views.Pages
                 : string.Empty;
         }
 
+        private void PrintSelectedLog_Click(object sender, RoutedEventArgs e)
+        {
+            UiActionGuard.Run(this, "Import / Export", () =>
+            {
+                var log = GetSelectedLogForAction();
+                if (string.IsNullOrWhiteSpace(log))
+                {
+                    WpfMessageBox.Show("Select an import/export log row first.", "Import / Export", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                var document = BuildPrintDocument(new[] { log }, "Selected import/export operation result.", "Import / Export Selected Result");
+                new PrintPreviewWindow().ShowPreview(document, "Import / Export Selected Result", null);
+            });
+        }
+
         private void PrintLogs_Click(object sender, RoutedEventArgs e)
         {
             UiActionGuard.Run(this, "Import / Export", () =>
@@ -94,7 +110,10 @@ namespace InventoryManagementApp.Views.Pages
             });
         }
 
-        private static FlowDocument BuildPrintDocument(IReadOnlyCollection<string> logs, string summary)
+        private static FlowDocument BuildPrintDocument(
+            IReadOnlyCollection<string> logs,
+            string summary,
+            string title = "Import / Export Operation Log")
         {
             var document = new FlowDocument
             {
@@ -102,7 +121,7 @@ namespace InventoryManagementApp.Views.Pages
                 FontSize = 11
             };
 
-            document.Blocks.Add(new Paragraph(new Run("Import / Export Operation Log"))
+            document.Blocks.Add(new Paragraph(new Run(title))
             {
                 FontSize = 16,
                 FontWeight = FontWeights.SemiBold,
