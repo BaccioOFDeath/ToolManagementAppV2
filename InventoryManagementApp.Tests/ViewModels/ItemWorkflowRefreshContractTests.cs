@@ -24,6 +24,22 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("The item list has been refreshed in case the check-out status changed before the failure.", source);
         }
 
+        [Fact]
+        public void CheckedOutRefreshKeepsFallbackToLoadedRowsWhenServiceCannotReturnFreshRows()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp/ViewModels/ItemManagementViewModel.cs");
+
+            Assert.Contains("async Task RefreshCheckedOutItemsAsync(CancellationToken cancellationToken = default)", source);
+            Assert.Contains("if (checkedOutItemsTask == null)", source);
+            Assert.Contains("if (checkedOutItems == null)", source);
+            Assert.Contains("catch (NullReferenceException)", source);
+            Assert.True(
+                CountOccurrences(source, "ReplaceCheckedOutItemsFromLoadedItems();") >= 3,
+                "Checked-out refresh should fall back to loaded item rows when the service cannot provide a usable checked-out list.");
+            Assert.Contains("var checkedOutItems = Items.Where(t => t.IsCheckedOut)", source);
+            Assert.Contains("CheckedOutItems.ReplaceRange(checkedOutItems);", source);
+        }
+
         private static string ReadRepositoryFile(string relativePath)
         {
             var root = FindRepositoryRoot();
