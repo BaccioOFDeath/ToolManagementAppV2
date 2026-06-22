@@ -65,6 +65,29 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void ImportExportViewModel_ShowsVisibleFeedbackForSuccessfulDataOperations()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
+
+            Assert.Contains("var successMessage = $\"Successfully exported {plural} to {path} ({exporter.FormatName} format).\";", source, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(successMessage, $\"Export {plural}\");", source, StringComparison.Ordinal);
+
+            var customerImport = ExtractMethodBody(source, "async Task ImportCustomersAsync", "async Task ExportCustomersAsync");
+            Assert.Contains("var successMessage = $\"Successfully imported customers from {path}. Imported {result.ImportedCount} customers.\";", customerImport, StringComparison.Ordinal);
+            Assert.Contains("successMessage += $\" {result.SkippedRows.Count} skipped row", customerImport, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(successMessage, \"Import Customers\");", customerImport, StringComparison.Ordinal);
+            Assert.Contains("var successMessage = $\"Successfully imported {importedCount} customers from {path} ({importer.FormatName} format).\";", customerImport, StringComparison.Ordinal);
+
+            var customerExport = ExtractMethodBody(source, "async Task ExportCustomersAsync", "async Task BackupDatabaseAsync");
+            Assert.Contains("var successMessage = $\"Successfully exported customers to {path} ({exporter.FormatName} format).\";", customerExport, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(successMessage, \"Export Customers\");", customerExport, StringComparison.Ordinal);
+
+            var backup = ExtractMethodBody(source, "async Task BackupDatabaseAsync", "    }\n}");
+            Assert.Contains("var successMessage = $\"Successfully backed up database to {path}.\";", backup, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync(successMessage, \"Database Backup\");", backup, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ImportExportViewModel_ShowsVisibleFeedbackForItemImportFailures()
         {
             var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
