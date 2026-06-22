@@ -113,6 +113,25 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void ReportsSelectionChange_ClearsStaleRowsSelectionAndRunStateBeforeNextRun()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ReportsViewModel.cs");
+
+            Assert.Contains("ClearReportOutputForSelection(value);", source, StringComparison.Ordinal);
+            Assert.Contains("private void ClearReportOutputForSelection(string reportName)", source, StringComparison.Ordinal);
+            Assert.Contains("ReportLines.Clear();", source, StringComparison.Ordinal);
+            Assert.Contains("SelectedReportLine = null;", source, StringComparison.Ordinal);
+            Assert.Contains("ReportTitle = string.IsNullOrWhiteSpace(reportName) ? \"Reports\" : reportName;", source, StringComparison.Ordinal);
+            Assert.Contains("ReportSummary = string.IsNullOrWhiteSpace(reportName)", source, StringComparison.Ordinal);
+            Assert.Contains("? \"No report has been run yet.\"", source, StringComparison.Ordinal);
+            Assert.Contains(": $\"Run {reportName} to refresh report rows.\";", source, StringComparison.Ordinal);
+            Assert.Contains("LastRunAt = null;", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(ReportLineCount));", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(ReportOperatorPath));", source, StringComparison.Ordinal);
+            Assert.Contains("ClearReportCommand.NotifyCanExecuteChanged();", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void InsightPrintActions_RouteThroughSharedPrintPreview()
         {
             var reportsCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs");
@@ -125,8 +144,8 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("\"Activity Logs\"", activityCode, StringComparison.Ordinal);
             Assert.Contains("Review the filtered audit trail, destination routing, and operator handoff before printing.", activityCode, StringComparison.Ordinal);
             Assert.DoesNotContain("WpfPrintDialog", reportsCode, StringComparison.Ordinal);
-            Assert.DoesNotContain("WpfPrintDialog", activityCode, StringComparison.Ordinal);
             Assert.DoesNotContain("PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator", reportsCode, StringComparison.Ordinal);
+            Assert.DoesNotContain("WpfPrintDialog", activityCode, StringComparison.Ordinal);
             Assert.DoesNotContain("PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator", activityCode, StringComparison.Ordinal);
         }
 
