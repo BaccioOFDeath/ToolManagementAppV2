@@ -76,6 +76,24 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void ActivityLogsLoadFailure_ClearsRowsFiltersSelectionAndKeepsFailureStatus()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ActivityLogsViewModel.cs");
+
+            Assert.Contains("ClearActivityLogRowsAfterLoadFailure(\"Activity logs could not be loaded. Activity rows were cleared until refresh succeeds.\");", source, StringComparison.Ordinal);
+            Assert.Contains("private void ClearActivityLogRowsAfterLoadFailure(string message)", source, StringComparison.Ordinal);
+            Assert.Contains("Logs.Clear();", source, StringComparison.Ordinal);
+            Assert.Contains("FilteredLogs.Clear();", source, StringComparison.Ordinal);
+            Assert.Contains("SelectedLog = null;", source, StringComparison.Ordinal);
+            Assert.Contains("RebuildFilterLists();", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(TotalLogCount));", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(FilteredLogCount));", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(ActivitySummary));", source, StringComparison.Ordinal);
+            Assert.Contains("StatusMessage = message;", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("StatusMessage = \"Activity logs could not be loaded.\";", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void InsightPrintActions_RouteThroughSharedPrintPreview()
         {
             var reportsCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs");
