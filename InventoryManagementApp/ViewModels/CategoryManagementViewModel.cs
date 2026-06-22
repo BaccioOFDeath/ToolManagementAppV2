@@ -238,10 +238,20 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load categories for inventory {InventoryId}", SelectedInventoryId);
-                StatusMessage = "Categories could not be loaded. Review logs or retry refresh.";
-                WpfMessageBox.Show("Categories could not be loaded. Please retry or check the application log.", "Category Management", MessageBoxButton.OK, MessageBoxImage.Error);
+                ClearCategoryStateAfterLoadFailure();
+                StatusMessage = "Categories could not be loaded. Category rows were cleared until reload succeeds.";
+                WpfMessageBox.Show("Categories could not be loaded. Category rows were cleared until reload succeeds. Please retry or check the application log.", "Category Management", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally { IsBusy = false; }
+        }
+
+        private void ClearCategoryStateAfterLoadFailure()
+        {
+            Categories.Clear();
+            FilteredCategories.Clear();
+            SelectedCategory = null;
+            CategoryName = "";
+            RaiseDirectoryProperties();
         }
 
         private void ApplyFilter(int? preferredSelectedId = null)
