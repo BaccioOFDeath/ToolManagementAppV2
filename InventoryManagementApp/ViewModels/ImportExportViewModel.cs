@@ -301,6 +301,7 @@ namespace InventoryManagementApp.ViewModels
                 {
                     var errorMessage = $"No exporter found for file type: {extension}";
                     AddLog(errorMessage);
+                    await _dialogService.ShowInfoAsync(errorMessage, $"Export {plural}");
                     return;
                 }
                 
@@ -310,13 +311,17 @@ namespace InventoryManagementApp.ViewModels
             catch (OperationCanceledException)
             {
                 var plural = LabelProvider.Instance.ItemLabelPlural;
-                AddLog($"{plural} export was cancelled.");
+                var message = $"{plural} export was cancelled.";
+                AddLog(message);
+                await _dialogService.ShowInfoAsync(message, $"Export {plural}");
             }
             catch (Exception ex)
             {
                 var plural = LabelProvider.Instance.ItemLabelPlural;
                 _logger.LogError(ex, "Failed to export {ItemLabelPlural} to {Path}", plural, path);
-                AddLog($"Failed to export {plural} to {path}: {ex.Message}");
+                var failureMessage = $"Failed to export {plural} to {path}: {ex.Message}";
+                AddLog(failureMessage);
+                await _dialogService.ShowInfoAsync(failureMessage, $"Export {plural}");
             }
         }
 
@@ -367,12 +372,16 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (OperationCanceledException)
             {
-                AddLog("Customer import was cancelled.");
+                const string message = "Customer import was cancelled.";
+                AddLog(message);
+                await _dialogService.ShowInfoAsync(message, "Import Customers");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to import customers from {Path}", path);
-                AddLog($"Failed to import customers from {path}: {ex.Message}");
+                var failureMessage = $"Failed to import customers from {path}: {ex.Message}";
+                AddLog(failureMessage);
+                await _dialogService.ShowInfoAsync(failureMessage, "Import Customers");
             }
         }
 
@@ -395,6 +404,7 @@ namespace InventoryManagementApp.ViewModels
                 {
                     var errorMessage = $"No exporter found for file type: {extension}";
                     AddLog(errorMessage);
+                    await _dialogService.ShowInfoAsync(errorMessage, "Export Customers");
                     return;
                 }
                 
@@ -403,12 +413,16 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (OperationCanceledException)
             {
-                AddLog("Customer export was cancelled.");
+                const string message = "Customer export was cancelled.";
+                AddLog(message);
+                await _dialogService.ShowInfoAsync(message, "Export Customers");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to export customers to {Path}", path);
-                AddLog($"Failed to export customers to {path}: {ex.Message}");
+                var failureMessage = $"Failed to export customers to {path}: {ex.Message}";
+                AddLog(failureMessage);
+                await _dialogService.ShowInfoAsync(failureMessage, "Export Customers");
             }
         }
 
@@ -434,12 +448,16 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (OperationCanceledException)
             {
-                AddLog("Database backup was cancelled.");
+                const string message = "Database backup was cancelled.";
+                AddLog(message);
+                await _dialogService.ShowInfoAsync(message, "Database Backup");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to backup database to {Path}", path);
-                AddLog($"Failed to backup database to {path}: {ex.Message}");
+                var failureMessage = $"Failed to backup database to {path}: {ex.Message}";
+                AddLog(failureMessage);
+                await _dialogService.ShowInfoAsync(failureMessage, "Database Backup");
             }
         }
     }
