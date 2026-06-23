@@ -72,9 +72,7 @@ namespace InventoryManagementApp.ViewModels
                     }
                     else
                     {
-                        KitItems.Clear();
-                        SelectedKitItem = null;
-                        RefreshKitItemSummaries();
+                        ClearKitItemsForReload();
                     }
                 }
             }
@@ -208,11 +206,12 @@ namespace InventoryManagementApp.ViewModels
 
         private async Task LoadKitItemsAsync(int kitID)
         {
+            var selectedKitItemId = SelectedKitItem?.KitItemID;
+            ClearKitItemsForReload();
+
             try
             {
-                var selectedKitItemId = SelectedKitItem?.KitItemID;
                 var items = await _kitService.GetKitItemsAsync(kitID);
-                KitItems.Clear();
                 foreach (var item in items)
                 {
                     KitItems.Add(item);
@@ -222,8 +221,16 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync("Error loading kit items", ex.Message);
+                ClearKitItemsForReload();
+                await _dialogService.ShowErrorAsync("Error loading kit items", $"{ex.Message} Kit item rows were cleared until reload succeeds.");
             }
+        }
+
+        private void ClearKitItemsForReload()
+        {
+            KitItems.Clear();
+            SelectedKitItem = null;
+            RefreshKitItemSummaries();
         }
 
         private async Task AddKitAsync()
