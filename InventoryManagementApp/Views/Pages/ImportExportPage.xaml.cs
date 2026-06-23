@@ -25,11 +25,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void ImportExportLogRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (sender is DataGridRow row && !row.IsSelected)
-            {
-                row.IsSelected = true;
-                row.Focus();
-            }
+            GridContextMenuSelection.SelectRow(sender, e);
         }
 
         private void OpenSelectedLog_Click(object sender, RoutedEventArgs e)
