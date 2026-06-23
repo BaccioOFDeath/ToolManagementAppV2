@@ -236,8 +236,7 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("{DynamicResource ThemeBorderlessThickness}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeControlBorderThickness}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeSurfaceShadow}", xaml, StringComparison.Ordinal);
-            Assert.Contains("{DynamicResource ThemeRaisedShadow}", xaml, StringComparison.Ordinal);
-            Assert.Contains("{DynamicResource ThemeControlShadow}", xaml, StringComparison.Ordinal);
+            Assert.Contains("Value=\"{x:Null}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeGridLineBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource DataGridRowBackgroundBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource DataGridAlternatingRowBackgroundBrush}", xaml, StringComparison.Ordinal);
@@ -250,6 +249,20 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("FocusVisualStyle\" Value=\"{StaticResource DefaultFocusVisual}\"", xaml, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void AdminDesignerCoverageOverrides_DoNotApplyDropShadowsToHighCountInteractiveControls()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.AdminDesignerCoverageOverrides.xaml");
+
+            Assert.Contains("Value=\"{x:Null}\"", ExtractStyle(xaml, "TargetType=\"Border\""), StringComparison.Ordinal);
+            Assert.Contains("Value=\"{x:Null}\"", ExtractStyle(xaml, "AdminDesignerTextBoxBaseStyle"), StringComparison.Ordinal);
+            Assert.Contains("Value=\"{x:Null}\"", ExtractStyle(xaml, "<Style TargetType=\"PasswordBox\""), StringComparison.Ordinal);
+            Assert.Contains("Value=\"{x:Null}\"", ExtractStyle(xaml, "TargetType=\"DataGrid\""), StringComparison.Ordinal);
+            Assert.Contains("Value=\"{x:Null}\"", ExtractStyle(xaml, "TargetType=\"ScrollBar\""), StringComparison.Ordinal);
+            Assert.Contains("Value=\"{x:Null}\"", ExtractStyle(xaml, "TargetType=\"ListBox\""), StringComparison.Ordinal);
+            Assert.Contains("Value=\"{x:Null}\"", ExtractStyle(xaml, "TargetType=\"TreeView\""), StringComparison.Ordinal);
+        }
+
         private static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -260,6 +273,18 @@ namespace InventoryManagementApp.Tests.Resources
             var path = Path.Combine(directory!.FullName, Path.Combine(relativePathParts));
             Assert.True(File.Exists(path), $"Expected repository file at {path}");
             return File.ReadAllText(path);
+        }
+
+        private static string ExtractStyle(string xaml, string marker)
+        {
+            var markerIndex = xaml.IndexOf(marker, StringComparison.Ordinal);
+            Assert.True(markerIndex >= 0, $"Expected to find style marker {marker}.");
+
+            var styleStart = xaml.LastIndexOf("<Style", markerIndex, StringComparison.Ordinal);
+            var styleEnd = xaml.IndexOf("</Style>", markerIndex, StringComparison.Ordinal);
+            Assert.True(styleStart >= 0 && styleEnd > styleStart, $"Expected to find a complete style for {marker}.");
+
+            return xaml[styleStart..(styleEnd + "</Style>".Length)];
         }
     }
 }
