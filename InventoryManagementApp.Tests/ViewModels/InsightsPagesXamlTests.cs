@@ -131,7 +131,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("ReportSubtitle = \"The report could not be generated.\";", source, StringComparison.Ordinal);
             Assert.Contains("ReportSummary = ex.Message;", source, StringComparison.Ordinal);
             Assert.Contains("ReportStatus = \"Report failed.\";", source, StringComparison.Ordinal);
-            Assert.Contains("LastRunAt = DateTime.Now;", source, StringComparison.Ordinal);
+            Assert.Contains("LastRunAt = null;", source, StringComparison.Ordinal);
             Assert.Contains("OnPropertyChanged(nameof(ReportLineCount));", source, StringComparison.Ordinal);
             Assert.Contains("OnPropertyChanged(nameof(ReportOperatorPath));", source, StringComparison.Ordinal);
             Assert.Contains("ClearReportCommand.NotifyCanExecuteChanged();", source, StringComparison.Ordinal);
