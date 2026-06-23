@@ -45,6 +45,74 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task AddUserAsync_WhenAddFailsAfterPersistence_RefreshesRowsAndSelectsSavedUser()
+        {
+            var service = new StubUserService { ThrowAfterAdd = true };
+            var dialog = new StubDialogService();
+            var vm = new UserManagementViewModel(service, new StubFileDialogService(), dialog);
+
+            await vm.AddUserAsync();
+
+            var user = Assert.Single(vm.Users);
+            Assert.Single(service.Users);
+            Assert.Same(user, vm.SelectedUser);
+            Assert.Equal("workshop1", user.UserName);
+            Assert.Equal("Error", dialog.LastTitle);
+            Assert.Contains("Failed to add user", dialog.LastMessage);
+            Assert.Contains("User rows were refreshed from saved data", dialog.LastMessage);
+        }
+
+        [Fact]
+        public async Task DeleteUserFromRowCommand_WhenDeleteFailsAfterPersistence_RefreshesRowsAndClearsDeletedSelection()
+        {
+            var deleteTarget = new UserModel { UserID = 11, UserName = "remove-me", Role = "Workshop Staff" };
+            var keepTarget = new UserModel { UserID = 12, UserName = "keep-me", Role = "Advisor" };
+            var service = new StubUserService { ThrowAfterDelete = true };
+            service.Users.Add(deleteTarget);
+            service.Users.Add(keepTarget);
+            var dialog = new StubDialogService();
+            var vm = new UserManagementViewModel(service, new StubFileDialogService(), dialog);
+
+            await vm.LoadUsersAsync();
+            vm.SelectedUser = deleteTarget;
+            vm.UserSearchText = "keep";
+            vm.SearchUsersCommand.Execute(null);
+
+            await vm.DeleteUserFromRowCommand.ExecuteAsync(deleteTarget);
+
+            var user = Assert.Single(vm.Users);
+            Assert.Same(keepTarget, user);
+            Assert.DoesNotContain(service.Users, existing => existing.UserID == deleteTarget.UserID);
+            Assert.Null(vm.SelectedUser);
+            Assert.Equal("keep", vm.UserSearchText);
+            Assert.Equal("Error", dialog.LastTitle);
+            Assert.Contains("Failed to delete user", dialog.LastMessage);
+            Assert.Contains("User rows were refreshed from saved data", dialog.LastMessage);
+        }
+
+        [Fact]
+        public async Task DeleteUserFromRowCommand_WhenDeleteAndRecoveryRefreshFail_ClearsRowsAndSelection()
+        {
+            var deleteTarget = new UserModel { UserID = 21, UserName = "remove-me", Role = "Workshop Staff" };
+            var service = new StubUserService { ThrowAfterDelete = true, ThrowOnGetAllUsersAfterMutation = true };
+            service.Users.Add(deleteTarget);
+            var dialog = new StubDialogService();
+            var vm = new UserManagementViewModel(service, new StubFileDialogService(), dialog);
+
+            await vm.LoadUsersAsync();
+            vm.SelectedUser = deleteTarget;
+
+            await vm.DeleteUserFromRowCommand.ExecuteAsync(deleteTarget);
+
+            Assert.Empty(vm.Users);
+            Assert.Null(vm.SelectedUser);
+            Assert.False(vm.UpdateUserCommand.CanExecute(null));
+            Assert.False(vm.EditUserCommand.CanExecute(null));
+            Assert.Equal("Error", dialog.LastTitle);
+            Assert.Contains("User rows were cleared because the recovery refresh failed", dialog.LastMessage);
+        }
+
+        [Fact]
         public async Task ResetPasswordFromRowCommand_WhenPasswordChangeFails_ShowsErrorAndDoesNotMarkExpired()
         {
             var user = new UserModel { UserID = 7, UserName = "workshop7", PasswordExpired = false };
@@ -85,11 +153,14 @@ namespace InventoryManagementApp.Tests
             public List<UserModel> Users { get; } = new();
             public bool ChangePasswordResult { get; set; } = true;
             public bool ThrowOnGetAllUsers { get; set; }
+            public bool ThrowOnGetAllUsersAfterMutation { get; set; }
+            public bool ThrowAfterAdd { get; set; }
+            public bool ThrowAfterDelete { get; set; }
             public int UpdateCallCount { get; private set; }
 
             public Task<List<UserModel>> GetAllUsersAsync(CancellationToken cancellationToken = default)
             {
-                if (ThrowOnGetAllUsers)
+                if (ThrowOnGetAllUsers || ThrowOnGetAllUsersAfterMutation)
                     throw new InvalidOperationException("Users are offline");
 
                 return Task.FromResult(Users.ToList());
@@ -109,7 +180,14 @@ namespace InventoryManagementApp.Tests
 
             public Task AddUserAsync(UserModel user)
             {
+                if (user.UserID == 0)
+                    user.UserID = Users.Count == 0 ? 1 : Users.Max(existing => existing.UserID) + 1;
+
                 Users.Add(user);
+
+                if (ThrowAfterAdd)
+                    throw new InvalidOperationException("Add failed after save");
+
                 return Task.CompletedTask;
             }
 
@@ -124,6 +202,10 @@ namespace InventoryManagementApp.Tests
             public Task<bool> TryDeleteUserAsync(int userID)
             {
                 Users.RemoveAll(user => user.UserID == userID);
+
+                if (ThrowAfterDelete)
+                    throw new InvalidOperationException("Delete failed after save");
+
                 return Task.FromResult(true);
             }
 
