@@ -34,11 +34,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void UserRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (sender is DataGridRow row && !row.IsSelected)
-            {
-                row.IsSelected = true;
-                e.Handled = true;
-            }
+            GridContextMenuSelection.SelectRow(sender, e);
         }
 
         private void OpenSelectedUser_Click(object sender, RoutedEventArgs e)
