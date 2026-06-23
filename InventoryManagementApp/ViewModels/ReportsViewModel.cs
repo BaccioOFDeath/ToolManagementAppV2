@@ -197,7 +197,7 @@ namespace InventoryManagementApp.ViewModels
                 ReportSubtitle = "The report could not be generated.";
                 ReportSummary = ex.Message;
                 ReportStatus = "Report failed.";
-                LastRunAt = DateTime.Now;
+                LastRunAt = null;
                 OnPropertyChanged(nameof(ReportLineCount));
                 OnPropertyChanged(nameof(CanPrintCurrentReport));
                 OnPropertyChanged(nameof(ReportOperatorPath));
