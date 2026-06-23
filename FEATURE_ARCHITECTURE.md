@@ -1,6 +1,6 @@
 # InventoryManagementApp Feature Architecture
 
-InventoryManagementApp is the only active application in this repository. The architecture is a compact .NET 8 WPF desktop application built around MVVM, SQLite persistence, and focused rental inventory workflows.
+InventoryManagementApp is the only active application in this repository. The architecture is a compact `net10.0-windows` WPF desktop application built around MVVM, SQLite persistence, and focused rental inventory workflows.
 
 ## Active Solution
 
@@ -23,7 +23,7 @@ WPF Views
 
 ### Views
 
-Views are XAML screens and dialogs designed for dense desktop workflows. They should follow `designprompt.md`: compact spacing, clear labels, tables over cards, obvious task flow, keyboard-friendly behavior, and restrained decoration.
+Views are XAML screens and dialogs designed for dense desktop workflows: compact spacing, clear labels, tables over cards, obvious task flow, keyboard-friendly behavior, and restrained decoration.
 
 Primary UI areas include:
 

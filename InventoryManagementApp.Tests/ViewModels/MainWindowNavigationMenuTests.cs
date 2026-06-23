@@ -21,6 +21,35 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.DoesNotContain(".Execute(null)", handler, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void SectionDropDownItem_UsesExplicitHoverForegroundForDarkThemeReadability()
+        {
+            var styles = ReadRepositoryFile("InventoryManagementApp", "Resources", "Styles.xaml");
+            var style = ExtractStyle(styles, "x:Key=\"SectionDropDownItem\"");
+
+            Assert.Contains("<ControlTemplate TargetType=\"MenuItem\">", style, StringComparison.Ordinal);
+            Assert.Contains("SystemColors.HighlightBrushKey", style, StringComparison.Ordinal);
+            Assert.Contains("SystemColors.HighlightTextBrushKey", style, StringComparison.Ordinal);
+            Assert.Contains("TargetName=\"Root\" Property=\"Background\" Value=\"{DynamicResource AccentBrush}\"", style, StringComparison.Ordinal);
+            Assert.Contains("Property=\"Foreground\" Value=\"{DynamicResource OnAccentForegroundBrush}\"", style, StringComparison.Ordinal);
+            Assert.Contains("Property=\"Foreground\" Value=\"{DynamicResource DisabledForegroundBrush}\"", style, StringComparison.Ordinal);
+            Assert.Contains("<MultiTrigger>", style, StringComparison.Ordinal);
+        }
+
+        static string ExtractStyle(string source, string marker)
+        {
+            var start = source.IndexOf(marker, StringComparison.Ordinal);
+            Assert.True(start >= 0, $"Expected to find style marker '{marker}'.");
+
+            var styleStart = source.LastIndexOf("<Style", start, StringComparison.Ordinal);
+            Assert.True(styleStart >= 0, $"Expected marker '{marker}' to be inside a Style.");
+
+            var end = source.IndexOf("</Style>", start, StringComparison.Ordinal);
+            Assert.True(end >= 0, $"Expected style '{marker}' to have a closing tag.");
+
+            return source[styleStart..(end + "</Style>".Length)];
+        }
+
         static string ExtractMethod(string source, string signature)
         {
             var start = source.IndexOf(signature, StringComparison.Ordinal);

@@ -62,7 +62,7 @@ When deploying the Inventory Management Application, follow these security best 
 
 #### 5. System Security
 - Keep Windows operating system updated with security patches
-- Keep .NET 8.0 runtime updated with latest security releases
+- Keep the .NET 10 runtime updated with latest security releases
 - Run the application with minimum required privileges
 - Monitor application logs for security events
 - Review user access permissions regularly

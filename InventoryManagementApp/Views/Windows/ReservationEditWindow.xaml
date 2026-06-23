@@ -59,7 +59,7 @@
                 <StackPanel>
                     <TextBlock Text="Item" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding Reservation.ItemNumber, TargetNullValue=Not selected}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Text="Tool being held" Style="{StaticResource ReservationFieldText}"/>
+                    <TextBlock Text="Item being held" Style="{StaticResource ReservationFieldText}"/>
                 </StackPanel>
             </Border>
             <Border Grid.Column="1" Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,0">

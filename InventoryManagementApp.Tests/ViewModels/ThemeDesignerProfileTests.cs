@@ -17,7 +17,7 @@ namespace InventoryManagementApp.Tests.ViewModels
         [Fact]
         public void ExportThemeProfileCommand_WritesNormalizedThemeJson()
         {
-            var exportPath = Path.Combine(Path.GetTempPath(), $"tool-theme-{Guid.NewGuid():N}.json");
+            var exportPath = Path.Combine(Path.GetTempPath(), $"inventory-theme-{Guid.NewGuid():N}.json");
             var fileDialogs = new FakeFileDialogService { SavePath = exportPath };
             var viewModel = CreateViewModel(fileDialogs: fileDialogs);
 
@@ -37,7 +37,7 @@ namespace InventoryManagementApp.Tests.ViewModels
         [Fact]
         public void ImportThemeProfileCommand_PreviewsNormalizedProfileWithoutSaving()
         {
-            var importPath = Path.Combine(Path.GetTempPath(), $"tool-theme-{Guid.NewGuid():N}.json");
+            var importPath = Path.Combine(Path.GetTempPath(), $"inventory-theme-{Guid.NewGuid():N}.json");
             File.WriteAllText(importPath, JsonSerializer.Serialize(new AppThemeSettings
             {
                 BaseTheme = "Dark",

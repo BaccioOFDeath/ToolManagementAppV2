@@ -6,17 +6,17 @@ This guide provides instructions for deploying the Inventory Management Applicat
 
 ### System Requirements
 - **Operating System**: Windows 10 (version 1809 or later) or Windows Server 2019 or later
-- **.NET Runtime**: .NET 8.0 Desktop Runtime (x64)
+- **.NET Runtime**: .NET 10 Desktop Runtime (x64)
 - **Memory**: Minimum 2GB RAM, 4GB recommended
 - **Disk Space**: 500MB for application and database
 - **Display**: 1280x720 minimum resolution
 
-### Download .NET 8.0 Desktop Runtime
-Download and install from: https://dotnet.microsoft.com/en-us/download/dotnet/8.0
+### Download .NET 10 Desktop Runtime
+Download and install from: https://dotnet.microsoft.com/download
 
 ## Pre-Deployment Checklist
 
-- [ ] .NET 8.0 Desktop Runtime installed on target system
+- [ ] .NET 10 Desktop Runtime installed on target system
 - [ ] SMTP server credentials obtained (if using email notifications)
 - [ ] Company branding assets prepared (logo, company information)
 - [ ] Database backup strategy defined
@@ -26,7 +26,7 @@ Download and install from: https://dotnet.microsoft.com/en-us/download/dotnet/8.
 
 ### 1. Build the Application
 
-On a development machine with .NET 8 SDK installed:
+On a development machine with the .NET 10 SDK installed:
 
 ```powershell
 cd /path/to/ToolManagementAppV2
@@ -191,7 +191,7 @@ Logs are stored in the `Logs` directory:
 ## Troubleshooting
 
 ### Application Won't Start
-- Verify .NET 8.0 Desktop Runtime is installed
+- Verify .NET 10 Desktop Runtime is installed
 - Check Windows Event Log for error details
 - Review application logs in `Logs\app-<date>.log`
 
@@ -333,7 +333,7 @@ For reliable server deployment:
 ### Server-Specific Considerations
 
 **Windows Server Deployment**:
-- Install .NET 8.0 Desktop Runtime (includes Windows Forms support)
+- Install .NET 10 Desktop Runtime
 - Configure Windows to allow the application through the firewall
 - Set up automatic user login if running unattended
 - Consider using Windows Service wrapper (e.g., NSSM) for production environments
@@ -358,7 +358,7 @@ For issues or questions:
 1. Check application logs for error details
 2. Review this deployment guide
 3. Consult the main [README.md](README.md) for feature documentation
-4. See [RENTAL_ENHANCEMENTS.md](RENTAL_ENHANCEMENTS.md) for rental features
+4. Review [ToDo.md](ToDo.md) for current validation status and known remaining work
 
 ## Environment-Specific Configurations
 

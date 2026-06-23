@@ -26,7 +26,7 @@
             <DockPanel LastChildFill="True">
                 <StackPanel DockPanel.Dock="Left">
                     <TextBlock Text="Rental Filter" Style="{StaticResource PageTitleTextBlock}"/>
-                    <TextBlock Text="Refine the rental desk by customer, tool, date window, or checkout state before reviewing records."
+                    <TextBlock Text="Refine the rental desk by customer, item, date window, or checkout state before reviewing records."
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,3,0,0"/>

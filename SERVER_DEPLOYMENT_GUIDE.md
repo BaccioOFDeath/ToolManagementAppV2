@@ -9,7 +9,7 @@ InventoryManagementApp is a WPF desktop application. A server-style deployment c
 ## Requirements
 
 - Windows Server 2019 or later, or Windows 10 version 1809 or later.
-- .NET 8 Desktop Runtime x64.
+- .NET 10 Desktop Runtime x64.
 - A writable SQLite database location.
 - SMTP settings when email reminders should be enabled.
 - Appropriate file permissions for the application folder, database file, and log folder.
@@ -142,6 +142,5 @@ Check that:
 
 - [README.md](README.md)
 - [DEPLOYMENT.md](DEPLOYMENT.md)
-- [PRODUCTION_READINESS.md](PRODUCTION_READINESS.md)
 - [SECURITY.md](SECURITY.md)
-- [RENTAL_ENHANCEMENTS.md](RENTAL_ENHANCEMENTS.md)
+- [ToDo.md](ToDo.md)
