@@ -65,6 +65,26 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void IncrementalItemMutationsRefreshRowsAfterOperationFailures()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemsViewModel.cs");
+
+            Assert.Contains("private async Task<bool> RefreshItemsAfterMutationFailureAsync(int? preferredItemId, CancellationToken cancellationToken)", source, StringComparison.Ordinal);
+            Assert.Contains("var firstPage = await LoadPageAsync(1, cancellationToken).ConfigureAwait(false);", source, StringComparison.Ordinal);
+            Assert.Contains("Items.ResetWith(firstPage);", source, StringComparison.Ordinal);
+            Assert.Contains("SelectedItem = preferredItemId.HasValue", source, StringComparison.Ordinal);
+            Assert.Contains("Items.FirstOrDefault(item => item.ItemID == preferredItemId.Value)", source, StringComparison.Ordinal);
+            Assert.Contains("Items.Reset();", source, StringComparison.Ordinal);
+            Assert.Contains("The item list has been refreshed in case saved state changed before the failure.", source, StringComparison.Ordinal);
+            Assert.Contains("The item list could not be refreshed, so visible item rows were cleared until reload succeeds.", source, StringComparison.Ordinal);
+            Assert.Contains("await RefreshItemsAfterMutationFailureAsync(updated.ItemID, ct).ConfigureAwait(false);", source, StringComparison.Ordinal);
+            Assert.Contains("await RefreshItemsAfterMutationFailureAsync(item.ItemID > 0 ? item.ItemID : null, ct).ConfigureAwait(false);", source, StringComparison.Ordinal);
+            Assert.Contains("await RefreshItemsAfterMutationFailureAsync(toRemove.FirstOrDefault()?.ItemID, ct).ConfigureAwait(false);", source, StringComparison.Ordinal);
+            Assert.Contains("await RefreshItemsAfterMutationFailureAsync(edits.FirstOrDefault()?.ItemID, ct).ConfigureAwait(false);", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("Failed to save changes: {ex.Message}", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ItemLoadAndSearchFailuresClearStaleVisibleRows()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemManagementViewModel.cs");
