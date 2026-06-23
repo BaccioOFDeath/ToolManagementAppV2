@@ -21,7 +21,10 @@ namespace InventoryManagementApp.Tests.Views
             Assert.Contains("?? TryGetFrameworkParent(current);", helper, StringComparison.Ordinal);
             Assert.Contains("private static DependencyObject? TryGetVisualParent(DependencyObject current)", helper, StringComparison.Ordinal);
             Assert.Contains("private static DependencyObject? TryGetLogicalParent(DependencyObject current)", helper, StringComparison.Ordinal);
-            Assert.Equal(2, CountOccurrences(helper, "catch (InvalidOperationException)"));
+            Assert.Equal(2, CountOccurrences(helper, "catch (Exception ex) when"));
+            Assert.Equal(2, CountOccurrences(helper, "ex is InvalidOperationException"));
+            Assert.Equal(2, CountOccurrences(helper, "ex is ArgumentException"));
+            Assert.DoesNotContain("catch (InvalidOperationException)", helper, StringComparison.Ordinal);
             Assert.Contains("FrameworkElement element => element.Parent", helper, StringComparison.Ordinal);
             Assert.Contains("FrameworkContentElement contentElement => contentElement.Parent", helper, StringComparison.Ordinal);
             Assert.DoesNotContain("return LogicalTreeHelper.GetParent(current);", helper, StringComparison.Ordinal);
