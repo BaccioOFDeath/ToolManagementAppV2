@@ -324,34 +324,35 @@ namespace InventoryManagementApp.ViewModels
 
         private async Task EditItemAsync(CancellationToken ct)
         {
-            if (SelectedItem == null) return;
+            var selected = SelectedItem;
+            if (selected == null) return;
             ItemModel? updated;
             try
             {
                 var clone = new ItemModel
                 {
-                    ItemID = SelectedItem.ItemID,
-                    ItemNumber = SelectedItem.ItemNumber,
-                    PartNumber = SelectedItem.PartNumber,
-                    Name = SelectedItem.Name,
-                    Brand = SelectedItem.Brand,
-                    Location = SelectedItem.Location,
-                    QuantityOnHand = SelectedItem.QuantityOnHand,
-                    RentedQuantity = SelectedItem.RentedQuantity,
-                    Supplier = SelectedItem.Supplier,
-                    PurchasedDate = SelectedItem.PurchasedDate,
-                    Notes = SelectedItem.Notes,
-                    Keywords = SelectedItem.Keywords,
-                    IsPowered = SelectedItem.IsPowered,
-                    IsRentalItem = SelectedItem.IsRentalItem,
-                    IsCheckedOut = SelectedItem.IsCheckedOut,
-                    CheckedOutBy = SelectedItem.CheckedOutBy,
-                    CheckedOutTime = SelectedItem.CheckedOutTime,
-                    CheckedInBy = SelectedItem.CheckedInBy,
-                    CheckedInTime = SelectedItem.CheckedInTime,
-                    ImagePath = SelectedItem.ImagePath,
-                    Price = SelectedItem.Price,
-                    UpdatedAt = SelectedItem.UpdatedAt
+                    ItemID = selected.ItemID,
+                    ItemNumber = selected.ItemNumber,
+                    PartNumber = selected.PartNumber,
+                    Name = selected.Name,
+                    Brand = selected.Brand,
+                    Location = selected.Location,
+                    QuantityOnHand = selected.QuantityOnHand,
+                    RentedQuantity = selected.RentedQuantity,
+                    Supplier = selected.Supplier,
+                    PurchasedDate = selected.PurchasedDate,
+                    Notes = selected.Notes,
+                    Keywords = selected.Keywords,
+                    IsPowered = selected.IsPowered,
+                    IsRentalItem = selected.IsRentalItem,
+                    IsCheckedOut = selected.IsCheckedOut,
+                    CheckedOutBy = selected.CheckedOutBy,
+                    CheckedOutTime = selected.CheckedOutTime,
+                    CheckedInBy = selected.CheckedInBy,
+                    CheckedInTime = selected.CheckedInTime,
+                    ImagePath = selected.ImagePath,
+                    Price = selected.Price,
+                    UpdatedAt = selected.UpdatedAt
                 };
                 updated = await _dialogService.ShowEditItemDialogAsync(clone).ConfigureAwait(false);
             }
@@ -360,8 +361,10 @@ namespace InventoryManagementApp.ViewModels
                 _logger.LogDebug("Edit item dialog canceled");
                 return;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed to open edit item dialog for item {ItemID}", selected.ItemID);
+                await _dialogService.ShowInfoAsync($"Failed to open edit item dialog: {ex.Message}", "Error").ConfigureAwait(false);
                 return;
             }
             if (updated == null) return;
@@ -427,8 +430,10 @@ namespace InventoryManagementApp.ViewModels
                 _logger.LogDebug("New item dialog canceled");
                 return;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed to open new item dialog");
+                await _dialogService.ShowInfoAsync($"Failed to open new item dialog: {ex.Message}", "Error").ConfigureAwait(false);
                 return;
             }
             if (item == null) return;
