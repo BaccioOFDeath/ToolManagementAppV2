@@ -11,15 +11,17 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml");
 
-            Assert.Contains("Data Operations Workbench", xaml, StringComparison.Ordinal);
-            Assert.Contains("DataOperationStatCard", xaml, StringComparison.Ordinal);
-            Assert.Contains("Data Control Lanes", xaml, StringComparison.Ordinal);
-            Assert.Contains("Session Handoff", xaml, StringComparison.Ordinal);
-            Assert.Contains("ItemDataSummary", xaml, StringComparison.Ordinal);
-            Assert.Contains("CustomerDataSummary", xaml, StringComparison.Ordinal);
-            Assert.Contains("BackupSummary", xaml, StringComparison.Ordinal);
-            Assert.Contains("ImageImportSummary", xaml, StringComparison.Ordinal);
-            Assert.Contains("Data desk ready", xaml, StringComparison.Ordinal);
+            AssertContainsAll(
+                xaml,
+                "Data Operations Workbench",
+                "DataOperationStatCard",
+                "Data Control Lanes",
+                "Session Handoff",
+                "ItemDataSummary",
+                "CustomerDataSummary",
+                "BackupSummary",
+                "ImageImportSummary",
+                "Data desk ready");
         }
 
         [Fact]
@@ -27,20 +29,22 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml");
 
-            Assert.Contains("ImportItemsCommand", xaml, StringComparison.Ordinal);
-            Assert.Contains("ExportItemsCommand", xaml, StringComparison.Ordinal);
-            Assert.Contains("ImportCustomersCommand", xaml, StringComparison.Ordinal);
-            Assert.Contains("ExportCustomersCommand", xaml, StringComparison.Ordinal);
-            Assert.Contains("BackupDatabaseCommand", xaml, StringComparison.Ordinal);
-            Assert.Contains("OpenImageImportMappingWindowCommand", xaml, StringComparison.Ordinal);
-            Assert.Contains("ClearImportExportLogsCommand", xaml, StringComparison.Ordinal);
-            Assert.Contains("ImportExportLogGrid_MouseDoubleClick", xaml, StringComparison.Ordinal);
-            Assert.Contains("ImportExportLogRow_PreviewMouseRightButtonDown", xaml, StringComparison.Ordinal);
-            Assert.Contains("OpenSelectedLog_Click", xaml, StringComparison.Ordinal);
-            Assert.Contains("CopySelectedLog_Click", xaml, StringComparison.Ordinal);
-            Assert.Contains("PrintLogs_Click", xaml, StringComparison.Ordinal);
-            Assert.Contains("No operation log rows yet", xaml, StringComparison.Ordinal);
-            Assert.Contains("DataRunLogCard", xaml, StringComparison.Ordinal);
+            AssertContainsAll(
+                xaml,
+                "ImportItemsCommand",
+                "ExportItemsCommand",
+                "ImportCustomersCommand",
+                "ExportCustomersCommand",
+                "BackupDatabaseCommand",
+                "OpenImageImportMappingWindowCommand",
+                "ClearImportExportLogsCommand",
+                "ImportExportLogGrid_MouseDoubleClick",
+                "ImportExportLogRow_PreviewMouseRightButtonDown",
+                "OpenSelectedLog_Click",
+                "CopySelectedLog_Click",
+                "PrintLogs_Click",
+                "No operation log rows yet",
+                "DataRunLogCard");
         }
 
         [Fact]
@@ -61,11 +65,13 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var pageCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml.cs");
 
-            Assert.Contains("private string GetSelectedLogForAction()", pageCode, StringComparison.Ordinal);
-            Assert.Contains("if (ImportExportLogGrid.SelectedItem is string gridLog && !string.IsNullOrWhiteSpace(gridLog))", pageCode, StringComparison.Ordinal);
-            Assert.Contains("DataContext is ImportExportViewModel vm && !string.IsNullOrWhiteSpace(vm.SelectedImportExportLog)", pageCode, StringComparison.Ordinal);
-            Assert.Contains("? vm.SelectedImportExportLog", pageCode, StringComparison.Ordinal);
-            Assert.Contains("var log = GetSelectedLogForAction();", pageCode, StringComparison.Ordinal);
+            AssertContainsAll(
+                pageCode,
+                "private string GetSelectedLogForAction()",
+                "if (ImportExportLogGrid.SelectedItem is string gridLog && !string.IsNullOrWhiteSpace(gridLog))",
+                "DataContext is ImportExportViewModel vm && !string.IsNullOrWhiteSpace(vm.SelectedImportExportLog)",
+                "? vm.SelectedImportExportLog",
+                "var log = GetSelectedLogForAction();");
             Assert.DoesNotContain("if (ImportExportLogGrid.SelectedItem is not string log || string.IsNullOrWhiteSpace(log))", pageCode, StringComparison.Ordinal);
         }
 
@@ -75,13 +81,15 @@ namespace InventoryManagementApp.Tests.ViewModels
             var pageCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml.cs");
             var printMethod = ExtractMethodBody(pageCode, "private void PrintLogs_Click", "private static FlowDocument BuildPrintDocument");
 
-            Assert.Contains("var selectedLog = GetSelectedLogForAction();", printMethod, StringComparison.Ordinal);
-            Assert.Contains("if (!string.IsNullOrWhiteSpace(selectedLog))", printMethod, StringComparison.Ordinal);
-            Assert.Contains("BuildPrintDocument(new[] { selectedLog }, \"Selected import/export operation result.\", \"Import / Export Selected Result\")", printMethod, StringComparison.Ordinal);
-            Assert.Contains("ShowPreview(selectedDocument, \"Import / Export Selected Result\", null);", printMethod, StringComparison.Ordinal);
-            Assert.Contains("return;", printMethod, StringComparison.Ordinal);
-            Assert.Contains("DataContext is not ImportExportViewModel vm || vm.ImportExportLogs.Count == 0", printMethod, StringComparison.Ordinal);
-            Assert.Contains("BuildPrintDocument(vm.ImportExportLogs.ToList(), vm.LogSummary)", printMethod, StringComparison.Ordinal);
+            AssertContainsAll(
+                printMethod,
+                "var selectedLog = GetSelectedLogForAction();",
+                "if (!string.IsNullOrWhiteSpace(selectedLog))",
+                "BuildPrintDocument(new[] { selectedLog }, \"Selected import/export operation result.\", \"Import / Export Selected Result\")",
+                "ShowPreview(selectedDocument, \"Import / Export Selected Result\", null);",
+                "return;",
+                "DataContext is not ImportExportViewModel vm || vm.ImportExportLogs.Count == 0",
+                "BuildPrintDocument(vm.ImportExportLogs.ToList(), vm.LogSummary)");
             Assert.True(
                 printMethod.IndexOf("var selectedLog = GetSelectedLogForAction();", StringComparison.Ordinal) <
                 printMethod.IndexOf("DataContext is not ImportExportViewModel vm", StringComparison.Ordinal),
@@ -93,36 +101,37 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
 
-            Assert.Contains("await _dialogService.ShowInfoAsync(errorMessage, $\"Export {plural}\");", source, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(failureMessage, $\"Export {plural}\");", source, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(message, $\"Export {plural}\");", source, StringComparison.Ordinal);
-
-            Assert.Contains("await _dialogService.ShowInfoAsync(errorMessage, \"Import Customers\");", source, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(failureMessage, \"Import Customers\");", source, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(message, \"Import Customers\");", source, StringComparison.Ordinal);
-
-            Assert.Contains("await _dialogService.ShowInfoAsync(errorMessage, \"Export Customers\");", source, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(failureMessage, \"Export Customers\");", source, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(message, \"Export Customers\");", source, StringComparison.Ordinal);
-
-            Assert.Contains("await _dialogService.ShowInfoAsync(failureMessage, \"Database Backup\");", source, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(message, \"Database Backup\");", source, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "await _dialogService.ShowInfoAsync(errorMessage, $\"Export {plural}\");",
+                "await _dialogService.ShowInfoAsync(failureMessage, $\"Export {plural}\");",
+                "await _dialogService.ShowInfoAsync(message, $\"Export {plural}\");",
+                "await _dialogService.ShowInfoAsync(errorMessage, \"Import Customers\");",
+                "await _dialogService.ShowInfoAsync(failureMessage, \"Import Customers\");",
+                "await _dialogService.ShowInfoAsync(message, \"Import Customers\");",
+                "await _dialogService.ShowInfoAsync(errorMessage, \"Export Customers\");",
+                "await _dialogService.ShowInfoAsync(failureMessage, \"Export Customers\");",
+                "await _dialogService.ShowInfoAsync(message, \"Export Customers\");",
+                "await _dialogService.ShowInfoAsync(failureMessage, \"Database Backup\");",
+                "await _dialogService.ShowInfoAsync(message, \"Database Backup\");");
         }
 
         [Fact]
         public void ImportExportViewModel_ShowsVisibleFeedbackForBackupStartupFailures()
         {
             var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
-            var backup = ExtractMethodBody(source, "async Task BackupDatabaseAsync", "    }\n}");
 
-            Assert.Contains("string? path = null;", backup, StringComparison.Ordinal);
-            Assert.Contains("var initialDirectory = _rentalConfigService == null", backup, StringComparison.Ordinal);
-            Assert.Contains("path = _fileDialogService.SaveFile(\"SQLite Database|*.db\", initialDirectory);", backup, StringComparison.Ordinal);
-            Assert.Contains("var failureMessage = string.IsNullOrWhiteSpace(path)", backup, StringComparison.Ordinal);
-            Assert.Contains("? $\"Failed to start database backup: {ex.Message}\"", backup, StringComparison.Ordinal);
-            Assert.Contains(": $\"Failed to backup database to {path}: {ex.Message}\";", backup, StringComparison.Ordinal);
-            Assert.Contains("AddLog(failureMessage);", backup, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(failureMessage, \"Database Backup\");", backup, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "async Task BackupDatabaseAsync(CancellationToken cancellationToken)",
+                "string? path = null;",
+                "var initialDirectory = _rentalConfigService == null",
+                "path = _fileDialogService.SaveFile(\"SQLite Database|*.db\", initialDirectory);",
+                "var failureMessage = string.IsNullOrWhiteSpace(path)",
+                "? $\"Failed to start database backup: {ex.Message}\"",
+                ": $\"Failed to backup database to {path}: {ex.Message}\";",
+                "AddLog(failureMessage);",
+                "await _dialogService.ShowInfoAsync(failureMessage, \"Database Backup\");");
         }
 
         [Fact]
@@ -130,25 +139,16 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
 
-            Assert.Contains("async Task CancelFileSelectionAsync(string message, string title)", source, StringComparison.Ordinal);
-            Assert.Contains("AddLog(message);", source, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(message, title);", source, StringComparison.Ordinal);
-
-            var itemImport = ExtractMethodBody(source, "async Task ImportItemsAsync", "async Task ExportItemsAsync");
-            Assert.Contains("if (string.IsNullOrWhiteSpace(path))", itemImport, StringComparison.Ordinal);
-            Assert.Contains("await CancelFileSelectionAsync($\"{plural} import file selection was cancelled.\", $\"Import {plural}\");", itemImport, StringComparison.Ordinal);
-
-            var itemExport = ExtractMethodBody(source, "async Task ExportItemsAsync", "async Task ImportCustomersAsync");
-            Assert.Contains("await CancelFileSelectionAsync($\"{plural} export destination selection was cancelled.\", $\"Export {plural}\");", itemExport, StringComparison.Ordinal);
-
-            var customerImport = ExtractMethodBody(source, "async Task ImportCustomersAsync", "async Task ExportCustomersAsync");
-            Assert.Contains("await CancelFileSelectionAsync(\"Customer import file selection was cancelled.\", \"Import Customers\");", customerImport, StringComparison.Ordinal);
-
-            var customerExport = ExtractMethodBody(source, "async Task ExportCustomersAsync", "async Task BackupDatabaseAsync");
-            Assert.Contains("await CancelFileSelectionAsync(\"Customer export destination selection was cancelled.\", \"Export Customers\");", customerExport, StringComparison.Ordinal);
-
-            var backup = ExtractMethodBody(source, "async Task BackupDatabaseAsync", "    }\n}");
-            Assert.Contains("await CancelFileSelectionAsync(\"Database backup destination selection was cancelled.\", \"Database Backup\");", backup, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "async Task CancelFileSelectionAsync(string message, string title)",
+                "AddLog(message);",
+                "await _dialogService.ShowInfoAsync(message, title);",
+                "await CancelFileSelectionAsync($\"{plural} import file selection was cancelled.\", $\"Import {plural}\");",
+                "await CancelFileSelectionAsync($\"{plural} export destination selection was cancelled.\", $\"Export {plural}\");",
+                "await CancelFileSelectionAsync(\"Customer import file selection was cancelled.\", \"Import Customers\");",
+                "await CancelFileSelectionAsync(\"Customer export destination selection was cancelled.\", \"Export Customers\");",
+                "await CancelFileSelectionAsync(\"Database backup destination selection was cancelled.\", \"Database Backup\");");
         }
 
         [Fact]
@@ -156,27 +156,21 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
 
-            var itemImport = ExtractMethodBody(source, "async Task ImportItemsAsync", "async Task ExportItemsAsync");
-            Assert.Contains("var successMessage = $\"Successfully imported {plural} from {path}.\";", itemImport, StringComparison.Ordinal);
-            Assert.Contains("successMessage += $\" {skippedMessage}\";", itemImport, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(successMessage, $\"Import {plural}\");", itemImport, StringComparison.Ordinal);
-
-            Assert.Contains("var successMessage = $\"Successfully exported {plural} to {path} ({exporter.FormatName} format).\";", source, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(successMessage, $\"Export {plural}\");", source, StringComparison.Ordinal);
-
-            var customerImport = ExtractMethodBody(source, "async Task ImportCustomersAsync", "async Task ExportCustomersAsync");
-            Assert.Contains("var successMessage = $\"Successfully imported customers from {path}. Imported {result.ImportedCount} customers.\";", customerImport, StringComparison.Ordinal);
-            Assert.Contains("successMessage += $\" {result.SkippedRows.Count} skipped row", customerImport, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(successMessage, \"Import Customers\");", customerImport, StringComparison.Ordinal);
-            Assert.Contains("var successMessage = $\"Successfully imported {importedCount} customers from {path} ({importer.FormatName} format).\";", customerImport, StringComparison.Ordinal);
-
-            var customerExport = ExtractMethodBody(source, "async Task ExportCustomersAsync", "async Task BackupDatabaseAsync");
-            Assert.Contains("var successMessage = $\"Successfully exported customers to {path} ({exporter.FormatName} format).\";", customerExport, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(successMessage, \"Export Customers\");", customerExport, StringComparison.Ordinal);
-
-            var backup = ExtractMethodBody(source, "async Task BackupDatabaseAsync", "    }\n}");
-            Assert.Contains("var successMessage = $\"Successfully backed up database to {path}.\";", backup, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(successMessage, \"Database Backup\");", backup, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "var successMessage = $\"Successfully imported {plural} from {path}.\";",
+                "successMessage += $\" {skippedMessage}\";",
+                "await _dialogService.ShowInfoAsync(successMessage, $\"Import {plural}\");",
+                "var successMessage = $\"Successfully exported {plural} to {path} ({exporter.FormatName} format).\";",
+                "await _dialogService.ShowInfoAsync(successMessage, $\"Export {plural}\");",
+                "var successMessage = $\"Successfully imported customers from {path}. Imported {result.ImportedCount} customers.\";",
+                "successMessage += $\" {result.SkippedRows.Count} skipped row",
+                "await _dialogService.ShowInfoAsync(successMessage, \"Import Customers\");",
+                "var successMessage = $\"Successfully imported {importedCount} customers from {path} ({importer.FormatName} format).\";",
+                "var successMessage = $\"Successfully exported customers to {path} ({exporter.FormatName} format).\";",
+                "await _dialogService.ShowInfoAsync(successMessage, \"Export Customers\");",
+                "var successMessage = $\"Successfully backed up database to {path}.\";",
+                "await _dialogService.ShowInfoAsync(successMessage, \"Database Backup\");");
         }
 
         [Fact]
@@ -184,29 +178,39 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
 
-            Assert.Contains("var message = $\"{plural} import mapping was cancelled.\";", source, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(message, $\"Import {plural}\");", source, StringComparison.Ordinal);
-            Assert.Contains("var errorMessage = $\"Mapping for {singular} number is required.\";", source, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(errorMessage, $\"Import {plural}\");", source, StringComparison.Ordinal);
-            Assert.Contains("var errorMessage = $\"No importer found for file type: {extension}\";", source, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync($\"{plural} import was cancelled.\", $\"Import {plural}\");", source, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync($\"Failed to import {plural} from {path}: {ex.Message}\", $\"Import {plural}\");", source, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "var message = $\"{plural} import mapping was cancelled.\";",
+                "await _dialogService.ShowInfoAsync(message, $\"Import {plural}\");",
+                "var errorMessage = $\"Mapping for {singular} number is required.\";",
+                "await _dialogService.ShowInfoAsync(errorMessage, $\"Import {plural}\");",
+                "var errorMessage = $\"No importer found for file type: {extension}\";",
+                "await _dialogService.ShowInfoAsync($\"{plural} import was cancelled.\", $\"Import {plural}\");",
+                "await _dialogService.ShowInfoAsync($\"Failed to import {plural} from {path}: {ex.Message}\", $\"Import {plural}\");");
         }
 
         [Fact]
         public void ImportExportViewModel_ShowsVisibleFeedbackForCustomerImportFailures()
         {
             var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
-            var method = ExtractMethodBody(source, "async Task ImportCustomersAsync", "async Task ExportCustomersAsync");
 
-            Assert.Contains("const string message = \"Customer import mapping was cancelled.\";", method, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(message, \"Import Customers\");", method, StringComparison.Ordinal);
-            Assert.Contains("var errorMessage = $\"No importer found for file type: {extension}\";", method, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(errorMessage, \"Import Customers\");", method, StringComparison.Ordinal);
-            Assert.Contains("const string message = \"Customer import was cancelled.\";", method, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(message, \"Import Customers\");", method, StringComparison.Ordinal);
-            Assert.Contains("var failureMessage = $\"Failed to import customers from {path}: {ex.Message}\";", method, StringComparison.Ordinal);
-            Assert.Contains("await _dialogService.ShowInfoAsync(failureMessage, \"Import Customers\");", method, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "const string message = \"Customer import mapping was cancelled.\";",
+                "await _dialogService.ShowInfoAsync(message, \"Import Customers\");",
+                "var errorMessage = $\"No importer found for file type: {extension}\";",
+                "await _dialogService.ShowInfoAsync(errorMessage, \"Import Customers\");",
+                "const string message = \"Customer import was cancelled.\";",
+                "var failureMessage = $\"Failed to import customers from {path}: {ex.Message}\";",
+                "await _dialogService.ShowInfoAsync(failureMessage, \"Import Customers\");");
+        }
+
+        static void AssertContainsAll(string source, params string[] expectedSnippets)
+        {
+            foreach (var snippet in expectedSnippets)
+            {
+                Assert.Contains(snippet, source, StringComparison.Ordinal);
+            }
         }
 
         static string ReadRepositoryFile(params string[] relativePathParts)
