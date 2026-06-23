@@ -382,30 +382,36 @@ namespace InventoryManagementApp.ViewModels
 
         private void ViewDetails()
         {
-            if (SelectedItem == null) return;
+            var item = SelectedItem;
+            if (item == null) return;
             try
             {
-                _dialogService.ShowItemDetails(SelectedItem);
+                _dialogService.ShowItemDetails(item);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed to open item details for item {ItemID}", item.ItemID);
+                _dialogService.ShowInfo($"Failed to open item details: {ex.Message}", "Error");
             }
         }
 
         private async Task OpenRentalHistoryAsync(CancellationToken ct)
         {
-            if (SelectedItem == null) return;
+            var item = SelectedItem;
+            if (item == null) return;
             try
             {
-                var history = await _rentalService.GetRentalHistoryForItemAsync(SelectedItem.ItemID).ConfigureAwait(false);
-                _dialogService.ShowRentalHistory(SelectedItem, history);
+                var history = await _rentalService.GetRentalHistoryForItemAsync(item.ItemID).ConfigureAwait(false);
+                _dialogService.ShowRentalHistory(item, history);
             }
             catch (OperationCanceledException)
             {
                 _logger.LogDebug("Rental history load canceled");
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed to open incremental rental history for item {ItemID}", item.ItemID);
+                await _dialogService.ShowInfoAsync($"Failed to load rental history: {ex.Message}", "Error").ConfigureAwait(false);
             }
         }
 
