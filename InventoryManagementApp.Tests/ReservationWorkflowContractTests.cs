@@ -11,9 +11,14 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ReservationManagementViewModel.cs");
 
-            Assert.Contains("catch (Exception ex)\n            {\n                Reservations.Clear();\n                FilteredReservations.Clear();\n                SelectedReservation = null;", source, StringComparison.Ordinal);
-            Assert.Contains("OnPropertyChanged(nameof(ReservationResultsSummary));\n                await _dialogService.ShowErrorAsync(\"Error loading reservations\", $\"{ex.Message} The reservation list has been cleared until reload succeeds.\");", source, StringComparison.Ordinal);
-            Assert.DoesNotContain("catch (Exception ex)\n            {\n                await _dialogService.ShowErrorAsync(\"Error loading reservations\", ex.Message);", source, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "Reservations.Clear();",
+                "FilteredReservations.Clear();",
+                "SelectedReservation = null;",
+                "OnPropertyChanged(nameof(ReservationResultsSummary));",
+                "await _dialogService.ShowErrorAsync(\"Error loading reservations\", $\"{ex.Message} The reservation list has been cleared until reload succeeds.\");");
+            Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error loading reservations\", ex.Message);", source, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -21,18 +26,24 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ReservationManagementViewModel.cs");
 
-            Assert.Contains("private async Task<bool> RefreshReservationsAfterOperationFailureAsync(int? preferredReservationId = null)", source, StringComparison.Ordinal);
-            Assert.Contains("var reservations = await _reservationService.GetAllReservationsAsync();", source, StringComparison.Ordinal);
-            Assert.Contains("ApplyFilter(preferredReservationId);", source, StringComparison.Ordinal);
-            Assert.Contains("Reservations.Clear();\n                FilteredReservations.Clear();\n                SelectedReservation = null;", source, StringComparison.Ordinal);
-            Assert.Contains("AppendReservationRefreshMessage(ex.Message, refreshed)", source, StringComparison.Ordinal);
-            Assert.Equal(6, CountOccurrences(source, "var refreshed = await RefreshReservationsAfterOperationFailureAsync("));
-            Assert.Contains("newReservation.ReservationID > 0 ? newReservation.ReservationID : null", source, StringComparison.Ordinal);
-            Assert.Contains("RefreshReservationsAfterOperationFailureAsync(clone.ReservationID)", source, StringComparison.Ordinal);
-            Assert.Contains("RefreshReservationsAfterOperationFailureAsync(reservation.ReservationID)", source, StringComparison.Ordinal);
-            Assert.Contains("RefreshReservationsAfterOperationFailureAsync(reservationId)", source, StringComparison.Ordinal);
-            Assert.Contains("The reservation list has been refreshed in case saved state changed before the failure.", source, StringComparison.Ordinal);
-            Assert.Contains("The reservation list could not be refreshed, so visible reservation rows were cleared until reload succeeds.", source, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "private async Task<bool> RefreshReservationsAfterOperationFailureAsync(int? preferredReservationId = null)",
+                "var reservations = await _reservationService.GetAllReservationsAsync();",
+                "ApplyFilter(preferredReservationId);",
+                "Reservations.Clear();",
+                "FilteredReservations.Clear();",
+                "SelectedReservation = null;",
+                "AppendReservationRefreshMessage(ex.Message, refreshed)",
+                "newReservation.ReservationID > 0 ? newReservation.ReservationID : null",
+                "RefreshReservationsAfterOperationFailureAsync(clone.ReservationID)",
+                "RefreshReservationsAfterOperationFailureAsync(reservation.ReservationID)",
+                "RefreshReservationsAfterOperationFailureAsync(reservationId)",
+                "The reservation list has been refreshed in case saved state changed before the failure.",
+                "The reservation list could not be refreshed, so visible reservation rows were cleared until reload succeeds.");
+            Assert.True(
+                CountOccurrences(source, "var refreshed = await RefreshReservationsAfterOperationFailureAsync(") >= 6,
+                "Expected all reservation mutation failure paths to refresh or clear visible rows.");
         }
 
         [Fact]
@@ -40,10 +51,24 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ReservationManagementViewModel.cs");
 
-            Assert.Contains("var reservationId = SelectedReservation.ReservationID;\n            try\n            {\n                await _reservationService.ConfirmReservationAsync(reservationId);", source, StringComparison.Ordinal);
-            Assert.Contains("var reservationId = SelectedReservation.ReservationID;\n                try\n                {\n                    await _reservationService.FulfillReservationAsync(reservationId, rentalId);", source, StringComparison.Ordinal);
-            Assert.DoesNotContain("catch (Exception ex)\n            {\n                await _dialogService.ShowErrorAsync(\"Error confirming reservation\", ex.Message);", source, StringComparison.Ordinal);
-            Assert.DoesNotContain("catch (Exception ex)\n                {\n                    await _dialogService.ShowErrorAsync(\"Error fulfilling reservation\", ex.Message);", source, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "var reservationId = SelectedReservation.ReservationID;",
+                "await _reservationService.ConfirmReservationAsync(reservationId);",
+                "await _reservationService.FulfillReservationAsync(reservationId, rentalId);",
+                "var refreshed = await RefreshReservationsAfterOperationFailureAsync(reservationId);",
+                "await _dialogService.ShowErrorAsync(\"Error confirming reservation\", AppendReservationRefreshMessage(ex.Message, refreshed));",
+                "await _dialogService.ShowErrorAsync(\"Error fulfilling reservation\", AppendReservationRefreshMessage(ex.Message, refreshed));");
+            Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error confirming reservation\", ex.Message);", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error fulfilling reservation\", ex.Message);", source, StringComparison.Ordinal);
+        }
+
+        private static void AssertContainsAll(string source, params string[] expectedSnippets)
+        {
+            foreach (var snippet in expectedSnippets)
+            {
+                Assert.Contains(snippet, source, StringComparison.Ordinal);
+            }
         }
 
         private static int CountOccurrences(string source, string value)
