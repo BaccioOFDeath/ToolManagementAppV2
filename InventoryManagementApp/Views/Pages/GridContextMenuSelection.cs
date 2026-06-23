@@ -49,7 +49,7 @@ namespace InventoryManagementApp.Views.Pages
             {
                 return VisualTreeHelper.GetParent(current);
             }
-            catch (InvalidOperationException)
+            catch (Exception ex) when (ex is InvalidOperationException || ex is ArgumentException)
             {
                 return null;
             }
@@ -62,7 +62,7 @@ namespace InventoryManagementApp.Views.Pages
                 var parent = LogicalTreeHelper.GetParent(current);
                 return parent;
             }
-            catch (InvalidOperationException)
+            catch (Exception ex) when (ex is InvalidOperationException || ex is ArgumentException)
             {
                 return null;
             }
