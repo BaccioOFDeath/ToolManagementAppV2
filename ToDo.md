@@ -7,7 +7,7 @@ Last updated: 2026-06-24.
 - Restore passes: `dotnet restore InventoryManagementApp.sln`.
 - Build passes: `dotnet build InventoryManagementApp.sln --no-restore`.
 - Full test suite most recently reported failures in brittle source-text contract tests.
-- A 2026-06-24 cleanup pass loosened the known brittle source-contract assertions for category, reservation, kit, rentals, maintenance/calibration, and Import / Export workflow tests so they guard behavior markers without exact formatting/count assumptions.
+- A 2026-06-24 cleanup pass loosened the known brittle source-contract assertions for category, reservation, kit, rentals, maintenance/calibration, Import / Export, and item/rental workflow tests so they guard behavior markers without exact formatting/count assumptions.
 - Focused navigation menu tests pass after the dark-theme dropdown hover fix.
 - Banned-word script passes after line-ending cleanup, seeded CSV exclusions, and replacing the remaining standalone hits.
 
