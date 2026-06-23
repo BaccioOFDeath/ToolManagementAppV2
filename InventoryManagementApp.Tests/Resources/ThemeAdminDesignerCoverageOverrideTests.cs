@@ -107,6 +107,7 @@ namespace InventoryManagementApp.Tests.Resources
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.NavigationChromeOverrides.xaml");
 
             Assert.Contains("{DynamicResource BackgroundBrush}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{DynamicResource MainContentBackgroundBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource TransparentSurfaceBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ForegroundBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource BorderBrushAlt}", xaml, StringComparison.Ordinal);

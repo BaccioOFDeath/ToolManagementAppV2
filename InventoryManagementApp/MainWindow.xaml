@@ -141,7 +141,7 @@
                Name="MainFrame"
                NavigationUIVisibility="Hidden"
                JournalOwnership="OwnsJournal"
-               Background="{DynamicResource BackgroundBrush}"
+               Background="{DynamicResource MainContentBackgroundBrush}"
                Content="{Binding CurrentPage}"
                Margin="{StaticResource PagePadding}"/>
 

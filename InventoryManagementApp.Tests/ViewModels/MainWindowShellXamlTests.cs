@@ -30,6 +30,16 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void MainWindow_RendersUploadedBackgroundOnlyOnRootShell()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "MainWindow.xaml");
+
+            Assert.Contains("Background=\"{DynamicResource BackgroundBrush}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Background=\"{DynamicResource MainContentBackgroundBrush}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Name=\"MainFrame\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void MainWindowFooter_ExplainsCurrentLocationAndNextButtonDestinations()
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "MainWindow.xaml");
