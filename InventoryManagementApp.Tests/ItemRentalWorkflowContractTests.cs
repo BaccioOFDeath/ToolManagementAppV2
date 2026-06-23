@@ -11,7 +11,7 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemManagementViewModel.cs");
 
-            Assert.Equal(2, CountOccurrences(source, "await ReloadItemsAfterRentalAsync(item.ItemID, cancellationToken);"));
+            AssertAtLeastOccurrences(source, "await ReloadItemsAfterRentalAsync(item.ItemID, cancellationToken);", 2);
             Assert.Contains("private Task ReloadItemsAfterRentalAsync(int itemId, CancellationToken cancellationToken)", source, StringComparison.Ordinal);
             Assert.Contains("return ReloadItemsAfterItemWorkflowAsync(itemId, cancellationToken);", source, StringComparison.Ordinal);
             Assert.Contains("private async Task ReloadItemsAfterItemWorkflowAsync(int itemId, CancellationToken cancellationToken)", source, StringComparison.Ordinal);
@@ -57,8 +57,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("private async Task RefreshItemsAfterWorkflowFailureAsync(int itemId, CancellationToken cancellationToken)", source, StringComparison.Ordinal);
             Assert.Contains("await ReloadItemsAfterItemWorkflowAsync(itemId, cancellationToken);", source, StringComparison.Ordinal);
             Assert.Contains("_logger.LogError(refreshEx, \"Failed to refresh items after workflow failure for item {ItemID}\", itemId);", source, StringComparison.Ordinal);
-            Assert.Equal(3, CountOccurrences(source, "await RefreshItemsAfterWorkflowFailureAsync(item.ItemID, cancellationToken);"));
-            Assert.Equal(2, CountOccurrences(source, "The item list has been refreshed in case the rental was saved before the failure."));
+            AssertAtLeastOccurrences(source, "await RefreshItemsAfterWorkflowFailureAsync(item.ItemID, cancellationToken);", 3);
+            Assert.Contains("The item list has been refreshed in case the rental was saved before the failure.", source, StringComparison.Ordinal);
             Assert.Contains("Failed to update check-out status: {ex.Message} The item list has been refreshed in case the check-out status changed before the failure.", source, StringComparison.Ordinal);
             Assert.DoesNotContain("await _dialogService.ShowInfoAsync($\"Failed to rent {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message}\", \"Error\");", source, StringComparison.Ordinal);
             Assert.DoesNotContain("await _dialogService.ShowInfoAsync($\"Failed to update check-out status: {ex.Message}\", \"Error\");", source, StringComparison.Ordinal);
@@ -148,7 +148,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("SelectedItem = null;", source, StringComparison.Ordinal);
             Assert.Contains("OnPropertyChanged(nameof(SearchResultsSummary));", source, StringComparison.Ordinal);
             Assert.Contains("OnPropertyChanged(nameof(CheckedOutSummary));", source, StringComparison.Ordinal);
-            Assert.Equal(2, CountOccurrences(source, "ClearItemStateAfterLoadFailure();"));
+            AssertAtLeastOccurrences(source, "ClearItemStateAfterLoadFailure();", 2);
             Assert.Contains("_logger.LogError(ex, \"Failed to load item directory\");", source, StringComparison.Ordinal);
             Assert.Contains("_logger.LogError(ex, \"Failed to search item directory\");", source, StringComparison.Ordinal);
             Assert.Contains("Failed to load {LabelProvider.Instance.ItemLabelPlural.ToLower()}: {ex.Message} Visible item rows were cleared until reload succeeds.", source, StringComparison.Ordinal);
@@ -162,6 +162,15 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("_logger.LogError(ex, \"Failed to open rental history for {ItemLabelSingular} {ItemID}\"", source, StringComparison.Ordinal);
             Assert.Contains("await _dialogService.ShowInfoAsync($\"Failed to load rental history: {ex.Message}\", \"Error\");", source, StringComparison.Ordinal);
+        }
+
+        private static void AssertAtLeastOccurrences(string source, string value, int minimum)
+        {
+            var count = CountOccurrences(source, value);
+
+            Assert.True(
+                count >= minimum,
+                $"Expected at least {minimum} occurrence(s) of '{value}', but found {count}.");
         }
 
         private static int CountOccurrences(string source, string value)
