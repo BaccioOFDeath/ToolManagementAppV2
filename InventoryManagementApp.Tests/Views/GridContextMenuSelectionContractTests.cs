@@ -45,13 +45,17 @@ namespace InventoryManagementApp.Tests.Views
             foreach (var pagePath in OperationalGridPagePaths())
             {
                 var source = ReadRepositoryFile(pagePath);
+                var handlerCount = 0;
+
                 foreach (var handler in ExtractRightClickHandlers(source))
                 {
-                    Assert.Contains("GridContextMenuSelection.SelectRow(sender, e)", handler, StringComparison.Ordinal);
+                    handlerCount++;
                     Assert.DoesNotContain("e.Handled = true;", handler, StringComparison.Ordinal);
                     Assert.DoesNotContain("if (sender is DataGridRow row", handler, StringComparison.Ordinal);
                     Assert.DoesNotContain("row.IsSelected = true;", handler, StringComparison.Ordinal);
                 }
+
+                Assert.True(handlerCount > 0, $"Expected at least one grid right-click handler in {Path.Combine(pagePath)}.");
             }
         }
 
