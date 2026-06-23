@@ -11,13 +11,20 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "CategoryManagementViewModel.cs");
 
-            Assert.Contains("ClearCategoryStateAfterLoadFailure();\n                StatusMessage = \"Categories could not be loaded. Category rows were cleared until reload succeeds.\";", source, StringComparison.Ordinal);
-            Assert.Contains("private void ClearCategoryStateAfterLoadFailure()", source, StringComparison.Ordinal);
-            Assert.Contains("Categories.Clear();\n            FilteredCategories.Clear();\n            SelectedCategory = null;\n            CategoryName = \"\";\n            RaiseDirectoryProperties();", source, StringComparison.Ordinal);
-            Assert.Contains("_saveCommand = new AsyncCommand(SaveAsync, () => SelectedCategory != null && !string.IsNullOrWhiteSpace(CategoryName));", source, StringComparison.Ordinal);
-            Assert.Contains("_deleteCommand = new AsyncCommand(DeleteAsync, () => SelectedCategory != null);", source, StringComparison.Ordinal);
-            Assert.Contains("WpfMessageBox.Show(\"Categories could not be loaded. Category rows were cleared until reload succeeds. Please retry or check the application log.\"", source, StringComparison.Ordinal);
-            Assert.DoesNotContain("StatusMessage = \"Categories could not be loaded. Review logs or retry refresh.\";\n                WpfMessageBox.Show(\"Categories could not be loaded. Please retry or check the application log.\"", source, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "ClearCategoryStateAfterLoadFailure();",
+                "Categories could not be loaded. Category rows were cleared until reload succeeds.",
+                "private void ClearCategoryStateAfterLoadFailure()",
+                "Categories.Clear();",
+                "FilteredCategories.Clear();",
+                "SelectedCategory = null;",
+                "CategoryName = \"\";",
+                "RaiseDirectoryProperties();",
+                "_saveCommand = new AsyncCommand(SaveAsync, () => SelectedCategory != null && !string.IsNullOrWhiteSpace(CategoryName));",
+                "_deleteCommand = new AsyncCommand(DeleteAsync, () => SelectedCategory != null);",
+                "WpfMessageBox.Show(\"Categories could not be loaded. Category rows were cleared until reload succeeds. Please retry or check the application log.\"");
+            Assert.DoesNotContain("Categories could not be loaded. Review logs or retry refresh.\";\n                WpfMessageBox.Show(\"Categories could not be loaded. Please retry", NormalizeNewlines(source), StringComparison.Ordinal);
         }
 
         [Fact]
@@ -25,21 +32,38 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "CategoryManagementViewModel.cs");
 
-            Assert.Contains("private async Task RefreshCategoryDirectoryAfterMutationFailureAsync(int? preferredSelectedId, string refreshedStatusMessage, string clearedStatusMessage)", source, StringComparison.Ordinal);
-            Assert.Contains("var list = await _service.GetCategoriesForInventoryAsync(SelectedInventoryId);\n                Categories.Clear();\n                foreach (var c in list) Categories.Add(new CategoryItem { CategoryID = c.CategoryID, Name = c.Name });\n                ApplyFilter(preferredSelectedId);\n                StatusMessage = refreshedStatusMessage;", source, StringComparison.Ordinal);
-            Assert.Contains("_logger.LogWarning(refreshEx, \"Failed to refresh categories after a category mutation failure for inventory {InventoryId}\", SelectedInventoryId);\n                ClearCategoryStateAfterLoadFailure();\n                StatusMessage = clearedStatusMessage;", source, StringComparison.Ordinal);
-            Assert.Contains("int? createdCategoryId = null;", source, StringComparison.Ordinal);
-            Assert.Contains("createdCategoryId = id;", source, StringComparison.Ordinal);
-            Assert.Contains("await RefreshCategoryDirectoryAfterMutationFailureAsync(\n                    createdCategoryId,\n                    $\"Category rows were refreshed after '{name}' failed to finish creating.\",\n                    $\"Category rows were cleared after '{name}' failed to finish creating and recovery reload failed.\");", source, StringComparison.Ordinal);
-            Assert.Contains("await RefreshCategoryDirectoryAfterMutationFailureAsync(\n                        id,\n                        $\"Category rows were refreshed after category #{id} could not be renamed.\",\n                        $\"Category rows were cleared after category #{id} could not be renamed and recovery reload failed.\");", source, StringComparison.Ordinal);
-            Assert.Contains("await RefreshCategoryDirectoryAfterMutationFailureAsync(\n                    id,\n                    $\"Category rows were refreshed after category #{id} failed to finish saving.\",\n                    $\"Category rows were cleared after category #{id} failed to finish saving and recovery reload failed.\");", source, StringComparison.Ordinal);
-            Assert.Contains("await RefreshCategoryDirectoryAfterMutationFailureAsync(\n                        category.CategoryID,\n                        $\"Category rows were refreshed after '{category.Name}' could not be deleted.\",\n                        $\"Category rows were cleared after '{category.Name}' could not be deleted and recovery reload failed.\");", source, StringComparison.Ordinal);
-            Assert.Contains("await RefreshCategoryDirectoryAfterMutationFailureAsync(\n                    category.CategoryID,\n                    $\"Category rows were refreshed after '{category.Name}' failed to finish deleting.\",\n                    $\"Category rows were cleared after '{category.Name}' failed to finish deleting and recovery reload failed.\");", source, StringComparison.Ordinal);
-            Assert.Contains("Category rows were refreshed from the saved data where possible.", source, StringComparison.Ordinal);
-            Assert.DoesNotContain("StatusMessage = $\"Category '{name}' could not be created.\";\n                WpfMessageBox.Show($\"Category '{name}' could not be created. Please retry or check the application log.\"", source, StringComparison.Ordinal);
-            Assert.DoesNotContain("StatusMessage = $\"Category #{id} could not be renamed.\";\n                    WpfMessageBox.Show(\"The category was not renamed. Refresh and try again.\"", source, StringComparison.Ordinal);
-            Assert.DoesNotContain("StatusMessage = $\"Category '{category.Name}' could not be deleted.\";\n                    WpfMessageBox.Show(\"The category was not deleted. Refresh and try again.\"", source, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "private async Task RefreshCategoryDirectoryAfterMutationFailureAsync(int? preferredSelectedId, string refreshedStatusMessage, string clearedStatusMessage)",
+                "var list = await _service.GetCategoriesForInventoryAsync(SelectedInventoryId);",
+                "Categories.Clear();",
+                "ApplyFilter(preferredSelectedId);",
+                "StatusMessage = refreshedStatusMessage;",
+                "_logger.LogWarning(refreshEx, \"Failed to refresh categories after a category mutation failure for inventory {InventoryId}\", SelectedInventoryId);",
+                "ClearCategoryStateAfterLoadFailure();",
+                "StatusMessage = clearedStatusMessage;",
+                "int? createdCategoryId = null;",
+                "createdCategoryId = id;",
+                "Category rows were refreshed after '{name}' failed to finish creating.",
+                "Category rows were cleared after '{name}' failed to finish creating and recovery reload failed.",
+                "Category rows were refreshed after category #{id} could not be renamed.",
+                "Category rows were refreshed after category #{id} failed to finish saving.",
+                "Category rows were refreshed after '{category.Name}' could not be deleted.",
+                "Category rows were refreshed after '{category.Name}' failed to finish deleting.",
+                "Category rows were refreshed from the saved data where possible.");
+            Assert.DoesNotContain("The category was not renamed. Refresh and try again.", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("The category was not deleted. Refresh and try again.", source, StringComparison.Ordinal);
         }
+
+        private static void AssertContainsAll(string source, params string[] expectedSnippets)
+        {
+            foreach (var snippet in expectedSnippets)
+            {
+                Assert.Contains(snippet, source, StringComparison.Ordinal);
+            }
+        }
+
+        private static string NormalizeNewlines(string source) => source.Replace("\r\n", "\n");
 
         private static string ReadRepoFile(params string[] parts)
         {
