@@ -85,6 +85,22 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void IncrementalItemEditAndCreateDialogFailuresShowOperatorFeedback()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemsViewModel.cs");
+
+            Assert.Contains("var selected = SelectedItem;", source, StringComparison.Ordinal);
+            Assert.Contains("if (selected == null) return;", source, StringComparison.Ordinal);
+            Assert.Contains("ItemID = selected.ItemID,", source, StringComparison.Ordinal);
+            Assert.Contains("_logger.LogError(ex, \"Failed to open edit item dialog for item {ItemID}\", selected.ItemID);", source, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync($\"Failed to open edit item dialog: {ex.Message}\", \"Error\").ConfigureAwait(false);", source, StringComparison.Ordinal);
+            Assert.Contains("_logger.LogError(ex, \"Failed to open new item dialog\");", source, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync($\"Failed to open new item dialog: {ex.Message}\", \"Error\").ConfigureAwait(false);", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("catch\n            {\n                return;\n            }", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("ItemID = SelectedItem.ItemID,", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void IncrementalItemDetailsAndHistoryFailuresShowOperatorFeedback()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemsViewModel.cs");
