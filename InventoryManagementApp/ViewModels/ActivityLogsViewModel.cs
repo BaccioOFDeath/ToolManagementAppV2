@@ -207,6 +207,7 @@ namespace InventoryManagementApp.ViewModels
             Logs.Clear();
             FilteredLogs.Clear();
             SelectedLog = null;
+            LastLoadedAt = null;
             RebuildFilterLists();
             OnPropertyChanged(nameof(TotalLogCount));
             OnPropertyChanged(nameof(FilteredLogCount));
