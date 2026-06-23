@@ -85,6 +85,23 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void IncrementalItemDetailsAndHistoryFailuresShowOperatorFeedback()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemsViewModel.cs");
+
+            Assert.Contains("var item = SelectedItem;", source, StringComparison.Ordinal);
+            Assert.Contains("_dialogService.ShowItemDetails(item);", source, StringComparison.Ordinal);
+            Assert.Contains("_logger.LogError(ex, \"Failed to open item details for item {ItemID}\", item.ItemID);", source, StringComparison.Ordinal);
+            Assert.Contains("_dialogService.ShowInfo($\"Failed to open item details: {ex.Message}\", \"Error\");", source, StringComparison.Ordinal);
+            Assert.Contains("var history = await _rentalService.GetRentalHistoryForItemAsync(item.ItemID).ConfigureAwait(false);", source, StringComparison.Ordinal);
+            Assert.Contains("_dialogService.ShowRentalHistory(item, history);", source, StringComparison.Ordinal);
+            Assert.Contains("_logger.LogError(ex, \"Failed to open incremental rental history for item {ItemID}\", item.ItemID);", source, StringComparison.Ordinal);
+            Assert.Contains("await _dialogService.ShowInfoAsync($\"Failed to load rental history: {ex.Message}\", \"Error\").ConfigureAwait(false);", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("_dialogService.ShowItemDetails(SelectedItem);", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("_dialogService.ShowRentalHistory(SelectedItem, history);", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ItemLoadAndSearchFailuresClearStaleVisibleRows()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemManagementViewModel.cs");
