@@ -94,13 +94,14 @@ namespace InventoryManagementApp.Tests
         public async Task DeleteUserFromRowCommand_WhenDeleteAndRecoveryRefreshFail_ClearsRowsAndSelection()
         {
             var deleteTarget = new UserModel { UserID = 21, UserName = "remove-me", Role = "Workshop Staff" };
-            var service = new StubUserService { ThrowAfterDelete = true, ThrowOnGetAllUsersAfterMutation = true };
+            var service = new StubUserService { ThrowAfterDelete = true };
             service.Users.Add(deleteTarget);
             var dialog = new StubDialogService();
             var vm = new UserManagementViewModel(service, new StubFileDialogService(), dialog);
 
             await vm.LoadUsersAsync();
             vm.SelectedUser = deleteTarget;
+            service.ThrowOnGetAllUsersAfterMutation = true;
 
             await vm.DeleteUserFromRowCommand.ExecuteAsync(deleteTarget);
 
