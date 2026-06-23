@@ -146,7 +146,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 var preferredCustomerId = SelectedCustomer?.CustomerID;
-                var all = await _maintenanceSafeGetCustomersForCurrentSearchAsync();
+                var all = await _customerService.GetAllCustomersAsync();
                 Customers.ReplaceRange(all);
                 SelectBestCustomerAfterRefresh(preferredCustomerId);
                 OnPropertyChanged(nameof(CustomerResultsSummary));
@@ -228,7 +228,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 var preferredCustomerId = SelectedCustomer?.CustomerID;
-                var all = await _maintenanceSafeGetCustomersForCurrentSearchAsync();
+                var all = await GetCustomersForCurrentSearchAsync();
                 Customers.ReplaceRange(all);
                 SelectBestCustomerAfterRefresh(preferredCustomerId);
                 OnPropertyChanged(nameof(CustomerResultsSummary));
@@ -247,7 +247,7 @@ namespace InventoryManagementApp.ViewModels
 
             try
             {
-                var all = await _maintenanceSafeGetCustomersForCurrentSearchAsync();
+                var all = await GetCustomersForCurrentSearchAsync();
                 Customers.ReplaceRange(all);
                 SelectBestCustomerAfterRefresh(preferredCustomerId, clearSelectionWhenPreferredMissing);
                 OnPropertyChanged(nameof(CustomerResultsSummary));
@@ -260,7 +260,7 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        private async Task<System.Collections.Generic.List<CustomerModel>> _maintenanceSafeGetCustomersForCurrentSearchAsync()
+        private async Task<System.Collections.Generic.List<CustomerModel>> GetCustomersForCurrentSearchAsync()
         {
             var all = await _customerService!.GetAllCustomersAsync();
             if (!string.IsNullOrWhiteSpace(CustomerSearchTerm))
