@@ -20,6 +20,28 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void MaintenanceMutationFailuresRefreshRowsOrClearAfterRecoveryFailure()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "MaintenanceManagementViewModel.cs");
+
+            Assert.Contains("await RefreshMaintenanceAfterMutationFailureAsync(\n                        newRecord.MaintenanceID > 0 ? newRecord.MaintenanceID : null,\n                        \"Error creating maintenance record\",\n                        $\"{ex.Message} Maintenance rows were refreshed from saved data.\");", source, StringComparison.Ordinal);
+            Assert.Contains("await RefreshMaintenanceAfterMutationFailureAsync(\n                        clone.MaintenanceID,\n                        \"Error updating maintenance record\",\n                        $\"{ex.Message} Maintenance rows were refreshed from saved data.\");", source, StringComparison.Ordinal);
+            Assert.Contains("var deletedRecord = SelectedRecord;\n                try", source, StringComparison.Ordinal);
+            Assert.Contains("await RefreshMaintenanceAfterMutationFailureAsync(\n                        deletedRecord.MaintenanceID,\n                        \"Error deleting maintenance record\",\n                        $\"{ex.Message} Maintenance rows were refreshed from saved data.\",\n                        clearSelectionWhenAffectedRecordIsGone: true);", source, StringComparison.Ordinal);
+            Assert.Contains("var completedId = SelectedRecord.MaintenanceID;\n                try", source, StringComparison.Ordinal);
+            Assert.Contains("await RefreshMaintenanceAfterMutationFailureAsync(\n                        completedId,\n                        \"Error completing maintenance\",\n                        $\"{ex.Message} Maintenance rows were refreshed from saved data.\");", source, StringComparison.Ordinal);
+            Assert.Contains("private async Task RefreshMaintenanceAfterMutationFailureAsync(", source, StringComparison.Ordinal);
+            Assert.Contains("var records = await _maintenanceService.GetAllMaintenanceRecordsAsync();\n                MaintenanceRecords.Clear();", source, StringComparison.Ordinal);
+            Assert.Contains("clearSelectionWhenAffectedRecordIsGone\n                    && preferredMaintenanceId.HasValue\n                    && MaintenanceRecords.All(r => r.MaintenanceID != preferredMaintenanceId.Value)", source, StringComparison.Ordinal);
+            Assert.Contains("SelectedRecord = null;", source, StringComparison.Ordinal);
+            Assert.Contains("Recovery refresh also failed: {refreshEx.Message} Maintenance rows were cleared until reload succeeds.", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error creating maintenance record\", ex.Message);", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error updating maintenance record\", ex.Message);", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error deleting maintenance record\", ex.Message);", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error completing maintenance\", ex.Message);", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void CalibrationLoadFailuresClearStaleRowsAndSelection()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "CalibrationManagementViewModel.cs");

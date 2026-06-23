@@ -216,7 +216,10 @@ namespace InventoryManagementApp.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    await _dialogService.ShowErrorAsync("Error creating maintenance record", ex.Message);
+                    await RefreshMaintenanceAfterMutationFailureAsync(
+                        newRecord.MaintenanceID > 0 ? newRecord.MaintenanceID : null,
+                        "Error creating maintenance record",
+                        $"{ex.Message} Maintenance rows were refreshed from saved data.");
                 }
             }
         }
@@ -256,7 +259,10 @@ namespace InventoryManagementApp.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    await _dialogService.ShowErrorAsync("Error updating maintenance record", ex.Message);
+                    await RefreshMaintenanceAfterMutationFailureAsync(
+                        clone.MaintenanceID,
+                        "Error updating maintenance record",
+                        $"{ex.Message} Maintenance rows were refreshed from saved data.");
                 }
             }
         }
@@ -271,9 +277,9 @@ namespace InventoryManagementApp.ViewModels
 
             if (confirmed)
             {
+                var deletedRecord = SelectedRecord;
                 try
                 {
-                    var deletedRecord = SelectedRecord;
                     await _maintenanceService.DeleteMaintenanceRecordAsync(deletedRecord.MaintenanceID);
                     MaintenanceRecords.Remove(deletedRecord);
                     ApplyFilter();
@@ -281,7 +287,11 @@ namespace InventoryManagementApp.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    await _dialogService.ShowErrorAsync("Error deleting maintenance record", ex.Message);
+                    await RefreshMaintenanceAfterMutationFailureAsync(
+                        deletedRecord.MaintenanceID,
+                        "Error deleting maintenance record",
+                        $"{ex.Message} Maintenance rows were refreshed from saved data.",
+                        clearSelectionWhenAffectedRecordIsGone: true);
                 }
             }
         }
@@ -296,9 +306,9 @@ namespace InventoryManagementApp.ViewModels
 
             if (!string.IsNullOrWhiteSpace(performedBy))
             {
+                var completedId = SelectedRecord.MaintenanceID;
                 try
                 {
-                    var completedId = SelectedRecord.MaintenanceID;
                     await _maintenanceService.CompleteMaintenanceAsync(
                         completedId,
                         performedBy,
@@ -312,7 +322,10 @@ namespace InventoryManagementApp.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    await _dialogService.ShowErrorAsync("Error completing maintenance", ex.Message);
+                    await RefreshMaintenanceAfterMutationFailureAsync(
+                        completedId,
+                        "Error completing maintenance",
+                        $"{ex.Message} Maintenance rows were refreshed from saved data.");
                 }
             }
         }
@@ -330,6 +343,39 @@ namespace InventoryManagementApp.ViewModels
             FilteredMaintenanceRecords.Clear();
             SelectedRecord = null;
             NotifyCommandStatesAndSummaries();
+        }
+
+        private async Task RefreshMaintenanceAfterMutationFailureAsync(
+            int? preferredMaintenanceId,
+            string title,
+            string message,
+            bool clearSelectionWhenAffectedRecordIsGone = false)
+        {
+            try
+            {
+                var records = await _maintenanceService.GetAllMaintenanceRecordsAsync();
+                MaintenanceRecords.Clear();
+                foreach (var record in records)
+                {
+                    MaintenanceRecords.Add(record);
+                }
+
+                ApplyFilter(preferredMaintenanceId);
+                if (clearSelectionWhenAffectedRecordIsGone
+                    && preferredMaintenanceId.HasValue
+                    && MaintenanceRecords.All(r => r.MaintenanceID != preferredMaintenanceId.Value))
+                {
+                    SelectedRecord = null;
+                }
+
+                NotifyCommandStatesAndSummaries();
+                await _dialogService.ShowErrorAsync(title, message);
+            }
+            catch (Exception refreshEx)
+            {
+                ClearMaintenanceStateAfterLoadFailure();
+                await _dialogService.ShowErrorAsync(title, $"{message} Recovery refresh also failed: {refreshEx.Message} Maintenance rows were cleared until reload succeeds.");
+            }
         }
 
         private void ApplyFilter(int? preferredMaintenanceId = null)
