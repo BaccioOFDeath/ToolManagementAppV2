@@ -206,7 +206,10 @@ namespace InventoryManagementApp.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    await _dialogService.ShowErrorAsync("Error creating calibration record", ex.Message);
+                    await RefreshCalibrationAfterMutationFailureAsync(
+                        newRecord.CalibrationID > 0 ? newRecord.CalibrationID : null,
+                        "Error creating calibration record",
+                        $"{ex.Message} Calibration rows were refreshed from saved data.");
                 }
             }
         }
@@ -246,7 +249,10 @@ namespace InventoryManagementApp.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    await _dialogService.ShowErrorAsync("Error updating calibration record", ex.Message);
+                    await RefreshCalibrationAfterMutationFailureAsync(
+                        clone.CalibrationID,
+                        "Error updating calibration record",
+                        $"{ex.Message} Calibration rows were refreshed from saved data.");
                 }
             }
         }
@@ -261,9 +267,9 @@ namespace InventoryManagementApp.ViewModels
 
             if (confirmed)
             {
+                var deletedRecord = SelectedRecord;
                 try
                 {
-                    var deletedRecord = SelectedRecord;
                     await _calibrationService.DeleteCalibrationRecordAsync(deletedRecord.CalibrationID);
                     CalibrationRecords.Remove(deletedRecord);
                     ApplyFilter();
@@ -271,7 +277,11 @@ namespace InventoryManagementApp.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    await _dialogService.ShowErrorAsync("Error deleting calibration record", ex.Message);
+                    await RefreshCalibrationAfterMutationFailureAsync(
+                        deletedRecord.CalibrationID,
+                        "Error deleting calibration record",
+                        $"{ex.Message} Calibration rows were refreshed from saved data.",
+                        clearSelectionWhenAffectedRecordIsGone: true);
                 }
             }
         }
@@ -289,6 +299,39 @@ namespace InventoryManagementApp.ViewModels
             FilteredCalibrationRecords.Clear();
             SelectedRecord = null;
             NotifyCommandStatesAndSummaries();
+        }
+
+        private async Task RefreshCalibrationAfterMutationFailureAsync(
+            int? preferredCalibrationId,
+            string title,
+            string message,
+            bool clearSelectionWhenAffectedRecordIsGone = false)
+        {
+            try
+            {
+                var records = await _calibrationService.GetAllCalibrationRecordsAsync();
+                CalibrationRecords.Clear();
+                foreach (var record in records)
+                {
+                    CalibrationRecords.Add(record);
+                }
+
+                ApplyFilter(preferredCalibrationId);
+                if (clearSelectionWhenAffectedRecordIsGone
+                    && preferredCalibrationId.HasValue
+                    && CalibrationRecords.All(r => r.CalibrationID != preferredCalibrationId.Value))
+                {
+                    SelectedRecord = null;
+                }
+
+                NotifyCommandStatesAndSummaries();
+                await _dialogService.ShowErrorAsync(title, message);
+            }
+            catch (Exception refreshEx)
+            {
+                ClearCalibrationStateAfterLoadFailure();
+                await _dialogService.ShowErrorAsync(title, $"{message} Recovery refresh also failed: {refreshEx.Message} Calibration rows were cleared until reload succeeds.");
+            }
         }
 
         private void ApplyFilter(int? preferredCalibrationId = null)
