@@ -102,6 +102,20 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void IncrementalItemLoadMoreFailuresClearRowsAndShowFeedback()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemsViewModel.cs");
+
+            Assert.Contains("catch (Exception ex)\n            {\n                await ClearItemsAfterLoadMoreFailureAsync(ex).ConfigureAwait(false);\n            }", NormalizeNewlines(source), StringComparison.Ordinal);
+            Assert.Contains("private async Task ClearItemsAfterLoadMoreFailureAsync(Exception ex)", source, StringComparison.Ordinal);
+            Assert.Contains("_logger.LogError(ex, \"Failed to load more incremental item rows\");", source, StringComparison.Ordinal);
+            Assert.Contains("Items.Reset();", source, StringComparison.Ordinal);
+            Assert.Contains("SelectedItem = null;", source, StringComparison.Ordinal);
+            Assert.Contains("Failed to load more items: {ex.Message} Visible item rows were cleared until reload succeeds.", source, StringComparison.Ordinal);
+            Assert.Contains("_logger.LogDebug(\"Incremental load canceled\");", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void IncrementalItemEditAndCreateDialogFailuresShowOperatorFeedback()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemsViewModel.cs");
@@ -186,6 +200,8 @@ namespace InventoryManagementApp.Tests
 
             return count;
         }
+
+        private static string NormalizeNewlines(string source) => source.Replace("\r\n", "\n");
 
         private static string ReadRepoFile(params string[] parts)
         {
