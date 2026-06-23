@@ -412,7 +412,7 @@ namespace InventoryManagementApp.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    await _dialogService.ShowErrorAsync("Error removing item", ex.Message);
+                    await _dialogService.ShowErrorAsync("Error removing item from kit", ex.Message);
                 }
             }
         }
