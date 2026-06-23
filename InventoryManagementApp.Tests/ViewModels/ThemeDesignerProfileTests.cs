@@ -18,10 +18,12 @@ namespace InventoryManagementApp.Tests.ViewModels
         public void ExportThemeProfileCommand_WritesNormalizedThemeJson()
         {
             var exportPath = Path.Combine(Path.GetTempPath(), $"inventory-theme-{Guid.NewGuid():N}.json");
+            var backgroundPath = CreateTempImage(".png");
             var fileDialogs = new FakeFileDialogService { SavePath = exportPath };
             var viewModel = CreateViewModel(fileDialogs: fileDialogs);
 
             viewModel.BackgroundColor = "445566";
+            viewModel.BackgroundImagePath = backgroundPath;
             viewModel.BorderThickness = 99;
             viewModel.ExportThemeProfileCommand.Execute(null);
 
@@ -29,6 +31,10 @@ namespace InventoryManagementApp.Tests.ViewModels
 
             Assert.NotNull(exported);
             Assert.Equal("#445566", exported!.BackgroundColor);
+            Assert.StartsWith(Path.Combine("Assets", "Backgrounds"), exported.BackgroundImagePath, StringComparison.OrdinalIgnoreCase);
+            Assert.Equal(Path.GetFileName(exported.BackgroundImagePath), exported.BackgroundImageFileName);
+            Assert.False(string.IsNullOrWhiteSpace(exported.BackgroundImageContentBase64));
+            Assert.True(File.Exists(Path.Combine(AppContext.BaseDirectory, exported.BackgroundImagePath)));
             Assert.Equal(6, exported.BorderThickness);
             Assert.Equal("Theme profile exported.", viewModel.Status);
             Assert.Equal("Theme Profile (*.json)|*.json|All Files (*.*)|*.*", fileDialogs.LastSaveFilter);
@@ -64,6 +70,44 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Equal(0, settingsService.SaveThemeCalls);
             Assert.Equal("Dark", themeService.LastAppliedCustomTheme?.BaseTheme);
             Assert.Equal("Theme Profile (*.json)|*.json|All Files (*.*)|*.*", fileDialogs.LastOpenFilter);
+        }
+
+        [Fact]
+        public async Task SaveCommand_CopiesBackgroundToAppAssetsAndPersistsRelativePath()
+        {
+            var backgroundPath = CreateTempImage(".jpg");
+            var settingsService = new FakeSettingsService();
+            var viewModel = CreateViewModel(settingsService);
+            viewModel.BackgroundImagePath = backgroundPath;
+
+            await viewModel.SaveCommand.ExecuteAsync(null);
+            var saved = await ((ISettingsService)settingsService).GetAppThemeSettingsAsync();
+
+            Assert.StartsWith(Path.Combine("Assets", "Backgrounds"), saved.BackgroundImagePath, StringComparison.OrdinalIgnoreCase);
+            Assert.True(File.Exists(Path.Combine(AppContext.BaseDirectory, saved.BackgroundImagePath)));
+            Assert.Null(saved.BackgroundImageFileName);
+            Assert.Null(saved.BackgroundImageContentBase64);
+        }
+
+        [Fact]
+        public void ImportThemeProfileCommand_ExtractsEmbeddedBackgroundToAppAssets()
+        {
+            var importPath = Path.Combine(Path.GetTempPath(), $"inventory-theme-{Guid.NewGuid():N}.json");
+            File.WriteAllText(importPath, JsonSerializer.Serialize(new AppThemeSettings
+            {
+                BackgroundImagePath = @"C:\OldMachine\Pictures\shop.png",
+                BackgroundImageFileName = "shop.png",
+                BackgroundImageContentBase64 = Convert.ToBase64String(new byte[] { 9, 8, 7, 6 })
+            }));
+
+            var fileDialogs = new FakeFileDialogService { OpenPath = importPath };
+            var viewModel = CreateViewModel(fileDialogs: fileDialogs);
+
+            viewModel.ImportThemeProfileCommand.Execute(null);
+
+            Assert.StartsWith(Path.Combine("Assets", "Backgrounds"), viewModel.BackgroundImagePath, StringComparison.OrdinalIgnoreCase);
+            Assert.True(File.Exists(Path.Combine(AppContext.BaseDirectory, viewModel.BackgroundImagePath)));
+            Assert.Equal("Theme profile imported for preview. Save to keep it.", viewModel.Status);
         }
 
         [Fact]
@@ -236,6 +280,13 @@ namespace InventoryManagementApp.Tests.ViewModels
             var path = Path.Combine(directory!.FullName, Path.Combine(relativePathParts));
             Assert.True(File.Exists(path), $"Expected repository file at {path}");
             return File.ReadAllText(path);
+        }
+
+        private static string CreateTempImage(string extension)
+        {
+            var path = Path.Combine(Path.GetTempPath(), $"inventory-theme-background-{Guid.NewGuid():N}{extension}");
+            File.WriteAllBytes(path, new byte[] { 1, 2, 3, 4, 5 });
+            return path;
         }
     }
 }

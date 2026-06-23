@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
+using InventoryManagementApp.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
@@ -508,6 +509,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 _settings.Normalize();
+                _settings.BackgroundImagePath = ThemeBackgroundAssetHelper.CopyToAppAssets(_settings.BackgroundImagePath);
                 await _settingsService.SaveThemeAsync(_settings.BaseTheme, token).ConfigureAwait(false);
                 await _settingsService.SaveAppThemeSettingsAsync(_settings, token).ConfigureAwait(false);
                 Preview(immediate: true);
@@ -546,7 +548,10 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 _settings.Normalize();
-                File.WriteAllText(path, JsonSerializer.Serialize(_settings, ThemeProfileJsonOptions));
+                _settings.BackgroundImagePath = ThemeBackgroundAssetHelper.CopyToAppAssets(_settings.BackgroundImagePath);
+                var exportSettings = CloneSettings(_settings);
+                ThemeBackgroundAssetHelper.AddEmbeddedBackground(exportSettings);
+                File.WriteAllText(path, JsonSerializer.Serialize(exportSettings, ThemeProfileJsonOptions));
                 NotifyAllThemePropertiesChanged();
                 Status = "Theme profile exported.";
             }
@@ -569,6 +574,7 @@ namespace InventoryManagementApp.ViewModels
                 var imported = JsonSerializer.Deserialize<AppThemeSettings>(File.ReadAllText(path), ThemeProfileJsonOptions)
                     ?? throw new InvalidDataException("Theme profile did not contain app theme settings.");
 
+                ThemeBackgroundAssetHelper.ExtractEmbeddedBackground(imported);
                 imported.Normalize();
                 _settings = imported;
                 Preview(immediate: true);
@@ -582,6 +588,10 @@ namespace InventoryManagementApp.ViewModels
                 Status = "Theme profile import failed.";
             }
         }
+
+        private static AppThemeSettings CloneSettings(AppThemeSettings settings)
+            => JsonSerializer.Deserialize<AppThemeSettings>(JsonSerializer.Serialize(settings, ThemeProfileJsonOptions), ThemeProfileJsonOptions)
+               ?? AppThemeSettings.CreateDefault(settings.BaseTheme);
 
         private void ApplyGlassPreset()
         {

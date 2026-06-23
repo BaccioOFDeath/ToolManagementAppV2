@@ -8,6 +8,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
+using InventoryManagementApp.Utilities.Helpers;
 using Application = System.Windows.Application;
 
 namespace InventoryManagementApp.Services
@@ -312,11 +313,12 @@ namespace InventoryManagementApp.Services
 
         private static Brush CreateBackgroundBrush(AppThemeSettings settings)
         {
-            if (!string.IsNullOrWhiteSpace(settings.BackgroundImagePath) && File.Exists(settings.BackgroundImagePath))
+            var backgroundImagePath = ThemeBackgroundAssetHelper.ResolveBackgroundImagePath(settings.BackgroundImagePath);
+            if (!string.IsNullOrWhiteSpace(backgroundImagePath) && File.Exists(backgroundImagePath))
             {
                 try
                 {
-                    return new ImageBrush(new BitmapImage(new Uri(settings.BackgroundImagePath, UriKind.Absolute)))
+                    return new ImageBrush(new BitmapImage(new Uri(backgroundImagePath, UriKind.Absolute)))
                     {
                         Stretch = ParseStretch(settings.BackgroundImageStretch),
                         Opacity = settings.BackgroundOpacity

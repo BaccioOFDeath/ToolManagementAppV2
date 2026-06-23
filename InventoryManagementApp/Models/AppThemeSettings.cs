@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Serialization;
 
 namespace InventoryManagementApp.Models
 {
@@ -25,6 +26,10 @@ namespace InventoryManagementApp.Models
         public string ErrorColor { get; set; } = "#FFDC2626";
         public string ShadowColor { get; set; } = "#66000000";
         public string BackgroundImagePath { get; set; } = string.Empty;
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public string? BackgroundImageFileName { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public string? BackgroundImageContentBase64 { get; set; }
         public string BackgroundImageStretch { get; set; } = "UniformToFill";
         public string FontFamily { get; set; } = "Segoe UI";
         public double BackgroundOpacity { get; set; } = 1.0;
