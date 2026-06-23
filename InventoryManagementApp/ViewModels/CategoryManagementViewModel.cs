@@ -254,6 +254,31 @@ namespace InventoryManagementApp.ViewModels
             RaiseDirectoryProperties();
         }
 
+        private async Task RefreshCategoryDirectoryAfterMutationFailureAsync(int? preferredSelectedId, string refreshedStatusMessage, string clearedStatusMessage)
+        {
+            if (SelectedInventoryId <= 0)
+            {
+                ClearCategoryStateAfterLoadFailure();
+                StatusMessage = clearedStatusMessage;
+                return;
+            }
+
+            try
+            {
+                var list = await _service.GetCategoriesForInventoryAsync(SelectedInventoryId);
+                Categories.Clear();
+                foreach (var c in list) Categories.Add(new CategoryItem { CategoryID = c.CategoryID, Name = c.Name });
+                ApplyFilter(preferredSelectedId);
+                StatusMessage = refreshedStatusMessage;
+            }
+            catch (Exception refreshEx)
+            {
+                _logger.LogWarning(refreshEx, "Failed to refresh categories after a category mutation failure for inventory {InventoryId}", SelectedInventoryId);
+                ClearCategoryStateAfterLoadFailure();
+                StatusMessage = clearedStatusMessage;
+            }
+        }
+
         private void ApplyFilter(int? preferredSelectedId = null)
         {
             var search = SearchText.Trim();
@@ -291,10 +316,12 @@ namespace InventoryManagementApp.ViewModels
             var name = CategoryName.Trim();
             if (name.Length == 0) return;
 
+            int? createdCategoryId = null;
             IsBusy = true;
             try
             {
                 var id = await _service.EnsureCategoryAsync(name);
+                createdCategoryId = id;
                 try
                 {
                     await _service.LinkCategoryToInventoryAsync(id, SelectedInventoryId);
@@ -312,8 +339,11 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to add category {CategoryName}", name);
-                StatusMessage = $"Category '{name}' could not be created.";
-                WpfMessageBox.Show($"Category '{name}' could not be created. Please retry or check the application log.", "Create Category", MessageBoxButton.OK, MessageBoxImage.Error);
+                await RefreshCategoryDirectoryAfterMutationFailureAsync(
+                    createdCategoryId,
+                    $"Category rows were refreshed after '{name}' failed to finish creating.",
+                    $"Category rows were cleared after '{name}' failed to finish creating and recovery reload failed.");
+                WpfMessageBox.Show($"Category '{name}' could not be created. Category rows were refreshed from the saved data where possible.", "Create Category", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally { IsBusy = false; }
         }
@@ -338,15 +368,21 @@ namespace InventoryManagementApp.ViewModels
                 }
                 else
                 {
-                    StatusMessage = $"Category #{id} could not be renamed.";
-                    WpfMessageBox.Show("The category was not renamed. Refresh and try again.", "Save Category", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    await RefreshCategoryDirectoryAfterMutationFailureAsync(
+                        id,
+                        $"Category rows were refreshed after category #{id} could not be renamed.",
+                        $"Category rows were cleared after category #{id} could not be renamed and recovery reload failed.");
+                    WpfMessageBox.Show("The category was not renamed. Category rows were refreshed from the saved data where possible.", "Save Category", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to rename category {CategoryId}", id);
-                StatusMessage = $"Category #{id} could not be renamed.";
-                WpfMessageBox.Show("The category could not be saved. Please retry or check the application log.", "Save Category", MessageBoxButton.OK, MessageBoxImage.Error);
+                await RefreshCategoryDirectoryAfterMutationFailureAsync(
+                    id,
+                    $"Category rows were refreshed after category #{id} failed to finish saving.",
+                    $"Category rows were cleared after category #{id} failed to finish saving and recovery reload failed.");
+                WpfMessageBox.Show("The category could not be saved. Category rows were refreshed from the saved data where possible.", "Save Category", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally { IsBusy = false; }
         }
@@ -377,15 +413,21 @@ namespace InventoryManagementApp.ViewModels
                 }
                 else
                 {
-                    StatusMessage = $"Category '{category.Name}' could not be deleted.";
-                    WpfMessageBox.Show("The category was not deleted. Refresh and try again.", "Delete Category", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    await RefreshCategoryDirectoryAfterMutationFailureAsync(
+                        category.CategoryID,
+                        $"Category rows were refreshed after '{category.Name}' could not be deleted.",
+                        $"Category rows were cleared after '{category.Name}' could not be deleted and recovery reload failed.");
+                    WpfMessageBox.Show("The category was not deleted. Category rows were refreshed from the saved data where possible.", "Delete Category", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to delete category {CategoryId}", category.CategoryID);
-                StatusMessage = $"Category '{category.Name}' could not be deleted.";
-                WpfMessageBox.Show("The category could not be deleted. It may still be needed by other records.", "Delete Category", MessageBoxButton.OK, MessageBoxImage.Error);
+                await RefreshCategoryDirectoryAfterMutationFailureAsync(
+                    category.CategoryID,
+                    $"Category rows were refreshed after '{category.Name}' failed to finish deleting.",
+                    $"Category rows were cleared after '{category.Name}' failed to finish deleting and recovery reload failed.");
+                WpfMessageBox.Show("The category could not be deleted. Category rows were refreshed from the saved data where possible.", "Delete Category", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally { IsBusy = false; }
         }
