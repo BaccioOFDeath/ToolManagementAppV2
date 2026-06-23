@@ -249,6 +249,10 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogDebug("Filter application canceled");
             }
+            catch (Exception ex)
+            {
+                await ClearItemsAfterViewOptionFailureAsync("filter", ex).ConfigureAwait(false);
+            }
         }
 
         private void OnSteadyExceeded(object? sender, EventArgs e) =>
@@ -261,20 +265,53 @@ namespace InventoryManagementApp.ViewModels
 
         private async Task ApplySortAsync(SortOption value)
         {
-            var firstPage = await LoadPageAsync(1, _loadCts.Token).ConfigureAwait(false);
-            InvokeOnUiThread(() => Items.ResetWith(firstPage));
-            await _settingsService.SaveSettingAsync("LastSort", $"{value.Field}|{value.Direction}").ConfigureAwait(false);
+            try
+            {
+                var firstPage = await LoadPageAsync(1, _loadCts.Token).ConfigureAwait(false);
+                InvokeOnUiThread(() => Items.ResetWith(firstPage));
+                await _settingsService.SaveSettingAsync("LastSort", $"{value.Field}|{value.Direction}").ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogDebug("Sort application canceled");
+            }
+            catch (Exception ex)
+            {
+                await ClearItemsAfterViewOptionFailureAsync("sort", ex).ConfigureAwait(false);
+            }
         }
 
         partial void OnPageSizeChanged(int value) => _ = ApplyPageSizeAsync(value);
 
         private async Task ApplyPageSizeAsync(int value)
         {
-            Items.PageSize = value;
-            InvokeOnUiThread(() => Items.TrimToWindow(value * 3));
-            var firstPage = await LoadPageAsync(1, _loadCts.Token).ConfigureAwait(false);
-            InvokeOnUiThread(() => Items.ResetWith(firstPage));
-            await _settingsService.SaveSettingAsync("PageSize", value.ToString()).ConfigureAwait(false);
+            try
+            {
+                Items.PageSize = value;
+                InvokeOnUiThread(() => Items.TrimToWindow(value * 3));
+                var firstPage = await LoadPageAsync(1, _loadCts.Token).ConfigureAwait(false);
+                InvokeOnUiThread(() => Items.ResetWith(firstPage));
+                await _settingsService.SaveSettingAsync("PageSize", value.ToString()).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogDebug("Page size application canceled");
+            }
+            catch (Exception ex)
+            {
+                await ClearItemsAfterViewOptionFailureAsync("page size", ex).ConfigureAwait(false);
+            }
+        }
+
+        private async Task ClearItemsAfterViewOptionFailureAsync(string optionName, Exception ex)
+        {
+            _logger.LogError(ex, "Failed to apply incremental item {OptionName}", optionName);
+            await InvokeOnUiThreadAsync(() =>
+            {
+                Items.Reset();
+                SelectedItem = null;
+            }).ConfigureAwait(false);
+            await _dialogService.ShowInfoAsync($"Failed to apply item {optionName}: {ex.Message} Visible item rows were cleared until reload succeeds.", "Error").ConfigureAwait(false);
         }
 
         private async Task<bool> RefreshItemsAfterMutationFailureAsync(int? preferredItemId, CancellationToken cancellationToken)
