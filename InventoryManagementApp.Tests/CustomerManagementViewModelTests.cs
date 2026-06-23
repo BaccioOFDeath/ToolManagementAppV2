@@ -122,26 +122,75 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Customer rows were cleared until reload succeeds.", dialog.LastInfoMessage);
         }
 
+        [Fact]
+        public async Task AddCustomerCommand_WhenMutationThrows_RefreshesRowsAndSelectsSavedCustomer()
+        {
+            var service = new StubCustomerService { ThrowAfterAddCustomer = true };
+            service.Customers.Add(new CustomerModel { CustomerID = 1, Company = "Alpha" });
+            var dialog = new StubDialogService { AddCustomerResult = new CustomerModel { CustomerID = 2, Company = "Beta" } };
+            var vm = new CustomerManagementViewModel(service, dialog);
+            await vm.LoadCustomersAsync();
+
+            await vm.AddCustomerCommand.ExecuteAsync(null);
+
+            Assert.Equal(2, vm.Customers.Count);
+            Assert.Equal(2, vm.SelectedCustomer?.CustomerID);
+            Assert.True(vm.UpdateCustomerCommand.CanExecute(null));
+            Assert.Equal("Add Customer Failed", dialog.LastInfoTitle);
+            Assert.Contains("Customer rows were refreshed from saved data where possible.", dialog.LastInfoMessage);
+        }
+
+        [Fact]
+        public async Task DeleteCustomerCommand_WhenMutationThrows_RefreshesRowsAndClearsDeletedSelection()
+        {
+            var service = new StubCustomerService { ThrowAfterDeleteCustomer = true };
+            service.Customers.Add(new CustomerModel { CustomerID = 1, Company = "Alpha" });
+            service.Customers.Add(new CustomerModel { CustomerID = 2, Company = "Beta" });
+            var dialog = new StubDialogService();
+            var vm = new CustomerManagementViewModel(service, dialog);
+            await vm.LoadCustomersAsync();
+            vm.SelectedCustomer = vm.Customers.First(c => c.CustomerID == 1);
+
+            await vm.DeleteCustomerCommand.ExecuteAsync(null);
+
+            Assert.Single(vm.Customers);
+            Assert.Equal(2, vm.Customers[0].CustomerID);
+            Assert.Null(vm.SelectedCustomer);
+            Assert.False(vm.DeleteCustomerCommand.CanExecute(null));
+            Assert.Equal("Delete Customer Failed", dialog.LastInfoTitle);
+            Assert.Contains("Customer rows were refreshed from saved data where possible.", dialog.LastInfoMessage);
+        }
+
         private sealed class StubCustomerService : ICustomerService
         {
             public List<CustomerModel> Customers { get; } = new();
             public bool ThrowOnGetAllCustomers { get; set; }
+            public bool ThrowAfterAddCustomer { get; set; }
+            public bool ThrowAfterUpdateCustomer { get; set; }
+            public bool ThrowAfterDeleteCustomer { get; set; }
 
             public Task AddCustomerAsync(CustomerModel customer, CancellationToken cancellationToken = default)
             {
                 Customers.Add(customer);
-                return Task.CompletedTask;
+                return ThrowAfterAddCustomer
+                    ? Task.FromException(new System.InvalidOperationException("add handoff failed"))
+                    : Task.CompletedTask;
             }
             public Task UpdateCustomerAsync(CustomerModel customer, CancellationToken cancellationToken = default)
             {
                 var idx = Customers.FindIndex(c => c.CustomerID == customer.CustomerID);
                 if (idx >= 0) Customers[idx] = customer;
-                return Task.CompletedTask;
+
+                return ThrowAfterUpdateCustomer
+                    ? Task.FromException(new System.InvalidOperationException("update handoff failed"))
+                    : Task.CompletedTask;
             }
             public Task DeleteCustomerAsync(int customerID, CancellationToken cancellationToken = default)
             {
                 Customers.RemoveAll(c => c.CustomerID == customerID);
-                return Task.CompletedTask;
+                return ThrowAfterDeleteCustomer
+                    ? Task.FromException(new System.InvalidOperationException("delete handoff failed"))
+                    : Task.CompletedTask;
             }
             public Task<CustomerModel?> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default)
                 => Task.FromResult<CustomerModel?>(Customers.First(c => c.CustomerID == customerID));
